@@ -1,120 +1,138 @@
-import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
+import { LoginFormValues, loginSchema } from '@/schemas/auth-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Head, router } from '@inertiajs/react';
+import { useForm } from 'react-hook-form';
 
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
-    canRegister: boolean;
 }
 
-export default function Login({
-    status,
-    canResetPassword,
-    canRegister,
-}: LoginProps) {
+export default function Login({ status, canResetPassword }: LoginProps) {
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+            remember: true,
+        },
+    });
+
+    const onSubmit = (data: LoginFormValues) => {
+        router.post('/login', data);
+    };
+
     return (
-        <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
-        >
-            <Head title="Log in" />
+        <>
+            <Head title="Login" />
 
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
-                                </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && <Spinner />}
-                                Log in
-                            </Button>
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+                <Card className="w-full max-w-md border-zinc-700 bg-zinc-900/90 shadow-2xl backdrop-blur">
+                    <CardHeader className="space-y-2 text-center">
+                        {/* Logo / Brand */}
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500 font-bold text-zinc-900">
+                            R
                         </div>
 
-                        {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    Sign up
-                                </TextLink>
-                            </div>
-                        )}
-                    </>
-                )}
-            </Form>
+                        <CardTitle className="text-2xl text-white">
+                            Restaurant Admin
+                        </CardTitle>
+                        <CardDescription className="text-zinc-400">
+                            Sign in to manage orders, kitchens & operations
+                        </CardDescription>
+                    </CardHeader>
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
-        </AuthLayout>
+                    <CardContent>
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className="space-y-5"
+                        >
+                            {/* Email */}
+                            <div className="space-y-1">
+                                <Label className="text-zinc-300">Email</Label>
+                                <Input
+                                    {...register('email')}
+                                    placeholder="admin@restaurant.com"
+                                    className="border-zinc-700 bg-zinc-800 text-white"
+                                />
+                                {errors.email && (
+                                    <p className="text-sm text-red-400">
+                                        {errors.email.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Password */}
+                            <div className="space-y-1">
+                                <Label className="text-zinc-300">
+                                    Password
+                                </Label>
+                                <Input
+                                    {...register('password')}
+                                    type="password"
+                                    placeholder="••••••••"
+                                    className="border-zinc-700 bg-zinc-800 text-white"
+                                />
+                                {errors.password && (
+                                    <p className="text-sm text-red-400">
+                                        {errors.password.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Remember */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox {...register('remember')} />
+                                    <span className="text-sm text-zinc-400">
+                                        Remember me
+                                    </span>
+                                </div>
+
+                                {canResetPassword && (
+                                    <a
+                                        href="/forgot-password"
+                                        className="text-sm text-amber-400 hover:underline"
+                                    >
+                                        Forgot password?
+                                    </a>
+                                )}
+                            </div>
+
+                            {/* Submit */}
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full bg-amber-500 font-semibold text-zinc-900 hover:bg-amber-600"
+                            >
+                                {isSubmitting ? <Spinner /> : 'Sign In'}
+                            </Button>
+
+                            {status && (
+                                <p className="text-center text-sm text-green-400">
+                                    {status}
+                                </p>
+                            )}
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </>
     );
 }
