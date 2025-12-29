@@ -1,4 +1,4 @@
-import AppLogoIcon from '@/components/app-logo-icon';
+import { brand } from '@/config/brand';
 import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
@@ -22,8 +22,11 @@ export default function AuthSimpleLayout({
                             href="/"
                             className="flex flex-col items-center gap-2 font-medium"
                         >
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
+                            <div className="mb-1 flex h-40 w-40 items-center justify-center rounded-md">
+                                <img
+                                    src={brand.logoFull}
+                                    className="h-40 w-40"
+                                />
                             </div>
                             <span className="sr-only">{title}</span>
                         </Link>
