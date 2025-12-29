@@ -1,23 +1,15 @@
-'use client';
-
+import InputError from '@/components/input-error';
+import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useForm as useInertiaForm } from '@inertiajs/react';
-import { ArrowRight, ChefHat, LogIn, Utensils } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-
-const loginSchema = z.object({
-    email: z.string().email('Invalid work email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    remember: z.boolean(),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { Spinner } from '@/components/ui/spinner';
+import AuthLayout from '@/layouts/auth-layout';
+import { register } from '@/routes';
+import { store } from '@/routes/login';
+import { request } from '@/routes/password';
+import { Form, Head } from '@inertiajs/react';
 
 interface LoginProps {
     status?: string;
@@ -30,187 +22,99 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: LoginProps) {
-    /**
-     * RHF (Validation)
-     */
-    const form = useForm<LoginFormValues>({
-        resolver: zodResolver(loginSchema),
-        defaultValues: {
-            email: '',
-            password: '',
-            remember: false,
-        },
-    });
-
-    /**
-     * Inertia (Submission)
-     */
-    const inertia = useInertiaForm<LoginFormValues>({
-        email: '',
-        password: '',
-        remember: false,
-    });
-
-    const onSubmit = (values: LoginFormValues) => {
-        inertia.setData('email', values.email);
-        inertia.setData('password', values.password);
-        inertia.setData('remember', values.remember);
-
-        inertia.post(route('login'), {
-            onFinish: () => inertia.setData('password', ''),
-        });
-    };
-
     return (
-        <div className="flex min-h-screen flex-col bg-background lg:flex-row">
-            {/* LEFT PANEL */}
-            <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-black p-16 text-white lg:flex">
-                <div className="absolute inset-0">
-                    <img
-                        src="/high-end-restaurant-interior-dark-moody.jpg"
-                        alt="Restaurant"
-                        className="h-full w-full object-cover opacity-60 grayscale"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                </div>
+        <AuthLayout
+            title="Log in to your account"
+            description="Enter your email and password below to log in"
+        >
+            <Head title="Log in" />
 
-                <div className="relative z-10 flex items-center gap-3">
-                    <div className="rounded-sm bg-white p-2">
-                        <Utensils className="h-6 w-6 text-black" />
-                    </div>
-                    <span className="font-serif text-2xl font-bold">
-                        CulinaSystem
-                    </span>
-                </div>
-
-                <div className="relative z-10 space-y-6">
-                    <h1 className="font-serif text-6xl leading-tight">
-                        Elevating every service instance.
-                    </h1>
-                    <p className="max-w-md text-xl font-light text-neutral-400">
-                        Intelligent hospitality management from prep to plate.
-                    </p>
-
-                    <div className="flex items-center gap-6 pt-8">
-                        <div className="flex -space-x-3">
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-neutral-800"
-                                >
-                                    <ChefHat className="h-5 w-5 text-neutral-400" />
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-sm text-neutral-400 italic">
-                            Trusted by premium establishments.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* RIGHT PANEL */}
-            <div className="flex flex-1 items-center justify-center p-8 lg:p-20">
-                <div className="w-full max-w-[440px] space-y-10">
-                    <div>
-                        <h2 className="font-serif text-4xl font-semibold">
-                            Staff Entrance
-                        </h2>
-                        <p className="mt-2 text-muted-foreground">
-                            Authorized personnel only
-                        </p>
-                    </div>
-
-                    {status && (
-                        <div className="rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-                            {status}
-                        </div>
-                    )}
-
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-8"
-                    >
-                        {/* EMAIL */}
-                        <div>
-                            <Label className="text-xs font-bold uppercase">
-                                Work Email
-                            </Label>
-                            <Input
-                                {...form.register('email')}
-                                className={cn(
-                                    'mt-2 h-12 rounded-none border-b-2 bg-transparent px-0',
-                                    form.formState.errors.email &&
-                                        'border-destructive',
-                                )}
-                            />
-                            {form.formState.errors.email && (
-                                <p className="mt-1 text-xs text-destructive">
-                                    {form.formState.errors.email.message}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* PASSWORD */}
-                        <div>
-                            <div className="flex justify-between">
-                                <Label className="text-xs font-bold uppercase">
-                                    Passcode
-                                </Label>
-                                {canResetPassword && (
-                                    <Link
-                                        href={route('password.request')}
-                                        className="text-xs text-muted-foreground uppercase hover:underline"
-                                    >
-                                        Recover
-                                    </Link>
-                                )}
+            <Form
+                {...store.form()}
+                resetOnSuccess={['password']}
+                className="flex flex-col gap-6"
+            >
+                {({ processing, errors }) => (
+                    <>
+                        <div className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    required
+                                    autoFocus
+                                    tabIndex={1}
+                                    autoComplete="email"
+                                    placeholder="email@example.com"
+                                />
+                                <InputError message={errors.email} />
                             </div>
-                            <Input
-                                type="password"
-                                {...form.register('password')}
-                                className={cn(
-                                    'mt-2 h-12 rounded-none border-b-2 bg-transparent px-0',
-                                    form.formState.errors.password &&
-                                        'border-destructive',
-                                )}
-                            />
-                            {form.formState.errors.password && (
-                                <p className="mt-1 text-xs text-destructive">
-                                    {form.formState.errors.password.message}
-                                </p>
-                            )}
+
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="password">Password</Label>
+                                    {canResetPassword && (
+                                        <TextLink
+                                            href={request()}
+                                            className="ml-auto text-sm"
+                                            tabIndex={5}
+                                        >
+                                            Forgot password?
+                                        </TextLink>
+                                    )}
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    required
+                                    tabIndex={2}
+                                    autoComplete="current-password"
+                                    placeholder="Password"
+                                />
+                                <InputError message={errors.password} />
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                                <Checkbox
+                                    id="remember"
+                                    name="remember"
+                                    tabIndex={3}
+                                />
+                                <Label htmlFor="remember">Remember me</Label>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="mt-4 w-full"
+                                tabIndex={4}
+                                disabled={processing}
+                                data-test="login-button"
+                            >
+                                {processing && <Spinner />}
+                                Log in
+                            </Button>
                         </div>
 
-                        {/* REMEMBER */}
-                        <div className="flex items-center gap-3">
-                            <Checkbox
-                                checked={form.watch('remember')}
-                                onCheckedChange={(v) =>
-                                    form.setValue('remember', Boolean(v))
-                                }
-                            />
-                            <span className="text-sm">Stay signed in</span>
-                        </div>
+                        {canRegister && (
+                            <div className="text-center text-sm text-muted-foreground">
+                                Don't have an account?{' '}
+                                <TextLink href={register()} tabIndex={5}>
+                                    Sign up
+                                </TextLink>
+                            </div>
+                        )}
+                    </>
+                )}
+            </Form>
 
-                        {/* SUBMIT */}
-                        <Button
-                            type="submit"
-                            disabled={inertia.processing}
-                            className="h-14 w-full rounded-none text-lg"
-                        >
-                            {inertia.processing ? (
-                                <LogIn className="h-5 w-5 animate-spin" />
-                            ) : (
-                                <span className="flex items-center gap-2">
-                                    Initiate Session
-                                    <ArrowRight className="h-5 w-5" />
-                                </span>
-                            )}
-                        </Button>
-                    </form>
+            {status && (
+                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                    {status}
                 </div>
-            </div>
-        </div>
+            )}
+        </AuthLayout>
     );
 }
