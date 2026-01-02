@@ -5,11 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
+import { brand } from '@/config/brand';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
-import { ChefHat, Pizza, Utensils } from 'lucide-react';
+import { ChefHat, ShieldCheck, Utensils } from 'lucide-react';
 // import * as z from 'zod';
 
 // const loginSchema = z.object({
@@ -29,7 +29,7 @@ interface LoginProps {
 export default function Login({
     status,
     canResetPassword,
-    canRegister,
+    // canRegister,
 }: LoginProps) {
     return (
         <>
@@ -37,30 +37,26 @@ export default function Login({
 
             <div className="flex min-h-screen">
                 {/* Left Side - Login Form */}
-                <div className="flex flex-1 items-center justify-center bg-[#102F33] p-8">
+                <div className="flex-center flex flex-1 flex-col items-center justify-center bg-[#102F33] p-8">
                     <div className="w-full max-w-md">
                         {/* Logo/Brand */}
-                        <div className="mb-8 flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500">
-                                <Pizza className="h-7 w-7 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-white">
-                                    Restaurant ERP
-                                </h1>
-                                <p className="text-sm text-slate-400">
-                                    Management System
-                                </p>
-                            </div>
+                        <div className="mb-12 flex items-center justify-center">
+                            <img
+                                src={`${brand.logoFull}`}
+                                width="150"
+                                height="150"
+                                alt="Logo"
+                            />
                         </div>
 
                         {/* Welcome Text */}
-                        <div className="mb-8">
+                        <div className="mb-8 text-center">
                             <h2 className="mb-2 text-3xl font-bold text-white">
-                                Welcome back
+                                Welcome back!
                             </h2>
-                            <p className="text-slate-400">
-                                Enter your credentials to access your account
+                            <p className="text-slate-300">
+                                Enter your credentials to access your account on
+                                Baba Restaurant ERP System
                             </p>
                         </div>
 
@@ -82,12 +78,15 @@ export default function Login({
                             {({ processing, errors }) => (
                                 <>
                                     {/* Email Field */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         <Label
                                             htmlFor="email"
-                                            className="text-slate-200"
+                                            className="flex items-center justify-start gap-1 text-base text-slate-200"
                                         >
-                                            Email address
+                                            Email address{' '}
+                                            <span className="pt-2 text-red-600">
+                                                *
+                                            </span>
                                         </Label>
                                         <Input
                                             id="email"
@@ -98,7 +97,7 @@ export default function Login({
                                             tabIndex={1}
                                             autoComplete="email"
                                             placeholder="you@restaurant.com"
-                                            className="border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-orange-500 focus:ring-orange-500/20"
+                                            className="mt-2 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-[#CC924B] focus:ring-[#CC924B]/20"
                                         />
                                         <InputError
                                             message={errors.email}
@@ -111,14 +110,17 @@ export default function Login({
                                         <div className="flex items-center justify-between">
                                             <Label
                                                 htmlFor="password"
-                                                className="text-slate-200"
+                                                className="flex items-center justify-start gap-1 text-base text-slate-200"
                                             >
                                                 Password
+                                                <span className="pt-2 text-red-600">
+                                                    *
+                                                </span>
                                             </Label>
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
-                                                    className="text-sm text-orange-400 hover:text-orange-300"
+                                                    className="text-sm text-[#CC924B] hover:text-orange-300"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
@@ -133,7 +135,7 @@ export default function Login({
                                             tabIndex={2}
                                             autoComplete="current-password"
                                             placeholder="Enter your password"
-                                            className="border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-orange-500 focus:ring-orange-500/20"
+                                            className="mt-2 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-[#CC924B] focus:ring-[#CC924B]/20"
                                         />
                                         <InputError
                                             message={errors.password}
@@ -147,7 +149,7 @@ export default function Login({
                                             id="remember"
                                             name="remember"
                                             tabIndex={3}
-                                            className="border-slate-600 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500"
+                                            className="border-slate-600 data-[state=checked]:border-[#CC924B] data-[state=checked]:bg-[#CC924B]"
                                         />
                                         <Label
                                             htmlFor="remember"
@@ -160,7 +162,7 @@ export default function Login({
                                     {/* Submit Button */}
                                     <Button
                                         type="submit"
-                                        className="w-full rounded-lg bg-orange-500 py-6 font-semibold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600"
+                                        className="w-full cursor-pointer rounded-lg bg-[#CC924B] py-6 font-semibold text-white shadow-lg shadow-[#CC924B]/20 transition-all duration-300 hover:bg-[#b07b3b]"
                                         tabIndex={4}
                                         disabled={processing}
                                         data-test="login-button"
@@ -170,27 +172,14 @@ export default function Login({
                                         )}
                                         Sign in to your account
                                     </Button>
-
-                                    {/* Register Link */}
-                                    {canRegister && (
-                                        <div className="text-center text-sm text-slate-400">
-                                            Don't have an account?{' '}
-                                            <TextLink
-                                                href={register()}
-                                                tabIndex={5}
-                                                className="font-medium text-orange-400 hover:text-orange-300"
-                                            >
-                                                Create an account
-                                            </TextLink>
-                                        </div>
-                                    )}
                                 </>
                             )}
                         </Form>
 
                         {/* Footer */}
                         <div className="mt-8 border-t border-slate-800 pt-6">
-                            <p className="text-center text-xs text-slate-500">
+                            <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-400">
+                                <ShieldCheck className="h-5 w-5" />
                                 Secured by industry-standard encryption
                             </p>
                         </div>
@@ -228,7 +217,7 @@ export default function Login({
                             {/* Feature Cards Grid */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#CC924B]">
                                         <ChefHat className="h-6 w-6 text-white" />
                                     </div>
                                     <h4 className="mb-1 font-semibold text-slate-800">
@@ -240,7 +229,7 @@ export default function Login({
                                 </div>
 
                                 <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#CC924B]">
                                         <Utensils className="h-6 w-6 text-white" />
                                     </div>
                                     <h4 className="mb-1 font-semibold text-slate-800">
