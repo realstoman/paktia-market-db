@@ -37,7 +37,7 @@ export default function Login({
 
             <div className="flex min-h-screen">
                 {/* Left Side - Login Form */}
-                <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+                <div className="flex flex-1 items-center justify-center bg-[#102F33] p-8">
                     <div className="w-full max-w-md">
                         {/* Logo/Brand */}
                         <div className="mb-8 flex items-center gap-3">
@@ -198,10 +198,10 @@ export default function Login({
                 </div>
 
                 {/* Right Side - Promotional Content */}
-                <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 p-12 lg:flex">
+                <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-white p-12 lg:flex">
                     {/* Decorative Background Elements */}
-                    <div className="absolute top-20 right-20 h-72 w-72 rounded-full bg-orange-200/30 blur-3xl"></div>
-                    <div className="absolute bottom-20 left-20 h-96 w-96 rounded-full bg-amber-200/30 blur-3xl"></div>
+                    {/* <div className="absolute top-20 right-20 h-72 w-72 rounded-full "></div>
+                    <div className="absolute bottom-20 left-20 h-96 w-96 rounded-full bg-amber-200/30 blur-3xl"></div> */}
 
                     <div className="relative z-10 max-w-lg">
                         {/* Feature Cards */}
@@ -227,7 +227,7 @@ export default function Login({
 
                             {/* Feature Cards Grid */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="rounded-xl border border-orange-100 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
+                                <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
                                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500">
                                         <ChefHat className="h-6 w-6 text-white" />
                                     </div>
@@ -239,7 +239,7 @@ export default function Login({
                                     </p>
                                 </div>
 
-                                <div className="rounded-xl border border-orange-100 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
+                                <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
                                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500">
                                         <Utensils className="h-6 w-6 text-white" />
                                     </div>
@@ -254,7 +254,7 @@ export default function Login({
                         </div>
 
                         {/* Testimonial Section */}
-                        <div className="rounded-xl border border-orange-100 bg-white/60 p-6 shadow-lg backdrop-blur-sm">
+                        <div className="rounded-xl border border-orange-100 bg-white/60 p-6">
                             <div className="flex items-start gap-4">
                                 <img
                                     src="https://images.pexels.com/photos/3814446/pexels-photo-3814446.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop"
