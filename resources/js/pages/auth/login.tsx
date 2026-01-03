@@ -1,7 +1,6 @@
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -37,151 +36,151 @@ export default function Login({
 
             <div className="flex min-h-screen">
                 {/* Left Side - Login Form */}
-                <div className="flex-center flex flex-1 flex-col items-center justify-center bg-brand-primary p-8">
-                    <div className="w-full max-w-md">
+                <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
+                    <div className="flex h-full w-full max-w-lg flex-col items-start justify-between">
                         {/* Brand Logo */}
                         <div className="mb-12 flex items-center justify-center">
                             <img
                                 src={`${brand.logoFull}`}
-                                width="150"
-                                height="150"
+                                width="120"
+                                height="120"
                                 alt="Logo"
                             />
                         </div>
 
-                        {/* Welcome Text */}
-                        <div className="mb-8 text-center">
-                            <h2 className="mb-2 text-3xl font-bold text-white">
-                                Welcome back!
-                            </h2>
-                            <p className="text-slate-300">
-                                Enter your credentials to access your account on
-                                Baba Restaurant ERP System
-                            </p>
-                        </div>
-
-                        {/* Status Message */}
-                        {status && (
-                            <div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
-                                <p className="text-sm text-green-400">
-                                    {status}
-                                </p>
+                        <div className="bottom-0 w-full">
+                            {/* Welcome Text */}
+                            <div className="mb-8">
+                                <h2 className="mb-2 text-4xl font-bold text-white">
+                                    Welcome back!
+                                </h2>
                             </div>
-                        )}
 
-                        {/* Login Form */}
-                        <Form
-                            {...store.form()}
-                            resetOnSuccess={['password']}
-                            className="space-y-6"
-                        >
-                            {({ processing, errors }) => (
-                                <>
-                                    {/* Email Field */}
-                                    <div className="space-y-1">
-                                        <Label
-                                            htmlFor="email"
-                                            className="flex items-center justify-start gap-1 text-base text-slate-200"
-                                        >
-                                            Email address{' '}
-                                            <span className="pt-2 text-red-600">
-                                                *
-                                            </span>
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            name="email"
-                                            required
-                                            autoFocus
-                                            tabIndex={1}
-                                            autoComplete="email"
-                                            placeholder="you@restaurant.com"
-                                            className="h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
-                                        />
-                                        <InputError
-                                            message={errors.email}
-                                            className="text-red-400"
-                                        />
-                                    </div>
+                            {/* Status Message */}
+                            {status && (
+                                <div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+                                    <p className="text-sm text-green-400">
+                                        {status}
+                                    </p>
+                                </div>
+                            )}
 
-                                    {/* Password Field */}
-                                    <div className="space-y-1">
-                                        <div className="flex items-center justify-between">
+                            {/* Login Form */}
+                            <Form
+                                {...store.form()}
+                                resetOnSuccess={['password']}
+                                className="space-y-6"
+                            >
+                                {({ processing, errors }) => (
+                                    <>
+                                        {/* Email Field */}
+                                        <div className="space-y-1">
                                             <Label
-                                                htmlFor="password"
+                                                htmlFor="email"
                                                 className="flex items-center justify-start gap-1 text-base text-slate-200"
                                             >
-                                                Password
+                                                Email address{' '}
                                                 <span className="pt-2 text-red-600">
                                                     *
                                                 </span>
                                             </Label>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                name="email"
+                                                required
+                                                autoFocus
+                                                tabIndex={1}
+                                                autoComplete="email"
+                                                placeholder="you@restaurant.com"
+                                                className="h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
+                                            />
+                                            <InputError
+                                                message={errors.email}
+                                                className="text-red-400"
+                                            />
+                                        </div>
+
+                                        {/* Password Field */}
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <Label
+                                                    htmlFor="password"
+                                                    className="flex items-center justify-start gap-1 text-base text-slate-200"
+                                                >
+                                                    Password
+                                                    <span className="pt-2 text-red-600">
+                                                        *
+                                                    </span>
+                                                </Label>
+                                            </div>
+                                            <Input
+                                                id="password"
+                                                type="password"
+                                                name="password"
+                                                required
+                                                tabIndex={2}
+                                                autoComplete="current-password"
+                                                placeholder="Enter your password"
+                                                className="mt-1 h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
+                                            />
+                                            <InputError
+                                                message={errors.password}
+                                                className="text-red-400"
+                                            />
+                                        </div>
+
+                                        {/* Remember Me */}
+                                        {/* <div className="flex items-center space-x-3">
+                                            <Checkbox
+                                                id="remember"
+                                                name="remember"
+                                                tabIndex={3}
+                                                className="border-slate-600 data-[state=checked]:border-brand-secondary data-[state=checked]:bg-brand-secondary"
+                                            />
+                                            <Label
+                                                htmlFor="remember"
+                                                className="cursor-pointer text-sm text-slate-300"
+                                            >
+                                                Keep me logged in
+                                            </Label>
+                                        </div> */}
+
+                                        {/* Submit Button */}
+                                        <Button
+                                            type="submit"
+                                            className="mt-2 w-full cursor-pointer rounded-lg bg-brand-secondary py-6 text-lg font-semibold text-white transition-all duration-300 hover:bg-[#b07b3b]"
+                                            tabIndex={4}
+                                            disabled={processing}
+                                            data-test="login-button"
+                                        >
+                                            {processing && (
+                                                <Spinner className="mr-2" />
+                                            )}
+                                            Login
+                                        </Button>
+                                        <div className="text-center">
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
-                                                    className="text-sm text-brand-secondary hover:text-orange-300"
+                                                    className="text-center text-sm text-brand-secondary hover:text-orange-300"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
                                                 </TextLink>
                                             )}
                                         </div>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            name="password"
-                                            required
-                                            tabIndex={2}
-                                            autoComplete="current-password"
-                                            placeholder="Enter your password"
-                                            className="mt-1 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
-                                        />
-                                        <InputError
-                                            message={errors.password}
-                                            className="text-red-400"
-                                        />
-                                    </div>
+                                    </>
+                                )}
+                            </Form>
 
-                                    {/* Remember Me */}
-                                    <div className="flex items-center space-x-3">
-                                        <Checkbox
-                                            id="remember"
-                                            name="remember"
-                                            tabIndex={3}
-                                            className="border-slate-600 data-[state=checked]:border-brand-secondary data-[state=checked]:bg-brand-secondary"
-                                        />
-                                        <Label
-                                            htmlFor="remember"
-                                            className="cursor-pointer text-sm text-slate-300"
-                                        >
-                                            Keep me logged in
-                                        </Label>
-                                    </div>
-
-                                    {/* Submit Button */}
-                                    <Button
-                                        type="submit"
-                                        className="w-full cursor-pointer rounded-lg bg-brand-secondary py-6 font-semibold text-white transition-all duration-300 hover:bg-[#b07b3b]"
-                                        tabIndex={4}
-                                        disabled={processing}
-                                        data-test="login-button"
-                                    >
-                                        {processing && (
-                                            <Spinner className="mr-2" />
-                                        )}
-                                        Sign in to your account
-                                    </Button>
-                                </>
-                            )}
-                        </Form>
-
-                        {/* Footer */}
-                        <div className="mt-8 border-t border-slate-800 pt-6">
-                            <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-400">
-                                <ShieldCheck className="h-5 w-5" />
-                                Secured by industry-standard encryption
-                            </p>
+                            {/* Footer */}
+                            <div className="mt-8 border-t border-slate-800 pt-6">
+                                <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-400">
+                                    <ShieldCheck className="h-5 w-5" />
+                                    Secured by industry-standard encryption
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -189,9 +188,6 @@ export default function Login({
                 {/* Right Side - Promotional Content */}
                 <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-white p-12 lg:flex">
                     {/* Decorative Background Elements */}
-                    {/* <div className="absolute top-20 right-20 h-72 w-72 rounded-full "></div>
-                    <div className="absolute bottom-20 left-20 h-96 w-96 rounded-full bg-amber-200/30 blur-3xl"></div> */}
-
                     <div className="relative z-10 max-w-lg">
                         {/* Feature Cards */}
                         <div className="mb-12 space-y-6">
