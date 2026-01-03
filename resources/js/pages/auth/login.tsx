@@ -37,9 +37,9 @@ export default function Login({
 
             <div className="flex min-h-screen">
                 {/* Left Side - Login Form */}
-                <div className="flex-center flex flex-1 flex-col items-center justify-center bg-[#102F33] p-8">
+                <div className="flex-center flex flex-1 flex-col items-center justify-center bg-brand-primary p-8">
                     <div className="w-full max-w-md">
-                        {/* Logo/Brand */}
+                        {/* Brand Logo */}
                         <div className="mb-12 flex items-center justify-center">
                             <img
                                 src={`${brand.logoFull}`}
@@ -78,7 +78,7 @@ export default function Login({
                             {({ processing, errors }) => (
                                 <>
                                     {/* Email Field */}
-                                    <div className="space-y-3">
+                                    <div className="space-y-1">
                                         <Label
                                             htmlFor="email"
                                             className="flex items-center justify-start gap-1 text-base text-slate-200"
@@ -97,7 +97,7 @@ export default function Login({
                                             tabIndex={1}
                                             autoComplete="email"
                                             placeholder="you@restaurant.com"
-                                            className="mt-2 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-[#CC924B] focus:ring-[#CC924B]/20"
+                                            className="h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
                                         />
                                         <InputError
                                             message={errors.email}
@@ -106,7 +106,7 @@ export default function Login({
                                     </div>
 
                                     {/* Password Field */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1">
                                         <div className="flex items-center justify-between">
                                             <Label
                                                 htmlFor="password"
@@ -120,7 +120,7 @@ export default function Login({
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
-                                                    className="text-sm text-[#CC924B] hover:text-orange-300"
+                                                    className="text-sm text-brand-secondary hover:text-orange-300"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
@@ -135,7 +135,7 @@ export default function Login({
                                             tabIndex={2}
                                             autoComplete="current-password"
                                             placeholder="Enter your password"
-                                            className="mt-2 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-[#CC924B] focus:ring-[#CC924B]/20"
+                                            className="mt-1 h-10 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
                                         />
                                         <InputError
                                             message={errors.password}
@@ -149,7 +149,7 @@ export default function Login({
                                             id="remember"
                                             name="remember"
                                             tabIndex={3}
-                                            className="border-slate-600 data-[state=checked]:border-[#CC924B] data-[state=checked]:bg-[#CC924B]"
+                                            className="border-slate-600 data-[state=checked]:border-brand-secondary data-[state=checked]:bg-brand-secondary"
                                         />
                                         <Label
                                             htmlFor="remember"
@@ -162,7 +162,7 @@ export default function Login({
                                     {/* Submit Button */}
                                     <Button
                                         type="submit"
-                                        className="w-full cursor-pointer rounded-lg bg-[#CC924B] py-6 font-semibold text-white shadow-lg shadow-[#CC924B]/20 transition-all duration-300 hover:bg-[#b07b3b]"
+                                        className="w-full cursor-pointer rounded-lg bg-brand-secondary py-6 font-semibold text-white transition-all duration-300 hover:bg-[#b07b3b]"
                                         tabIndex={4}
                                         disabled={processing}
                                         data-test="login-button"
@@ -217,7 +217,7 @@ export default function Login({
                             {/* Feature Cards Grid */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#CC924B]">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
                                         <ChefHat className="h-6 w-6 text-white" />
                                     </div>
                                     <h4 className="mb-1 font-semibold text-slate-800">
@@ -229,7 +229,7 @@ export default function Login({
                                 </div>
 
                                 <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
-                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#CC924B]">
+                                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
                                         <Utensils className="h-6 w-6 text-white" />
                                     </div>
                                     <h4 className="mb-1 font-semibold text-slate-800">

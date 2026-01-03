@@ -12,9 +12,8 @@ const config: Config = {
             colors: {
                 /* Brand colors */
                 brand: {
-                    primary: '#8B1E3F',
-                    secondary: '#F2C94C',
-                    accent: '#1F2937',
+                    primary: '#102F33',
+                    secondary: '#CC924B',
                 },
 
                 /* ShadCN tokens */
