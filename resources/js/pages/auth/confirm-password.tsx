@@ -25,12 +25,16 @@ export default function ConfirmPassword() {
                                     id="password"
                                     type="password"
                                     name="password"
-                                    placeholder="Password"
                                     autoComplete="current-password"
                                     autoFocus
+                                    placeholder="you@babarestaurant.com"
+                                    className="h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
                                 />
 
-                                <InputError message={errors.password} />
+                                <InputError
+                                    message={errors.email}
+                                    className="text-red-400"
+                                />
                             </div>
 
                             <div className="flex items-center">
