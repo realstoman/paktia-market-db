@@ -10,13 +10,18 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                /* Brand colors */
+                /** ============================
+                 * BRAND COLORS
+                 * ============================ */
                 brand: {
                     primary: '#102F33',
                     secondary: '#CC924B',
                 },
 
-                /* ShadCN tokens */
+                /** ============================
+                 * SEMANTIC SYSTEM COLORS
+                 * (Used by ShadCN)
+                 * ============================ */
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
 
@@ -48,6 +53,9 @@ const config: Config = {
                 ring: 'hsl(var(--ring))',
             },
 
+            /** ============================
+             * BRAND FONTS
+             * ============================ */
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],
                 serif: ['Playfair Display', 'serif'],
