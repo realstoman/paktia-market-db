@@ -13,15 +13,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            CountrySeeder::class,
+            ProvinceSeeder::class,
 
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ]
-        );
+            RolePermissionSeeder::class,
+            UserSeeder::class,
+
+            BranchSeeder::class,
+            KitchenSeeder::class,
+
+            ProductCategorySeeder::class,
+            ProductSizeSeeder::class,
+            ProductSeeder::class,
+
+            InventorySeeder::class,
+        ]);
     }
+
+    // public function run(): void
+    // {
+    //     // User::factory(10)->create();
+
+    //     User::firstOrCreate(
+    //         ['email' => 'test@example.com'],
+    //         [
+    //             'name' => 'Test User',
+    //             'password' => 'password',
+    //             'email_verified_at' => now(),
+    //         ]
+    //     );
+    // }
 }

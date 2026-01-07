@@ -12,14 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('countries', function (Blueprint $table) {
-            Schema::create('countries', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('iso_code', 2)->unique();
-                $table->string('currency_code', 3);
-                $table->string('currency_symbol')->nullable();
-                $table->timestamps();
-            });
+            $table->id();
+            $table->string('name');
+            $table->string('code', 2)->unique();
+            $table->string('currency_code', 3);
+            $table->string('currency_symbol')->nullable();
+            $table->timestamps();
         });
     }
 

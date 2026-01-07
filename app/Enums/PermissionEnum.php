@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Enums;
+
+enum PermissionEnum: string
+{
+    // Orders
+    case ORDERS_VIEW = 'orders.view';
+    case ORDERS_CREATE = 'orders.create';
+    case ORDERS_UPDATE = 'orders.update';
+    case ORDERS_CANCEL = 'orders.cancel';
+
+    // Products
+    case PRODUCTS_VIEW = 'products.view';
+    case PRODUCTS_CREATE = 'products.create';
+    case PRODUCTS_UPDATE = 'products.update';
+    case PRODUCTS_DELETE = 'products.delete';
+
+    // Inventory
+    case INVENTORY_VIEW = 'inventory.view';
+    case INVENTORY_ADJUST = 'inventory.adjust';
+
+    // Employees
+    case EMPLOYEES_VIEW = 'employees.view';
+    case EMPLOYEES_CREATE = 'employees.create';
+    case EMPLOYEES_UPDATE = 'employees.update';
+
+    // Finance
+    case PAYMENTS_VIEW = 'payments.view';
+    case PAYMENTS_CREATE = 'payments.create';
+    case EXPENSES_VIEW = 'expenses.view';
+    case EXPENSES_CREATE = 'expenses.create';
+
+    // Admin
+    case ROLES_MANAGE = 'roles.manage';
+    case PERMISSIONS_MANAGE = 'permissions.manage';
+}
