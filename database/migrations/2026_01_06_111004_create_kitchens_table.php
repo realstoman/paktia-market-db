@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
 
-            $table->string('name'); // Main Kitchen, Drinks Kitchen
-            $table->string('type')->nullable(); // grill, bakery, drinks
+            $table->string('name');
+            $table->string('type')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();

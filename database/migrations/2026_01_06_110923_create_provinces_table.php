@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::create('provinces', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('country_id')->constrained()->cascadeOnDelete();
-                $table->string('name'); // Kabul, Herat, Dubai
+                $table->string('name');
                 $table->timestamps();
 
                 $table->unique(['country_id', 'name']);

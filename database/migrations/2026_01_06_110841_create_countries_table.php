@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('countries', function (Blueprint $table) {
             Schema::create('countries', function (Blueprint $table) {
                 $table->id();
-                $table->string('name'); // Afghanistan, UAE
-                $table->string('iso_code', 2)->unique(); // AF, AE
-                $table->string('currency_code', 3); // AFN, AED, USD
-                $table->string('currency_symbol')->nullable(); // ؋, د.إ
+                $table->string('name');
+                $table->string('iso_code', 2)->unique();
+                $table->string('currency_code', 3);
+                $table->string('currency_symbol')->nullable();
                 $table->timestamps();
             });
         });

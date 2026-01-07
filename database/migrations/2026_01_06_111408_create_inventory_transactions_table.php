@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('inventory_item_id')->constrained()->cascadeOnDelete();
 
-            $table->string('action'); // add, use, damage
+            $table->string('action');
             $table->decimal('quantity', 12, 2);
             $table->text('note')->nullable();
 

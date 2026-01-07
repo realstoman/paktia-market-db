@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->decimal('exchange_rate', 10, 4)->nullable();
 
-            $table->string('method'); // cash, card
+            $table->string('method');
             $table->timestamps();
         });
     }

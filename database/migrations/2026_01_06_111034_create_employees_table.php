@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('description')->nullable();
 
             $table->string('profile_picture')->nullable();
-            $table->json('attachments')->nullable(); // NID, docs
+            $table->json('attachments')->nullable();
 
             $table->decimal('salary', 10, 2)->nullable();
             $table->boolean('is_active')->default(true);

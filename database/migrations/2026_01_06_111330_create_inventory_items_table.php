@@ -17,8 +17,8 @@ return new class extends Migration
                 $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
 
                 $table->string('name');
-                $table->string('type'); // consumable | fixed
-                $table->string('unit')->nullable(); // kg, liter, piece
+                $table->string('type');
+                $table->string('unit')->nullable();
 
                 $table->decimal('quantity', 12, 2)->default(0);
                 $table->timestamps();

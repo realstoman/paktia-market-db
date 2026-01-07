@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
-            $table->string('order_type'); // dine-in, takeaway, delivery
+            $table->string('order_type');
 
             $table->string('base_currency', 3)->default('AFN');
             $table->decimal('exchange_rate', 10, 4)->nullable();

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
 
             $table->string('title');
-            $table->string('expense_type'); // daily, monthly
+            $table->string('expense_type');
             $table->decimal('amount', 12, 2);
 
             $table->json('attachments')->nullable();
