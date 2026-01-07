@@ -6,8 +6,7 @@ enum OrderStatus: string
 {
     case PENDING = 'pending';
     case CONFIRMED = 'confirmed';
-    case IN_PROGRESS = 'in_progress';
-    case PARTIALLY_READY = 'partially_ready';
+    case PREPARING = 'preparing';
     case READY = 'ready';
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
