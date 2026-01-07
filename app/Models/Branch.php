@@ -6,5 +6,25 @@ use Illuminate\Database\Eloquent\Model;
 
 class Branch extends Model
 {
-    //
+    protected $fillable = ['name', 'country_id', 'province_id', 'description'];
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function kitchens()
+    {
+        return $this->hasMany(Kitchen::class);
+    }
+
+    public function inventoryItems()
+    {
+        return $this->hasMany(InventoryItem::class);
+    }
 }
