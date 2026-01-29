@@ -4,6 +4,17 @@ namespace App\Enums;
 
 enum PermissionEnum: string
 {
+    // Users
+    case USER_VIEW = 'user.view';
+    case USER_CREATE = 'user.create';
+    case USER_UPDATE = 'user.update';
+    case USER_BLOCK = 'user.block';
+
+    // Roles & Permissions
+    case ROLE_VIEW = 'role.view';
+    case ROLE_CREATE = 'role.create';
+    case ROLE_ASSIGN = 'role.assign';
+
     // Orders
     case ORDERS_VIEW = 'orders.view';
     case ORDERS_CREATE = 'orders.create';
