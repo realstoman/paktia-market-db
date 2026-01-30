@@ -6,21 +6,27 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Enums\PermissionEnum;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
-    public function run(): void
+    public function run()
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]
-            ->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (PermissionEnum::cases() as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission->value,
-            ]);
+        foreach (PermissionEnum::cases() as $p) {
+            Permission::firstOrCreate(['name' => $p->value]);
         }
 
-        $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
-        $superAdmin->syncPermissions(Permission::all());
+        $roles = [
+            'super-admin' => Permission::all(),
+            'manager' => ['user.view', 'product.view'],
+        ];
+
+        foreach ($roles as $name => $permissions) {
+            Role::firstOrCreate(['name' => $name])
+                ->syncPermissions($permissions);
+        }
     }
 }
+
