@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Enums\PermissionEnum;
 use App\Models\Country;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class UserController extends Controller
 
         return Inertia::render('admin/users/index', [
             'users' => User::with(['roles', 'country', 'province', 'branch'])->paginate(),
-            'canCreate' => Gate::allows('USER_CREATE'),
+            'canCreate' => auth()->user()->can(PermissionEnum::USER_CREATE->value),
         ]);
     }
 

@@ -1,6 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
-import { router } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import { dashboard } from '@/routes';
+import users from '@/routes/users';
+import { BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/react';
 import { columns } from './columns';
 
 interface Role {
@@ -18,20 +22,34 @@ type UsersIndexProps = {
     canCreate: boolean;
 };
 
-export default function UsersIndex({ users, canCreate }: UsersIndexProps) {
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Dashboard',
+        href: dashboard().url,
+    },
+    {
+        title: 'Users',
+        href: users.index().url,
+    },
+];
+
+export default function index({ users, canCreate }: UsersIndexProps) {
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between">
-                <h1 className="text-xl font-semibold">Users</h1>
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Users" />
+            <div className="space-y-4 p-8">
+                <div className="flex justify-between">
+                    <h1 className="text-xl font-semibold">System Users</h1>
 
-                {canCreate && (
-                    <Button onClick={() => router.visit('/users/create')}>
-                        Create User
-                    </Button>
-                )}
+                    {canCreate && (
+                        <Button onClick={() => router.visit('/users/create')}>
+                            Create User
+                        </Button>
+                    )}
+                </div>
+
+                <DataTable columns={columns} data={users} />
             </div>
-
-            <DataTable columns={columns} data={users} />
-        </div>
+        </AppLayout>
     );
 }

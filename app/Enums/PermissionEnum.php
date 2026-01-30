@@ -15,6 +15,12 @@ enum PermissionEnum: string
     case ROLE_CREATE = 'role.create';
     case ROLE_ASSIGN = 'role.assign';
 
+    // Branches
+    case BRANCH_VIEW = 'branch.view';
+    case BRANCH_CREATE = 'branch.create';
+    case BRANCH_UPDATE = 'branch.update';
+    case BRANCH_DELETE = 'branch.delete';
+
     // Orders
     case ORDERS_VIEW = 'orders.view';
     case ORDERS_CREATE = 'orders.create';

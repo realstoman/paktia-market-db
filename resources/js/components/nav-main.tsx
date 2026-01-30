@@ -11,11 +11,19 @@ import { Link, usePage } from '@inertiajs/react';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
+    const { auth } = page.props;
+    const permissions = auth.permissions || [];
+
+    const filteredItems = items.filter((item) => {
+        if (!item.can) return true;
+        return permissions.includes(item.can);
+    });
+
     return (
         <SidebarGroup className="px-2 py-2">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
+                {filteredItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
