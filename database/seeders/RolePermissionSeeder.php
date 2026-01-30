@@ -20,7 +20,6 @@ class RolePermissionSeeder extends Seeder
 
         $roles = [
             'super-admin' => Permission::all(),
-            'manager' => ['user.view', 'product.view'],
         ];
 
         foreach ($roles as $name => $permissions) {

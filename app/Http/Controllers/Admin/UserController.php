@@ -8,14 +8,21 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Gate;
 use UserService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class UserController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
+        $this->authorize('viewAny', User::class);
+
         return Inertia::render('admin/users/index', [
             'users' => User::with(['roles', 'country', 'province', 'branch'])->paginate(),
+            'canCreate' => Gate::allows('USER_CREATE'),
         ]);
     }
 

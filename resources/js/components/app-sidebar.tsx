@@ -34,13 +34,13 @@ const mainNavItems: NavItem[] = [
         title: 'Users',
         href: '/users',
         icon: Users,
-        // can: 'VIEW-USER',
+        can: 'USER_VIEW',
     },
     {
         title: 'Roles',
         href: '/roles',
         icon: Shield,
-        // can: 'VIEW-ROLE',
+        can: 'ROLE_VIEW',
     },
     {
         title: 'Countries',
@@ -56,7 +56,7 @@ const mainNavItems: NavItem[] = [
         title: 'Branches',
         href: '/branches',
         icon: Building2,
-        // can: 'VIEW-BRANCH',
+        can: 'BRANCH_VIEW',
     },
 ];
 
