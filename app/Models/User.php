@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,24 +10,27 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Mass assignable attributes
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+
+        // Organization scope
+        'country_id',
+        'province_id',
+        'branch_id',
+
+        // Status
+        'is_active',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * Hidden attributes
      */
     protected $hidden = [
         'password',
@@ -38,9 +40,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attribute casting
      */
     protected function casts(): array
     {
@@ -48,6 +48,52 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'is_active' => 'boolean',
+            'blocked_at' => 'datetime',
         ];
+    }
+
+    /* ============================
+    | Relationships
+    |============================ */
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    /* ============================
+    | User State Helpers
+    |============================ */
+
+    public function block(): void
+    {
+        $this->update([
+            'is_active' => false,
+            'blocked_at' => now(),
+        ]);
+    }
+
+    public function unblock(): void
+    {
+        $this->update([
+            'is_active' => true,
+            'blocked_at' => null,
+        ]);
+    }
+
+    public function isBlocked(): bool
+    {
+        return ! $this->is_active;
     }
 }
