@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->foreignId('country_id')->nullable()->constrained();
-            $table->foreignId('province_id')->nullable()->constrained();
-            $table->foreignId('branch_id')->nullable()->constrained();
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->unsignedBigInteger('province_id')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamp('blocked_at')->nullable();
             $table->rememberToken();
