@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -114,20 +115,33 @@ export default function Login({
                             </div>
 
                             {/* Remember Me */}
-                            {/* <div className="flex items-center space-x-3">
-                                            <Checkbox
-                                                id="remember"
-                                                name="remember"
-                                                tabIndex={3}
-                                                className="border-slate-600 data-[state=checked]:border-brand-secondary data-[state=checked]:bg-brand-secondary"
-                                            />
-                                            <Label
-                                                htmlFor="remember"
-                                                className="cursor-pointer text-sm text-slate-300"
-                                            >
-                                                Keep me logged in
-                                            </Label>
-                                        </div> */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <Checkbox
+                                        id="remember"
+                                        name="remember"
+                                        tabIndex={3}
+                                        className="border-slate-600 data-[state=checked]:border-brand-secondary data-[state=checked]:bg-brand-secondary"
+                                    />
+                                    <Label
+                                        htmlFor="remember"
+                                        className="cursor-pointer text-sm text-slate-300"
+                                    >
+                                        Keep me logged in
+                                    </Label>
+                                </div>
+                                <div className="text-center">
+                                    {canResetPassword && (
+                                        <TextLink
+                                            href={request()}
+                                            className="text-center text-sm text-brand-secondary hover:text-orange-300"
+                                            tabIndex={5}
+                                        >
+                                            Forgot password?
+                                        </TextLink>
+                                    )}
+                                </div>
+                            </div>
 
                             {/* Submit Button */}
                             <Button
@@ -140,17 +154,6 @@ export default function Login({
                                 {processing && <Spinner className="mr-2" />}
                                 Login
                             </Button>
-                            <div className="text-center">
-                                {canResetPassword && (
-                                    <TextLink
-                                        href={request()}
-                                        className="text-center text-sm text-brand-secondary hover:text-orange-300"
-                                        tabIndex={5}
-                                    >
-                                        Forgot password?
-                                    </TextLink>
-                                )}
-                            </div>
                         </>
                     )}
                 </Form>

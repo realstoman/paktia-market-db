@@ -1,5 +1,5 @@
 import { brand } from '@/config/brand';
-import { ChefHat, ShieldCheck, Utensils } from 'lucide-react';
+import { ChefHat, Copyright, ShieldCheck, Utensils } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -15,9 +15,9 @@ export default function AuthLayout({
         <div className="flex min-h-screen w-full">
             {/* Left Side - Auth Forms */}
             <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
-                <div className="flex h-full w-full max-w-lg flex-col items-start justify-between">
+                <div className="flex h-full max-h-screen w-full max-w-lg flex-col items-start justify-between">
                     {/* Brand Logo */}
-                    <div className="mb-12 flex items-center justify-center">
+                    <div className="mb-0 flex items-center justify-center sm:mb-12">
                         <img
                             src={`${brand.logoFull}`}
                             width="120"
@@ -31,9 +31,20 @@ export default function AuthLayout({
                         {children}
 
                         {/* Footer - Security Note */}
-                        <div className="mt-8 border-t border-slate-800 pt-6">
-                            <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-400">
-                                <ShieldCheck className="h-5 w-5" />
+                        <div className="mt-8 border-t border-slate-800 pt-6 text-left">
+                            <p className="justify-left flex items-center gap-1 text-left text-sm text-slate-400">
+                                <Copyright className="h-4 w-4" /> Copyright{' '}
+                                {new Date().getFullYear()}
+                                <a
+                                    href="#"
+                                    className="text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
+                                >
+                                    {brand.name}.
+                                </a>
+                                All rights reserved.
+                            </p>
+                            <p className="justify-left flex items-center gap-1 pt-2 text-left text-sm text-slate-400">
+                                <ShieldCheck className="h-4 w-4" />
                                 Secured by industry-standard encryption
                             </p>
                         </div>

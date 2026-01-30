@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CountrySeeder::class,
             ProvinceSeeder::class,
+            BranchSeeder::class,
 
             RolePermissionSeeder::class,
             UserSeeder::class,
 
-            BranchSeeder::class,
             KitchenSeeder::class,
 
             ProductCategorySeeder::class,

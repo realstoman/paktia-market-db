@@ -13,7 +13,15 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Globe, LayoutGrid, Smartphone } from 'lucide-react';
+import {
+    Building2,
+    Globe,
+    LayoutGrid,
+    MapPin,
+    Shield,
+    Smartphone,
+    Users,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -21,6 +29,34 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Users',
+        href: '/users',
+        icon: Users,
+        can: 'user.view',
+    },
+    {
+        title: 'Roles',
+        href: '/roles',
+        icon: Shield,
+        can: 'role.view',
+    },
+    {
+        title: 'Countries',
+        href: '/countries',
+        icon: Globe,
+    },
+    {
+        title: 'Provinces',
+        href: '/provinces',
+        icon: MapPin,
+    },
+    {
+        title: 'Branches',
+        href: '/branches',
+        icon: Building2,
+        can: 'branch.view',
     },
 ];
 
