@@ -20,6 +20,9 @@ class UserService
 
     public function toggleBlock(User $user)
     {
-        $user->is_active ? $user->block() : $user->unblock();
+        // Implement block/unblock logic
+        $user->blocked = !$user->blocked;
+        $user->save();
+        return $user;
     }
 }

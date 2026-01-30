@@ -9,9 +9,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Gate;
-use UserService;
+use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -23,7 +23,7 @@ class UserController extends Controller
 
         return Inertia::render('admin/users/index', [
             'users' => User::with(['roles', 'country', 'province', 'branch'])->paginate(),
-            'canCreate' => auth()->user()->can(PermissionEnum::USER_CREATE->value),
+            'canCreate' => Auth::user()?->can(PermissionEnum::USER_CREATE->value),
         ]);
     }
 
@@ -35,7 +35,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request, UserService $service)
+    public function store(Request $request, \UserService $service)
     {
         $service->create($request->all());
         return redirect()->route('users.index');
@@ -50,13 +50,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user, UserService $service)
+    public function update(Request $request, User $user, \UserService $service)
     {
         $service->update($user, $request->all());
         return back();
     }
 
-    public function block(User $user, UserService $service)
+    public function block(User $user, \UserService $service)
     {
         $service->toggleBlock($user);
         return back();
