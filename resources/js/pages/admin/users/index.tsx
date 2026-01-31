@@ -5,6 +5,7 @@ import { dashboard } from '@/routes';
 import users from '@/routes/users';
 import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import { columns } from './columns';
 
 interface Role {
@@ -43,6 +44,7 @@ export default function index({ users, canCreate }: UsersIndexProps) {
 
                     {canCreate && (
                         <Button onClick={() => router.visit('/users/create')}>
+                            <Plus />
                             Create User
                         </Button>
                     )}
