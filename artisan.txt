@@ -1,0 +1,14 @@
+# Clear Laravel cache
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Clear compiled class files
+php artisan clear-compiled
+
+# Rebuild autoload
+composer dump-autoload
+
+# If using opcache
+php artisan optimize
