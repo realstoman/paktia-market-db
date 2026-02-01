@@ -1,27 +1,14 @@
-import { Button } from '@/components/ui/button';
+'use client';
+
 import { DataTable } from '@/components/ui/table/data-table';
+import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
+import { useDataTable } from '@/hooks/use-data-table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
-import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { BreadcrumbItem, User } from '@/types';
+import { Head } from '@inertiajs/react';
 import { columns } from './columns';
-
-interface Role {
-    name: string;
-}
-
-interface User {
-    name: string;
-    email: string;
-    roles: Role[];
-}
-
-type UsersIndexProps = {
-    users: User[];
-    canCreate: boolean;
-};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -34,23 +21,50 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function index({ users, canCreate }: UsersIndexProps) {
+interface UsersPageProps {
+    users: User[];
+    totalItems: number;
+    perPage?: number;
+    page?: number;
+    search?: string;
+    sort?: any;
+}
+
+export default function UsersPage({
+    users,
+    totalItems,
+    perPage = 10,
+    page = 1,
+    sort = [],
+    // search = '',
+}: UsersPageProps) {
+    const pageCount = Math.ceil(totalItems / perPage);
+
+    const { table } = useDataTable({
+        data: users,
+        columns,
+        pageCount,
+        initialState: {
+            pagination: {
+                pageIndex: page - 1,
+                pageSize: perPage,
+            },
+            sorting: sort,
+        },
+        shallow: false,
+        debounceMs: 500,
+    });
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
             <div className="space-y-4 p-8">
                 <div className="flex justify-between">
                     <h1 className="text-xl font-semibold">System Users</h1>
-
-                    {canCreate && (
-                        <Button onClick={() => router.visit('/users/create')}>
-                            <Plus />
-                            Create User
-                        </Button>
-                    )}
                 </div>
-
-                <DataTable columns={columns} data={users} />
+                <DataTable table={table}>
+                    <DataTableToolbar table={table} />
+                </DataTable>
             </div>
         </AppLayout>
     );
