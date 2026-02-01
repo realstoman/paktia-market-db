@@ -10,7 +10,7 @@ import { DataTableViewOptions } from '@/components/ui/table/data-table-view-opti
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { CrossIcon } from 'lucide-react';
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<'div'> {
   table: Table<TData>;
@@ -55,7 +55,7 @@ export function DataTableToolbar<TData>({
             className='border-dashed'
             onClick={onReset}
           >
-            <Cross2Icon />
+            <CrossIcon />
             Reset
           </Button>
         )}

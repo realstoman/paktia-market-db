@@ -2,7 +2,7 @@
 
 import type { Option } from '@/types/data-table';
 import type { Column } from '@tanstack/react-table';
-import { PlusCircle, XCircle } from 'lucide-react';
+import { Check, PlusCircle, XCircle } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { CheckIcon } from '@radix-ui/react-icons';
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -153,7 +152,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                           : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
-                      <CheckIcon />
+                      <Check />
                     </div>
                     {option.icon && <option.icon />}
                     <span className='truncate'>{option.label}</span>

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Table } from '@tanstack/react-table';
-import { Settings2 } from 'lucide-react';
+import { Check, Settings2, SortAscIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { CheckIcon, CaretSortIcon } from '@radix-ui/react-icons';
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
@@ -51,7 +50,7 @@ export function DataTableViewOptions<TData>({
         >
           <Settings2 />
           View
-          <CaretSortIcon className='ml-auto opacity-50' />
+          <SortAscIcon className='ml-auto opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-44 p-0'>
@@ -70,7 +69,7 @@ export function DataTableViewOptions<TData>({
                   <span className='truncate'>
                     {column.columnDef.meta?.label ?? column.id}
                   </span>
-                  <CheckIcon
+                  <Check
                     className={cn(
                       'ml-auto size-4 shrink-0',
                       column.getIsVisible() ? 'opacity-100' : 'opacity-0'

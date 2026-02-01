@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { getCommonPinningStyles } from '@/lib/data-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { getCommonPinningStyles } from '@/lib/data-table';
 
 interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   table: TanstackTable<TData>;

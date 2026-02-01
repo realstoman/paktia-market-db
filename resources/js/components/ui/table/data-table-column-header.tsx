@@ -1,7 +1,7 @@
 'use client';
 
 import type { Column } from '@tanstack/react-table';
-import { EyeOff } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, Cross, EyeOff, SortAsc } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -11,12 +11,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CaretSortIcon,
-  Cross2Icon
-} from '@radix-ui/react-icons';
+
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.ComponentProps<typeof DropdownMenuTrigger> {
@@ -50,7 +45,7 @@ export function DataTableColumnHeader<TData, TValue>({
           ) : column.getIsSorted() === 'asc' ? (
             <ChevronUpIcon />
           ) : (
-            <CaretSortIcon />
+            <SortAsc />
           ))}
       </DropdownMenuTrigger>
       <DropdownMenuContent align='start' className='w-28'>
@@ -77,7 +72,7 @@ export function DataTableColumnHeader<TData, TValue>({
                 className='[&_svg]:text-muted-foreground pl-2'
                 onClick={() => column.clearSorting()}
               >
-                <Cross2Icon />
+                <Cross />
                 Reset
               </DropdownMenuItem>
             )}
