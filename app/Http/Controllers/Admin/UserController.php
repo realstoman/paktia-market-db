@@ -12,7 +12,6 @@ use Spatie\Permission\Models\Role;
 use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -27,8 +26,6 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-
-
         $this->authorize('viewAny', User::class);
 
         // Parse query parameters for data-table
@@ -40,15 +37,7 @@ class UserController extends Controller
             'filters' => $this->parseFilters($request),
         ];
 
-        Log::info('UserController params:', $params);
-
         $usersPaginator = $this->userService->getPaginatedUsers($params);
-
-        Log::info('Users found:', [
-            'total' => $usersPaginator->total(),
-            // 'count' => $usersPaginator->count(),
-            'items' => $usersPaginator->items(),
-        ]);
 
         return Inertia::render('admin/users/index', [
             'users' => $usersPaginator->items(),
@@ -57,7 +46,7 @@ class UserController extends Controller
             'page' => (int)$params['page'],
             'sort' => $params['sort'],
             'search' => $params['search'],
-            'canCreate' => Auth::check() && Auth::user()->can(PermissionEnum::USER_CREATE->value),
+            'canCreate' => Auth::user()?->can(PermissionEnum::USER_CREATE->value),
         ]);
     }
 
