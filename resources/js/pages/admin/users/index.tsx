@@ -26,8 +26,8 @@ interface UsersPageProps {
     totalItems: number;
     perPage?: number;
     page?: number;
-    search?: string;
     sort?: any;
+    search?: string;
 }
 
 export default function UsersPage({
@@ -36,9 +36,20 @@ export default function UsersPage({
     perPage = 10,
     page = 1,
     sort = [],
-    // search = '',
+    search = '',
 }: UsersPageProps) {
+    console.log('UsersPage props:', {
+        users,
+        totalItems,
+        perPage,
+        page,
+        sort,
+        search,
+    });
+    console.log('First user:', users[0]);
+
     const pageCount = Math.ceil(totalItems / perPage);
+    console.log('Page count:', pageCount);
 
     const { table } = useDataTable({
         data: users,
@@ -53,6 +64,14 @@ export default function UsersPage({
         },
         shallow: false,
         debounceMs: 500,
+    });
+
+    console.log('Table state:', {
+        rows: table.getRowModel().rows,
+        rowCount: table.getRowModel().rows.length,
+        columns: table.getAllColumns(),
+        columnCount: table.getAllColumns().length,
+        headerGroups: table.getHeaderGroups(),
     });
 
     return (

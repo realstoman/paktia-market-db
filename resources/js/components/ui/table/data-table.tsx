@@ -1,3 +1,4 @@
+// data-table.tsx - Updated version
 import { type Table as TanstackTable, flexRender } from '@tanstack/react-table';
 import type * as React from 'react';
 
@@ -11,7 +12,6 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { getCommonPinningStyles } from '@/lib/data-table';
 
 interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   table: TanstackTable<TData>;
@@ -26,20 +26,18 @@ export function DataTable<TData>({
   return (
     <div className='flex flex-1 flex-col space-y-4'>
       {children}
-      <div className='relative flex flex-1'>
-        <div className='absolute inset-0 flex overflow-hidden rounded-lg border'>
-          <ScrollArea className='h-full w-full'>
+      <div className='rounded-lg border'>
+        <ScrollArea className='h-full w-full'>
+          <div className='relative w-full overflow-auto'>
             <Table>
-              <TableHeader className='bg-muted sticky top-0 z-10'>
+              <TableHeader className='bg-muted'>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={header.id}
                         colSpan={header.colSpan}
-                        style={{
-                          ...getCommonPinningStyles({ column: header.column })
-                        }}
+                        className='sticky top-0 z-10'
                       >
                         {header.isPlaceholder
                           ? null
@@ -58,14 +56,10 @@ export function DataTable<TData>({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
+                      className='hover:bg-muted/50'
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          style={{
-                            ...getCommonPinningStyles({ column: cell.column })
-                          }}
-                        >
+                        <TableCell key={cell.id}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -86,9 +80,9 @@ export function DataTable<TData>({
                 )}
               </TableBody>
             </Table>
-            <ScrollBar orientation='horizontal' />
-          </ScrollArea>
-        </div>
+          </div>
+          <ScrollBar orientation='horizontal' />
+        </ScrollArea>
       </div>
       <div className='flex flex-col gap-2.5'>
         <DataTablePagination table={table} />

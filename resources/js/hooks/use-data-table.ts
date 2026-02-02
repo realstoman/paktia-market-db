@@ -40,6 +40,7 @@ interface UseDataTableProps<TData>
             | 'manualSorting'
         >,
         Required<Pick<TableOptions<TData>, 'pageCount'>> {
+    data: TData[]; // Add this - it's missing!
     initialState?: Omit<Partial<TableState>, 'sorting'> & {
         sorting?: ExtendedColumnSort<TData>[];
     };
@@ -49,6 +50,7 @@ interface UseDataTableProps<TData>
 
 export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     const {
+        data, // Add this - critical!
         columns,
         pageCount = -1,
         initialState,
@@ -57,10 +59,21 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         ...tableProps
     } = props;
 
+    console.log('useDataTable - Data received:', data?.length, 'items');
+    console.log('useDataTable - Columns:', columns?.length);
+
     const { url } = usePage();
 
     // Get current query params from URL
     const getQueryParams = React.useCallback(() => {
+        if (typeof window === 'undefined') {
+            return {
+                page: 1,
+                perPage: initialState?.pagination?.pageSize ?? 10,
+                sort: [],
+            };
+        }
+
         const searchParams = new URLSearchParams(window.location.search);
         return {
             page: searchParams.get(PAGE_KEY)
@@ -111,6 +124,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
                     delete newParams[key];
                 }
             });
+
+            console.log('Updating URL with params:', newParams);
 
             router.get(url.split('?')[0], newParams, {
                 preserveState: true,
@@ -163,14 +178,26 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     );
 
     const filterableColumns = React.useMemo(() => {
-        return columns.filter((column) => column.enableColumnFilter);
+        const filterable = columns.filter(
+            (column) => column.enableColumnFilter,
+        );
+        console.log(
+            'Filterable columns:',
+            filterable.map((c) => ({
+                id: c.id,
+                accessorKey: (c as any).accessorKey,
+                meta: c.meta,
+            })),
+        );
+        return filterable;
     }, [columns]);
 
     const [columnFilters, setColumnFilters] =
-        React.useState<ColumnFiltersState>([]);
+        React.useState<ColumnFiltersState>(initialState?.columnFilters || []);
 
     // Initialize column filters from URL
     React.useEffect(() => {
+        console.log('Initializing column filters from URL');
         const initialFilters: ColumnFiltersState = [];
 
         filterableColumns.forEach((column) => {
@@ -182,6 +209,11 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
                       ? value.split(',').filter(Boolean)
                       : [value];
 
+                console.log(
+                    `Setting initial filter for ${column.id}:`,
+                    processedValue,
+                );
+
                 initialFilters.push({
                     id: column.id ?? '',
                     value: processedValue,
@@ -189,11 +221,14 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
             }
         });
 
+        console.log('Initial column filters:', initialFilters);
         setColumnFilters(initialFilters);
     }, [filterableColumns, queryParams]);
 
     const debouncedUpdateFilters = useDebouncedCallback(
         (filters: ColumnFiltersState) => {
+            console.log('Debounced filter update:', filters);
+
             const filterUpdates: Record<string, any> = {};
 
             filters.forEach((filter) => {
@@ -221,6 +256,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
                 }
             });
 
+            console.log('Filter updates for URL:', filterUpdates);
+
             updateUrl({
                 ...filterUpdates,
                 [PAGE_KEY]: 1, // Reset to page 1 when filtering
@@ -231,11 +268,16 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
     const onColumnFiltersChange = React.useCallback(
         (updaterOrValue: Updater<ColumnFiltersState>) => {
+            console.log('Column filters change triggered');
+
             setColumnFilters((prev) => {
                 const next =
                     typeof updaterOrValue === 'function'
                         ? updaterOrValue(prev)
                         : updaterOrValue;
+
+                console.log('Previous filters:', prev);
+                console.log('Next filters:', next);
 
                 debouncedUpdateFilters(next);
                 return next;
@@ -246,16 +288,20 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
     const table = useReactTable({
         ...tableProps,
+        data, // This was missing - critical!
         columns,
-        initialState,
-        pageCount,
+        initialState: {
+            ...initialState,
+            columnFilters, // Make sure this is set
+        },
         state: {
+            columnFilters, // This controls the filter state
             pagination,
             sorting,
             columnVisibility,
             rowSelection,
-            columnFilters,
         },
+        pageCount,
         defaultColumn: {
             ...tableProps.defaultColumn,
             enableColumnFilter: false,
@@ -264,7 +310,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         onRowSelectionChange: setRowSelection,
         onPaginationChange,
         onSortingChange,
-        onColumnFiltersChange,
+        onColumnFiltersChange, // This handler updates columnFilters state
         onColumnVisibilityChange: setColumnVisibility,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -275,7 +321,13 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         getFacetedMinMaxValues: getFacetedMinMaxValues(),
         manualPagination: true,
         manualSorting: true,
-        manualFiltering: true,
+        manualFiltering: false, // Change this to false for client-side filtering
+    });
+
+    console.log('Table state:', {
+        rows: table.getRowModel().rows.length,
+        columnFilters: table.getState().columnFilters,
+        filteredRows: table.getFilteredRowModel().rows.length,
     });
 
     return { table };
