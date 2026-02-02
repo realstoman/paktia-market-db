@@ -1,5 +1,4 @@
 import type { DataTableConfig } from '@/config/data-table';
-import { FilterItemSchema } from '@/lib/parser';
 import type { ColumnSort, Row, RowData } from '@tanstack/react-table';
 
 declare module '@tanstack/react-table' {
