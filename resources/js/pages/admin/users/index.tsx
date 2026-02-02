@@ -46,10 +46,8 @@ export default function UsersPage({
         sort,
         search,
     });
-    console.log('First user:', users[0]);
 
     const pageCount = Math.ceil(totalItems / perPage);
-    console.log('Page count:', pageCount);
 
     const { table } = useDataTable({
         data: users,
@@ -61,17 +59,10 @@ export default function UsersPage({
                 pageSize: perPage,
             },
             sorting: sort,
+            columnFilters: [],
         },
         shallow: false,
         debounceMs: 500,
-    });
-
-    console.log('Table state:', {
-        rows: table.getRowModel().rows,
-        rowCount: table.getRowModel().rows.length,
-        columns: table.getAllColumns(),
-        columnCount: table.getAllColumns().length,
-        headerGroups: table.getHeaderGroups(),
     });
 
     return (
@@ -81,6 +72,7 @@ export default function UsersPage({
                 <div className="flex justify-between">
                     <h1 className="text-xl font-semibold">System Users</h1>
                 </div>
+
                 <DataTable table={table}>
                     <DataTableToolbar table={table} />
                 </DataTable>

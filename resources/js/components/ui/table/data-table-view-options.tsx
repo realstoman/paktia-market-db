@@ -43,14 +43,13 @@ export function DataTableViewOptions<TData>({
       <PopoverTrigger asChild>
         <Button
           aria-label='Toggle columns'
-          role='combobox'
           variant='outline'
           size='sm'
           className='ml-auto hidden h-8 lg:flex'
         >
-          <Settings2 />
+          <Settings2 className="h-4 w-4 mr-2" />
           View
-          <SortAscIcon className='ml-auto opacity-50' />
+          <SortAscIcon className='ml-2 h-4 w-4 opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-44 p-0'>
@@ -62,16 +61,18 @@ export function DataTableViewOptions<TData>({
               {columns.map((column) => (
                 <CommandItem
                   key={column.id}
-                  onSelect={() =>
-                    column.toggleVisibility(!column.getIsVisible())
-                  }
+                  onSelect={() => {
+                    const newVisibility = !column.getIsVisible();
+                    console.log(`Toggling ${column.id} visibility to:`, newVisibility);
+                    column.toggleVisibility(newVisibility);
+                  }}
                 >
                   <span className='truncate'>
                     {column.columnDef.meta?.label ?? column.id}
                   </span>
                   <Check
                     className={cn(
-                      'ml-auto size-4 shrink-0',
+                      'ml-auto h-4 w-4 shrink-0',
                       column.getIsVisible() ? 'opacity-100' : 'opacity-0'
                     )}
                   />

@@ -1,16 +1,13 @@
 'use client';
 
-import type { Column, Table } from '@tanstack/react-table';
+import type { Table } from '@tanstack/react-table';
 import * as React from 'react';
 
-import { DataTableDateFilter } from '@/components/ui/table/data-table-date-filter';
-import { DataTableFacetedFilter } from '@/components/ui/table/data-table-faceted-filter';
-import { DataTableSliderFilter } from '@/components/ui/table/data-table-slider-filter';
 import { DataTableViewOptions } from '@/components/ui/table/data-table-view-options';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CrossIcon } from 'lucide-react';
+import { DataTableToolbarFilter } from './data-table-toolbar-filter';
 
 interface DataTableToolbarProps<TData> extends React.ComponentProps<'div'> {
   table: Table<TData>;
@@ -22,14 +19,26 @@ export function DataTableToolbar<TData>({
   className,
   ...props
 }: DataTableToolbarProps<TData>) {
+  console.log('DataTableToolbar - Column filters:', table.getState().columnFilters);
+  console.log('DataTableToolbar - Filtered rows:', table.getFilteredRowModel().rows.length);
+
   const isFiltered = table.getState().columnFilters.length > 0;
 
   const columns = React.useMemo(
-    () => table.getAllColumns().filter((column) => column.getCanFilter()),
+    () => {
+      const filterableColumns = table.getAllColumns().filter((column) => {
+        const canFilter = column.getCanFilter();
+        console.log(`Column ${column.id}: canFilter = ${canFilter}`);
+        return canFilter;
+      });
+      console.log('Filterable columns:', filterableColumns.map(c => c.id));
+      return filterableColumns;
+    },
     [table]
   );
 
   const onReset = React.useCallback(() => {
+    console.log('Resetting all filters');
     table.resetColumnFilters();
   }, [table]);
 
@@ -55,7 +64,7 @@ export function DataTableToolbar<TData>({
             className='border-dashed'
             onClick={onReset}
           >
-            <CrossIcon />
+            <CrossIcon className="h-4 w-4 mr-2" />
             Reset
           </Button>
         )}
@@ -66,84 +75,4 @@ export function DataTableToolbar<TData>({
       </div>
     </div>
   );
-}
-interface DataTableToolbarFilterProps<TData> {
-  column: Column<TData>;
-}
-
-function DataTableToolbarFilter<TData>({
-  column
-}: DataTableToolbarFilterProps<TData>) {
-  {
-    const columnMeta = column.columnDef.meta;
-
-    const onFilterRender = React.useCallback(() => {
-      if (!columnMeta?.variant) return null;
-
-      switch (columnMeta.variant) {
-        case 'text':
-          return (
-            <Input
-              placeholder={columnMeta.placeholder ?? columnMeta.label}
-              value={(column.getFilterValue() as string) ?? ''}
-              onChange={(event) => column.setFilterValue(event.target.value)}
-              className='h-8 w-40 lg:w-56'
-            />
-          );
-
-        case 'number':
-          return (
-            <div className='relative'>
-              <Input
-                type='number'
-                inputMode='numeric'
-                placeholder={columnMeta.placeholder ?? columnMeta.label}
-                value={(column.getFilterValue() as string) ?? ''}
-                onChange={(event) => column.setFilterValue(event.target.value)}
-                className={cn('h-8 w-[120px]', columnMeta.unit && 'pr-8')}
-              />
-              {columnMeta.unit && (
-                <span className='bg-accent text-muted-foreground absolute top-0 right-0 bottom-0 flex items-center rounded-r-md px-2 text-sm'>
-                  {columnMeta.unit}
-                </span>
-              )}
-            </div>
-          );
-
-        case 'range':
-          return (
-            <DataTableSliderFilter
-              column={column}
-              title={columnMeta.label ?? column.id}
-            />
-          );
-
-        case 'date':
-        case 'dateRange':
-          return (
-            <DataTableDateFilter
-              column={column}
-              title={columnMeta.label ?? column.id}
-              multiple={columnMeta.variant === 'dateRange'}
-            />
-          );
-
-        case 'select':
-        case 'multiSelect':
-          return (
-            <DataTableFacetedFilter
-              column={column}
-              title={columnMeta.label ?? column.id}
-              options={columnMeta.options ?? []}
-              multiple={columnMeta.variant === 'multiSelect'}
-            />
-          );
-
-        default:
-          return null;
-      }
-    }, [column, columnMeta]);
-
-    return onFilterRender();
-  }
 }
