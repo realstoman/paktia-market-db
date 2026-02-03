@@ -34,7 +34,7 @@ export const columns: ColumnDef<Country>[] = [
         header: 'Name',
     },
     {
-        accessorKey: 'country_code',
+        accessorKey: 'currency_code',
         header: 'Country Code',
     },
     {
@@ -44,6 +44,10 @@ export const columns: ColumnDef<Country>[] = [
     {
         accessorKey: 'province',
         header: 'Provinces',
+    },
+    {
+        accessorKey: 'branches',
+        header: 'Branches',
     },
     {
         accessorKey: 'created_at',

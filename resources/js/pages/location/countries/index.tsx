@@ -23,6 +23,8 @@ interface CountriesPageProps {
 }
 
 export default function CountriesPage({ countries }: CountriesPageProps) {
+    console.log('data is: ', countries);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
