@@ -8,6 +8,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @method bool can(string $ability, array $arguments = [])
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
@@ -56,7 +59,6 @@ class User extends Authenticatable
     /* ============================
     | Relationships
     |============================ */
-
     public function country()
     {
         return $this->belongsTo(Country::class);
