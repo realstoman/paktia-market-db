@@ -8,6 +8,8 @@ import { dashboard } from '@/routes';
 import users from '@/routes/users';
 import { BreadcrumbItem, User } from '@/types';
 import { Head } from '@inertiajs/react';
+import { ColumnFiltersState, SortingState } from '@tanstack/react-table';
+import { useState } from 'react';
 import { columns } from './columns';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,6 +40,13 @@ export default function UsersPage({
     sort = [],
     search = '',
 }: UsersPageProps) {
+    const [search, setSearch] = useState('');
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: perPage,
+    });
     console.log('UsersPage props:', {
         users,
         totalItems,
@@ -73,8 +82,28 @@ export default function UsersPage({
                     <h1 className="text-xl font-semibold">System Users</h1>
                 </div>
 
-                <DataTable table={table}>
-                    <DataTableToolbar table={table} />
+                <DataTable
+                    data={users}
+                    search={search}
+                    setSearch={setSearch}
+                    sorting={sorting}
+                    setSorting={setSorting}
+                    columnFilters={columnFilters}
+                    setColumnFilters={setColumnFilters}
+                    pagination={pagination}
+                    setPagination={setPagination}
+                >
+                    <DataTableToolbar
+                        data={users}
+                        search={search}
+                        setSearch={setSearch}
+                        sorting={sorting}
+                        setSorting={setSorting}
+                        columnFilters={columnFilters}
+                        setColumnFilters={setColumnFilters}
+                        pagination={pagination}
+                        setPagination={setPagination}
+                    />
                 </DataTable>
             </div>
         </AppLayout>

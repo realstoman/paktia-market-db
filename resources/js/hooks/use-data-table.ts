@@ -80,6 +80,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         manualPagination: false, // Client-side pagination
         manualSorting: false, // Client-side sorting
         manualFiltering: false, // Client-side filtering
+        enableColumnFilters: true,
+        enableFilters: true,
     });
 
     console.log('Table created:', {
