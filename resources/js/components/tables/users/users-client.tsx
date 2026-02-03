@@ -20,8 +20,8 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Users (${data.length})`}
-                    description="Manage your users"
+                    title={`System Users: ${data.length}`}
+                    description="Manage system users"
                 />
                 <Button
                     onClick={() => router.visit('/users/create')}

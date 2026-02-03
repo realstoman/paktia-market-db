@@ -30,10 +30,6 @@ export default function UsersPage({ users }: UsersPageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
             <div className="space-y-4 p-8">
-                <div className="flex justify-between">
-                    <h1 className="text-xl font-semibold">System Users</h1>
-                </div>
-
                 <div className="p-6 text-gray-900">
                     <UsersClient data={users} />
                 </div>
