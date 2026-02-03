@@ -51,3 +51,14 @@ export interface Role {
     updated_at: string;
     [key: string]: unknown;
 }
+
+export interface Country {
+    id: number;
+    name: string;
+    code: string;
+    currency_code: string;
+    currency_symbol: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
