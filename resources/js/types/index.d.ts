@@ -52,6 +52,18 @@ export interface Role {
     [key: string]: unknown;
 }
 
+export interface Branch {
+    id: number;
+    name: string;
+    country: string;
+    province: string;
+    address: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
 export interface Country {
     id: number;
     name: string;
