@@ -7,7 +7,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { router } from '@inertiajs/react';
-import { Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Ban, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { User } from './columns';
 
@@ -83,7 +83,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4" />
+                        <Ban className="mr-2 h-4 w-4" />
+                        Block
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setOpen(true)}>
+                        <Trash className="mr-2 h-4 w-4 text-red-600" />
                         Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>

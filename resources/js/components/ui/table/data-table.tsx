@@ -21,7 +21,7 @@ import {
 import { Input } from '../input';
 import { Button } from '../button';
 import { ScrollArea, ScrollBar } from '../scroll-area';
-import { ArrowLeft, ArrowRight, Loader2, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, MoreHorizontal } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -138,16 +138,16 @@ export function DataTable<TData, TValue>({
                 placeholder={searchPlaceholder}
                 value={globalFilter ?? ''}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(event.target.value)}
-                className="max-w-sm"
+                className="max-w-sm border dark:border-neutral-900/80"
             />
 
-            <ScrollArea className="h-[calc(80vh-220px)] rounded-md border">
+            <ScrollArea className="h-[calc(80vh-220px)] rounded-md border dark:border-neutral-900/80">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
+                                    <TableHead key={header.id} className='dark:text-neutral-300 border-b dark:border-neutral-900/50'>
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
@@ -165,7 +165,7 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center"
+                                    className="h-24 text-center dark:text-neutral-100"
                                 >
                                     <div className="flex items-center justify-center gap-2">
                                         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -182,7 +182,7 @@ export function DataTable<TData, TValue>({
                                     data-state={row.getIsSelected() && 'selected'}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell key={cell.id} className='dark:text-neutral-100'>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -215,12 +215,12 @@ export function DataTable<TData, TValue>({
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
+                        className='h-9 w-9 text-center flex items-center justify-center cursor-pointer'
                         size="sm"
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
                     >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Previous
+                        <ChevronLeft className="h-[20px] w-[20px] dark:text-neutral-300" />
                     </Button>
 
                     {getPageNumbers().map((page, idx) =>
@@ -232,7 +232,8 @@ export function DataTable<TData, TValue>({
                         ) : (
                             <Button
                                 key={idx}
-                                variant={page === currentPage ? 'default' : 'outline'}
+                                    variant={page === currentPage ? 'default' : 'outline'}
+                                    className='h-9 w-9 text-center flex items-center justify-center cursor-pointer'
                                 size="sm"
                                 onClick={() =>
                                     table.setPageIndex((page as number) - 1)
@@ -245,12 +246,13 @@ export function DataTable<TData, TValue>({
 
                     <Button
                         variant="outline"
+                        className='h-9 w-9 text-center flex items-center justify-center cursor-pointer'
                         size="sm"
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
-                        Next
-                        <ArrowRight className="h-4 w-4 ml-2" />
+
+                        <ChevronRight className="h-[20px] w-[20px] dark:text-neutral-300" />
                     </Button>
                 </div>
             </div>

@@ -31,7 +31,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     Add New
                 </Button>
             </div>
-            <Separator />
+            <Separator className="dark:bg-neutral-900/50" />
             <DataTable
                 searchKey={[
                     'name',
