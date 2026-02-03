@@ -12,6 +12,7 @@ use Spatie\Permission\Models\Role;
 use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -39,6 +40,8 @@ class UserController extends Controller
 
         $usersPaginator = $this->userService->getPaginatedUsers($params);
 
+        $canCreate = Gate::allows(PermissionEnum::USER_CREATE->value);
+
         return Inertia::render('admin/users/index', [
             'users' => $usersPaginator->items(),
             'totalItems' => $usersPaginator->total(),
@@ -46,7 +49,7 @@ class UserController extends Controller
             'page' => (int)$params['page'],
             'sort' => $params['sort'],
             'search' => $params['search'],
-            'canCreate' => Auth::user()?->can(PermissionEnum::USER_CREATE->value),
+            'canCreate' => $canCreate,
         ]);
     }
 
@@ -103,7 +106,7 @@ class UserController extends Controller
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
             'branch_id' => 'nullable|exists:branches,id',
-            'blocked' => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         // Remove password if empty
@@ -116,11 +119,11 @@ class UserController extends Controller
         return back()->with('success', 'User updated successfully.');
     }
 
-    public function block(User $user)
+    public function toggleBlock(User $user)
     {
         $this->authorize('update', $user);
 
-        $this->userService->toggleBlock($user);
+        $user->update(['is_active' => !$user->is_active]);
 
         return back()->with('success', 'User status updated successfully.');
     }

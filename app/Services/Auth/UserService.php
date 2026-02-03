@@ -41,7 +41,13 @@ class UserService
         $search = $params['search'] ?? '';
         $filters = $params['filters'] ?? [];
 
-        $query = User::with(['roles', 'country', 'province', 'branch']);
+        $query = User::query()
+            ->with([
+                'roles:name,id',
+                'country:id,name',
+                'province:id,name',
+                'branch:id,name'
+            ]);
 
         // Apply search
         if (!empty($search)) {
@@ -73,7 +79,45 @@ class UserService
             $query->orderBy('created_at', 'desc');
         }
 
-        return $query->paginate($perPage, ['*'], 'page', $page);
+        // Get paginated results
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // Transform the paginator items to include relationship data
+        $paginator->getCollection()->transform(function ($user) {
+            return $this->transformUser($user);
+        });
+
+        return $paginator;
+    }
+
+    /**
+     * Transform user to include relationship names
+     */
+    private function transformUser(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_active' => $user->is_active,
+            'blocked_at' => $user->blocked_at,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+
+            // Relationships
+            'roles' => $user->roles->pluck('name')->toArray(),
+            'country' => $user->country ? $user->country->name : null,
+            'country_id' => $user->country_id,
+            'province' => $user->province ? $user->province->name : null,
+            'province_id' => $user->province_id,
+            'branch' => $user->branch ? $user->branch->name : null,
+            'branch_id' => $user->branch_id,
+
+            // Include full relationship objects if needed
+            'country_object' => $user->country,
+            'province_object' => $user->province,
+            'branch_object' => $user->branch,
+        ];
     }
 
     /**
@@ -102,8 +146,14 @@ class UserService
                 }
                 break;
 
-            case 'blocked':
-                $query->where('blocked', $value);
+            case 'is_active':
+                $query->where('is_active', $value);
+                break;
+
+            case 'country_id':
+            case 'province_id':
+            case 'branch_id':
+                $query->where($column, $value);
                 break;
         }
     }
@@ -120,7 +170,10 @@ class UserService
             case 'email':
             case 'created_at':
             case 'updated_at':
-            case 'blocked':
+            case 'is_active':
+            case 'country_id':
+            case 'province_id':
+            case 'branch_id':
                 $query->orderBy($column, $direction);
                 break;
 
@@ -134,6 +187,15 @@ class UserService
                 ->select('users.*', DB::raw('MIN(roles.name) as first_role_name'))
                 ->groupBy('users.id')
                 ->orderBy('first_role_name', $direction);
+                break;
+
+            case 'country':
+            case 'province':
+            case 'branch':
+                // Sort by relationship name
+                $relationship = $column;
+                $query->leftJoin($relationship . 's', 'users.' . $column . '_id', '=', $relationship . 's.id')
+                      ->orderBy($relationship . 's.name', $direction);
                 break;
         }
     }

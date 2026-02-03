@@ -1,12 +1,11 @@
 'use client';
 
+import { UsersClient } from '@/components/tables/users/users-client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
 import { BreadcrumbItem, User } from '@/types';
 import { Head } from '@inertiajs/react';
-
-import { UsersClient } from '@/components/tables/users/users-client';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

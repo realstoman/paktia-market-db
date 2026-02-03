@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @method bool can(string $ability, array $arguments = [])
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
@@ -57,13 +59,6 @@ class User extends Authenticatable
     /* ============================
     | Relationships
     |============================ */
-
-    public function roles()
-{
-    return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
-        ->where('model_type', User::class);
-}
-
     public function country()
     {
         return $this->belongsTo(Country::class);
