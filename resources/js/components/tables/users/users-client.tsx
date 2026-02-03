@@ -33,7 +33,14 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             </div>
             <Separator />
             <DataTable
-                searchKey={['name', 'email']}
+                searchKey={[
+                    'name',
+                    'email',
+                    'branch',
+                    'province',
+                    'country',
+                    'is_active',
+                ]}
                 columns={columns}
                 data={data}
                 isLoading={isLoading}
