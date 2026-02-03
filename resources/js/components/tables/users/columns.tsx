@@ -1,5 +1,6 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
+import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 export interface User {
@@ -47,14 +48,32 @@ export const columns: ColumnDef<User>[] = [
         header: 'Email',
     },
     {
-        accessorKey: 'email_verified_at',
-        header: 'Verified',
+        accessorKey: 'branch',
+        header: 'Branch',
+    },
+    {
+        accessorKey: 'province',
+        header: 'Province',
+    },
+    {
+        accessorKey: 'country',
+        header: 'Country',
+    },
+    {
+        accessorKey: 'is_active',
+        header: 'Status',
         cell: ({ row }) => {
-            const verified = row.getValue('email_verified_at');
-            return verified ? (
-                <span className="text-green-600">Yes</span>
+            const active = row.getValue('is_active');
+            return active ? (
+                <div className="flex items-center gap-1">
+                    <BadgeCheck className="h-4 w-4 text-green-600" />
+                    Active
+                </div>
             ) : (
-                <span className="text-gray-400">No</span>
+                <div className="flex items-center gap-1">
+                    <Ban className="h-4 w-4 text-red-600" />
+                    Blocked
+                </div>
             );
         },
     },
