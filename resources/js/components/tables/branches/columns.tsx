@@ -34,8 +34,20 @@ export const columns: ColumnDef<Branch>[] = [
         header: 'Name',
     },
     {
+        accessorKey: 'country',
+        header: 'Country',
+    },
+    {
+        accessorKey: 'province',
+        header: 'Province',
+    },
+    {
         accessorKey: 'address',
         header: 'Address',
+    },
+    {
+        accessorKey: 'description',
+        header: 'Description',
     },
     {
         accessorKey: 'created_at',
