@@ -98,5 +98,4 @@ class UserService
             'branch_object' => $user->branch,
         ];
     }
-
 }
