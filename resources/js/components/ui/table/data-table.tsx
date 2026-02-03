@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
     ColumnDef,
     flexRender,
@@ -10,11 +10,18 @@ import {
     SortingState,
     getSortedRowModel,
 } from '@tanstack/react-table';
-import { ArrowLeft, ArrowRight, Loader2, MoreHorizontal } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '../table';
 import { Input } from '../input';
-import { ScrollArea, ScrollBar } from '../scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table';
 import { Button } from '../button';
+import { ScrollArea, ScrollBar } from '../scroll-area';
+import { ArrowLeft, ArrowRight, Loader2, MoreHorizontal } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -24,16 +31,19 @@ interface DataTableProps<TData, TValue> {
     searchPlaceholder?: string;
 }
 
-const nestedPropertyFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+const nestedPropertyFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
     if (!filterValue) return true;
 
-    const getNestedValue = (obj: any, path: string) => {
-        return path.split('.').reduce((acc, part) => {
-            return acc && acc[part];
+    const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+        return path.split('.').reduce((acc: Record<string, unknown> | unknown, part) => {
+            if (acc && typeof acc === 'object' && part in acc) {
+                return (acc as Record<string, unknown>)[part];
+            }
+            return null;
         }, obj);
     };
 
-    const value = getNestedValue(row.original, columnId);
+    const value = getNestedValue(row.original as Record<string, unknown>, columnId);
     const safeValue = value ? String(value).toLowerCase() : '';
     const safeFilterValue = filterValue ? String(filterValue).toLowerCase() : '';
 
@@ -47,20 +57,20 @@ export function DataTable<TData, TValue>({
     isLoading = false,
     searchPlaceholder = 'Search...',
 }: DataTableProps<TData, TValue>) {
-    const [pagination, setPagination] = React.useState({
+    const [pagination, setPagination] = useState({
         pageIndex: 0,
         pageSize: 10,
     });
 
-    const [globalFilter, setGlobalFilter] = React.useState('');
-    const [sorting, setSorting] = React.useState<SortingState>([]);
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [sorting, setSorting] = useState<SortingState>([]);
 
-    const columnsWithFilter = React.useMemo(() => {
-        return columns.map((column) => {
+    const columnsWithFilter = useMemo(() => {
+        return columns.map((column: ColumnDef<TData, TValue>) => {
             if (searchKey.includes(column.id as string)) {
                 return {
                     ...column,
-                    filterFn: nestedPropertyFilterFn,
+                    filterFn: nestedPropertyFilterFn as FilterFn<TData>,
                 };
             }
             return column;
@@ -88,7 +98,7 @@ export function DataTable<TData, TValue>({
     const currentPage = table.getState().pagination.pageIndex + 1;
     const pageCount = table.getPageCount();
 
-    const getPageNumbers = () => {
+    const getPageNumbers = useCallback((): (number | string)[] => {
         const pages: (number | string)[] = [];
         const maxPagesToShow = 5;
 
@@ -119,14 +129,14 @@ export function DataTable<TData, TValue>({
             }
         }
         return pages;
-    };
+    }, [currentPage, pageCount]);
 
     return (
         <div className="space-y-4">
             <Input
                 placeholder={searchPlaceholder}
                 value={globalFilter ?? ''}
-                onChange={(event) => setGlobalFilter(event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(event.target.value)}
                 className="max-w-sm"
             />
 
