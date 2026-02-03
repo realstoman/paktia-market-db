@@ -4,8 +4,6 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class UserService
 {
@@ -60,25 +58,6 @@ class UserService
             });
         }
 
-        // Apply filters
-        foreach ($filters as $column => $value) {
-            if (!empty($value)) {
-                $this->applyFilter($query, $column, $value);
-            }
-        }
-
-        // Apply sorting
-        if (!empty($sort)) {
-            foreach ($sort as $sortItem) {
-                if (isset($sortItem['id']) && isset($sortItem['desc'])) {
-                    $this->applySorting($query, $sortItem['id'], $sortItem['desc']);
-                }
-            }
-        } else {
-            // Default sorting
-            $query->orderBy('created_at', 'desc');
-        }
-
         // Get paginated results
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -120,83 +99,4 @@ class UserService
         ];
     }
 
-    /**
-     * Apply filter to query
-     */
-    private function applyFilter(Builder $query, string $column, $value): void
-    {
-        switch ($column) {
-            case 'name':
-            case 'email':
-                $query->where($column, 'like', '%' . $value . '%');
-                break;
-
-            case 'roles':
-                if (is_array($value)) {
-                    $query->whereHas('roles', function ($roleQuery) use ($value) {
-                        $roleQuery->whereIn('name', $value);
-                    });
-                }
-                break;
-
-            case 'created_at':
-                // Handle date range filter
-                if (is_array($value) && count($value) === 2) {
-                    $query->whereBetween('created_at', $value);
-                }
-                break;
-
-            case 'is_active':
-                $query->where('is_active', $value);
-                break;
-
-            case 'country_id':
-            case 'province_id':
-            case 'branch_id':
-                $query->where($column, $value);
-                break;
-        }
-    }
-
-    /**
-     * Apply sorting to query
-     */
-    private function applySorting(Builder $query, string $column, bool $descending): void
-    {
-        $direction = $descending ? 'desc' : 'asc';
-
-        switch ($column) {
-            case 'name':
-            case 'email':
-            case 'created_at':
-            case 'updated_at':
-            case 'is_active':
-            case 'country_id':
-            case 'province_id':
-            case 'branch_id':
-                $query->orderBy($column, $direction);
-                break;
-
-            case 'roles':
-                // Sort by first role name
-                $query->leftJoin('model_has_roles', function ($join) {
-                    $join->on('users.id', '=', 'model_has_roles.model_id')
-                         ->where('model_has_roles.model_type', '=', User::class);
-                })
-                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                ->select('users.*', DB::raw('MIN(roles.name) as first_role_name'))
-                ->groupBy('users.id')
-                ->orderBy('first_role_name', $direction);
-                break;
-
-            case 'country':
-            case 'province':
-            case 'branch':
-                // Sort by relationship name
-                $relationship = $column;
-                $query->leftJoin($relationship . 's', 'users.' . $column . '_id', '=', $relationship . 's.id')
-                      ->orderBy($relationship . 's.name', $direction);
-                break;
-        }
-    }
 }
