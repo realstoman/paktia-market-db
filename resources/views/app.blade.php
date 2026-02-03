@@ -32,10 +32,10 @@
 
         <title inertia>{{ config('app.name', 'Baba Restaurant') }}</title>
 
-        <link rel="icon" href="/brand/favicon.ico">
-        <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png">
-        <link rel="apple-touch-icon" href="/brand/logo.png">
+        <link rel="icon" href="/favicon.ico">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.icon">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.icon">
+        <link rel="apple-touch-icon" href="/brand/logo-full.png">
         <meta name="theme-color" content="#111827">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
