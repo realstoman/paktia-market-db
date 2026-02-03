@@ -138,16 +138,16 @@ export function DataTable<TData, TValue>({
                 placeholder={searchPlaceholder}
                 value={globalFilter ?? ''}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(event.target.value)}
-                className="max-w-sm border dark:border-neutral-900/80"
+                className="max-w-sm border border-neutral-200/60 dark:border-neutral-900/80"
             />
 
-            <ScrollArea className="h-[calc(80vh-220px)] rounded-md border dark:border-neutral-900/80">
+            <ScrollArea className="h-[calc(80vh-220px)] rounded-md border border-neutral-200/60 dark:border-neutral-900/80">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className='dark:text-neutral-300 border-b dark:border-neutral-900/50'>
+                                    <TableHead key={header.id} className='dark:text-neutral-300 border-b border-neutral-200/60 dark:border-neutral-900/50'>
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(

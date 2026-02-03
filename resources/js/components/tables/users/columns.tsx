@@ -56,7 +56,7 @@ export const columns: ColumnDef<User>[] = [
         header: 'Status',
         cell: ({ row }) => {
             const active = row.getValue('is_active');
-            return !active ? (
+            return active ? (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                     <BadgeCheck className="h-4 w-4 text-green-600" />
                     Active
