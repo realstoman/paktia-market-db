@@ -74,3 +74,11 @@ export interface Country {
     updated_at: string;
     [key: string]: unknown;
 }
+
+export interface Province {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
