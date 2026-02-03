@@ -19,7 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface RolesPageProps {
-    users: Role[];
+    roles: Role[];
 }
 
 export default function RolesPage({ roles }: RolesPageProps) {

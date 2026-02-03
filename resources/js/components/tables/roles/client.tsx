@@ -20,11 +20,11 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Users: ${data.length}`}
-                    description="Manage system users"
+                    title={`System Roles: ${data.length}`}
+                    description="Manage system roles"
                 />
                 <Button
-                    onClick={() => router.visit('/users/create')}
+                    onClick={() => router.visit('/roles/create')}
                     className="gap-2"
                 >
                     <Plus className="h-4 w-4" />
