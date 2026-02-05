@@ -31,9 +31,11 @@ import { Head } from '@inertiajs/react';
 import {
     CalendarIcon,
     ChefHat,
-    Clock,
+    Cherry,
     CookingPot,
-    SquareX,
+    Package,
+    TrendingDown,
+    TvMinimal,
     Utensils,
     X,
 } from 'lucide-react';
@@ -220,7 +222,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     </Card>
 
                     <div className="col-span-1 flex flex-col gap-4">
-                        <Card className="relative overflow-hidden rounded-xl border-none bg-white p-6 py-4">
+                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6">
                             <CardHeader className="pb-2">
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -233,28 +235,28 @@ export default function Dashboard({ data }: DashboardProps) {
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <StatusCard
-                                    title="Pending Orders"
-                                    value={data?.orders.pending || 137}
+                                    title="Total Items"
+                                    value={data?.orders.pending || 234567}
                                     color=""
-                                    icon={<Clock className="h-5 w-5" />}
+                                    icon={<Package className="h-5 w-5" />}
                                 />
                                 <StatusCard
-                                    title="Preparing Orders"
-                                    value={data?.orders.pending || 462}
+                                    title="Usable Items"
+                                    value={data?.orders.pending || 7652}
                                     color=""
-                                    icon={<CookingPot className="h-4 w-4" />}
+                                    icon={<Cherry className="h-4 w-4" />}
                                 />
                                 <StatusCard
-                                    title="Completed Orders"
-                                    value={data?.orders.pending || 344}
+                                    title="Fixed Items"
+                                    value={data?.orders.pending || 8965}
                                     color=""
-                                    icon={<Utensils className="h-4 w-4" />}
+                                    icon={<TvMinimal className="h-4 w-4" />}
                                 />
                                 <StatusCard
-                                    title="Cancelled Orders"
-                                    value={data?.orders.pending || 0}
+                                    title="Less in Stock"
+                                    value={data?.orders.pending || 265}
                                     color=""
-                                    icon={<SquareX className="h-4 w-4" />}
+                                    icon={<TrendingDown className="h-4 w-4" />}
                                 />
                             </CardContent>
                         </Card>

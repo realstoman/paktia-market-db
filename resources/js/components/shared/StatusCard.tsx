@@ -42,7 +42,7 @@ const StatusCard = ({
                 {icon}
             </div>
             <div>
-                <h2 className="pb-1 text-lg font-medium">{value}</h2>
+                <h2 className="text-lg font-medium">{value}</h2>
                 <h3 className="text-sm">{title}</h3>
             </div>
         </div>
