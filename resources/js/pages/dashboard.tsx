@@ -1,4 +1,5 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
+import { LineChartMultiple } from '@/components/charts/line-chart-multiple';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
 import { Field } from '@/components/ui/field';
@@ -80,125 +81,133 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <div className="col-span-2 flex h-100 justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <div className="items-left flex w-100 flex-1 flex-col justify-between px-8 pt-12">
-                            <div className="pb-8">
-                                <h1 className="text-3xl font-medium">
-                                    Order Status Overview
-                                </h1>
-                                <p>
-                                    Track real-time order progress across all
-                                    stages
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <StatusCard
-                                    title="Pending Orders"
-                                    value={data?.orders.pending || 137}
-                                    color=""
-                                    badgeVariant="default"
-                                    icon={<Clock className="h-5 w-5" />}
-                                />
-                                <StatusCard
-                                    title="Preparing Orders"
-                                    value={data?.orders.pending || 462}
-                                    color=""
-                                    badgeVariant="secondary"
-                                    icon={<CookingPot className="h-5 w-5" />}
-                                />
-                                <StatusCard
-                                    title="Completed Orders"
-                                    value={data?.orders.pending || 344}
-                                    color=""
-                                    badgeVariant="success"
-                                    icon={<Utensils className="h-5 w-5" />}
-                                />
-                                <StatusCard
-                                    title="Cancelled Orders"
-                                    value={data?.orders.pending || 0}
-                                    color=""
-                                    badgeVariant="outline"
-                                    icon={<SquareX className="h-5 w-5" />}
-                                />
-                            </div>
-
-                            <div className="pt-4 pb-4">
-                                <Field className="w-48">
-                                    <InputGroup>
-                                        <InputGroupInput
-                                            id="date-required"
-                                            value={value}
-                                            onChange={(e) => {
-                                                const date = new Date(
-                                                    e.target.value,
-                                                );
-                                                setValue(e.target.value);
-                                                if (isValidDate(date)) {
-                                                    setDate(date);
-                                                    setMonth(date);
-                                                }
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'ArrowDown') {
-                                                    e.preventDefault();
-                                                    setOpen(true);
-                                                }
-                                            }}
-                                        />
-                                        <InputGroupAddon align="inline-end">
-                                            <Popover
-                                                open={open}
-                                                onOpenChange={setOpen}
-                                            >
-                                                <PopoverTrigger asChild>
-                                                    <InputGroupButton
-                                                        id="date-picker"
-                                                        variant="ghost"
-                                                        size="icon-xs"
-                                                        aria-label="Select date"
-                                                    >
-                                                        <CalendarIcon />
-                                                        <span className="sr-only">
-                                                            Select date
-                                                        </span>
-                                                    </InputGroupButton>
-                                                </PopoverTrigger>
-                                                <PopoverContent
-                                                    className="w-auto overflow-hidden p-0"
-                                                    align="end"
-                                                    alignOffset={-8}
-                                                    sideOffset={10}
+                    <div className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                        <div className="flex">
+                            <div className="items-left flex flex-col justify-between px-8 pt-12">
+                                <div className="pb-8">
+                                    <h1 className="text-3xl font-medium">
+                                        Order Status Overview
+                                    </h1>
+                                    <p>
+                                        Track real-time order progress across
+                                        all stages
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <StatusCard
+                                        title="Pending Orders"
+                                        value={data?.orders.pending || 137}
+                                        color=""
+                                        badgeVariant="default"
+                                        icon={<Clock className="h-5 w-5" />}
+                                    />
+                                    <StatusCard
+                                        title="Preparing Orders"
+                                        value={data?.orders.pending || 462}
+                                        color=""
+                                        badgeVariant="secondary"
+                                        icon={
+                                            <CookingPot className="h-5 w-5" />
+                                        }
+                                    />
+                                    <StatusCard
+                                        title="Completed Orders"
+                                        value={data?.orders.pending || 344}
+                                        color=""
+                                        badgeVariant="success"
+                                        icon={<Utensils className="h-5 w-5" />}
+                                    />
+                                    <StatusCard
+                                        title="Cancelled Orders"
+                                        value={data?.orders.pending || 0}
+                                        color=""
+                                        badgeVariant="outline"
+                                        icon={<SquareX className="h-5 w-5" />}
+                                    />
+                                </div>
+                                <div className="pt-4 pb-4">
+                                    <Field className="w-48">
+                                        <InputGroup>
+                                            <InputGroupInput
+                                                id="date-required"
+                                                value={value}
+                                                onChange={(e) => {
+                                                    const date = new Date(
+                                                        e.target.value,
+                                                    );
+                                                    setValue(e.target.value);
+                                                    if (isValidDate(date)) {
+                                                        setDate(date);
+                                                        setMonth(date);
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                        setOpen(true);
+                                                    }
+                                                }}
+                                            />
+                                            <InputGroupAddon align="inline-end">
+                                                <Popover
+                                                    open={open}
+                                                    onOpenChange={setOpen}
                                                 >
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={date}
-                                                        month={month}
-                                                        onMonthChange={setMonth}
-                                                        onSelect={(date) => {
-                                                            setDate(date);
-                                                            setValue(
-                                                                formatDate(
-                                                                    date,
-                                                                ),
-                                                            );
-                                                            setOpen(false);
-                                                        }}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </InputGroupAddon>
-                                    </InputGroup>
-                                </Field>
+                                                    <PopoverTrigger asChild>
+                                                        <InputGroupButton
+                                                            id="date-picker"
+                                                            variant="ghost"
+                                                            size="icon-xs"
+                                                            aria-label="Select date"
+                                                        >
+                                                            <CalendarIcon />
+                                                            <span className="sr-only">
+                                                                Select date
+                                                            </span>
+                                                        </InputGroupButton>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent
+                                                        className="w-auto overflow-hidden p-0"
+                                                        align="end"
+                                                        alignOffset={-8}
+                                                        sideOffset={10}
+                                                    >
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={date}
+                                                            month={month}
+                                                            onMonthChange={
+                                                                setMonth
+                                                            }
+                                                            onSelect={(
+                                                                date,
+                                                            ) => {
+                                                                setDate(date);
+                                                                setValue(
+                                                                    formatDate(
+                                                                        date,
+                                                                    ),
+                                                                );
+                                                                setOpen(false);
+                                                            }}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </InputGroupAddon>
+                                        </InputGroup>
+                                    </Field>
+                                </div>
+                            </div>
+                            <div className="bottom-0 flex flex-1 items-end justify-end">
+                                <img
+                                    src={`${illustrations.babaChef}`}
+                                    width="350"
+                                    height="180"
+                                    alt="Logo"
+                                />
                             </div>
                         </div>
-                        <div className="bottom-0 flex w-full flex-1 items-end justify-end">
-                            <img
-                                src={`${illustrations.babaChef}`}
-                                width="350"
-                                height="180"
-                                alt="Logo"
-                            />
-                        </div>
+                        <LineChartMultiple />
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">
