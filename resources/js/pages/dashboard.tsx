@@ -24,6 +24,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import {
     CalendarIcon,
+    ChefHat,
     Clock,
     CookingPot,
     SquareX,
@@ -100,7 +101,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                         title="Pending Orders"
                                         value={data?.orders.pending || 137}
                                         color="bg-neutral-50"
-                                        icon={<Clock className="h-5 w-5" />}
+                                        icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
@@ -210,7 +211,6 @@ export default function Dashboard({ data }: DashboardProps) {
                             title="Order Analytics"
                             description="Last 7 days order status"
                         />
-                        {/* <OrdersLineChartMultiple /> */}
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">

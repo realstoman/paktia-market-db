@@ -153,8 +153,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-neutral)"
                             strokeWidth={2}
-                            dot={{ r: 4, strokeWidth: 2, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
                         {/* Preparing Line - Sky */}
@@ -163,8 +163,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-sky)"
                             strokeWidth={2}
-                            dot={{ r: 4, strokeWidth: 2, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
                         {/* Completed Line - Green */}
@@ -173,8 +173,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-green)"
                             strokeWidth={2}
-                            dot={{ r: 4, strokeWidth: 2, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
                         {/* Cancelled Line - Red */}
@@ -183,8 +183,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-red)"
                             strokeWidth={2}
-                            dot={{ r: 4, strokeWidth: 2, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
                     </LineChart>
                 </ChartContainer>
