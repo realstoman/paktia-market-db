@@ -1,0 +1,38 @@
+'use client';
+
+import { CountriesClient } from '@/components/tables/countries/client';
+import AppLayout from '@/layouts/app-layout';
+import { dashboard } from '@/routes';
+import countries from '@/routes/branches';
+import { BreadcrumbItem, Country } from '@/types';
+import { Head } from '@inertiajs/react';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Dashboard',
+        href: dashboard().url,
+    },
+    {
+        title: 'Countries',
+        href: countries.index().url,
+    },
+];
+
+interface CountriesPageProps {
+    countries: Country[];
+}
+
+export default function CountriesPage({ countries }: CountriesPageProps) {
+    console.log('data is: ', countries);
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Users" />
+            <div className="space-y-4 p-8">
+                <div className="p-6 text-gray-900">
+                    <CountriesClient data={countries} />
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

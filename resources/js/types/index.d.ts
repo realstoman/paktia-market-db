@@ -43,3 +43,42 @@ export interface User {
     updated_at: string;
     [key: string]: unknown;
 }
+
+export interface Role {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Branch {
+    id: number;
+    name: string;
+    country: string;
+    province: string;
+    address: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Country {
+    id: number;
+    name: string;
+    code: string;
+    currency_code: string;
+    currency_symbol: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Province {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}

@@ -17,7 +17,6 @@ import {
     Building2,
     Globe,
     LayoutGrid,
-    MapPin,
     Shield,
     Smartphone,
     Users,
@@ -43,20 +42,15 @@ const mainNavItems: NavItem[] = [
         can: 'role.view',
     },
     {
-        title: 'Countries',
-        href: '/countries',
-        icon: Globe,
-    },
-    {
-        title: 'Provinces',
-        href: '/provinces',
-        icon: MapPin,
-    },
-    {
         title: 'Branches',
         href: '/branches',
         icon: Building2,
         can: 'branch.view',
+    },
+    {
+        title: 'Countries',
+        href: '/countries',
+        icon: Globe,
     },
 ];
 

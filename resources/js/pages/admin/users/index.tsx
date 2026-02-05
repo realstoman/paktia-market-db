@@ -1,6 +1,6 @@
 'use client';
 
-import { UsersClient } from '@/components/tables/users/users-client';
+import { UsersClient } from '@/components/tables/users/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';

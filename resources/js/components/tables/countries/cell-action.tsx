@@ -6,13 +6,13 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User } from '@/types';
+import { Country } from '@/types';
 import { router } from '@inertiajs/react';
-import { Ban, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Eye, MapPinOff, MoreHorizontal, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
 interface CellActionProps {
-    data: User;
+    data: Country;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -21,11 +21,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     const [open, setOpen] = useState(false);
 
     const onView = () => {
-        router.visit(`/users/${data.id}`);
+        router.visit(`/countries/${data.id}`);
     };
 
     const onEdit = () => {
-        router.visit(`/users/${data.id}/edit`);
+        router.visit(`/countries/${data.id}/edit`);
     };
 
     // const onConfirm = async () => {
@@ -40,32 +40,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
     return (
         <>
-            {/* <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Delete Chat</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent size="sm">
-                    <AlertDialogHeader>
-                        <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                            <Trash2Icon />
-                        </AlertDialogMedia>
-                        <AlertDialogTitle>Delete chat?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will permanently delete this chat conversation.
-                            View <a href="#">Settings</a> delete any memories
-                            saved during this chat.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel variant="outline">
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction variant="destructive">
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog> */}
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -84,12 +58,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpen(true)}>
-                        <Ban className="mr-2 h-4 w-4" />
-                        Block
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                        <MapPinOff className="mr-2 h-4 w-4" />
+                        Disable
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

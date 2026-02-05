@@ -1,11 +1,9 @@
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { User } from '@/types';
+import { Country } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Country>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -36,38 +34,20 @@ export const columns: ColumnDef<User>[] = [
         header: 'Name',
     },
     {
-        accessorKey: 'email',
-        header: 'Email',
+        accessorKey: 'currency_code',
+        header: 'Country Code',
     },
     {
-        accessorKey: 'branch',
-        header: 'Branch',
+        accessorKey: 'currency_symbol',
+        header: 'Currency Symbol',
     },
     {
         accessorKey: 'province',
-        header: 'Province',
+        header: 'Provinces',
     },
     {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'is_active',
-        header: 'Status',
-        cell: ({ row }) => {
-            const active = row.getValue('is_active');
-            return active ? (
-                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
-                    <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
-                </Badge>
-            ) : (
-                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
-                    <Ban className="h-4 w-4 text-red-600" />
-                    Blocked
-                </Badge>
-            );
-        },
+        accessorKey: 'branches',
+        header: 'Branches',
     },
     {
         accessorKey: 'created_at',

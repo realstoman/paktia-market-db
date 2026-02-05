@@ -11,7 +11,6 @@ use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
@@ -29,13 +28,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        // Parse query parameters for data-table
         $params = [
             'perPage' => $request->get('perPage', 10),
             'page' => $request->get('page', 1),
-            'search' => $request->get('search', ''),
-            'sort' => $this->parseSortParam($request->get('sort')),
-            'filters' => $this->parseFilters($request),
         ];
 
         $usersPaginator = $this->userService->getPaginatedUsers($params);
@@ -47,8 +42,6 @@ class UserController extends Controller
             'totalItems' => $usersPaginator->total(),
             'perPage' => (int)$params['perPage'],
             'page' => (int)$params['page'],
-            'sort' => $params['sort'],
-            'search' => $params['search'],
             'canCreate' => $canCreate,
         ]);
     }
@@ -126,51 +119,5 @@ class UserController extends Controller
         $user->update(['is_active' => !$user->is_active]);
 
         return back()->with('success', 'User status updated successfully.');
-    }
-
-    /**
-     * Parse sort parameter from query string
-     */
-    private function parseSortParam($sortParam): array
-    {
-        if (empty($sortParam)) {
-            return [];
-        }
-
-        try {
-            $sortData = json_decode($sortParam, true);
-            if (is_array($sortData)) {
-                return $sortData;
-            }
-        } catch (\Exception $e) {
-            // Invalid JSON, return empty array
-        }
-
-        return [];
-    }
-
-    /**
-     * Parse filters from request
-     */
-    private function parseFilters(Request $request): array
-    {
-        $filters = [];
-        $allParams = $request->all();
-
-        // Exclude known parameters that aren't filters
-        $excludeParams = ['perPage', 'page', 'search', 'sort'];
-
-        foreach ($allParams as $key => $value) {
-            if (!in_array($key, $excludeParams) && !empty($value)) {
-                // Handle array values (like multi-select filters)
-                if (str_contains($value, ',')) {
-                    $filters[$key] = explode(',', $value);
-                } else {
-                    $filters[$key] = $value;
-                }
-            }
-        }
-
-        return $filters;
     }
 }

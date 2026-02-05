@@ -1,11 +1,9 @@
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { User } from '@/types';
+import { Role } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Role>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -34,40 +32,6 @@ export const columns: ColumnDef<User>[] = [
     {
         accessorKey: 'name',
         header: 'Name',
-    },
-    {
-        accessorKey: 'email',
-        header: 'Email',
-    },
-    {
-        accessorKey: 'branch',
-        header: 'Branch',
-    },
-    {
-        accessorKey: 'province',
-        header: 'Province',
-    },
-    {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'is_active',
-        header: 'Status',
-        cell: ({ row }) => {
-            const active = row.getValue('is_active');
-            return active ? (
-                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
-                    <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
-                </Badge>
-            ) : (
-                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
-                    <Ban className="h-4 w-4 text-red-600" />
-                    Blocked
-                </Badge>
-            );
-        },
     },
     {
         accessorKey: 'created_at',
