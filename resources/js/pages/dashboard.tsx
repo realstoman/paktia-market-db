@@ -78,6 +78,7 @@ export default function Dashboard({ data }: DashboardProps) {
                             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                         </div>
                     </div>
+                    {/* Order status overview */}
                     <div className="col-span-2 flex h-100 justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <div className="items-left flex w-100 flex-1 flex-col justify-between px-8 pt-12">
                             <div className="pb-8">
