@@ -1,5 +1,5 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
-import { LineChartMultiple } from '@/components/charts/line-chart-multiple';
+import { OrdersLineChartMultiple } from '@/components/charts/orders-line-chart-multiple';
 import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
@@ -204,7 +204,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 />
                             </div>
                         </div>
-                        <LineChartMultiple />
+                        <OrdersLineChartMultiple />
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">

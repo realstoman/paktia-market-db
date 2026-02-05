@@ -5,9 +5,10 @@ import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 import {
     Card,
     CardContent,
-    // CardDescription,
+    CardDescription,
     CardFooter,
     CardHeader,
+    CardTitle,
 } from '@/components/ui/card';
 import {
     ChartContainer,
@@ -24,6 +25,7 @@ const chartData = [
     { month: 'March', desktop: 237, mobile: 120 },
     { month: 'April', desktop: 73, mobile: 190 },
     { month: 'May', desktop: 209, mobile: 130 },
+    { month: 'June', desktop: 209, mobile: 130 },
 ];
 
 const chartConfig = {
@@ -37,12 +39,12 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-export function LineChartMultiple() {
+export function OrdersLineChartMultiple() {
     return (
         <Card className="border-none">
             <CardHeader>
-                {/* <CardTitle>Line Chart - Multiple</CardTitle>
-                <CardDescription>January - June 2024</CardDescription> */}
+                <CardTitle>Orders Chart</CardTitle>
+                <CardDescription>January - June 2026</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig}>
