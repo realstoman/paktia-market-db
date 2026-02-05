@@ -4,3 +4,7 @@ export const brand = {
     logo: '/brand/logo.svg',
     logoFull: '/brand/logo-full.svg',
 };
+
+export const illustrations = {
+    babaChef: '/illustrations/baba-chef-drawing.jpg',
+};
