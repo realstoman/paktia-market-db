@@ -17,7 +17,7 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
-export const description = 'Baba Data Bar Chart';
+export const description = 'Baba Bar Chart';
 
 const chartData = [
     { month: 'Jan', sales: 465000 },
@@ -29,14 +29,14 @@ const chartData = [
 
 const chartConfig = {
     sales: {
-        label: 'sales',
-        color: 'var(--chart-6)',
+        label: 'Sales:',
+        color: 'var(--foreground)',
     },
 } satisfies ChartConfig;
 
 export function BarChartDefault() {
     return (
-        <Card className="border border-sidebar-border/70 dark:border-sidebar-border">
+        <Card className="border-none">
             <CardHeader>
                 <CardTitle>Restaurant Revenue</CardTitle>
                 <CardDescription>January - May 2026</CardDescription>
@@ -58,7 +58,7 @@ export function BarChartDefault() {
                         />
                         <Bar
                             dataKey="sales"
-                            fill="var(--color-desktop)"
+                            fill="var(--foreground)"
                             radius={8}
                         />
                     </BarChart>
@@ -69,8 +69,8 @@ export function BarChartDefault() {
                     Trending up by 5.2% this month{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="leading-none text-muted-foreground">
-                    Showing total visitors for the last 6 months
+                <div className="leading-relaxed text-muted-foreground">
+                    Showing restaurant total sales revenue for the last 6 months
                 </div>
             </CardFooter>
         </Card>
