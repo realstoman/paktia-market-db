@@ -1,5 +1,5 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
-import { OrdersLineChartMultiple } from '@/components/charts/orders-line-chart-multiple';
+import { OrderAnalyticsChart } from '@/components/charts/order-analytics-chart';
 import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
@@ -19,6 +19,7 @@ import {
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
+import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import {
@@ -117,7 +118,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
-                                        value={data?.orders.pending || 0}
+                                        value={data?.orders.pending || 2}
                                         color="bg-red-50 text-red-700"
                                         icon={<X className="h-4 w-4" />}
                                     />
@@ -204,7 +205,12 @@ export default function Dashboard({ data }: DashboardProps) {
                                 />
                             </div>
                         </div>
-                        <OrdersLineChartMultiple />
+                        <OrderAnalyticsChart
+                            data={mockPeakDayData}
+                            title="Order Analytics"
+                            description="Last 7 days order status"
+                        />
+                        {/* <OrdersLineChartMultiple /> */}
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">

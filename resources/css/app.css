@@ -84,6 +84,16 @@
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.87 0 0);
+
+    --chart-neutral: #949494; /* neutral-500 */
+    --chart-sky: #43b6eb; /* sky-500 */
+    --chart-green: #49d57c; /* green-500 */
+    --chart-red: #fa5c5c; /* red-500 */
+
+    --order-chart-1: var(--chart-neutral);
+    --order-chart-2: var(--chart-sky);
+    --order-chart-3: var(--chart-green);
+    --order-chart-4: var(--chart-red);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
