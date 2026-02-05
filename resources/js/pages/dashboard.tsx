@@ -27,6 +27,7 @@ import {
     CookingPot,
     SquareX,
     Utensils,
+    X,
 } from 'lucide-react';
 import React from 'react';
 
@@ -84,50 +85,47 @@ export default function Dashboard({ data }: DashboardProps) {
                     {/* Order status overview */}
                     <div className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <div className="flex">
-                            <div className="items-left flex flex-col justify-between px-8 pt-12">
-                                <div className="pb-8">
-                                    <h1 className="text-3xl font-medium">
+                            <div className="items-left flex flex-1 flex-col justify-between p-6">
+                                <div className="pb-4">
+                                    <h1 className="text-2xl font-medium">
                                         Order Status Overview
                                     </h1>
-                                    <p>
-                                        Track real-time order progress across
-                                        all stages
+                                    <p className="text-base">
+                                        Track real-time order progress
                                     </p>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-4">
                                     <StatusCard
                                         title="Pending Orders"
                                         value={data?.orders.pending || 137}
-                                        color=""
-                                        badgeVariant="default"
+                                        color="bg-neutral-50"
                                         icon={<Clock className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={data?.orders.pending || 462}
-                                        color=""
-                                        badgeVariant="secondary"
+                                        color="bg-sky-50 text-sky-700"
                                         icon={
-                                            <CookingPot className="h-5 w-5" />
+                                            <CookingPot className="h-4 w-4" />
                                         }
                                     />
                                     <StatusCard
                                         title="Completed Orders"
                                         value={data?.orders.pending || 344}
-                                        color=""
-                                        badgeVariant="success"
-                                        icon={<Utensils className="h-5 w-5" />}
+                                        color="bg-green-50 text-green-700"
+                                        icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={data?.orders.pending || 0}
-                                        color=""
-                                        badgeVariant="outline"
-                                        icon={<SquareX className="h-5 w-5" />}
+                                        color="bg-red-50 text-red-700"
+                                        icon={<X className="h-4 w-4" />}
                                     />
                                 </div>
-                                <div className="pt-4 pb-4">
-                                    <Field className="w-48">
+                            </div>
+                            <div className="bottom-0 flex flex-1 flex-col items-end justify-between">
+                                <div className="pt-6 pr-4 pb-4">
+                                    <Field className="w-40">
                                         <InputGroup>
                                             <InputGroupInput
                                                 id="date-required"
@@ -198,8 +196,6 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </InputGroup>
                                     </Field>
                                 </div>
-                            </div>
-                            <div className="bottom-0 flex flex-1 items-end justify-end">
                                 <img
                                     src={`${illustrations.babaChef}`}
                                     width="350"
@@ -212,8 +208,41 @@ export default function Dashboard({ data }: DashboardProps) {
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">
-                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                            <BarChartDefault />
+                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border">
+                            <div className="pb-4">
+                                <h1 className="text-lg font-medium lg:text-xl">
+                                    Inventory Overview
+                                </h1>
+                                <p className="text-md: lg:text-base">
+                                    Track inventory status
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <StatusCard
+                                    title="Pending Orders"
+                                    value={data?.orders.pending || 137}
+                                    color=""
+                                    icon={<Clock className="h-5 w-5" />}
+                                />
+                                <StatusCard
+                                    title="Preparing Orders"
+                                    value={data?.orders.pending || 462}
+                                    color=""
+                                    icon={<CookingPot className="h-4 w-4" />}
+                                />
+                                <StatusCard
+                                    title="Completed Orders"
+                                    value={data?.orders.pending || 344}
+                                    color=""
+                                    icon={<Utensils className="h-4 w-4" />}
+                                />
+                                <StatusCard
+                                    title="Cancelled Orders"
+                                    value={data?.orders.pending || 0}
+                                    color=""
+                                    icon={<SquareX className="h-4 w-4" />}
+                                />
+                            </div>
                         </div>
                         <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                             <PieChartDonutText />

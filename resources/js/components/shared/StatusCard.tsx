@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
@@ -8,12 +7,7 @@ interface StatusCardProps {
     value: number;
     description?: string;
     color?: string;
-    badgeVariant?:
-        | 'default'
-        | 'secondary'
-        | 'destructive'
-        | 'outline'
-        | 'success';
+    iconColor?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success';
 }
 
 const StatusCard = ({
@@ -21,9 +15,9 @@ const StatusCard = ({
     title,
     value,
     color = 'bg-primary',
-    badgeVariant = 'default',
+    iconColor = 'default',
 }: StatusCardProps) => {
-    const getBadgeVariant = () => {
+    const getIconColor = () => {
         const variantMap: Record<
             string,
             'default' | 'secondary' | 'destructive' | 'outline' | 'success'
@@ -33,18 +27,24 @@ const StatusCard = ({
             Completed: 'success',
             Cancelled: 'destructive',
         };
-        return variantMap[title] || badgeVariant;
+        return variantMap[title] || iconColor;
     };
 
     return (
-        <div className={cn('flex items-center gap-2', color)}>
-            <div className="rounded-sm border border-sidebar-border/70 bg-neutral-50 p-1.5 dark:border-sidebar-border">
+        <div className={cn('flex items-center gap-2')}>
+            <div
+                className={cn(
+                    'rounded-full border border-sidebar-border/30 p-3 dark:border-sidebar-border/50',
+                    color,
+                    getIconColor,
+                )}
+            >
                 {icon}
             </div>
-            <h3 className="text-base font-medium">{title}</h3>
-            <Badge variant={getBadgeVariant()} className="font-semibold">
-                {value}
-            </Badge>
+            <div>
+                <h2 className="pb-1 text-lg font-medium">{value}</h2>
+                <h3 className="text-sm">{title}</h3>
+            </div>
         </div>
     );
 };
