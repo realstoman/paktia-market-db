@@ -93,7 +93,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border-none py-4">
+                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border-none py-4 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-2">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
                                 <div className="space-y-1">
@@ -222,7 +222,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     </Card>
 
                     <div className="col-span-1 flex flex-col gap-4">
-                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6">
+                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
                             <CardHeader className="pb-2">
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -265,7 +265,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 md:min-h-min dark:border-sidebar-border">
+                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 md:min-h-min dark:border-sidebar-border dark:bg-neutral-900">
                     Lorem ipsum dolor sit amet consectetur adipisicing elit.
                     Ipsa quae amet perspiciatis qui maxime, fuga deserunt velit
                     doloribus consequatur, soluta dignissimos, ab suscipit

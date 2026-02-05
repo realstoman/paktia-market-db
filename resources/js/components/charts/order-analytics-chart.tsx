@@ -60,7 +60,7 @@ export function OrderAnalyticsChart({
     }, [data]);
 
     return (
-        <Card className="rounded-none border-none shadow-sm">
+        <Card className="rounded-none border-none shadow-sm dark:bg-neutral-900">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
                 <div className="space-y-1">
                     <CardTitle className="text-lg font-semibold">
