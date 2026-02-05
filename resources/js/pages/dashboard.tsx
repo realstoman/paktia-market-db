@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
 import { Field } from '@/components/ui/field';
 import {
@@ -20,7 +20,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import {
     CalendarIcon,
-    ChefHat,
+    Clock,
     CookingPot,
     SquareX,
     Utensils,
@@ -51,11 +51,17 @@ function isValidDate(date: Date | undefined) {
     return !isNaN(date.getTime());
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+    data?: {
+        orders: {
+            pending: number;
+        };
+    };
+}
+
+export default function Dashboard({ data }: DashboardProps) {
     const [open, setOpen] = React.useState(false);
-    const [date, setDate] = React.useState<Date | undefined>(
-        new Date('2025-06-01'),
-    );
+    const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [month, setMonth] = React.useState<Date | undefined>(date);
     const [value, setValue] = React.useState(formatDate(date));
 
@@ -75,7 +81,7 @@ export default function Dashboard() {
                     <div className="col-span-2 flex h-100 justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <div className="items-left flex w-100 flex-1 flex-col justify-between px-8 pt-12">
                             <div className="pb-8">
-                                <h1 className="text-3xl">
+                                <h1 className="text-3xl font-medium">
                                     Order Status Overview
                                 </h1>
                                 <p>
@@ -83,35 +89,43 @@ export default function Dashboard() {
                                     stages
                                 </p>
                             </div>
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="rounded-sm border border-sidebar-border/70 bg-neutral-50 p-1 dark:border-sidebar-border">
-                                        <ChefHat />
-                                    </div>
-                                    <p className="text-lg">Pending Orders</p>
-                                    <Badge variant={'default'}>12</Badge>
-                                </div>
-                                <div className="flex gap-2">
-                                    <CookingPot />
-                                    Preparing Orders
-                                </div>
-                                <div className="flex gap-2">
-                                    <Utensils />
-                                    Completed Orders
-                                </div>
-                                <div className="flex gap-2">
-                                    <SquareX />
-                                    Cancelled Orders
-                                </div>
+                            <div className="space-y-2">
+                                <StatusCard
+                                    title="Pending Orders"
+                                    value={data?.orders.pending || 137}
+                                    color=""
+                                    badgeVariant="default"
+                                    icon={<Clock className="h-5 w-5" />}
+                                />
+                                <StatusCard
+                                    title="Preparing Orders"
+                                    value={data?.orders.pending || 462}
+                                    color=""
+                                    badgeVariant="secondary"
+                                    icon={<CookingPot className="h-5 w-5" />}
+                                />
+                                <StatusCard
+                                    title="Completed Orders"
+                                    value={data?.orders.pending || 344}
+                                    color=""
+                                    badgeVariant="success"
+                                    icon={<Utensils className="h-5 w-5" />}
+                                />
+                                <StatusCard
+                                    title="Cancelled Orders"
+                                    value={data?.orders.pending || 0}
+                                    color=""
+                                    badgeVariant="outline"
+                                    icon={<SquareX className="h-5 w-5" />}
+                                />
                             </div>
 
-                            <div className="pb-4">
+                            <div className="pt-4 pb-4">
                                 <Field className="w-48">
                                     <InputGroup>
                                         <InputGroupInput
                                             id="date-required"
                                             value={value}
-                                            placeholder="June 01, 2025"
                                             onChange={(e) => {
                                                 const date = new Date(
                                                     e.target.value,
