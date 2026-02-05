@@ -1,5 +1,6 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
 import { LineChartMultiple } from '@/components/charts/line-chart-multiple';
+import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
 import { Field } from '@/components/ui/field';
@@ -211,11 +212,11 @@ export default function Dashboard({ data }: DashboardProps) {
                     </div>
 
                     <div className="col-span-1 flex flex-col gap-4">
-                        <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                            <BarChartDefault />
                         </div>
-                        <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                            <PieChartDonutText />
                         </div>
                     </div>
                 </div>
