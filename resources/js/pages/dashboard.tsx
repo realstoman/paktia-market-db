@@ -1,11 +1,31 @@
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Field } from '@/components/ui/field';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { ChefHat, CookingPot, SquareX, Utensils } from 'lucide-react';
+import {
+    CalendarIcon,
+    ChefHat,
+    CookingPot,
+    SquareX,
+    Utensils,
+} from 'lucide-react';
+import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,7 +34,31 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+function formatDate(date: Date | undefined) {
+    if (!date) {
+        return '';
+    }
+    return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+}
+function isValidDate(date: Date | undefined) {
+    if (!date) {
+        return false;
+    }
+    return !isNaN(date.getTime());
+}
+
 export default function Dashboard() {
+    const [open, setOpen] = React.useState(false);
+    const [date, setDate] = React.useState<Date | undefined>(
+        new Date('2025-06-01'),
+    );
+    const [month, setMonth] = React.useState<Date | undefined>(date);
+    const [value, setValue] = React.useState(formatDate(date));
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -29,7 +73,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="col-span-2 flex h-100 justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <div className="w-100 flex-1 px-8 pt-12">
+                        <div className="items-left flex w-100 flex-1 flex-col justify-between px-8 pt-12">
                             <div className="pb-8">
                                 <h1 className="text-3xl">
                                     Order Status Overview
@@ -60,11 +104,81 @@ export default function Dashboard() {
                                     Cancelled Orders
                                 </div>
                             </div>
+
+                            <div className="pb-4">
+                                <Field className="w-48">
+                                    <InputGroup>
+                                        <InputGroupInput
+                                            id="date-required"
+                                            value={value}
+                                            placeholder="June 01, 2025"
+                                            onChange={(e) => {
+                                                const date = new Date(
+                                                    e.target.value,
+                                                );
+                                                setValue(e.target.value);
+                                                if (isValidDate(date)) {
+                                                    setDate(date);
+                                                    setMonth(date);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    setOpen(true);
+                                                }
+                                            }}
+                                        />
+                                        <InputGroupAddon align="inline-end">
+                                            <Popover
+                                                open={open}
+                                                onOpenChange={setOpen}
+                                            >
+                                                <PopoverTrigger asChild>
+                                                    <InputGroupButton
+                                                        id="date-picker"
+                                                        variant="ghost"
+                                                        size="icon-xs"
+                                                        aria-label="Select date"
+                                                    >
+                                                        <CalendarIcon />
+                                                        <span className="sr-only">
+                                                            Select date
+                                                        </span>
+                                                    </InputGroupButton>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto overflow-hidden p-0"
+                                                    align="end"
+                                                    alignOffset={-8}
+                                                    sideOffset={10}
+                                                >
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={date}
+                                                        month={month}
+                                                        onMonthChange={setMonth}
+                                                        onSelect={(date) => {
+                                                            setDate(date);
+                                                            setValue(
+                                                                formatDate(
+                                                                    date,
+                                                                ),
+                                                            );
+                                                            setOpen(false);
+                                                        }}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </InputGroupAddon>
+                                    </InputGroup>
+                                </Field>
+                            </div>
                         </div>
-                        <div className="bottom-0 flex flex-1 items-end justify-end bg-red-100">
+                        <div className="bottom-0 flex w-full flex-1 items-end justify-end">
                             <img
                                 src={`${illustrations.babaChef}`}
-                                width="280"
+                                width="350"
                                 height="180"
                                 alt="Logo"
                             />
