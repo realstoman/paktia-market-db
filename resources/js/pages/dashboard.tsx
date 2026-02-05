@@ -3,6 +3,13 @@ import { OrderAnalyticsChart } from '@/components/charts/order-analytics-chart';
 import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import {
     InputGroup,
@@ -84,16 +91,16 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <div className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <div className="flex bg-white">
-                            <div className="items-left flex flex-1 flex-col justify-between p-6">
-                                <div className="pb-4">
-                                    <h1 className="text-2xl font-medium">
+                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border-none py-4">
+                        <div className="flex flex-row items-start justify-between pb-2">
+                            <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-lg font-semibold">
                                         Order Status Overview
-                                    </h1>
-                                    <p className="text-base">
+                                    </CardTitle>
+                                    <CardDescription className="text-sm">
                                         Track real-time order progress
-                                    </p>
+                                    </CardDescription>
                                 </div>
                                 <div className="space-y-4">
                                     <StatusCard
@@ -123,9 +130,9 @@ export default function Dashboard({ data }: DashboardProps) {
                                         icon={<X className="h-4 w-4" />}
                                     />
                                 </div>
-                            </div>
+                            </CardHeader>
                             <div className="bottom-0 flex flex-1 flex-col items-end justify-between">
-                                <div className="pt-6 pr-4 pb-4">
+                                <div className="pt-2 pr-4 pb-4">
                                     <Field className="w-40">
                                         <InputGroup>
                                             <InputGroupInput
@@ -210,19 +217,21 @@ export default function Dashboard({ data }: DashboardProps) {
                             title="Order Analytics"
                             description="Last 7 days order status"
                         />
-                    </div>
+                    </Card>
 
                     <div className="col-span-1 flex flex-col gap-4">
-                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border">
-                            <div className="pb-4">
-                                <h1 className="text-lg font-medium lg:text-xl">
-                                    Inventory Overview
-                                </h1>
-                                <p className="text-md: lg:text-base">
-                                    Track inventory status
-                                </p>
-                            </div>
-                            <div className="space-y-2">
+                        <Card className="relative overflow-hidden rounded-xl border-none bg-white p-6 py-4">
+                            <CardHeader className="pb-2">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Inventory Overview
+                                    </CardTitle>
+                                    <CardDescription className="text-ms">
+                                        Track inventory status
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
                                 <StatusCard
                                     title="Pending Orders"
                                     value={data?.orders.pending || 137}
@@ -247,8 +256,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                     color=""
                                     icon={<SquareX className="h-4 w-4" />}
                                 />
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                         <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                             <PieChartDonutText />
                         </div>

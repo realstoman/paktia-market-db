@@ -34,7 +34,7 @@ const StatusCard = ({
         <div className={cn('flex items-center gap-2')}>
             <div
                 className={cn(
-                    'rounded-full border border-sidebar-border/30 p-3 dark:border-sidebar-border/50',
+                    'rounded-full border border-sidebar-border/30 p-4 dark:border-sidebar-border/50',
                     color,
                     getIconColor,
                 )}

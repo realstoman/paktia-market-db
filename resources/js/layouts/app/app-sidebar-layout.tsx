@@ -12,7 +12,7 @@ export default function AppSidebarLayout({
     return (
         <AppShell variant="sidebar">
             <AppSidebar />
-            <AppContent className="mx-auto my-4 flex w-full max-w-[96rem] flex-col overflow-x-hidden overflow-y-auto rounded-xl">
+            <AppContent className="mx-auto my-4 flex w-full max-w-[78rem] flex-col overflow-x-hidden overflow-y-auto rounded-xl">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
