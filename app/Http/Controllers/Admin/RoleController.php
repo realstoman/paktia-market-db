@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\PermissionService;
+use App\Services\Auth\RoleService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use RoleService;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-
 class RoleController extends Controller
 {
-    public function index()
+    public function index(PermissionService $service)
     {
         return Inertia::render('admin/roles/index', [
-            'roles' => Role::with('permissions')->get(),
-            'permissions' => Permission::all(),
+            ...$service->getRoleIndexData(),
         ]);
     }
 
@@ -25,4 +22,3 @@ class RoleController extends Controller
         return back();
     }
 }
-

@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Services\Auth;
+
 use Spatie\Permission\Models\Role;
 
 class RoleService
