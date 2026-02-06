@@ -16,6 +16,10 @@ const config: Config = {
                 brand: {
                     primary: '#102F33',
                     secondary: '#CC924B',
+                    primaryBody: '#111C2D',
+                    secondaryBody: '#646B76',
+                    bgLight: '#F0F5F9',
+                    bgDark: '#171717',
                 },
 
                 /** ============================

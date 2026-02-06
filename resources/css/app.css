@@ -19,6 +19,7 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
 
+    /* --color-background: #f6f9fb; */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
 
@@ -52,6 +53,7 @@
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
+    --color-chart-6: var(--chart-6);
 
     --color-sidebar: var(--sidebar);
     --color-sidebar-foreground: var(--sidebar-foreground);
@@ -64,7 +66,8 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
+    --background: #f6f9fb;
+    /* --background: oklch(1 0 0); */
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -83,11 +86,22 @@
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.87 0 0);
+
+    --chart-neutral: #f18e0d; /* neutral-500 */
+    --chart-sky: #43b6eb; /* sky-500 */
+    --chart-green: #49d57c; /* green-500 */
+    --chart-red: #fa5c5c; /* red-500 */
+
+    --order-chart-1: var(--chart-neutral);
+    --order-chart-2: var(--chart-sky);
+    --order-chart-3: var(--chart-green);
+    --order-chart-4: var(--chart-red);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
+    --chart-6: rgb(204 146 75);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
@@ -124,6 +138,7 @@
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
+    --chart-6: rgb(204 146 75);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.985 0 0);
