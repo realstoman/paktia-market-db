@@ -108,13 +108,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Pending Orders"
                                         value={data?.orders.pending || 137}
-                                        color="bg-neutral-50"
+                                        color="bg-orange-50 dark:bg-orange-950 text-orange-700"
                                         icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={data?.orders.pending || 462}
-                                        color="bg-sky-50 text-sky-700"
+                                        color="bg-sky-50 dark:bg-sky-950 text-sky-700"
                                         icon={
                                             <CookingPot className="h-4 w-4" />
                                         }
@@ -122,13 +122,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Completed Orders"
                                         value={data?.orders.pending || 344}
-                                        color="bg-green-50 text-green-700"
+                                        color="bg-green-50 dark:bg-green-950 text-green-700"
                                         icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={data?.orders.pending || 2}
-                                        color="bg-red-50 text-red-700"
+                                        color="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400"
                                         icon={<X className="h-4 w-4" />}
                                     />
                                 </div>
