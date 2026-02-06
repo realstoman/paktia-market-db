@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Roles & Permissions
     Route::resource('roles', RoleController::class);
     Route::get('permissions', [PermissionController::class, 'index']);
+    Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
 
     // Locations
     Route::resource('countries', CountryController::class);

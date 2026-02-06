@@ -32,7 +32,9 @@ export const RolesClient: React.FC<RolesClientProps> = ({
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isPermissionOpen, setIsPermissionOpen] = useState(false);
     const [name, setName] = useState('');
+    const [permissionName, setPermissionName] = useState('');
     const [selectedPermissionIds, setSelectedPermissionIds] = useState<
         Set<number>
     >(new Set());
@@ -63,6 +65,10 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         setSelectedPermissionIds(new Set());
     };
 
+    const resetPermissionForm = () => {
+        setPermissionName('');
+    };
+
     const handleSubmit = () => {
         if (!name.trim() || isSubmitting) {
             return;
@@ -90,6 +96,32 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         );
     };
 
+    const handlePermissionSubmit = () => {
+        if (!permissionName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            '/permissions',
+            {
+                name: permissionName.trim(),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Permission created successfully.');
+                    setIsPermissionOpen(false);
+                    resetPermissionForm();
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
     const tableColumns = useMemo(
         () => buildColumns(permissions),
         [permissions],
@@ -102,13 +134,23 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     title={`System Roles: ${data.length}`}
                     description="Manage system roles"
                 />
-                <Button
-                    onClick={() => setIsCreateOpen(true)}
-                    className="gap-2"
-                >
-                    <Plus className="h-4 w-4" />
-                    Add New
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsPermissionOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add Permission
+                    </Button>
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add Role
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
@@ -200,6 +242,54 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             disabled={!name.trim() || isSubmitting}
                         >
                             Create Role
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isPermissionOpen}
+                onOpenChange={(open) => {
+                    setIsPermissionOpen(open);
+                    if (!open) {
+                        resetPermissionForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Create Permission</DialogTitle>
+                        <DialogDescription>
+                            Add a new permission to assign to roles.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                            Permission name
+                        </label>
+                        <Input
+                            value={permissionName}
+                            onChange={(event) =>
+                                setPermissionName(event.target.value)
+                            }
+                            placeholder="e.g. roles.create"
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsPermissionOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handlePermissionSubmit}
+                            disabled={!permissionName.trim() || isSubmitting}
+                        >
+                            Create Permission
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -14,4 +14,12 @@ class PermissionService
             'permissions' => Permission::orderBy('name')->get(),
         ];
     }
+
+    public function create(string $name): Permission
+    {
+        return Permission::create([
+            'name' => $name,
+            'guard_name' => config('auth.defaults.guard', 'web'),
+        ]);
+    }
 }
