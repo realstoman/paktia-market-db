@@ -36,7 +36,7 @@ const chartConfig = {
 
 export function BarChartDefault() {
     return (
-        <Card className="border-none dark:bg-neutral-900">
+        <Card className="border-none shadow-none dark:bg-brand-bg-dark">
             <CardHeader>
                 <CardTitle>Restaurant Revenue</CardTitle>
                 <CardDescription>January - May 2026</CardDescription>

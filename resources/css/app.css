@@ -87,7 +87,7 @@
     --input: oklch(0.922 0 0);
     --ring: oklch(0.87 0 0);
 
-    --chart-neutral: #949494; /* neutral-500 */
+    --chart-neutral: #f18e0d; /* neutral-500 */
     --chart-sky: #43b6eb; /* sky-500 */
     --chart-green: #49d57c; /* green-500 */
     --chart-red: #fa5c5c; /* red-500 */
