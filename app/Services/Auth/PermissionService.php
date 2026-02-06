@@ -11,7 +11,7 @@ class PermissionService
     {
         return [
             'roles' => Role::with('permissions')->get(),
-            'permissions' => Permission::all(),
+            'permissions' => Permission::orderBy('name')->get(),
         ];
     }
 }

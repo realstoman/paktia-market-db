@@ -18,7 +18,14 @@ class RoleController extends Controller
 
     public function store(Request $request, RoleService $service)
     {
-        $service->create($request->name, $request->permissions);
-        return back();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
+            'permissions' => ['array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
+        ]);
+
+        $service->create($validated['name'], $validated['permissions'] ?? []);
+
+        return redirect()->route('roles.index');
     }
 }
