@@ -86,7 +86,7 @@ export default function Dashboard({ data }: DashboardProps) {
                 <div className="grid auto-rows-min gap-4 md:grid-cols-4">
                     <div className="col-span-1 flex flex-col gap-4">
                         <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                            <BarChartDefault />
+                            <h1>Income and Loss</h1>
                         </div>
                         <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                             <BarChartDefault />
