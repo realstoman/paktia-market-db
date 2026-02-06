@@ -14,6 +14,7 @@ const MAX_VISIBLE_PERMISSIONS = 3;
 
 export const buildColumns = (
     permissions: Permission[],
+    onDuplicate: (role: Role) => void,
 ): ColumnDef<Role>[] => [
     {
         id: 'select',
@@ -112,7 +113,11 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction data={row.original} permissions={permissions} />
+            <CellAction
+                data={row.original}
+                permissions={permissions}
+                onDuplicate={onDuplicate}
+            />
         ),
     },
 ];

@@ -13,10 +13,11 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import InputError from '@/components/input-error';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
@@ -35,6 +36,12 @@ export const RolesClient: React.FC<RolesClientProps> = ({
     const [isPermissionOpen, setIsPermissionOpen] = useState(false);
     const [name, setName] = useState('');
     const [permissionName, setPermissionName] = useState('');
+    const [createErrors, setCreateErrors] = useState<Record<string, string>>(
+        {},
+    );
+    const [permissionErrors, setPermissionErrors] = useState<
+        Record<string, string>
+    >({});
     const [selectedPermissionIds, setSelectedPermissionIds] = useState<
         Set<number>
     >(new Set());
@@ -63,10 +70,12 @@ export const RolesClient: React.FC<RolesClientProps> = ({
     const resetForm = () => {
         setName('');
         setSelectedPermissionIds(new Set());
+        setCreateErrors({});
     };
 
     const resetPermissionForm = () => {
         setPermissionName('');
+        setPermissionErrors({});
     };
 
     const handleSubmit = () => {
@@ -88,6 +97,9 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     toast.success('Role created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
+                },
+                onError: (errors) => {
+                    setCreateErrors(errors);
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
@@ -115,6 +127,9 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     setIsPermissionOpen(false);
                     resetPermissionForm();
                 },
+                onError: (errors) => {
+                    setPermissionErrors(errors);
+                },
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
@@ -122,9 +137,24 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         );
     };
 
+    const createPermissionError =
+        createErrors.permissions ??
+        Object.entries(createErrors).find(([key]) =>
+            key.startsWith('permissions.'),
+        )?.[1];
+
+    const handleDuplicateRole = useCallback((role: Role) => {
+        setName(`${role.name} Copy`);
+        setSelectedPermissionIds(
+            new Set(role.permissions?.map((permission) => permission.id)),
+        );
+        setCreateErrors({});
+        setIsCreateOpen(true);
+    }, []);
+
     const tableColumns = useMemo(
-        () => buildColumns(permissions),
-        [permissions],
+        () => buildColumns(permissions, handleDuplicateRole),
+        [permissions, handleDuplicateRole],
     );
 
     return (
@@ -190,6 +220,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                                 }
                                 placeholder="e.g. Manager"
                             />
+                            <InputError message={createErrors.name} />
                         </div>
 
                         <div className="space-y-2">
@@ -226,6 +257,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                                     ))}
                                 </div>
                             </ScrollArea>
+                            <InputError message={createPermissionError} />
                         </div>
                     </div>
 
@@ -275,6 +307,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             }
                             placeholder="e.g. roles.create"
                         />
+                        <InputError message={permissionErrors.name} />
                     </div>
 
                     <DialogFooter>
