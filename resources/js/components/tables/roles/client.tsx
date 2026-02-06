@@ -132,7 +132,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             <div className="flex items-start justify-between">
                 <Heading
                     title={`System Roles: ${data.length}`}
-                    description="Manage system roles"
+                    description="Manage system roles and permissions"
                 />
                 <div className="flex gap-2">
                     <Button
