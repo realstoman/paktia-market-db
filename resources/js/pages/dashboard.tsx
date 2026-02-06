@@ -223,7 +223,7 @@ export default function Dashboard({ data }: DashboardProps) {
 
                     <div className="col-span-1 flex flex-col gap-4">
                         <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
-                            <CardHeader className="pb-2">
+                            <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
                                         Inventory Overview
@@ -233,7 +233,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </CardDescription>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent className="space-y-4 pt-0">
                                 <StatusCard
                                     title="Total Items"
                                     value={data?.orders.pending || 234567}
