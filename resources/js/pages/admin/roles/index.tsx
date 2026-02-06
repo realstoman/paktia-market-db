@@ -26,7 +26,7 @@ export default function RolesPage({ roles }: RolesPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="space-y-4 p-8">
+            <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="p-6 text-gray-900">
                     <RolesClient data={roles} />
                 </div>

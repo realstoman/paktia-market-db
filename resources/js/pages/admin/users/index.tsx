@@ -28,7 +28,7 @@ export default function UsersPage({ users }: UsersPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-neutral-900">
+            <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="p-6 text-gray-900">
                     <UsersClient data={users} />
                 </div>
