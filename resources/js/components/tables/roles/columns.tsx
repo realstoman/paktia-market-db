@@ -6,13 +6,15 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Role } from '@/types';
+import { Permission, Role } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 
 const MAX_VISIBLE_PERMISSIONS = 3;
 
-export const columns: ColumnDef<Role>[] = [
+export const buildColumns = (
+    permissions: Permission[],
+): ColumnDef<Role>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -109,6 +111,8 @@ export const columns: ColumnDef<Role>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => <CellAction data={row.original} />,
+        cell: ({ row }) => (
+            <CellAction data={row.original} permissions={permissions} />
+        ),
     },
 ];

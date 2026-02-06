@@ -18,7 +18,7 @@ import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { columns } from './columns';
+import { buildColumns } from './columns';
 
 interface RolesClientProps {
     data: Role[];
@@ -90,6 +90,11 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         );
     };
 
+    const tableColumns = useMemo(
+        () => buildColumns(permissions),
+        [permissions],
+    );
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
@@ -108,7 +113,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
                 searchKey={['name']}
-                columns={columns}
+                columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
                 searchPlaceholder="Search roles by name..."

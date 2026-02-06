@@ -15,10 +15,17 @@ class RoleService
         return $role;
     }
 
-    public function update(Role $role, array $permissionIds = [])
+    public function update(Role $role, string $name, array $permissionIds = [])
     {
+        $role->update(['name' => $name]);
         $permissions = Permission::whereIn('id', $permissionIds)->get();
         $role->syncPermissions($permissions);
         return $role;
+    }
+
+    public function delete(Role $role): void
+    {
+        $role->syncPermissions([]);
+        $role->delete();
     }
 }
