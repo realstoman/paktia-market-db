@@ -10,7 +10,7 @@ import { Head } from '@inertiajs/react';
 
 interface UserShowProps {
     user: User & {
-        roles?: Role[];
+        roles?: (Role | string)[];
         country?: Country | null;
         province?: Province | null;
         branch?: Branch | null;
@@ -92,14 +92,23 @@ export default function UserShow({ user }: UserShowProps) {
                                         </span>
                                     ) : (
                                         <div className="flex flex-wrap gap-1">
-                                            {roles.map((role) => (
-                                                <Badge
-                                                    key={role.id}
-                                                    variant="secondary"
-                                                >
-                                                    {role.name}
-                                                </Badge>
-                                            ))}
+                                            {roles.map((role, index) =>
+                                                typeof role === 'string' ? (
+                                                    <Badge
+                                                        key={`${role}-${index}`}
+                                                        variant="secondary"
+                                                    >
+                                                        {role}
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge
+                                                        key={role.id}
+                                                        variant="secondary"
+                                                    >
+                                                        {role.name}
+                                                    </Badge>
+                                                ),
+                                            )}
                                         </div>
                                     )}
                                 </TableCell>

@@ -36,7 +36,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    roles?: string[];
+    roles?: (Role | string)[];
     role_ids?: number[];
     country?: string | null;
     country_id?: number | null;
@@ -73,10 +73,10 @@ export interface Permission {
 export interface Branch {
     id: number;
     name: string;
-    country?: string | null;
+    country?: Country | string | null;
     country_id?: number | null;
     country_object?: Country | null;
-    province?: string | null;
+    province?: Province | string | null;
     province_id?: number | null;
     province_object?: Province | null;
     kitchens?: Kitchen[];

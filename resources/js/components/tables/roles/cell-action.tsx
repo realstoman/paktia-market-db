@@ -32,7 +32,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
 import { Copy, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -56,22 +56,24 @@ export const CellAction: React.FC<CellActionProps> = ({
     >(new Set(data.permissions?.map((permission) => permission.id)));
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const rolePermissions = data.permissions ?? [];
+    const rolePermissions = useMemo(
+        () => data.permissions ?? [],
+        [data.permissions],
+    );
 
     const sortedPermissions = useMemo(
         () => [...permissions].sort((a, b) => a.name.localeCompare(b.name)),
         [permissions],
     );
 
-    useEffect(() => {
-        if (isEditOpen) {
-            setEditName(data.name);
-            setSelectedPermissionIds(
-                new Set(rolePermissions.map((permission) => permission.id)),
-            );
-            setEditErrors({});
-        }
-    }, [data.name, isEditOpen, rolePermissions]);
+    const openEdit = () => {
+        setEditName(data.name);
+        setSelectedPermissionIds(
+            new Set(rolePermissions.map((permission) => permission.id)),
+        );
+        setEditErrors({});
+        setIsEditOpen(true);
+    };
 
     const togglePermission = (permissionId: number) => {
         setSelectedPermissionIds((prev) => {
@@ -154,7 +156,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Eye className="mr-2 h-4 w-4" />
                         View
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                    <DropdownMenuItem onClick={openEdit}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>

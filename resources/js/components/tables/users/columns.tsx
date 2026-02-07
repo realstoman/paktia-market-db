@@ -58,11 +58,17 @@ export const buildColumns = (
             }
             return (
                 <div className="flex flex-wrap gap-1">
-                    {roles.map((role) => (
-                        <Badge key={role} variant="secondary">
-                            {role}
-                        </Badge>
-                    ))}
+                    {roles.map((role, index) =>
+                        typeof role === 'string' ? (
+                            <Badge key={`${role}-${index}`} variant="secondary">
+                                {role}
+                            </Badge>
+                        ) : (
+                            <Badge key={role.id} variant="secondary">
+                                {role.name}
+                            </Badge>
+                        ),
+                    )}
                 </div>
             );
         },
