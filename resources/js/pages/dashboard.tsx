@@ -177,13 +177,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Pending Orders"
                                         value={data?.orders.pending || 137}
-                                        color="bg-orange-50 dark:bg-orange-950 text-orange-900 dark:text-orange-700"
+                                        color=""
                                         icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={data?.orders.pending || 462}
-                                        color="bg-sky-50 dark:bg-sky-950 text-sky-900 dark:text-sky-700"
+                                        color=""
                                         icon={
                                             <CookingPot className="h-4 w-4" />
                                         }
@@ -191,13 +191,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Completed Orders"
                                         value={data?.orders.pending || 344}
-                                        color="bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-700"
+                                        color=""
                                         icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={data?.orders.pending || 2}
-                                        color="bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-400"
+                                        color=""
                                         icon={<X className="h-4 w-4" />}
                                     />
                                 </div>
