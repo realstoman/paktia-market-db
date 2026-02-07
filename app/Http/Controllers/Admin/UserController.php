@@ -92,6 +92,15 @@ class UserController extends Controller
         ]);
     }
 
+    public function show(User $user)
+    {
+        $this->authorize('view', $user);
+
+        return Inertia::render('admin/users/show', [
+            'user' => $user->load(['roles', 'country', 'province', 'branch']),
+        ]);
+    }
+
     public function update(Request $request, User $user)
     {
         $this->authorize('update', $user);
