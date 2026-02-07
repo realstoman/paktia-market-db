@@ -28,16 +28,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         router.visit(`/countries/${data.id}/edit`);
     };
 
-    // const onConfirm = async () => {
-    //     setLoading(true);
-    //     router.delete(`/users/${data.id}`, {
-    //         onFinish: () => {
-    //             setLoading(false);
-    //             setOpen(false);
-    //         },
-    //     });
-    // };
-
     return (
         <>
             <DropdownMenu modal={false}>
@@ -59,7 +49,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpen(true)}>
                         <MapPinOff className="mr-2 h-4 w-4" />
-                        Disable
+                        Deactivate
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
