@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('code', 2)->unique();
             $table->string('currency_code', 3);
             $table->string('currency_symbol')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Locations
     Route::resource('countries', CountryController::class);
+    Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
     Route::resource('provinces', ProvinceController::class);
     Route::resource('branches', BranchController::class);
     Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');

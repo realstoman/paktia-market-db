@@ -3,7 +3,7 @@
 import { CountriesClient } from '@/components/tables/countries/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import countries from '@/routes/branches';
+import countries from '@/routes/countries';
 import { BreadcrumbItem, Country } from '@/types';
 import { Head } from '@inertiajs/react';
 
@@ -23,11 +23,9 @@ interface CountriesPageProps {
 }
 
 export default function CountriesPage({ countries }: CountriesPageProps) {
-    console.log('data is: ', countries);
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title="Countries" />
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="p-6 text-gray-900">
                     <CountriesClient data={countries} />

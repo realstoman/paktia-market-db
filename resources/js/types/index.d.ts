@@ -102,6 +102,9 @@ export interface Country {
     code: string;
     currency_code: string;
     currency_symbol: string;
+    is_active?: boolean;
+    provinces?: Province[];
+    branches?: Branch[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
@@ -112,5 +115,6 @@ export interface Province {
     name: string;
     created_at: string;
     updated_at: string;
+    country_id?: number;
     [key: string]: unknown;
 }
