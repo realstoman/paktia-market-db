@@ -86,6 +86,23 @@
     --input: oklch(0.922 0 0);
     --ring: oklch(0.87 0 0);
 
+    --chart-neutral: #737373; /* neutral-500 */
+    --chart-sky: #0ea5e9; /* sky-500 */
+    --chart-green: #22c55e; /* green-500 */
+    --chart-red: #ef4444; /* red-500 */
+
+    /* Map to shadcn chart colors */
+    --color-pending: var(--chart-neutral);
+    --color-preparing: var(--chart-sky);
+    --color-completed: var(--chart-green);
+    --color-cancelled: var(--chart-red);
+
+    /* Chart 1-4 mapping for shadcn */
+    --chart-1: var(--color-pending);
+    --chart-2: var(--color-preparing);
+    --chart-3: var(--color-completed);
+    --chart-4: var(--color-cancelled);
+
     --chart-neutral: #f18e0d; /* neutral-500 */
     --chart-sky: #43b6eb; /* sky-500 */
     --chart-green: #49d57c; /* green-500 */
@@ -146,6 +163,10 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: oklch(0.439 0 0);
+    --chart-neutral: #a3a3a3; /* neutral-400 */
+    --chart-sky: #38bdf8; /* sky-400 */
+    --chart-green: #4ade80; /* green-400 */
+    --chart-red: #f87171; /* red-400 */
 }
 
 @layer base {
