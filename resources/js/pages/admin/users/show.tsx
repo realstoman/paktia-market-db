@@ -18,8 +18,6 @@ interface UserShowProps {
 }
 
 export default function UserShow({ user }: UserShowProps) {
-    console.log('User data is: ', user);
-
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Dashboard',

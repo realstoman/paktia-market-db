@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('countries', CountryController::class);
     Route::resource('provinces', ProvinceController::class);
     Route::resource('branches', BranchController::class);
+    Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

@@ -73,12 +73,26 @@ export interface Permission {
 export interface Branch {
     id: number;
     name: string;
-    country: string;
-    province: string;
+    country?: string | null;
+    country_id?: number | null;
+    country_object?: Country | null;
+    province?: string | null;
+    province_id?: number | null;
+    province_object?: Province | null;
+    kitchens?: Kitchen[];
+    is_active?: boolean;
     address: string;
     description: string;
     created_at: string;
     updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Kitchen {
+    id: number;
+    name?: string;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 
