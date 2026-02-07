@@ -17,4 +17,9 @@ class Kitchen extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class)->withTimestamps();
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Services\Location;
 
 use App\Models\Branch;
+use App\Models\Kitchen;
 
 class BranchService
 {
@@ -26,6 +27,11 @@ class BranchService
     public function delete(Branch $branch): void
     {
         $branch->delete();
+    }
+
+    public function syncKitchens(Branch $branch, array $kitchenIds): void
+    {
+        $branch->kitchens()->sync($kitchenIds);
     }
 
     public function getIndexData(): array
@@ -53,6 +59,7 @@ class BranchService
 
         return [
             'branches' => $branches,
+            'kitchens' => Kitchen::orderBy('name')->get(),
         ];
     }
 }

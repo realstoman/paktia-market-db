@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Enums\KitchenType;
 use App\Models\Kitchen;
 use App\Services\Location\KitchenService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class KitchenController extends Controller
@@ -18,7 +20,7 @@ class KitchenController extends Controller
     public function show(Kitchen $kitchen)
     {
         return Inertia::render('location/kitchens/show', [
-            'kitchen' => $kitchen->load(['branch.country', 'branch.province']),
+            'kitchen' => $kitchen->load(['branches']),
         ]);
     }
 
@@ -26,8 +28,7 @@ class KitchenController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'branch_id' => 'required|exists:branches,id',
-            'type' => 'nullable|string|max:255',
+            'type' => ['required', Rule::enum(KitchenType::class)],
         ]);
 
         $service->create($validated);
@@ -40,8 +41,7 @@ class KitchenController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'branch_id' => 'required|exists:branches,id',
-            'type' => 'nullable|string|max:255',
+            'type' => ['required', Rule::enum(KitchenType::class)],
         ]);
 
         $service->update($kitchen, $validated);

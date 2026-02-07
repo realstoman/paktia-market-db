@@ -1,11 +1,19 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Kitchen } from '@/types';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Kitchen } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-export const buildColumns = (branches: Branch[]): ColumnDef<Kitchen>[] => [
+export const buildColumns = (
+    kitchenTypes: { label: string; value: string }[],
+): ColumnDef<Kitchen>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -41,16 +49,57 @@ export const buildColumns = (branches: Branch[]): ColumnDef<Kitchen>[] => [
         cell: ({ row }) => row.getValue('type') || '—',
     },
     {
-        accessorKey: 'branch',
-        header: 'Branch',
-    },
-    {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'province',
-        header: 'Province',
+        id: 'branches',
+        header: 'Branches',
+        cell: ({ row }) => {
+            const assigned = row.original.branches ?? [];
+            const visible = assigned.slice(0, 3);
+            const hidden = assigned.slice(3);
+
+            if (assigned.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        Unassigned
+                    </span>
+                );
+            }
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {visible.map((branch) => (
+                        <Badge key={branch.id} variant="secondary">
+                            {branch.name}
+                        </Badge>
+                    ))}
+                    {hidden.length > 0 && (
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge
+                                        variant="outline"
+                                        className="cursor-help"
+                                    >
+                                        +{hidden.length} more
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div className="flex flex-wrap gap-1">
+                                        {hidden.map((branch) => (
+                                            <Badge
+                                                key={branch.id}
+                                                variant="secondary"
+                                            >
+                                                {branch.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                </div>
+            );
+        },
     },
     {
         accessorKey: 'is_active',
@@ -82,7 +131,10 @@ export const buildColumns = (branches: Branch[]): ColumnDef<Kitchen>[] => [
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction data={row.original} branches={branches} />
+            <CellAction
+                data={row.original}
+                kitchenTypes={kitchenTypes}
+            />
         ),
     },
 ];

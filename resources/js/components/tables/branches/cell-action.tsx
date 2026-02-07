@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -35,7 +36,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Branch, Country, Province } from '@/types';
+import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Eye,
@@ -45,23 +46,26 @@ import {
     Pencil,
     Trash,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Branch;
     countries: Country[];
     provinces: Province[];
+    kitchens: Kitchen[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     countries,
     provinces,
+    kitchens,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDisableOpen, setIsDisableOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isKitchenOpen, setIsKitchenOpen] = useState(false);
     const [name, setName] = useState(data.name);
     const [countryId, setCountryId] = useState(
         data.country_id ? String(data.country_id) : '',
@@ -73,6 +77,14 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [description, setDescription] = useState(data.description ?? '');
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedKitchenIds, setSelectedKitchenIds] = useState<Set<number>>(
+        new Set(data.kitchens?.map((kitchen) => kitchen.id)),
+    );
+
+    const sortedKitchens = useMemo(
+        () => [...kitchens].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+        [kitchens],
+    );
 
     const resetEdit = () => {
         setName(data.name);
@@ -81,6 +93,50 @@ export const CellAction: React.FC<CellActionProps> = ({
         setAddress(data.address ?? '');
         setDescription(data.description ?? '');
         setEditErrors({});
+    };
+
+    const openKitchenAssign = () => {
+        setSelectedKitchenIds(
+            new Set(data.kitchens?.map((kitchen) => kitchen.id)),
+        );
+        setIsKitchenOpen(true);
+    };
+
+    const toggleKitchen = (kitchenId: number) => {
+        setSelectedKitchenIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(kitchenId)) {
+                next.delete(kitchenId);
+            } else {
+                next.add(kitchenId);
+            }
+            return next;
+        });
+    };
+
+    const handleAssignKitchens = () => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/branches/${data.id}/kitchens`,
+            {
+                kitchens: Array.from(selectedKitchenIds),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Branch kitchens updated successfully.');
+                    setIsKitchenOpen(false);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
     };
 
     const handleEditSubmit = () => {
@@ -182,6 +238,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                     >
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={openKitchenAssign}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Assign Kitchens
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
                         {data.is_active ? (
@@ -314,6 +374,62 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isKitchenOpen} onOpenChange={setIsKitchenOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Assign Kitchens</DialogTitle>
+                        <DialogDescription>
+                            Select kitchens available for {data.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-2">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Selected</span>
+                            <span>
+                                {selectedKitchenIds.size} of {kitchens.length}
+                            </span>
+                        </div>
+                        <div className="max-h-64 space-y-2 overflow-auto rounded-md border p-3">
+                            {sortedKitchens.map((kitchen) => (
+                                <label
+                                    key={kitchen.id}
+                                    className="flex items-center gap-2 text-sm"
+                                >
+                                    <Checkbox
+                                        checked={selectedKitchenIds.has(
+                                            kitchen.id,
+                                        )}
+                                        onCheckedChange={() =>
+                                            toggleKitchen(kitchen.id)
+                                        }
+                                    />
+                                    <span>
+                                        {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsKitchenOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignKitchens}
+                            disabled={isSubmitting}
+                        >
+                            Save Kitchens
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -97,6 +97,7 @@ export interface Kitchen {
     country?: string | null;
     province?: string | null;
     is_active?: boolean;
+    branches?: Branch[];
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

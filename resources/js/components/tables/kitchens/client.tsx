@@ -20,7 +20,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import InputError from '@/components/input-error';
-import { Branch, Kitchen } from '@/types';
+import { Kitchen } from '@/types';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -29,19 +29,18 @@ import { buildColumns } from './columns';
 
 interface KitchensClientProps {
     data: Kitchen[];
-    branches: Branch[];
+    kitchenTypes: { label: string; value: string }[];
     isLoading?: boolean;
 }
 
 export const KitchensClient: React.FC<KitchensClientProps> = ({
     data,
-    branches,
+    kitchenTypes,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [name, setName] = useState('');
     const [type, setType] = useState('');
-    const [branchId, setBranchId] = useState('');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -50,12 +49,11 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     const resetForm = () => {
         setName('');
         setType('');
-        setBranchId('');
         setCreateErrors({});
     };
 
     const handleCreateSubmit = () => {
-        if (!name.trim() || !branchId || isSubmitting) {
+        if (!name.trim() || !type || isSubmitting) {
             return;
         }
 
@@ -65,8 +63,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             '/kitchens',
             {
                 name: name.trim(),
-                branch_id: Number(branchId),
-                type: type.trim() || null,
+                type,
             },
             {
                 preserveScroll: true,
@@ -86,8 +83,8 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(branches),
-        [branches],
+        () => buildColumns(kitchenTypes),
+        [kitchenTypes],
     );
 
     return (
@@ -107,7 +104,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'branch', 'country', 'province']}
+                searchKey={['name', 'type', 'branches']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
@@ -144,33 +141,22 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
+                            <Label>Type</Label>
+                            <Select value={type} onValueChange={setType}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
+                                    <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {branches.map((branch) => (
+                                    {kitchenTypes.map((kitchenType) => (
                                         <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
+                                            key={kitchenType.value}
+                                            value={kitchenType.value}
                                         >
-                                            {branch.name}
+                                            {kitchenType.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="kitchen-type">Type</Label>
-                            <Input
-                                id="kitchen-type"
-                                value={type}
-                                onChange={(event) =>
-                                    setType(event.target.value)
-                                }
-                            />
                             <InputError message={createErrors.type} />
                         </div>
                     </div>
@@ -186,7 +172,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={
-                                !name.trim() || !branchId || isSubmitting
+                                !name.trim() || !type || isSubmitting
                             }
                         >
                             Create Kitchen

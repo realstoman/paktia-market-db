@@ -6,7 +6,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Branch, Country, Province } from '@/types';
+import { Branch, Country, Kitchen, Province } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -16,6 +16,7 @@ const MAX_VISIBLE_KITCHENS = 3;
 export const buildColumns = (
     countries: Country[],
     provinces: Province[],
+    kitchens: Kitchen[],
 ): ColumnDef<Branch>[] => [
     {
         id: 'select',
@@ -149,6 +150,7 @@ export const buildColumns = (
                 data={row.original}
                 countries={countries}
                 provinces={provinces}
+                kitchens={kitchens}
             />
         ),
     },

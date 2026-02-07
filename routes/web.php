@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
     Route::resource('provinces', ProvinceController::class);
     Route::resource('branches', BranchController::class);
+    Route::post('branches/{branch}/kitchens', [BranchController::class, 'syncKitchens'])->name('branches.kitchens');
     Route::resource('kitchens', KitchenController::class);
     Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
     Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');

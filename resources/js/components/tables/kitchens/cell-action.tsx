@@ -1,5 +1,4 @@
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,6 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -18,6 +18,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -27,14 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Branch, Kitchen } from '@/types';
+import { Kitchen } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Eye,
@@ -49,30 +49,29 @@ import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Kitchen;
-    branches: Branch[];
+    kitchenTypes: { label: string; value: string }[];
 }
 
-export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
+export const CellAction: React.FC<CellActionProps> = ({
+    data,
+    kitchenTypes,
+}) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isToggleOpen, setIsToggleOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [name, setName] = useState(data.name ?? '');
-    const [branchId, setBranchId] = useState(
-        data.branch_id ? String(data.branch_id) : '',
-    );
     const [type, setType] = useState(data.type ?? '');
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetEdit = () => {
         setName(data.name ?? '');
-        setBranchId(data.branch_id ? String(data.branch_id) : '');
         setType(data.type ?? '');
         setEditErrors({});
     };
 
     const handleEditSubmit = () => {
-        if (!name.trim() || !branchId || isSubmitting) {
+        if (!name.trim() || !type || isSubmitting) {
             return;
         }
 
@@ -82,8 +81,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
             `/kitchens/${data.id}`,
             {
                 name: name.trim(),
-                branch_id: Number(branchId),
-                type: type.trim() || null,
+                type,
             },
             {
                 preserveScroll: true,
@@ -192,50 +190,40 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                             Update kitchen details and branch assignment.
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`kitchen-name-${data.id}`}>
-                                Name
-                            </Label>
-                            <Input
-                                id={`kitchen-name-${data.id}`}
-                                value={name}
-                                onChange={(event) =>
-                                    setName(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`kitchen-type-${data.id}`}>Type</Label>
-                            <Input
-                                id={`kitchen-type-${data.id}`}
-                                value={type}
-                                onChange={(event) =>
-                                    setType(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.type} />
+                    <div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor={`kitchen-name-${data.id}`}>
+                                    Name
+                                </Label>
+                                <Input
+                                    id={`kitchen-name-${data.id}`}
+                                    value={name}
+                                    onChange={(event) =>
+                                        setName(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={type} onValueChange={setType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kitchenTypes.map((kitchenType) => (
+                                            <SelectItem
+                                                key={kitchenType.value}
+                                                value={kitchenType.value}
+                                            >
+                                                {kitchenType.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.type} />
+                            </div>
                         </div>
                     </div>
 
@@ -249,7 +237,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
-                            disabled={!name.trim() || !branchId || isSubmitting}
+                            disabled={!name.trim() || !type || isSubmitting}
                         >
                             Save Changes
                         </Button>

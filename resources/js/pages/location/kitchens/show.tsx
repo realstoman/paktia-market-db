@@ -14,13 +14,7 @@ import { BreadcrumbItem, Kitchen } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface KitchenShowProps {
-    kitchen: Kitchen & {
-        branch?: {
-            name?: string;
-            country?: { name?: string };
-            province?: { name?: string };
-        };
-    };
+    kitchen: Kitchen;
 }
 
 export default function KitchenShow({ kitchen }: KitchenShowProps) {
@@ -81,30 +75,27 @@ export default function KitchenShow({ kitchen }: KitchenShowProps) {
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">
-                                    Branch
+                                    Branches
                                 </TableCell>
                                 <TableCell>
-                                    {kitchen.branch?.name ?? kitchen.branch ?? '—'}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">
-                                    Country
-                                </TableCell>
-                                <TableCell>
-                                    {kitchen.branch?.country?.name ??
-                                        kitchen.country ??
-                                        '—'}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">
-                                    Province
-                                </TableCell>
-                                <TableCell>
-                                    {kitchen.branch?.province?.name ??
-                                        kitchen.province ??
-                                        '—'}
+                                    {(kitchen.branches ?? []).length === 0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            Unassigned
+                                        </span>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-1">
+                                            {(kitchen.branches ?? []).map(
+                                                (branch) => (
+                                                    <Badge
+                                                        key={branch.id}
+                                                        variant="secondary"
+                                                    >
+                                                        {branch.name}
+                                                    </Badge>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
