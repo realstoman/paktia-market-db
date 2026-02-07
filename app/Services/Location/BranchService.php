@@ -17,9 +17,9 @@ class BranchService
         return $branch;
     }
 
-    public function disable(Branch $branch): Branch
+    public function toggleActive(Branch $branch): Branch
     {
-        $branch->update(['is_active' => false]);
+        $branch->update(['is_active' => ! $branch->is_active]);
         return $branch;
     }
 

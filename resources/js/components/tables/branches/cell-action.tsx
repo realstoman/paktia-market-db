@@ -37,7 +37,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Branch, Country, Province } from '@/types';
 import { router } from '@inertiajs/react';
-import { Eye, MapPinOff, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import {
+    Eye,
+    MapPin,
+    MapPinOff,
+    MoreHorizontal,
+    Pencil,
+    Trash,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -118,7 +125,11 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.post(`/branches/${data.id}/disable`, undefined, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Branch disabled successfully.');
+                toast.success(
+                    data.is_active
+                        ? 'Branch disabled successfully.'
+                        : 'Branch activated successfully.',
+                );
                 setIsDisableOpen(false);
             },
             onFinish: () => {
@@ -173,8 +184,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
-                        <MapPinOff className="mr-2 h-4 w-4" />
-                        Disable
+                        {data.is_active ? (
+                            <MapPinOff className="mr-2 h-4 w-4" />
+                        ) : (
+                            <MapPin className="mr-2 h-4 w-4" />
+                        )}
+                        {data.is_active ? 'Deactivate' : 'Activate'}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                         <Trash className="mr-2 h-4 w-4 text-red-600" />
@@ -307,9 +322,15 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDisableOpen} onOpenChange={setIsDisableOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Disable branch</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {data.is_active
+                                ? 'Deactivate branch'
+                                : 'Activate branch'}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will mark the branch as inactive.
+                            {data.is_active
+                                ? 'This will mark the branch as inactive.'
+                                : 'This will mark the branch as active.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -317,11 +338,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            variant="destructive"
+                            variant={data.is_active ? 'destructive' : 'default'}
                             onClick={handleDisable}
                             disabled={isSubmitting}
                         >
-                            Disable
+                            {data.is_active ? 'Deactivate' : 'Activate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

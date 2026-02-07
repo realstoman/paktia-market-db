@@ -62,10 +62,14 @@ class BranchController extends Controller
 
     public function disable(BranchService $service, Branch $branch)
     {
-        $service->disable($branch);
+        $service->toggleActive($branch);
+
+        $message = $branch->is_active
+            ? 'Branch activated successfully.'
+            : 'Branch disabled successfully.';
 
         return redirect()->route('branches.index')
-            ->with('success', 'Branch disabled successfully.');
+            ->with('success', $message);
     }
 
     public function destroy(BranchService $service, Branch $branch)
