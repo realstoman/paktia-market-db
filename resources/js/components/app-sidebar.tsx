@@ -34,7 +34,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Orders',
         href: '/orders',
-        icon: ChefHat,
+        icon: CookingPot,
         can: 'user.view',
     },
     {
@@ -58,7 +58,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Kitchens',
         href: '/kitchens',
-        icon: CookingPot,
+        icon: ChefHat,
         can: 'kitchen.view',
     },
     {
@@ -83,7 +83,7 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="floating" className="my-2">
+        <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader className="rounded-t-sm bg-white dark:bg-brand-bg-dark">
                 <SidebarMenu>
                     <SidebarMenuItem>
