@@ -1,12 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import branches from '@/routes/branches';
@@ -41,7 +36,9 @@ export default function BranchShow({ branch }: BranchShowProps) {
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="space-y-6 p-6 text-gray-900">
                     <div>
-                        <h2 className="text-xl font-semibold">Branch Profile</h2>
+                        <h2 className="text-xl font-semibold">
+                            Branch Profile
+                        </h2>
                         <p className="text-sm text-muted-foreground">
                             Branch information and kitchen overview.
                         </p>
@@ -55,20 +52,7 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                 </TableCell>
                                 <TableCell>{branch.name}</TableCell>
                             </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">
-                                    Status
-                                </TableCell>
-                                <TableCell>
-                                    {branch.is_active ? (
-                                        <Badge variant="success">Active</Badge>
-                                    ) : (
-                                        <Badge variant="destructive">
-                                            Disabled
-                                        </Badge>
-                                    )}
-                                </TableCell>
-                            </TableRow>
+
                             <TableRow>
                                 <TableCell className="font-medium">
                                     Country
@@ -76,9 +60,9 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                 <TableCell>
                                     {typeof branch.country === 'string'
                                         ? branch.country
-                                        : branch.country?.name ??
+                                        : (branch.country?.name ??
                                           branch.country_object?.name ??
-                                          '—'}
+                                          '—')}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -88,9 +72,9 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                 <TableCell>
                                     {typeof branch.province === 'string'
                                         ? branch.province
-                                        : branch.province?.name ??
+                                        : (branch.province?.name ??
                                           branch.province_object?.name ??
-                                          '—'}
+                                          '—')}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -128,6 +112,20 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                                 </Badge>
                                             ))}
                                         </div>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">
+                                    Status
+                                </TableCell>
+                                <TableCell>
+                                    {branch.is_active ? (
+                                        <Badge variant="success">Active</Badge>
+                                    ) : (
+                                        <Badge variant="destructive">
+                                            Disabled
+                                        </Badge>
                                     )}
                                 </TableCell>
                             </TableRow>
