@@ -91,6 +91,12 @@ export interface Branch {
 export interface Kitchen {
     id: number;
     name?: string;
+    type?: string | null;
+    branch?: string | null;
+    branch_id?: number | null;
+    country?: string | null;
+    province?: string | null;
+    is_active?: boolean;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

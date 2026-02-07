@@ -19,34 +19,29 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
-import { Branch, Country, Province } from '@/types';
+import { Branch, Kitchen } from '@/types';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
-interface BranchesClientProps {
-    data: Branch[];
-    countries: Country[];
-    provinces: Province[];
+interface KitchensClientProps {
+    data: Kitchen[];
+    branches: Branch[];
     isLoading?: boolean;
 }
 
-export const BranchesClient: React.FC<BranchesClientProps> = ({
+export const KitchensClient: React.FC<KitchensClientProps> = ({
     data,
-    countries,
-    provinces,
+    branches,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [name, setName] = useState('');
-    const [countryId, setCountryId] = useState('');
-    const [provinceId, setProvinceId] = useState('');
-    const [address, setAddress] = useState('');
-    const [description, setDescription] = useState('');
+    const [type, setType] = useState('');
+    const [branchId, setBranchId] = useState('');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -54,33 +49,29 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
 
     const resetForm = () => {
         setName('');
-        setCountryId('');
-        setProvinceId('');
-        setAddress('');
-        setDescription('');
+        setType('');
+        setBranchId('');
         setCreateErrors({});
     };
 
     const handleCreateSubmit = () => {
-        if (!name.trim() || !countryId || !provinceId || isSubmitting) {
+        if (!name.trim() || !branchId || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
         router.post(
-            '/branches',
+            '/kitchens',
             {
                 name: name.trim(),
-                country_id: Number(countryId),
-                province_id: Number(provinceId),
-                address: address.trim() || null,
-                description: description.trim() || null,
+                branch_id: Number(branchId),
+                type: type.trim() || null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Branch created successfully.');
+                    toast.success('Kitchen created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -95,16 +86,16 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(countries, provinces),
-        [countries, provinces],
+        () => buildColumns(branches),
+        [branches],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Restaurant Branches: ${data.length}`}
-                    description="Manage restaurant branches"
+                    title={`Kitchens: ${data.length}`}
+                    description="Manage kitchens"
                 />
                 <Button
                     onClick={() => setIsCreateOpen(true)}
@@ -116,11 +107,11 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'country', 'province', 'address']}
+                searchKey={['name', 'branch', 'country', 'province']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search branches by name, country or province..."
+                searchPlaceholder="Search kitchens by name or location..."
             />
 
             <Dialog
@@ -134,17 +125,17 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Create Branch</DialogTitle>
+                        <DialogTitle>Create Kitchen</DialogTitle>
                         <DialogDescription>
-                            Add a new branch and assign its location.
+                            Add a new kitchen and assign it to a branch.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="branch-name">Name</Label>
+                            <Label htmlFor="kitchen-name">Name</Label>
                             <Input
-                                id="branch-name"
+                                id="kitchen-name"
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
@@ -153,77 +144,34 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Country</Label>
-                            <Select
-                                value={countryId}
-                                onValueChange={(value) => {
-                                    setCountryId(value);
-                                    if (value !== countryId) {
-                                        setProvinceId('');
-                                    }
-                                }}
-                            >
+                            <Label>Branch</Label>
+                            <Select value={branchId} onValueChange={setBranchId}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue placeholder="Select branch" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {countries.map((country) => (
+                                    {branches.map((branch) => (
                                         <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
+                                            key={branch.id}
+                                            value={String(branch.id)}
                                         >
-                                            {country.name}
+                                            {branch.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.country_id} />
+                            <InputError message={createErrors.branch_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
-                            <Select
-                                value={provinceId}
-                                onValueChange={setProvinceId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {provinces.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.province_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="branch-address">Address</Label>
+                            <Label htmlFor="kitchen-type">Type</Label>
                             <Input
-                                id="branch-address"
-                                value={address}
+                                id="kitchen-type"
+                                value={type}
                                 onChange={(event) =>
-                                    setAddress(event.target.value)
+                                    setType(event.target.value)
                                 }
                             />
-                            <InputError message={createErrors.address} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="branch-description">
-                                Description
-                            </Label>
-                            <Textarea
-                                id="branch-description"
-                                value={description}
-                                onChange={(event) =>
-                                    setDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.description} />
+                            <InputError message={createErrors.type} />
                         </div>
                     </div>
 
@@ -238,13 +186,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={
-                                !name.trim() ||
-                                !countryId ||
-                                !provinceId ||
-                                isSubmitting
+                                !name.trim() || !branchId || isSubmitting
                             }
                         >
-                            Create Branch
+                            Create Kitchen
                         </Button>
                     </DialogFooter>
                 </DialogContent>

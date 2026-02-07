@@ -1,22 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Branch, Country, Province } from '@/types';
+import { Branch, Kitchen } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-const MAX_VISIBLE_KITCHENS = 3;
-
-export const buildColumns = (
-    countries: Country[],
-    provinces: Province[],
-): ColumnDef<Branch>[] => [
+export const buildColumns = (branches: Branch[]): ColumnDef<Kitchen>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -47,73 +36,21 @@ export const buildColumns = (
         header: 'Name',
     },
     {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => row.getValue('type') || '—',
+    },
+    {
+        accessorKey: 'branch',
+        header: 'Branch',
+    },
+    {
         accessorKey: 'country',
         header: 'Country',
     },
     {
         accessorKey: 'province',
         header: 'Province',
-    },
-    {
-        id: 'kitchens',
-        header: 'Kitchens',
-        cell: ({ row }) => {
-            const kitchens = row.original.kitchens ?? [];
-            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
-            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
-
-            if (kitchens.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        No kitchens
-                    </span>
-                );
-            }
-
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((kitchen) => (
-                        <Badge
-                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                            variant="secondary"
-                        >
-                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        +{hidden.length} more
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((kitchen) => (
-                                            <Badge
-                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                variant="secondary"
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: 'address',
-        header: 'Address',
     },
     {
         accessorKey: 'is_active',
@@ -145,11 +82,7 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction
-                data={row.original}
-                countries={countries}
-                provinces={provinces}
-            />
+            <CellAction data={row.original} branches={branches} />
         ),
     },
 ];
