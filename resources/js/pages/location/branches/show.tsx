@@ -73,13 +73,23 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                 <TableCell className="font-medium">
                                     Country
                                 </TableCell>
-                                <TableCell>{branch.country ?? '—'}</TableCell>
+                                <TableCell>
+                                    {branch.country_object?.name ??
+                                        (typeof branch.country === 'string'
+                                            ? branch.country
+                                            : '—')}
+                                </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">
                                     Province
                                 </TableCell>
-                                <TableCell>{branch.province ?? '—'}</TableCell>
+                                <TableCell>
+                                    {branch.province_object?.name ??
+                                        (typeof branch.province === 'string'
+                                            ? branch.province
+                                            : '—')}
+                                </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">

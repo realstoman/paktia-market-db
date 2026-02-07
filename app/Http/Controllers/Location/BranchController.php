@@ -44,6 +44,22 @@ class BranchController extends Controller
             ->with('success', 'Branch updated successfully.');
     }
 
+    public function store(Request $request, BranchService $service)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'country_id' => 'required|exists:countries,id',
+            'province_id' => 'required|exists:provinces,id',
+            'address' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $service->create($validated);
+
+        return redirect()->route('branches.index')
+            ->with('success', 'Branch created successfully.');
+    }
+
     public function disable(BranchService $service, Branch $branch)
     {
         $service->disable($branch);

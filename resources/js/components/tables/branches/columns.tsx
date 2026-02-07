@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Branch, Country, Province } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
+import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 const MAX_VISIBLE_KITCHENS = 3;
@@ -115,8 +116,22 @@ export const buildColumns = (
         header: 'Address',
     },
     {
-        accessorKey: 'description',
-        header: 'Description',
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => {
+            const active = row.getValue('is_active');
+            return active ? (
+                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                    <BadgeCheck className="h-4 w-4 text-green-600" />
+                    Active
+                </Badge>
+            ) : (
+                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
+                    <Ban className="h-4 w-4 text-red-600" />
+                    Inactive
+                </Badge>
+            );
+        },
     },
     {
         accessorKey: 'created_at',
