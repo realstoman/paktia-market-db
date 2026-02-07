@@ -1,23 +1,11 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
-import {
-    BreadcrumbItem,
-    Branch,
-    Country,
-    Province,
-    Role,
-    User,
-} from '@/types';
+import { Branch, BreadcrumbItem, Country, Province, Role, User } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface UserShowProps {
@@ -30,6 +18,8 @@ interface UserShowProps {
 }
 
 export default function UserShow({ user }: UserShowProps) {
+    console.log('User data is: ', user);
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Dashboard',
@@ -53,7 +43,9 @@ export default function UserShow({ user }: UserShowProps) {
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="space-y-6 p-6 text-gray-900">
                     <div>
-                        <h2 className="text-xl font-semibold">User Profile</h2>
+                        <h2 className="text-xl font-semibold text-secondary-foreground">
+                            User Profile
+                        </h2>
                         <p className="text-sm text-muted-foreground">
                             Profile details and account status.
                         </p>
@@ -62,22 +54,26 @@ export default function UserShow({ user }: UserShowProps) {
                     <Table>
                         <TableBody>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Name
                                 </TableCell>
-                                <TableCell>{user.name}</TableCell>
+                                <TableCell className="text-secondary-foreground/90">
+                                    {user.name}
+                                </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Email
                                 </TableCell>
-                                <TableCell>{user.email}</TableCell>
+                                <TableCell className="text-secondary-foreground/90">
+                                    {user.email}
+                                </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Status
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.is_active ? (
                                         <Badge variant="success">Active</Badge>
                                     ) : (
@@ -88,10 +84,10 @@ export default function UserShow({ user }: UserShowProps) {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Roles
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {roles.length === 0 ? (
                                         <span className="text-sm text-muted-foreground">
                                             No roles assigned
@@ -111,34 +107,34 @@ export default function UserShow({ user }: UserShowProps) {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Country
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.country?.name ?? '—'}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Province
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.province?.name ?? '—'}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Branch
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.branch?.name ?? '—'}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Created
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.created_at
                                         ? new Date(
                                               user.created_at,
@@ -147,10 +143,10 @@ export default function UserShow({ user }: UserShowProps) {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-secondary-foreground">
                                     Updated
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-secondary-foreground/90">
                                     {user.updated_at
                                         ? new Date(
                                               user.updated_at,
