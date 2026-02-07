@@ -37,11 +37,11 @@ import {
 import { Kitchen } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    Edit,
     Eye,
     MapPin,
     MapPinOff,
     MoreHorizontal,
-    Pencil,
     Trash,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -164,7 +164,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             setIsEditOpen(true);
                         }}
                     >
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>

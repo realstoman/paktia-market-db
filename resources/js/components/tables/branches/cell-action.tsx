@@ -1,5 +1,4 @@
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,6 +9,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -18,9 +19,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -29,21 +36,15 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    CookingPot,
+    Edit,
     Eye,
     MapPin,
     MapPinOff,
     MoreHorizontal,
-    Pencil,
     Trash,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -82,7 +83,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
 
     const sortedKitchens = useMemo(
-        () => [...kitchens].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+        () =>
+            [...kitchens].sort((a, b) =>
+                (a.name ?? '').localeCompare(b.name ?? ''),
+            ),
         [kitchens],
     );
 
@@ -236,11 +240,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             setIsEditOpen(true);
                         }}
                     >
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={openKitchenAssign}>
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <CookingPot className="mr-2 h-4 w-4" />
                         Assign Kitchens
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
@@ -269,7 +273,9 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor={`branch-name-${data.id}`}>Name</Label>
+                            <Label htmlFor={`branch-name-${data.id}`}>
+                                Name
+                            </Label>
                             <Input
                                 id={`branch-name-${data.id}`}
                                 value={name}
@@ -410,7 +416,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         }
                                     />
                                     <span>
-                                        {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                        {kitchen.name ??
+                                            `Kitchen #${kitchen.id}`}
                                     </span>
                                 </label>
                             ))}

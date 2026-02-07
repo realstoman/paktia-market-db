@@ -1,11 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Kitchen } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
@@ -48,59 +42,7 @@ export const buildColumns = (
         header: 'Type',
         cell: ({ row }) => row.getValue('type') || '—',
     },
-    {
-        id: 'branches',
-        header: 'Branches',
-        cell: ({ row }) => {
-            const assigned = row.original.branches ?? [];
-            const visible = assigned.slice(0, 3);
-            const hidden = assigned.slice(3);
 
-            if (assigned.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        Unassigned
-                    </span>
-                );
-            }
-
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((branch) => (
-                        <Badge key={branch.id} variant="secondary">
-                            {branch.name}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        +{hidden.length} more
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((branch) => (
-                                            <Badge
-                                                key={branch.id}
-                                                variant="secondary"
-                                            >
-                                                {branch.name}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-            );
-        },
-    },
     {
         accessorKey: 'is_active',
         header: 'Status',
@@ -131,10 +73,7 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction
-                data={row.original}
-                kitchenTypes={kitchenTypes}
-            />
+            <CellAction data={row.original} kitchenTypes={kitchenTypes} />
         ),
     },
 ];

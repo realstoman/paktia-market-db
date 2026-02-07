@@ -31,9 +31,9 @@ import { Country } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Edit,
-    Edit2,
     Eye,
     MapPin,
+    MapPinned,
     MapPinOff,
     MoreHorizontal,
     Trash,
@@ -233,7 +233,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsProvinceOpen(true)}>
-                        <Edit2 className="mr-2 h-4 w-4" />
+                        <MapPinned className="mr-2 h-4 w-4" />
                         Manage Provinces
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>

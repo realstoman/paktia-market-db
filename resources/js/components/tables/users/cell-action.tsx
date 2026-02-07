@@ -1,5 +1,4 @@
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,6 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -18,6 +18,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -27,16 +34,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Branch, Country, Province, Role, User } from '@/types';
 import { router } from '@inertiajs/react';
-import { Ban, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Ban, Edit, Eye, MoreHorizontal, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -184,7 +184,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => router.visit(`/users/${data.id}`)}>
+                    <DropdownMenuItem
+                        onClick={() => router.visit(`/users/${data.id}`)}
+                    >
                         <Eye className="mr-2 h-4 w-4" />
                         View
                     </DropdownMenuItem>
@@ -194,7 +196,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             setIsEditOpen(true);
                         }}
                     >
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
@@ -381,7 +383,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
-                            disabled={!editName.trim() || !editEmail.trim() || isSubmitting}
+                            disabled={
+                                !editName.trim() ||
+                                !editEmail.trim() ||
+                                isSubmitting
+                            }
                         >
                             Save Changes
                         </Button>
