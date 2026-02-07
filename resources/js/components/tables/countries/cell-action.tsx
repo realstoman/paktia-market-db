@@ -1,5 +1,4 @@
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,6 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -18,8 +18,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -27,14 +25,17 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Country } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    Edit,
+    Edit2,
     Eye,
     MapPin,
     MapPinOff,
     MoreHorizontal,
-    Pencil,
     Trash,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -228,11 +229,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             setIsEditOpen(true);
                         }}
                     >
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsProvinceOpen(true)}>
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit2 className="mr-2 h-4 w-4" />
                         Manage Provinces
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>

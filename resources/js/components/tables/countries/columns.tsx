@@ -170,7 +170,7 @@ export const columns: ColumnDef<Country>[] = [
             ) : (
                 <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
                     <Ban className="h-4 w-4 text-red-600" />
-                    Disabled
+                    Inactive
                 </Badge>
             );
         },
