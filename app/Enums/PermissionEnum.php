@@ -21,6 +21,12 @@ enum PermissionEnum: string
     case BRANCH_UPDATE = 'branch.update';
     case BRANCH_DELETE = 'branch.delete';
 
+    // Branches
+    case KITCHEN_VIEW = 'kitchen.view';
+    case KITCHEN_CREATE = 'kitchen.create';
+    case KITCHEN_UPDATE = 'kitchen.update';
+    case KITCHEN_DELETE = 'kitchen.delete';
+
     // Orders
     case ORDERS_VIEW = 'orders.view';
     case ORDERS_CREATE = 'orders.create';
