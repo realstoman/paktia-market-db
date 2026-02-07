@@ -15,6 +15,7 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Building2,
+    ChefHat,
     CookingPot,
     Globe,
     LayoutGrid,
@@ -29,6 +30,12 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Orders',
+        href: '/orders',
+        icon: ChefHat,
+        can: 'user.view',
     },
     {
         title: 'Users',
