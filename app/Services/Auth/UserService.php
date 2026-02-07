@@ -23,9 +23,18 @@ class UserService
 
     public function toggleBlock(User $user): User
     {
-        $user->blocked = !$user->blocked;
-        $user->save();
+        if ($user->is_active) {
+            $user->block();
+        } else {
+            $user->unblock();
+        }
         return $user;
+    }
+
+    public function delete(User $user): void
+    {
+        $user->syncRoles([]);
+        $user->delete();
     }
 
     /**
@@ -85,6 +94,7 @@ class UserService
 
             // Relationships
             'roles' => $user->roles->pluck('name')->toArray(),
+            'role_ids' => $user->roles->pluck('id')->toArray(),
             'country' => $user->country ? $user->country->name : null,
             'country_id' => $user->country_id,
             'province' => $user->province ? $user->province->name : null,

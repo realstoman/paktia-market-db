@@ -4,7 +4,7 @@ import { BranchesClient } from '@/components/tables/branches/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import branches from '@/routes/branches';
-import { Branch, BreadcrumbItem } from '@/types';
+import { Branch, BreadcrumbItem, Country, Province } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -20,15 +20,25 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface BranchesPageProps {
     branches: Branch[];
+    countries: Country[];
+    provinces: Province[];
 }
 
-export default function BranchesPage({ branches }: BranchesPageProps) {
+export default function BranchesPage({
+    branches,
+    countries,
+    provinces,
+}: BranchesPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title="Branches" />
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="p-6 text-gray-900">
-                    <BranchesClient data={branches} />
+                    <BranchesClient
+                        data={branches}
+                        countries={countries}
+                        provinces={provinces}
+                    />
                 </div>
             </div>
         </AppLayout>

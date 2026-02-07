@@ -36,6 +36,15 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    roles?: (Role | string)[];
+    role_ids?: number[];
+    country?: string | null;
+    country_id?: number | null;
+    province?: string | null;
+    province_id?: number | null;
+    branch?: string | null;
+    branch_id?: number | null;
+    is_active?: boolean;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
@@ -47,6 +56,15 @@ export interface User {
 export interface Role {
     id: number;
     name: string;
+    permissions?: Permission[];
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Permission {
+    id: number;
+    name: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
@@ -55,12 +73,26 @@ export interface Role {
 export interface Branch {
     id: number;
     name: string;
-    country: string;
-    province: string;
+    country?: Country | string | null;
+    country_id?: number | null;
+    country_object?: Country | null;
+    province?: Province | string | null;
+    province_id?: number | null;
+    province_object?: Province | null;
+    kitchens?: Kitchen[];
+    is_active?: boolean;
     address: string;
     description: string;
     created_at: string;
     updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface Kitchen {
+    id: number;
+    name?: string;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 

@@ -1,9 +1,22 @@
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch } from '@/types';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Branch, Country, Province } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
+import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-export const columns: ColumnDef<Branch>[] = [
+const MAX_VISIBLE_KITCHENS = 3;
+
+export const buildColumns = (
+    countries: Country[],
+    provinces: Province[],
+): ColumnDef<Branch>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -42,12 +55,83 @@ export const columns: ColumnDef<Branch>[] = [
         header: 'Province',
     },
     {
+        id: 'kitchens',
+        header: 'Kitchens',
+        cell: ({ row }) => {
+            const kitchens = row.original.kitchens ?? [];
+            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
+            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
+
+            if (kitchens.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        No kitchens
+                    </span>
+                );
+            }
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {visible.map((kitchen) => (
+                        <Badge
+                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
+                            variant="secondary"
+                        >
+                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                        </Badge>
+                    ))}
+                    {hidden.length > 0 && (
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge
+                                        variant="outline"
+                                        className="cursor-help"
+                                    >
+                                        +{hidden.length} more
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div className="flex flex-wrap gap-1">
+                                        {hidden.map((kitchen) => (
+                                            <Badge
+                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
+                                                variant="secondary"
+                                            >
+                                                {kitchen.name ??
+                                                    `Kitchen #${kitchen.id}`}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                </div>
+            );
+        },
+    },
+    {
         accessorKey: 'address',
         header: 'Address',
     },
     {
-        accessorKey: 'description',
-        header: 'Description',
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => {
+            const active = row.getValue('is_active');
+            return active ? (
+                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                    <BadgeCheck className="h-4 w-4 text-green-600" />
+                    Active
+                </Badge>
+            ) : (
+                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
+                    <Ban className="h-4 w-4 text-red-600" />
+                    Inactive
+                </Badge>
+            );
+        },
     },
     {
         accessorKey: 'created_at',
@@ -60,6 +144,12 @@ export const columns: ColumnDef<Branch>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => <CellAction data={row.original} />,
+        cell: ({ row }) => (
+            <CellAction
+                data={row.original}
+                countries={countries}
+                provinces={provinces}
+            />
+        ),
     },
 ];

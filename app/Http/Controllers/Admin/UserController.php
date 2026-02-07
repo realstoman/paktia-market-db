@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Enums\PermissionEnum;
 use App\Models\Country;
+use App\Models\Province;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,6 +45,10 @@ class UserController extends Controller
             'perPage' => (int)$params['perPage'],
             'page' => (int)$params['page'],
             'canCreate' => $canCreate,
+            'roles' => Role::orderBy('name')->get(),
+            'countries' => Country::orderBy('name')->get(),
+            'provinces' => Province::orderBy('name')->get(),
+            'branches' => Branch::orderBy('name')->get(),
         ]);
     }
 
@@ -71,7 +77,7 @@ class UserController extends Controller
 
         $user = $this->userService->create($validated);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
     }
 
@@ -83,6 +89,15 @@ class UserController extends Controller
             'user' => $user->load(['roles', 'country', 'province', 'branch']),
             'roles' => Role::all(),
             'countries' => Country::all(),
+        ]);
+    }
+
+    public function show(User $user)
+    {
+        $this->authorize('view', $user);
+
+        return Inertia::render('admin/users/show', [
+            'user' => $user->load(['roles', 'country', 'province', 'branch']),
         ]);
     }
 
@@ -109,15 +124,30 @@ class UserController extends Controller
 
         $this->userService->update($user, $validated);
 
-        return back()->with('success', 'User updated successfully.');
+        return redirect()->route('users.index')
+            ->with('success', 'User updated successfully.');
     }
 
     public function toggleBlock(User $user)
     {
         $this->authorize('update', $user);
 
-        $user->update(['is_active' => !$user->is_active]);
+        if ($user->is_active) {
+            $user->block();
+        } else {
+            $user->unblock();
+        }
 
         return back()->with('success', 'User status updated successfully.');
+    }
+
+    public function destroy(User $user)
+    {
+        $this->authorize('delete', $user);
+
+        $this->userService->delete($user);
+
+        return redirect()->route('users.index')
+            ->with('success', 'User deleted successfully.');
     }
 }
