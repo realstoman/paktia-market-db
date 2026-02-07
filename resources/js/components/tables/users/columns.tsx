@@ -1,11 +1,16 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { User } from '@/types';
+import { Branch, Country, Province, Role, User } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-export const columns: ColumnDef<User>[] = [
+export const buildColumns = (
+    roles: Role[],
+    countries: Country[],
+    provinces: Province[],
+    branches: Branch[],
+): ColumnDef<User>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -42,6 +47,25 @@ export const columns: ColumnDef<User>[] = [
     {
         accessorKey: 'roles',
         header: 'Role',
+        cell: ({ row }) => {
+            const roles = row.original.roles ?? [];
+            if (roles.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        No role
+                    </span>
+                );
+            }
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {roles.map((role) => (
+                        <Badge key={role} variant="secondary">
+                            {role}
+                        </Badge>
+                    ))}
+                </div>
+            );
+        },
     },
     {
         accessorKey: 'branch',
@@ -84,6 +108,14 @@ export const columns: ColumnDef<User>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => <CellAction data={row.original} />,
+        cell: ({ row }) => (
+            <CellAction
+                data={row.original}
+                roles={roles}
+                countries={countries}
+                provinces={provinces}
+                branches={branches}
+            />
+        ),
     },
 ];

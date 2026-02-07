@@ -36,6 +36,15 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    roles?: string[];
+    role_ids?: number[];
+    country?: string | null;
+    country_id?: number | null;
+    province?: string | null;
+    province_id?: number | null;
+    branch?: string | null;
+    branch_id?: number | null;
+    is_active?: boolean;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
