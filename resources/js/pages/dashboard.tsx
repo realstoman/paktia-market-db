@@ -1,5 +1,5 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
-import { OrderAnalyticsChart } from '@/components/charts/order-analytics-chart';
+import { OrderAnalyticsAreaChart } from '@/components/charts/order-analytics-area-chart';
 import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
 import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
@@ -214,7 +214,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 />
                             </div>
                         </div>
-                        <OrderAnalyticsChart
+                        <OrderAnalyticsAreaChart
                             data={mockPeakDayData}
                             title="Order Analytics"
                             description="Last 7 days order status"
