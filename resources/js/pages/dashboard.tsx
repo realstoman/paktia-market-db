@@ -37,13 +37,12 @@ import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import {
+    ArrowRight,
     CalendarIcon,
     ChefHat,
     Cherry,
     CookingPot,
     Package,
-    ShoppingBag,
-    SignalHigh,
     TrendingDown,
     TrendingUp,
     TvMinimal,
@@ -353,7 +352,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <CardHeader>
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
-                                            Top Food Orders
+                                            Top Ordered Dishes
                                         </CardTitle>
                                         <CardDescription className="text-sm">
                                             Most ordered dishes this month
@@ -363,28 +362,28 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <CardContent className="space-y-4">
                                     {[
                                         {
-                                            name: 'Chicken Mandi',
-                                            orders: 1480,
+                                            name: 'Qabuli Palaw',
+                                            orders: 1880,
                                         },
                                         {
-                                            name: 'Spicy Shawarma',
+                                            name: 'Baba Special Salam',
+                                            orders: 1520,
+                                        },
+                                        {
+                                            name: 'Baba Special Pizza',
+                                            orders: 1392,
+                                        },
+                                        {
+                                            name: 'Chicken Chawmen',
                                             orders: 1265,
                                         },
                                         {
-                                            name: 'Kabuli Palaw',
+                                            name: 'Chopan Kabab',
                                             orders: 1142,
                                         },
                                         {
-                                            name: 'Grilled Salmon',
+                                            name: 'Grilled Fish',
                                             orders: 980,
-                                        },
-                                        {
-                                            name: 'Veggie Bowl',
-                                            orders: 860,
-                                        },
-                                        {
-                                            name: 'Classic Burger',
-                                            orders: 745,
                                         },
                                     ].map((item, index) => (
                                         <div
@@ -393,11 +392,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
-                                                    {index < 3 ? (
-                                                        <SignalHigh className="h-4 w-4" />
-                                                    ) : (
-                                                        <ShoppingBag className="h-4 w-4" />
-                                                    )}
+                                                    <CookingPot className="h-4 w-4" />
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium">
@@ -442,6 +437,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 <TableHead>Order #</TableHead>
                                                 <TableHead>Type</TableHead>
                                                 <TableHead>Items</TableHead>
+                                                <TableHead>QTY</TableHead>
                                                 <TableHead>Status</TableHead>
                                                 <TableHead className="text-right">
                                                     Total
@@ -453,51 +449,66 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 {
                                                     id: '4821',
                                                     type: 'dine-in',
-                                                    items: 'Chicken Mandi',
+                                                    items: 'Qabuli Palaw',
+                                                    qty: 3,
                                                     status: 'completed',
                                                     total: '1,245.00',
                                                 },
                                                 {
                                                     id: '4822',
                                                     type: 'delivery',
-                                                    items: 'Veggie Bowl',
+                                                    items: 'Chopan Kabab',
+                                                    qty: 2,
                                                     status: 'preparing',
                                                     total: '820.00',
                                                 },
                                                 {
                                                     id: '4823',
                                                     type: 'pickup',
-                                                    items: 'Spicy Shawarma',
+                                                    items: 'Shawarma',
+                                                    qty: 2,
                                                     status: 'pending',
                                                     total: '560.00',
                                                 },
                                                 {
                                                     id: '4824',
                                                     type: 'dine-in',
-                                                    items: 'Kabuli Palaw',
+                                                    items: 'Qabuli Palaw',
+                                                    qty: 3,
                                                     status: 'completed',
                                                     total: '1,020.00',
                                                 },
                                                 {
                                                     id: '4825',
                                                     type: 'delivery',
-                                                    items: 'Grilled Salmon',
+                                                    items: 'Grilled Fish',
+                                                    qty: 2,
                                                     status: 'cancelled',
                                                     total: '1,540.00',
                                                 },
                                                 {
                                                     id: '4826',
                                                     type: 'pickup',
-                                                    items: 'Classic Burger',
+                                                    items: 'Zinger Burger',
                                                     status: 'completed',
+                                                    qty: 2,
                                                     total: '430.00',
                                                 },
                                                 {
                                                     id: '4827',
                                                     type: 'dine-in',
-                                                    items: 'Mixed Grill',
+                                                    items: 'Baba Special Pizza',
+                                                    qty: 4,
                                                     status: 'preparing',
-                                                    total: '1,780.00',
+                                                    total: '2,800.00',
+                                                },
+                                                {
+                                                    id: '4827',
+                                                    type: 'dine-in',
+                                                    items: 'Baba Special Salad',
+                                                    qty: 2,
+                                                    status: 'completed',
+                                                    total: '500.00',
                                                 },
                                             ].map((order) => (
                                                 <TableRow key={order.id}>
@@ -509,6 +520,9 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     </TableCell>
                                                     <TableCell>
                                                         {order.items}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {order.qty}
                                                     </TableCell>
                                                     <TableCell>
                                                         <span
@@ -538,9 +552,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="mt-4 text-right">
                                         <a
                                             href="/orders"
-                                            className="text-sm font-medium text-primary hover:underline"
+                                            className="flex justify-end gap-2 text-sm font-medium text-primary hover:underline"
                                         >
                                             Go to orders
+                                            <ArrowRight className="h-5 w-5" />
                                         </a>
                                     </div>
                                 </CardContent>
