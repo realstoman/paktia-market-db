@@ -98,7 +98,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4 pt-0">
-                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
@@ -117,7 +117,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
                                     <div className="flex items-center gap-2">
                                         <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">

@@ -120,8 +120,8 @@ export function PieChartDonutText() {
                     </PieChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col gap-2 pb-4 text-sm">
-                <div className="flex items-center gap-2 leading-none font-medium">
+            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
+                <div className="flex items-start gap-2 leading-none font-medium">
                     Trending up by 5.2% this month{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
