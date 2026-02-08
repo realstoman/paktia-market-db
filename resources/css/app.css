@@ -9,6 +9,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html,
+body {
+    background: var(--background);
+}
+
 @theme {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
@@ -65,7 +70,7 @@
 }
 
 :root {
-    --background: #f6f9fb;
+    --background: #f2f2f2;
     /* --background: oklch(1 0 0); */
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -112,11 +117,17 @@
     --order-chart-2: var(--chart-sky);
     --order-chart-3: var(--chart-green);
     --order-chart-4: var(--chart-red);
-    --chart-1: oklch(0.646 0.222 41.116);
+    /* --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
+    --chart-6: rgb(204 146 75); */
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
     --chart-6: rgb(204 146 75);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);

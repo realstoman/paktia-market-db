@@ -22,6 +22,14 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
@@ -29,6 +37,7 @@ import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import {
+    ArrowRight,
     CalendarIcon,
     ChefHat,
     Cherry,
@@ -83,22 +92,23 @@ export default function Dashboard({ data }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-2 overflow-x-auto rounded-xl">
-                <div className="grid auto-rows-min gap-2 md:grid-cols-4">
-                    <div className="col-span-1 flex flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl">
+                {/* Statistics */}
+                <div className="grid auto-rows-min gap-6 md:grid-cols-4">
+                    <div className="col-span-1 flex flex-col gap-6">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-white pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
                                         Profit & Expenses
                                     </CardTitle>
-                                    <CardDescription className="text-ms">
+                                    <CardDescription className="text-sm">
                                         Restaurant profit and expense
                                     </CardDescription>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-4 pt-0">
-                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
@@ -117,7 +127,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
                                     <div className="flex items-center gap-2">
                                         <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
@@ -140,7 +150,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="flex items-center gap-2">
                                         <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
-                                            Order Value
+                                            Orders
                                         </p>
                                     </div>
                                     <div className="flex gap-2">
@@ -162,7 +172,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border-none py-4 dark:bg-neutral-900">
+                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-neutral-100/90 bg-white py-4 dark:border-neutral-800/90 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-2">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
                                 <div className="space-y-1">
@@ -290,14 +300,14 @@ export default function Dashboard({ data }: DashboardProps) {
                         />
                     </Card>
 
-                    <div className="col-span-1 flex flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
+                    <div className="col-span-1 flex flex-col gap-6">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-white pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
                                         Inventory Overview
                                     </CardTitle>
-                                    <CardDescription className="text-ms">
+                                    <CardDescription className="text-sm">
                                         Track inventory status
                                     </CardDescription>
                                 </div>
@@ -334,71 +344,225 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 md:min-h-min dark:border-sidebar-border dark:bg-neutral-900">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Ipsa quae amet perspiciatis qui maxime, fuga deserunt velit
-                    doloribus consequatur, soluta dignissimos, ab suscipit
-                    molestiae odit. Similique vitae autem quam, sunt odit
-                    architecto, suscipit animi qui ullam quas alias accusantium
-                    rem cum quisquam inventore officiis. Animi itaque aliquid
-                    ullam nostrum commodi, nesciunt iure, ab ex magnam maxime
-                    sunt iste praesentium delectus cupiditate numquam, debitis
-                    laborum ipsam expedita nam quia beatae velit hic.
-                    Consequuntur inventore tempora, sapiente dicta suscipit illo
-                    quis veniam unde odit, quos assumenda aliquam alias quaerat
-                    adipisci, nulla eaque. Vel, dolore laborum quos corrupti
-                    dolores illo explicabo ducimus beatae autem facere mollitia
-                    pariatur nesciunt, eum hic consequuntur tempore sint ipsam
-                    reiciendis obcaecati cupiditate id, ad quo quam rem! Vitae
-                    numquam minus voluptas suscipit sit praesentium? Sint id
-                    minus alias esse voluptas animi laborum hic perspiciatis ea
-                    nemo ad amet fugiat qui, vel nostrum cumque delectus libero
-                    officia pariatur nihil molestiae officiis possimus enim!
-                    Magnam voluptates omnis ea esse nostrum velit quas eos
-                    autem, repudiandae nulla unde eaque similique sit qui,
-                    delectus molestias tempore vel nobis possimus ullam! Officia
-                    sunt recusandae eveniet laudantium tempore! Voluptatum
-                    tempore, repudiandae provident eligendi suscipit veniam.
-                    Nisi necessitatibus sunt laboriosam fuga iure accusantium
-                    dolorum quam! Lorem ipsum dolor sit amet consectetur
-                    adipisicing elit. Odit doloribus odio maiores ipsam fugiat,
-                    sequi magni numquam quis quasi deserunt nisi iste eligendi
-                    recusandae possimus aliquam. Neque inventore architecto in,
-                    saepe aliquam quod dolore ipsum sed ut! Natus, nulla sunt?
-                    Eum rerum minus recusandae eligendi? Eligendi esse
-                    reprehenderit earum sed magnam, sapiente minima, nam rem
-                    explicabo quos beatae animi totam obcaecati labore! Officiis
-                    sit corporis assumenda eius odit commodi eligendi, quidem
-                    officia hic accusantium ea voluptate ducimus deleniti,
-                    consequatur nam blanditiis nulla eaque fuga. Iure, sequi
-                    quidem? Voluptatum animi repudiandae quas odio, voluptas
-                    autem dolor ex repellat enim sequi dolore nulla inventore
-                    mollitia fuga, ut eligendi, sunt optio eaque quibusdam
-                    tempore neque praesentium officia! Corrupti, dolorem eos
-                    repudiandae blanditiis ipsam veniam. Eveniet tempore nemo
-                    odit nihil! Inventore, hic? Earum illum similique vitae
-                    mollitia facilis? Labore a excepturi quibusdam hic non
-                    possimus, in dolores sed. Ad explicabo quaerat libero
-                    consectetur quidem, omnis id laboriosam voluptatum error
-                    ratione deleniti expedita debitis ea eius nisi illo delectus
-                    molestias sit sint blanditiis et quo? Temporibus nobis
-                    repellendus voluptatum consectetur velit pariatur ex
-                    assumenda nesciunt commodi blanditiis repudiandae ipsum
-                    illum mollitia consequuntur vel earum laboriosam neque,
-                    laborum obcaecati rerum placeat at deserunt veniam illo?
-                    Tenetur sed quis cumque itaque rem iusto ipsum laudantium
-                    illum deserunt blanditiis? Dignissimos harum quod ea
-                    exercitationem in expedita magni quos quaerat iusto amet eum
-                    voluptates aut beatae repellendus impedit rerum non aliquam,
-                    sed odit a autem blanditiis delectus consectetur? Repellat
-                    perspiciatis ipsum dolore ea eum at impedit enim, rerum quod
-                    ratione! Sed quasi autem ad architecto quo dolores
-                    repellendus veniam atque labore. Blanditiis commodi quas
-                    impedit aliquid rem. Placeat eligendi et maiores porro?
-                    Dolores voluptate enim ipsa obcaecati nemo, officia culpa
-                    laudantium libero vel repudiandae et ad, est id tempora,
-                    eius distinctio eaque praesentium voluptas ex expedita
-                    quidem cum! Expedita?
+
+                {/* Recent orders and top foods */}
+                <div className="relative min-h-[100vh] flex-1 overflow-hidden pb-1 md:min-h-min">
+                    <div className="grid gap-6 lg:grid-cols-12">
+                        <div className="lg:col-span-4">
+                            <Card className="h-full border border-neutral-100/90 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                                <CardHeader>
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-lg font-semibold">
+                                            Top Ordered Dishes
+                                        </CardTitle>
+                                        <CardDescription className="text-sm">
+                                            Most ordered dishes this month
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {[
+                                        {
+                                            name: 'Qabuli Palaw',
+                                            orders: 1880,
+                                        },
+                                        {
+                                            name: 'Baba Special Salam',
+                                            orders: 1520,
+                                        },
+                                        {
+                                            name: 'Baba Special Pizza',
+                                            orders: 1392,
+                                        },
+                                        {
+                                            name: 'Chicken Chawmen',
+                                            orders: 1265,
+                                        },
+                                        {
+                                            name: 'Chopan Kabab',
+                                            orders: 1142,
+                                        },
+                                        {
+                                            name: 'Grilled Fish',
+                                            orders: 980,
+                                        },
+                                    ].map((item, index) => (
+                                        <div
+                                            key={item.name}
+                                            className="flex items-center justify-between rounded-lg border border-neutral-200/60 px-3 py-2 dark:border-neutral-800"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                                                    <CookingPot className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">
+                                                        {item.name}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {item.orders.toLocaleString()}{' '}
+                                                        orders
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                                #{index + 1}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="lg:col-span-8">
+                            <Card className="h-full border border-neutral-100/90 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                                <CardHeader className="flex flex-row items-start justify-between">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-lg font-semibold">
+                                            Recent Orders
+                                        </CardTitle>
+                                        <CardDescription className="text-sm">
+                                            Latest orders across branches
+                                        </CardDescription>
+                                    </div>
+                                    <a
+                                        href="/orders"
+                                        className="text-sm font-medium text-primary hover:underline"
+                                    >
+                                        View all
+                                    </a>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Order #</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Items</TableHead>
+                                                <TableHead>QTY</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">
+                                                    Total
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {[
+                                                {
+                                                    id: '4821',
+                                                    type: 'dine-in',
+                                                    items: 'Qabuli Palaw',
+                                                    qty: 3,
+                                                    status: 'completed',
+                                                    total: '1,245.00',
+                                                },
+                                                {
+                                                    id: '4822',
+                                                    type: 'delivery',
+                                                    items: 'Chopan Kabab',
+                                                    qty: 2,
+                                                    status: 'preparing',
+                                                    total: '820.00',
+                                                },
+                                                {
+                                                    id: '4823',
+                                                    type: 'pickup',
+                                                    items: 'Shawarma',
+                                                    qty: 2,
+                                                    status: 'pending',
+                                                    total: '560.00',
+                                                },
+                                                {
+                                                    id: '4824',
+                                                    type: 'dine-in',
+                                                    items: 'Qabuli Palaw',
+                                                    qty: 3,
+                                                    status: 'completed',
+                                                    total: '1,020.00',
+                                                },
+                                                {
+                                                    id: '4825',
+                                                    type: 'delivery',
+                                                    items: 'Grilled Fish',
+                                                    qty: 2,
+                                                    status: 'cancelled',
+                                                    total: '1,540.00',
+                                                },
+                                                {
+                                                    id: '4826',
+                                                    type: 'pickup',
+                                                    items: 'Zinger Burger',
+                                                    status: 'completed',
+                                                    qty: 2,
+                                                    total: '430.00',
+                                                },
+                                                {
+                                                    id: '4827',
+                                                    type: 'dine-in',
+                                                    items: 'Baba Special Pizza',
+                                                    qty: 4,
+                                                    status: 'preparing',
+                                                    total: '2,800.00',
+                                                },
+                                                {
+                                                    id: '4828',
+                                                    type: 'dine-in',
+                                                    items: 'Baba Special Salad',
+                                                    qty: 2,
+                                                    status: 'completed',
+                                                    total: '500.00',
+                                                },
+                                            ].map((order) => (
+                                                <TableRow key={order.id}>
+                                                    <TableCell className="font-medium">
+                                                        #{order.id}
+                                                    </TableCell>
+                                                    <TableCell className="capitalize">
+                                                        {order.type}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {order.items}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {order.qty}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                                                                order.status ===
+                                                                'completed'
+                                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
+                                                                    : order.status ===
+                                                                        'preparing'
+                                                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
+                                                                      : order.status ===
+                                                                          'pending'
+                                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
+                                                                        : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
+                                                            }`}
+                                                        >
+                                                            {order.status}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {order.total} ؋
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    <div className="mt-4 text-right">
+                                        <a
+                                            href="/orders"
+                                            className="flex justify-end gap-2 text-sm font-medium text-primary hover:underline"
+                                        >
+                                            Go to orders
+                                            <ArrowRight className="h-5 w-5" />
+                                        </a>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>

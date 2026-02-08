@@ -24,19 +24,19 @@ const chartData = [
     { month: 'February', sales: 270000 },
     { month: 'March', sales: 195000 },
     { month: 'April', sales: 500000 },
-    { month: 'May', sales: 120000 },
+    { month: 'May', sales: 700000 },
 ];
 
 const chartConfig = {
     sales: {
         label: 'Sales:',
-        color: 'var(--foreground)',
+        color: 'var(--chart-1)',
     },
 } satisfies ChartConfig;
 
 export function BarChartDefault() {
     return (
-        <Card className="border-none shadow-none dark:bg-brand-bg-dark">
+        <Card className="border-none bg-white shadow-none dark:bg-brand-bg-dark">
             <CardHeader>
                 <CardTitle>Restaurant Revenue</CardTitle>
                 <CardDescription>January - May 2026</CardDescription>
@@ -56,15 +56,11 @@ export function BarChartDefault() {
                             cursor={true}
                             content={<ChartTooltipContent hideLabel />}
                         />
-                        <Bar
-                            dataKey="sales"
-                            fill="var(--foreground)"
-                            radius={8}
-                        />
+                        <Bar dataKey="sales" fill="var(--chart-1)" radius={8} />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-2 text-sm">
+            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
                 <div className="flex gap-2 leading-none font-medium">
                     Trending up by 5.2% this month{' '}
                     <TrendingUp className="h-4 w-4" />
