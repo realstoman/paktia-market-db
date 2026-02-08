@@ -61,7 +61,7 @@ export function PieChartDonutText() {
     }, []);
 
     return (
-        <Card className="flex flex-col border-none bg-neutral-50 shadow-none dark:bg-brand-bg-dark">
+        <Card className="flex flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Inventory Status Overview</CardTitle>
                 <CardDescription>Restaurant items</CardDescription>

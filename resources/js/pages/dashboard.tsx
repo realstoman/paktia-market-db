@@ -96,7 +96,7 @@ export default function Dashboard({ data }: DashboardProps) {
                 {/* Statistics */}
                 <div className="grid auto-rows-min gap-6 md:grid-cols-4">
                     <div className="col-span-1 flex flex-col gap-6">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-neutral-50 pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-white pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -172,7 +172,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-neutral-100/90 bg-neutral-50 py-4 dark:border-neutral-800/90 dark:bg-neutral-900">
+                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-neutral-100/90 bg-white py-4 dark:border-neutral-800/90 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-2">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
                                 <div className="space-y-1">
@@ -301,7 +301,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     </Card>
 
                     <div className="col-span-1 flex flex-col gap-6">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-neutral-50 pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-100/90 bg-white pt-4 pb-6 dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -349,7 +349,7 @@ export default function Dashboard({ data }: DashboardProps) {
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden pb-1 md:min-h-min">
                     <div className="grid gap-6 lg:grid-cols-12">
                         <div className="lg:col-span-4">
-                            <Card className="h-full border border-neutral-100/90 bg-neutral-50 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                            <Card className="h-full border border-neutral-100/90 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader>
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
@@ -414,7 +414,7 @@ export default function Dashboard({ data }: DashboardProps) {
                             </Card>
                         </div>
                         <div className="lg:col-span-8">
-                            <Card className="h-full border border-neutral-100/90 bg-neutral-50 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                            <Card className="h-full border border-neutral-100/90 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader className="flex flex-row items-start justify-between">
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
