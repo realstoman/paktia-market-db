@@ -6,14 +6,17 @@ export function AppSidebarFooter() {
                     © {new Date().getFullYear()} Baba Restaurant. All rights
                     reserved.
                 </span>
-                <a
-                    href="https://github.com/realstoman"
-                    className="font-medium text-foreground hover:underline"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Stoman
-                </a>
+                <div>
+                    Product of
+                    <a
+                        href="https://github.com/realstoman"
+                        className="pl-1 font-medium text-foreground hover:underline"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Stoman
+                    </a>
+                </div>
             </div>
         </footer>
     );
