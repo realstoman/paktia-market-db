@@ -13,9 +13,9 @@ export default function AppSidebarLayout({
     return (
         <AppShell variant="sidebar">
             <AppSidebar />
-            <AppContent className="mx-auto my-2 flex flex-col overflow-x-hidden">
+            <AppContent className="mx-auto my-2 flex w-full max-w-[78rem] flex-col overflow-x-hidden overflow-y-auto rounded-xl">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                <div className="mx-auto mt-4 flex min-h-0 w-full max-w-[78rem] flex-1 flex-col">
+                <div className="mt-5 flex min-h-0 flex-1 flex-col">
                     {children}
                 </div>
                 <AppSidebarFooter />

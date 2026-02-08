@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import InputError from '@/components/input-error';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';

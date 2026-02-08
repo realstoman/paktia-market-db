@@ -26,7 +26,7 @@ export function AppSidebarHeader({
     const { auth } = usePage<SharedData>().props;
 
     return (
-        <header className="mx-auto flex h-16 w-full max-w-[78rem] items-center justify-between gap-2 rounded-lg border-b border-sidebar-border/50 bg-white px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:bg-brand-bg-dark">
+        <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-lg border border-neutral-100/90 bg-neutral-50 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -38,7 +38,7 @@ export function AppSidebarHeader({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative rounded-md bg-neutral-50 dark:bg-neutral-950"
+                            className="relative h-9 w-9 rounded-full border border-neutral-200/70 bg-neutral-100 transition-all duration-300 hover:bg-neutral-200/70 dark:border-neutral-700/90 dark:bg-neutral-950"
                         >
                             <Bell className="h-5 w-5" />
                             <span className="sr-only">Notifications</span>
