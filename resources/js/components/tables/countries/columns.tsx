@@ -1,7 +1,17 @@
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Country } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
+import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
+
+const MAX_VISIBLE_ITEMS = 3;
 
 export const columns: ColumnDef<Country>[] = [
     {
@@ -42,12 +52,128 @@ export const columns: ColumnDef<Country>[] = [
         header: 'Currency Symbol',
     },
     {
-        accessorKey: 'province',
+        id: 'provinces',
         header: 'Provinces',
+        cell: ({ row }) => {
+            const provinces = row.original.provinces ?? [];
+            const visible = provinces.slice(0, MAX_VISIBLE_ITEMS);
+            const hidden = provinces.slice(MAX_VISIBLE_ITEMS);
+
+            if (provinces.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        No provinces
+                    </span>
+                );
+            }
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {visible.map((province) => (
+                        <Badge key={province.id} variant="secondary">
+                            {province.name}
+                        </Badge>
+                    ))}
+                    {hidden.length > 0 && (
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge
+                                        variant="outline"
+                                        className="cursor-help"
+                                    >
+                                        +{hidden.length} more
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div className="flex flex-wrap gap-1">
+                                        {hidden.map((province) => (
+                                            <Badge
+                                                key={province.id}
+                                                variant="secondary"
+                                            >
+                                                {province.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                </div>
+            );
+        },
     },
     {
-        accessorKey: 'branches',
+        id: 'branches',
         header: 'Branches',
+        cell: ({ row }) => {
+            const branches = row.original.branches ?? [];
+            const visible = branches.slice(0, MAX_VISIBLE_ITEMS);
+            const hidden = branches.slice(MAX_VISIBLE_ITEMS);
+
+            if (branches.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        No branches
+                    </span>
+                );
+            }
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {visible.map((branch) => (
+                        <Badge key={branch.id} variant="secondary">
+                            {branch.name}
+                        </Badge>
+                    ))}
+                    {hidden.length > 0 && (
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge
+                                        variant="outline"
+                                        className="cursor-help"
+                                    >
+                                        +{hidden.length} more
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <div className="flex flex-wrap gap-1">
+                                        {hidden.map((branch) => (
+                                            <Badge
+                                                key={branch.id}
+                                                variant="secondary"
+                                            >
+                                                {branch.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => {
+            const active = row.getValue('is_active');
+            return active ? (
+                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                    <BadgeCheck className="h-4 w-4 text-green-600" />
+                    Active
+                </Badge>
+            ) : (
+                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
+                    <Ban className="h-4 w-4 text-red-600" />
+                    Inactive
+                </Badge>
+            );
+        },
     },
     {
         accessorKey: 'created_at',

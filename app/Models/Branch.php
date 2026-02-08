@@ -27,7 +27,7 @@ class Branch extends Model
 
     public function kitchens()
     {
-        return $this->hasMany(Kitchen::class);
+        return $this->belongsToMany(Kitchen::class)->withTimestamps();
     }
 
     public function inventoryItems()

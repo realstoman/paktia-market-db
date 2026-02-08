@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('countries', function (Blueprint $table) {
+        Schema::create('branch_kitchen', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('code', 2)->unique();
-            $table->string('currency_code', 3);
-            $table->string('currency_symbol')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('kitchen_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['branch_id', 'kitchen_id']);
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('countries');
+        Schema::dropIfExists('branch_kitchen');
     }
 };

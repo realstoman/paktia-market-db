@@ -72,6 +72,19 @@ class BranchController extends Controller
             ->with('success', $message);
     }
 
+    public function syncKitchens(Request $request, BranchService $service, Branch $branch)
+    {
+        $validated = $request->validate([
+            'kitchens' => ['array'],
+            'kitchens.*' => ['integer', 'exists:kitchens,id'],
+        ]);
+
+        $service->syncKitchens($branch, $validated['kitchens'] ?? []);
+
+        return redirect()->route('branches.index')
+            ->with('success', 'Branch kitchens updated successfully.');
+    }
+
     public function destroy(BranchService $service, Branch $branch)
     {
         $service->delete($branch);

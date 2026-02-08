@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Province extends Model
 {
+    protected $fillable = [
+        'country_id',
+        'name',
+    ];
+
     public function country()
     {
         return $this->belongsTo(Country::class);
@@ -16,4 +21,3 @@ class Province extends Model
         return $this->hasMany(Branch::class);
     }
 }
-

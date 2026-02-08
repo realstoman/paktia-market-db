@@ -31,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
-import { Copy, Eye, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Copy, Edit, Eye, MoreHorizontal, Trash } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -157,7 +157,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         View
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={openEdit}>
-                        <Pencil className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onDuplicate(data)}>

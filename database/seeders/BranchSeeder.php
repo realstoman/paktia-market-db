@@ -15,10 +15,10 @@ class BranchSeeder extends Seeder
         $province = Province::where('name', 'Kabul')->first();
 
         Branch::create([
-            'name' => 'Baba Restaurant – Kabul',
+            'name' => 'Karte 3',
             'country_id' => $country->id,
             'province_id' => $province->id,
-            'description' => 'Main flagship branch in Kabul',
+            'description' => 'Main branch in the Kabul',
         ]);
     }
 }

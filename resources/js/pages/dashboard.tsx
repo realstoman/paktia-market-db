@@ -35,6 +35,7 @@ import {
     CookingPot,
     Package,
     TrendingDown,
+    TrendingUp,
     TvMinimal,
     Utensils,
     X,
@@ -82,12 +83,80 @@ export default function Dashboard({ data }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-4">
-                    <div className="col-span-1 flex flex-col gap-4">
-                        <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                            <h1>Income and Loss</h1>
-                        </div>
+            <div className="flex h-full flex-1 flex-col gap-2 overflow-x-auto rounded-xl">
+                <div className="grid auto-rows-min gap-2 md:grid-cols-4">
+                    <div className="col-span-1 flex flex-col gap-2">
+                        <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
+                            <CardHeader>
+                                <div className="space-y-1">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Profit & Expenses
+                                    </CardTitle>
+                                    <CardDescription className="text-ms">
+                                        Restaurant profit and expense
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-0">
+                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
+                                        <p className="text-base font-medium text-accent-foreground/80">
+                                            Profit
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-xl font-semibold text-accent-foreground/80">
+                                            12,475,365.00
+                                        </p>
+                                        <span>؋</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-sm font-normal text-accent-foreground/50">
+                                            Jan 2026
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 border-b border-b-accent-foreground/10 pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
+                                        <p className="text-base font-medium text-accent-foreground/80">
+                                            Expenses
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-xl font-semibold text-accent-foreground/80">
+                                            7,321,270.00
+                                        </p>
+                                        <span>؋</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-sm font-normal text-accent-foreground/50">
+                                            Jan 2026
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 pb-4">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
+                                        <p className="text-base font-medium text-accent-foreground/80">
+                                            Order Value
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-xl font-semibold text-accent-foreground/80">
+                                            10,321,270.00
+                                        </p>
+                                        <span>؋</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <p className="text-sm font-normal text-accent-foreground/50">
+                                            Jan 2026
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                         <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                             <BarChartDefault />
                         </div>
@@ -108,13 +177,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Pending Orders"
                                         value={data?.orders.pending || 137}
-                                        color="bg-orange-50 dark:bg-orange-950 text-orange-900 dark:text-orange-700"
+                                        color=""
                                         icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={data?.orders.pending || 462}
-                                        color="bg-sky-50 dark:bg-sky-950 text-sky-900 dark:text-sky-700"
+                                        color=""
                                         icon={
                                             <CookingPot className="h-4 w-4" />
                                         }
@@ -122,13 +191,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Completed Orders"
                                         value={data?.orders.pending || 344}
-                                        color="bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-700"
+                                        color=""
                                         icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={data?.orders.pending || 2}
-                                        color="bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-400"
+                                        color=""
                                         icon={<X className="h-4 w-4" />}
                                     />
                                 </div>
@@ -221,7 +290,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         />
                     </Card>
 
-                    <div className="col-span-1 flex flex-col gap-4">
+                    <div className="col-span-1 flex flex-col gap-2">
                         <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">

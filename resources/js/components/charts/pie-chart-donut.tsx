@@ -22,11 +22,11 @@ import {
 export const description = 'A donut chart with text';
 
 const chartData = [
-    { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-    { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-    { browser: 'firefox', visitors: 287, fill: 'var(--color-firefox)' },
-    { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
-    { browser: 'other', visitors: 190, fill: 'var(--color-other)' },
+    { browser: 'chrome', visitors: 1400, fill: 'var(--color-chrome)' },
+    { browser: 'safari', visitors: 800, fill: 'var(--color-safari)' },
+    { browser: 'firefox', visitors: 400, fill: 'var(--color-firefox)' },
+    { browser: 'edge', visitors: 200, fill: 'var(--color-edge)' },
+    { browser: 'other', visitors: 650, fill: 'var(--color-other)' },
 ];
 
 const chartConfig = {
@@ -64,7 +64,7 @@ export function PieChartDonutText() {
         <Card className="flex flex-col border-none shadow-none dark:bg-brand-bg-dark">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Inventory Status Overview</CardTitle>
-                <CardDescription>Available items</CardDescription>
+                <CardDescription>Restaurant items</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
                 <ChartContainer
@@ -109,7 +109,7 @@ export function PieChartDonutText() {
                                                     y={(viewBox.cy || 0) + 24}
                                                     className="fill-muted-foreground"
                                                 >
-                                                    Visitors
+                                                    Items
                                                 </tspan>
                                             </text>
                                         );
@@ -126,7 +126,7 @@ export function PieChartDonutText() {
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    Showing total visitors for the last 6 months
+                    Showing total inventory items in the restaurant
                 </div>
             </CardFooter>
         </Card>

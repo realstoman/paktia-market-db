@@ -15,9 +15,9 @@ class ProvinceSeeder extends Seeder
         $provinces = [
             'Kabul',
             'Herat',
-            'Balkh',
             'Kandahar',
-            'Nangarhar',
+            'Balkh',
+            'Paktia',
         ];
 
         foreach ($provinces as $province) {

@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
-import { Branch, Country, Province } from '@/types';
+import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -32,6 +32,7 @@ interface BranchesClientProps {
     data: Branch[];
     countries: Country[];
     provinces: Province[];
+    kitchens: Kitchen[];
     isLoading?: boolean;
 }
 
@@ -39,6 +40,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     data,
     countries,
     provinces,
+    kitchens,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -95,8 +97,8 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(countries, provinces),
-        [countries, provinces],
+        () => buildColumns(countries, provinces, kitchens),
+        [countries, provinces, kitchens],
     );
 
     return (

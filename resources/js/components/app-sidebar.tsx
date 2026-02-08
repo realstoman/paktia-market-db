@@ -15,6 +15,8 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Building2,
+    ChefHat,
+    CookingPot,
     Globe,
     LayoutGrid,
     Shield,
@@ -28,6 +30,12 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Orders',
+        href: '/orders',
+        icon: CookingPot,
+        can: 'user.view',
     },
     {
         title: 'Users',
@@ -46,6 +54,12 @@ const mainNavItems: NavItem[] = [
         href: '/branches',
         icon: Building2,
         can: 'branch.view',
+    },
+    {
+        title: 'Kitchens',
+        href: '/kitchens',
+        icon: ChefHat,
+        can: 'kitchen.view',
     },
     {
         title: 'Countries',
@@ -69,7 +83,7 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="floating" className="my-2">
+        <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader className="rounded-t-sm bg-white dark:bg-brand-bg-dark">
                 <SidebarMenu>
                     <SidebarMenuItem>

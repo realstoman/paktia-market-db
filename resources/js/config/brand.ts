@@ -6,5 +6,6 @@ export const brand = {
 };
 
 export const illustrations = {
-    babaChef: '/illustrations/baba-chef-drawing.jpg',
+    babaChef: '/illustrations/baba-chef.png',
+    babaChefDark: '/illustrations/baba-chef2.png',
 };
