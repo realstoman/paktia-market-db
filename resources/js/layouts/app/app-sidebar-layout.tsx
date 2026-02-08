@@ -12,9 +12,22 @@ export default function AppSidebarLayout({
     return (
         <AppShell variant="sidebar">
             <AppSidebar />
-            <AppContent className="mx-auto my-2 flex w-full max-w-[78rem] flex-col overflow-x-hidden overflow-y-auto rounded-xl">
+            <AppContent className="mx-auto my-2 flex w-full max-w-[78rem] flex-col overflow-x-hidden overflow-y-auto rounded">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                <div className="mt-2">{children}</div>
+                <div className="mt-2 flex min-h-0 flex-1 flex-col">
+                    {children}
+                </div>
+                <footer className="mt-4 flex items-center justify-between rounded-lg border border-sidebar-border/50 bg-white px-6 py-3 text-xs text-muted-foreground md:px-4 dark:bg-brand-bg-dark">
+                    <span>© 2026 Baba Restaurant. All rights reserved.</span>
+                    <a
+                        href="https://stoman.me"
+                        className="font-medium text-foreground hover:underline"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Stoman
+                    </a>
+                </footer>
             </AppContent>
         </AppShell>
     );
