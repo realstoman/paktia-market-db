@@ -18,6 +18,11 @@ import {
     InputGroupInput,
 } from '@/components/ui/input-group';
 import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
     Table,
     TableBody,
     TableCell,
@@ -25,11 +30,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
@@ -347,13 +347,6 @@ export default function Dashboard({ data }: DashboardProps) {
                 </div>
                 {/* Recent orders and top foods */}
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 md:min-h-min dark:border-sidebar-border dark:bg-neutral-900">
-                    {/* This section to have 2 grid layouts with 4 columns on the left and 8 columns on the right.
-                        4 columns to display a card with top food items orders, probably 6 items with number of orders in the past month or week, make it something professional, you know better what looks great.
-
-                        On the right side show a simple table that has 7 recent orders with it's status as well. You can see the create_orders_table as well for the columns data You can add the food items as some random food items, later we will get it from the backend. Also, have a link in the bottom to redirect to the /orders route.
-
-                        You can make it something clean and modern looking
-                    */}
                     <div className="grid gap-4 lg:grid-cols-12">
                         <div className="lg:col-span-4">
                             <Card className="h-full border-none bg-white dark:bg-neutral-900">
