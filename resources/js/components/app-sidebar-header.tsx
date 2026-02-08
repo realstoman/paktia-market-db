@@ -6,10 +6,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { type BreadcrumbItem as BreadcrumbItemType, type SharedData } from '@/types';
+import {
+    type BreadcrumbItem as BreadcrumbItemType,
+    type SharedData,
+} from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Bell, ChevronsUpDown } from 'lucide-react';
 import AppearanceToggleDropdown from './appearance-dropdown';
@@ -35,11 +38,11 @@ export function AppSidebarHeader({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative"
+                            className="relative rounded-md bg-neutral-50 dark:bg-neutral-950"
                         >
                             <Bell className="h-5 w-5" />
                             <span className="sr-only">Notifications</span>
-                            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500" />
+                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-80">
@@ -55,9 +58,7 @@ export function AppSidebarHeader({
                                 </p>
                             </div>
                             <div className="rounded-md border p-2">
-                                <p className="font-medium">
-                                    Inventory low
-                                </p>
+                                <p className="font-medium">Inventory low</p>
                                 <p className="text-xs text-muted-foreground">
                                     Tomatoes stock is below threshold.
                                 </p>
@@ -75,10 +76,7 @@ export function AppSidebarHeader({
                 </DropdownMenu>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            className="h-9 gap-2 px-2"
-                        >
+                        <Button variant="ghost" className="h-9 gap-2 px-2">
                             <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4" />
                         </Button>
