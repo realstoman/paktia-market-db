@@ -30,7 +30,7 @@ const chartData = [
 const chartConfig = {
     sales: {
         label: 'Sales:',
-        color: 'var(--foreground)',
+        color: 'var(--chart1)',
     },
 } satisfies ChartConfig;
 
