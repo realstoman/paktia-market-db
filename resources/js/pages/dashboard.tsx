@@ -140,7 +140,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="flex items-center gap-2">
                                         <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
-                                            Order Value
+                                            Orders
                                         </p>
                                     </div>
                                     <div className="flex gap-2">

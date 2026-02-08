@@ -24,7 +24,7 @@ const chartData = [
     { month: 'February', sales: 270000 },
     { month: 'March', sales: 195000 },
     { month: 'April', sales: 500000 },
-    { month: 'May', sales: 120000 },
+    { month: 'May', sales: 700000 },
 ];
 
 const chartConfig = {
