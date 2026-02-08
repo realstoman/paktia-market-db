@@ -30,7 +30,7 @@ const chartData = [
 const chartConfig = {
     sales: {
         label: 'Sales:',
-        color: 'var(--chart1)',
+        color: 'var(--chart-1)',
     },
 } satisfies ChartConfig;
 
@@ -56,11 +56,7 @@ export function BarChartDefault() {
                             cursor={true}
                             content={<ChartTooltipContent hideLabel />}
                         />
-                        <Bar
-                            dataKey="sales"
-                            fill="var(--foreground)"
-                            radius={8}
-                        />
+                        <Bar dataKey="sales" fill="var(--chart-1)" radius={8} />
                     </BarChart>
                 </ChartContainer>
             </CardContent>

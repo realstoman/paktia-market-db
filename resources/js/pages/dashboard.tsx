@@ -92,7 +92,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <CardTitle className="text-lg font-semibold">
                                         Profit & Expenses
                                     </CardTitle>
-                                    <CardDescription className="text-ms">
+                                    <CardDescription className="text-sm">
                                         Restaurant profit and expense
                                     </CardDescription>
                                 </div>
@@ -297,7 +297,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <CardTitle className="text-lg font-semibold">
                                         Inventory Overview
                                     </CardTitle>
-                                    <CardDescription className="text-ms">
+                                    <CardDescription className="text-sm">
                                         Track inventory status
                                     </CardDescription>
                                 </div>
