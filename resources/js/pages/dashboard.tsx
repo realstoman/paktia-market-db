@@ -18,6 +18,14 @@ import {
     InputGroupInput,
 } from '@/components/ui/input-group';
 import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -34,6 +42,8 @@ import {
     Cherry,
     CookingPot,
     Package,
+    ShoppingBag,
+    SignalHigh,
     TrendingDown,
     TrendingUp,
     TvMinimal,
@@ -84,6 +94,7 @@ export default function Dashboard({ data }: DashboardProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-2 overflow-x-auto rounded-xl">
+                {/* Statistics */}
                 <div className="grid auto-rows-min gap-2 md:grid-cols-4">
                     <div className="col-span-1 flex flex-col gap-2">
                         <Card className="relative overflow-hidden rounded-xl border-none bg-white pt-4 pb-6 dark:bg-neutral-900">
@@ -334,71 +345,215 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                 </div>
+                {/* Recent orders and top foods */}
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 md:min-h-min dark:border-sidebar-border dark:bg-neutral-900">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Ipsa quae amet perspiciatis qui maxime, fuga deserunt velit
-                    doloribus consequatur, soluta dignissimos, ab suscipit
-                    molestiae odit. Similique vitae autem quam, sunt odit
-                    architecto, suscipit animi qui ullam quas alias accusantium
-                    rem cum quisquam inventore officiis. Animi itaque aliquid
-                    ullam nostrum commodi, nesciunt iure, ab ex magnam maxime
-                    sunt iste praesentium delectus cupiditate numquam, debitis
-                    laborum ipsam expedita nam quia beatae velit hic.
-                    Consequuntur inventore tempora, sapiente dicta suscipit illo
-                    quis veniam unde odit, quos assumenda aliquam alias quaerat
-                    adipisci, nulla eaque. Vel, dolore laborum quos corrupti
-                    dolores illo explicabo ducimus beatae autem facere mollitia
-                    pariatur nesciunt, eum hic consequuntur tempore sint ipsam
-                    reiciendis obcaecati cupiditate id, ad quo quam rem! Vitae
-                    numquam minus voluptas suscipit sit praesentium? Sint id
-                    minus alias esse voluptas animi laborum hic perspiciatis ea
-                    nemo ad amet fugiat qui, vel nostrum cumque delectus libero
-                    officia pariatur nihil molestiae officiis possimus enim!
-                    Magnam voluptates omnis ea esse nostrum velit quas eos
-                    autem, repudiandae nulla unde eaque similique sit qui,
-                    delectus molestias tempore vel nobis possimus ullam! Officia
-                    sunt recusandae eveniet laudantium tempore! Voluptatum
-                    tempore, repudiandae provident eligendi suscipit veniam.
-                    Nisi necessitatibus sunt laboriosam fuga iure accusantium
-                    dolorum quam! Lorem ipsum dolor sit amet consectetur
-                    adipisicing elit. Odit doloribus odio maiores ipsam fugiat,
-                    sequi magni numquam quis quasi deserunt nisi iste eligendi
-                    recusandae possimus aliquam. Neque inventore architecto in,
-                    saepe aliquam quod dolore ipsum sed ut! Natus, nulla sunt?
-                    Eum rerum minus recusandae eligendi? Eligendi esse
-                    reprehenderit earum sed magnam, sapiente minima, nam rem
-                    explicabo quos beatae animi totam obcaecati labore! Officiis
-                    sit corporis assumenda eius odit commodi eligendi, quidem
-                    officia hic accusantium ea voluptate ducimus deleniti,
-                    consequatur nam blanditiis nulla eaque fuga. Iure, sequi
-                    quidem? Voluptatum animi repudiandae quas odio, voluptas
-                    autem dolor ex repellat enim sequi dolore nulla inventore
-                    mollitia fuga, ut eligendi, sunt optio eaque quibusdam
-                    tempore neque praesentium officia! Corrupti, dolorem eos
-                    repudiandae blanditiis ipsam veniam. Eveniet tempore nemo
-                    odit nihil! Inventore, hic? Earum illum similique vitae
-                    mollitia facilis? Labore a excepturi quibusdam hic non
-                    possimus, in dolores sed. Ad explicabo quaerat libero
-                    consectetur quidem, omnis id laboriosam voluptatum error
-                    ratione deleniti expedita debitis ea eius nisi illo delectus
-                    molestias sit sint blanditiis et quo? Temporibus nobis
-                    repellendus voluptatum consectetur velit pariatur ex
-                    assumenda nesciunt commodi blanditiis repudiandae ipsum
-                    illum mollitia consequuntur vel earum laboriosam neque,
-                    laborum obcaecati rerum placeat at deserunt veniam illo?
-                    Tenetur sed quis cumque itaque rem iusto ipsum laudantium
-                    illum deserunt blanditiis? Dignissimos harum quod ea
-                    exercitationem in expedita magni quos quaerat iusto amet eum
-                    voluptates aut beatae repellendus impedit rerum non aliquam,
-                    sed odit a autem blanditiis delectus consectetur? Repellat
-                    perspiciatis ipsum dolore ea eum at impedit enim, rerum quod
-                    ratione! Sed quasi autem ad architecto quo dolores
-                    repellendus veniam atque labore. Blanditiis commodi quas
-                    impedit aliquid rem. Placeat eligendi et maiores porro?
-                    Dolores voluptate enim ipsa obcaecati nemo, officia culpa
-                    laudantium libero vel repudiandae et ad, est id tempora,
-                    eius distinctio eaque praesentium voluptas ex expedita
-                    quidem cum! Expedita?
+                    {/* This section to have 2 grid layouts with 4 columns on the left and 8 columns on the right.
+                        4 columns to display a card with top food items orders, probably 6 items with number of orders in the past month or week, make it something professional, you know better what looks great.
+
+                        On the right side show a simple table that has 7 recent orders with it's status as well. You can see the create_orders_table as well for the columns data You can add the food items as some random food items, later we will get it from the backend. Also, have a link in the bottom to redirect to the /orders route.
+
+                        You can make it something clean and modern looking
+                    */}
+                    <div className="grid gap-4 lg:grid-cols-12">
+                        <div className="lg:col-span-4">
+                            <Card className="h-full border-none bg-white dark:bg-neutral-900">
+                                <CardHeader>
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-lg font-semibold">
+                                            Top Food Orders
+                                        </CardTitle>
+                                        <CardDescription className="text-sm">
+                                            Most ordered dishes this month
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {[
+                                        {
+                                            name: 'Chicken Mandi',
+                                            orders: 1480,
+                                        },
+                                        {
+                                            name: 'Spicy Shawarma',
+                                            orders: 1265,
+                                        },
+                                        {
+                                            name: 'Kabuli Palaw',
+                                            orders: 1142,
+                                        },
+                                        {
+                                            name: 'Grilled Salmon',
+                                            orders: 980,
+                                        },
+                                        {
+                                            name: 'Veggie Bowl',
+                                            orders: 860,
+                                        },
+                                        {
+                                            name: 'Classic Burger',
+                                            orders: 745,
+                                        },
+                                    ].map((item, index) => (
+                                        <div
+                                            key={item.name}
+                                            className="flex items-center justify-between rounded-lg border border-neutral-200/60 px-3 py-2 dark:border-neutral-800"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                                                    {index < 3 ? (
+                                                        <SignalHigh className="h-4 w-4" />
+                                                    ) : (
+                                                        <ShoppingBag className="h-4 w-4" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">
+                                                        {item.name}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {item.orders.toLocaleString()}{' '}
+                                                        orders
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                                #{index + 1}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="lg:col-span-8">
+                            <Card className="h-full border-none bg-white dark:bg-neutral-900">
+                                <CardHeader className="flex flex-row items-start justify-between">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-lg font-semibold">
+                                            Recent Orders
+                                        </CardTitle>
+                                        <CardDescription className="text-sm">
+                                            Latest orders across branches
+                                        </CardDescription>
+                                    </div>
+                                    <a
+                                        href="/orders"
+                                        className="text-sm font-medium text-primary hover:underline"
+                                    >
+                                        View all
+                                    </a>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Order #</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Items</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">
+                                                    Total
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {[
+                                                {
+                                                    id: '4821',
+                                                    type: 'dine-in',
+                                                    items: 'Chicken Mandi',
+                                                    status: 'completed',
+                                                    total: '1,245.00',
+                                                },
+                                                {
+                                                    id: '4822',
+                                                    type: 'delivery',
+                                                    items: 'Veggie Bowl',
+                                                    status: 'preparing',
+                                                    total: '820.00',
+                                                },
+                                                {
+                                                    id: '4823',
+                                                    type: 'pickup',
+                                                    items: 'Spicy Shawarma',
+                                                    status: 'pending',
+                                                    total: '560.00',
+                                                },
+                                                {
+                                                    id: '4824',
+                                                    type: 'dine-in',
+                                                    items: 'Kabuli Palaw',
+                                                    status: 'completed',
+                                                    total: '1,020.00',
+                                                },
+                                                {
+                                                    id: '4825',
+                                                    type: 'delivery',
+                                                    items: 'Grilled Salmon',
+                                                    status: 'cancelled',
+                                                    total: '1,540.00',
+                                                },
+                                                {
+                                                    id: '4826',
+                                                    type: 'pickup',
+                                                    items: 'Classic Burger',
+                                                    status: 'completed',
+                                                    total: '430.00',
+                                                },
+                                                {
+                                                    id: '4827',
+                                                    type: 'dine-in',
+                                                    items: 'Mixed Grill',
+                                                    status: 'preparing',
+                                                    total: '1,780.00',
+                                                },
+                                            ].map((order) => (
+                                                <TableRow key={order.id}>
+                                                    <TableCell className="font-medium">
+                                                        #{order.id}
+                                                    </TableCell>
+                                                    <TableCell className="capitalize">
+                                                        {order.type}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {order.items}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                                                                order.status ===
+                                                                'completed'
+                                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
+                                                                    : order.status ===
+                                                                        'preparing'
+                                                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
+                                                                      : order.status ===
+                                                                          'pending'
+                                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
+                                                                        : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
+                                                            }`}
+                                                        >
+                                                            {order.status}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {order.total} ؋
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    <div className="mt-4 text-right">
+                                        <a
+                                            href="/orders"
+                                            className="text-sm font-medium text-primary hover:underline"
+                                        >
+                                            Go to orders
+                                        </a>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>
