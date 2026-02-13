@@ -23,7 +23,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, User as UserIcon, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -157,7 +157,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             >
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Create User</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <UserIcon className="h-5 w-5" />
+                            Create User
+                        </DialogTitle>
                         <DialogDescription>
                             Add a new user and assign roles and location.
                         </DialogDescription>
@@ -185,7 +188,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 onChange={(event) =>
                                     setEmail(event.target.value)
                                 }
-                                placeholder="user@baba.com"
+                                placeholder="user@babataste.com"
                             />
                             <InputError message={createErrors.email} />
                         </div>
@@ -315,6 +318,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
                         <Button
@@ -326,6 +330,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 isSubmitting
                             }
                         >
+                            <Plus className="mr-2 h-4 w-4" />
                             Create User
                         </Button>
                     </DialogFooter>

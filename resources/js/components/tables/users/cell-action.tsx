@@ -36,7 +36,17 @@ import {
 } from '@/components/ui/select';
 import { Branch, Country, Province, Role, User } from '@/types';
 import { router } from '@inertiajs/react';
-import { Ban, Edit, Eye, MoreHorizontal, Trash } from 'lucide-react';
+import {
+    Ban,
+    CheckCircle,
+    Edit,
+    Eye,
+    MoreHorizontal,
+    Save,
+    Trash,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -379,6 +389,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={() => setIsEditOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
                         <Button
@@ -389,6 +400,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 isSubmitting
                             }
                         >
+                            <Save className="mr-2 h-4 w-4" />
                             Save Changes
                         </Button>
                     </DialogFooter>
@@ -409,6 +421,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -416,7 +429,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleBlock}
                             disabled={isSubmitting}
                         >
-                            {data.is_active ? 'Block user' : 'Unblock user'}
+                            {data.is_active ? (
+                                <>
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Block user
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Unblock user
+                                </>
+                            )}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -433,6 +456,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -440,6 +464,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleDelete}
                             disabled={isSubmitting}
                         >
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Delete user
                         </AlertDialogAction>
                     </AlertDialogFooter>
