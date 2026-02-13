@@ -35,6 +35,7 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import {
     ArrowRight,
@@ -186,13 +187,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <div className="space-y-4">
                                     <StatusCard
                                         title="Pending Orders"
-                                        value={data?.orders.pending || 137}
+                                        value={formatNumber(
+                                            data?.orders.pending || 137,
+                                        )}
                                         color=""
                                         icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
-                                        value={data?.orders.pending || 462}
+                                        value={formatNumber(
+                                            data?.orders.pending || 462,
+                                        )}
                                         color=""
                                         icon={
                                             <CookingPot className="h-4 w-4" />
@@ -200,13 +205,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                     />
                                     <StatusCard
                                         title="Completed Orders"
-                                        value={data?.orders.pending || 344}
+                                        value={formatNumber(
+                                            data?.orders.pending || 344,
+                                        )}
                                         color=""
                                         icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
-                                        value={data?.orders.pending || 2}
+                                        value={formatNumber(
+                                            data?.orders.pending || 2,
+                                        )}
                                         color=""
                                         icon={<X className="h-4 w-4" />}
                                     />
@@ -315,25 +324,33 @@ export default function Dashboard({ data }: DashboardProps) {
                             <CardContent className="space-y-4 pt-0">
                                 <StatusCard
                                     title="Total Items"
-                                    value={data?.orders.pending || 234567}
+                                    value={formatNumber(
+                                        data?.orders.pending || 234567,
+                                    )}
                                     color=""
                                     icon={<Package className="h-5 w-5" />}
                                 />
                                 <StatusCard
                                     title="Usable Items"
-                                    value={data?.orders.pending || 7652}
+                                    value={formatNumber(
+                                        data?.orders.pending || 7652,
+                                    )}
                                     color=""
                                     icon={<Cherry className="h-4 w-4" />}
                                 />
                                 <StatusCard
                                     title="Fixed Items"
-                                    value={data?.orders.pending || 8965}
+                                    value={formatNumber(
+                                        data?.orders.pending || 8965,
+                                    )}
                                     color=""
                                     icon={<TvMinimal className="h-4 w-4" />}
                                 />
                                 <StatusCard
                                     title="Less in Stock"
-                                    value={data?.orders.pending || 265}
+                                    value={formatNumber(
+                                        data?.orders.pending || 265,
+                                    )}
                                     color=""
                                     icon={<TrendingDown className="h-4 w-4" />}
                                 />
@@ -364,27 +381,27 @@ export default function Dashboard({ data }: DashboardProps) {
                                     {[
                                         {
                                             name: 'Qabuli Palaw',
-                                            orders: 1880,
+                                            orders: formatNumber(1880),
                                         },
                                         {
                                             name: 'Baba Special Salam',
-                                            orders: 1520,
+                                            orders: formatNumber(1520),
                                         },
                                         {
                                             name: 'Baba Special Pizza',
-                                            orders: 1392,
+                                            orders: formatNumber(1392),
                                         },
                                         {
                                             name: 'Chicken Chawmen',
-                                            orders: 1265,
+                                            orders: formatNumber(1265),
                                         },
                                         {
                                             name: 'Chopan Kabab',
-                                            orders: 1142,
+                                            orders: formatNumber(1142),
                                         },
                                         {
                                             name: 'Grilled Fish',
-                                            orders: 980,
+                                            orders: formatNumber(980),
                                         },
                                     ].map((item, index) => (
                                         <div

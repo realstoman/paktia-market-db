@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 interface StatusCardProps {
     icon: ReactNode;
     title: string;
-    value: number;
+    value: number | string;
     description?: string;
     color?: string;
     iconColor?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success';
