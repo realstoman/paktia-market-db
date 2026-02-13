@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,8 +20,8 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import InputError from '@/components/input-error';
 import { Branch, Country, Province, Role, User } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -121,13 +122,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Users: ${data.length}`}
+                    title={`System Users: ${formatNumber(data.length)}`}
                     description="Manage system users"
                 />
-                <Button
-                    onClick={() => setIsCreateOpen(true)}
-                    className="gap-2"
-                >
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
                     Add New
                 </Button>
@@ -187,7 +185,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 onChange={(event) =>
                                     setEmail(event.target.value)
                                 }
-                                placeholder="user@example.com"
+                                placeholder="user@baba.com"
                             />
                             <InputError message={createErrors.email} />
                         </div>
@@ -321,7 +319,12 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
-                            disabled={!name.trim() || !email.trim() || !password || isSubmitting}
+                            disabled={
+                                !name.trim() ||
+                                !email.trim() ||
+                                !password ||
+                                isSubmitting
+                            }
                         >
                             Create User
                         </Button>
