@@ -20,40 +20,36 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { Branch, Country, Kitchen, Province } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus, User as UserIcon, X } from 'lucide-react';
+import { Building2, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
-interface UsersClientProps {
-    data: User[];
-    roles: Role[];
+interface OrdersClientProps {
+    data: Branch[];
     countries: Country[];
     provinces: Province[];
-    branches: Branch[];
+    kitchens: Kitchen[];
     isLoading?: boolean;
 }
 
-export const UsersClient: React.FC<UsersClientProps> = ({
+export const OrdersClient: React.FC<OrdersClientProps> = ({
     data,
-    roles,
     countries,
     provinces,
-    branches,
+    kitchens,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [roleId, setRoleId] = useState<string>('');
-    const [countryId, setCountryId] = useState<string>('');
-    const [provinceId, setProvinceId] = useState<string>('');
-    const [branchId, setBranchId] = useState<string>('');
-    const [password, setPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [countryId, setCountryId] = useState('');
+    const [provinceId, setProvinceId] = useState('');
+    const [address, setAddress] = useState('');
+    const [description, setDescription] = useState('');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -61,39 +57,33 @@ export const UsersClient: React.FC<UsersClientProps> = ({
 
     const resetForm = () => {
         setName('');
-        setEmail('');
-        setRoleId('');
         setCountryId('');
         setProvinceId('');
-        setBranchId('');
-        setPassword('');
-        setPasswordConfirmation('');
+        setAddress('');
+        setDescription('');
         setCreateErrors({});
     };
 
     const handleCreateSubmit = () => {
-        if (!name.trim() || !email.trim() || !password || isSubmitting) {
+        if (!name.trim() || !countryId || !provinceId || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
         router.post(
-            '/users',
+            '/branches',
             {
                 name: name.trim(),
-                email: email.trim(),
-                password,
-                password_confirmation: passwordConfirmation,
-                roles: roleId ? [Number(roleId)] : [],
-                country_id: countryId ? Number(countryId) : null,
-                province_id: provinceId ? Number(provinceId) : null,
-                branch_id: branchId ? Number(branchId) : null,
+                country_id: Number(countryId),
+                province_id: Number(provinceId),
+                address: address.trim() || null,
+                description: description.trim() || null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('User created successfully.');
+                    toast.success('Branch created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -107,23 +97,17 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         );
     };
 
-    const createRoleError =
-        createErrors.roles ??
-        Object.entries(createErrors).find(([key]) =>
-            key.startsWith('roles.'),
-        )?.[1];
-
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches),
-        [roles, countries, provinces, branches],
+        () => buildColumns(countries, provinces, kitchens),
+        [countries, provinces, kitchens],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Users: ${formatNumber(data.length)}`}
-                    description="Manage system users"
+                    title={`Restaurant Branches: ${formatNumber(data.length)}`}
+                    description="Manage restaurant branches"
                 />
                 <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -132,18 +116,11 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={[
-                    'name',
-                    'email',
-                    'branch',
-                    'province',
-                    'country',
-                    'is_active',
-                ]}
+                searchKey={['name', 'country', 'province', 'address']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search users by name or email..."
+                searchPlaceholder="Search branches by name, country or province..."
             />
 
             <Dialog
@@ -158,86 +135,25 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
-                            <UserIcon className="h-5 w-5" />
-                            Create User
+                            <Building2 className="mr-2 h-5 w-5" />
+                            Create Branch
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new user and assign roles and location.
+                            Add a new branch and assign its location.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="user-name">Name</Label>
+                            <Label htmlFor="branch-name">Name</Label>
                             <Input
-                                id="user-name"
+                                id="branch-name"
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
                                 }
-                                placeholder="Full name"
                             />
                             <InputError message={createErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-email">Email</Label>
-                            <Input
-                                id="user-email"
-                                type="email"
-                                value={email}
-                                onChange={(event) =>
-                                    setEmail(event.target.value)
-                                }
-                                placeholder="user@babataste.com"
-                            />
-                            <InputError message={createErrors.email} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-password">Password</Label>
-                            <Input
-                                id="user-password"
-                                type="password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.password} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-password-confirm">
-                                Confirm password
-                            </Label>
-                            <Input
-                                id="user-password-confirm"
-                                type="password"
-                                value={passwordConfirmation}
-                                onChange={(event) =>
-                                    setPasswordConfirmation(event.target.value)
-                                }
-                            />
-                            <InputError
-                                message={createErrors.password_confirmation}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Role</Label>
-                            <Select value={roleId} onValueChange={setRoleId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem
-                                            key={role.id}
-                                            value={String(role.id)}
-                                        >
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createRoleError} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Country</Label>
@@ -289,26 +205,28 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <InputError message={createErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select
-                                value={branchId}
-                                onValueChange={setBranchId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.branch_id} />
+                            <Label htmlFor="branch-address">Address</Label>
+                            <Input
+                                id="branch-address"
+                                value={address}
+                                onChange={(event) =>
+                                    setAddress(event.target.value)
+                                }
+                            />
+                            <InputError message={createErrors.address} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="branch-description">
+                                Description
+                            </Label>
+                            <Textarea
+                                id="branch-description"
+                                value={description}
+                                onChange={(event) =>
+                                    setDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={createErrors.description} />
                         </div>
                     </div>
 
@@ -318,20 +236,20 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-4 w-4" />
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={
                                 !name.trim() ||
-                                !email.trim() ||
-                                !password ||
+                                !countryId ||
+                                !provinceId ||
                                 isSubmitting
                             }
                         >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create User
+                            <Save className="mr-2 h-5 w-5" />
+                            Create Branch
                         </Button>
                     </DialogFooter>
                 </DialogContent>

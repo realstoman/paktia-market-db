@@ -31,7 +31,16 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
-import { Copy, Edit, Eye, MoreHorizontal, Trash } from 'lucide-react';
+import {
+    Copy,
+    Edit,
+    Eye,
+    MoreHorizontal,
+    Save,
+    Trash,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -298,12 +307,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={() => setIsEditOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
                             disabled={!editName.trim() || isSubmitting}
                         >
+                            <Save className="mr-2 h-4 w-4" />
                             Save Changes
                         </Button>
                     </DialogFooter>
@@ -321,6 +332,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -328,6 +340,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleDelete}
                             disabled={isSubmitting}
                         >
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Delete Role
                         </AlertDialogAction>
                     </AlertDialogFooter>

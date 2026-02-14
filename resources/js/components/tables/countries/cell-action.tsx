@@ -36,7 +36,10 @@ import {
     MapPinned,
     MapPinOff,
     MoreHorizontal,
+    Save,
     Trash,
+    Trash2,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -323,6 +326,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             onClick={() => setIsEditOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
@@ -334,6 +338,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                                 isSubmitting
                             }
                         >
+                            <Save className="mr-2 h-5 w-5" />
                             Save Changes
                         </Button>
                     </DialogFooter>
@@ -426,12 +431,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             onClick={() => setIsEditProvinceOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
                             onClick={handleEditProvince}
                             disabled={!provinceName.trim() || isSubmitting}
                         >
+                            <Save className="mr-2 h-5 w-5" />
                             Save Province
                         </Button>
                     </DialogFooter>
@@ -454,6 +461,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -461,6 +469,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             onClick={handleToggle}
                             disabled={isSubmitting}
                         >
+                            <MapPinOff className="mr-2 h-5 w-5" />
                             {data.is_active ? 'Deactivate' : 'Activate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -478,6 +487,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -485,6 +495,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             onClick={handleDelete}
                             disabled={isSubmitting}
                         >
+                            <Trash2 className="mr-2 h-5 w-5" />
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

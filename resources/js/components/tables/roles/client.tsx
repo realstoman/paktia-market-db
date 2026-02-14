@@ -15,8 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Permission, Role } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, Save, ShieldCheck, ShieldPlus, X } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -161,7 +162,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Roles: ${data.length}`}
+                    title={`System Roles: ${formatNumber(data.length)}`}
                     description="Manage system roles and permissions"
                 />
                 <div className="flex gap-2">
@@ -170,14 +171,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                         onClick={() => setIsPermissionOpen(true)}
                         className="gap-2"
                     >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="mr-2 h-4 w-4" />
                         Add Permission
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="mr-2 h-4 w-4" />
                         Add Role
                     </Button>
                 </div>
@@ -202,7 +203,10 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Create Role</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <ShieldCheck className="mr-2 h-5 w-5" />
+                            Create Role
+                        </DialogTitle>
                         <DialogDescription>
                             Define a role name and assign permissions.
                         </DialogDescription>
@@ -267,12 +271,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
                         <Button
                             onClick={handleSubmit}
                             disabled={!name.trim() || isSubmitting}
                         >
+                            <Save className="mr-2 h-4 w-4" />
                             Create Role
                         </Button>
                     </DialogFooter>
@@ -290,7 +296,10 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>Create Permission</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <ShieldPlus className="h-5 w-5" />
+                            Create Permission
+                        </DialogTitle>
                         <DialogDescription>
                             Add a new permission to assign to roles.
                         </DialogDescription>
@@ -316,12 +325,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             onClick={() => setIsPermissionOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
                         <Button
                             onClick={handlePermissionSubmit}
                             disabled={!permissionName.trim() || isSubmitting}
                         >
+                            <Save className="mr-2 h-4 w-4" />
                             Create Permission
                         </Button>
                     </DialogFooter>

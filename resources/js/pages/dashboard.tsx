@@ -35,6 +35,7 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
+import { formatNumber, formatPrice } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import {
     ArrowRight,
@@ -117,7 +118,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </div>
                                     <div className="flex gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            12,475,365.00
+                                            {formatPrice(12475365)}
                                         </p>
                                         <span>؋</span>
                                     </div>
@@ -136,7 +137,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </div>
                                     <div className="flex gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            7,321,270.00
+                                            {formatPrice(7321270)}
                                         </p>
                                         <span>؋</span>
                                     </div>
@@ -155,7 +156,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </div>
                                     <div className="flex gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            10,321,270.00
+                                            {formatPrice(10321270)}
                                         </p>
                                         <span>؋</span>
                                     </div>
@@ -186,13 +187,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <div className="space-y-4">
                                     <StatusCard
                                         title="Pending Orders"
-                                        value={data?.orders.pending || 137}
+                                        value={formatNumber(
+                                            data?.orders.pending || 137,
+                                        )}
                                         color=""
                                         icon={<ChefHat className="h-5 w-5" />}
                                     />
                                     <StatusCard
                                         title="Preparing Orders"
-                                        value={data?.orders.pending || 462}
+                                        value={formatNumber(
+                                            data?.orders.pending || 462,
+                                        )}
                                         color=""
                                         icon={
                                             <CookingPot className="h-4 w-4" />
@@ -200,13 +205,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                     />
                                     <StatusCard
                                         title="Completed Orders"
-                                        value={data?.orders.pending || 344}
+                                        value={formatNumber(
+                                            data?.orders.pending || 344,
+                                        )}
                                         color=""
                                         icon={<Utensils className="h-4 w-4" />}
                                     />
                                     <StatusCard
                                         title="Cancelled Orders"
-                                        value={data?.orders.pending || 2}
+                                        value={formatNumber(
+                                            data?.orders.pending || 2,
+                                        )}
                                         color=""
                                         icon={<X className="h-4 w-4" />}
                                     />
@@ -315,25 +324,33 @@ export default function Dashboard({ data }: DashboardProps) {
                             <CardContent className="space-y-4 pt-0">
                                 <StatusCard
                                     title="Total Items"
-                                    value={data?.orders.pending || 234567}
+                                    value={formatNumber(
+                                        data?.orders.pending || 234567,
+                                    )}
                                     color=""
                                     icon={<Package className="h-5 w-5" />}
                                 />
                                 <StatusCard
                                     title="Usable Items"
-                                    value={data?.orders.pending || 7652}
+                                    value={formatNumber(
+                                        data?.orders.pending || 7652,
+                                    )}
                                     color=""
                                     icon={<Cherry className="h-4 w-4" />}
                                 />
                                 <StatusCard
                                     title="Fixed Items"
-                                    value={data?.orders.pending || 8965}
+                                    value={formatNumber(
+                                        data?.orders.pending || 8965,
+                                    )}
                                     color=""
                                     icon={<TvMinimal className="h-4 w-4" />}
                                 />
                                 <StatusCard
                                     title="Less in Stock"
-                                    value={data?.orders.pending || 265}
+                                    value={formatNumber(
+                                        data?.orders.pending || 265,
+                                    )}
                                     color=""
                                     icon={<TrendingDown className="h-4 w-4" />}
                                 />
@@ -364,27 +381,27 @@ export default function Dashboard({ data }: DashboardProps) {
                                     {[
                                         {
                                             name: 'Qabuli Palaw',
-                                            orders: 1880,
+                                            orders: formatNumber(1880),
                                         },
                                         {
                                             name: 'Baba Special Salam',
-                                            orders: 1520,
+                                            orders: formatNumber(1520),
                                         },
                                         {
                                             name: 'Baba Special Pizza',
-                                            orders: 1392,
+                                            orders: formatNumber(1392),
                                         },
                                         {
                                             name: 'Chicken Chawmen',
-                                            orders: 1265,
+                                            orders: formatNumber(1265),
                                         },
                                         {
                                             name: 'Chopan Kabab',
-                                            orders: 1142,
+                                            orders: formatNumber(1142),
                                         },
                                         {
                                             name: 'Grilled Fish',
-                                            orders: 980,
+                                            orders: formatNumber(980),
                                         },
                                     ].map((item, index) => (
                                         <div
@@ -453,7 +470,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Qabuli Palaw',
                                                     qty: 3,
                                                     status: 'completed',
-                                                    total: '1,245.00',
+                                                    total: formatPrice(1245),
                                                 },
                                                 {
                                                     id: '4822',
@@ -461,7 +478,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Chopan Kabab',
                                                     qty: 2,
                                                     status: 'preparing',
-                                                    total: '820.00',
+                                                    total: formatPrice(820),
                                                 },
                                                 {
                                                     id: '4823',
@@ -469,7 +486,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Shawarma',
                                                     qty: 2,
                                                     status: 'pending',
-                                                    total: '560.00',
+                                                    total: formatPrice(560),
                                                 },
                                                 {
                                                     id: '4824',
@@ -477,7 +494,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Qabuli Palaw',
                                                     qty: 3,
                                                     status: 'completed',
-                                                    total: '1,020.00',
+                                                    total: formatPrice(1020),
                                                 },
                                                 {
                                                     id: '4825',
@@ -485,7 +502,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Grilled Fish',
                                                     qty: 2,
                                                     status: 'cancelled',
-                                                    total: '1,540.00',
+                                                    total: formatPrice(1540),
                                                 },
                                                 {
                                                     id: '4826',
@@ -493,7 +510,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Zinger Burger',
                                                     status: 'completed',
                                                     qty: 2,
-                                                    total: '430.00',
+                                                    total: formatPrice(430),
                                                 },
                                                 {
                                                     id: '4827',
@@ -501,7 +518,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Baba Special Pizza',
                                                     qty: 4,
                                                     status: 'preparing',
-                                                    total: '2,800.00',
+                                                    total: formatPrice(2800),
                                                 },
                                                 {
                                                     id: '4828',
@@ -509,7 +526,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     items: 'Baba Special Salad',
                                                     qty: 2,
                                                     status: 'completed',
-                                                    total: '500.00',
+                                                    total: formatPrice(500),
                                                 },
                                             ].map((order) => (
                                                 <TableRow key={order.id}>

@@ -51,7 +51,6 @@ export function OrderAnalyticsChart({
     title = 'Order Analytics',
     description = 'Last 7 days order stats',
 }: OrderAnalyticsChartProps) {
-    // Format date to show day name (Mon, Tue, etc.)
     const formattedData = useMemo(() => {
         return data.map((item) => ({
             ...item,
