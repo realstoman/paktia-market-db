@@ -274,7 +274,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleToggle}
                             disabled={isSubmitting}
                         >
-                            <MapPin className="mr-2 h-5 w-5" />
+                            <MapPinOff className="mr-2 h-5 w-5" />
                             {data.is_active ? 'Deactivate' : 'Activate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>

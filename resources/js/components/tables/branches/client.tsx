@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,10 +21,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import InputError from '@/components/input-error';
 import { Branch, Country, Kitchen, Province } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Building2, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -105,13 +106,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Restaurant Branches: ${data.length}`}
+                    title={`Restaurant Branches: ${formatNumber(data.length)}`}
                     description="Manage restaurant branches"
                 />
-                <Button
-                    onClick={() => setIsCreateOpen(true)}
-                    className="gap-2"
-                >
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
                     Add New
                 </Button>
@@ -136,7 +134,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Create Branch</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Building2 className="mr-2 h-5 w-5" />
+                            Create Branch
+                        </DialogTitle>
                         <DialogDescription>
                             Add a new branch and assign its location.
                         </DialogDescription>
@@ -235,6 +236,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
@@ -246,6 +248,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 isSubmitting
                             }
                         >
+                            <Save className="mr-2 h-5 w-5" />
                             Create Branch
                         </Button>
                     </DialogFooter>
