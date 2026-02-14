@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,10 +20,10 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import InputError from '@/components/input-error';
 import { Country } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Globe, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { columns } from './columns';
@@ -67,7 +68,12 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
     };
 
     const handleCreateCountry = () => {
-        if (!name.trim() || !code.trim() || !currencyCode.trim() || isSubmitting) {
+        if (
+            !name.trim() ||
+            !code.trim() ||
+            !currencyCode.trim() ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -132,7 +138,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Countries: ${data.length}`}
+                    title={`System Countries: ${formatNumber(data.length)}`}
                     description="Manage system countries"
                 />
                 <div className="flex gap-2">
@@ -173,7 +179,10 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Create Country</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Globe className="mr-2 h-5 w-5" />
+                            Create Country
+                        </DialogTitle>
                         <DialogDescription>
                             Add a new country and currency details.
                         </DialogDescription>
@@ -241,6 +250,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
@@ -252,6 +262,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                                 isSubmitting
                             }
                         >
+                            <Save className="mr-2 h-5 w-5" />
                             Create Country
                         </Button>
                     </DialogFooter>
@@ -269,7 +280,10 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Create Province</DialogTitle>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Globe className="mr-2 h-5 w-5" />
+                            Create Province
+                        </DialogTitle>
                         <DialogDescription>
                             Add a province and assign it to a country.
                         </DialogDescription>
@@ -317,6 +331,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                             onClick={() => setIsProvinceOpen(false)}
                             disabled={isSubmitting}
                         >
+                            <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
@@ -327,6 +342,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                                 isSubmitting
                             }
                         >
+                            <Save className="mr-2 h-5 w-5" />
                             Create Province
                         </Button>
                     </DialogFooter>
