@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -21,35 +22,36 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Product, ProductCategory, ProductSize } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Building2, Plus, Save, X } from 'lucide-react';
+import { PackagePlus, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
-interface OrdersClientProps {
-    data: Branch[];
-    countries: Country[];
-    provinces: Province[];
-    kitchens: Kitchen[];
+interface ProductsClientProps {
+    data: Product[];
+    categories: ProductCategory[];
+    sizes: ProductSize[];
     isLoading?: boolean;
 }
 
-export const OrdersClient: React.FC<OrdersClientProps> = ({
+export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
-    countries,
-    provinces,
-    kitchens,
+    categories,
+    sizes,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [name, setName] = useState('');
-    const [countryId, setCountryId] = useState('');
-    const [provinceId, setProvinceId] = useState('');
-    const [address, setAddress] = useState('');
+    const [categoryId, setCategoryId] = useState('');
+    const [type, setType] = useState('food');
+    const [basePrice, setBasePrice] = useState('');
     const [description, setDescription] = useState('');
+    const [isActive, setIsActive] = useState(true);
+    const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
+    const [images, setImages] = useState<File[]>([]);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -57,33 +59,63 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const resetForm = () => {
         setName('');
-        setCountryId('');
-        setProvinceId('');
-        setAddress('');
+        setCategoryId('');
+        setType('food');
+        setBasePrice('');
         setDescription('');
+        setIsActive(true);
+        setSizePrices({});
+        setImages([]);
         setCreateErrors({});
     };
 
+    const handleImageChange = (files: FileList | null) => {
+        if (!files) {
+            setImages([]);
+            return;
+        }
+
+        setImages(Array.from(files).slice(0, 10));
+    };
+
+    const handleSizePriceChange = (sizeId: number, value: string) => {
+        setSizePrices((prev) => ({
+            ...prev,
+            [sizeId]: value,
+        }));
+    };
+
     const handleCreateSubmit = () => {
-        if (!name.trim() || !countryId || !provinceId || isSubmitting) {
+        if (!name.trim() || !categoryId || !basePrice || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
+        const sizePricePayload = Object.entries(sizePrices)
+            .filter(([, price]) => price !== '' && !Number.isNaN(Number(price)))
+            .map(([sizeId, price]) => ({
+                product_size_id: Number(sizeId),
+                price: Number(price),
+            }));
+
         router.post(
-            '/branches',
+            '/products',
             {
                 name: name.trim(),
-                country_id: Number(countryId),
-                province_id: Number(provinceId),
-                address: address.trim() || null,
+                product_category_id: Number(categoryId),
+                type,
+                base_price: Number(basePrice),
                 description: description.trim() || null,
+                is_active: isActive,
+                size_prices: sizePricePayload,
+                images,
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Branch created successfully.');
+                    toast.success('Product created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -98,16 +130,16 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(countries, provinces, kitchens),
-        [countries, provinces, kitchens],
+        () => buildColumns(categories),
+        [categories],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Restaurant Branches: ${formatNumber(data.length)}`}
-                    description="Manage restaurant branches"
+                    title={`Products: ${formatNumber(data.length)}`}
+                    description="Manage menu items and pricing"
                 />
                 <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -116,11 +148,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'country', 'province', 'address']}
+                searchKey={['name', 'category.name', 'type']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search branches by name, country or province..."
+                searchPlaceholder="Search products by name or category..."
             />
 
             <Dialog
@@ -132,22 +164,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
-                            <Building2 className="mr-2 h-5 w-5" />
-                            Create Branch
+                            <PackagePlus className="mr-2 h-5 w-5" />
+                            Create Product
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new branch and assign its location.
+                            Add a new product with sizes and images.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="branch-name">Name</Label>
+                            <Label htmlFor="product-name">Name</Label>
                             <Input
-                                id="branch-name"
+                                id="product-name"
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
@@ -156,77 +188,132 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>Category</Label>
                             <Select
-                                value={countryId}
-                                onValueChange={(value) => {
-                                    setCountryId(value);
-                                    if (value !== countryId) {
-                                        setProvinceId('');
-                                    }
-                                }}
+                                value={categoryId}
+                                onValueChange={setCategoryId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {countries.map((country) => (
+                                    {categories.map((category) => (
                                         <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
+                                            key={category.id}
+                                            value={String(category.id)}
                                         >
-                                            {country.name}
+                                            {category.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.country_id} />
+                            <InputError
+                                message={createErrors.product_category_id}
+                            />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
-                            <Select
-                                value={provinceId}
-                                onValueChange={setProvinceId}
-                            >
+                            <Label>Type</Label>
+                            <Select value={type} onValueChange={setType}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
+                                    <SelectItem value="food">Food</SelectItem>
+                                    <SelectItem value="beverage">
+                                        Beverage
+                                    </SelectItem>
+                                    <SelectItem value="dessert">
+                                        Dessert
+                                    </SelectItem>
+                                    <SelectItem value="bundle">
+                                        Bundle
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.province_id} />
+                            <InputError message={createErrors.type} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="branch-address">Address</Label>
+                            <Label htmlFor="product-base-price">
+                                Base Price
+                            </Label>
                             <Input
-                                id="branch-address"
-                                value={address}
+                                id="product-base-price"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={basePrice}
                                 onChange={(event) =>
-                                    setAddress(event.target.value)
+                                    setBasePrice(event.target.value)
                                 }
                             />
-                            <InputError message={createErrors.address} />
+                            <InputError message={createErrors.base_price} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="branch-description">
+                            <Label htmlFor="product-description">
                                 Description
                             </Label>
                             <Textarea
-                                id="branch-description"
+                                id="product-description"
                                 value={description}
                                 onChange={(event) =>
                                     setDescription(event.target.value)
                                 }
                             />
                             <InputError message={createErrors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Size Pricing (Optional)</Label>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                {sizes.map((size) => (
+                                    <div
+                                        key={size.id}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <span className="w-28 text-sm text-muted-foreground">
+                                            {size.name}
+                                        </span>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="Use base price"
+                                            value={sizePrices[size.id] ?? ''}
+                                            onChange={(event) =>
+                                                handleSizePriceChange(
+                                                    size.id,
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="product-images">
+                                Product Images (up to 10)
+                            </Label>
+                            <Input
+                                id="product-images"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(event) =>
+                                    handleImageChange(event.target.files)
+                                }
+                            />
+                            <InputError message={createErrors.images} />
+                        </div>
+                        <div className="flex items-center gap-2 sm:col-span-2">
+                            <Checkbox
+                                checked={isActive}
+                                onCheckedChange={(checked) =>
+                                    setIsActive(!!checked)
+                                }
+                            />
+                            <span className="text-sm text-muted-foreground">
+                                Active product
+                            </span>
                         </div>
                     </div>
 
@@ -243,13 +330,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             onClick={handleCreateSubmit}
                             disabled={
                                 !name.trim() ||
-                                !countryId ||
-                                !provinceId ||
+                                !categoryId ||
+                                !basePrice ||
                                 isSubmitting
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Branch
+                            Create Product
                         </Button>
                     </DialogFooter>
                 </DialogContent>

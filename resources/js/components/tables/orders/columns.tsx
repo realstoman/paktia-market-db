@@ -1,23 +1,26 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Order } from '@/types';
+import { formatPrice } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban } from 'lucide-react';
-import { CellAction } from './cell-action';
+import { BadgeCheck, Clock, Ban } from 'lucide-react';
 
-const MAX_VISIBLE_KITCHENS = 3;
+const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
+    pending: {
+        label: 'Pending',
+        icon: <Clock className="h-4 w-4 text-amber-600" />,
+    },
+    completed: {
+        label: 'Completed',
+        icon: <BadgeCheck className="h-4 w-4 text-green-600" />,
+    },
+    cancelled: {
+        label: 'Cancelled',
+        icon: <Ban className="h-4 w-4 text-red-600" />,
+    },
+};
 
-export const buildColumns = (
-    countries: Country[],
-    provinces: Province[],
-    kitchens: Kitchen[],
-): ColumnDef<Branch>[] => [
+export const buildColumns = (): ColumnDef<Order>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -41,95 +44,40 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: 'Order ID',
     },
     {
-        accessorKey: 'name',
-        header: 'Name',
+        id: 'branch.name',
+        accessorFn: (row) => row.branch?.name ?? 'Unknown',
+        header: 'Branch',
     },
     {
-        accessorKey: 'country',
-        header: 'Country',
+        accessorKey: 'items_count',
+        header: 'Items',
+        cell: ({ row }) => (
+            <span className="text-sm text-muted-foreground">
+                {row.getValue('items_count') ?? 0}
+            </span>
+        ),
     },
     {
-        accessorKey: 'province',
-        header: 'Province',
+        accessorKey: 'total_amount',
+        header: 'Total',
+        cell: ({ row }) => formatPrice(row.getValue('total_amount')),
     },
     {
-        id: 'kitchens',
-        header: 'Kitchens',
-        cell: ({ row }) => {
-            const kitchens = row.original.kitchens ?? [];
-            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
-            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
-
-            if (kitchens.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        No kitchens
-                    </span>
-                );
-            }
-
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((kitchen) => (
-                        <Badge
-                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                            variant="secondary"
-                        >
-                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        +{hidden.length} more
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((kitchen) => (
-                                            <Badge
-                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                variant="secondary"
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: 'address',
-        header: 'Address',
-    },
-    {
-        accessorKey: 'is_active',
+        accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const active = row.getValue('is_active');
-            return active ? (
+            const statusValue = row.getValue('status') as string | undefined;
+            const status =
+                (statusValue && statusStyles[statusValue]) ||
+                statusStyles.pending;
+
+            return (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
-                    <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
-                </Badge>
-            ) : (
-                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
-                    <Ban className="h-4 w-4 text-red-600" />
-                    Inactive
+                    {status.icon}
+                    {status.label}
                 </Badge>
             );
         },
@@ -141,17 +89,5 @@ export const buildColumns = (
             const date = new Date(row.getValue('created_at'));
             return date.toLocaleDateString();
         },
-    },
-    {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => (
-            <CellAction
-                data={row.original}
-                countries={countries}
-                provinces={provinces}
-                kitchens={kitchens}
-            />
-        ),
     },
 ];

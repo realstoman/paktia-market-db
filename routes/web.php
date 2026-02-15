@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
@@ -58,6 +60,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('kitchens', KitchenController::class);
     Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
     Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
+
+    // Products & Orders
+    Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('orders', OrderController::class)->only(['index', 'store']);
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

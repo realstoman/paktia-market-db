@@ -19,6 +19,7 @@ import {
     CookingPot,
     Globe,
     LayoutGrid,
+    Package,
     Shield,
     Smartphone,
     Users,
@@ -35,7 +36,13 @@ const mainNavItems: NavItem[] = [
         title: 'Orders',
         href: '/orders',
         icon: CookingPot,
-        can: 'user.view',
+        can: 'orders.view',
+    },
+    {
+        title: 'Products',
+        href: '/products',
+        icon: Package,
+        can: 'products.view',
     },
     {
         title: 'Users',

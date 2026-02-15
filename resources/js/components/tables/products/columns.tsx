@@ -1,23 +1,24 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Product, ProductCategory } from '@/types';
+import { formatPrice } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban } from 'lucide-react';
+import { BadgeCheck, Ban, Image as ImageIcon } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-const MAX_VISIBLE_KITCHENS = 3;
+const getInitials = (value?: string) => {
+    if (!value) return 'PR';
+    return value
+        .split(' ')
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join('');
+};
 
 export const buildColumns = (
-    countries: Country[],
-    provinces: Province[],
-    kitchens: Kitchen[],
-): ColumnDef<Branch>[] => [
+    categories: ProductCategory[],
+): ColumnDef<Product>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -40,81 +41,77 @@ export const buildColumns = (
         enableHiding: false,
     },
     {
-        accessorKey: 'id',
-        header: 'ID',
-    },
-    {
         accessorKey: 'name',
-        header: 'Name',
-    },
-    {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'province',
-        header: 'Province',
-    },
-    {
-        id: 'kitchens',
-        header: 'Kitchens',
+        header: 'Product',
         cell: ({ row }) => {
-            const kitchens = row.original.kitchens ?? [];
-            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
-            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
-
-            if (kitchens.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        No kitchens
-                    </span>
-                );
-            }
+            const product = row.original;
+            const imageUrl = product.images?.[0]?.url;
 
             return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((kitchen) => (
-                        <Badge
-                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                            variant="secondary"
-                        >
-                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        +{hidden.length} more
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((kitchen) => (
-                                            <Badge
-                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                variant="secondary"
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                        {imageUrl ? (
+                            <AvatarImage src={imageUrl} alt={product.name} />
+                        ) : null}
+                        <AvatarFallback>
+                            {getInitials(product.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                        <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                            {product.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            {product.category?.name ?? 'Uncategorized'}
+                        </span>
+                    </div>
                 </div>
             );
         },
     },
     {
-        accessorKey: 'address',
-        header: 'Address',
+        id: 'category.name',
+        accessorFn: (row) => row.category?.name ?? 'Uncategorized',
+        header: 'Category',
+    },
+    {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => (
+            <Badge variant="secondary" className="capitalize">
+                {row.getValue('type')}
+            </Badge>
+        ),
+    },
+    {
+        accessorKey: 'base_price',
+        header: 'Base Price',
+        cell: ({ row }) => formatPrice(row.getValue('base_price')),
+    },
+    {
+        id: 'sizes',
+        header: 'Sizes',
+        cell: ({ row }) => {
+            const sizeCount = row.original.sizes?.length ?? 0;
+            return (
+                <span className="text-sm text-muted-foreground">
+                    {sizeCount} size{sizeCount === 1 ? '' : 's'}
+                </span>
+            );
+        },
+    },
+    {
+        id: 'images',
+        header: 'Images',
+        cell: ({ row }) => {
+            const count = row.original.images?.length ?? 0;
+            return (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <ImageIcon className="h-4 w-4" />
+                    {count}
+                </div>
+            );
+        },
     },
     {
         accessorKey: 'is_active',
@@ -146,12 +143,7 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction
-                data={row.original}
-                countries={countries}
-                provinces={provinces}
-                kitchens={kitchens}
-            />
+            <CellAction data={row.original} categories={categories} />
         ),
     },
 ];

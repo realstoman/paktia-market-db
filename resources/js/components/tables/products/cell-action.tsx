@@ -36,136 +36,75 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Product, ProductCategory } from '@/types';
 import { router } from '@inertiajs/react';
-import {
-    CookingPot,
-    Edit,
-    Eye,
-    MapPin,
-    MapPinOff,
-    MoreHorizontal,
-    Save,
-    Trash,
-    Trash2,
-    X,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Edit, MoreHorizontal, Save, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
-    data: Branch;
-    countries: Country[];
-    provinces: Province[];
-    kitchens: Kitchen[];
+    data: Product;
+    categories: ProductCategory[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
-    countries,
-    provinces,
-    kitchens,
+    categories,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isDisableOpen, setIsDisableOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [isKitchenOpen, setIsKitchenOpen] = useState(false);
     const [name, setName] = useState(data.name);
-    const [countryId, setCountryId] = useState(
-        data.country_id ? String(data.country_id) : '',
+    const [categoryId, setCategoryId] = useState(
+        data.product_category_id ? String(data.product_category_id) : '',
     );
-    const [provinceId, setProvinceId] = useState(
-        data.province_id ? String(data.province_id) : '',
+    const [type, setType] = useState(data.type ?? 'food');
+    const [basePrice, setBasePrice] = useState(
+        data.base_price !== undefined && data.base_price !== null
+            ? String(data.base_price)
+            : '',
     );
-    const [address, setAddress] = useState(data.address ?? '');
     const [description, setDescription] = useState(data.description ?? '');
+    const [isActive, setIsActive] = useState(!!data.is_active);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedKitchenIds, setSelectedKitchenIds] = useState<Set<number>>(
-        new Set(data.kitchens?.map((kitchen) => kitchen.id)),
-    );
-
-    const sortedKitchens = useMemo(
-        () =>
-            [...kitchens].sort((a, b) =>
-                (a.name ?? '').localeCompare(b.name ?? ''),
-            ),
-        [kitchens],
-    );
 
     const resetEdit = () => {
         setName(data.name);
-        setCountryId(data.country_id ? String(data.country_id) : '');
-        setProvinceId(data.province_id ? String(data.province_id) : '');
-        setAddress(data.address ?? '');
+        setCategoryId(
+            data.product_category_id ? String(data.product_category_id) : '',
+        );
+        setType(data.type ?? 'food');
+        setBasePrice(
+            data.base_price !== undefined && data.base_price !== null
+                ? String(data.base_price)
+                : '',
+        );
         setDescription(data.description ?? '');
+        setIsActive(!!data.is_active);
         setEditErrors({});
     };
 
-    const openKitchenAssign = () => {
-        setSelectedKitchenIds(
-            new Set(data.kitchens?.map((kitchen) => kitchen.id)),
-        );
-        setIsKitchenOpen(true);
-    };
-
-    const toggleKitchen = (kitchenId: number) => {
-        setSelectedKitchenIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(kitchenId)) {
-                next.delete(kitchenId);
-            } else {
-                next.add(kitchenId);
-            }
-            return next;
-        });
-    };
-
-    const handleAssignKitchens = () => {
-        if (isSubmitting) {
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        router.post(
-            `/branches/${data.id}/kitchens`,
-            {
-                kitchens: Array.from(selectedKitchenIds),
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Branch kitchens updated successfully.');
-                    setIsKitchenOpen(false);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
-            },
-        );
-    };
-
     const handleEditSubmit = () => {
-        if (!name.trim() || !countryId || !provinceId || isSubmitting) {
+        if (!name.trim() || !categoryId || !basePrice || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
         router.put(
-            `/branches/${data.id}`,
+            `/products/${data.id}`,
             {
                 name: name.trim(),
-                country_id: Number(countryId),
-                province_id: Number(provinceId),
-                address: address.trim() || null,
+                product_category_id: Number(categoryId),
+                type,
+                base_price: Number(basePrice),
                 description: description.trim() || null,
+                is_active: isActive,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Branch updated successfully.');
+                    toast.success('Product updated successfully.');
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -178,29 +117,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
     };
 
-    const handleDisable = () => {
-        if (isSubmitting) {
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        router.post(`/branches/${data.id}/disable`, undefined, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    data.is_active
-                        ? 'Branch disabled successfully.'
-                        : 'Branch activated successfully.',
-                );
-                setIsDisableOpen(false);
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
-            },
-        });
-    };
-
     const handleDelete = () => {
         if (isSubmitting) {
             return;
@@ -208,10 +124,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setIsSubmitting(true);
 
-        router.delete(`/branches/${data.id}`, {
+        router.delete(`/products/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Branch deleted successfully.');
+                toast.success('Product deleted successfully.');
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -232,12 +148,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
-                        onClick={() => router.visit(`/branches/${data.id}`)}
-                    >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
                             setIsEditOpen(true);
@@ -246,20 +156,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={openKitchenAssign}>
-                        <CookingPot className="mr-2 h-4 w-4" />
-                        Assign Kitchens
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
-                        {data.is_active ? (
-                            <MapPinOff className="mr-2 h-4 w-4" />
-                        ) : (
-                            <MapPin className="mr-2 h-4 w-4" />
-                        )}
-                        {data.is_active ? 'Deactivate' : 'Activate'}
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
+                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -268,19 +166,19 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Branch</DialogTitle>
+                        <DialogTitle>Edit Product</DialogTitle>
                         <DialogDescription>
-                            Update the branch information and location.
+                            Update product details and pricing.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor={`branch-name-${data.id}`}>
+                            <Label htmlFor={`product-name-${data.id}`}>
                                 Name
                             </Label>
                             <Input
-                                id={`branch-name-${data.id}`}
+                                id={`product-name-${data.id}`}
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
@@ -289,79 +187,89 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>Category</Label>
                             <Select
-                                value={countryId}
-                                onValueChange={(value) => {
-                                    setCountryId(value);
-                                    if (value !== countryId) {
-                                        setProvinceId('');
-                                    }
-                                }}
+                                value={categoryId}
+                                onValueChange={setCategoryId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {countries.map((country) => (
+                                    {categories.map((category) => (
                                         <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
+                                            key={category.id}
+                                            value={String(category.id)}
                                         >
-                                            {country.name}
+                                            {category.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={editErrors.country_id} />
+                            <InputError
+                                message={editErrors.product_category_id}
+                            />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
-                            <Select
-                                value={provinceId}
-                                onValueChange={setProvinceId}
-                            >
+                            <Label>Type</Label>
+                            <Select value={type} onValueChange={setType}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
+                                    <SelectItem value="food">Food</SelectItem>
+                                    <SelectItem value="beverage">
+                                        Beverage
+                                    </SelectItem>
+                                    <SelectItem value="dessert">
+                                        Dessert
+                                    </SelectItem>
+                                    <SelectItem value="bundle">
+                                        Bundle
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <InputError message={editErrors.province_id} />
+                            <InputError message={editErrors.type} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor={`branch-address-${data.id}`}>
-                                Address
+                            <Label htmlFor={`product-price-${data.id}`}>
+                                Base Price
                             </Label>
                             <Input
-                                id={`branch-address-${data.id}`}
-                                value={address}
+                                id={`product-price-${data.id}`}
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={basePrice}
                                 onChange={(event) =>
-                                    setAddress(event.target.value)
+                                    setBasePrice(event.target.value)
                                 }
                             />
-                            <InputError message={editErrors.address} />
+                            <InputError message={editErrors.base_price} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`branch-description-${data.id}`}>
+                            <Label htmlFor={`product-description-${data.id}`}>
                                 Description
                             </Label>
                             <Textarea
-                                id={`branch-description-${data.id}`}
+                                id={`product-description-${data.id}`}
                                 value={description}
                                 onChange={(event) =>
                                     setDescription(event.target.value)
                                 }
                             />
                             <InputError message={editErrors.description} />
+                        </div>
+                        <div className="flex items-center gap-2 sm:col-span-2">
+                            <Checkbox
+                                checked={isActive}
+                                onCheckedChange={(checked) =>
+                                    setIsActive(!!checked)
+                                }
+                            />
+                            <span className="text-sm text-muted-foreground">
+                                Active product
+                            </span>
                         </div>
                     </div>
 
@@ -378,8 +286,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleEditSubmit}
                             disabled={
                                 !name.trim() ||
-                                !countryId ||
-                                !provinceId ||
+                                !categoryId ||
+                                !basePrice ||
                                 isSubmitting
                             }
                         >
@@ -390,103 +298,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isKitchenOpen} onOpenChange={setIsKitchenOpen}>
-                <DialogContent className="sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Assign Kitchens</DialogTitle>
-                        <DialogDescription>
-                            Select kitchens available for {data.name}.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="grid gap-2">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>Selected</span>
-                            <span>
-                                {selectedKitchenIds.size} of {kitchens.length}
-                            </span>
-                        </div>
-                        <div className="max-h-64 space-y-2 overflow-auto rounded-md border p-3">
-                            {sortedKitchens.map((kitchen) => (
-                                <label
-                                    key={kitchen.id}
-                                    className="flex items-center gap-2 text-sm"
-                                >
-                                    <Checkbox
-                                        checked={selectedKitchenIds.has(
-                                            kitchen.id,
-                                        )}
-                                        onCheckedChange={() =>
-                                            toggleKitchen(kitchen.id)
-                                        }
-                                    />
-                                    <span>
-                                        {kitchen.name ??
-                                            `Kitchen #${kitchen.id}`}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsKitchenOpen(false)}
-                            disabled={isSubmitting}
-                        >
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleAssignKitchens}
-                            disabled={isSubmitting}
-                        >
-                            <Save className="mr-2 h-5 w-5" />
-                            Save Kitchens
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <AlertDialog open={isDisableOpen} onOpenChange={setIsDisableOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {data.is_active
-                                ? 'Deactivate branch'
-                                : 'Activate branch'}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {data.is_active
-                                ? 'This will mark the branch as inactive.'
-                                : 'This will mark the branch as active.'}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            variant={data.is_active ? 'destructive' : 'default'}
-                            onClick={handleDisable}
-                            disabled={isSubmitting}
-                        >
-                            <MapPinOff className="mr-2 h-5 w-5" />
-                            {data.is_active ? 'Deactivate' : 'Activate'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete branch</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Delete product
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the branch and related
-                            data.
+                            This will permanently remove the product and its
+                            images.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
