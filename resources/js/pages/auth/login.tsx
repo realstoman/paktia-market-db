@@ -9,15 +9,6 @@ import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
-// import * as z from 'zod';
-
-// const loginSchema = z.object({
-//     email: z.string().email('Please enter a valid email address'),
-//     password: z.string().min(1, 'Password is required'),
-//     remember: z.boolean().optional(),
-// });
-
-// type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginProps {
     status?: string;
@@ -25,11 +16,7 @@ interface LoginProps {
     canRegister: boolean;
 }
 
-export default function Login({
-    status,
-    canResetPassword,
-    // canRegister,
-}: LoginProps) {
+export default function Login({ status, canResetPassword }: LoginProps) {
     return (
         <AuthLayout
             title="Confirm your password"
