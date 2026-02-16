@@ -7,16 +7,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { ProductImage } from '@/types';
+import { InventoryItemImage } from '@/types';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface ImageViewerDialogProps {
-    images: ProductImage[];
+    images: InventoryItemImage[];
     triggerLabel?: string;
 }
 
-const resolveImageUrl = (image?: ProductImage): string => {
+const resolveImageUrl = (image?: InventoryItemImage): string => {
     if (!image) return '';
     const candidate = image.url || image.path || '';
     if (!candidate) return '';
@@ -72,17 +72,17 @@ export function ImageViewerDialog({
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Product Images</DialogTitle>
+                    <DialogTitle>Inventory Item Images</DialogTitle>
                     <DialogDescription>
-                        Browse uploaded product images.
+                        Browse uploaded item images.
                     </DialogDescription>
                 </DialogHeader>
                 {hasImages ? (
                     <div className="space-y-3">
-                        <div className="relative mx-auto flex h-[400px] w-[400px] items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
+                        <div className="relative mx-auto flex h-[360px] w-[360px] items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
                             <img
                                 src={resolveImageUrl(images[activeIndex])}
-                                alt={`Product image ${activeIndex + 1}`}
+                                alt={`Inventory image ${activeIndex + 1}`}
                                 className="h-full w-full object-cover"
                             />
                         </div>
