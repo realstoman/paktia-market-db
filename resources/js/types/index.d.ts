@@ -172,7 +172,9 @@ export interface Product {
     name: string;
     description?: string | null;
     product_category_id?: number;
+    kitchen_id?: number | null;
     category?: ProductCategory | null;
+    kitchen?: Kitchen | null;
     type?: string;
     base_price?: number | string;
     is_active?: boolean;
@@ -188,10 +190,12 @@ export interface OrderItem {
     order_id?: number;
     product_id: number;
     product_size_id?: number | null;
+    kitchen_id?: number | null;
     quantity: number;
     price: number | string;
     product?: Product | null;
     product_size?: ProductSize | null;
+    kitchen?: Kitchen | null;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
@@ -211,6 +215,7 @@ export interface Order {
     paid_amount: number | string;
     change_amount: number | string;
     status?: string;
+    kitchen_names?: string[];
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

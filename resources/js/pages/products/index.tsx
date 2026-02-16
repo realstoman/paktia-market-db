@@ -4,6 +4,7 @@ import { ProductsClient } from '@/components/tables/products/client';
 import AppLayout from '@/layouts/app-layout';
 import {
     BreadcrumbItem,
+    Kitchen,
     Product,
     ProductCategory,
     ProductSize,
@@ -26,6 +27,7 @@ interface ProductsPageProps {
     products: Product[];
     categories: ProductCategory[];
     types: ProductType[];
+    kitchens: Kitchen[];
     sizes: ProductSize[];
 }
 
@@ -33,6 +35,7 @@ export default function ProductsPage({
     products,
     categories,
     types,
+    kitchens,
     sizes,
 }: ProductsPageProps) {
     return (
@@ -44,6 +47,7 @@ export default function ProductsPage({
                         data={products}
                         categories={categories}
                         types={types}
+                        kitchens={kitchens}
                         sizes={sizes}
                     />
                 </div>

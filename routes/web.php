@@ -69,6 +69,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
     Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::resource('orders', OrderController::class)->only(['index', 'store']);
+    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+    Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

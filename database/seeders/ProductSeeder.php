@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Kitchen;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
@@ -13,6 +14,7 @@ class ProductSeeder extends Seeder
     {
         $categories = ProductCategory::all()->keyBy('name');
         $sizes = ProductSize::all();
+        $kitchens = Kitchen::orderBy('name')->get();
 
         $products = [
             [
@@ -82,6 +84,7 @@ class ProductSeeder extends Seeder
 
             $product = Product::create([
                 'product_category_id' => $category->id,
+                'kitchen_id' => $kitchens->first()?->id,
                 'name' => $entry['name'],
                 'description' => $entry['description'],
                 'type' => $entry['type'],

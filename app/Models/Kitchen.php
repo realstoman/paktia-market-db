@@ -22,4 +22,9 @@ class Kitchen extends Model
     {
         return $this->belongsToMany(Branch::class)->withTimestamps();
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
