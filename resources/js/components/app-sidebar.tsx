@@ -52,18 +52,6 @@ const mainNavItems: NavItem[] = [
         can: 'inventory.view',
     },
     {
-        title: 'Users',
-        href: '/users',
-        icon: Users,
-        can: 'user.view',
-    },
-    {
-        title: 'Roles',
-        href: '/roles',
-        icon: ShieldCheck,
-        can: 'role.view',
-    },
-    {
         title: 'Branches',
         href: '/branches',
         icon: Building2,
@@ -74,6 +62,18 @@ const mainNavItems: NavItem[] = [
         href: '/kitchens',
         icon: ChefHat,
         can: 'kitchen.view',
+    },
+    {
+        title: 'Users',
+        href: '/users',
+        icon: Users,
+        can: 'user.view',
+    },
+    {
+        title: 'Roles',
+        href: '/roles',
+        icon: ShieldCheck,
+        can: 'role.view',
     },
     {
         title: 'Countries',
