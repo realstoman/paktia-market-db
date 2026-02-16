@@ -22,7 +22,13 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Product, ProductCategory, ProductSize, ProductType } from '@/types';
+import {
+    Kitchen,
+    Product,
+    ProductCategory,
+    ProductSize,
+    ProductType,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
@@ -49,6 +55,7 @@ interface ProductsClientProps {
     data: Product[];
     categories: ProductCategory[];
     types: ProductType[];
+    kitchens: Kitchen[];
     sizes: ProductSize[];
     isLoading?: boolean;
 }
@@ -60,6 +67,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
     categories,
     types,
+    kitchens,
     sizes,
     isLoading = false,
 }) => {
@@ -67,6 +75,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [name, setName] = useState('');
     const [categoryId, setCategoryId] = useState('');
+    const [kitchenId, setKitchenId] = useState('');
     const [type, setType] = useState(types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState('');
     const [description, setDescription] = useState('');
@@ -96,6 +105,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const resetForm = () => {
         setName('');
         setCategoryId('');
+        setKitchenId('');
         setType(types[0]?.name ?? 'food');
         setBasePrice('');
         setDescription('');
@@ -140,7 +150,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     };
 
     const handleCreateSubmit = () => {
-        if (!name.trim() || !categoryId || !type || !basePrice || isSubmitting) {
+        if (
+            !name.trim() ||
+            !categoryId ||
+            !kitchenId ||
+            !type ||
+            !basePrice ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -158,6 +175,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             {
                 name: name.trim(),
                 product_category_id: Number(categoryId),
+                kitchen_id: Number(kitchenId),
                 type,
                 base_price: Number(basePrice),
                 description: description.trim() || null,
@@ -271,8 +289,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     }, [types]);
 
     const tableColumns = useMemo(
-        () => buildColumns(categories, types),
-        [categories, types],
+        () => buildColumns(categories, types, kitchens),
+        [categories, kitchens, types],
     );
 
     return (
@@ -299,7 +317,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'category.name', 'type']}
+                searchKey={['name', 'category.name', 'kitchen.name', 'type']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
@@ -354,6 +372,25 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={createErrors.product_category_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Kitchen</Label>
+                            <Select value={kitchenId} onValueChange={setKitchenId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select kitchen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
+                                        >
+                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={createErrors.kitchen_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Type</Label>
@@ -499,6 +536,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !categoryId ||
+                                !kitchenId ||
                                 !type ||
                                 !basePrice ||
                                 isSubmitting

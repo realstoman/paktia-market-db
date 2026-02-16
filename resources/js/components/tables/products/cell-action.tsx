@@ -36,7 +36,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Product, ProductCategory, ProductImage, ProductType } from '@/types';
+import {
+    Kitchen,
+    Product,
+    ProductCategory,
+    ProductImage,
+    ProductType,
+} from '@/types';
 import { router } from '@inertiajs/react';
 import { Edit, ImagePlus, MoreHorizontal, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -52,6 +58,7 @@ interface CellActionProps {
     data: Product;
     categories: ProductCategory[];
     types: ProductType[];
+    kitchens: Kitchen[];
 }
 
 const MAX_IMAGES = 10;
@@ -81,12 +88,16 @@ export const CellAction: React.FC<CellActionProps> = ({
     data,
     categories,
     types,
+    kitchens,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [name, setName] = useState(data.name);
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
+    );
+    const [kitchenId, setKitchenId] = useState(
+        data.kitchen_id ? String(data.kitchen_id) : '',
     );
     const [type, setType] = useState(data.type ?? types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState(
@@ -116,6 +127,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
+        setKitchenId(data.kitchen_id ? String(data.kitchen_id) : '');
         setType(data.type ?? types[0]?.name ?? 'food');
         setBasePrice(
             data.base_price !== undefined && data.base_price !== null
@@ -171,7 +183,14 @@ export const CellAction: React.FC<CellActionProps> = ({
     };
 
     const handleEditSubmit = () => {
-        if (!name.trim() || !categoryId || !type || !basePrice || isSubmitting) {
+        if (
+            !name.trim() ||
+            !categoryId ||
+            !kitchenId ||
+            !type ||
+            !basePrice ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -181,6 +200,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         formData.append('_method', 'put');
         formData.append('name', name.trim());
         formData.append('product_category_id', String(Number(categoryId)));
+        formData.append('kitchen_id', String(Number(kitchenId)));
         formData.append('type', type);
         formData.append('base_price', String(Number(basePrice)));
         formData.append('description', description.trim());
@@ -294,6 +314,25 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.product_category_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Kitchen</Label>
+                            <Select value={kitchenId} onValueChange={setKitchenId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select kitchen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
+                                        >
+                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.kitchen_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Type</Label>
@@ -471,6 +510,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !categoryId ||
+                                !kitchenId ||
                                 !type ||
                                 !basePrice ||
                                 isSubmitting

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Product, ProductCategory, ProductType } from '@/types';
+import { Kitchen, Product, ProductCategory, ProductType } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Image as ImageIcon } from 'lucide-react';
@@ -41,6 +41,7 @@ const getInitials = (value?: string) => {
 export const buildColumns = (
     categories: ProductCategory[],
     types: ProductType[],
+    kitchens: Kitchen[],
 ): ColumnDef<Product>[] => {
     const categoryById = new Map(categories.map((category) => [category.id, category]));
 
@@ -114,6 +115,11 @@ export const buildColumns = (
             return byRelation || byId || 'Uncategorized';
         },
         header: 'Category',
+    },
+    {
+        id: 'kitchen.name',
+        accessorFn: (row) => row.kitchen?.name ?? 'Unassigned',
+        header: 'Kitchen',
     },
     {
         accessorKey: 'type',
@@ -194,6 +200,7 @@ export const buildColumns = (
                 data={row.original}
                 categories={categories}
                 types={types}
+                kitchens={kitchens}
             />
         ),
     },

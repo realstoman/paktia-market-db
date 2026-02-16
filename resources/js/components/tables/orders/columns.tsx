@@ -1,14 +1,23 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Order } from '@/types';
-import { formatPrice } from '@/utils/format';
+import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Clock, Ban } from 'lucide-react';
+import { BadgeCheck, Ban, Clock3, CookingPot, Eye, Plus } from 'lucide-react';
 
 const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
     pending: {
         label: 'Pending',
-        icon: <Clock className="h-4 w-4 text-amber-600" />,
+        icon: <Clock3 className="h-4 w-4 text-amber-600" />,
+    },
+    in_progress: {
+        label: 'In Progress',
+        icon: <CookingPot className="h-4 w-4 text-blue-600" />,
+    },
+    ready: {
+        label: 'Ready',
+        icon: <BadgeCheck className="h-4 w-4 text-emerald-600" />,
     },
     completed: {
         label: 'Completed',
@@ -20,7 +29,15 @@ const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
     },
 };
 
-export const buildColumns = (): ColumnDef<Order>[] => [
+interface BuildOrderColumnsOptions {
+    onView: (order: Order) => void;
+    onAddItems: (order: Order) => void;
+}
+
+export const buildColumns = ({
+    onView,
+    onAddItems,
+}: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -52,18 +69,42 @@ export const buildColumns = (): ColumnDef<Order>[] => [
         header: 'Branch',
     },
     {
+        id: 'kitchens',
+        header: 'Kitchens',
+        cell: ({ row }) => {
+            const names = Array.from(
+                new Set(
+                    (row.original.items ?? [])
+                        .map(
+                            (item) =>
+                                item.kitchen?.name ??
+                                item.product?.kitchen?.name ??
+                                'Unassigned',
+                        )
+                        .filter(Boolean),
+                ),
+            );
+
+            return (
+                <span className="text-sm text-muted-foreground">
+                    {names.length > 0 ? names.join(', ') : 'Unassigned'}
+                </span>
+            );
+        },
+    },
+    {
         accessorKey: 'items_count',
         header: 'Items',
         cell: ({ row }) => (
             <span className="text-sm text-muted-foreground">
-                {row.getValue('items_count') ?? 0}
+                {row.getValue('items_count') ?? row.original.items?.length ?? 0}
             </span>
         ),
     },
     {
         accessorKey: 'total_amount',
         header: 'Total',
-        cell: ({ row }) => formatPrice(row.getValue('total_amount')),
+        cell: ({ row }) => formatAfn(row.getValue('total_amount')),
     },
     {
         accessorKey: 'status',
@@ -89,5 +130,29 @@ export const buildColumns = (): ColumnDef<Order>[] => [
             const date = new Date(row.getValue('created_at'));
             return date.toLocaleDateString();
         },
+    },
+    {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+            <div className="flex items-center gap-1">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onView(row.original)}
+                >
+                    <Eye className="mr-1 h-4 w-4" />
+                    Details
+                </Button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAddItems(row.original)}
+                >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add Item
+                </Button>
+            </div>
+        ),
     },
 ];
