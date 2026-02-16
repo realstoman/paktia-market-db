@@ -20,7 +20,7 @@ import {
     Globe,
     LayoutGrid,
     Package,
-    Shield,
+    ShieldCheck,
     Smartphone,
     Users,
 } from 'lucide-react';
@@ -53,7 +53,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Roles',
         href: '/roles',
-        icon: Shield,
+        icon: ShieldCheck,
         can: 'role.view',
     },
     {
