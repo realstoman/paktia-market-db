@@ -5,13 +5,14 @@ namespace App\Services\Location;
 use App\Enums\KitchenType;
 use App\Models\Branch;
 use App\Models\Kitchen;
+use App\Models\Product;
 use Illuminate\Support\Str;
 
 class KitchenService
 {
     public function getIndexData(): array
     {
-        $kitchens = Kitchen::with(['branches'])->get();
+        $kitchens = Kitchen::with(['branches', 'products'])->get();
 
         $kitchens->transform(function (Kitchen $kitchen) {
             return [
@@ -21,6 +22,7 @@ class KitchenService
                 'is_active' => $kitchen->is_active,
                 'branch_id' => $kitchen->branch_id,
                 'branches' => $kitchen->branches,
+                'products' => $kitchen->products,
                 'created_at' => $kitchen->created_at,
                 'updated_at' => $kitchen->updated_at,
             ];
@@ -29,6 +31,7 @@ class KitchenService
         return [
             'kitchens' => $kitchens,
             'branches' => Branch::orderBy('name')->get(),
+            'products' => Product::orderBy('name')->get(['id', 'name', 'kitchen_id']),
             'kitchenTypes' => array_map(
                 fn (KitchenType $type) => [
                     'label' => Str::title(str_replace('_', ' ', $type->value)),

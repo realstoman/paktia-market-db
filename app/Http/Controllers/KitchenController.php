@@ -5,6 +5,7 @@ use App\Enums\KitchenType;
 use App\Models\Kitchen;
 use App\Services\Location\KitchenService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -68,5 +69,31 @@ class KitchenController extends Controller
 
         return redirect()->route('kitchens.index')
             ->with('success', 'Kitchen deleted successfully.');
+    }
+
+    public function syncProducts(Request $request, Kitchen $kitchen)
+    {
+        $validated = $request->validate([
+            'products' => ['array'],
+            'products.*' => ['integer', 'exists:products,id'],
+        ]);
+
+        $productIds = $validated['products'] ?? [];
+
+        DB::transaction(function () use ($kitchen, $productIds) {
+            DB::table('products')
+                ->where('kitchen_id', $kitchen->id)
+                ->whereNotIn('id', $productIds)
+                ->update(['kitchen_id' => null, 'updated_at' => now()]);
+
+            if (!empty($productIds)) {
+                DB::table('products')
+                    ->whereIn('id', $productIds)
+                    ->update(['kitchen_id' => $kitchen->id, 'updated_at' => now()]);
+            }
+        });
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen products updated successfully.');
     }
 }
