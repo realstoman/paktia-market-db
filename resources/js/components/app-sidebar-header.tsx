@@ -16,6 +16,7 @@ import {
 import { usePage } from '@inertiajs/react';
 import { Bell, ChevronsUpDown } from 'lucide-react';
 import AppearanceToggleDropdown from './appearance-dropdown';
+import LanguageDropdown from './language-dropdown';
 import { Button } from './ui/button';
 
 export function AppSidebarHeader({
@@ -33,6 +34,7 @@ export function AppSidebarHeader({
             </div>
             <div className="flex items-center gap-3">
                 <AppearanceToggleDropdown />
+                <LanguageDropdown />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
