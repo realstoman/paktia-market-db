@@ -54,6 +54,7 @@ interface ProductsClientProps {
 }
 
 const MAX_IMAGES = 10;
+const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
 
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
@@ -66,7 +67,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [name, setName] = useState('');
     const [categoryId, setCategoryId] = useState('');
-    const [type, setType] = useState(types[0]?.name ?? '');
+    const [type, setType] = useState(types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState('');
     const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(true);
@@ -95,7 +96,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const resetForm = () => {
         setName('');
         setCategoryId('');
-        setType(types[0]?.name ?? '');
+        setType(types[0]?.name ?? 'food');
         setBasePrice('');
         setDescription('');
         setIsActive(true);
@@ -264,6 +265,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         });
     };
 
+    const availableTypes = useMemo(() => {
+        const fromDb = types.map((item) => item.name);
+        return fromDb.length > 0 ? fromDb : FALLBACK_TYPES;
+    }, [types]);
+
     const tableColumns = useMemo(
         () => buildColumns(categories, types),
         [categories, types],
@@ -356,13 +362,13 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {types.map((productType) => (
+                                    {availableTypes.map((productType) => (
                                         <SelectItem
-                                            key={productType.id}
-                                            value={productType.name}
+                                            key={productType}
+                                            value={productType}
                                         >
                                             <span className="capitalize">
-                                                {productType.name}
+                                                {productType}
                                             </span>
                                         </SelectItem>
                                     ))}

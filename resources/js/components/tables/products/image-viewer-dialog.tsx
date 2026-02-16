@@ -17,9 +17,24 @@ interface ImageViewerDialogProps {
 
 const resolveImageUrl = (image?: ProductImage): string => {
     if (!image) return '';
-    if (image.url) return image.url;
-    if (image.path) return `/storage/${image.path}`;
-    return '';
+    const candidate = image.url || image.path || '';
+    if (!candidate) return '';
+    if (candidate.startsWith('http://') || candidate.startsWith('https://')) {
+        return candidate;
+    }
+    if (candidate.startsWith('/storage/')) {
+        return candidate;
+    }
+    if (candidate.startsWith('storage/')) {
+        return `/${candidate}`;
+    }
+    if (candidate.startsWith('public/')) {
+        return `/storage/${candidate.replace(/^public\//, '')}`;
+    }
+    if (candidate.startsWith('/')) {
+        return candidate;
+    }
+    return `/storage/${candidate}`;
 };
 
 export function ImageViewerDialog({

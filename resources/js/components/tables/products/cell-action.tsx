@@ -55,7 +55,27 @@ interface CellActionProps {
 }
 
 const MAX_IMAGES = 10;
-const resolveImageUrl = (image: ProductImage) => image.url || `/storage/${image.path}`;
+const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
+const resolveImageUrl = (image: ProductImage) => {
+    const urlCandidate = image.url ?? image.path ?? '';
+    if (!urlCandidate) return '';
+    if (urlCandidate.startsWith('http://') || urlCandidate.startsWith('https://')) {
+        return urlCandidate;
+    }
+    if (urlCandidate.startsWith('/storage/')) {
+        return urlCandidate;
+    }
+    if (urlCandidate.startsWith('storage/')) {
+        return `/${urlCandidate}`;
+    }
+    if (urlCandidate.startsWith('public/')) {
+        return `/storage/${urlCandidate.replace(/^public\//, '')}`;
+    }
+    if (urlCandidate.startsWith('/')) {
+        return urlCandidate;
+    }
+    return `/storage/${urlCandidate}`;
+};
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
@@ -68,7 +88,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
     );
-    const [type, setType] = useState(data.type ?? types[0]?.name ?? '');
+    const [type, setType] = useState(data.type ?? types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState(
         data.base_price !== undefined && data.base_price !== null
             ? String(data.base_price)
@@ -83,6 +103,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [newImages, setNewImages] = useState<PendingImage[]>([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const availableTypes = types.length > 0 ? types.map((item) => item.name) : FALLBACK_TYPES;
 
     useEffect(() => {
         return () => {
@@ -95,7 +116,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
-        setType(data.type ?? types[0]?.name ?? '');
+        setType(data.type ?? types[0]?.name ?? 'food');
         setBasePrice(
             data.base_price !== undefined && data.base_price !== null
                 ? String(data.base_price)
@@ -281,13 +302,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {types.map((productType) => (
+                                    {availableTypes.map((productType) => (
                                         <SelectItem
-                                            key={productType.id}
-                                            value={productType.name}
+                                            key={productType}
+                                            value={productType}
                                         >
                                             <span className="capitalize">
-                                                {productType.name}
+                                                {productType}
                                             </span>
                                         </SelectItem>
                                     ))}

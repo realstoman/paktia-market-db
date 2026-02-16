@@ -9,9 +9,24 @@ import { CellAction } from './cell-action';
 import { ImageViewerDialog } from './image-viewer-dialog';
 
 const resolveImageUrl = (path?: string, url?: string) => {
-    if (url) return url;
-    if (path) return `/storage/${path}`;
-    return '';
+    const candidate = url || path || '';
+    if (!candidate) return '';
+    if (candidate.startsWith('http://') || candidate.startsWith('https://')) {
+        return candidate;
+    }
+    if (candidate.startsWith('/storage/')) {
+        return candidate;
+    }
+    if (candidate.startsWith('storage/')) {
+        return `/${candidate}`;
+    }
+    if (candidate.startsWith('public/')) {
+        return `/storage/${candidate.replace(/^public\//, '')}`;
+    }
+    if (candidate.startsWith('/')) {
+        return candidate;
+    }
+    return `/storage/${candidate}`;
 };
 
 const getInitials = (value?: string) => {
