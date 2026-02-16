@@ -19,7 +19,7 @@ class ProductController extends Controller
                 ->orderBy('name')
                 ->get(),
             'categories' => ProductCategory::orderBy('name')->get(),
-            'sizes' => ProductSize::orderBy('name')->get(),
+            'sizes' => ProductSize::orderBy('id')->get(),
         ]);
     }
 
