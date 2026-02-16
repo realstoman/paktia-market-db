@@ -25,6 +25,7 @@ class OrderController extends Controller
         return Inertia::render('orders/index', [
             'orders' => Order::with([
                 'branch',
+                'user',
                 'items.product',
                 'items.productSize',
                 'items.kitchen',
