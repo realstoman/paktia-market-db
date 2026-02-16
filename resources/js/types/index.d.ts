@@ -186,6 +186,45 @@ export interface Product {
     [key: string]: unknown;
 }
 
+export interface InventoryItemImage {
+    id: number;
+    inventory_item_id?: number;
+    path: string;
+    url?: string;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface InventoryTransaction {
+    id: number;
+    inventory_item_id?: number;
+    action: string;
+    quantity: number | string;
+    note?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface InventoryItem {
+    id: number;
+    branch_id: number;
+    branch?: Branch | null;
+    name: string;
+    description?: string | null;
+    type: string;
+    unit?: string | null;
+    quantity: number | string;
+    is_usable: boolean;
+    images?: InventoryItemImage[];
+    transactions?: InventoryTransaction[];
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface OrderItem {
     id: number;
     order_id?: number;
