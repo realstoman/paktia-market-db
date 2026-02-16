@@ -17,10 +17,15 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $products = Product::with(['category', 'sizes', 'images'])
+            ->orderBy('name')
+            ->get()
+            ->each(function (Product $product) {
+                $product->images->each->append('url');
+            });
+
         return Inertia::render('products/index', [
-            'products' => Product::with(['category', 'sizes', 'images'])
-                ->orderBy('name')
-                ->get(),
+            'products' => $products,
             'categories' => ProductCategory::orderBy('name')->get(),
             'types' => ProductType::orderBy('name')->get(),
             'sizes' => ProductSize::orderBy('id')->get(),

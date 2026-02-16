@@ -8,6 +8,12 @@ import { BadgeCheck, Ban, Image as ImageIcon } from 'lucide-react';
 import { CellAction } from './cell-action';
 import { ImageViewerDialog } from './image-viewer-dialog';
 
+const resolveImageUrl = (path?: string, url?: string) => {
+    if (url) return url;
+    if (path) return `/storage/${path}`;
+    return '';
+};
+
 const getInitials = (value?: string) => {
     if (!value) return 'PR';
     return value
@@ -50,7 +56,10 @@ export const buildColumns = (
         header: 'Product',
         cell: ({ row }) => {
             const product = row.original;
-            const imageUrl = product.images?.[0]?.url;
+            const imageUrl = resolveImageUrl(
+                product.images?.[0]?.path,
+                product.images?.[0]?.url,
+            );
             const resolvedCategory =
                 product.category?.name ||
                 (product.product_category_id
@@ -61,7 +70,7 @@ export const buildColumns = (
             return (
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                        {imageUrl ? (
+                        {imageUrl !== '' ? (
                             <AvatarImage src={imageUrl} alt={product.name} />
                         ) : null}
                         <AvatarFallback>

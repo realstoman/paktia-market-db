@@ -55,6 +55,7 @@ interface CellActionProps {
 }
 
 const MAX_IMAGES = 10;
+const resolveImageUrl = (image: ProductImage) => image.url || `/storage/${image.path}`;
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
@@ -155,34 +156,38 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setIsSubmitting(true);
 
-        router.post(
-            `/products/${data.id}`,
-            {
-                _method: 'put',
-                name: name.trim(),
-                product_category_id: Number(categoryId),
-                type,
-                base_price: Number(basePrice),
-                description: description.trim() || null,
-                is_active: isActive,
-                remove_image_ids: removeImageIds,
-                images: newImages.map((image) => image.file),
+        const formData = new FormData();
+        formData.append('_method', 'put');
+        formData.append('name', name.trim());
+        formData.append('product_category_id', String(Number(categoryId)));
+        formData.append('type', type);
+        formData.append('base_price', String(Number(basePrice)));
+        formData.append('description', description.trim());
+        formData.append('is_active', isActive ? '1' : '0');
+
+        removeImageIds.forEach((id, index) => {
+            formData.append(`remove_image_ids[${index}]`, String(id));
+        });
+
+        newImages.forEach((image, index) => {
+            formData.append(`images[${index}]`, image.file);
+        });
+
+        router.post(`/products/${data.id}`, formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Product updated successfully.');
+                setIsEditOpen(false);
             },
-            {
-                preserveScroll: true,
-                forceFormData: true,
-                onSuccess: () => {
-                    toast.success('Product updated successfully.');
-                    setIsEditOpen(false);
-                },
-                onError: (errors) => {
-                    setEditErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+            onError: (errors) => {
+                setEditErrors(errors);
+                const firstError = Object.values(errors)[0];
+                toast.error(firstError || 'Failed to update product.');
             },
-        );
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
     };
 
     const handleDelete = () => {
@@ -339,7 +344,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 className="relative h-20 w-20 overflow-hidden rounded-md border"
                                             >
                                                 <img
-                                                    src={image.url}
+                                                    src={resolveImageUrl(image)}
                                                     alt="Product image"
                                                     className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
                                                 />

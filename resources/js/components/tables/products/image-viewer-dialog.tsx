@@ -15,6 +15,13 @@ interface ImageViewerDialogProps {
     triggerLabel?: string;
 }
 
+const resolveImageUrl = (image?: ProductImage): string => {
+    if (!image) return '';
+    if (image.url) return image.url;
+    if (image.path) return `/storage/${image.path}`;
+    return '';
+};
+
 export function ImageViewerDialog({
     images,
     triggerLabel = 'View',
@@ -55,7 +62,7 @@ export function ImageViewerDialog({
                     <div className="space-y-3">
                         <div className="relative mx-auto flex h-[400px] w-[400px] items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
                             <img
-                                src={images[activeIndex]?.url}
+                                src={resolveImageUrl(images[activeIndex])}
                                 alt={`Product image ${activeIndex + 1}`}
                                 className="h-full w-full object-cover"
                             />
