@@ -1,11 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Product, ProductCategory } from '@/types';
-import { formatPrice } from '@/utils/format';
+import { Product, ProductCategory, ProductType } from '@/types';
+import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Image as ImageIcon } from 'lucide-react';
 import { CellAction } from './cell-action';
+import { ImageViewerDialog } from './image-viewer-dialog';
 
 const getInitials = (value?: string) => {
     if (!value) return 'PR';
@@ -18,7 +19,11 @@ const getInitials = (value?: string) => {
 
 export const buildColumns = (
     categories: ProductCategory[],
-): ColumnDef<Product>[] => [
+    types: ProductType[],
+): ColumnDef<Product>[] => {
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+
+    return [
     {
         id: 'select',
         header: ({ table }) => (
@@ -46,6 +51,12 @@ export const buildColumns = (
         cell: ({ row }) => {
             const product = row.original;
             const imageUrl = product.images?.[0]?.url;
+            const resolvedCategory =
+                product.category?.name ||
+                (product.product_category_id
+                    ? categoryById.get(product.product_category_id)?.name
+                    : null) ||
+                'Uncategorized';
 
             return (
                 <div className="flex items-center gap-3">
@@ -62,7 +73,7 @@ export const buildColumns = (
                             {product.name}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                            {product.category?.name ?? 'Uncategorized'}
+                            {resolvedCategory}
                         </span>
                     </div>
                 </div>
@@ -71,7 +82,13 @@ export const buildColumns = (
     },
     {
         id: 'category.name',
-        accessorFn: (row) => row.category?.name ?? 'Uncategorized',
+        accessorFn: (row) => {
+            const byRelation = row.category?.name;
+            const byId = row.product_category_id
+                ? categoryById.get(row.product_category_id)?.name
+                : null;
+            return byRelation || byId || 'Uncategorized';
+        },
         header: 'Category',
     },
     {
@@ -86,7 +103,7 @@ export const buildColumns = (
     {
         accessorKey: 'base_price',
         header: 'Base Price',
-        cell: ({ row }) => formatPrice(row.getValue('base_price')),
+        cell: ({ row }) => formatAfn(row.getValue('base_price')),
     },
     {
         id: 'sizes',
@@ -106,9 +123,15 @@ export const buildColumns = (
         cell: ({ row }) => {
             const count = row.original.images?.length ?? 0;
             return (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <ImageIcon className="h-4 w-4" />
-                    {count}
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <ImageIcon className="h-4 w-4" />
+                        {count}
+                    </div>
+                    <ImageViewerDialog
+                        images={row.original.images ?? []}
+                        triggerLabel="View"
+                    />
                 </div>
             );
         },
@@ -143,7 +166,12 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction data={row.original} categories={categories} />
+            <CellAction
+                data={row.original}
+                categories={categories}
+                types={types}
+            />
         ),
     },
-];
+    ];
+};

@@ -135,6 +135,14 @@ export interface ProductCategory {
     [key: string]: unknown;
 }
 
+export interface ProductType {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface ProductSize {
     id: number;
     name: string;

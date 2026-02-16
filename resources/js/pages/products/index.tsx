@@ -2,7 +2,13 @@
 
 import { ProductsClient } from '@/components/tables/products/client';
 import AppLayout from '@/layouts/app-layout';
-import { Product, ProductCategory, ProductSize, BreadcrumbItem } from '@/types';
+import {
+    BreadcrumbItem,
+    Product,
+    ProductCategory,
+    ProductSize,
+    ProductType,
+} from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -19,12 +25,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface ProductsPageProps {
     products: Product[];
     categories: ProductCategory[];
+    types: ProductType[];
     sizes: ProductSize[];
 }
 
 export default function ProductsPage({
     products,
     categories,
+    types,
     sizes,
 }: ProductsPageProps) {
     return (
@@ -35,6 +43,7 @@ export default function ProductsPage({
                     <ProductsClient
                         data={products}
                         categories={categories}
+                        types={types}
                         sizes={sizes}
                     />
                 </div>

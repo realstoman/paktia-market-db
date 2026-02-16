@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductImage;
 use App\Models\ProductSize;
+use App\Models\ProductType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -19,6 +22,7 @@ class ProductController extends Controller
                 ->orderBy('name')
                 ->get(),
             'categories' => ProductCategory::orderBy('name')->get(),
+            'types' => ProductType::orderBy('name')->get(),
             'sizes' => ProductSize::orderBy('id')->get(),
         ]);
     }
@@ -29,12 +33,12 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
-            'type' => 'required|string|max:50',
-            'base_price' => 'required|numeric|min:0',
+            'type' => 'required|string|max:50|exists:product_types,name',
+            'base_price' => 'required|integer|min:0',
             'is_active' => 'boolean',
             'size_prices' => 'array',
             'size_prices.*.product_size_id' => 'required|exists:product_sizes,id',
-            'size_prices.*.price' => 'required|numeric|min:0',
+            'size_prices.*.price' => 'required|integer|min:0',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
         ]);
@@ -79,15 +83,40 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
-            'type' => 'required|string|max:50',
-            'base_price' => 'required|numeric|min:0',
+            'type' => 'required|string|max:50|exists:product_types,name',
+            'base_price' => 'required|integer|min:0',
             'is_active' => 'boolean',
             'size_prices' => 'sometimes|array',
             'size_prices.*.product_size_id' => 'required|exists:product_sizes,id',
-            'size_prices.*.price' => 'required|numeric|min:0',
+            'size_prices.*.price' => 'required|integer|min:0',
+            'remove_image_ids' => 'array',
+            'remove_image_ids.*' => 'integer|exists:product_images,id',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
         ]);
+
+        $removeImageIds = collect($validated['remove_image_ids'] ?? []);
+        if ($removeImageIds->isNotEmpty()) {
+            $validCount = $product->images()
+                ->whereIn('id', $removeImageIds)
+                ->count();
+
+            if ($validCount !== $removeImageIds->count()) {
+                throw ValidationException::withMessages([
+                    'remove_image_ids' => 'One or more images do not belong to this product.',
+                ]);
+            }
+        }
+
+        $remainingCount = $product->images()
+            ->whereNotIn('id', $removeImageIds->all())
+            ->count();
+        $newUploadCount = count($request->file('images', []));
+        if (($remainingCount + $newUploadCount) > 10) {
+            throw ValidationException::withMessages([
+                'images' => 'A product can have at most 10 images.',
+            ]);
+        }
 
         DB::transaction(function () use ($request, $validated, $product) {
             $product->update([
@@ -107,6 +136,16 @@ class ProductController extends Controller
                     ];
                 }
                 $product->sizes()->sync($syncData);
+            }
+
+            $removeImageIds = $validated['remove_image_ids'] ?? [];
+            if (!empty($removeImageIds)) {
+                $imagesToRemove = $product->images()
+                    ->whereIn('id', $removeImageIds)
+                    ->get();
+
+                Storage::disk('public')->delete($imagesToRemove->pluck('path')->all());
+                $product->images()->whereIn('id', $removeImageIds)->delete();
             }
 
             $images = $request->file('images', []);
@@ -136,5 +175,75 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:product_categories,name',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        ProductCategory::create($validated);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product category created successfully.');
+    }
+
+    public function destroyCategory(ProductCategory $category)
+    {
+        if ($category->products()->exists()) {
+            throw ValidationException::withMessages([
+                'category' => 'This category is in use by products and cannot be deleted.',
+            ]);
+        }
+
+        $category->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product category deleted successfully.');
+    }
+
+    public function storeType(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:product_types,name',
+        ]);
+
+        ProductType::create([
+            'name' => strtolower(trim($validated['name'])),
+        ]);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product type created successfully.');
+    }
+
+    public function destroyType(ProductType $type)
+    {
+        if (Product::where('type', $type->name)->exists()) {
+            throw ValidationException::withMessages([
+                'type' => 'This type is in use by products and cannot be deleted.',
+            ]);
+        }
+
+        $type->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product type deleted successfully.');
+    }
+
+    public function destroyImage(Product $product, ProductImage $productImage)
+    {
+        if ($productImage->product_id !== $product->id) {
+            throw ValidationException::withMessages([
+                'image' => 'Invalid product image.',
+            ]);
+        }
+
+        Storage::disk('public')->delete($productImage->path);
+        $productImage->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product image removed successfully.');
     }
 }

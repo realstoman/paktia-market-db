@@ -45,3 +45,15 @@ export const formatCurrency = (
         maximumFractionDigits: 2,
     }).format(Number(value));
 };
+
+/**
+ * Format AFN currency (no decimals)
+ * Example: 234567 -> ؋234,567
+ */
+export const formatAfn = (value: number | string): string => {
+    if (value === null || value === undefined || value === '') return '';
+
+    return `؋${new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 0,
+    }).format(Math.round(Number(value)))}`;
+};

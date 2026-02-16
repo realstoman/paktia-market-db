@@ -36,20 +36,30 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Product, ProductCategory } from '@/types';
+import { Product, ProductCategory, ProductImage, ProductType } from '@/types';
 import { router } from '@inertiajs/react';
-import { Edit, MoreHorizontal, Save, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, ImagePlus, MoreHorizontal, Save, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+interface PendingImage {
+    id: string;
+    file: File;
+    preview: string;
+}
 
 interface CellActionProps {
     data: Product;
     categories: ProductCategory[];
+    types: ProductType[];
 }
+
+const MAX_IMAGES = 10;
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     categories,
+    types,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -57,7 +67,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
     );
-    const [type, setType] = useState(data.type ?? 'food');
+    const [type, setType] = useState(data.type ?? types[0]?.name ?? '');
     const [basePrice, setBasePrice] = useState(
         data.base_price !== undefined && data.base_price !== null
             ? String(data.base_price)
@@ -65,15 +75,26 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [description, setDescription] = useState(data.description ?? '');
     const [isActive, setIsActive] = useState(!!data.is_active);
+    const [existingImages, setExistingImages] = useState<ProductImage[]>(
+        data.images ?? [],
+    );
+    const [removeImageIds, setRemoveImageIds] = useState<number[]>([]);
+    const [newImages, setNewImages] = useState<PendingImage[]>([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            newImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        };
+    }, [newImages]);
 
     const resetEdit = () => {
         setName(data.name);
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
-        setType(data.type ?? 'food');
+        setType(data.type ?? types[0]?.name ?? '');
         setBasePrice(
             data.base_price !== undefined && data.base_price !== null
                 ? String(data.base_price)
@@ -81,28 +102,75 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
         setDescription(data.description ?? '');
         setIsActive(!!data.is_active);
+        setExistingImages(data.images ?? []);
+        setRemoveImageIds([]);
+        newImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        setNewImages([]);
         setEditErrors({});
     };
 
+    const handleRemoveExistingImage = (imageId: number) => {
+        setRemoveImageIds((prev) =>
+            prev.includes(imageId)
+                ? prev.filter((id) => id !== imageId)
+                : [...prev, imageId],
+        );
+    };
+
+    const handleNewImageChange = (files: FileList | null) => {
+        if (!files) {
+            return;
+        }
+
+        const currentRemaining =
+            existingImages.filter((image) => !removeImageIds.includes(image.id))
+                .length + newImages.length;
+        const availableSlots = MAX_IMAGES - currentRemaining;
+        const nextFiles = Array.from(files).slice(0, availableSlots);
+
+        setNewImages((prev) => [
+            ...prev,
+            ...nextFiles.map((file, index) => ({
+                id: `${Date.now()}-${file.name}-${index}`,
+                file,
+                preview: URL.createObjectURL(file),
+            })),
+        ]);
+    };
+
+    const removeNewImage = (id: string) => {
+        setNewImages((prev) => {
+            const target = prev.find((image) => image.id === id);
+            if (target) {
+                URL.revokeObjectURL(target.preview);
+            }
+            return prev.filter((image) => image.id !== id);
+        });
+    };
+
     const handleEditSubmit = () => {
-        if (!name.trim() || !categoryId || !basePrice || isSubmitting) {
+        if (!name.trim() || !categoryId || !type || !basePrice || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
-        router.put(
+        router.post(
             `/products/${data.id}`,
             {
+                _method: 'put',
                 name: name.trim(),
                 product_category_id: Number(categoryId),
                 type,
                 base_price: Number(basePrice),
                 description: description.trim() || null,
                 is_active: isActive,
+                remove_image_ids: removeImageIds,
+                images: newImages.map((image) => image.file),
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Product updated successfully.');
                     setIsEditOpen(false);
@@ -164,34 +232,27 @@ export const CellAction: React.FC<CellActionProps> = ({
             </DropdownMenu>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>Edit Product</DialogTitle>
                         <DialogDescription>
-                            Update product details and pricing.
+                            Update product details, pricing, and images.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor={`product-name-${data.id}`}>
-                                Name
-                            </Label>
+                            <Label htmlFor={`product-name-${data.id}`}>Name</Label>
                             <Input
                                 id={`product-name-${data.id}`}
                                 value={name}
-                                onChange={(event) =>
-                                    setName(event.target.value)
-                                }
+                                onChange={(event) => setName(event.target.value)}
                             />
                             <InputError message={editErrors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Category</Label>
-                            <Select
-                                value={categoryId}
-                                onValueChange={setCategoryId}
-                            >
+                            <Select value={categoryId} onValueChange={setCategoryId}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
@@ -206,9 +267,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError
-                                message={editErrors.product_category_id}
-                            />
+                            <InputError message={editErrors.product_category_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Type</Label>
@@ -217,29 +276,29 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="food">Food</SelectItem>
-                                    <SelectItem value="beverage">
-                                        Beverage
-                                    </SelectItem>
-                                    <SelectItem value="dessert">
-                                        Dessert
-                                    </SelectItem>
-                                    <SelectItem value="bundle">
-                                        Bundle
-                                    </SelectItem>
+                                    {types.map((productType) => (
+                                        <SelectItem
+                                            key={productType.id}
+                                            value={productType.name}
+                                        >
+                                            <span className="capitalize">
+                                                {productType.name}
+                                            </span>
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.type} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`product-price-${data.id}`}>
-                                Base Price
+                                Base Price (AFN)
                             </Label>
                             <Input
                                 id={`product-price-${data.id}`}
                                 type="number"
                                 min="0"
-                                step="0.01"
+                                step="1"
                                 value={basePrice}
                                 onChange={(event) =>
                                     setBasePrice(event.target.value)
@@ -260,6 +319,105 @@ export const CellAction: React.FC<CellActionProps> = ({
                             />
                             <InputError message={editErrors.description} />
                         </div>
+
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Existing Images</Label>
+                            <div className="flex flex-wrap gap-2 rounded-md border p-3">
+                                {existingImages.length === 0 ? (
+                                    <span className="text-sm text-muted-foreground">
+                                        No images
+                                    </span>
+                                ) : (
+                                    existingImages.map((image) => {
+                                        const marked = removeImageIds.includes(
+                                            image.id,
+                                        );
+
+                                        return (
+                                            <div
+                                                key={image.id}
+                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                            >
+                                                <img
+                                                    src={image.url}
+                                                    alt="Product image"
+                                                    className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleRemoveExistingImage(
+                                                            image.id,
+                                                        )
+                                                    }
+                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            <InputError message={editErrors.remove_image_ids} />
+                        </div>
+
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor={`product-images-new-${data.id}`}>
+                                Add New Images
+                            </Label>
+                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm text-muted-foreground">
+                                        Max {MAX_IMAGES} total images. Recommended size: 400x400 or 400x480.
+                                    </p>
+                                    <Label
+                                        htmlFor={`product-images-new-${data.id}`}
+                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                    >
+                                        <ImagePlus className="h-4 w-4" />
+                                        Select Images
+                                    </Label>
+                                </div>
+                                <Input
+                                    id={`product-images-new-${data.id}`}
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(event) =>
+                                        handleNewImageChange(event.target.files)
+                                    }
+                                    className="hidden"
+                                />
+                                {newImages.length > 0 ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {newImages.map((image) => (
+                                            <div
+                                                key={image.id}
+                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                            >
+                                                <img
+                                                    src={image.preview}
+                                                    alt={image.file.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                    onClick={() =>
+                                                        removeNewImage(image.id)
+                                                    }
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <InputError message={editErrors.images} />
+                        </div>
+
                         <div className="flex items-center gap-2 sm:col-span-2">
                             <Checkbox
                                 checked={isActive}
@@ -287,6 +445,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !categoryId ||
+                                !type ||
                                 !basePrice ||
                                 isSubmitting
                             }
@@ -301,11 +460,9 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Delete product
-                        </AlertDialogTitle>
+                        <AlertDialogTitle>Delete product</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the product and its
+                            This will permanently remove the product and all its
                             images.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
