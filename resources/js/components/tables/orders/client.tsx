@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Order, Branch, Product } from '@/types';
+import { Branch, Order, Product } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { ClipboardList, Plus, Save, Trash2, X } from 'lucide-react';
@@ -246,7 +246,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
+                            <Select
+                                value={branchId}
+                                onValueChange={setBranchId}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select branch" />
                                 </SelectTrigger>
@@ -312,7 +315,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 return (
                                     <div
                                         key={`order-item-${index}`}
-                                        className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-5"
+                                        className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-5 dark:border-neutral-800"
                                     >
                                         <div className="grid gap-2 sm:col-span-2">
                                             <Label>Product</Label>
@@ -401,7 +404,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 }
                                             />
                                         </div>
-                                        <div className="flex items-end justify-end">
+                                        <div className="flex items-end justify-start">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -411,7 +414,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 disabled={items.length === 1}
                                                 className="text-red-600"
                                             >
-                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <Trash2 className="mr-1 h-4 w-4" />
                                                 Remove
                                             </Button>
                                         </div>
@@ -420,7 +423,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             })}
                         </div>
 
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span>Total Amount</span>
                             <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
                                 {formatPrice(totalAmount)}
@@ -440,9 +443,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={
-                                !branchId ||
-                                items.length === 0 ||
-                                isSubmitting
+                                !branchId || items.length === 0 || isSubmitting
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
