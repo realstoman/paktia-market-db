@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class ProductImage extends Model
 {
@@ -22,6 +21,18 @@ class ProductImage extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->path);
+        if (str_starts_with($this->path, '/storage/')) {
+            return $this->path;
+        }
+
+        if (str_starts_with($this->path, 'storage/')) {
+            return '/'.$this->path;
+        }
+
+        if (str_starts_with($this->path, 'public/')) {
+            return '/storage/'.str_replace('public/', '', $this->path);
+        }
+
+        return '/storage/'.$this->path;
     }
 }

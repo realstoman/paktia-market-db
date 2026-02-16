@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -72,6 +73,9 @@ export function ImageViewerDialog({
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Product Images</DialogTitle>
+                    <DialogDescription>
+                        Browse uploaded product images.
+                    </DialogDescription>
                 </DialogHeader>
                 {hasImages ? (
                     <div className="space-y-3">
