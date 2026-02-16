@@ -328,7 +328,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['id', 'branch.name', 'status']}
+                searchKey={['id', 'branch.name', 'user.name', 'status']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
@@ -583,7 +583,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     </DialogHeader>
                     {selectedOrder ? (
                         <div className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-4">
+                            <div className="grid gap-4 sm:grid-cols-5">
                                 <div>
                                     <p className="text-xs text-muted-foreground">
                                         Branch
@@ -601,6 +601,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             '_',
                                             ' ',
                                         )}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Created By
+                                    </p>
+                                    <p className="font-medium">
+                                        {selectedOrder.user?.name ?? 'System'}
                                     </p>
                                 </div>
                                 <div>

@@ -25,6 +25,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -34,9 +35,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Kitchen } from '@/types';
+import { Kitchen, Product } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    CookingPot,
     Edit,
     Eye,
     MapPin,
@@ -47,30 +49,63 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Kitchen;
     kitchenTypes: { label: string; value: string }[];
+    products: Product[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     kitchenTypes,
+    products,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isToggleOpen, setIsToggleOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isProductsOpen, setIsProductsOpen] = useState(false);
     const [name, setName] = useState(data.name ?? '');
     const [type, setType] = useState(data.type ?? '');
+    const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
+        new Set((data.products ?? []).map((product) => product.id)),
+    );
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const sortedProducts = useMemo(
+        () => [...products].sort((a, b) => a.name.localeCompare(b.name)),
+        [products],
+    );
 
     const resetEdit = () => {
         setName(data.name ?? '');
         setType(data.type ?? '');
+        setSelectedProductIds(
+            new Set((data.products ?? []).map((product) => product.id)),
+        );
         setEditErrors({});
+    };
+
+    const openProductAssign = () => {
+        setSelectedProductIds(
+            new Set((data.products ?? []).map((product) => product.id)),
+        );
+        setIsProductsOpen(true);
+    };
+
+    const toggleProduct = (productId: number) => {
+        setSelectedProductIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(productId)) {
+                next.delete(productId);
+            } else {
+                next.add(productId);
+            }
+            return next;
+        });
     };
 
     const handleEditSubmit = () => {
@@ -144,6 +179,31 @@ export const CellAction: React.FC<CellActionProps> = ({
         });
     };
 
+    const handleAssignProducts = () => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/kitchens/${data.id}/products`,
+            {
+                products: Array.from(selectedProductIds),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Kitchen products updated successfully.');
+                    setIsProductsOpen(false);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
     return (
         <>
             <DropdownMenu modal={false}>
@@ -169,6 +229,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                     >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={openProductAssign}>
+                        <CookingPot className="mr-2 h-4 w-4" />
+                        Assign Products
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>
                         {data.is_active ? (
@@ -245,6 +309,62 @@ export const CellAction: React.FC<CellActionProps> = ({
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isProductsOpen} onOpenChange={setIsProductsOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Assign Products</DialogTitle>
+                        <DialogDescription>
+                            Select products that belong to {data.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-2">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Selected</span>
+                            <span>
+                                {selectedProductIds.size} of {products.length}
+                            </span>
+                        </div>
+                        <div className="max-h-72 space-y-2 overflow-auto rounded-md border p-3">
+                            {sortedProducts.map((product) => (
+                                <label
+                                    key={product.id}
+                                    className="flex items-center gap-2 text-sm"
+                                >
+                                    <Checkbox
+                                        checked={selectedProductIds.has(
+                                            product.id,
+                                        )}
+                                        onCheckedChange={() =>
+                                            toggleProduct(product.id)
+                                        }
+                                    />
+                                    <span>{product.name}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsProductsOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            <X className="mr-2 h-5 w-5" />
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAssignProducts}
+                            disabled={isSubmitting}
+                        >
+                            <Save className="mr-2 h-5 w-5" />
+                            Save Products
                         </Button>
                     </DialogFooter>
                 </DialogContent>

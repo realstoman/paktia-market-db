@@ -69,6 +69,11 @@ export const buildColumns = ({
         header: 'Branch',
     },
     {
+        id: 'user.name',
+        accessorFn: (row) => row.user?.name ?? 'System',
+        header: 'Created By',
+    },
+    {
         id: 'kitchens',
         header: 'Kitchens',
         cell: ({ row }) => {

@@ -98,6 +98,7 @@ export interface Kitchen {
     province?: string | null;
     is_active?: boolean;
     branches?: Branch[];
+    products?: Product[];
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
@@ -205,6 +206,7 @@ export interface Order {
     id: number;
     branch_id: number;
     user_id?: number | null;
+    user?: User | null;
     branch?: Branch | null;
     items?: OrderItem[];
     items_count?: number;
