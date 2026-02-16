@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             KitchenSeeder::class,
 
             ProductCategorySeeder::class,
+            ProductTypeSeeder::class,
             ProductSizeSeeder::class,
             ProductSeeder::class,
 

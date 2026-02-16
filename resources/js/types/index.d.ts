@@ -98,6 +98,7 @@ export interface Kitchen {
     province?: string | null;
     is_active?: boolean;
     branches?: Branch[];
+    products?: Product[];
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
@@ -123,5 +124,101 @@ export interface Province {
     created_at: string;
     updated_at: string;
     country_id?: number;
+    [key: string]: unknown;
+}
+
+export interface ProductCategory {
+    id: number;
+    name: string;
+    description?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface ProductType {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface ProductSize {
+    id: number;
+    name: string;
+    code?: string | null;
+    pivot?: {
+        price?: number | string;
+        [key: string]: unknown;
+    };
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface ProductImage {
+    id: number;
+    product_id?: number;
+    path: string;
+    url?: string;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Product {
+    id: number;
+    name: string;
+    description?: string | null;
+    product_category_id?: number;
+    kitchen_id?: number | null;
+    category?: ProductCategory | null;
+    kitchen?: Kitchen | null;
+    type?: string;
+    base_price?: number | string;
+    is_active?: boolean;
+    sizes?: ProductSize[];
+    images?: ProductImage[];
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface OrderItem {
+    id: number;
+    order_id?: number;
+    product_id: number;
+    product_size_id?: number | null;
+    kitchen_id?: number | null;
+    quantity: number;
+    price: number | string;
+    product?: Product | null;
+    product_size?: ProductSize | null;
+    kitchen?: Kitchen | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Order {
+    id: number;
+    branch_id: number;
+    user_id?: number | null;
+    user?: User | null;
+    branch?: Branch | null;
+    items?: OrderItem[];
+    items_count?: number;
+    order_type: string;
+    base_currency?: string;
+    exchange_rate?: number | null;
+    total_amount: number | string;
+    paid_amount: number | string;
+    change_amount: number | string;
+    status?: string;
+    kitchen_names?: string[];
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }

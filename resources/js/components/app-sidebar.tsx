@@ -19,7 +19,8 @@ import {
     CookingPot,
     Globe,
     LayoutGrid,
-    Shield,
+    Package,
+    ShieldCheck,
     Smartphone,
     Users,
 } from 'lucide-react';
@@ -35,7 +36,13 @@ const mainNavItems: NavItem[] = [
         title: 'Orders',
         href: '/orders',
         icon: CookingPot,
-        can: 'user.view',
+        can: 'orders.view',
+    },
+    {
+        title: 'Products',
+        href: '/products',
+        icon: Package,
+        can: 'products.view',
     },
     {
         title: 'Users',
@@ -46,7 +53,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Roles',
         href: '/roles',
-        icon: Shield,
+        icon: ShieldCheck,
         can: 'role.view',
     },
     {

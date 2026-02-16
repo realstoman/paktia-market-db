@@ -53,7 +53,7 @@ export default function AuthLayout({
             </div>
 
             {/* Right Side - Promotional Content */}
-            <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-white p-12 lg:flex">
+            <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-brand-tertiary p-12 lg:flex dark:bg-brand-bg-dark">
                 {/* Decorative Background Elements */}
                 <div className="relative z-10 max-w-lg">
                     {/* Feature Cards */}
@@ -79,7 +79,7 @@ export default function AuthLayout({
 
                         {/* Feature Cards Grid */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
+                            <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
                                     <ChefHat className="h-6 w-6 text-white" />
                                 </div>
@@ -91,7 +91,7 @@ export default function AuthLayout({
                                 </p>
                             </div>
 
-                            <div className="rounded-xl border border-orange-100 bg-white/80 p-6">
+                            <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
                                     <Utensils className="h-6 w-6 text-white" />
                                 </div>

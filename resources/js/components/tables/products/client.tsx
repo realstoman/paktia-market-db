@@ -1,0 +1,678 @@
+import InputError from '@/components/input-error';
+import Heading from '@/components/shared/heading';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { DataTable } from '@/components/ui/table/data-table';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Kitchen,
+    Product,
+    ProductCategory,
+    ProductSize,
+    ProductType,
+} from '@/types';
+import { formatNumber } from '@/utils/format';
+import { router } from '@inertiajs/react';
+import {
+    ImagePlus,
+    PackagePlus,
+    Plus,
+    Save,
+    Settings2,
+    Tag,
+    Trash2,
+    X,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { buildColumns } from './columns';
+
+interface SelectedImage {
+    id: string;
+    file: File;
+    preview: string;
+}
+
+interface ProductsClientProps {
+    data: Product[];
+    categories: ProductCategory[];
+    types: ProductType[];
+    kitchens: Kitchen[];
+    sizes: ProductSize[];
+    isLoading?: boolean;
+}
+
+const MAX_IMAGES = 10;
+const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
+
+export const ProductsClient: React.FC<ProductsClientProps> = ({
+    data,
+    categories,
+    types,
+    kitchens,
+    sizes,
+    isLoading = false,
+}) => {
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isMetaOpen, setIsMetaOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [categoryId, setCategoryId] = useState('');
+    const [kitchenId, setKitchenId] = useState('');
+    const [type, setType] = useState(types[0]?.name ?? 'food');
+    const [basePrice, setBasePrice] = useState('');
+    const [description, setDescription] = useState('');
+    const [isActive, setIsActive] = useState(true);
+    const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
+    const [images, setImages] = useState<SelectedImage[]>([]);
+    const [categoryName, setCategoryName] = useState('');
+    const [categoryDescription, setCategoryDescription] = useState('');
+    const [typeName, setTypeName] = useState('');
+    const [createErrors, setCreateErrors] = useState<Record<string, string>>(
+        {},
+    );
+    const [metaErrors, setMetaErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            images.forEach((image) => URL.revokeObjectURL(image.preview));
+        };
+    }, [images]);
+
+    const clearSelectedImages = () => {
+        images.forEach((image) => URL.revokeObjectURL(image.preview));
+        setImages([]);
+    };
+
+    const resetForm = () => {
+        setName('');
+        setCategoryId('');
+        setKitchenId('');
+        setType(types[0]?.name ?? 'food');
+        setBasePrice('');
+        setDescription('');
+        setIsActive(true);
+        setSizePrices({});
+        clearSelectedImages();
+        setCreateErrors({});
+    };
+
+    const removeSelectedImage = (id: string) => {
+        setImages((prev) => {
+            const target = prev.find((item) => item.id === id);
+            if (target) {
+                URL.revokeObjectURL(target.preview);
+            }
+            return prev.filter((item) => item.id !== id);
+        });
+    };
+
+    const handleImageChange = (files: FileList | null) => {
+        if (!files) {
+            return;
+        }
+
+        setImages((prev) => {
+            const remainingSlots = MAX_IMAGES - prev.length;
+            const nextFiles = Array.from(files).slice(0, remainingSlots);
+            const mapped = nextFiles.map((file, index) => ({
+                id: `${Date.now()}-${file.name}-${index}`,
+                file,
+                preview: URL.createObjectURL(file),
+            }));
+            return [...prev, ...mapped];
+        });
+    };
+
+    const handleSizePriceChange = (sizeId: number, value: string) => {
+        setSizePrices((prev) => ({
+            ...prev,
+            [sizeId]: value,
+        }));
+    };
+
+    const handleCreateSubmit = () => {
+        if (
+            !name.trim() ||
+            !categoryId ||
+            !kitchenId ||
+            !type ||
+            !basePrice ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const sizePricePayload = Object.entries(sizePrices)
+            .filter(([, price]) => price !== '' && !Number.isNaN(Number(price)))
+            .map(([sizeId, price]) => ({
+                product_size_id: Number(sizeId),
+                price: Number(price),
+            }));
+
+        router.post(
+            '/products',
+            {
+                name: name.trim(),
+                product_category_id: Number(categoryId),
+                kitchen_id: Number(kitchenId),
+                type,
+                base_price: Number(basePrice),
+                description: description.trim() || null,
+                is_active: isActive,
+                size_prices: sizePricePayload,
+                images: images.map((image) => image.file),
+            },
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    toast.success('Product created successfully.');
+                    setIsCreateOpen(false);
+                    resetForm();
+                },
+                onError: (errors) => {
+                    setCreateErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleCategoryCreate = () => {
+        if (!categoryName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.post(
+            '/products/categories',
+            {
+                name: categoryName.trim(),
+                description: categoryDescription.trim() || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Category created successfully.');
+                    setCategoryName('');
+                    setCategoryDescription('');
+                    setMetaErrors({});
+                },
+                onError: (errors) => {
+                    setMetaErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleCategoryDelete = (id: number) => {
+        router.delete(`/products/categories/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Category deleted successfully.');
+            },
+            onError: (errors) => {
+                setMetaErrors(errors);
+            },
+        });
+    };
+
+    const handleTypeCreate = () => {
+        if (!typeName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.post(
+            '/products/types',
+            {
+                name: typeName.trim().toLowerCase(),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Type created successfully.');
+                    setTypeName('');
+                    setMetaErrors({});
+                },
+                onError: (errors) => {
+                    setMetaErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleTypeDelete = (id: number) => {
+        router.delete(`/products/types/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Type deleted successfully.');
+            },
+            onError: (errors) => {
+                setMetaErrors(errors);
+            },
+        });
+    };
+
+    const availableTypes = useMemo(() => {
+        const fromDb = types.map((item) => item.name);
+        return fromDb.length > 0 ? fromDb : FALLBACK_TYPES;
+    }, [types]);
+
+    const tableColumns = useMemo(
+        () => buildColumns(categories, types, kitchens),
+        [categories, kitchens, types],
+    );
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+                <Heading
+                    title={`Products: ${formatNumber(data.length)}`}
+                    description="Manage menu items, categories, types, and pricing"
+                />
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsMetaOpen(true)}
+                        className="gap-2"
+                    >
+                        <Settings2 className="h-4 w-4" />
+                        Manage Categories & Types
+                    </Button>
+                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New Product
+                    </Button>
+                </div>
+            </div>
+            <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
+            <DataTable
+                searchKey={['name', 'category.name', 'kitchen.name', 'type']}
+                columns={tableColumns}
+                data={data}
+                isLoading={isLoading}
+                searchPlaceholder="Search products by name or category..."
+            />
+
+            <Dialog
+                open={isCreateOpen}
+                onOpenChange={(open) => {
+                    setIsCreateOpen(open);
+                    if (!open) {
+                        resetForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <PackagePlus className="mr-2 h-5 w-5" />
+                            Create Product
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add a new product with images and optional size pricing.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label htmlFor="product-name">Name</Label>
+                            <Input
+                                id="product-name"
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                            />
+                            <InputError message={createErrors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Category</Label>
+                            <Select value={categoryId} onValueChange={setCategoryId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((category) => (
+                                        <SelectItem
+                                            key={category.id}
+                                            value={String(category.id)}
+                                        >
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={createErrors.product_category_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Kitchen</Label>
+                            <Select value={kitchenId} onValueChange={setKitchenId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select kitchen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
+                                        >
+                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={createErrors.kitchen_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Type</Label>
+                            <Select value={type} onValueChange={setType}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableTypes.map((productType) => (
+                                        <SelectItem
+                                            key={productType}
+                                            value={productType}
+                                        >
+                                            <span className="capitalize">
+                                                {productType}
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={createErrors.type} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="product-base-price">Base Price (AFN)</Label>
+                            <Input
+                                id="product-base-price"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={basePrice}
+                                onChange={(event) => setBasePrice(event.target.value)}
+                            />
+                            <InputError message={createErrors.base_price} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="product-description">Description</Label>
+                            <Textarea
+                                id="product-description"
+                                value={description}
+                                onChange={(event) => setDescription(event.target.value)}
+                            />
+                            <InputError message={createErrors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Size Pricing (Optional, AFN)</Label>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                {sizes.map((size) => (
+                                    <div
+                                        key={size.id}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <span className="w-28 text-sm text-muted-foreground">
+                                            {size.name}
+                                        </span>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            placeholder="Use base price"
+                                            value={sizePrices[size.id] ?? ''}
+                                            onChange={(event) =>
+                                                handleSizePriceChange(
+                                                    size.id,
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="product-images">Product Images</Label>
+                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm text-muted-foreground">
+                                        Upload up to {MAX_IMAGES} images. Recommended size: 400x400 or 400x480.
+                                    </p>
+                                    <Label
+                                        htmlFor="product-images"
+                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                    >
+                                        <ImagePlus className="h-4 w-4" />
+                                        Select Images
+                                    </Label>
+                                </div>
+                                <Input
+                                    id="product-images"
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(event) => handleImageChange(event.target.files)}
+                                    className="hidden"
+                                />
+                                {images.length > 0 ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {images.map((image) => (
+                                            <div
+                                                key={image.id}
+                                                className="group relative h-20 w-20 overflow-hidden rounded-md border"
+                                            >
+                                                <img
+                                                    src={image.preview}
+                                                    alt={image.file.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                    onClick={() => removeSelectedImage(image.id)}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <InputError message={createErrors.images} />
+                        </div>
+                        <div className="flex items-center gap-2 sm:col-span-2">
+                            <Checkbox
+                                checked={isActive}
+                                onCheckedChange={(checked) => setIsActive(!!checked)}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                                Active product
+                            </span>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCreateOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            <X className="mr-2 h-5 w-5" />
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleCreateSubmit}
+                            disabled={
+                                !name.trim() ||
+                                !categoryId ||
+                                !kitchenId ||
+                                !type ||
+                                !basePrice ||
+                                isSubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-5 w-5" />
+                            Create Product
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isMetaOpen} onOpenChange={setIsMetaOpen}>
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Categories & Types</DialogTitle>
+                        <DialogDescription>
+                            Create or remove product categories and product types.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Tag className="h-4 w-4" />
+                                <h4 className="font-medium">Categories</h4>
+                            </div>
+                            <div className="space-y-2 rounded-md border p-3">
+                                <Input
+                                    placeholder="Category name"
+                                    value={categoryName}
+                                    onChange={(event) =>
+                                        setCategoryName(event.target.value)
+                                    }
+                                />
+                                <Textarea
+                                    placeholder="Category description (optional)"
+                                    value={categoryDescription}
+                                    onChange={(event) =>
+                                        setCategoryDescription(event.target.value)
+                                    }
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={handleCategoryCreate}
+                                    className="w-full"
+                                    disabled={!categoryName.trim() || isSubmitting}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Category
+                                </Button>
+                            </div>
+                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                                {categories.map((category) => (
+                                    <div
+                                        key={category.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {category.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {category.description || '-'}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleCategoryDelete(category.id)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Tag className="h-4 w-4" />
+                                <h4 className="font-medium">Types</h4>
+                            </div>
+                            <div className="space-y-2 rounded-md border p-3">
+                                <Input
+                                    placeholder="Type name (example: food)"
+                                    value={typeName}
+                                    onChange={(event) =>
+                                        setTypeName(event.target.value)
+                                    }
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={handleTypeCreate}
+                                    className="w-full"
+                                    disabled={!typeName.trim() || isSubmitting}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Type
+                                </Button>
+                            </div>
+                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                                {types.map((productType) => (
+                                    <div
+                                        key={productType.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <p className="text-sm font-medium capitalize">
+                                            {productType.name}
+                                        </p>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleTypeDelete(productType.id)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <InputError
+                        message={
+                            metaErrors.name ||
+                            metaErrors.category ||
+                            metaErrors.type
+                        }
+                    />
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+};

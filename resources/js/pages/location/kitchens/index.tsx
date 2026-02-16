@@ -4,7 +4,7 @@ import { KitchensClient } from '@/components/tables/kitchens/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import kitchens from '@/routes/kitchens';
-import { BreadcrumbItem, Kitchen } from '@/types';
+import { BreadcrumbItem, Kitchen, Product } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -20,11 +20,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface KitchensPageProps {
     kitchens: Kitchen[];
+    products: Product[];
     kitchenTypes: { label: string; value: string }[];
 }
 
 export default function KitchensPage({
     kitchens,
+    products,
     kitchenTypes,
 }: KitchensPageProps) {
     return (
@@ -34,6 +36,7 @@ export default function KitchensPage({
                 <div className="p-6 text-gray-900">
                     <KitchensClient
                         data={kitchens}
+                        products={products}
                         kitchenTypes={kitchenTypes}
                     />
                 </div>

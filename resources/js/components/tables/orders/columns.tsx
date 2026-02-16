@@ -1,23 +1,43 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Order } from '@/types';
+import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban } from 'lucide-react';
-import { CellAction } from './cell-action';
+import { BadgeCheck, Ban, Clock3, CookingPot, Eye, Plus } from 'lucide-react';
 
-const MAX_VISIBLE_KITCHENS = 3;
+const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
+    pending: {
+        label: 'Pending',
+        icon: <Clock3 className="h-4 w-4 text-amber-600" />,
+    },
+    in_progress: {
+        label: 'In Progress',
+        icon: <CookingPot className="h-4 w-4 text-blue-600" />,
+    },
+    ready: {
+        label: 'Ready',
+        icon: <BadgeCheck className="h-4 w-4 text-emerald-600" />,
+    },
+    completed: {
+        label: 'Completed',
+        icon: <BadgeCheck className="h-4 w-4 text-green-600" />,
+    },
+    cancelled: {
+        label: 'Cancelled',
+        icon: <Ban className="h-4 w-4 text-red-600" />,
+    },
+};
 
-export const buildColumns = (
-    countries: Country[],
-    provinces: Province[],
-    kitchens: Kitchen[],
-): ColumnDef<Branch>[] => [
+interface BuildOrderColumnsOptions {
+    onView: (order: Order) => void;
+    onAddItems: (order: Order) => void;
+}
+
+export const buildColumns = ({
+    onView,
+    onAddItems,
+}: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -41,95 +61,69 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: 'Order ID',
     },
     {
-        accessorKey: 'name',
-        header: 'Name',
+        id: 'branch.name',
+        accessorFn: (row) => row.branch?.name ?? 'Unknown',
+        header: 'Branch',
     },
     {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'province',
-        header: 'Province',
+        id: 'user.name',
+        accessorFn: (row) => row.user?.name ?? 'System',
+        header: 'Created By',
     },
     {
         id: 'kitchens',
         header: 'Kitchens',
         cell: ({ row }) => {
-            const kitchens = row.original.kitchens ?? [];
-            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
-            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
-
-            if (kitchens.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        No kitchens
-                    </span>
-                );
-            }
+            const names = Array.from(
+                new Set(
+                    (row.original.items ?? [])
+                        .map(
+                            (item) =>
+                                item.kitchen?.name ??
+                                item.product?.kitchen?.name ??
+                                'Unassigned',
+                        )
+                        .filter(Boolean),
+                ),
+            );
 
             return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((kitchen) => (
-                        <Badge
-                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                            variant="secondary"
-                        >
-                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        +{hidden.length} more
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((kitchen) => (
-                                            <Badge
-                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                variant="secondary"
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
+                <span className="text-sm text-muted-foreground">
+                    {names.length > 0 ? names.join(', ') : 'Unassigned'}
+                </span>
             );
         },
     },
     {
-        accessorKey: 'address',
-        header: 'Address',
+        accessorKey: 'items_count',
+        header: 'Items',
+        cell: ({ row }) => (
+            <span className="text-sm text-muted-foreground">
+                {row.getValue('items_count') ?? row.original.items?.length ?? 0}
+            </span>
+        ),
     },
     {
-        accessorKey: 'is_active',
+        accessorKey: 'total_amount',
+        header: 'Total',
+        cell: ({ row }) => formatAfn(row.getValue('total_amount')),
+    },
+    {
+        accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const active = row.getValue('is_active');
-            return active ? (
+            const statusValue = row.getValue('status') as string | undefined;
+            const status =
+                (statusValue && statusStyles[statusValue]) ||
+                statusStyles.pending;
+
+            return (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
-                    <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
-                </Badge>
-            ) : (
-                <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
-                    <Ban className="h-4 w-4 text-red-600" />
-                    Inactive
+                    {status.icon}
+                    {status.label}
                 </Badge>
             );
         },
@@ -146,12 +140,24 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction
-                data={row.original}
-                countries={countries}
-                provinces={provinces}
-                kitchens={kitchens}
-            />
+            <div className="flex items-center gap-1">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onView(row.original)}
+                >
+                    <Eye className="mr-1 h-4 w-4" />
+                    Details
+                </Button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAddItems(row.original)}
+                >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add Item
+                </Button>
+            </div>
         ),
     },
 ];

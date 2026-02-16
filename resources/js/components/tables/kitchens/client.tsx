@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Kitchen } from '@/types';
+import { Kitchen, Product } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { ChefHat, Plus, Save, X } from 'lucide-react';
@@ -30,12 +30,14 @@ import { buildColumns } from './columns';
 
 interface KitchensClientProps {
     data: Kitchen[];
+    products: Product[];
     kitchenTypes: { label: string; value: string }[];
     isLoading?: boolean;
 }
 
 export const KitchensClient: React.FC<KitchensClientProps> = ({
     data,
+    products,
     kitchenTypes,
     isLoading = false,
 }) => {
@@ -84,8 +86,8 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(kitchenTypes),
-        [kitchenTypes],
+        () => buildColumns(kitchenTypes, products),
+        [kitchenTypes, products],
     );
 
     return (
@@ -102,7 +104,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'type', 'branches']}
+                searchKey={['name', 'type', 'branches', 'products']}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}

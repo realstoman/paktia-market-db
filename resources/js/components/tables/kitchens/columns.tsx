@@ -1,12 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Kitchen } from '@/types';
+import { Kitchen, Product } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 export const buildColumns = (
     kitchenTypes: { label: string; value: string }[],
+    products: Product[],
 ): ColumnDef<Kitchen>[] => [
     {
         id: 'select',
@@ -42,6 +43,31 @@ export const buildColumns = (
         header: 'Type',
         cell: ({ row }) => row.getValue('type') || '—',
     },
+    {
+        id: 'products',
+        header: 'Products',
+        accessorFn: (row) =>
+            (row.products ?? [])
+                .map((product) => product.name)
+                .join(', '),
+        cell: ({ row }) => {
+            const kitchenProducts = row.original.products ?? [];
+            if (kitchenProducts.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        No products
+                    </span>
+                );
+            }
+
+            return (
+                <span className="text-xs text-muted-foreground">
+                    {kitchenProducts.length} product
+                    {kitchenProducts.length > 1 ? 's' : ''}
+                </span>
+            );
+        },
+    },
 
     {
         accessorKey: 'is_active',
@@ -73,7 +99,11 @@ export const buildColumns = (
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <CellAction data={row.original} kitchenTypes={kitchenTypes} />
+            <CellAction
+                data={row.original}
+                kitchenTypes={kitchenTypes}
+                products={products}
+            />
         ),
     },
 ];
