@@ -14,6 +14,7 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
+    Boxes,
     Building2,
     ChefHat,
     CookingPot,
@@ -43,6 +44,12 @@ const mainNavItems: NavItem[] = [
         href: '/products',
         icon: Package,
         can: 'products.view',
+    },
+    {
+        title: 'Inventory',
+        href: '/inventory',
+        icon: Boxes,
+        can: 'inventory.view',
     },
     {
         title: 'Users',
