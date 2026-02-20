@@ -14,6 +14,7 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
+    Boxes,
     Building2,
     ChefHat,
     CookingPot,
@@ -45,16 +46,10 @@ const mainNavItems: NavItem[] = [
         can: 'products.view',
     },
     {
-        title: 'Users',
-        href: '/users',
-        icon: Users,
-        can: 'user.view',
-    },
-    {
-        title: 'Roles',
-        href: '/roles',
-        icon: ShieldCheck,
-        can: 'role.view',
+        title: 'Inventory',
+        href: '/inventory',
+        icon: Boxes,
+        can: 'inventory.view',
     },
     {
         title: 'Branches',
@@ -67,6 +62,18 @@ const mainNavItems: NavItem[] = [
         href: '/kitchens',
         icon: ChefHat,
         can: 'kitchen.view',
+    },
+    {
+        title: 'Users',
+        href: '/users',
+        icon: Users,
+        can: 'user.view',
+    },
+    {
+        title: 'Roles',
+        href: '/roles',
+        icon: ShieldCheck,
+        can: 'role.view',
     },
     {
         title: 'Countries',

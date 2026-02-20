@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -72,6 +73,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('orders', OrderController::class)->only(['index', 'store']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
+
+    // Inventory
+    Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);
