@@ -1,8 +1,8 @@
 'use client';
 
-import { OrdersClient } from '@/components/tables/orders/client';
-import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
 import InputError from '@/components/input-error';
+import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
+import { OrdersClient } from '@/components/tables/orders/client';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -170,10 +170,7 @@ export default function OrdersPage({
                 <div className="flex justify-end">
                     <div className="w-full max-w-md space-y-1">
                         <div className="flex items-end justify-end gap-2">
-                            <div className="w-full">
-                                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                                    Filter Date
-                                </label>
+                            <div className="w-full bg-white dark:bg-neutral-900">
                                 <Input
                                     type="date"
                                     value={dateFilter}
