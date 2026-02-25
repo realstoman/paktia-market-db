@@ -25,7 +25,7 @@ import { Branch, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { ClipboardList, Plus, Save, Trash2, X } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useState } from 'react';
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
@@ -79,6 +79,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [branchFilter, setBranchFilter] = useState('all');
+    const [userFilter, setUserFilter] = useState('all');
+    const [kitchenFilter, setKitchenFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     const resetCreateForm = () => {
         setBranchId('');
@@ -314,12 +318,153 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         onAddItems: openAddItems,
     });
 
+    const users = useMemo(() => {
+        const map = new Map<number, { id: number; name: string }>();
+        for (const order of data) {
+            const user = order.user;
+            if (user?.id) {
+                map.set(user.id, {
+                    id: user.id,
+                    name: user.name ?? `User #${user.id}`,
+                });
+            }
+        }
+
+        return Array.from(map.values()).sort((a, b) =>
+            a.name.localeCompare(b.name),
+        );
+    }, [data]);
+
+    const kitchens = useMemo(() => {
+        const map = new Map<number, { id: number; name: string }>();
+        for (const order of data) {
+            for (const item of order.items ?? []) {
+                if (item.kitchen_id && item.kitchen?.name) {
+                    map.set(item.kitchen_id, {
+                        id: item.kitchen_id,
+                        name: item.kitchen.name,
+                    });
+                }
+            }
+        }
+
+        return Array.from(map.values()).sort((a, b) =>
+            a.name.localeCompare(b.name),
+        );
+    }, [data]);
+
+    const filteredData = useMemo(() => {
+        return data.filter((order) => {
+            if (
+                branchFilter !== 'all' &&
+                String(order.branch_id) !== branchFilter
+            ) {
+                return false;
+            }
+
+            if (
+                userFilter !== 'all' &&
+                String(order.user_id ?? '') !== userFilter
+            ) {
+                return false;
+            }
+
+            if (
+                statusFilter !== 'all' &&
+                (order.status ?? 'pending') !== statusFilter
+            ) {
+                return false;
+            }
+
+            if (kitchenFilter !== 'all') {
+                const hasKitchen = (order.items ?? []).some(
+                    (item) => String(item.kitchen_id ?? '') === kitchenFilter,
+                );
+                if (!hasKitchen) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [branchFilter, data, kitchenFilter, statusFilter, userFilter]);
+
+    const tableToolbar = (
+        <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
+            <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="h-10 w-[170px]">
+                    <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={String(branch.id)}>
+                            {branch.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select value={userFilter} onValueChange={setUserFilter}>
+                <SelectTrigger className="h-10 w-[170px]">
+                    <SelectValue placeholder="User" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Users</SelectItem>
+                    {users.map((user) => (
+                        <SelectItem key={user.id} value={String(user.id)}>
+                            {user.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select value={kitchenFilter} onValueChange={setKitchenFilter}>
+                <SelectTrigger className="h-10 w-[170px]">
+                    <SelectValue placeholder="Kitchen" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Kitchens</SelectItem>
+                    {kitchens.map((kitchen) => (
+                        <SelectItem
+                            key={kitchen.id}
+                            value={String(kitchen.id)}
+                        >
+                            {kitchen.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-10 w-[170px]">
+                    <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {ORDER_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                            {status
+                                .split('_')
+                                .map(
+                                    (part) =>
+                                        part.charAt(0).toUpperCase() +
+                                        part.slice(1),
+                                )
+                                .join(' ')}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Orders: ${formatNumber(data.length)}`}
-                    description="Track and manage orders (ASC order by ID)"
+                    title={`Orders: ${formatNumber(filteredData.length)}`}
+                    description="Track and manage orders (DESC order by ID)"
                 />
                 <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -330,9 +475,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             <DataTable
                 searchKey={['id', 'branch.name', 'user.name', 'status']}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search orders by branch or status..."
+                toolbar={tableToolbar}
             />
 
             <Dialog

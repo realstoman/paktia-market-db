@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     searchKey?: string[];
     isLoading?: boolean;
     searchPlaceholder?: string;
+    toolbar?: React.ReactNode;
 }
 
 const nestedPropertyFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
@@ -56,6 +57,7 @@ export function DataTable<TData, TValue>({
     searchKey = [],
     isLoading = false,
     searchPlaceholder = 'Search...',
+    toolbar,
 }: DataTableProps<TData, TValue>) {
     const [pagination, setPagination] = useState({
         pageIndex: 0,
@@ -134,12 +136,19 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="space-y-4">
-            <Input
-                placeholder={searchPlaceholder}
-                value={globalFilter ?? ''}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(event.target.value)}
-                className="max-w-sm border border-neutral-200/60 dark:border-neutral-900/80"
-            />
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <Input
+                    placeholder={searchPlaceholder}
+                    value={globalFilter ?? ''}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        setGlobalFilter(event.target.value)
+                    }
+                    className="h-10 w-full max-w-sm border border-neutral-200/60 dark:border-neutral-900/80"
+                />
+                {toolbar ? (
+                    <div className="ml-auto">{toolbar}</div>
+                ) : null}
+            </div>
 
             <ScrollArea className="h-[calc(80vh-220px)] rounded-md border border-neutral-200/60 dark:border-neutral-900/80">
                 <Table>
