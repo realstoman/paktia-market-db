@@ -266,6 +266,9 @@ export interface Order {
     items?: OrderItem[];
     items_count?: number;
     order_type: string;
+    customer_name?: string | null;
+    customer_phone?: string | null;
+    delivery_address?: string | null;
     base_currency?: string;
     exchange_rate?: number | null;
     total_amount: number | string;

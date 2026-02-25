@@ -20,6 +20,12 @@ interface ReceiptPreviewDialogProps {
 }
 
 const RECEIPT_WIDTH_PX = 302;
+const RESTAURANT_CONTACT = {
+    address: 'Kabul, Afghanistan',
+    website: 'www.babarestaurant.af',
+    phone: '+93 700 000 000',
+    whatsapp: '+93 700 000 000',
+};
 
 const escapeHtml = (value: string) =>
     value
@@ -89,9 +95,13 @@ export function ReceiptPreviewDialog({
             })
             .join('');
 
-        const deliveryAddress =
+        const deliveryDetails =
             order.order_type === 'delivery'
-                ? `<p><strong>Address:</strong> ${escapeHtml(order.branch?.address ?? '-')}</p>`
+                ? `
+                    <p><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? '-')}</p>
+                    <p><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? '-')}</p>
+                    <p><strong>Address:</strong> ${escapeHtml(order.delivery_address ?? '-')}</p>
+                `
                 : '';
 
         printWindow.document.write(`
@@ -122,7 +132,7 @@ export function ReceiptPreviewDialog({
                         <p><strong>Order:</strong> #${order.id}</p>
                         <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
                         <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
-                        ${deliveryAddress}
+                        ${deliveryDetails}
                         <hr />
                         <table>
                             <thead>
@@ -140,6 +150,13 @@ export function ReceiptPreviewDialog({
                             <p><span>Subtotal</span><span>${escapeHtml(formatAfn(subtotal))}</span></p>
                             <p><span>Discount</span><span>${escapeHtml(formatAfn(discountValue))}</span></p>
                             <p><strong>Grand Total</strong><strong>${escapeHtml(formatAfn(finalTotal))}</strong></p>
+                        </div>
+                        <hr />
+                        <div class="muted" style="font-size:10px;">
+                            <p style="margin:2px 0;"><strong>Address:</strong> ${escapeHtml(RESTAURANT_CONTACT.address)}</p>
+                            <p style="margin:2px 0;"><strong>Website:</strong> ${escapeHtml(RESTAURANT_CONTACT.website)}</p>
+                            <p style="margin:2px 0;"><strong>Phone:</strong> ${escapeHtml(RESTAURANT_CONTACT.phone)}</p>
+                            <p style="margin:2px 0;"><strong>WhatsApp:</strong> ${escapeHtml(RESTAURANT_CONTACT.whatsapp)}</p>
                         </div>
                     </div>
                     <script>
@@ -255,12 +272,26 @@ export function ReceiptPreviewDialog({
                                         {orderTypeLabel}
                                     </p>
                                     {order.order_type === 'delivery' ? (
-                                        <p>
-                                            <span className="font-medium">
-                                                Address:
-                                            </span>{' '}
-                                            {order.branch?.address ?? '-'}
-                                        </p>
+                                        <>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Customer:
+                                                </span>{' '}
+                                                {order.customer_name ?? '-'}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Phone:
+                                                </span>{' '}
+                                                {order.customer_phone ?? '-'}
+                                            </p>
+                                            <p>
+                                                <span className="font-medium">
+                                                    Address:
+                                                </span>{' '}
+                                                {order.delivery_address ?? '-'}
+                                            </p>
+                                        </>
                                     ) : null}
                                     <div className="my-2 border-t border-dashed" />
                                     <div className="space-y-1">
@@ -301,6 +332,33 @@ export function ReceiptPreviewDialog({
                                         <span>Grand Total</span>
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
+                                    <div className="my-2 border-t border-dashed" />
+                                    <div className="space-y-0.5 text-[10px] text-neutral-600">
+                                        <p>
+                                            <span className="font-medium">
+                                                Address:
+                                            </span>{' '}
+                                            {RESTAURANT_CONTACT.address}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">
+                                                Website:
+                                            </span>{' '}
+                                            {RESTAURANT_CONTACT.website}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">
+                                                Phone:
+                                            </span>{' '}
+                                            {RESTAURANT_CONTACT.phone}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">
+                                                WhatsApp:
+                                            </span>{' '}
+                                            {RESTAURANT_CONTACT.whatsapp}
+                                        </p>
+                                    </div>
                                 </div>
                             </ScrollArea>
                         </div>

@@ -73,6 +73,9 @@ class OrderController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'order_type' => 'required|string|max:50',
             'branch_table_id' => 'nullable|exists:branch_tables,id',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:50',
+            'delivery_address' => 'nullable|string|max:2000',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_size_id' => 'nullable|exists:product_sizes,id',
@@ -99,6 +102,26 @@ class OrderController extends Controller
             }
         }
 
+        if (($validated['order_type'] ?? null) === 'delivery') {
+            if (empty(trim((string) ($validated['customer_name'] ?? '')))) {
+                return back()->withErrors([
+                    'customer_name' => 'Customer name is required for delivery orders.',
+                ]);
+            }
+
+            if (empty(trim((string) ($validated['customer_phone'] ?? '')))) {
+                return back()->withErrors([
+                    'customer_phone' => 'Customer phone is required for delivery orders.',
+                ]);
+            }
+
+            if (empty(trim((string) ($validated['delivery_address'] ?? '')))) {
+                return back()->withErrors([
+                    'delivery_address' => 'Delivery address is required for delivery orders.',
+                ]);
+            }
+        }
+
         DB::transaction(function () use ($validated, $request) {
             $productsById = Product::whereIn(
                 'id',
@@ -114,6 +137,15 @@ class OrderController extends Controller
                 'branch_table_id' => $validated['branch_table_id'] ?? null,
                 'user_id' => $request->user()?->id,
                 'order_type' => $validated['order_type'],
+                'customer_name' => $validated['order_type'] === 'delivery'
+                    ? trim((string) ($validated['customer_name'] ?? ''))
+                    : null,
+                'customer_phone' => $validated['order_type'] === 'delivery'
+                    ? trim((string) ($validated['customer_phone'] ?? ''))
+                    : null,
+                'delivery_address' => $validated['order_type'] === 'delivery'
+                    ? trim((string) ($validated['delivery_address'] ?? ''))
+                    : null,
                 'base_currency' => 'AFN',
                 'exchange_rate' => null,
                 'total_amount' => $total,

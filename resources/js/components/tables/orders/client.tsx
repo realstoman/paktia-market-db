@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { Textarea } from '@/components/ui/textarea';
 import { Branch, BranchTable, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
@@ -76,6 +77,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [branchId, setBranchId] = useState('');
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [deliveryAddress, setDeliveryAddress] = useState('');
     const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [addItems, setAddItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -97,6 +101,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setBranchId('');
         setBranchTableId('');
         setOrderType('dine_in');
+        setCustomerName('');
+        setCustomerPhone('');
+        setDeliveryAddress('');
         setItems([emptyItem()]);
         setCreateErrors({});
     };
@@ -223,6 +230,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             !branchId ||
             items.length === 0 ||
             (orderType === 'dine_in' && !branchTableId) ||
+            (orderType === 'delivery' &&
+                (!customerName.trim() ||
+                    !customerPhone.trim() ||
+                    !deliveryAddress.trim())) ||
             isSubmitting
         ) {
             return;
@@ -242,6 +253,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 order_type: orderType,
                 branch_table_id:
                     orderType === 'dine_in' ? Number(branchTableId) : null,
+                customer_name:
+                    orderType === 'delivery' ? customerName.trim() : null,
+                customer_phone:
+                    orderType === 'delivery' ? customerPhone.trim() : null,
+                delivery_address:
+                    orderType === 'delivery' ? deliveryAddress.trim() : null,
                 items: payloadItems,
             },
             {
@@ -615,6 +632,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     if (value !== 'dine_in') {
                                         setBranchTableId('');
                                     }
+                                    if (value !== 'delivery') {
+                                        setCustomerName('');
+                                        setCustomerPhone('');
+                                        setDeliveryAddress('');
+                                    }
                                 }}
                             >
                                 <SelectTrigger>
@@ -661,6 +683,50 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     message={createErrors.branch_table_id}
                                 />
                             </div>
+                        ) : null}
+                        {orderType === 'delivery' ? (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label>Customer Name</Label>
+                                    <Input
+                                        value={customerName}
+                                        onChange={(event) =>
+                                            setCustomerName(event.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.customer_name}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Customer Phone</Label>
+                                    <Input
+                                        value={customerPhone}
+                                        onChange={(event) =>
+                                            setCustomerPhone(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.customer_phone}
+                                    />
+                                </div>
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label>Delivery Address</Label>
+                                    <Textarea
+                                        value={deliveryAddress}
+                                        onChange={(event) =>
+                                            setDeliveryAddress(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.delivery_address}
+                                    />
+                                </div>
+                            </>
                         ) : null}
                     </div>
 
@@ -1001,6 +1067,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 !branchId ||
                                 items.length === 0 ||
                                 (orderType === 'dine_in' && !branchTableId) ||
+                                (orderType === 'delivery' &&
+                                    (!customerName.trim() ||
+                                        !customerPhone.trim() ||
+                                        !deliveryAddress.trim())) ||
                                 isSubmitting
                             }
                         >
