@@ -12,13 +12,14 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerHeader,
+    DrawerTitle,
+} from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -265,49 +266,53 @@ export default function OrdersPage({
                 </div>
             </div>
 
-            <Dialog
+            <Drawer
                 open={Boolean(selectedStatus)}
                 onOpenChange={(open) => !open && setSelectedStatus(null)}
+                direction="right"
             >
-                <DialogContent className="sm:max-w-xl">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DrawerContent className="h-screen w-full p-0 data-[vaul-drawer-direction=right]:sm:max-w-xl">
+                    <DrawerHeader className="sticky top-0 z-10 border-b bg-background">
+                        <DrawerTitle>
                             {selectedCard?.title ?? 'Status'} Orders
-                        </DialogTitle>
-                        <DialogDescription>
+                        </DrawerTitle>
+                        <DrawerDescription>
                             Orders currently in{' '}
                             {selectedCard?.title.toLowerCase() ?? 'selected'}{' '}
                             status.
-                        </DialogDescription>
-                    </DialogHeader>
+                        </DrawerDescription>
+                    </DrawerHeader>
 
-                    <div className="max-h-[340px] space-y-2 overflow-y-auto">
-                        {selectedOrders.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                No orders found for this status.
-                            </p>
-                        ) : (
-                            selectedOrders.map((order) => (
-                                <div
-                                    key={order.id}
-                                    className="rounded-md border border-neutral-200/70 p-3 dark:border-neutral-800"
-                                >
-                                    <p className="font-medium">
-                                        Order #{order.id}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Branch:{' '}
-                                        {order.branch?.name ?? 'Unknown branch'}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Total: {formatAfn(order.total_amount)}
-                                    </p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
+                    <ScrollArea className="h-[calc(100vh-88px)] px-4 pb-4">
+                        <div className="space-y-2 py-4">
+                            {selectedOrders.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    No orders found for this status.
+                                </p>
+                            ) : (
+                                selectedOrders.map((order) => (
+                                    <div
+                                        key={order.id}
+                                        className="rounded-md border border-neutral-200/70 p-3 dark:border-neutral-800"
+                                    >
+                                        <p className="font-medium">
+                                            Order #{order.id}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Branch:{' '}
+                                            {order.branch?.name ??
+                                                'Unknown branch'}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Total: {formatAfn(order.total_amount)}
+                                        </p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </ScrollArea>
+                </DrawerContent>
+            </Drawer>
         </AppLayout>
     );
 }
