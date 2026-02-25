@@ -52,6 +52,7 @@ interface OrdersPageProps {
     products: Product[];
     selectedDate: string | null;
     isAllTime: boolean;
+    restaurantStartDate: string | null;
 }
 
 type OrderStatusKey =
@@ -69,9 +70,9 @@ interface StatusCardConfig {
 
 const STATUS_CARDS: StatusCardConfig[] = [
     { key: 'ready', title: 'Ready', icon: PackageCheck },
+    { key: 'completed', title: 'Completed', icon: CheckCircle2 },
     { key: 'in_progress', title: 'In Progress', icon: CookingPot },
     { key: 'pending', title: 'Pending', icon: Clock3 },
-    { key: 'completed', title: 'Completed', icon: CheckCircle2 },
     { key: 'cancelled', title: 'Cancelled', icon: CircleX },
 ];
 
@@ -81,6 +82,7 @@ export default function OrdersPage({
     products,
     selectedDate,
     isAllTime,
+    restaurantStartDate,
 }: OrdersPageProps) {
     const [selectedStatus, setSelectedStatus] = useState<OrderStatusKey | null>(
         null,
@@ -102,6 +104,18 @@ export default function OrdersPage({
                   )
                 : '',
         [selectedDate],
+    );
+
+    const restaurantStartedDate = useMemo(
+        () =>
+            restaurantStartDate
+                ? new Date(restaurantStartDate).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                  })
+                : null,
+        [restaurantStartDate],
     );
 
     const stats = useMemo(() => {
@@ -219,7 +233,9 @@ export default function OrdersPage({
                                 {formatNumber(orders.length)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                Total orders today
+                                {isAllTime
+                                    ? `All time since ${restaurantStartedDate ?? '-'}`
+                                    : 'Total orders today'}
                             </p>
                         </CardContent>
                     </Card>

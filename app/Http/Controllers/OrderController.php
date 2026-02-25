@@ -45,6 +45,10 @@ class OrderController extends Controller
             $ordersQuery->whereDate('created_at', $selectedDate);
         }
 
+        $restaurantStartDate = Order::query()
+            ->orderBy('created_at')
+            ->value('created_at');
+
         return Inertia::render('orders/index', [
             'orders' => $ordersQuery->get(),
             'branches' => Branch::orderBy('name')->get(),
@@ -53,6 +57,7 @@ class OrderController extends Controller
                 ->get(),
             'selectedDate' => $selectedDate,
             'isAllTime' => $isAllTime,
+            'restaurantStartDate' => $restaurantStartDate,
         ]);
     }
 
