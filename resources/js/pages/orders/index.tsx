@@ -28,6 +28,7 @@ import {
     CircleX,
     Clock3,
     CookingPot,
+    FilterX,
     type LucideIcon,
     PackageCheck,
 } from 'lucide-react';
@@ -48,7 +49,8 @@ interface OrdersPageProps {
     orders: Order[];
     branches: Branch[];
     products: Product[];
-    selectedDate: string;
+    selectedDate: string | null;
+    isAllTime: boolean;
 }
 
 type OrderStatusKey =
@@ -77,21 +79,27 @@ export default function OrdersPage({
     branches,
     products,
     selectedDate,
+    isAllTime,
 }: OrdersPageProps) {
     const [selectedStatus, setSelectedStatus] = useState<OrderStatusKey | null>(
         null,
     );
-    const [dateFilter, setDateFilter] = useState(selectedDate);
+    const [dateFilter, setDateFilter] = useState(selectedDate ?? '');
     const [dateError, setDateError] = useState('');
 
     const todayDate = useMemo(
         () =>
-            new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-            }),
+            selectedDate
+                ? new Date(`${selectedDate}T00:00:00`).toLocaleDateString(
+                      'en-US',
+                      {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                      },
+                  )
+                : '',
         [selectedDate],
     );
 
@@ -141,6 +149,20 @@ export default function OrdersPage({
         );
     };
 
+    const handleClearFilter = () => {
+        setDateError('');
+        setDateFilter('');
+
+        router.get(
+            '/orders',
+            { all_time: 1 },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
@@ -167,6 +189,15 @@ export default function OrdersPage({
                             >
                                 Submit
                             </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="h-10 shrink-0 gap-1.5"
+                                onClick={handleClearFilter}
+                            >
+                                <FilterX className="h-4 w-4" />
+                                Clear
+                            </Button>
                         </div>
                         <InputError message={dateError} />
                     </div>
@@ -179,7 +210,9 @@ export default function OrdersPage({
                                 Baba Restaurant
                             </CardTitle>
                             <CardDescription className="text-sm">
-                                Order statistics for {todayDate}
+                                {isAllTime
+                                    ? 'All time records for orders'
+                                    : `Order statistics for ${todayDate}`}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-1">

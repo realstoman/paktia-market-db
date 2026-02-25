@@ -25,27 +25,34 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
+            'all_time' => ['nullable', 'boolean'],
         ]);
 
-        $selectedDate = $validated['date'] ?? Carbon::today()->toDateString();
+        $isAllTime = (bool) ($validated['all_time'] ?? false);
+        $selectedDate = $isAllTime
+            ? null
+            : ($validated['date'] ?? Carbon::today()->toDateString());
+
+        $ordersQuery = Order::with([
+            'branch',
+            'user',
+            'items.product',
+            'items.productSize',
+            'items.kitchen',
+        ])->withCount('items')->orderBy('id');
+
+        if (! $isAllTime && $selectedDate) {
+            $ordersQuery->whereDate('created_at', $selectedDate);
+        }
 
         return Inertia::render('orders/index', [
-            'orders' => Order::with([
-                'branch',
-                'user',
-                'items.product',
-                'items.productSize',
-                'items.kitchen',
-            ])
-                ->whereDate('created_at', $selectedDate)
-                ->withCount('items')
-                ->orderBy('id')
-                ->get(),
+            'orders' => $ordersQuery->get(),
             'branches' => Branch::orderBy('name')->get(),
             'products' => Product::with(['sizes', 'kitchen'])
                 ->orderBy('name')
                 ->get(),
             'selectedDate' => $selectedDate,
+            'isAllTime' => $isAllTime,
         ]);
     }
 
