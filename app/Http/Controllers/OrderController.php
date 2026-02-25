@@ -39,7 +39,7 @@ class OrderController extends Controller
             'items.product',
             'items.productSize',
             'items.kitchen',
-        ])->withCount('items')->orderBy('id');
+        ])->withCount('items')->orderByDesc('id');
 
         if (! $isAllTime && $selectedDate) {
             $ordersQuery->whereDate('created_at', $selectedDate);
