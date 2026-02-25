@@ -323,7 +323,8 @@ export default function OrdersPage({
                                                 'Unknown branch'}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Total: {formatAfn(order.total_amount)}
+                                            Total:{' '}
+                                            {formatAfn(order.total_amount)}
                                         </p>
                                     </div>
                                 ))
