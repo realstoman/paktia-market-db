@@ -24,8 +24,8 @@ import {
     CheckCircle2,
     CircleX,
     Clock3,
+    CookingPot,
     ExternalLink,
-    LoaderCircle,
     type LucideIcon,
     PackageCheck,
 } from 'lucide-react';
@@ -63,7 +63,7 @@ interface StatusCardConfig {
 
 const STATUS_CARDS: StatusCardConfig[] = [
     { key: 'ready', title: 'Ready', icon: PackageCheck },
-    { key: 'in_progress', title: 'In Progress', icon: LoaderCircle },
+    { key: 'in_progress', title: 'In Progress', icon: CookingPot },
     { key: 'pending', title: 'Pending', icon: Clock3 },
     { key: 'completed', title: 'Completed', icon: CheckCircle2 },
     { key: 'cancelled', title: 'Cancelled', icon: CircleX },
@@ -120,9 +120,9 @@ export default function OrdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
-            <div className="space-y-8 p-2">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-                    <Card className="gap-3 py-4 md:col-span-4 md:row-span-2">
+            <div className="space-y-3 p-2">
+                <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
+                    <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="pb-0">
                             <CardTitle className="text-xl">
                                 Baba Restaurant
@@ -141,14 +141,14 @@ export default function OrdersPage({
                         </CardContent>
                     </Card>
 
-                    <div className="grid grid-cols-1 gap-4 md:col-span-8 md:grid-cols-12">
+                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         {topRowStatusCards.map((card) => {
                             const Icon = card.icon;
 
                             return (
                                 <Card
                                     key={card.key}
-                                    className="gap-3 py-4 md:col-span-6"
+                                    className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900"
                                 >
                                     <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                         <CardTitle className="text-sm">
@@ -182,7 +182,7 @@ export default function OrdersPage({
                             return (
                                 <Card
                                     key={card.key}
-                                    className="gap-3 py-4 md:col-span-4"
+                                    className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900"
                                 >
                                     <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                         <CardTitle className="text-sm">
@@ -212,7 +212,7 @@ export default function OrdersPage({
                     </div>
                 </div>
 
-                <div className="p-6 text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 text-gray-900 shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <OrdersClient
                         data={orders}
                         branches={branches}
