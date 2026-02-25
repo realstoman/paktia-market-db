@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { BranchTable, Order } from '@/types';
-import { Edit3, Eye, MoreHorizontal, Plus, Save, X } from 'lucide-react';
+import { Edit3, Eye, MoreHorizontal, Plus, Printer, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const ORDER_STATUSES = [
@@ -42,6 +42,7 @@ interface OrderRowActionsProps {
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
     onUpdateStatus: (order: Order, status: string) => void;
+    onPrint: (order: Order) => void;
 }
 
 export function OrderRowActions({
@@ -51,6 +52,7 @@ export function OrderRowActions({
     onAddItems,
     onAssignTable,
     onUpdateStatus,
+    onPrint,
 }: OrderRowActionsProps) {
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -98,6 +100,10 @@ export function OrderRowActions({
                     <DropdownMenuItem onClick={() => onAddItems(order)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Item
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onPrint(order)}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print Receipt
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
