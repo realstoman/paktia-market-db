@@ -2,7 +2,7 @@
 
 import { OrdersClient } from '@/components/tables/orders/client';
 import AppLayout from '@/layouts/app-layout';
-import { Order, Branch, Product, BreadcrumbItem } from '@/types';
+import { Branch, BreadcrumbItem, Order, Product } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
