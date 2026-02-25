@@ -85,12 +85,12 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Mobile App',
-        href: 'https://github.com/realstoman',
+        href: 'https://play.google.com/store/apps/details?id=com.babataste',
         icon: Smartphone,
     },
     {
         title: 'Website',
-        href: 'https://github.com/realstoman',
+        href: 'https://babataste.com',
         icon: Globe,
     },
 ];

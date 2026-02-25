@@ -8,6 +8,7 @@ use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Location\BranchController;
+use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
     Route::resource('provinces', ProvinceController::class);
     Route::resource('branches', BranchController::class);
+    Route::post('branch-tables', [BranchTableController::class, 'store'])->name('branch-tables.store');
+    Route::put('branch-tables/{branchTable}', [BranchTableController::class, 'update'])->name('branch-tables.update');
+    Route::delete('branch-tables/{branchTable}', [BranchTableController::class, 'destroy'])->name('branch-tables.destroy');
     Route::post('branches/{branch}/kitchens', [BranchController::class, 'syncKitchens'])->name('branches.kitchens');
     Route::resource('kitchens', KitchenController::class);
     Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
@@ -72,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::resource('orders', OrderController::class)->only(['index', 'store']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+    Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
 
     // Inventory

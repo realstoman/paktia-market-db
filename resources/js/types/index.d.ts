@@ -80,11 +80,25 @@ export interface Branch {
     province_id?: number | null;
     province_object?: Province | null;
     kitchens?: Kitchen[];
+    tables?: BranchTable[];
     is_active?: boolean;
     address: string;
     description: string;
     created_at: string;
     updated_at: string;
+    [key: string]: unknown;
+}
+
+export interface BranchTable {
+    id: number;
+    branch_id: number;
+    branch?: Branch | null;
+    table_number: string;
+    title: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 
@@ -244,12 +258,17 @@ export interface OrderItem {
 export interface Order {
     id: number;
     branch_id: number;
+    branch_table_id?: number | null;
     user_id?: number | null;
     user?: User | null;
     branch?: Branch | null;
+    branch_table?: BranchTable | null;
     items?: OrderItem[];
     items_count?: number;
     order_type: string;
+    customer_name?: string | null;
+    customer_phone?: string | null;
+    delivery_address?: string | null;
     base_currency?: string;
     exchange_rate?: number | null;
     total_amount: number | string;
