@@ -1,11 +1,11 @@
 'use client';
 
+import { OrdersClient } from '@/components/tables/orders/client';
 import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
@@ -16,7 +16,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { OrdersClient } from '@/components/tables/orders/client';
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -25,6 +24,7 @@ import {
     CheckCircle2,
     CircleX,
     Clock3,
+    ExternalLink,
     LoaderCircle,
     type LucideIcon,
     PackageCheck,
@@ -108,63 +108,104 @@ export default function OrdersPage({
         return initial;
     }, [orders]);
 
-    const selectedCard = STATUS_CARDS.find((card) => card.key === selectedStatus);
+    const selectedCard = STATUS_CARDS.find(
+        (card) => card.key === selectedStatus,
+    );
     const selectedOrders = orders.filter(
         (order) => (order.status ?? 'pending') === selectedStatus,
     );
+    const topRowStatusCards = STATUS_CARDS.slice(0, 2);
+    const bottomRowStatusCards = STATUS_CARDS.slice(2);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
             <div className="space-y-6 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Card className="md:row-span-2">
-                        <CardHeader>
-                            <CardTitle className="text-2xl">
-                                Baba Restaurant
-                            </CardTitle>
-                            <CardDescription className="text-sm">
-                                Order statistics for {todayDate}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-1">
-                            <p className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">
-                                {formatNumber(orders.length)}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Total orders today
-                            </p>
-                        </CardContent>
-                    </Card>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <Card className="gap-3 py-4">
+                            <CardHeader className="pb-0">
+                                <CardTitle className="text-xl">
+                                    Baba Restaurant
+                                </CardTitle>
+                                <CardDescription className="text-sm">
+                                    Order statistics for {todayDate}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+                                    {formatNumber(orders.length)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Total orders today
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                    {STATUS_CARDS.map((card) => {
-                        const Icon = card.icon;
+                        {topRowStatusCards.map((card) => {
+                            const Icon = card.icon;
 
-                        return (
-                            <Card key={card.key}>
-                                <CardHeader className="flex flex-row items-center justify-between gap-2">
-                                    <CardTitle className="text-base">
-                                        {card.title}
-                                    </CardTitle>
-                                    <Icon className="h-5 w-5 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-3xl font-semibold tracking-tight">
-                                        {formatNumber(stats[card.key])}
-                                    </p>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button
-                                        variant="link"
-                                        className="h-auto p-0 text-sm"
-                                        onClick={() => setSelectedStatus(card.key)}
-                                    >
-                                        View details
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        );
-                    })}
+                            return (
+                                <Card key={card.key} className="gap-3 py-4">
+                                    <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                        <CardTitle className="text-sm">
+                                            {card.title}
+                                        </CardTitle>
+                                        <Icon className="h-4 w-4 text-muted-foreground" />
+                                    </CardHeader>
+                                    <CardContent className="flex items-end justify-between gap-3">
+                                        <p className="text-2xl font-semibold tracking-tight">
+                                            {formatNumber(stats[card.key])}
+                                        </p>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
+                                            onClick={() =>
+                                                setSelectedStatus(card.key)
+                                            }
+                                        >
+                                            Details
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        {bottomRowStatusCards.map((card) => {
+                            const Icon = card.icon;
+
+                            return (
+                                <Card key={card.key} className="gap-3 py-4">
+                                    <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                        <CardTitle className="text-sm">
+                                            {card.title}
+                                        </CardTitle>
+                                        <Icon className="h-4 w-4 text-muted-foreground" />
+                                    </CardHeader>
+                                    <CardContent className="flex items-end justify-between gap-3">
+                                        <p className="text-2xl font-semibold tracking-tight">
+                                            {formatNumber(stats[card.key])}
+                                        </p>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
+                                            onClick={() =>
+                                                setSelectedStatus(card.key)
+                                            }
+                                        >
+                                            Details
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 <div className="p-6 text-gray-900">
