@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -389,73 +390,91 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         });
     }, [branchFilter, data, kitchenFilter, statusFilter, userFilter]);
 
+    const branchFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: 'All Branches' },
+            ...branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        ],
+        [branches],
+    );
+
+    const userFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: 'All Users' },
+            ...users.map((user) => ({
+                value: String(user.id),
+                label: user.name,
+            })),
+        ],
+        [users],
+    );
+
+    const kitchenFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: 'All Kitchens' },
+            ...kitchens.map((kitchen) => ({
+                value: String(kitchen.id),
+                label: kitchen.name,
+            })),
+        ],
+        [kitchens],
+    );
+
+    const statusFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: 'All Statuses' },
+            ...ORDER_STATUSES.map((status) => ({
+                value: status,
+                label: status
+                    .split('_')
+                    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                    .join(' '),
+            })),
+        ],
+        [],
+    );
+
     const tableToolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
-            <Select value={branchFilter} onValueChange={setBranchFilter}>
-                <SelectTrigger className="h-10 w-[170px]">
-                    <SelectValue placeholder="Branch" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Branches</SelectItem>
-                    {branches.map((branch) => (
-                        <SelectItem key={branch.id} value={String(branch.id)}>
-                            {branch.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <Select value={userFilter} onValueChange={setUserFilter}>
-                <SelectTrigger className="h-10 w-[170px]">
-                    <SelectValue placeholder="User" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    {users.map((user) => (
-                        <SelectItem key={user.id} value={String(user.id)}>
-                            {user.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <Select value={kitchenFilter} onValueChange={setKitchenFilter}>
-                <SelectTrigger className="h-10 w-[170px]">
-                    <SelectValue placeholder="Kitchen" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Kitchens</SelectItem>
-                    {kitchens.map((kitchen) => (
-                        <SelectItem
-                            key={kitchen.id}
-                            value={String(kitchen.id)}
-                        >
-                            {kitchen.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-10 w-[170px]">
-                    <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {ORDER_STATUSES.map((status) => (
-                        <SelectItem key={status} value={status}>
-                            {status
-                                .split('_')
-                                .map(
-                                    (part) =>
-                                        part.charAt(0).toUpperCase() +
-                                        part.slice(1),
-                                )
-                                .join(' ')}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <SearchableDropdown
+                value={branchFilter}
+                options={branchFilterOptions}
+                onValueChange={setBranchFilter}
+                placeholder="Branch"
+                searchPlaceholder="Search branches..."
+                emptyText="No branches found."
+                className="w-[170px]"
+            />
+            <SearchableDropdown
+                value={userFilter}
+                options={userFilterOptions}
+                onValueChange={setUserFilter}
+                placeholder="User"
+                searchPlaceholder="Search users..."
+                emptyText="No users found."
+                className="w-[170px]"
+            />
+            <SearchableDropdown
+                value={kitchenFilter}
+                options={kitchenFilterOptions}
+                onValueChange={setKitchenFilter}
+                placeholder="Kitchen"
+                searchPlaceholder="Search kitchens..."
+                emptyText="No kitchens found."
+                className="w-[170px]"
+            />
+            <SearchableDropdown
+                value={statusFilter}
+                options={statusFilterOptions}
+                onValueChange={setStatusFilter}
+                placeholder="Status"
+                searchPlaceholder="Search statuses..."
+                emptyText="No statuses found."
+                className="w-[170px]"
+            />
         </div>
     );
 
