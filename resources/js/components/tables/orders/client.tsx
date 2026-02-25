@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -21,7 +22,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, BranchTable, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -350,7 +350,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         branchTables,
     });
     const filteredTablesByBranch = branchTables.filter(
-        (table) => String(table.branch_id) === branchId && table.is_active !== false,
+        (table) =>
+            String(table.branch_id) === branchId && table.is_active !== false,
     );
 
     const users = useMemo(() => {
@@ -602,7 +603,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="dine_in">Dine In</SelectItem>
+                                    <SelectItem value="dine_in">
+                                        Dine In
+                                    </SelectItem>
                                     <SelectItem value="takeaway">
                                         Takeaway
                                     </SelectItem>
@@ -630,7 +633,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 key={table.id}
                                                 value={String(table.id)}
                                             >
-                                                {table.table_number} - {table.title}
+                                                {table.table_number} -{' '}
+                                                {table.title}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -658,8 +662,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             </Button>
                         </div>
 
-                        {items.length > 4 ? (
-                            <ScrollArea className="h-[400px] rounded-md border border-neutral-200/60 p-1 dark:border-neutral-800">
+                        {items.length > 2 ? (
+                            <ScrollArea className="h-[320px] rounded-md border border-neutral-200/60 p-1 dark:border-neutral-800">
                                 <div className="space-y-3 p-2">
                                     {items.map((item, index) => {
                                         const product = getProductById(
@@ -672,13 +676,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         return (
                                             <div
                                                 key={`order-item-${index}`}
-                                                className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
+                                                className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                             >
                                                 <div className="grid gap-2 sm:col-span-2">
                                                     <Label>Product</Label>
                                                     <Select
                                                         value={item.productId}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleProductChange(
                                                                 setItems,
                                                                 items,
@@ -714,7 +720,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     <Label>Size</Label>
                                                     <Select
                                                         value={item.sizeId}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleSizeChange(
                                                                 setItems,
                                                                 items,
@@ -817,12 +825,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         item.productId,
                                     );
                                     const sizes = product?.sizes ?? [];
-                                    const kitchenName = getItemKitchenName(item);
+                                    const kitchenName =
+                                        getItemKitchenName(item);
 
                                     return (
                                         <div
                                             key={`order-item-${index}`}
-                                            className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
+                                            className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                         >
                                             <div className="grid gap-2 sm:col-span-2">
                                                 <Label>Product</Label>
@@ -936,7 +945,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             index,
                                                         )
                                                     }
-                                                    disabled={items.length === 1}
+                                                    disabled={
+                                                        items.length === 1
+                                                    }
                                                     className="text-red-600"
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
@@ -1035,7 +1046,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         Status
                                     </p>
                                     <Select
-                                        value={selectedOrder.status ?? 'pending'}
+                                        value={
+                                            selectedOrder.status ?? 'pending'
+                                        }
                                         onValueChange={(status) =>
                                             handleStatusUpdate(
                                                 selectedOrder,
@@ -1054,10 +1067,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 >
                                                     {status
                                                         .replace('_', ' ')
-                                                        .replace(
-                                                            /\b\w/g,
-                                                            (c) =>
-                                                                c.toUpperCase(),
+                                                        .replace(/\b\w/g, (c) =>
+                                                            c.toUpperCase(),
                                                         )}
                                                 </SelectItem>
                                             ))}
@@ -1080,8 +1091,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             Product
                                                         </p>
                                                         <p className="font-medium">
-                                                            {item.product?.name ??
-                                                                '-'}
+                                                            {item.product
+                                                                ?.name ?? '-'}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -1219,7 +1230,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 return (
                                     <div
                                         key={`order-add-item-${index}`}
-                                        className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
+                                        className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                     >
                                         <div className="grid gap-2 sm:col-span-2">
                                             <Label>Product</Label>
