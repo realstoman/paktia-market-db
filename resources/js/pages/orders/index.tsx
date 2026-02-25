@@ -1,7 +1,7 @@
 'use client';
 
 import { OrdersClient } from '@/components/tables/orders/client';
-import { Button } from '@/components/ui/button';
+import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
 import {
     Card,
     CardContent,
@@ -25,7 +25,6 @@ import {
     CircleX,
     Clock3,
     CookingPot,
-    ExternalLink,
     type LucideIcon,
     PackageCheck,
 } from 'lucide-react';
@@ -143,70 +142,32 @@ export default function OrdersPage({
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         {topRowStatusCards.map((card) => {
-                            const Icon = card.icon;
-
                             return (
-                                <Card
+                                <OrderStatusStatCard
                                     key={card.key}
-                                    className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900"
-                                >
-                                    <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                        <CardTitle className="text-sm">
-                                            {card.title}
-                                        </CardTitle>
-                                        <Icon className="h-4 w-4 text-muted-foreground" />
-                                    </CardHeader>
-                                    <CardContent className="flex items-end justify-between gap-3">
-                                        <p className="text-2xl font-semibold tracking-tight">
-                                            {formatNumber(stats[card.key])}
-                                        </p>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
-                                            onClick={() =>
-                                                setSelectedStatus(card.key)
-                                            }
-                                        >
-                                            Details
-                                            <ExternalLink className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </CardContent>
-                                </Card>
+                                    title={card.title}
+                                    value={formatNumber(stats[card.key])}
+                                    icon={card.icon}
+                                    className="md:col-span-6"
+                                    onDetailsClick={() =>
+                                        setSelectedStatus(card.key)
+                                    }
+                                />
                             );
                         })}
 
                         {bottomRowStatusCards.map((card) => {
-                            const Icon = card.icon;
-
                             return (
-                                <Card
+                                <OrderStatusStatCard
                                     key={card.key}
-                                    className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900"
-                                >
-                                    <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                        <CardTitle className="text-sm">
-                                            {card.title}
-                                        </CardTitle>
-                                        <Icon className="h-4 w-4 text-muted-foreground" />
-                                    </CardHeader>
-                                    <CardContent className="flex items-end justify-between gap-3">
-                                        <p className="text-2xl font-semibold tracking-tight">
-                                            {formatNumber(stats[card.key])}
-                                        </p>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
-                                            onClick={() =>
-                                                setSelectedStatus(card.key)
-                                            }
-                                        >
-                                            Details
-                                            <ExternalLink className="h-3.5 w-3.5" />
-                                        </Button>
-                                    </CardContent>
-                                </Card>
+                                    title={card.title}
+                                    value={formatNumber(stats[card.key])}
+                                    icon={card.icon}
+                                    className="md:col-span-4"
+                                    onDetailsClick={() =>
+                                        setSelectedStatus(card.key)
+                                    }
+                                />
                             );
                         })}
                     </div>
