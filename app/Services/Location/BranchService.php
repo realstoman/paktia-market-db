@@ -3,6 +3,7 @@
 namespace App\Services\Location;
 
 use App\Models\Branch;
+use App\Models\BranchTable;
 use App\Models\Kitchen;
 
 class BranchService
@@ -36,7 +37,7 @@ class BranchService
 
     public function getIndexData(): array
     {
-        $branches = Branch::with(['country', 'province', 'kitchens'])->get();
+        $branches = Branch::with(['country', 'province', 'kitchens', 'tables'])->get();
 
         $branches->transform(function (Branch $branch) {
             return [
@@ -54,12 +55,17 @@ class BranchService
                 'province_id' => $branch->province_id,
                 'province_object' => $branch->province,
                 'kitchens' => $branch->kitchens,
+                'tables' => $branch->tables,
             ];
         });
 
         return [
             'branches' => $branches,
             'kitchens' => Kitchen::orderBy('name')->get(),
+            'branchTables' => BranchTable::with('branch')
+                ->orderBy('branch_id')
+                ->orderBy('table_number')
+                ->get(),
         ];
     }
 }

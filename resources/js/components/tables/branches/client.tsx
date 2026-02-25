@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -21,16 +22,17 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Branch, BranchTable, Country, Kitchen, Province } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Building2, Plus, Save, X } from 'lucide-react';
+import { Building2, Edit, Plus, Save, Table2, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
 interface BranchesClientProps {
     data: Branch[];
+    branchTables: BranchTable[];
     countries: Country[];
     provinces: Province[];
     kitchens: Kitchen[];
@@ -39,6 +41,7 @@ interface BranchesClientProps {
 
 export const BranchesClient: React.FC<BranchesClientProps> = ({
     data,
+    branchTables,
     countries,
     provinces,
     kitchens,
@@ -53,6 +56,19 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
+    const [isManageTablesOpen, setIsManageTablesOpen] = useState(false);
+    const [manageBranchId, setManageBranchId] = useState('');
+    const [tableNumber, setTableNumber] = useState('');
+    const [tableTitle, setTableTitle] = useState('');
+    const [tableDescription, setTableDescription] = useState('');
+    const [tableErrors, setTableErrors] = useState<Record<string, string>>({});
+    const [editingTable, setEditingTable] = useState<BranchTable | null>(null);
+    const [editTableNumber, setEditTableNumber] = useState('');
+    const [editTableTitle, setEditTableTitle] = useState('');
+    const [editTableDescription, setEditTableDescription] = useState('');
+    const [editTableErrors, setEditTableErrors] = useState<
+        Record<string, string>
+    >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
@@ -101,6 +117,110 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         () => buildColumns(countries, provinces, kitchens),
         [countries, provinces, kitchens],
     );
+    const filteredBranchTables = useMemo(
+        () =>
+            branchTables.filter(
+                (table) =>
+                    !manageBranchId ||
+                    String(table.branch_id) === String(manageBranchId),
+            ),
+        [branchTables, manageBranchId],
+    );
+
+    const handleCreateTable = () => {
+        if (
+            !manageBranchId ||
+            !tableNumber.trim() ||
+            !tableTitle.trim() ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.post(
+            '/branch-tables',
+            {
+                branch_id: Number(manageBranchId),
+                table_number: tableNumber.trim(),
+                title: tableTitle.trim(),
+                description: tableDescription.trim() || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Table number created successfully.');
+                    setTableNumber('');
+                    setTableTitle('');
+                    setTableDescription('');
+                    setTableErrors({});
+                },
+                onError: (errors) => {
+                    setTableErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const openEditTable = (table: BranchTable) => {
+        setManageBranchId(String(table.branch_id));
+        setEditingTable(table);
+        setEditTableNumber(table.table_number);
+        setEditTableTitle(table.title);
+        setEditTableDescription(table.description ?? '');
+        setEditTableErrors({});
+    };
+
+    const handleUpdateTable = () => {
+        if (!editingTable || !manageBranchId || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.put(
+            `/branch-tables/${editingTable.id}`,
+            {
+                branch_id: Number(manageBranchId),
+                table_number: editTableNumber.trim(),
+                title: editTableTitle.trim(),
+                description: editTableDescription.trim() || null,
+                is_active: true,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Table number updated successfully.');
+                    setEditingTable(null);
+                },
+                onError: (errors) => {
+                    setEditTableErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteTable = (tableId: number) => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.delete(`/branch-tables/${tableId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Table number deleted successfully.');
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
 
     return (
         <div className="space-y-4">
@@ -109,10 +229,23 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     title={`Restaurant Branches: ${formatNumber(data.length)}`}
                     description="Manage restaurant branches"
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add New
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsManageTablesOpen(true)}
+                        className="gap-2"
+                    >
+                        <Table2 className="h-4 w-4" />
+                        Manage Tables
+                    </Button>
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add New
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
@@ -250,6 +383,228 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Create Branch
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isManageTablesOpen} onOpenChange={setIsManageTablesOpen}>
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Table2 className="h-5 w-5" />
+                            Manage Branch Tables
+                        </DialogTitle>
+                        <DialogDescription>
+                            Create and manage table numbers by branch.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select
+                                    value={manageBranchId}
+                                    onValueChange={setManageBranchId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {data.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={tableErrors.branch_id} />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 rounded-md border border-neutral-200 p-4 dark:border-neutral-800 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Table Number</Label>
+                                <Input
+                                    value={tableNumber}
+                                    onChange={(event) =>
+                                        setTableNumber(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={tableErrors.table_number}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Title</Label>
+                                <Input
+                                    value={tableTitle}
+                                    onChange={(event) =>
+                                        setTableTitle(event.target.value)
+                                    }
+                                />
+                                <InputError message={tableErrors.title} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={tableDescription}
+                                    onChange={(event) =>
+                                        setTableDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={tableErrors.description}
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <Button
+                                    onClick={handleCreateTable}
+                                    disabled={
+                                        !manageBranchId ||
+                                        !tableNumber.trim() ||
+                                        !tableTitle.trim() ||
+                                        isSubmitting
+                                    }
+                                    className="gap-2"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Create Table Number
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium">
+                                Existing Table Numbers
+                            </h3>
+                            <ScrollArea className="h-[280px] rounded-md border border-neutral-200 p-2 dark:border-neutral-800">
+                                <div className="space-y-2">
+                                    {filteredBranchTables.length === 0 ? (
+                                        <p className="p-2 text-sm text-muted-foreground">
+                                            No table numbers available.
+                                        </p>
+                                    ) : (
+                                        filteredBranchTables.map((table) => (
+                                            <div
+                                                key={table.id}
+                                                className="flex items-center justify-between rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                                            >
+                                                <div>
+                                                    <p className="font-medium">
+                                                        {table.table_number} -{' '}
+                                                        {table.title}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {table.description ??
+                                                            'No description'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() =>
+                                                            openEditTable(
+                                                                table,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-red-600"
+                                                        onClick={() =>
+                                                            handleDeleteTable(
+                                                                table.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Trash
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={Boolean(editingTable)}
+                onOpenChange={(open) => !open && setEditingTable(null)}
+            >
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit Table Number</DialogTitle>
+                        <DialogDescription>
+                            Update the selected table details.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label>Table Number</Label>
+                            <Input
+                                value={editTableNumber}
+                                onChange={(event) =>
+                                    setEditTableNumber(event.target.value)
+                                }
+                            />
+                            <InputError message={editTableErrors.table_number} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Title</Label>
+                            <Input
+                                value={editTableTitle}
+                                onChange={(event) =>
+                                    setEditTableTitle(event.target.value)
+                                }
+                            />
+                            <InputError message={editTableErrors.title} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Description</Label>
+                            <Textarea
+                                value={editTableDescription}
+                                onChange={(event) =>
+                                    setEditTableDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={editTableErrors.description} />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setEditingTable(null)}
+                            disabled={isSubmitting}
+                        >
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpdateTable}
+                            disabled={
+                                !editTableNumber.trim() ||
+                                !editTableTitle.trim() ||
+                                isSubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            Update
                         </Button>
                     </DialogFooter>
                 </DialogContent>

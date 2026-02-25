@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Branch, Order, Product } from '@/types';
+import { Branch, BranchTable, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { ClipboardList, Plus, Save, Trash2, X } from 'lucide-react';
@@ -41,6 +41,7 @@ interface OrdersClientProps {
     data: Order[];
     branches: Branch[];
     products: Product[];
+    branchTables: BranchTable[];
     isLoading?: boolean;
 }
 
@@ -63,12 +64,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     data,
     branches,
     products,
+    branchTables,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAddItemsOpen, setIsAddItemsOpen] = useState(false);
     const [branchId, setBranchId] = useState('');
+    const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
     const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [addItems, setAddItems] = useState<OrderItemDraft[]>([emptyItem()]);
@@ -87,6 +90,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const resetCreateForm = () => {
         setBranchId('');
+        setBranchTableId('');
         setOrderType('dine_in');
         setItems([emptyItem()]);
         setCreateErrors({});
@@ -210,7 +214,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     }, 0);
 
     const handleCreateSubmit = () => {
-        if (!branchId || items.length === 0 || isSubmitting) {
+        if (
+            !branchId ||
+            items.length === 0 ||
+            (orderType === 'dine_in' && !branchTableId) ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -226,6 +235,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             {
                 branch_id: Number(branchId),
                 order_type: orderType,
+                branch_table_id:
+                    orderType === 'dine_in' ? Number(branchTableId) : null,
                 items: payloadItems,
             },
             {
@@ -318,6 +329,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         onView: openDetails,
         onAddItems: openAddItems,
     });
+    const filteredTablesByBranch = branchTables.filter(
+        (table) => String(table.branch_id) === branchId && table.is_active !== false,
+    );
 
     const users = useMemo(() => {
         const map = new Map<number, { id: number; name: string }>();
@@ -524,7 +538,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
+                            <Select
+                                value={branchId}
+                                onValueChange={(value) => {
+                                    setBranchId(value);
+                                    setBranchTableId('');
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select branch" />
                                 </SelectTrigger>
@@ -543,7 +563,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>Order Type</Label>
-                            <Select value={orderType} onValueChange={setOrderType}>
+                            <Select
+                                value={orderType}
+                                onValueChange={(value) => {
+                                    setOrderType(value);
+                                    if (value !== 'dine_in') {
+                                        setBranchTableId('');
+                                    }
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
@@ -559,6 +587,33 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             </Select>
                             <InputError message={createErrors.order_type} />
                         </div>
+                        {orderType === 'dine_in' ? (
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Table Number</Label>
+                                <Select
+                                    value={branchTableId}
+                                    onValueChange={setBranchTableId}
+                                    disabled={!branchId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select table number" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredTablesByBranch.map((table) => (
+                                            <SelectItem
+                                                key={table.id}
+                                                value={String(table.id)}
+                                            >
+                                                {table.table_number} - {table.title}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={createErrors.branch_table_id}
+                                />
+                            </div>
+                        ) : null}
                     </div>
 
                     <div className="space-y-4">
@@ -727,7 +782,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
-                            disabled={!branchId || items.length === 0 || isSubmitting}
+                            disabled={
+                                !branchId ||
+                                items.length === 0 ||
+                                (orderType === 'dine_in' && !branchTableId) ||
+                                isSubmitting
+                            }
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Create Order

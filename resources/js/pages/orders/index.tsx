@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, Order, Product } from '@/types';
+import { Branch, BranchTable, BreadcrumbItem, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -50,6 +50,7 @@ interface OrdersPageProps {
     orders: Order[];
     branches: Branch[];
     products: Product[];
+    branchTables: BranchTable[];
     selectedDate: string | null;
     isAllTime: boolean;
     restaurantStartDate: string | null;
@@ -80,6 +81,7 @@ export default function OrdersPage({
     orders,
     branches,
     products,
+    branchTables,
     selectedDate,
     isAllTime,
     restaurantStartDate,
@@ -278,6 +280,7 @@ export default function OrdersPage({
                         data={orders}
                         branches={branches}
                         products={products}
+                        branchTables={branchTables}
                     />
                 </div>
             </div>

@@ -8,6 +8,7 @@ class Order extends Model
 {
     protected $fillable = [
         'branch_id',
+        'branch_table_id',
         'user_id',
         'order_type',
         'base_currency',
@@ -26,6 +27,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branchTable()
+    {
+        return $this->belongsTo(BranchTable::class, 'branch_table_id');
     }
 
     public function items()
