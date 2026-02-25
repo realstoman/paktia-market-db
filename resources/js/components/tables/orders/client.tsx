@@ -26,10 +26,11 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, BranchTable, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { ClipboardList, Plus, Save, Trash2, X } from 'lucide-react';
+import { ClipboardList, Plus, Printer, Save, Trash2, X } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
+import { ReceiptPreviewDialog } from './receipt-preview-dialog';
 
 interface OrderItemDraft {
     productId: string;
@@ -71,12 +72,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAddItemsOpen, setIsAddItemsOpen] = useState(false);
+    const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
     const [branchId, setBranchId] = useState('');
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
     const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [addItems, setAddItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [selectedReceiptOrder, setSelectedReceiptOrder] =
+        useState<Order | null>(null);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -290,6 +294,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setIsAddItemsOpen(true);
     };
 
+    const openReceiptPreview = (order: Order) => {
+        setSelectedReceiptOrder(order);
+        setIsReceiptPreviewOpen(true);
+    };
+
     const handleAddItemsSubmit = () => {
         if (!selectedOrder || isSubmitting) {
             return;
@@ -330,6 +339,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         onView: openDetails,
         onAddItems: openAddItems,
         onUpdateStatus: handleStatusUpdate,
+        onPrint: openReceiptPreview,
         onAssignTable: (order, nextBranchTableId) => {
             router.patch(
                 `/orders/${order.id}/table`,
@@ -1056,6 +1066,19 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                             </div>
 
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() =>
+                                        openReceiptPreview(selectedOrder)
+                                    }
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    Print Receipt
+                                </Button>
+                            </div>
+
                             {(selectedOrder.items ?? []).length > 5 ? (
                                 <ScrollArea className="h-[360px] rounded-md border p-3">
                                     <div className="space-y-2">
@@ -1358,6 +1381,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ReceiptPreviewDialog
+                order={selectedReceiptOrder}
+                open={isReceiptPreviewOpen}
+                onOpenChange={setIsReceiptPreviewOpen}
+            />
         </div>
     );
 };
