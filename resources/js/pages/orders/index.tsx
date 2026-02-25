@@ -120,33 +120,36 @@ export default function OrdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
-            <div className="space-y-6 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
-                <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <Card className="gap-3 py-4">
-                            <CardHeader className="pb-0">
-                                <CardTitle className="text-xl">
-                                    Baba Restaurant
-                                </CardTitle>
-                                <CardDescription className="text-sm">
-                                    Order statistics for {todayDate}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-1">
-                                <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
-                                    {formatNumber(orders.length)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Total orders today
-                                </p>
-                            </CardContent>
-                        </Card>
+            <div className="space-y-8 p-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                    <Card className="gap-3 py-4 md:col-span-4 md:row-span-2">
+                        <CardHeader className="pb-0">
+                            <CardTitle className="text-xl">
+                                Baba Restaurant
+                            </CardTitle>
+                            <CardDescription className="text-sm">
+                                Order statistics for {todayDate}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-1">
+                            <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+                                {formatNumber(orders.length)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Total orders today
+                            </p>
+                        </CardContent>
+                    </Card>
 
+                    <div className="grid grid-cols-1 gap-4 md:col-span-8 md:grid-cols-12">
                         {topRowStatusCards.map((card) => {
                             const Icon = card.icon;
 
                             return (
-                                <Card key={card.key} className="gap-3 py-4">
+                                <Card
+                                    key={card.key}
+                                    className="gap-3 py-4 md:col-span-6"
+                                >
                                     <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                         <CardTitle className="text-sm">
                                             {card.title}
@@ -172,14 +175,15 @@ export default function OrdersPage({
                                 </Card>
                             );
                         })}
-                    </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         {bottomRowStatusCards.map((card) => {
                             const Icon = card.icon;
 
                             return (
-                                <Card key={card.key} className="gap-3 py-4">
+                                <Card
+                                    key={card.key}
+                                    className="gap-3 py-4 md:col-span-4"
+                                >
                                     <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                         <CardTitle className="text-sm">
                                             {card.title}
