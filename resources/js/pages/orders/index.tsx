@@ -173,6 +173,7 @@ export default function OrdersPage({
                             <div className="w-full bg-white dark:bg-neutral-900">
                                 <Input
                                     type="date"
+                                    className="h-10"
                                     value={dateFilter}
                                     onChange={(event) =>
                                         setDateFilter(event.target.value)
