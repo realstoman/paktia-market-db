@@ -155,6 +155,31 @@ class OrderController extends Controller
             ->with('success', 'Order status updated successfully.');
     }
 
+    public function updateTable(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'branch_table_id' => ['required', 'exists:branch_tables,id'],
+        ]);
+
+        $belongsToBranch = BranchTable::query()
+            ->whereKey($validated['branch_table_id'])
+            ->where('branch_id', $order->branch_id)
+            ->exists();
+
+        if (! $belongsToBranch) {
+            return back()->withErrors([
+                'branch_table_id' => 'Selected table does not belong to the order branch.',
+            ]);
+        }
+
+        $order->update([
+            'branch_table_id' => $validated['branch_table_id'],
+        ]);
+
+        return redirect()->route('orders.index')
+            ->with('success', 'Order table updated successfully.');
+    }
+
     public function addItems(Request $request, Order $order)
     {
         $validated = $request->validate([

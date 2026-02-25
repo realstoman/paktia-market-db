@@ -328,6 +328,25 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const tableColumns = buildColumns({
         onView: openDetails,
         onAddItems: openAddItems,
+        onAssignTable: (order, nextBranchTableId) => {
+            router.patch(
+                `/orders/${order.id}/table`,
+                { branch_table_id: nextBranchTableId },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Order table updated.');
+                    },
+                    onError: (errors) => {
+                        toast.error(
+                            Object.values(errors)[0] ||
+                                'Failed to update order table.',
+                        );
+                    },
+                },
+            );
+        },
+        branchTables,
     });
     const filteredTablesByBranch = branchTables.filter(
         (table) => String(table.branch_id) === branchId && table.is_active !== false,
@@ -506,7 +525,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['id', 'branch.name', 'user.name', 'status']}
+                searchKey={[
+                    'id',
+                    'branch.name',
+                    'branch_table.table_number',
+                    'user.name',
+                    'status',
+                ]}
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}

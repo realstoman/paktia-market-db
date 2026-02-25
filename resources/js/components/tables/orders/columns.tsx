@@ -1,10 +1,10 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Order } from '@/types';
+import { Order, BranchTable } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban, Clock3, CookingPot, Eye, Plus } from 'lucide-react';
+import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';
+import { OrderRowActions } from './row-actions';
 
 const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
     pending: {
@@ -32,11 +32,15 @@ const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
 interface BuildOrderColumnsOptions {
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
+    onAssignTable: (order: Order, branchTableId: number) => void;
+    branchTables: BranchTable[];
 }
 
 export const buildColumns = ({
     onView,
     onAddItems,
+    onAssignTable,
+    branchTables,
 }: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
         id: 'select',
@@ -67,6 +71,11 @@ export const buildColumns = ({
         id: 'branch.name',
         accessorFn: (row) => row.branch?.name ?? 'Unknown',
         header: 'Branch',
+    },
+    {
+        id: 'branch_table.table_number',
+        accessorFn: (row) => row.branch_table?.table_number ?? '-',
+        header: 'Table Number',
     },
     {
         id: 'user.name',
@@ -140,24 +149,13 @@ export const buildColumns = ({
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-            <div className="flex items-center gap-1">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onView(row.original)}
-                >
-                    <Eye className="mr-1 h-4 w-4" />
-                    Details
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onAddItems(row.original)}
-                >
-                    <Plus className="mr-1 h-4 w-4" />
-                    Add Item
-                </Button>
-            </div>
+            <OrderRowActions
+                order={row.original}
+                branchTables={branchTables}
+                onView={onView}
+                onAddItems={onAddItems}
+                onAssignTable={onAssignTable}
+            />
         ),
     },
 ];

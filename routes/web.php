@@ -76,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::resource('orders', OrderController::class)->only(['index', 'store']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+    Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
 
     // Inventory
