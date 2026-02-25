@@ -61,6 +61,7 @@ export function OrderRowActions({
     );
     const [status, setStatus] = useState(order.status ?? 'pending');
     const [error, setError] = useState('');
+    const canPrintReceipt = (order.status ?? 'pending') === 'completed';
 
     const tableOptions = useMemo(
         () =>
@@ -101,7 +102,10 @@ export function OrderRowActions({
                         <Plus className="mr-2 h-4 w-4" />
                         Add Item
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onPrint(order)}>
+                    <DropdownMenuItem
+                        onClick={() => canPrintReceipt && onPrint(order)}
+                        disabled={!canPrintReceipt}
+                    >
                         <Printer className="mr-2 h-4 w-4" />
                         Print Receipt
                     </DropdownMenuItem>

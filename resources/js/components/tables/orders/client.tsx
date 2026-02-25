@@ -295,6 +295,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     };
 
     const openReceiptPreview = (order: Order) => {
+        if ((order.status ?? 'pending') !== 'completed') {
+            toast.error(
+                'Only completed orders can be printed. Please complete the order first.',
+            );
+            return;
+        }
+
         setSelectedReceiptOrder(order);
         setIsReceiptPreviewOpen(true);
     };
@@ -1070,6 +1077,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 <Button
                                     variant="outline"
                                     className="gap-2"
+                                    disabled={
+                                        (selectedOrder.status ?? 'pending') !==
+                                        'completed'
+                                    }
                                     onClick={() =>
                                         openReceiptPreview(selectedOrder)
                                     }
