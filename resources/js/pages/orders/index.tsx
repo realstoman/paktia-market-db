@@ -2,6 +2,8 @@
 
 import { OrdersClient } from '@/components/tables/orders/client';
 import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -16,10 +18,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     CheckCircle2,
     CircleX,
@@ -45,6 +48,7 @@ interface OrdersPageProps {
     orders: Order[];
     branches: Branch[];
     products: Product[];
+    selectedDate: string;
 }
 
 type OrderStatusKey =
@@ -72,20 +76,23 @@ export default function OrdersPage({
     orders,
     branches,
     products,
+    selectedDate,
 }: OrdersPageProps) {
     const [selectedStatus, setSelectedStatus] = useState<OrderStatusKey | null>(
         null,
     );
+    const [dateFilter, setDateFilter] = useState(selectedDate);
+    const [dateError, setDateError] = useState('');
 
     const todayDate = useMemo(
         () =>
-            new Date().toLocaleDateString('en-US', {
+            new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
             }),
-        [],
+        [selectedDate],
     );
 
     const stats = useMemo(() => {
@@ -116,10 +123,55 @@ export default function OrdersPage({
     const topRowStatusCards = STATUS_CARDS.slice(0, 2);
     const bottomRowStatusCards = STATUS_CARDS.slice(2);
 
+    const handleDateSubmit = () => {
+        if (!dateFilter) {
+            setDateError('Please select a date.');
+            return;
+        }
+
+        setDateError('');
+
+        router.get(
+            '/orders',
+            { date: dateFilter },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
             <div className="space-y-3 p-2">
+                <div className="flex justify-end">
+                    <div className="w-full max-w-md space-y-1">
+                        <div className="flex items-end justify-end gap-2">
+                            <div className="w-full">
+                                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                                    Filter Date
+                                </label>
+                                <Input
+                                    type="date"
+                                    value={dateFilter}
+                                    onChange={(event) =>
+                                        setDateFilter(event.target.value)
+                                    }
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                className="h-10 shrink-0"
+                                onClick={handleDateSubmit}
+                            >
+                                Submit
+                            </Button>
+                        </div>
+                        <InputError message={dateError} />
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
                     <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="pb-0">

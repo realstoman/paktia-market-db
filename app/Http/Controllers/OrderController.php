@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Order;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -20,8 +21,14 @@ class OrderController extends Controller
         'cancelled',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
+        $validated = $request->validate([
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $selectedDate = $validated['date'] ?? Carbon::today()->toDateString();
+
         return Inertia::render('orders/index', [
             'orders' => Order::with([
                 'branch',
@@ -30,6 +37,7 @@ class OrderController extends Controller
                 'items.productSize',
                 'items.kitchen',
             ])
+                ->whereDate('created_at', $selectedDate)
                 ->withCount('items')
                 ->orderBy('id')
                 ->get(),
@@ -37,6 +45,7 @@ class OrderController extends Controller
             'products' => Product::with(['sizes', 'kitchen'])
                 ->orderBy('name')
                 ->get(),
+            'selectedDate' => $selectedDate,
         ]);
     }
 
