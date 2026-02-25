@@ -33,6 +33,7 @@ interface BuildOrderColumnsOptions {
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
+    onUpdateStatus: (order: Order, status: string) => void;
     branchTables: BranchTable[];
 }
 
@@ -40,6 +41,7 @@ export const buildColumns = ({
     onView,
     onAddItems,
     onAssignTable,
+    onUpdateStatus,
     branchTables,
 }: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
@@ -155,6 +157,7 @@ export const buildColumns = ({
                 onView={onView}
                 onAddItems={onAddItems}
                 onAssignTable={onAssignTable}
+                onUpdateStatus={onUpdateStatus}
             />
         ),
     },

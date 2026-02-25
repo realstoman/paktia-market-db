@@ -329,6 +329,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const tableColumns = buildColumns({
         onView: openDetails,
         onAddItems: openAddItems,
+        onUpdateStatus: handleStatusUpdate,
         onAssignTable: (order, nextBranchTableId) => {
             router.patch(
                 `/orders/${order.id}/table`,
@@ -1045,35 +1046,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     <p className="text-xs text-muted-foreground">
                                         Status
                                     </p>
-                                    <Select
-                                        value={
-                                            selectedOrder.status ?? 'pending'
-                                        }
-                                        onValueChange={(status) =>
-                                            handleStatusUpdate(
-                                                selectedOrder,
-                                                status,
-                                            )
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ORDER_STATUSES.map((status) => (
-                                                <SelectItem
-                                                    key={status}
-                                                    value={status}
-                                                >
-                                                    {status
-                                                        .replace('_', ' ')
-                                                        .replace(/\b\w/g, (c) =>
-                                                            c.toUpperCase(),
-                                                        )}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <p className="font-medium">
+                                        {(selectedOrder.status ?? 'pending')
+                                            .replace('_', ' ')
+                                            .replace(/\b\w/g, (c) =>
+                                                c.toUpperCase(),
+                                            )}
+                                    </p>
                                 </div>
                             </div>
 
