@@ -21,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, BranchTable, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -657,136 +658,296 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             </Button>
                         </div>
 
-                        <div className="space-y-3">
-                            {items.map((item, index) => {
-                                const product = getProductById(item.productId);
-                                const sizes = product?.sizes ?? [];
-                                const kitchenName = getItemKitchenName(item);
+                        {items.length > 4 ? (
+                            <ScrollArea className="h-[400px] rounded-md border border-neutral-200/60 p-1 dark:border-neutral-800">
+                                <div className="space-y-3 p-2">
+                                    {items.map((item, index) => {
+                                        const product = getProductById(
+                                            item.productId,
+                                        );
+                                        const sizes = product?.sizes ?? [];
+                                        const kitchenName =
+                                            getItemKitchenName(item);
 
-                                return (
-                                    <div
-                                        key={`order-item-${index}`}
-                                        className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
-                                    >
-                                        <div className="grid gap-2 sm:col-span-2">
-                                            <Label>Product</Label>
-                                            <Select
-                                                value={item.productId}
-                                                onValueChange={(value) =>
-                                                    handleProductChange(
-                                                        setItems,
-                                                        items,
-                                                        index,
-                                                        value,
-                                                    )
-                                                }
+                                        return (
+                                            <div
+                                                key={`order-item-${index}`}
+                                                className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
                                             >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select product" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {products.map((entry) => (
-                                                        <SelectItem
-                                                            key={entry.id}
-                                                            value={String(
-                                                                entry.id,
+                                                <div className="grid gap-2 sm:col-span-2">
+                                                    <Label>Product</Label>
+                                                    <Select
+                                                        value={item.productId}
+                                                        onValueChange={(value) =>
+                                                            handleProductChange(
+                                                                setItems,
+                                                                items,
+                                                                index,
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select product" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {products.map(
+                                                                (entry) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            entry.id
+                                                                        }
+                                                                        value={String(
+                                                                            entry.id,
+                                                                        )}
+                                                                    >
+                                                                        {
+                                                                            entry.name
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
                                                             )}
-                                                        >
-                                                            {entry.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Size</Label>
-                                            <Select
-                                                value={item.sizeId}
-                                                onValueChange={(value) =>
-                                                    handleSizeChange(
-                                                        setItems,
-                                                        items,
-                                                        index,
-                                                        value,
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Optional" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sizes.map((size) => (
-                                                        <SelectItem
-                                                            key={size.id}
-                                                            value={String(
-                                                                size.id,
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Size</Label>
+                                                    <Select
+                                                        value={item.sizeId}
+                                                        onValueChange={(value) =>
+                                                            handleSizeChange(
+                                                                setItems,
+                                                                items,
+                                                                index,
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Optional" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {sizes.map(
+                                                                (size) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            size.id
+                                                                        }
+                                                                        value={String(
+                                                                            size.id,
+                                                                        )}
+                                                                    >
+                                                                        {
+                                                                            size.name
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
                                                             )}
-                                                        >
-                                                            {size.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Qty</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="1"
+                                                        value={item.quantity}
+                                                        onChange={(event) =>
+                                                            handleItemChange(
+                                                                setItems,
+                                                                items,
+                                                                index,
+                                                                'quantity',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Price</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="0"
+                                                        step="1"
+                                                        value={item.price}
+                                                        onChange={(event) =>
+                                                            handleItemChange(
+                                                                setItems,
+                                                                items,
+                                                                index,
+                                                                'price',
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col justify-between gap-2">
+                                                    <Badge variant="secondary">
+                                                        {kitchenName}
+                                                    </Badge>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            removeDraftItem(
+                                                                setItems,
+                                                                index,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            items.length === 1
+                                                        }
+                                                        className="text-red-600"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </ScrollArea>
+                        ) : (
+                            <div className="space-y-3">
+                                {items.map((item, index) => {
+                                    const product = getProductById(
+                                        item.productId,
+                                    );
+                                    const sizes = product?.sizes ?? [];
+                                    const kitchenName = getItemKitchenName(item);
+
+                                    return (
+                                        <div
+                                            key={`order-item-${index}`}
+                                            className="grid gap-3 rounded-md border border-neutral-200/60 p-4 dark:border-neutral-800 sm:grid-cols-6"
+                                        >
+                                            <div className="grid gap-2 sm:col-span-2">
+                                                <Label>Product</Label>
+                                                <Select
+                                                    value={item.productId}
+                                                    onValueChange={(value) =>
+                                                        handleProductChange(
+                                                            setItems,
+                                                            items,
+                                                            index,
+                                                            value,
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select product" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {products.map(
+                                                            (entry) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        entry.id
+                                                                    }
+                                                                    value={String(
+                                                                        entry.id,
+                                                                    )}
+                                                                >
+                                                                    {entry.name}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label>Size</Label>
+                                                <Select
+                                                    value={item.sizeId}
+                                                    onValueChange={(value) =>
+                                                        handleSizeChange(
+                                                            setItems,
+                                                            items,
+                                                            index,
+                                                            value,
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Optional" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {sizes.map((size) => (
+                                                            <SelectItem
+                                                                key={size.id}
+                                                                value={String(
+                                                                    size.id,
+                                                                )}
+                                                            >
+                                                                {size.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label>Qty</Label>
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    value={item.quantity}
+                                                    onChange={(event) =>
+                                                        handleItemChange(
+                                                            setItems,
+                                                            items,
+                                                            index,
+                                                            'quantity',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label>Price</Label>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={item.price}
+                                                    onChange={(event) =>
+                                                        handleItemChange(
+                                                            setItems,
+                                                            items,
+                                                            index,
+                                                            'price',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="flex flex-col justify-between gap-2">
+                                                <Badge variant="secondary">
+                                                    {kitchenName}
+                                                </Badge>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        removeDraftItem(
+                                                            setItems,
+                                                            index,
+                                                        )
+                                                    }
+                                                    disabled={items.length === 1}
+                                                    className="text-red-600"
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Remove
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="grid gap-2">
-                                            <Label>Qty</Label>
-                                            <Input
-                                                type="number"
-                                                min="1"
-                                                value={item.quantity}
-                                                onChange={(event) =>
-                                                    handleItemChange(
-                                                        setItems,
-                                                        items,
-                                                        index,
-                                                        'quantity',
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Price</Label>
-                                            <Input
-                                                type="number"
-                                                min="0"
-                                                step="1"
-                                                value={item.price}
-                                                onChange={(event) =>
-                                                    handleItemChange(
-                                                        setItems,
-                                                        items,
-                                                        index,
-                                                        'price',
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                        <div className="flex flex-col justify-between gap-2">
-                                            <Badge variant="secondary">
-                                                {kitchenName}
-                                            </Badge>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                    removeDraftItem(
-                                                        setItems,
-                                                        index,
-                                                    )
-                                                }
-                                                disabled={items.length === 1}
-                                                className="text-red-600"
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Remove
-                                            </Button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
 
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                             <span>Total Amount</span>
@@ -905,58 +1066,124 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                             </div>
 
-                            <div className="max-h-80 space-y-2 overflow-auto rounded-md border p-3">
-                                {(selectedOrder.items ?? []).map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
-                                    >
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Product
-                                            </p>
-                                            <p className="font-medium">
-                                                {item.product?.name ?? '-'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Kitchen
-                                            </p>
-                                            <p className="font-medium">
-                                                {item.kitchen?.name ??
-                                                    item.product?.kitchen
-                                                        ?.name ??
-                                                    'Unassigned'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Size
-                                            </p>
-                                            <p className="font-medium">
-                                                {item.product_size?.name ?? '-'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Qty
-                                            </p>
-                                            <p className="font-medium">
-                                                {item.quantity}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                Price
-                                            </p>
-                                            <p className="font-medium">
-                                                {formatAfn(item.price)}
-                                            </p>
-                                        </div>
+                            {(selectedOrder.items ?? []).length > 5 ? (
+                                <ScrollArea className="h-[360px] rounded-md border p-3">
+                                    <div className="space-y-2">
+                                        {(selectedOrder.items ?? []).map(
+                                            (item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
+                                                >
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Product
+                                                        </p>
+                                                        <p className="font-medium">
+                                                            {item.product?.name ??
+                                                                '-'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Kitchen
+                                                        </p>
+                                                        <p className="font-medium">
+                                                            {item.kitchen
+                                                                ?.name ??
+                                                                item.product
+                                                                    ?.kitchen
+                                                                    ?.name ??
+                                                                'Unassigned'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Size
+                                                        </p>
+                                                        <p className="font-medium">
+                                                            {item.product_size
+                                                                ?.name ?? '-'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Qty
+                                                        </p>
+                                                        <p className="font-medium">
+                                                            {item.quantity}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Price
+                                                        </p>
+                                                        <p className="font-medium">
+                                                            {formatAfn(
+                                                                item.price,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        )}
                                     </div>
-                                ))}
-                            </div>
+                                </ScrollArea>
+                            ) : (
+                                <div className="space-y-2 rounded-md border p-3">
+                                    {(selectedOrder.items ?? []).map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
+                                        >
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Product
+                                                </p>
+                                                <p className="font-medium">
+                                                    {item.product?.name ?? '-'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Kitchen
+                                                </p>
+                                                <p className="font-medium">
+                                                    {item.kitchen?.name ??
+                                                        item.product?.kitchen
+                                                            ?.name ??
+                                                        'Unassigned'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Size
+                                                </p>
+                                                <p className="font-medium">
+                                                    {item.product_size?.name ??
+                                                        '-'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Qty
+                                                </p>
+                                                <p className="font-medium">
+                                                    {item.quantity}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Price
+                                                </p>
+                                                <p className="font-medium">
+                                                    {formatAfn(item.price)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ) : null}
                 </DialogContent>
