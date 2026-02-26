@@ -390,7 +390,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         <OrderAnalyticsChart
                             data={orderAnalyticsData}
                             title="Order Analytics"
-                            description={`7-day order status through ${formattedSelectedDate}`}
+                            description="Past 7 days order status"
                         />
                     </Card>
 

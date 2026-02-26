@@ -128,8 +128,30 @@ export function OrderAnalyticsChart({
                         <CartesianGrid
                             vertical={false}
                             strokeDasharray="3 3"
-                            stroke="#f0f0f0"
+                            stroke="#e9edf3"
                         />
+                        <defs>
+                            <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-neutral)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-neutral)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillPreparing" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-sky)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-sky)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillReady" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-ready)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-ready)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-green)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-green)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillCancelled" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-red)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-red)" stopOpacity={0.02} />
+                            </linearGradient>
+                        </defs>
 
                         <XAxis
                             dataKey="formattedDay"
@@ -170,8 +192,7 @@ export function OrderAnalyticsChart({
                             dataKey="pending"
                             type="monotone"
                             stroke="var(--chart-neutral)"
-                            fill="var(--chart-neutral)"
-                            fillOpacity={0.12}
+                            fill="url(#fillPending)"
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
@@ -182,8 +203,7 @@ export function OrderAnalyticsChart({
                             dataKey="preparing"
                             type="monotone"
                             stroke="var(--chart-sky)"
-                            fill="var(--chart-sky)"
-                            fillOpacity={0.12}
+                            fill="url(#fillPreparing)"
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
@@ -194,8 +214,7 @@ export function OrderAnalyticsChart({
                             dataKey="ready"
                             type="monotone"
                             stroke="var(--chart-ready)"
-                            fill="var(--chart-ready)"
-                            fillOpacity={0.12}
+                            fill="url(#fillReady)"
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
@@ -206,8 +225,7 @@ export function OrderAnalyticsChart({
                             dataKey="completed"
                             type="monotone"
                             stroke="var(--chart-green)"
-                            fill="var(--chart-green)"
-                            fillOpacity={0.12}
+                            fill="url(#fillCompleted)"
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
@@ -218,8 +236,7 @@ export function OrderAnalyticsChart({
                             dataKey="cancelled"
                             type="monotone"
                             stroke="var(--chart-red)"
-                            fill="var(--chart-red)"
-                            fillOpacity={0.12}
+                            fill="url(#fillCancelled)"
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}

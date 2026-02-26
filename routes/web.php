@@ -54,8 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'cancelled' => 0,
         ];
 
-        $analyticsStartDate = $selectedDate->copy()->subDays(6)->startOfDay();
-        $analyticsEndDate = $selectedDate->copy()->endOfDay();
+        $analyticsReferenceDate = Carbon::today();
+        $analyticsStartDate = $analyticsReferenceDate->copy()->subDays(6)->startOfDay();
+        $analyticsEndDate = $analyticsReferenceDate->copy()->endOfDay();
         $analyticsRows = Order::query()
             ->selectRaw('DATE(created_at) as order_date, status, COUNT(*) as total')
             ->whereBetween('created_at', [$analyticsStartDate, $analyticsEndDate])
@@ -65,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $analyticsByDate = [];
 
         for ($i = 6; $i >= 0; $i--) {
-            $date = $selectedDate->copy()->subDays($i);
+            $date = $analyticsReferenceDate->copy()->subDays($i);
             $dateKey = $date->toDateString();
 
             $analyticsByDate[$dateKey] = [
