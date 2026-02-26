@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/chart';
 import { OrderAnalyticsChartProps } from '@/types/chart';
 import { useMemo } from 'react';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 const chartConfig = {
     pending: {
@@ -115,7 +115,7 @@ export function OrderAnalyticsChart({
                     config={chartConfig}
                     className="h-[300px] w-full"
                 >
-                    <LineChart
+                    <AreaChart
                         key={animationKey}
                         accessibilityLayer
                         data={formattedData}
@@ -165,66 +165,66 @@ export function OrderAnalyticsChart({
                             }
                         />
 
-                        {/* Pending Line - Neutral */}
-                        <Line
+                        {/* Pending Area - Neutral */}
+                        <Area
                             dataKey="pending"
                             type="monotone"
                             stroke="var(--chart-neutral)"
+                            fill="var(--chart-neutral)"
+                            fillOpacity={0.12}
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
-                        {/* Preparing Line - Sky */}
-                        <Line
+                        {/* Preparing Area - Sky */}
+                        <Area
                             dataKey="preparing"
                             type="monotone"
                             stroke="var(--chart-sky)"
+                            fill="var(--chart-sky)"
+                            fillOpacity={0.12}
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
-                        {/* Ready Line - Amber */}
-                        <Line
+                        {/* Ready Area - Amber */}
+                        <Area
                             dataKey="ready"
                             type="monotone"
                             stroke="var(--chart-ready)"
+                            fill="var(--chart-ready)"
+                            fillOpacity={0.12}
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
-                        {/* Completed Line - Green */}
-                        <Line
+                        {/* Completed Area - Green */}
+                        <Area
                             dataKey="completed"
                             type="monotone"
                             stroke="var(--chart-green)"
+                            fill="var(--chart-green)"
+                            fillOpacity={0.12}
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
 
-                        {/* Cancelled Line - Red */}
-                        <Line
+                        {/* Cancelled Area - Red */}
+                        <Area
                             dataKey="cancelled"
                             type="monotone"
                             stroke="var(--chart-red)"
+                            fill="var(--chart-red)"
+                            fillOpacity={0.12}
                             strokeWidth={2}
                             isAnimationActive
                             animationDuration={700}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
                         />
-                    </LineChart>
+                    </AreaChart>
                 </ChartContainer>
             </CardContent>
         </Card>
