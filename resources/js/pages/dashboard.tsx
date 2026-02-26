@@ -65,8 +65,9 @@ function formatDate(date: Date | undefined) {
         return '';
     }
     return date.toLocaleDateString('en-US', {
+        weekday: 'short',
         day: '2-digit',
-        month: 'long',
+        month: 'short',
         year: 'numeric',
     });
 }
@@ -125,8 +126,8 @@ export default function Dashboard({ data }: DashboardProps) {
         return new Date(`${data.selectedDate}T00:00:00`).toLocaleDateString(
             'en-US',
             {
-                weekday: 'long',
-                month: 'long',
+                weekday: 'short',
+                month: 'short',
                 day: 'numeric',
                 year: 'numeric',
             },
