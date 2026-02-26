@@ -26,6 +26,10 @@ const chartConfig = {
         label: 'Preparing',
         color: 'var(--chart-sky)',
     },
+    ready: {
+        label: 'Ready',
+        color: 'var(--chart-ready)',
+    },
     completed: {
         label: 'Completed',
         color: 'var(--chart-green)',
@@ -79,6 +83,10 @@ export function OrderAnalyticsChart({
                         <LegendItem
                             label="Preparing"
                             color="var(--chart-sky)"
+                        />
+                        <LegendItem
+                            label="Ready"
+                            color="var(--chart-ready)"
                         />
                         <LegendItem
                             label="Completed"
@@ -161,6 +169,16 @@ export function OrderAnalyticsChart({
                             dataKey="preparing"
                             type="monotone"
                             stroke="var(--chart-sky)"
+                            strokeWidth={2}
+                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
+                        />
+
+                        {/* Ready Line - Amber */}
+                        <Line
+                            dataKey="ready"
+                            type="monotone"
+                            stroke="var(--chart-ready)"
                             strokeWidth={2}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}

@@ -111,6 +111,7 @@ body {
 
     --chart-neutral: #f18e0d; /* neutral-500 */
     --chart-sky: #43b6eb; /* sky-500 */
+    --chart-ready: #f59e0b; /* amber-500 */
     --chart-green: #49d57c; /* green-500 */
     --chart-red: #fa5c5c; /* red-500 */
 
@@ -177,6 +178,7 @@ body {
     --sidebar-ring: oklch(0.439 0 0);
     --chart-neutral: #a3a3a3; /* neutral-400 */
     --chart-sky: #38bdf8; /* sky-400 */
+    --chart-ready: #fbbf24; /* amber-400 */
     --chart-green: #4ade80; /* green-400 */
     --chart-red: #f87171; /* red-400 */
 }

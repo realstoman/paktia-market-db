@@ -33,7 +33,6 @@ import {
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
@@ -133,6 +132,23 @@ export default function Dashboard({ data }: DashboardProps) {
             },
         );
     }, [data?.selectedDate]);
+
+    const orderAnalyticsData = React.useMemo(
+        () => [
+            {
+                date: data?.selectedDate ?? toDateParam(selectedDateFromProps),
+                day: selectedDateFromProps.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                }),
+                pending: ordersStats?.pending ?? 0,
+                preparing: ordersStats?.in_progress ?? 0,
+                ready: ordersStats?.ready ?? 0,
+                completed: ordersStats?.completed ?? 0,
+                cancelled: ordersStats?.cancelled ?? 0,
+            },
+        ],
+        [data?.selectedDate, ordersStats, selectedDateFromProps],
+    );
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -378,9 +394,9 @@ export default function Dashboard({ data }: DashboardProps) {
                             </div>
                         </div>
                         <OrderAnalyticsChart
-                            data={mockPeakDayData}
+                            data={orderAnalyticsData}
                             title="Order Analytics"
-                            description="Last 7 days order status"
+                            description={`Order status for ${formattedSelectedDate}`}
                         />
                     </Card>
 
