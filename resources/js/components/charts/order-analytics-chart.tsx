@@ -61,6 +61,16 @@ export function OrderAnalyticsChart({
             formattedDay: item.day,
         }));
     }, [data]);
+    const animationKey = useMemo(
+        () =>
+            formattedData
+                .map(
+                    (item) =>
+                        `${item.date}-${item.pending}-${item.preparing}-${item.ready ?? 0}-${item.completed}-${item.cancelled}`,
+                )
+                .join('|'),
+        [formattedData],
+    );
 
     return (
         <Card className="rounded-none border-none bg-white shadow-none dark:bg-brand-bg-dark">
@@ -106,6 +116,7 @@ export function OrderAnalyticsChart({
                     className="h-[300px] w-full"
                 >
                     <LineChart
+                        key={animationKey}
                         accessibilityLayer
                         data={formattedData}
                         margin={{
@@ -160,6 +171,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-neutral)"
                             strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}
                         />
@@ -170,6 +183,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-sky)"
                             strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}
                         />
@@ -180,6 +195,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-ready)"
                             strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}
                         />
@@ -190,6 +207,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-green)"
                             strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}
                         />
@@ -200,6 +219,8 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-red)"
                             strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
                             dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
                             activeDot={{ r: 4, strokeWidth: 0 }}
                         />

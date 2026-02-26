@@ -94,6 +94,15 @@ interface DashboardProps {
             completed: number;
             cancelled: number;
         };
+        orderAnalytics: Array<{
+            date: string;
+            day: string;
+            pending: number;
+            preparing: number;
+            ready: number;
+            completed: number;
+            cancelled: number;
+        }>;
         selectedDate: string;
     };
 }
@@ -133,22 +142,7 @@ export default function Dashboard({ data }: DashboardProps) {
         );
     }, [data?.selectedDate]);
 
-    const orderAnalyticsData = React.useMemo(
-        () => [
-            {
-                date: data?.selectedDate ?? toDateParam(selectedDateFromProps),
-                day: selectedDateFromProps.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                }),
-                pending: ordersStats?.pending ?? 0,
-                preparing: ordersStats?.in_progress ?? 0,
-                ready: ordersStats?.ready ?? 0,
-                completed: ordersStats?.completed ?? 0,
-                cancelled: ordersStats?.cancelled ?? 0,
-            },
-        ],
-        [data?.selectedDate, ordersStats, selectedDateFromProps],
-    );
+    const orderAnalyticsData = data?.orderAnalytics ?? [];
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -396,7 +390,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         <OrderAnalyticsChart
                             data={orderAnalyticsData}
                             title="Order Analytics"
-                            description={`Order status for ${formattedSelectedDate}`}
+                            description={`7-day order status through ${formattedSelectedDate}`}
                         />
                     </Card>
 

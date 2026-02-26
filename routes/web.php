@@ -14,6 +14,7 @@ use App\Http\Controllers\Location\ProvinceController;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -40,7 +41,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
 
-        $selectedDate = $validated['date'] ?? Carbon::today()->toDateString();
+        $selectedDate = Carbon::parse(
+            $validated['date'] ?? Carbon::today()->toDateString(),
+        );
+        $selectedDateString = $selectedDate->toDateString();
 
         $orderStats = [
             'pending' => 0,
@@ -50,20 +54,60 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'cancelled' => 0,
         ];
 
-        $statuses = Order::query()
-            ->whereDate('created_at', $selectedDate)
-            ->pluck('status');
+        $analyticsStartDate = $selectedDate->copy()->subDays(6)->startOfDay();
+        $analyticsEndDate = $selectedDate->copy()->endOfDay();
+        $analyticsRows = Order::query()
+            ->selectRaw('DATE(created_at) as order_date, status, COUNT(*) as total')
+            ->whereBetween('created_at', [$analyticsStartDate, $analyticsEndDate])
+            ->groupBy(DB::raw('DATE(created_at)'), 'status')
+            ->get();
 
-        foreach ($statuses as $status) {
-            if (array_key_exists($status, $orderStats)) {
-                $orderStats[$status] += 1;
+        $analyticsByDate = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $selectedDate->copy()->subDays($i);
+            $dateKey = $date->toDateString();
+
+            $analyticsByDate[$dateKey] = [
+                'date' => $dateKey,
+                'day' => $date->format('D'),
+                'pending' => 0,
+                'preparing' => 0,
+                'ready' => 0,
+                'completed' => 0,
+                'cancelled' => 0,
+            ];
+        }
+
+        foreach ($analyticsRows as $row) {
+            $dateKey = (string) $row->order_date;
+            $status = (string) $row->status;
+            $count = (int) $row->total;
+
+            if (! isset($analyticsByDate[$dateKey])) {
+                continue;
+            }
+
+            if ($status === 'in_progress') {
+                $analyticsByDate[$dateKey]['preparing'] += $count;
+            } elseif (array_key_exists($status, $orderStats)) {
+                $analyticsByDate[$dateKey][$status] += $count;
+            }
+
+            if ($dateKey === $selectedDateString) {
+                if ($status === 'in_progress') {
+                    $orderStats['in_progress'] += $count;
+                } elseif (array_key_exists($status, $orderStats)) {
+                    $orderStats[$status] += $count;
+                }
             }
         }
 
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $orderStats,
-                'selectedDate' => $selectedDate,
+                'orderAnalytics' => array_values($analyticsByDate),
+                'selectedDate' => $selectedDateString,
             ],
         ]);
     })->name('dashboard');
