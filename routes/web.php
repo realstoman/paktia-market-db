@@ -11,6 +11,8 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,7 +35,32 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        $selectedDate = Carbon::today()->toDateString();
+
+        $orderStats = [
+            'pending' => 0,
+            'in_progress' => 0,
+            'ready' => 0,
+            'completed' => 0,
+            'cancelled' => 0,
+        ];
+
+        $statuses = Order::query()
+            ->whereDate('created_at', $selectedDate)
+            ->pluck('status');
+
+        foreach ($statuses as $status) {
+            if (array_key_exists($status, $orderStats)) {
+                $orderStats[$status] += 1;
+            }
+        }
+
+        return Inertia::render('dashboard', [
+            'data' => [
+                'orders' => $orderStats,
+                'selectedDate' => $selectedDate,
+            ],
+        ]);
     })->name('dashboard');
 
     // Users

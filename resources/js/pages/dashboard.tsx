@@ -44,6 +44,7 @@ import {
     Cherry,
     CookingPot,
     Package,
+    PackageCheck,
     TrendingDown,
     TrendingUp,
     TvMinimal,
@@ -80,7 +81,12 @@ interface DashboardProps {
     data?: {
         orders: {
             pending: number;
+            in_progress: number;
+            ready: number;
+            completed: number;
+            cancelled: number;
         };
+        selectedDate: string;
     };
 }
 
@@ -89,6 +95,22 @@ export default function Dashboard({ data }: DashboardProps) {
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [month, setMonth] = React.useState<Date | undefined>(date);
     const [value, setValue] = React.useState(formatDate(date));
+    const ordersStats = data?.orders;
+    const formattedSelectedDate = React.useMemo(() => {
+        if (!data?.selectedDate) {
+            return 'today';
+        }
+
+        return new Date(`${data.selectedDate}T00:00:00`).toLocaleDateString(
+            'en-US',
+            {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+            },
+        );
+    }, [data?.selectedDate]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -181,14 +203,15 @@ export default function Dashboard({ data }: DashboardProps) {
                                         Order Status Overview
                                     </CardTitle>
                                     <CardDescription className="text-sm">
-                                        Track real-time order progress
+                                        Order statistics for{' '}
+                                        {formattedSelectedDate}
                                     </CardDescription>
                                 </div>
                                 <div className="space-y-4">
                                     <StatusCard
                                         title="Pending Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 137,
+                                            ordersStats?.pending ?? 0,
                                         )}
                                         color=""
                                         icon={<ChefHat className="h-5 w-5" />}
@@ -196,7 +219,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 462,
+                                            ordersStats?.in_progress ?? 0,
                                         )}
                                         color=""
                                         icon={
@@ -204,9 +227,19 @@ export default function Dashboard({ data }: DashboardProps) {
                                         }
                                     />
                                     <StatusCard
+                                        title="Ready Orders"
+                                        value={formatNumber(
+                                            ordersStats?.ready ?? 0,
+                                        )}
+                                        color=""
+                                        icon={
+                                            <PackageCheck className="h-4 w-4" />
+                                        }
+                                    />
+                                    <StatusCard
                                         title="Completed Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 344,
+                                            ordersStats?.completed ?? 0,
                                         )}
                                         color=""
                                         icon={<Utensils className="h-4 w-4" />}
@@ -214,7 +247,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 2,
+                                            ordersStats?.cancelled ?? 0,
                                         )}
                                         color=""
                                         icon={<X className="h-4 w-4" />}
