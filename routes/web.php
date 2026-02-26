@@ -13,6 +13,7 @@ use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -34,8 +35,12 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
-    Route::get('dashboard', function () {
-        $selectedDate = Carbon::today()->toDateString();
+    Route::get('dashboard', function (Request $request) {
+        $validated = $request->validate([
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $selectedDate = $validated['date'] ?? Carbon::today()->toDateString();
 
         $orderStats = [
             'pending' => 0,

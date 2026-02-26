@@ -36,7 +36,7 @@ import { dashboard } from '@/routes';
 import { mockPeakDayData } from '@/test-data/order-analytics';
 import { type BreadcrumbItem } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarIcon,
@@ -77,6 +77,14 @@ function isValidDate(date: Date | undefined) {
     return !isNaN(date.getTime());
 }
 
+function toDateParam(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 interface DashboardProps {
     data?: {
         orders: {
@@ -91,10 +99,23 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ data }: DashboardProps) {
+    const selectedDateFromProps = React.useMemo(() => {
+        if (!data?.selectedDate) {
+            return new Date();
+        }
+
+        const parsed = new Date(`${data.selectedDate}T00:00:00`);
+
+        return isValidDate(parsed) ? parsed : new Date();
+    }, [data?.selectedDate]);
     const [open, setOpen] = React.useState(false);
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    const [month, setMonth] = React.useState<Date | undefined>(date);
-    const [value, setValue] = React.useState(formatDate(date));
+    const [date, setDate] = React.useState<Date | undefined>(
+        selectedDateFromProps,
+    );
+    const [month, setMonth] = React.useState<Date | undefined>(
+        selectedDateFromProps,
+    );
+    const [value, setValue] = React.useState(formatDate(selectedDateFromProps));
     const ordersStats = data?.orders;
     const formattedSelectedDate = React.useMemo(() => {
         if (!data?.selectedDate) {
@@ -111,6 +132,28 @@ export default function Dashboard({ data }: DashboardProps) {
             },
         );
     }, [data?.selectedDate]);
+
+    React.useEffect(() => {
+        setDate(selectedDateFromProps);
+        setMonth(selectedDateFromProps);
+        setValue(formatDate(selectedDateFromProps));
+    }, [selectedDateFromProps]);
+
+    const applyDateFilter = React.useCallback((selected: Date | undefined) => {
+        if (!selected || !isValidDate(selected)) {
+            return;
+        }
+
+        router.get(
+            dashboard().url,
+            { date: toDateParam(selected) },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -261,16 +304,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             <InputGroupInput
                                                 id="date-required"
                                                 value={value}
-                                                onChange={(e) => {
-                                                    const date = new Date(
-                                                        e.target.value,
-                                                    );
-                                                    setValue(e.target.value);
-                                                    if (isValidDate(date)) {
-                                                        setDate(date);
-                                                        setMonth(date);
-                                                    }
-                                                }}
+                                                readOnly
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'ArrowDown') {
                                                         e.preventDefault();
@@ -312,6 +346,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             onSelect={(
                                                                 date,
                                                             ) => {
+                                                                if (!date) {
+                                                                    return;
+                                                                }
+
                                                                 setDate(date);
                                                                 setValue(
                                                                     formatDate(
@@ -319,6 +357,9 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     ),
                                                                 );
                                                                 setOpen(false);
+                                                                applyDateFilter(
+                                                                    date,
+                                                                );
                                                             }}
                                                         />
                                                     </PopoverContent>
