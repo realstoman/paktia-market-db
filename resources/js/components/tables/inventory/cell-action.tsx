@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { InventoryItem } from '@/types';
+import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -130,6 +131,42 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             <p className="font-medium">
                                 {data.is_usable ? 'Yes' : 'No'}
                             </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">
+                                Single Price
+                            </p>
+                            <p className="font-medium">
+                                {formatPrice(data.unit_price ?? 0)}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">
+                                Total Price
+                            </p>
+                            <p className="font-medium">
+                                {formatPrice(
+                                    Number(data.quantity || 0) *
+                                        Number(data.unit_price || 0),
+                                )}
+                            </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                            <p className="text-xs text-muted-foreground">
+                                Receipt/Bill
+                            </p>
+                            {data.receipt_url || data.receipt_path ? (
+                                <a
+                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="font-medium text-blue-600 hover:underline"
+                                >
+                                    View uploaded receipt
+                                </a>
+                            ) : (
+                                <p className="font-medium">-</p>
+                            )}
                         </div>
                         <div className="sm:col-span-2">
                             <p className="text-xs text-muted-foreground">
