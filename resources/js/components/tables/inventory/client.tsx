@@ -23,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { Branch, InventoryItem } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { ImagePlus, Plus, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -55,8 +55,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [type, setType] = useState('consumable');
     const [unit, setUnit] = useState('');
     const [quantity, setQuantity] = useState('');
+    const [unitPrice, setUnitPrice] = useState('');
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
+    const [receipt, setReceipt] = useState<File | null>(null);
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,8 +80,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setType('consumable');
         setUnit('');
         setQuantity('');
+        setUnitPrice('');
         setDescription('');
         setIsUsable(true);
+        setReceipt(null);
         clearSelectedImages();
         setErrors({});
     };
@@ -112,7 +116,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const handleCreate = () => {
-        if (!name.trim() || !branchId || !type || !quantity || isSubmitting) {
+        if (
+            !name.trim() ||
+            !branchId ||
+            !type ||
+            !quantity ||
+            !unitPrice ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -125,8 +136,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 type,
                 unit: unit.trim() || null,
                 quantity: Number(quantity),
+                unit_price: Number(unitPrice),
                 description: description.trim() || null,
                 is_usable: isUsable,
+                receipt,
                 images: images.map((image) => image.file),
             },
             {
@@ -150,6 +163,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             },
         );
     };
+
+    const totalPrice = useMemo(() => {
+        const qty = Number(quantity);
+        const price = Number(unitPrice);
+        if (Number.isNaN(qty) || Number.isNaN(price)) return 0;
+        return qty * price;
+    }, [quantity, unitPrice]);
 
     const tableColumns = useMemo(() => buildColumns(branches), [branches]);
 
@@ -187,7 +207,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     <DialogHeader>
                         <DialogTitle>Create Inventory Item</DialogTitle>
                         <DialogDescription>
-                            Add a new item with stock quantity and images.
+                            Add a new item with stock quantity, price, receipt/bill,
+                            and images.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -261,6 +282,27 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             />
                             <InputError message={errors.quantity} />
                         </div>
+                        <div className="grid gap-2">
+                            <Label>Single Price</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={unitPrice}
+                                onChange={(event) =>
+                                    setUnitPrice(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.unit_price} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Total Price (Auto)</Label>
+                            <Input
+                                value={formatPrice(totalPrice)}
+                                readOnly
+                                className="bg-muted"
+                            />
+                        </div>
                         <div className="flex items-end">
                             <div className="flex items-center gap-2">
                                 <Checkbox
@@ -283,6 +325,25 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 }
                             />
                             <InputError message={errors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="inventory-receipt">
+                                Receipt/Bill (image or PDF)
+                            </Label>
+                            <Input
+                                id="inventory-receipt"
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={(event) =>
+                                    setReceipt(event.target.files?.[0] ?? null)
+                                }
+                            />
+                            {receipt ? (
+                                <p className="text-xs text-muted-foreground">
+                                    Selected: {receipt.name}
+                                </p>
+                            ) : null}
+                            <InputError message={errors.receipt} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label>Images (up to 10)</Label>
@@ -357,6 +418,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 !branchId ||
                                 !type ||
                                 !quantity ||
+                                !unitPrice ||
                                 isSubmitting
                             }
                         >

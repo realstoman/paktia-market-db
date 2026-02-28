@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/chart';
 import { OrderAnalyticsChartProps } from '@/types/chart';
 import { useMemo } from 'react';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 const chartConfig = {
     pending: {
@@ -25,6 +25,10 @@ const chartConfig = {
     preparing: {
         label: 'Preparing',
         color: 'var(--chart-sky)',
+    },
+    ready: {
+        label: 'Ready',
+        color: 'var(--chart-ready)',
     },
     completed: {
         label: 'Completed',
@@ -57,6 +61,16 @@ export function OrderAnalyticsChart({
             formattedDay: item.day,
         }));
     }, [data]);
+    const animationKey = useMemo(
+        () =>
+            formattedData
+                .map(
+                    (item) =>
+                        `${item.date}-${item.pending}-${item.preparing}-${item.ready ?? 0}-${item.completed}-${item.cancelled}`,
+                )
+                .join('|'),
+        [formattedData],
+    );
 
     return (
         <Card className="rounded-none border-none bg-white shadow-none dark:bg-brand-bg-dark">
@@ -81,6 +95,10 @@ export function OrderAnalyticsChart({
                             color="var(--chart-sky)"
                         />
                         <LegendItem
+                            label="Ready"
+                            color="var(--chart-ready)"
+                        />
+                        <LegendItem
                             label="Completed"
                             color="var(--chart-green)"
                         />
@@ -97,7 +115,8 @@ export function OrderAnalyticsChart({
                     config={chartConfig}
                     className="h-[300px] w-full"
                 >
-                    <LineChart
+                    <AreaChart
+                        key={animationKey}
                         accessibilityLayer
                         data={formattedData}
                         margin={{
@@ -109,8 +128,30 @@ export function OrderAnalyticsChart({
                         <CartesianGrid
                             vertical={false}
                             strokeDasharray="3 3"
-                            stroke="#f0f0f0"
+                            stroke="#e9edf3"
                         />
+                        <defs>
+                            <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-neutral)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-neutral)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillPreparing" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-sky)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-sky)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillReady" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-ready)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-ready)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-green)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-green)" stopOpacity={0.02} />
+                            </linearGradient>
+                            <linearGradient id="fillCancelled" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--chart-red)" stopOpacity={0.42} />
+                                <stop offset="95%" stopColor="var(--chart-red)" stopOpacity={0.02} />
+                            </linearGradient>
+                        </defs>
 
                         <XAxis
                             dataKey="formattedDay"
@@ -146,46 +187,61 @@ export function OrderAnalyticsChart({
                             }
                         />
 
-                        {/* Pending Line - Neutral */}
-                        <Line
+                        {/* Pending Area - Neutral */}
+                        <Area
                             dataKey="pending"
                             type="monotone"
                             stroke="var(--chart-neutral)"
+                            fill="url(#fillPending)"
                             strokeWidth={2}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
+                            isAnimationActive
+                            animationDuration={700}
                         />
 
-                        {/* Preparing Line - Sky */}
-                        <Line
+                        {/* Preparing Area - Sky */}
+                        <Area
                             dataKey="preparing"
                             type="monotone"
                             stroke="var(--chart-sky)"
+                            fill="url(#fillPreparing)"
                             strokeWidth={2}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
+                            isAnimationActive
+                            animationDuration={700}
                         />
 
-                        {/* Completed Line - Green */}
-                        <Line
+                        {/* Ready Area - Amber */}
+                        <Area
+                            dataKey="ready"
+                            type="monotone"
+                            stroke="var(--chart-ready)"
+                            fill="url(#fillReady)"
+                            strokeWidth={2}
+                            isAnimationActive
+                            animationDuration={700}
+                        />
+
+                        {/* Completed Area - Green */}
+                        <Area
                             dataKey="completed"
                             type="monotone"
                             stroke="var(--chart-green)"
+                            fill="url(#fillCompleted)"
                             strokeWidth={2}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
+                            isAnimationActive
+                            animationDuration={700}
                         />
 
-                        {/* Cancelled Line - Red */}
-                        <Line
+                        {/* Cancelled Area - Red */}
+                        <Area
                             dataKey="cancelled"
                             type="monotone"
                             stroke="var(--chart-red)"
+                            fill="url(#fillCancelled)"
                             strokeWidth={2}
-                            dot={{ r: 3, strokeWidth: 1, fill: 'white' }}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
+                            isAnimationActive
+                            animationDuration={700}
                         />
-                    </LineChart>
+                    </AreaChart>
                 </ChartContainer>
             </CardContent>
         </Card>

@@ -13,7 +13,20 @@ class InventoryItem extends Model
         'type',
         'unit',
         'quantity',
+        'unit_price',
+        'receipt_path',
         'is_usable',
+    ];
+
+    protected $appends = [
+        'total_price',
+        'receipt_url',
+    ];
+
+    protected $casts = [
+        'quantity' => 'decimal:2',
+        'unit_price' => 'decimal:2',
+        'is_usable' => 'boolean',
     ];
 
     public function branch()
@@ -29,5 +42,31 @@ class InventoryItem extends Model
     public function transactions()
     {
         return $this->hasMany(InventoryTransaction::class)->latest();
+    }
+
+    public function getTotalPriceAttribute(): float
+    {
+        return (float) $this->quantity * (float) $this->unit_price;
+    }
+
+    public function getReceiptUrlAttribute(): ?string
+    {
+        if (!$this->receipt_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->receipt_path, '/storage/')) {
+            return $this->receipt_path;
+        }
+
+        if (str_starts_with($this->receipt_path, 'storage/')) {
+            return '/'.$this->receipt_path;
+        }
+
+        if (str_starts_with($this->receipt_path, 'public/')) {
+            return '/storage/'.str_replace('public/', '', $this->receipt_path);
+        }
+
+        return '/storage/'.$this->receipt_path;
     }
 }

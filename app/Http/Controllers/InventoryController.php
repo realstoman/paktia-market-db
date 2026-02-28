@@ -34,12 +34,19 @@ class InventoryController extends Controller
             'type' => 'required|string|max:100',
             'unit' => 'nullable|string|max:50',
             'quantity' => 'required|numeric|min:0',
+            'unit_price' => 'required|numeric|min:0',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
         DB::transaction(function () use ($validated, $request) {
+            $receiptPath = null;
+            if ($request->hasFile('receipt')) {
+                $receiptPath = $request->file('receipt')->store('inventory/receipts', 'public');
+            }
+
             $item = InventoryItem::create([
                 'branch_id' => $validated['branch_id'],
                 'name' => $validated['name'],
@@ -47,6 +54,8 @@ class InventoryController extends Controller
                 'type' => strtolower(trim($validated['type'])),
                 'unit' => $validated['unit'] ?? null,
                 'quantity' => $validated['quantity'],
+                'unit_price' => $validated['unit_price'],
+                'receipt_path' => $receiptPath,
                 'is_usable' => $validated['is_usable'] ?? true,
             ]);
 

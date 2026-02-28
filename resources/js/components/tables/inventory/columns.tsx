@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Branch, InventoryItem } from '@/types';
+import { formatPrice } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { ImageViewerDialog } from './image-viewer-dialog';
@@ -112,6 +113,23 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
             },
         },
         {
+            accessorKey: 'unit_price',
+            header: 'Single Price',
+            cell: ({ row }) => formatPrice(row.original.unit_price ?? 0),
+        },
+        {
+            id: 'total_price',
+            header: 'Total Price',
+            accessorFn: (row) =>
+                Number(row.quantity || 0) * Number(row.unit_price || 0),
+            cell: ({ row }) => {
+                const total =
+                    Number(row.original.quantity || 0) *
+                    Number(row.original.unit_price || 0);
+                return formatPrice(total);
+            },
+        },
+        {
             accessorKey: 'is_usable',
             header: 'Usable',
             cell: ({ row }) =>
@@ -131,6 +149,34 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
             cell: ({ row }) => (
                 <ImageViewerDialog images={row.original.images ?? []} />
             ),
+        },
+        {
+            id: 'receipt',
+            header: 'Receipt/Bill',
+            cell: ({ row }) => {
+                const item = row.original;
+                const receiptUrl = resolveImageUrl(
+                    item.receipt_path ?? undefined,
+                    item.receipt_url ?? undefined,
+                );
+
+                if (!receiptUrl) {
+                    return (
+                        <span className="text-xs text-muted-foreground">-</span>
+                    );
+                }
+
+                return (
+                    <a
+                        href={receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                    >
+                        View
+                    </a>
+                );
+            },
         },
         {
             accessorKey: 'created_at',

@@ -24,6 +24,7 @@ import {
     ShieldCheck,
     Smartphone,
     Users,
+    Wallet,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -50,6 +51,11 @@ const mainNavItems: NavItem[] = [
         href: '/inventory',
         icon: Boxes,
         can: 'inventory.view',
+    },
+    {
+        title: 'Finance',
+        href: '/finance',
+        icon: Wallet,
     },
     {
         title: 'Branches',

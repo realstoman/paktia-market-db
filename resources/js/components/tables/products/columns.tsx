@@ -97,6 +97,16 @@ export const buildColumns = (
                         <span className="font-medium text-neutral-900 dark:text-neutral-100">
                             {product.name}
                         </span>
+                        {product.pashto_name ? (
+                            <span className="text-xs text-muted-foreground">
+                                PS: {product.pashto_name}
+                            </span>
+                        ) : null}
+                        {product.dari_name ? (
+                            <span className="text-xs text-muted-foreground">
+                                FA: {product.dari_name}
+                            </span>
+                        ) : null}
                         <span className="text-xs text-muted-foreground">
                             {resolvedCategory}
                         </span>

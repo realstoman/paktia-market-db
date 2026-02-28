@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Order, BranchTable } from '@/types';
+import { BranchTable, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';

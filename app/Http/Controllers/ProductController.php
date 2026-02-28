@@ -38,7 +38,11 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
             'kitchen_id' => 'required|exists:kitchens,id',
             'type' => 'required|string|max:50',
@@ -54,7 +58,11 @@ class ProductController extends Controller
         DB::transaction(function () use ($request, $validated) {
             $product = Product::create([
                 'name' => $validated['name'],
+                'pashto_name' => $validated['pashto_name'] ?? null,
+                'dari_name' => $validated['dari_name'] ?? null,
                 'description' => $validated['description'] ?? null,
+                'pashto_description' => $validated['pashto_description'] ?? null,
+                'dari_description' => $validated['dari_description'] ?? null,
                 'product_category_id' => $validated['product_category_id'],
                 'kitchen_id' => $validated['kitchen_id'],
                 'type' => strtolower(trim($validated['type'])),
@@ -90,7 +98,11 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
             'kitchen_id' => 'required|exists:kitchens,id',
             'type' => 'required|string|max:50',
@@ -131,7 +143,11 @@ class ProductController extends Controller
         DB::transaction(function () use ($request, $validated, $product) {
             $product->update([
                 'name' => $validated['name'],
+                'pashto_name' => $validated['pashto_name'] ?? null,
+                'dari_name' => $validated['dari_name'] ?? null,
                 'description' => $validated['description'] ?? null,
+                'pashto_description' => $validated['pashto_description'] ?? null,
+                'dari_description' => $validated['dari_description'] ?? null,
                 'product_category_id' => $validated['product_category_id'],
                 'kitchen_id' => $validated['kitchen_id'],
                 'type' => strtolower(trim($validated['type'])),

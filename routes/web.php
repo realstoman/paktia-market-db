@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
@@ -11,6 +12,10 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\Order;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,8 +37,88 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+    Route::get('dashboard', function (Request $request) {
+        $validated = $request->validate([
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $selectedDate = Carbon::parse(
+            $validated['date'] ?? Carbon::today()->toDateString(),
+        );
+        $selectedDateString = $selectedDate->toDateString();
+
+        $orderStats = [
+            'pending' => 0,
+            'in_progress' => 0,
+            'ready' => 0,
+            'completed' => 0,
+            'cancelled' => 0,
+        ];
+
+        $analyticsReferenceDate = Carbon::today();
+        $analyticsStartDate = $analyticsReferenceDate->copy()->subDays(6)->startOfDay();
+        $analyticsEndDate = $analyticsReferenceDate->copy()->endOfDay();
+        $analyticsRows = Order::query()
+            ->selectRaw('DATE(created_at) as order_date, status, COUNT(*) as total')
+            ->whereBetween('created_at', [$analyticsStartDate, $analyticsEndDate])
+            ->groupBy(DB::raw('DATE(created_at)'), 'status')
+            ->get();
+        $recentOrders = Order::query()
+            ->with(['items.product'])
+            ->withCount('items')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+
+        $analyticsByDate = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $analyticsReferenceDate->copy()->subDays($i);
+            $dateKey = $date->toDateString();
+
+            $analyticsByDate[$dateKey] = [
+                'date' => $dateKey,
+                'day' => $date->format('D'),
+                'pending' => 0,
+                'preparing' => 0,
+                'ready' => 0,
+                'completed' => 0,
+                'cancelled' => 0,
+            ];
+        }
+
+        foreach ($analyticsRows as $row) {
+            $dateKey = (string) $row->order_date;
+            $status = (string) $row->status;
+            $count = (int) $row->total;
+
+            if (! isset($analyticsByDate[$dateKey])) {
+                continue;
+            }
+
+            if ($status === 'in_progress') {
+                $analyticsByDate[$dateKey]['preparing'] += $count;
+            } elseif (array_key_exists($status, $orderStats)) {
+                $analyticsByDate[$dateKey][$status] += $count;
+            }
+
+            if ($dateKey === $selectedDateString) {
+                if ($status === 'in_progress') {
+                    $orderStats['in_progress'] += $count;
+                } elseif (array_key_exists($status, $orderStats)) {
+                    $orderStats[$status] += $count;
+                }
+            }
+        }
+
+        return Inertia::render('dashboard', [
+            'data' => [
+                'orders' => $orderStats,
+                'orderAnalytics' => array_values($analyticsByDate),
+                'recentOrders' => $recentOrders,
+                'selectedDate' => $selectedDateString,
+            ],
+        ]);
     })->name('dashboard');
 
     // Users
@@ -83,6 +168,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+    Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

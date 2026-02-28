@@ -33,10 +33,9 @@ import {
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { mockPeakDayData } from '@/test-data/order-analytics';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Order } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarIcon,
@@ -44,6 +43,7 @@ import {
     Cherry,
     CookingPot,
     Package,
+    PackageCheck,
     TrendingDown,
     TrendingUp,
     TvMinimal,
@@ -64,8 +64,9 @@ function formatDate(date: Date | undefined) {
         return '';
     }
     return date.toLocaleDateString('en-US', {
+        weekday: 'short',
         day: '2-digit',
-        month: 'long',
+        month: 'short',
         year: 'numeric',
     });
 }
@@ -76,19 +77,123 @@ function isValidDate(date: Date | undefined) {
     return !isNaN(date.getTime());
 }
 
+function toDateParam(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+function formatOrderStatus(status?: string) {
+    if (!status) {
+        return 'Pending';
+    }
+
+    return status
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function getOrderStatusBadgeClass(status?: string) {
+    switch (status) {
+        case 'completed':
+            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200';
+        case 'in_progress':
+            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
+        case 'ready':
+            return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200';
+        case 'cancelled':
+            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
+        case 'pending':
+        default:
+            return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200';
+    }
+}
+
 interface DashboardProps {
     data?: {
         orders: {
             pending: number;
+            in_progress: number;
+            ready: number;
+            completed: number;
+            cancelled: number;
         };
+        orderAnalytics: Array<{
+            date: string;
+            day: string;
+            pending: number;
+            preparing: number;
+            ready: number;
+            completed: number;
+            cancelled: number;
+        }>;
+        recentOrders: Order[];
+        selectedDate: string;
     };
 }
 
 export default function Dashboard({ data }: DashboardProps) {
+    const selectedDateFromProps = React.useMemo(() => {
+        if (!data?.selectedDate) {
+            return new Date();
+        }
+
+        const parsed = new Date(`${data.selectedDate}T00:00:00`);
+
+        return isValidDate(parsed) ? parsed : new Date();
+    }, [data?.selectedDate]);
     const [open, setOpen] = React.useState(false);
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    const [month, setMonth] = React.useState<Date | undefined>(date);
-    const [value, setValue] = React.useState(formatDate(date));
+    const [date, setDate] = React.useState<Date | undefined>(
+        selectedDateFromProps,
+    );
+    const [month, setMonth] = React.useState<Date | undefined>(
+        selectedDateFromProps,
+    );
+    const [value, setValue] = React.useState(formatDate(selectedDateFromProps));
+    const ordersStats = data?.orders;
+    const formattedSelectedDate = React.useMemo(() => {
+        if (!data?.selectedDate) {
+            return 'today';
+        }
+
+        return new Date(`${data.selectedDate}T00:00:00`).toLocaleDateString(
+            'en-US',
+            {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            },
+        );
+    }, [data?.selectedDate]);
+
+    const orderAnalyticsData = data?.orderAnalytics ?? [];
+    const recentOrders = data?.recentOrders ?? [];
+
+    React.useEffect(() => {
+        setDate(selectedDateFromProps);
+        setMonth(selectedDateFromProps);
+        setValue(formatDate(selectedDateFromProps));
+    }, [selectedDateFromProps]);
+
+    const applyDateFilter = React.useCallback((selected: Date | undefined) => {
+        if (!selected || !isValidDate(selected)) {
+            return;
+        }
+
+        router.get(
+            dashboard().url,
+            { date: toDateParam(selected) },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -181,14 +286,15 @@ export default function Dashboard({ data }: DashboardProps) {
                                         Order Status Overview
                                     </CardTitle>
                                     <CardDescription className="text-sm">
-                                        Track real-time order progress
+                                        Order statistics for{' '}
+                                        {formattedSelectedDate}
                                     </CardDescription>
                                 </div>
                                 <div className="space-y-4">
                                     <StatusCard
                                         title="Pending Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 137,
+                                            ordersStats?.pending ?? 0,
                                         )}
                                         color=""
                                         icon={<ChefHat className="h-5 w-5" />}
@@ -196,7 +302,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Preparing Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 462,
+                                            ordersStats?.in_progress ?? 0,
                                         )}
                                         color=""
                                         icon={
@@ -204,9 +310,19 @@ export default function Dashboard({ data }: DashboardProps) {
                                         }
                                     />
                                     <StatusCard
+                                        title="Ready Orders"
+                                        value={formatNumber(
+                                            ordersStats?.ready ?? 0,
+                                        )}
+                                        color=""
+                                        icon={
+                                            <PackageCheck className="h-4 w-4" />
+                                        }
+                                    />
+                                    <StatusCard
                                         title="Completed Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 344,
+                                            ordersStats?.completed ?? 0,
                                         )}
                                         color=""
                                         icon={<Utensils className="h-4 w-4" />}
@@ -214,7 +330,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <StatusCard
                                         title="Cancelled Orders"
                                         value={formatNumber(
-                                            data?.orders.pending || 2,
+                                            ordersStats?.cancelled ?? 0,
                                         )}
                                         color=""
                                         icon={<X className="h-4 w-4" />}
@@ -228,16 +344,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             <InputGroupInput
                                                 id="date-required"
                                                 value={value}
-                                                onChange={(e) => {
-                                                    const date = new Date(
-                                                        e.target.value,
-                                                    );
-                                                    setValue(e.target.value);
-                                                    if (isValidDate(date)) {
-                                                        setDate(date);
-                                                        setMonth(date);
-                                                    }
-                                                }}
+                                                readOnly
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'ArrowDown') {
                                                         e.preventDefault();
@@ -279,6 +386,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             onSelect={(
                                                                 date,
                                                             ) => {
+                                                                if (!date) {
+                                                                    return;
+                                                                }
+
                                                                 setDate(date);
                                                                 setValue(
                                                                     formatDate(
@@ -286,6 +397,9 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     ),
                                                                 );
                                                                 setOpen(false);
+                                                                applyDateFilter(
+                                                                    date,
+                                                                );
                                                             }}
                                                         />
                                                     </PopoverContent>
@@ -303,9 +417,9 @@ export default function Dashboard({ data }: DashboardProps) {
                             </div>
                         </div>
                         <OrderAnalyticsChart
-                            data={mockPeakDayData}
+                            data={orderAnalyticsData}
                             title="Order Analytics"
-                            description="Last 7 days order status"
+                            description="Past 7 days order status"
                         />
                     </Card>
 
@@ -463,105 +577,57 @@ export default function Dashboard({ data }: DashboardProps) {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {[
-                                                {
-                                                    id: '4821',
-                                                    type: 'dine-in',
-                                                    items: 'Qabuli Palaw',
-                                                    qty: 3,
-                                                    status: 'completed',
-                                                    total: formatPrice(1245),
-                                                },
-                                                {
-                                                    id: '4822',
-                                                    type: 'delivery',
-                                                    items: 'Chopan Kabab',
-                                                    qty: 2,
-                                                    status: 'preparing',
-                                                    total: formatPrice(820),
-                                                },
-                                                {
-                                                    id: '4823',
-                                                    type: 'pickup',
-                                                    items: 'Shawarma',
-                                                    qty: 2,
-                                                    status: 'pending',
-                                                    total: formatPrice(560),
-                                                },
-                                                {
-                                                    id: '4824',
-                                                    type: 'dine-in',
-                                                    items: 'Qabuli Palaw',
-                                                    qty: 3,
-                                                    status: 'completed',
-                                                    total: formatPrice(1020),
-                                                },
-                                                {
-                                                    id: '4825',
-                                                    type: 'delivery',
-                                                    items: 'Grilled Fish',
-                                                    qty: 2,
-                                                    status: 'cancelled',
-                                                    total: formatPrice(1540),
-                                                },
-                                                {
-                                                    id: '4826',
-                                                    type: 'pickup',
-                                                    items: 'Zinger Burger',
-                                                    status: 'completed',
-                                                    qty: 2,
-                                                    total: formatPrice(430),
-                                                },
-                                                {
-                                                    id: '4827',
-                                                    type: 'dine-in',
-                                                    items: 'Baba Special Pizza',
-                                                    qty: 4,
-                                                    status: 'preparing',
-                                                    total: formatPrice(2800),
-                                                },
-                                                {
-                                                    id: '4828',
-                                                    type: 'dine-in',
-                                                    items: 'Baba Special Salad',
-                                                    qty: 2,
-                                                    status: 'completed',
-                                                    total: formatPrice(500),
-                                                },
-                                            ].map((order) => (
+                                            {recentOrders.map((order) => (
                                                 <TableRow key={order.id}>
                                                     <TableCell className="font-medium">
                                                         #{order.id}
                                                     </TableCell>
                                                     <TableCell className="capitalize">
-                                                        {order.type}
+                                                        {order.order_type?.replace(
+                                                            '_',
+                                                            ' ',
+                                                        ) ?? '-'}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {order.items}
+                                                        {order.items
+                                                            ?.slice(0, 2)
+                                                            .map(
+                                                                (item) =>
+                                                                    item
+                                                                        .product
+                                                                        ?.name ??
+                                                                    'Unknown Item',
+                                                            )
+                                                            .join(', ') || '-'}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {order.qty}
+                                                        {order.items?.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                Number(
+                                                                    item.quantity,
+                                                                ),
+                                                            0,
+                                                        ) ?? 0}
                                                     </TableCell>
                                                     <TableCell>
                                                         <span
                                                             className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                                order.status ===
-                                                                'completed'
-                                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
-                                                                    : order.status ===
-                                                                        'preparing'
-                                                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
-                                                                      : order.status ===
-                                                                          'pending'
-                                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
-                                                                        : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
+                                                                getOrderStatusBadgeClass(
+                                                                    order.status,
+                                                                )
                                                             }`}
                                                         >
-                                                            {order.status}
+                                                            {formatOrderStatus(
+                                                                order.status,
+                                                            )}
                                                         </span>
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        {order.total} ؋
+                                                        {formatPrice(
+                                                            order.total_amount,
+                                                        )}{' '}
+                                                        ؋
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

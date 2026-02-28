@@ -14,6 +14,7 @@ export interface OrderDayData {
     day: string;
     pending: number;
     preparing: number;
+    ready?: number;
     completed: number;
     cancelled: number;
 }
