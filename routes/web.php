@@ -62,6 +62,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->whereBetween('created_at', [$analyticsStartDate, $analyticsEndDate])
             ->groupBy(DB::raw('DATE(created_at)'), 'status')
             ->get();
+        $recentOrders = Order::query()
+            ->with(['items.product'])
+            ->withCount('items')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
 
         $analyticsByDate = [];
 
@@ -108,6 +114,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'data' => [
                 'orders' => $orderStats,
                 'orderAnalytics' => array_values($analyticsByDate),
+                'recentOrders' => $recentOrders,
                 'selectedDate' => $selectedDateString,
             ],
         ]);

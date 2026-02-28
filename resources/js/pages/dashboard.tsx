@@ -33,7 +33,7 @@ import {
 import { illustrations } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Order } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -85,6 +85,33 @@ function toDateParam(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
+function formatOrderStatus(status?: string) {
+    if (!status) {
+        return 'Pending';
+    }
+
+    return status
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function getOrderStatusBadgeClass(status?: string) {
+    switch (status) {
+        case 'completed':
+            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200';
+        case 'in_progress':
+            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
+        case 'ready':
+            return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200';
+        case 'cancelled':
+            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
+        case 'pending':
+        default:
+            return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200';
+    }
+}
+
 interface DashboardProps {
     data?: {
         orders: {
@@ -103,6 +130,7 @@ interface DashboardProps {
             completed: number;
             cancelled: number;
         }>;
+        recentOrders: Order[];
         selectedDate: string;
     };
 }
@@ -143,6 +171,7 @@ export default function Dashboard({ data }: DashboardProps) {
     }, [data?.selectedDate]);
 
     const orderAnalyticsData = data?.orderAnalytics ?? [];
+    const recentOrders = data?.recentOrders ?? [];
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -548,105 +577,57 @@ export default function Dashboard({ data }: DashboardProps) {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {[
-                                                {
-                                                    id: '4821',
-                                                    type: 'dine-in',
-                                                    items: 'Qabuli Palaw',
-                                                    qty: 3,
-                                                    status: 'completed',
-                                                    total: formatPrice(1245),
-                                                },
-                                                {
-                                                    id: '4822',
-                                                    type: 'delivery',
-                                                    items: 'Chopan Kabab',
-                                                    qty: 2,
-                                                    status: 'preparing',
-                                                    total: formatPrice(820),
-                                                },
-                                                {
-                                                    id: '4823',
-                                                    type: 'pickup',
-                                                    items: 'Shawarma',
-                                                    qty: 2,
-                                                    status: 'pending',
-                                                    total: formatPrice(560),
-                                                },
-                                                {
-                                                    id: '4824',
-                                                    type: 'dine-in',
-                                                    items: 'Qabuli Palaw',
-                                                    qty: 3,
-                                                    status: 'completed',
-                                                    total: formatPrice(1020),
-                                                },
-                                                {
-                                                    id: '4825',
-                                                    type: 'delivery',
-                                                    items: 'Grilled Fish',
-                                                    qty: 2,
-                                                    status: 'cancelled',
-                                                    total: formatPrice(1540),
-                                                },
-                                                {
-                                                    id: '4826',
-                                                    type: 'pickup',
-                                                    items: 'Zinger Burger',
-                                                    status: 'completed',
-                                                    qty: 2,
-                                                    total: formatPrice(430),
-                                                },
-                                                {
-                                                    id: '4827',
-                                                    type: 'dine-in',
-                                                    items: 'Baba Special Pizza',
-                                                    qty: 4,
-                                                    status: 'preparing',
-                                                    total: formatPrice(2800),
-                                                },
-                                                {
-                                                    id: '4828',
-                                                    type: 'dine-in',
-                                                    items: 'Baba Special Salad',
-                                                    qty: 2,
-                                                    status: 'completed',
-                                                    total: formatPrice(500),
-                                                },
-                                            ].map((order) => (
+                                            {recentOrders.map((order) => (
                                                 <TableRow key={order.id}>
                                                     <TableCell className="font-medium">
                                                         #{order.id}
                                                     </TableCell>
                                                     <TableCell className="capitalize">
-                                                        {order.type}
+                                                        {order.order_type?.replace(
+                                                            '_',
+                                                            ' ',
+                                                        ) ?? '-'}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {order.items}
+                                                        {order.items
+                                                            ?.slice(0, 2)
+                                                            .map(
+                                                                (item) =>
+                                                                    item
+                                                                        .product
+                                                                        ?.name ??
+                                                                    'Unknown Item',
+                                                            )
+                                                            .join(', ') || '-'}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {order.qty}
+                                                        {order.items?.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                Number(
+                                                                    item.quantity,
+                                                                ),
+                                                            0,
+                                                        ) ?? 0}
                                                     </TableCell>
                                                     <TableCell>
                                                         <span
                                                             className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                                order.status ===
-                                                                'completed'
-                                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200'
-                                                                    : order.status ===
-                                                                        'preparing'
-                                                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
-                                                                      : order.status ===
-                                                                          'pending'
-                                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
-                                                                        : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
+                                                                getOrderStatusBadgeClass(
+                                                                    order.status,
+                                                                )
                                                             }`}
                                                         >
-                                                            {order.status}
+                                                            {formatOrderStatus(
+                                                                order.status,
+                                                            )}
                                                         </span>
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        {order.total} ؋
+                                                        {formatPrice(
+                                                            order.total_amount,
+                                                        )}{' '}
+                                                        ؋
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
