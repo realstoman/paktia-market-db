@@ -13,7 +13,14 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
-import { Layers3, UtensilsCrossed } from 'lucide-react';
+import {
+    Coffee,
+    IceCreamCone,
+    Layers3,
+    Package,
+    UtensilsCrossed,
+    type LucideIcon,
+} from 'lucide-react';
 import { useMemo } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,6 +41,30 @@ interface ProductsPageProps {
     kitchens: Kitchen[];
     sizes: ProductSize[];
 }
+
+const getTypeIcon = (typeName: string): LucideIcon => {
+    const normalizedType = typeName.trim().toLowerCase();
+
+    if (normalizedType.includes('food')) {
+        return UtensilsCrossed;
+    }
+
+    if (
+        normalizedType.includes('dessert') ||
+        normalizedType.includes('desert')
+    ) {
+        return IceCreamCone;
+    }
+
+    if (
+        normalizedType.includes('beverage') ||
+        normalizedType.includes('bverage')
+    ) {
+        return Coffee;
+    }
+
+    return Package;
+};
 
 export default function ProductsPage({
     products,
@@ -88,27 +119,31 @@ export default function ProductsPage({
                         </CardContent>
                     </Card>
 
-                    {productsByType.map((typeSummary) => (
-                        <Card
-                            key={typeSummary.name}
-                            className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900"
-                        >
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm capitalize">
-                                    {typeSummary.name}
-                                </CardTitle>
-                                <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(typeSummary.count)}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    {productsByType.map((typeSummary) => {
+                        const TypeIcon = getTypeIcon(typeSummary.name);
+
+                        return (
+                            <Card
+                                key={typeSummary.name}
+                                className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900"
+                            >
+                                <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                    <CardTitle className="text-sm capitalize">
+                                        {typeSummary.name}
+                                    </CardTitle>
+                                    <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl font-semibold tracking-tight">
+                                        {formatNumber(typeSummary.count)}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
 
-                <div className="p-6 text-gray-900">
+                <div className="rounded-lg bg-white p-6 text-gray-900 dark:bg-brand-bg-dark">
                     <ProductsClient
                         data={products}
                         categories={categories}
