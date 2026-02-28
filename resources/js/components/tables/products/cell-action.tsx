@@ -135,6 +135,15 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const availableTypes = types.length > 0 ? types.map((item) => item.name) : FALLBACK_TYPES;
     const activeImages = data.images ?? [];
+    const resolvedCategory =
+        data.category?.name ??
+        categories.find((category) => category.id === data.product_category_id)
+            ?.name ??
+        'Uncategorized';
+    const resolvedKitchen =
+        data.kitchen?.name ??
+        kitchens.find((kitchen) => kitchen.id === data.kitchen_id)?.name ??
+        'Unassigned';
 
     useEffect(() => {
         return () => {
@@ -289,6 +298,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
@@ -304,6 +317,157 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Product Details</DialogTitle>
+                        <DialogDescription>
+                            View complete details for this product.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="max-h-[68vh] space-y-4 overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Name
+                                </p>
+                                <p className="font-medium">{data.name}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Pashto Name
+                                </p>
+                                <p className="font-medium">
+                                    {data.pashto_name || '-'}
+                                </p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Dari Name
+                                </p>
+                                <p className="font-medium">
+                                    {data.dari_name || '-'}
+                                </p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Category
+                                </p>
+                                <p className="font-medium">{resolvedCategory}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Kitchen
+                                </p>
+                                <p className="font-medium">{resolvedKitchen}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Type
+                                </p>
+                                <Badge variant="secondary" className="capitalize">
+                                    {data.type ?? '-'}
+                                </Badge>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Base Price
+                                </p>
+                                <p className="font-medium">
+                                    {formatAfn(data.base_price ?? 0)}
+                                </p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
+                                    Status
+                                </p>
+                                <Badge variant={data.is_active ? 'default' : 'destructive'}>
+                                    {data.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                            </div>
+                            <div className="space-y-1 sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">
+                                    Description
+                                </p>
+                                <p className="rounded-md border p-3 text-sm">
+                                    {data.description || '-'}
+                                </p>
+                            </div>
+                            <div className="space-y-1 sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">
+                                    Pashto Description
+                                </p>
+                                <p className="rounded-md border p-3 text-sm">
+                                    {data.pashto_description || '-'}
+                                </p>
+                            </div>
+                            <div className="space-y-1 sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">
+                                    Dari Description
+                                </p>
+                                <p className="rounded-md border p-3 text-sm">
+                                    {data.dari_description || '-'}
+                                </p>
+                            </div>
+                            <div className="space-y-1 sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">
+                                    Sizes
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {(data.sizes ?? []).length === 0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            No size pricing set
+                                        </span>
+                                    ) : (
+                                        data.sizes?.map((size) => (
+                                            <Badge key={size.id} variant="outline">
+                                                {size.name}:{' '}
+                                                {formatAfn(size.pivot?.price ?? data.base_price ?? 0)}
+                                            </Badge>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-2 sm:col-span-2">
+                                <p className="text-xs text-muted-foreground">
+                                    Images ({activeImages.length})
+                                </p>
+                                {activeImages.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        No images
+                                    </p>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                        {activeImages.map((image) => (
+                                            <div
+                                                key={image.id}
+                                                className="h-24 overflow-hidden rounded-md border"
+                                            >
+                                                <img
+                                                    src={resolveImageUrl(image)}
+                                                    alt={data.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsViewOpen(false)}
+                        >
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-4xl">
