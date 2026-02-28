@@ -470,7 +470,7 @@ export const CellAction: React.FC<CellActionProps> = ({
             </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>Edit Product</DialogTitle>
                         <DialogDescription>
@@ -478,7 +478,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor={`product-name-${data.id}`}>Name</Label>
                             <Input
@@ -741,6 +742,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <span className="text-sm text-muted-foreground">
                                 Active product
                             </span>
+                        </div>
                         </div>
                     </div>
 
