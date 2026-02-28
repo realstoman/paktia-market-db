@@ -2,6 +2,13 @@
 
 import { InventoryClient } from '@/components/tables/inventory/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem, InventoryItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -14,7 +21,7 @@ import {
     PackageX,
     Warehouse,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -36,17 +43,29 @@ export default function InventoryPage({
     inventoryItems,
     branches,
 }: InventoryPageProps) {
+    const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
+    const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
+
+    const statsItems = useMemo(() => {
+        if (selectedBranchId === BRANCH_FILTER_ALL) {
+            return inventoryItems;
+        }
+
+        return inventoryItems.filter(
+            (item) => String(item.branch_id) === selectedBranchId,
+        );
+    }, [inventoryItems, selectedBranchId]);
 
     const stats = useMemo(() => {
-        const totalItems = inventoryItems.length;
+        const totalItems = statsItems.length;
         let totalValue = 0;
         let totalFixedItems = 0;
         let totalUsableItems = 0;
         let lowStockItems = 0;
         let outOfStockItems = 0;
 
-        for (const item of inventoryItems) {
+        for (const item of statsItems) {
             const quantity = Number(item.quantity) || 0;
             const unitPrice = Number(item.unit_price) || 0;
 
@@ -75,12 +94,38 @@ export default function InventoryPage({
             lowStockItems,
             outOfStockItems,
         };
-    }, [inventoryItems]);
+    }, [statsItems]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Inventory" />
             <div className="space-y-4 p-8">
+                <div className="flex justify-end">
+                    <div className="w-full max-w-xs">
+                        <Select
+                            value={selectedBranchId}
+                            onValueChange={setSelectedBranchId}
+                        >
+                            <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Select branch for stats" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={BRANCH_FILTER_ALL}>
+                                    All Branches
+                                </SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem
+                                        key={branch.id}
+                                        value={String(branch.id)}
+                                    >
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
