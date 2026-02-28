@@ -235,6 +235,10 @@ export interface InventoryItem {
     type: string;
     unit?: string | null;
     quantity: number | string;
+    unit_price?: number | string;
+    total_price?: number | string;
+    receipt_path?: string | null;
+    receipt_url?: string | null;
     is_usable: boolean;
     images?: InventoryItemImage[];
     transactions?: InventoryTransaction[];
