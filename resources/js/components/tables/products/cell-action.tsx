@@ -9,6 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -44,7 +45,16 @@ import {
     ProductType,
 } from '@/types';
 import { router } from '@inertiajs/react';
-import { Edit, ImagePlus, MoreHorizontal, Save, Trash2, X } from 'lucide-react';
+import { formatAfn } from '@/utils/format';
+import {
+    Edit,
+    Eye,
+    ImagePlus,
+    MoreHorizontal,
+    Save,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -90,6 +100,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     types,
     kitchens,
 }) => {
+    const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [name, setName] = useState(data.name);
@@ -123,6 +134,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const availableTypes = types.length > 0 ? types.map((item) => item.name) : FALLBACK_TYPES;
+    const activeImages = data.images ?? [];
 
     useEffect(() => {
         return () => {

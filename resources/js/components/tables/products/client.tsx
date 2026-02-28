@@ -355,7 +355,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <PackagePlus className="mr-2 h-5 w-5" />
@@ -366,7 +366,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor="product-name">Name</Label>
                             <Input
@@ -593,6 +594,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             <span className="text-sm text-muted-foreground">
                                 Active product
                             </span>
+                        </div>
                         </div>
                     </div>
 
