@@ -189,7 +189,9 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
         {
             id: 'actions',
             header: 'Actions',
-            cell: ({ row }) => <CellAction data={row.original} />,
+            cell: ({ row }) => (
+                <CellAction data={row.original} branches={branches} />
+            ),
         },
     ];
 };

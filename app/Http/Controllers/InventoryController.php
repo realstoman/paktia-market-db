@@ -99,4 +99,53 @@ class InventoryController extends Controller
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item restocked successfully.');
     }
+
+    public function update(Request $request, InventoryItem $inventory)
+    {
+        $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'type' => 'required|string|max:100',
+            'unit' => 'nullable|string|max:50',
+            'quantity' => 'required|numeric|min:0',
+            'unit_price' => 'required|numeric|min:0',
+            'is_usable' => 'boolean',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ]);
+
+        DB::transaction(function () use ($inventory, $validated, $request) {
+            $oldQuantity = (float) $inventory->quantity;
+            $newQuantity = (float) $validated['quantity'];
+
+            $payload = [
+                'branch_id' => $validated['branch_id'],
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'type' => strtolower(trim($validated['type'])),
+                'unit' => $validated['unit'] ?? null,
+                'quantity' => $newQuantity,
+                'unit_price' => $validated['unit_price'],
+                'is_usable' => $validated['is_usable'] ?? true,
+            ];
+
+            if ($request->hasFile('receipt')) {
+                $payload['receipt_path'] = $request->file('receipt')->store('inventory/receipts', 'public');
+            }
+
+            $inventory->update($payload);
+
+            $delta = $newQuantity - $oldQuantity;
+            if (abs($delta) > 0.00001) {
+                $inventory->transactions()->create([
+                    'action' => 'adjustment',
+                    'quantity' => $delta,
+                    'note' => 'Quantity adjusted from item edit.',
+                ]);
+            }
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Inventory item updated successfully.');
+    }
 }

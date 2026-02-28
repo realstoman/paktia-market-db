@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -17,30 +18,72 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { InventoryItem } from '@/types';
+import { Branch, InventoryItem } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Eye, MoreHorizontal, Save, PackagePlus } from 'lucide-react';
+import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
     data: InventoryItem;
+    branches: Branch[];
 }
 
-export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
     const [restockNote, setRestockNote] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
+    const [editName, setEditName] = useState(data.name);
+    const [editType, setEditType] = useState(data.type);
+    const [editUnit, setEditUnit] = useState(data.unit ?? '');
+    const [editQuantity, setEditQuantity] = useState(String(data.quantity ?? ''));
+    const [editUnitPrice, setEditUnitPrice] = useState(
+        String(data.unit_price ?? ''),
+    );
+    const [editDescription, setEditDescription] = useState(data.description ?? '');
+    const [editUsable, setEditUsable] = useState(!!data.is_usable);
+    const [editReceipt, setEditReceipt] = useState<File | null>(null);
+    const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+    const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
     const latestTransactions = useMemo(
         () => (data.transactions ?? []).slice(0, 5),
         [data.transactions],
     );
+
+    const editTotalPrice = useMemo(() => {
+        const qty = Number(editQuantity);
+        const unitPrice = Number(editUnitPrice);
+        if (Number.isNaN(qty) || Number.isNaN(unitPrice)) return 0;
+        return qty * unitPrice;
+    }, [editQuantity, editUnitPrice]);
+
+    const resetEditForm = () => {
+        setEditBranchId(String(data.branch_id));
+        setEditName(data.name);
+        setEditType(data.type);
+        setEditUnit(data.unit ?? '');
+        setEditQuantity(String(data.quantity ?? ''));
+        setEditUnitPrice(String(data.unit_price ?? ''));
+        setEditDescription(data.description ?? '');
+        setEditUsable(!!data.is_usable);
+        setEditReceipt(null);
+        setEditErrors({});
+    };
 
     const handleRestock = () => {
         if (!restockQty || isSubmitting) {
@@ -78,6 +121,55 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         );
     };
 
+    const handleUpdate = () => {
+        if (
+            !editName.trim() ||
+            !editBranchId ||
+            !editType ||
+            !editQuantity ||
+            !editUnitPrice ||
+            isEditSubmitting
+        ) {
+            return;
+        }
+
+        setIsEditSubmitting(true);
+        router.post(
+            `/inventory/${data.id}`,
+            {
+                _method: 'put',
+                branch_id: Number(editBranchId),
+                name: editName.trim(),
+                type: editType.trim(),
+                unit: editUnit.trim() || null,
+                quantity: Number(editQuantity),
+                unit_price: Number(editUnitPrice),
+                description: editDescription.trim() || null,
+                is_usable: editUsable,
+                receipt: editReceipt,
+            },
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    toast.success('Inventory item updated successfully.');
+                    setIsEditOpen(false);
+                    resetEditForm();
+                },
+                onError: (validationErrors) => {
+                    setEditErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to update inventory item.',
+                    );
+                },
+                onFinish: () => {
+                    setIsEditSubmitting(false);
+                },
+            },
+        );
+    };
+
     return (
         <>
             <DropdownMenu modal={false}>
@@ -93,12 +185,191 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         <Eye className="mr-2 h-4 w-4" />
                         Details
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => {
+                            resetEditForm();
+                            setIsEditOpen(true);
+                        }}
+                    >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsRestockOpen(true)}>
                         <PackagePlus className="mr-2 h-4 w-4" />
                         Restock
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit Inventory Item</DialogTitle>
+                        <DialogDescription>
+                            Update item details, price, quantity, and receipt.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={editName}
+                                onChange={(event) => setEditName(event.target.value)}
+                            />
+                            <InputError message={editErrors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Branch</Label>
+                            <Select
+                                value={editBranchId}
+                                onValueChange={setEditBranchId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select branch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {branches.map((branch) => (
+                                        <SelectItem
+                                            key={branch.id}
+                                            value={String(branch.id)}
+                                        >
+                                            {branch.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.branch_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Type</Label>
+                            <Input
+                                value={editType}
+                                onChange={(event) => setEditType(event.target.value)}
+                            />
+                            <InputError message={editErrors.type} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Unit</Label>
+                            <Input
+                                value={editUnit}
+                                onChange={(event) => setEditUnit(event.target.value)}
+                            />
+                            <InputError message={editErrors.unit} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Quantity</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editQuantity}
+                                onChange={(event) =>
+                                    setEditQuantity(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.quantity} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Single Price</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editUnitPrice}
+                                onChange={(event) =>
+                                    setEditUnitPrice(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.unit_price} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Total Price (Auto)</Label>
+                            <Input
+                                value={formatPrice(editTotalPrice)}
+                                readOnly
+                                className="bg-muted"
+                            />
+                        </div>
+                        <div className="flex items-end">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    checked={editUsable}
+                                    onCheckedChange={(checked) =>
+                                        setEditUsable(!!checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Usable item
+                                </span>
+                            </div>
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Description</Label>
+                            <Textarea
+                                value={editDescription}
+                                onChange={(event) =>
+                                    setEditDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor={`edit-receipt-${data.id}`}>
+                                Replace Receipt/Bill (optional)
+                            </Label>
+                            <Input
+                                id={`edit-receipt-${data.id}`}
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={(event) =>
+                                    setEditReceipt(event.target.files?.[0] ?? null)
+                                }
+                            />
+                            {data.receipt_url || data.receipt_path ? (
+                                <a
+                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs text-blue-600 hover:underline"
+                                >
+                                    View current receipt
+                                </a>
+                            ) : null}
+                            {editReceipt ? (
+                                <p className="text-xs text-muted-foreground">
+                                    New file: {editReceipt.name}
+                                </p>
+                            ) : null}
+                            <InputError message={editErrors.receipt} />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditOpen(false)}
+                            disabled={isEditSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpdate}
+                            disabled={
+                                !editName.trim() ||
+                                !editBranchId ||
+                                !editType.trim() ||
+                                !editQuantity ||
+                                !editUnitPrice ||
+                                isEditSubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="sm:max-w-3xl">

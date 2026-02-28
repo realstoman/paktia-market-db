@@ -167,6 +167,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Inventory
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
