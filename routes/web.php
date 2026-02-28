@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
@@ -167,6 +168,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+    Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);
