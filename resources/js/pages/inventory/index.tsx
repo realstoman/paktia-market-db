@@ -82,31 +82,50 @@ export default function InventoryPage({
             <Head title="Inventory" />
             <div className="space-y-4 p-8">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
+                    <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
+                            <CardTitle className="text-base">
                                 Total Inventory Value
                             </CardTitle>
                             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
+                            <p className="text-3xl font-semibold tracking-tight">
                                 {formatAfn(stats.totalValue)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Current value from quantity x single price
                             </p>
                         </CardContent>
                     </Card>
 
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">Total Items</CardTitle>
-                            <Boxes className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(stats.totalItems)}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
+                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                <CardTitle className="text-sm">Total Items</CardTitle>
+                                <Boxes className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-semibold tracking-tight">
+                                    {formatNumber(stats.totalItems)}
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                <CardTitle className="text-sm">
+                                    Total Usable Items
+                                </CardTitle>
+                                <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-semibold tracking-tight">
+                                    {formatNumber(stats.totalUsableItems)}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
 
                     <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
@@ -118,20 +137,6 @@ export default function InventoryPage({
                         <CardContent>
                             <p className="text-2xl font-semibold tracking-tight">
                                 {formatNumber(stats.totalFixedItems)}
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
-                                Total Usable Items
-                            </CardTitle>
-                            <PackageCheck className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(stats.totalUsableItems)}
                             </p>
                         </CardContent>
                     </Card>
