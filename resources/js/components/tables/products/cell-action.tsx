@@ -93,6 +93,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [name, setName] = useState(data.name);
+    const [pashtoName, setPashtoName] = useState(data.pashto_name ?? '');
+    const [dariName, setDariName] = useState(data.dari_name ?? '');
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
     );
@@ -106,6 +108,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             : '',
     );
     const [description, setDescription] = useState(data.description ?? '');
+    const [pashtoDescription, setPashtoDescription] = useState(
+        data.pashto_description ?? '',
+    );
+    const [dariDescription, setDariDescription] = useState(
+        data.dari_description ?? '',
+    );
     const [isActive, setIsActive] = useState(!!data.is_active);
     const [existingImages, setExistingImages] = useState<ProductImage[]>(
         data.images ?? [],
@@ -124,6 +132,8 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     const resetEdit = () => {
         setName(data.name);
+        setPashtoName(data.pashto_name ?? '');
+        setDariName(data.dari_name ?? '');
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
@@ -135,6 +145,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                 : '',
         );
         setDescription(data.description ?? '');
+        setPashtoDescription(data.pashto_description ?? '');
+        setDariDescription(data.dari_description ?? '');
         setIsActive(!!data.is_active);
         setExistingImages(data.images ?? []);
         setRemoveImageIds([]);
@@ -199,11 +211,15 @@ export const CellAction: React.FC<CellActionProps> = ({
         const formData = new FormData();
         formData.append('_method', 'put');
         formData.append('name', name.trim());
+        formData.append('pashto_name', pashtoName.trim());
+        formData.append('dari_name', dariName.trim());
         formData.append('product_category_id', String(Number(categoryId)));
         formData.append('kitchen_id', String(Number(kitchenId)));
         formData.append('type', type);
         formData.append('base_price', String(Number(basePrice)));
         formData.append('description', description.trim());
+        formData.append('pashto_description', pashtoDescription.trim());
+        formData.append('dari_description', dariDescription.trim());
         formData.append('is_active', isActive ? '1' : '0');
 
         removeImageIds.forEach((id, index) => {
@@ -297,6 +313,32 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.name} />
                         </div>
                         <div className="grid gap-2">
+                            <Label htmlFor={`product-pashto-name-${data.id}`}>
+                                Pashto Name
+                            </Label>
+                            <Input
+                                id={`product-pashto-name-${data.id}`}
+                                value={pashtoName}
+                                onChange={(event) =>
+                                    setPashtoName(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.pashto_name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor={`product-dari-name-${data.id}`}>
+                                Dari Name
+                            </Label>
+                            <Input
+                                id={`product-dari-name-${data.id}`}
+                                value={dariName}
+                                onChange={(event) =>
+                                    setDariName(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.dari_name} />
+                        </div>
+                        <div className="grid gap-2">
                             <Label>Category</Label>
                             <Select value={categoryId} onValueChange={setCategoryId}>
                                 <SelectTrigger>
@@ -383,6 +425,36 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             />
                             <InputError message={editErrors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label
+                                htmlFor={`product-pashto-description-${data.id}`}
+                            >
+                                Pashto Description
+                            </Label>
+                            <Textarea
+                                id={`product-pashto-description-${data.id}`}
+                                value={pashtoDescription}
+                                onChange={(event) =>
+                                    setPashtoDescription(event.target.value)
+                                }
+                            />
+                            <InputError
+                                message={editErrors.pashto_description}
+                            />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor={`product-dari-description-${data.id}`}>
+                                Dari Description
+                            </Label>
+                            <Textarea
+                                id={`product-dari-description-${data.id}`}
+                                value={dariDescription}
+                                onChange={(event) =>
+                                    setDariDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.dari_description} />
                         </div>
 
                         <div className="grid gap-2 sm:col-span-2">

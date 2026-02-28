@@ -185,7 +185,11 @@ export interface ProductImage {
 export interface Product {
     id: number;
     name: string;
+    pashto_name?: string | null;
+    dari_name?: string | null;
     description?: string | null;
+    pashto_description?: string | null;
+    dari_description?: string | null;
     product_category_id?: number;
     kitchen_id?: number | null;
     category?: ProductCategory | null;

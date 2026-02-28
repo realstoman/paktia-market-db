@@ -97,10 +97,45 @@ export const buildColumns = (
                         <span className="font-medium text-neutral-900 dark:text-neutral-100">
                             {product.name}
                         </span>
+                        {product.pashto_name ? (
+                            <span className="text-xs text-muted-foreground">
+                                PS: {product.pashto_name}
+                            </span>
+                        ) : null}
+                        {product.dari_name ? (
+                            <span className="text-xs text-muted-foreground">
+                                FA: {product.dari_name}
+                            </span>
+                        ) : null}
                         <span className="text-xs text-muted-foreground">
                             {resolvedCategory}
                         </span>
                     </div>
+                </div>
+            );
+        },
+    },
+    {
+        id: 'localized_descriptions',
+        header: 'Localized Descriptions',
+        cell: ({ row }) => {
+            const pashtoDescription = row.original.pashto_description;
+            const dariDescription = row.original.dari_description;
+
+            if (!pashtoDescription && !dariDescription) {
+                return (
+                    <span className="text-sm text-muted-foreground">-</span>
+                );
+            }
+
+            return (
+                <div className="max-w-xs space-y-1 text-xs text-muted-foreground">
+                    {pashtoDescription ? (
+                        <p className="line-clamp-2">PS: {pashtoDescription}</p>
+                    ) : null}
+                    {dariDescription ? (
+                        <p className="line-clamp-2">FA: {dariDescription}</p>
+                    ) : null}
                 </div>
             );
         },

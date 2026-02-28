@@ -74,11 +74,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [name, setName] = useState('');
+    const [pashtoName, setPashtoName] = useState('');
+    const [dariName, setDariName] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [kitchenId, setKitchenId] = useState('');
     const [type, setType] = useState(types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState('');
     const [description, setDescription] = useState('');
+    const [pashtoDescription, setPashtoDescription] = useState('');
+    const [dariDescription, setDariDescription] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
     const [images, setImages] = useState<SelectedImage[]>([]);
@@ -104,11 +108,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
     const resetForm = () => {
         setName('');
+        setPashtoName('');
+        setDariName('');
         setCategoryId('');
         setKitchenId('');
         setType(types[0]?.name ?? 'food');
         setBasePrice('');
         setDescription('');
+        setPashtoDescription('');
+        setDariDescription('');
         setIsActive(true);
         setSizePrices({});
         clearSelectedImages();
@@ -174,11 +182,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             '/products',
             {
                 name: name.trim(),
+                pashto_name: pashtoName.trim() || null,
+                dari_name: dariName.trim() || null,
                 product_category_id: Number(categoryId),
                 kitchen_id: Number(kitchenId),
                 type,
                 base_price: Number(basePrice),
                 description: description.trim() || null,
+                pashto_description: pashtoDescription.trim() || null,
+                dari_description: dariDescription.trim() || null,
                 is_active: isActive,
                 size_prices: sizePricePayload,
                 images: images.map((image) => image.file),
@@ -317,7 +329,17 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'category.name', 'kitchen.name', 'type']}
+                searchKey={[
+                    'name',
+                    'pashto_name',
+                    'dari_name',
+                    'description',
+                    'pashto_description',
+                    'dari_description',
+                    'category.name',
+                    'kitchen.name',
+                    'type',
+                ]}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
@@ -353,6 +375,30 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 onChange={(event) => setName(event.target.value)}
                             />
                             <InputError message={createErrors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="product-pashto-name">
+                                Pashto Name
+                            </Label>
+                            <Input
+                                id="product-pashto-name"
+                                value={pashtoName}
+                                onChange={(event) =>
+                                    setPashtoName(event.target.value)
+                                }
+                            />
+                            <InputError message={createErrors.pashto_name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="product-dari-name">Dari Name</Label>
+                            <Input
+                                id="product-dari-name"
+                                value={dariName}
+                                onChange={(event) =>
+                                    setDariName(event.target.value)
+                                }
+                            />
+                            <InputError message={createErrors.dari_name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Category</Label>
@@ -433,6 +479,34 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 onChange={(event) => setDescription(event.target.value)}
                             />
                             <InputError message={createErrors.description} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="product-pashto-description">
+                                Pashto Description
+                            </Label>
+                            <Textarea
+                                id="product-pashto-description"
+                                value={pashtoDescription}
+                                onChange={(event) =>
+                                    setPashtoDescription(event.target.value)
+                                }
+                            />
+                            <InputError
+                                message={createErrors.pashto_description}
+                            />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label htmlFor="product-dari-description">
+                                Dari Description
+                            </Label>
+                            <Textarea
+                                id="product-dari-description"
+                                value={dariDescription}
+                                onChange={(event) =>
+                                    setDariDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={createErrors.dari_description} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label>Size Pricing (Optional, AFN)</Label>
