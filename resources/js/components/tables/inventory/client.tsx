@@ -49,6 +49,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     branches,
     isLoading = false,
 }) => {
+    const FILTER_ALL = '__all__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
@@ -62,6 +63,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
+    const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
 
     useEffect(() => {
         return () => {
@@ -173,6 +176,33 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
     const tableColumns = useMemo(() => buildColumns(branches), [branches]);
 
+    const availableTypes = useMemo(() => {
+        return Array.from(
+            new Set(
+                data
+                    .map((item) => (item.type ?? '').trim().toLowerCase())
+                    .filter(Boolean),
+            ),
+        ).sort();
+    }, [data]);
+
+    const filteredData = useMemo(() => {
+        return data.filter((item) => {
+            const branchMatch =
+                selectedBranchFilter === FILTER_ALL ||
+                String(item.branch_id) === selectedBranchFilter;
+
+            const typeMatch =
+                selectedTypeFilter === FILTER_ALL ||
+                ((selectedTypeFilter === 'usable' && item.is_usable) ||
+                    (selectedTypeFilter === 'not_usable' && !item.is_usable) ||
+                    (item.type ?? '').trim().toLowerCase() ===
+                        selectedTypeFilter);
+
+            return branchMatch && typeMatch;
+        });
+    }, [data, selectedBranchFilter, selectedTypeFilter]);
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
@@ -189,9 +219,59 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             <DataTable
                 searchKey={['name', 'type', 'branch.name']}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search inventory by item, type, or branch..."
+                toolbar={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select
+                            value={selectedBranchFilter}
+                            onValueChange={setSelectedBranchFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[180px]">
+                                <SelectValue placeholder="Filter by branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Branches
+                                </SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem
+                                        key={branch.id}
+                                        value={String(branch.id)}
+                                    >
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedTypeFilter}
+                            onValueChange={setSelectedTypeFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[200px]">
+                                <SelectValue placeholder="Filter by type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>All Types</SelectItem>
+                                <SelectItem value="usable">Usable</SelectItem>
+                                <SelectItem value="not_usable">
+                                    Not Usable
+                                </SelectItem>
+                                {availableTypes.map((typeEntry) => (
+                                    <SelectItem
+                                        key={typeEntry}
+                                        value={typeEntry}
+                                    >
+                                        {typeEntry.charAt(0).toUpperCase() +
+                                            typeEntry.slice(1)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                }
             />
 
             <Dialog
