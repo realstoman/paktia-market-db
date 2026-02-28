@@ -172,48 +172,50 @@ export default function InventoryPage({
                         </Card>
                     </div>
 
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
-                                Total Fixed Items
-                            </CardTitle>
-                            <Warehouse className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(stats.totalFixedItems)}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
+                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                <CardTitle className="text-sm">
+                                    Total Fixed Items
+                                </CardTitle>
+                                <Warehouse className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-semibold tracking-tight">
+                                    {formatNumber(stats.totalFixedItems)}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">Low Stock Items</CardTitle>
-                            <PackageMinus className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(stats.lowStockItems)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                Quantity ≤ {LOW_STOCK_THRESHOLD}
-                            </p>
-                        </CardContent>
-                    </Card>
+                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                <CardTitle className="text-sm">Low Stock Items</CardTitle>
+                                <PackageMinus className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-semibold tracking-tight">
+                                    {formatNumber(stats.lowStockItems)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Quantity ≤ {LOW_STOCK_THRESHOLD}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
-                                Out of Stock Items
-                            </CardTitle>
-                            <PackageX className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(stats.outOfStockItems)}
-                            </p>
-                        </CardContent>
-                    </Card>
+                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
+                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                                <CardTitle className="text-sm">
+                                    Out of Stock Items
+                                </CardTitle>
+                                <PackageX className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-2xl font-semibold tracking-tight">
+                                    {formatNumber(stats.outOfStockItems)}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
                 <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
