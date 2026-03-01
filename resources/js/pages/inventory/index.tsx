@@ -14,8 +14,8 @@ import { Branch, BreadcrumbItem, InventoryItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import {
+    Banknote,
     Boxes,
-    CircleDollarSign,
     PackageCheck,
     PackageMinus,
     PackageX,
@@ -99,9 +99,9 @@ export default function InventoryPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Inventory" />
-            <div className="space-y-4 p-8">
+            <div className="space-y-4 pt-3 pb-8">
                 <div className="flex justify-end">
-                    <div className="w-full max-w-xs">
+                    <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
                         <Select
                             value={selectedBranchId}
                             onValueChange={setSelectedBranchId}
@@ -132,7 +132,7 @@ export default function InventoryPage({
                             <CardTitle className="text-base">
                                 Total Inventory Value
                             </CardTitle>
-                            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                            <Banknote className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <p className="text-3xl font-semibold tracking-tight">
@@ -147,7 +147,9 @@ export default function InventoryPage({
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">Total Items</CardTitle>
+                                <CardTitle className="text-sm">
+                                    Total Items
+                                </CardTitle>
                                 <Boxes className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
@@ -189,7 +191,9 @@ export default function InventoryPage({
 
                         <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">Low Stock Items</CardTitle>
+                                <CardTitle className="text-sm">
+                                    Low Stock Items
+                                </CardTitle>
                                 <PackageMinus className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
@@ -219,9 +223,12 @@ export default function InventoryPage({
                 </div>
 
                 <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
-                <div className="p-6 text-gray-900">
-                    <InventoryClient data={inventoryItems} branches={branches} />
-                </div>
+                    <div className="p-6 text-gray-900">
+                        <InventoryClient
+                            data={inventoryItems}
+                            branches={branches}
+                        />
+                    </div>
                 </div>
             </div>
         </AppLayout>

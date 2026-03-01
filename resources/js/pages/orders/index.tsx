@@ -183,7 +183,7 @@ export default function OrdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Orders" />
-            <div className="space-y-3 p-2">
+            <div className="space-y-3 py-2">
                 <div className="flex justify-end">
                     <div className="w-full max-w-md space-y-1">
                         <div className="flex items-end justify-end gap-2">

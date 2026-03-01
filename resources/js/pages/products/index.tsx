@@ -103,7 +103,7 @@ export default function ProductsPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products" />
-            <div className="space-y-4 p-8">
+            <div className="space-y-4 pt-3 pb-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
