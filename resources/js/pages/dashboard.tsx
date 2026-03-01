@@ -493,7 +493,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Top Ordered Dishes
                                         </CardTitle>
                                         <CardDescription className="text-sm">
-                                            Most ordered dishes this month
+                                            Most ordered dishes of all time
                                         </CardDescription>
                                     </div>
                                 </CardHeader>

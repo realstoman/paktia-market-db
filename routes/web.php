@@ -82,10 +82,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'products.product_category_id',
             )
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->whereBetween('orders.created_at', [
-                Carbon::today()->startOfMonth()->startOfDay(),
-                Carbon::today()->endOfDay(),
-            ])
             ->where('orders.status', '!=', 'cancelled')
             ->groupBy('products.id', 'products.name', 'product_categories.name')
             ->orderByDesc('total_quantity')
