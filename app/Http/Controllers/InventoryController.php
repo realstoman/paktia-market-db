@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\InventoryItem;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -12,7 +13,12 @@ class InventoryController extends Controller
 {
     public function index()
     {
-        $inventoryItems = InventoryItem::with(['branch', 'images', 'transactions'])
+        $inventoryItems = InventoryItem::with([
+            'branch',
+            'vendor',
+            'images',
+            'transactions',
+        ])
             ->orderBy('name')
             ->get()
             ->each(function (InventoryItem $item) {
@@ -22,6 +28,7 @@ class InventoryController extends Controller
         return Inertia::render('inventory/index', [
             'inventoryItems' => $inventoryItems,
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'vendors' => Vendor::orderBy('name')->get(),
         ]);
     }
 
@@ -35,11 +42,20 @@ class InventoryController extends Controller
             'unit' => 'nullable|string|max:50',
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
+
+        $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
+        if ((float) $validated['paid_amount'] > $total) {
+            return back()->withErrors([
+                'paid_amount' => 'Paid amount cannot be greater than total amount.',
+            ])->withInput();
+        }
 
         DB::transaction(function () use ($validated, $request) {
             $receiptPath = null;
@@ -49,12 +65,14 @@ class InventoryController extends Controller
 
             $item = InventoryItem::create([
                 'branch_id' => $validated['branch_id'],
+                'vendor_id' => $validated['vendor_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
                 'unit' => $validated['unit'] ?? null,
                 'quantity' => $validated['quantity'],
                 'unit_price' => $validated['unit_price'],
+                'paid_amount' => $validated['paid_amount'],
                 'receipt_path' => $receiptPath,
                 'is_usable' => $validated['is_usable'] ?? true,
             ]);
@@ -110,9 +128,18 @@ class InventoryController extends Controller
             'unit' => 'nullable|string|max:50',
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
+
+        $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
+        if ((float) $validated['paid_amount'] > $total) {
+            return back()->withErrors([
+                'paid_amount' => 'Paid amount cannot be greater than total amount.',
+            ])->withInput();
+        }
 
         DB::transaction(function () use ($inventory, $validated, $request) {
             $oldQuantity = (float) $inventory->quantity;
@@ -120,12 +147,14 @@ class InventoryController extends Controller
 
             $payload = [
                 'branch_id' => $validated['branch_id'],
+                'vendor_id' => $validated['vendor_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
                 'unit' => $validated['unit'] ?? null,
                 'quantity' => $newQuantity,
                 'unit_price' => $validated['unit_price'],
+                'paid_amount' => $validated['paid_amount'],
                 'is_usable' => $validated['is_usable'] ?? true,
             ];
 
@@ -147,5 +176,43 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item updated successfully.');
+    }
+
+    public function storeVendor(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:1000',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'notes' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        Vendor::create($validated);
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Vendor created successfully.');
+    }
+
+    public function updateVendor(Request $request, Vendor $vendor)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:1000',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'notes' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        $vendor->update($validated);
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Vendor updated successfully.');
     }
 }

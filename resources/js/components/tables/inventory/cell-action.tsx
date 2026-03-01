@@ -26,7 +26,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryItem } from '@/types';
+import { Branch, InventoryItem, Vendor } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
@@ -36,9 +36,15 @@ import { toast } from 'sonner';
 interface CellActionProps {
     data: InventoryItem;
     branches: Branch[];
+    vendors: Vendor[];
 }
 
-export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
+export const CellAction: React.FC<CellActionProps> = ({
+    data,
+    branches,
+    vendors,
+}) => {
+    const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -53,6 +59,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
     const [editQuantity, setEditQuantity] = useState(String(data.quantity ?? ''));
     const [editUnitPrice, setEditUnitPrice] = useState(
         String(data.unit_price ?? ''),
+    );
+    const [editPaidAmount, setEditPaidAmount] = useState(
+        String(data.paid_amount ?? '0'),
+    );
+    const [editVendorId, setEditVendorId] = useState(
+        data.vendor_id ? String(data.vendor_id) : VENDOR_NONE,
     );
     const [editDescription, setEditDescription] = useState(data.description ?? '');
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
@@ -79,6 +91,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
         setEditUnit(data.unit ?? '');
         setEditQuantity(String(data.quantity ?? ''));
         setEditUnitPrice(String(data.unit_price ?? ''));
+        setEditPaidAmount(String(data.paid_amount ?? '0'));
+        setEditVendorId(data.vendor_id ? String(data.vendor_id) : VENDOR_NONE);
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
         setEditReceipt(null);
@@ -128,6 +142,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
             !editType ||
             !editQuantity ||
             !editUnitPrice ||
+            !editPaidAmount ||
             isEditSubmitting
         ) {
             return;
@@ -144,6 +159,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                 unit: editUnit.trim() || null,
                 quantity: Number(editQuantity),
                 unit_price: Number(editUnitPrice),
+                paid_amount: Number(editPaidAmount),
+                vendor_id:
+                    editVendorId !== VENDOR_NONE ? Number(editVendorId) : null,
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
@@ -250,6 +268,31 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                             <InputError message={editErrors.type} />
                         </div>
                         <div className="grid gap-2">
+                            <Label>Vendor</Label>
+                            <Select
+                                value={editVendorId}
+                                onValueChange={setEditVendorId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={VENDOR_NONE}>
+                                        No Vendor
+                                    </SelectItem>
+                                    {vendors.map((vendor) => (
+                                        <SelectItem
+                                            key={vendor.id}
+                                            value={String(vendor.id)}
+                                        >
+                                            {vendor.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.vendor_id} />
+                        </div>
+                        <div className="grid gap-2">
                             <Label>Unit</Label>
                             <Input
                                 value={editUnit}
@@ -287,6 +330,33 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                             <Label>Total Price (Auto)</Label>
                             <Input
                                 value={formatPrice(editTotalPrice)}
+                                readOnly
+                                className="bg-muted"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Paid Amount</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editPaidAmount}
+                                onChange={(event) =>
+                                    setEditPaidAmount(event.target.value)
+                                }
+                            />
+                            <InputError message={editErrors.paid_amount} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Remaining Amount (Auto)</Label>
+                            <Input
+                                value={formatPrice(
+                                    Math.max(
+                                        0,
+                                        editTotalPrice -
+                                            (Number(editPaidAmount) || 0),
+                                    ),
+                                )}
                                 readOnly
                                 className="bg-muted"
                             />
@@ -361,6 +431,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                                 !editType.trim() ||
                                 !editQuantity ||
                                 !editUnitPrice ||
+                                !editPaidAmount ||
                                 isEditSubmitting
                             }
                         >
@@ -392,6 +463,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                             </p>
                         </div>
                         <div>
+                            <p className="text-xs text-muted-foreground">Vendor</p>
+                            <p className="font-medium">{data.vendor?.name ?? '-'}</p>
+                        </div>
+                        <div>
                             <p className="text-xs text-muted-foreground">Stock</p>
                             <p className="font-medium">
                                 {Number(data.quantity)} {data.unit ?? 'unit'}
@@ -420,6 +495,22 @@ export const CellAction: React.FC<CellActionProps> = ({ data, branches }) => {
                                     Number(data.quantity || 0) *
                                         Number(data.unit_price || 0),
                                 )}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">
+                                Paid Amount
+                            </p>
+                            <p className="font-medium">
+                                {formatPrice(data.paid_amount ?? 0)}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">
+                                Remaining Amount
+                            </p>
+                            <p className="font-medium">
+                                {formatPrice(data.outstanding_amount ?? 0)}
                             </p>
                         </div>
                         <div className="sm:col-span-2">

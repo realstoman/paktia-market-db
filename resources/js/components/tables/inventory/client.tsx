@@ -22,10 +22,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryItem } from '@/types';
+import { Branch, InventoryItem, Vendor } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { ImagePlus, Plus, Save, Trash2, X } from 'lucide-react';
+import { Building2, ImagePlus, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -39,14 +39,17 @@ interface SelectedImage {
 interface InventoryClientProps {
     data: InventoryItem[];
     branches: Branch[];
+    vendors: Vendor[];
     isLoading?: boolean;
 }
 
 const MAX_IMAGES = 10;
+const VENDOR_NONE = '__none__';
 
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
     branches,
+    vendors,
     isLoading = false,
 }) => {
     const FILTER_ALL = '__all__';
@@ -57,12 +60,25 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [unit, setUnit] = useState('');
     const [quantity, setQuantity] = useState('');
     const [unitPrice, setUnitPrice] = useState('');
+    const [paidAmount, setPaidAmount] = useState('');
+    const [vendorId, setVendorId] = useState(VENDOR_NONE);
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
     const [receipt, setReceipt] = useState<File | null>(null);
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
+    const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
+    const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
+    const [vendorName, setVendorName] = useState('');
+    const [vendorCategory, setVendorCategory] = useState('');
+    const [vendorAddress, setVendorAddress] = useState('');
+    const [vendorContactPerson, setVendorContactPerson] = useState('');
+    const [vendorPhone, setVendorPhone] = useState('');
+    const [vendorEmail, setVendorEmail] = useState('');
+    const [vendorNotes, setVendorNotes] = useState('');
+    const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
 
@@ -84,6 +100,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setUnit('');
         setQuantity('');
         setUnitPrice('');
+        setPaidAmount('');
+        setVendorId(VENDOR_NONE);
         setDescription('');
         setIsUsable(true);
         setReceipt(null);
@@ -118,6 +136,81 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         });
     };
 
+    const resetVendorForm = () => {
+        setVendorName('');
+        setVendorCategory('');
+        setVendorAddress('');
+        setVendorContactPerson('');
+        setVendorPhone('');
+        setVendorEmail('');
+        setVendorNotes('');
+        setVendorErrors({});
+        setEditingVendorId(null);
+    };
+
+    const populateVendorForm = (vendor: Vendor) => {
+        setVendorName(vendor.name ?? '');
+        setVendorCategory(vendor.category ?? '');
+        setVendorAddress(vendor.address ?? '');
+        setVendorContactPerson(vendor.contact_person ?? '');
+        setVendorPhone(vendor.phone ?? '');
+        setVendorEmail(vendor.email ?? '');
+        setVendorNotes(vendor.notes ?? '');
+        setVendorErrors({});
+        setEditingVendorId(vendor.id);
+        setIsVendorDialogOpen(true);
+    };
+
+    const handleSaveVendor = () => {
+        if (!vendorName.trim() || isVendorSubmitting) {
+            return;
+        }
+
+        setIsVendorSubmitting(true);
+
+        const payload = {
+            name: vendorName.trim(),
+            category: vendorCategory.trim() || null,
+            address: vendorAddress.trim() || null,
+            contact_person: vendorContactPerson.trim() || null,
+            phone: vendorPhone.trim() || null,
+            email: vendorEmail.trim() || null,
+            notes: vendorNotes.trim() || null,
+            is_active: true,
+        };
+
+        const url = editingVendorId
+            ? `/inventory/vendors/${editingVendorId}`
+            : '/inventory/vendors';
+
+        router.post(
+            url,
+            editingVendorId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        editingVendorId
+                            ? 'Vendor updated successfully.'
+                            : 'Vendor created successfully.',
+                    );
+                    setIsVendorDialogOpen(false);
+                    resetVendorForm();
+                },
+                onError: (validationErrors) => {
+                    setVendorErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save vendor.',
+                    );
+                },
+                onFinish: () => {
+                    setIsVendorSubmitting(false);
+                },
+            },
+        );
+    };
+
     const handleCreate = () => {
         if (
             !name.trim() ||
@@ -125,6 +218,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             !type ||
             !quantity ||
             !unitPrice ||
+            !paidAmount ||
             isSubmitting
         ) {
             return;
@@ -140,6 +234,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 unit: unit.trim() || null,
                 quantity: Number(quantity),
                 unit_price: Number(unitPrice),
+                paid_amount: Number(paidAmount),
+                vendor_id:
+                    vendorId && vendorId !== VENDOR_NONE
+                        ? Number(vendorId)
+                        : null,
                 description: description.trim() || null,
                 is_usable: isUsable,
                 receipt,
@@ -174,7 +273,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         return qty * price;
     }, [quantity, unitPrice]);
 
-    const tableColumns = useMemo(() => buildColumns(branches), [branches]);
+    const remainingAmount = useMemo(() => {
+        const paid = Number(paidAmount);
+        if (Number.isNaN(paid)) return totalPrice;
+        return Math.max(0, totalPrice - paid);
+    }, [paidAmount, totalPrice]);
+
+    const tableColumns = useMemo(
+        () => buildColumns(branches, vendors),
+        [branches, vendors],
+    );
 
     const availableTypes = useMemo(() => {
         return Array.from(
@@ -203,6 +311,26 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         });
     }, [data, selectedBranchFilter, selectedTypeFilter]);
 
+    const vendorOutstanding = useMemo(() => {
+        const outstandingByVendor = new Map<number, number>();
+
+        for (const item of data) {
+            if (!item.vendor_id) continue;
+
+            const total =
+                Number(item.quantity || 0) * Number(item.unit_price || 0);
+            const paid = Number(item.paid_amount || 0);
+            const outstanding = Math.max(0, total - paid);
+
+            outstandingByVendor.set(
+                item.vendor_id,
+                (outstandingByVendor.get(item.vendor_id) ?? 0) + outstanding,
+            );
+        }
+
+        return outstandingByVendor;
+    }, [data]);
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
@@ -210,14 +338,27 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     title={`Inventory Items: ${formatNumber(data.length)}`}
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add New Item
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            resetVendorForm();
+                            setIsVendorDialogOpen(true);
+                        }}
+                        className="gap-2"
+                    >
+                        <Building2 className="h-4 w-4" />
+                        Manage Vendors
+                    </Button>
+                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New Item
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'type', 'branch.name']}
+                searchKey={['name', 'type', 'branch.name', 'vendor.name']}
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
@@ -275,6 +416,162 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             />
 
             <Dialog
+                open={isVendorDialogOpen}
+                onOpenChange={(open) => {
+                    setIsVendorDialogOpen(open);
+                    if (!open) {
+                        resetVendorForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingVendorId ? 'Edit Vendor' : 'Manage Vendors'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Create and update vendors/wholesale stores you buy
+                            inventory from.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Store Name</Label>
+                            <Input
+                                value={vendorName}
+                                onChange={(event) =>
+                                    setVendorName(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Category</Label>
+                            <Input
+                                placeholder="Butcher, Grocery, Furniture..."
+                                value={vendorCategory}
+                                onChange={(event) =>
+                                    setVendorCategory(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.category} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Contact Person</Label>
+                            <Input
+                                value={vendorContactPerson}
+                                onChange={(event) =>
+                                    setVendorContactPerson(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.contact_person} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Phone</Label>
+                            <Input
+                                value={vendorPhone}
+                                onChange={(event) =>
+                                    setVendorPhone(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.phone} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Email</Label>
+                            <Input
+                                type="email"
+                                value={vendorEmail}
+                                onChange={(event) =>
+                                    setVendorEmail(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.email} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Address</Label>
+                            <Input
+                                value={vendorAddress}
+                                onChange={(event) =>
+                                    setVendorAddress(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.address} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Notes</Label>
+                            <Textarea
+                                value={vendorNotes}
+                                onChange={(event) =>
+                                    setVendorNotes(event.target.value)
+                                }
+                            />
+                            <InputError message={vendorErrors.notes} />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button
+                            variant="outline"
+                            onClick={resetVendorForm}
+                            disabled={isVendorSubmitting}
+                        >
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={handleSaveVendor}
+                            disabled={!vendorName.trim() || isVendorSubmitting}
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {editingVendorId ? 'Update Vendor' : 'Save Vendor'}
+                        </Button>
+                    </DialogFooter>
+
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Existing Vendors</p>
+                        <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
+                            {vendors.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    No vendors yet.
+                                </p>
+                            ) : (
+                                vendors.map((vendor) => (
+                                    <div
+                                        key={vendor.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {vendor.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {vendor.category || '-'} |{' '}
+                                                {vendor.contact_person || '-'} |{' '}
+                                                {vendor.phone || '-'} | Owed:{' '}
+                                                {formatPrice(
+                                                    vendorOutstanding.get(
+                                                        vendor.id,
+                                                    ) ?? 0,
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => populateVendorForm(vendor)}
+                                        >
+                                            <Pencil className="mr-1 h-3 w-3" />
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
@@ -319,6 +616,28 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.branch_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Vendor (optional)</Label>
+                            <Select value={vendorId} onValueChange={setVendorId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={VENDOR_NONE}>
+                                        No Vendor
+                                    </SelectItem>
+                                    {vendors.map((vendor) => (
+                                        <SelectItem
+                                            key={vendor.id}
+                                            value={String(vendor.id)}
+                                        >
+                                            {vendor.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.vendor_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Type</Label>
@@ -379,6 +698,27 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <Label>Total Price (Auto)</Label>
                             <Input
                                 value={formatPrice(totalPrice)}
+                                readOnly
+                                className="bg-muted"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Paid Amount</Label>
+                            <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={paidAmount}
+                                onChange={(event) =>
+                                    setPaidAmount(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.paid_amount} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Remaining Amount (Auto)</Label>
+                            <Input
+                                value={formatPrice(remainingAmount)}
                                 readOnly
                                 className="bg-muted"
                             />
@@ -499,6 +839,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 !type ||
                                 !quantity ||
                                 !unitPrice ||
+                                !paidAmount ||
                                 isSubmitting
                             }
                         >

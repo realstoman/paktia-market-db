@@ -229,19 +229,38 @@ export interface InventoryTransaction {
 export interface InventoryItem {
     id: number;
     branch_id: number;
+    vendor_id?: number | null;
     branch?: Branch | null;
+    vendor?: Vendor | null;
     name: string;
     description?: string | null;
     type: string;
     unit?: string | null;
     quantity: number | string;
     unit_price?: number | string;
+    paid_amount?: number | string;
     total_price?: number | string;
+    outstanding_amount?: number | string;
     receipt_path?: string | null;
     receipt_url?: string | null;
     is_usable: boolean;
     images?: InventoryItemImage[];
     transactions?: InventoryTransaction[];
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Vendor {
+    id: number;
+    name: string;
+    category?: string | null;
+    address?: string | null;
+    contact_person?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    is_active?: boolean;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

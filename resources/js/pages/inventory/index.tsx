@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, InventoryItem } from '@/types';
+import { Branch, BreadcrumbItem, InventoryItem, Vendor } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import {
@@ -37,11 +37,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface InventoryPageProps {
     inventoryItems: InventoryItem[];
     branches: Branch[];
+    vendors: Vendor[];
 }
 
 export default function InventoryPage({
     inventoryItems,
     branches,
+    vendors,
 }: InventoryPageProps) {
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
@@ -64,12 +66,16 @@ export default function InventoryPage({
         let totalUsableItems = 0;
         let lowStockItems = 0;
         let outOfStockItems = 0;
+        let totalOwed = 0;
 
         for (const item of statsItems) {
             const quantity = Number(item.quantity) || 0;
             const unitPrice = Number(item.unit_price) || 0;
+            const paidAmount = Number(item.paid_amount) || 0;
+            const total = quantity * unitPrice;
 
-            totalValue += quantity * unitPrice;
+            totalValue += total;
+            totalOwed += Math.max(0, total - paidAmount);
 
             if ((item.type ?? '').toLowerCase().trim() === 'fixed') {
                 totalFixedItems += 1;
@@ -93,6 +99,7 @@ export default function InventoryPage({
             totalUsableItems,
             lowStockItems,
             outOfStockItems,
+            totalOwed,
         };
     }, [statsItems]);
 
@@ -162,13 +169,13 @@ export default function InventoryPage({
                         <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                 <CardTitle className="text-sm">
-                                    Total Usable Items
+                                    Amount Owed to Vendors
                                 </CardTitle>
                                 <PackageCheck className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
                                 <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(stats.totalUsableItems)}
+                                    {formatAfn(stats.totalOwed)}
                                 </p>
                             </CardContent>
                         </Card>
@@ -222,11 +229,12 @@ export default function InventoryPage({
                     </div>
                 </div>
 
-                <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
+                    <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
                     <div className="p-6 text-gray-900">
                         <InventoryClient
                             data={inventoryItems}
                             branches={branches}
+                            vendors={vendors}
                         />
                     </div>
                 </div>

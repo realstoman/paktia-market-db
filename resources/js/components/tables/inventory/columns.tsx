@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, InventoryItem } from '@/types';
+import { Branch, InventoryItem, Vendor } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
@@ -37,8 +37,12 @@ const getInitials = (value?: string) => {
         .join('');
 };
 
-export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => {
+export const buildColumns = (
+    branches: Branch[],
+    vendors: Vendor[],
+): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
+    const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
     return [
         {
@@ -101,6 +105,14 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
             header: 'Branch',
         },
         {
+            id: 'vendor.name',
+            accessorFn: (row) =>
+                row.vendor?.name ||
+                (row.vendor_id ? vendorById.get(row.vendor_id)?.name : null) ||
+                '-',
+            header: 'Vendor',
+        },
+        {
             accessorKey: 'quantity',
             header: 'Stock',
             cell: ({ row }) => {
@@ -128,6 +140,30 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
                     Number(row.original.unit_price || 0);
                 return formatPrice(total);
             },
+        },
+        {
+            accessorKey: 'paid_amount',
+            header: 'Paid',
+            cell: ({ row }) => formatPrice(row.original.paid_amount ?? 0),
+        },
+        {
+            id: 'outstanding_amount',
+            header: 'Remaining',
+            accessorFn: (row) =>
+                Math.max(
+                    0,
+                    Number(row.quantity || 0) * Number(row.unit_price || 0) -
+                        Number(row.paid_amount || 0),
+                ),
+            cell: ({ row }) =>
+                formatPrice(
+                    Math.max(
+                        0,
+                        Number(row.original.quantity || 0) *
+                            Number(row.original.unit_price || 0) -
+                            Number(row.original.paid_amount || 0),
+                    ),
+                ),
         },
         {
             accessorKey: 'is_usable',
@@ -190,7 +226,11 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => (
-                <CellAction data={row.original} branches={branches} />
+                <CellAction
+                    data={row.original}
+                    branches={branches}
+                    vendors={vendors}
+                />
             ),
         },
     ];
