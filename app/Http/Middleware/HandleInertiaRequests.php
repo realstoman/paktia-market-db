@@ -2,8 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Country;
+use App\Models\Currency;
+use App\Models\Vendor;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,6 +49,17 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name')->toArray() ?? [],
+            ],
+            'tools' => [
+                'countries' => Schema::hasTable('countries')
+                    ? Country::orderBy('name')->get()
+                    : [],
+                'currencies' => Schema::hasTable('currencies')
+                    ? Currency::orderBy('name')->get()
+                    : [],
+                'vendors' => Schema::hasTable('vendors')
+                    ? Vendor::orderBy('name')->get()
+                    : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

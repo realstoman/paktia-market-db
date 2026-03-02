@@ -53,7 +53,7 @@ export const formatCurrency = (
 export const formatAfn = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
 
-    return `؋${new Intl.NumberFormat('en-US', {
+    return ` ؋ ${new Intl.NumberFormat('en-US', {
         maximumFractionDigits: 0,
     }).format(Math.round(Number(value)))}`;
 };

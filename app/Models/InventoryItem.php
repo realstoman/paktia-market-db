@@ -8,30 +8,41 @@ class InventoryItem extends Model
 {
     protected $fillable = [
         'branch_id',
+        'vendor_id',
         'name',
         'description',
         'type',
         'unit',
         'quantity',
         'unit_price',
+        'paid_amount',
+        'currency_code',
+        'currency_symbol',
         'receipt_path',
         'is_usable',
     ];
 
     protected $appends = [
         'total_price',
+        'outstanding_amount',
         'receipt_url',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'unit_price' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
         'is_usable' => 'boolean',
     ];
 
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     public function images()
@@ -47,6 +58,11 @@ class InventoryItem extends Model
     public function getTotalPriceAttribute(): float
     {
         return (float) $this->quantity * (float) $this->unit_price;
+    }
+
+    public function getOutstandingAmountAttribute(): float
+    {
+        return max(0, $this->total_price - (float) $this->paid_amount);
     }
 
     public function getReceiptUrlAttribute(): ?string

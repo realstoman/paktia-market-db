@@ -13,6 +13,7 @@ use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderByDesc('id')
             ->limit(8)
             ->get();
+        $topOrderedDishes = OrderItem::query()
+            ->selectRaw('products.name as product_name')
+            ->selectRaw('product_categories.name as category_name')
+            ->selectRaw('SUM(order_items.quantity) as total_quantity')
+            ->join('products', 'products.id', '=', 'order_items.product_id')
+            ->join(
+                'product_categories',
+                'product_categories.id',
+                '=',
+                'products.product_category_id',
+            )
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.status', '!=', 'cancelled')
+            ->groupBy('products.id', 'products.name', 'product_categories.name')
+            ->orderByDesc('total_quantity')
+            ->limit(6)
+            ->get();
 
         $analyticsByDate = [];
 
@@ -116,6 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'orders' => $orderStats,
                 'orderAnalytics' => array_values($analyticsByDate),
                 'recentOrders' => $recentOrders,
+                'topOrderedDishes' => $topOrderedDishes,
                 'selectedDate' => $selectedDateString,
             ],
         ]);
@@ -167,7 +186,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Inventory
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
+    Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+    Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
+    Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
+    Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
+    Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
+    Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
+    Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
     // API helpers

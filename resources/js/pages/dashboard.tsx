@@ -131,6 +131,11 @@ interface DashboardProps {
             cancelled: number;
         }>;
         recentOrders: Order[];
+        topOrderedDishes: Array<{
+            product_name: string;
+            category_name: string;
+            total_quantity: number;
+        }>;
         selectedDate: string;
     };
 }
@@ -172,6 +177,7 @@ export default function Dashboard({ data }: DashboardProps) {
 
     const orderAnalyticsData = data?.orderAnalytics ?? [];
     const recentOrders = data?.recentOrders ?? [];
+    const topOrderedDishes = data?.topOrderedDishes ?? [];
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -487,39 +493,14 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Top Ordered Dishes
                                         </CardTitle>
                                         <CardDescription className="text-sm">
-                                            Most ordered dishes this month
+                                            Most ordered dishes of all time
                                         </CardDescription>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {[
-                                        {
-                                            name: 'Qabuli Palaw',
-                                            orders: formatNumber(1880),
-                                        },
-                                        {
-                                            name: 'Baba Special Salam',
-                                            orders: formatNumber(1520),
-                                        },
-                                        {
-                                            name: 'Baba Special Pizza',
-                                            orders: formatNumber(1392),
-                                        },
-                                        {
-                                            name: 'Chicken Chawmen',
-                                            orders: formatNumber(1265),
-                                        },
-                                        {
-                                            name: 'Chopan Kabab',
-                                            orders: formatNumber(1142),
-                                        },
-                                        {
-                                            name: 'Grilled Fish',
-                                            orders: formatNumber(980),
-                                        },
-                                    ].map((item, index) => (
+                                    {topOrderedDishes.map((item, index) => (
                                         <div
-                                            key={item.name}
+                                            key={`${item.product_name}-${index}`}
                                             className="flex items-center justify-between rounded-lg border border-neutral-200/60 px-3 py-2 dark:border-neutral-800"
                                         >
                                             <div className="flex items-center gap-3">
@@ -528,10 +509,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium">
-                                                        {item.name}
+                                                        {item.product_name}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {item.orders.toLocaleString()}{' '}
+                                                        {item.category_name} •{' '}
+                                                        {formatNumber(
+                                                            item.total_quantity,
+                                                        )}{' '}
                                                         orders
                                                     </p>
                                                 </div>
@@ -541,6 +525,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                             </span>
                                         </div>
                                     ))}
+                                    {topOrderedDishes.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            No order data available yet.
+                                        </p>
+                                    ) : null}
                                 </CardContent>
                             </Card>
                         </div>

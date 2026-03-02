@@ -1,8 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, InventoryItem } from '@/types';
-import { formatPrice } from '@/utils/format';
+import {
+    Branch,
+    Currency,
+    InventoryItem,
+    Vendor,
+} from '@/types';
+import { formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { ImageViewerDialog } from './image-viewer-dialog';
@@ -37,7 +42,11 @@ const getInitials = (value?: string) => {
         .join('');
 };
 
-export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => {
+export const buildColumns = (
+    branches: Branch[],
+    vendors: Vendor[],
+    currencies: Currency[],
+): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
 
     return [
@@ -115,7 +124,10 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
         {
             accessorKey: 'unit_price',
             header: 'Single Price',
-            cell: ({ row }) => formatPrice(row.original.unit_price ?? 0),
+            cell: ({ row }) =>
+                `${row.original.currency_symbol ?? ''}${formatNumber(
+                    row.original.unit_price ?? 0,
+                )}`,
         },
         {
             id: 'total_price',
@@ -126,8 +138,35 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
                 const total =
                     Number(row.original.quantity || 0) *
                     Number(row.original.unit_price || 0);
-                return formatPrice(total);
+                return `${row.original.currency_symbol ?? ''}${formatNumber(total)}`;
             },
+        },
+        {
+            accessorKey: 'paid_amount',
+            header: 'Paid',
+            cell: ({ row }) =>
+                `${row.original.currency_symbol ?? ''}${formatNumber(
+                    row.original.paid_amount ?? 0,
+                )}`,
+        },
+        {
+            id: 'outstanding_amount',
+            header: 'Remaining',
+            accessorFn: (row) =>
+                Math.max(
+                    0,
+                    Number(row.quantity || 0) * Number(row.unit_price || 0) -
+                        Number(row.paid_amount || 0),
+                ),
+            cell: ({ row }) =>
+                `${row.original.currency_symbol ?? ''}${formatNumber(
+                    Math.max(
+                        0,
+                        Number(row.original.quantity || 0) *
+                            Number(row.original.unit_price || 0) -
+                            Number(row.original.paid_amount || 0),
+                    ),
+                )}`,
         },
         {
             accessorKey: 'is_usable',
@@ -189,7 +228,14 @@ export const buildColumns = (branches: Branch[]): ColumnDef<InventoryItem>[] => 
         {
             id: 'actions',
             header: 'Actions',
-            cell: ({ row }) => <CellAction data={row.original} />,
+            cell: ({ row }) => (
+                <CellAction
+                    data={row.original}
+                    branches={branches}
+                    vendors={vendors}
+                    currencies={currencies}
+                />
+            ),
         },
     ];
 };
