@@ -217,7 +217,7 @@ export function ToolsLauncher() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <Popover>
-                            <PopoverTrigger asChild>
+                            <PopoverTrigger asChild className="cursor-pointer">
                                 <SidebarMenuButton
                                     tooltip={{ children: 'Tools' }}
                                 >
