@@ -35,7 +35,7 @@ class CountryController extends Controller
 
         $service->create($validated);
 
-        return redirect()->route('countries.index')
+        return redirect()->back()
             ->with('success', 'Country created successfully.');
     }
 
@@ -50,7 +50,7 @@ class CountryController extends Controller
 
         $service->update($country, $validated);
 
-        return redirect()->route('countries.index')
+        return redirect()->back()
             ->with('success', 'Country updated successfully.');
     }
 
@@ -62,7 +62,7 @@ class CountryController extends Controller
             ? 'Country activated successfully.'
             : 'Country deactivated successfully.';
 
-        return redirect()->route('countries.index')
+        return redirect()->back()
             ->with('success', $message);
     }
 
@@ -70,7 +70,7 @@ class CountryController extends Controller
     {
         $service->delete($country);
 
-        return redirect()->route('countries.index')
+        return redirect()->back()
             ->with('success', 'Country deleted successfully.');
     }
 }

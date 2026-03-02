@@ -22,17 +22,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import Dashboard from '@/pages/dashboard';
 import { Country, Currency, SharedData, Vendor } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import {
-    Building2,
-    Coins,
-    Globe,
-    Grid2x2,
-    Pencil,
-    Save,
-    Trash2,
-} from 'lucide-react';
+import { Building2, Coins, Globe, Pencil, Save, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -121,19 +114,33 @@ export function ToolsLauncher() {
             currency_symbol: countryCurrencySymbol || null,
         };
 
-        router.post(countryId ? `/countries/${countryId}` : '/countries', countryId ? { _method: 'put', ...payload } : payload, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(countryId ? 'Country updated successfully.' : 'Country created successfully.');
-                resetCountryForm();
+        router.post(
+            countryId ? `/countries/${countryId}` : '/countries',
+            countryId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        countryId
+                            ? 'Country updated successfully.'
+                            : 'Country created successfully.',
+                    );
+                    resetCountryForm();
+                },
+                onError: (validationErrors) => setErrors(validationErrors),
+                onFinish: () => setIsSubmitting(false),
             },
-            onError: (validationErrors) => setErrors(validationErrors),
-            onFinish: () => setIsSubmitting(false),
-        });
+        );
     };
 
     const submitCurrency = () => {
-        if (!currencyName.trim() || !currencyCode.trim() || !currencySymbol.trim() || isSubmitting) return;
+        if (
+            !currencyName.trim() ||
+            !currencyCode.trim() ||
+            !currencySymbol.trim() ||
+            isSubmitting
+        )
+            return;
         setIsSubmitting(true);
 
         const payload = {
@@ -143,15 +150,23 @@ export function ToolsLauncher() {
             is_active: true,
         };
 
-        router.post(currencyId ? `/currencies/${currencyId}` : '/currencies', currencyId ? { _method: 'put', ...payload } : payload, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(currencyId ? 'Currency updated successfully.' : 'Currency created successfully.');
-                resetCurrencyForm();
+        router.post(
+            currencyId ? `/currencies/${currencyId}` : '/currencies',
+            currencyId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        currencyId
+                            ? 'Currency updated successfully.'
+                            : 'Currency created successfully.',
+                    );
+                    resetCurrencyForm();
+                },
+                onError: (validationErrors) => setErrors(validationErrors),
+                onFinish: () => setIsSubmitting(false),
             },
-            onError: (validationErrors) => setErrors(validationErrors),
-            onFinish: () => setIsSubmitting(false),
-        });
+        );
     };
 
     const submitVendor = () => {
@@ -169,15 +184,23 @@ export function ToolsLauncher() {
             is_active: true,
         };
 
-        router.post(vendorId ? `/vendors/${vendorId}` : '/vendors', vendorId ? { _method: 'put', ...payload } : payload, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(vendorId ? 'Vendor updated successfully.' : 'Vendor created successfully.');
-                resetVendorForm();
+        router.post(
+            vendorId ? `/vendors/${vendorId}` : '/vendors',
+            vendorId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        vendorId
+                            ? 'Vendor updated successfully.'
+                            : 'Vendor created successfully.',
+                    );
+                    resetVendorForm();
+                },
+                onError: (validationErrors) => setErrors(validationErrors),
+                onFinish: () => setIsSubmitting(false),
             },
-            onError: (validationErrors) => setErrors(validationErrors),
-            onFinish: () => setIsSubmitting(false),
-        });
+        );
     };
 
     return (
@@ -191,11 +214,15 @@ export function ToolsLauncher() {
                                 <SidebarMenuButton
                                     tooltip={{ children: 'Tools' }}
                                 >
-                                    <Grid2x2 />
+                                    <Dashboard />
                                     <span className="text-base">Tools</span>
                                 </SidebarMenuButton>
                             </PopoverTrigger>
-                            <PopoverContent side="right" align="start" className="w-64 p-3">
+                            <PopoverContent
+                                side="right"
+                                align="start"
+                                className="w-64 p-3"
+                            >
                                 <div className="grid grid-cols-3 gap-2">
                                     <Button
                                         variant="outline"
@@ -206,7 +233,9 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Globe className="h-5 w-5" />
-                                        <span className="text-xs">Countries</span>
+                                        <span className="text-xs">
+                                            Countries
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -217,7 +246,9 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Coins className="h-5 w-5" />
-                                        <span className="text-xs">Currencies</span>
+                                        <span className="text-xs">
+                                            Currencies
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -241,62 +272,124 @@ export function ToolsLauncher() {
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Manage Countries</DialogTitle>
-                        <DialogDescription>Country CRUD with currency details.</DialogDescription>
+                        <DialogDescription>
+                            Country CRUD with currency details.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>Name</Label>
-                            <Input value={countryName} onChange={(event) => setCountryName(event.target.value)} />
+                            <Input
+                                value={countryName}
+                                onChange={(event) =>
+                                    setCountryName(event.target.value)
+                                }
+                            />
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Code</Label>
-                            <Input maxLength={2} value={countryCode} onChange={(event) => setCountryCode(event.target.value)} />
+                            <Input
+                                maxLength={2}
+                                value={countryCode}
+                                onChange={(event) =>
+                                    setCountryCode(event.target.value)
+                                }
+                            />
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Currency Code</Label>
-                            <Input maxLength={3} value={countryCurrencyCode} onChange={(event) => {
-                                const code = event.target.value.toUpperCase();
-                                setCountryCurrencyCode(code);
-                                const selected = currencyByCode.get(code);
-                                if (selected?.symbol) setCountryCurrencySymbol(selected.symbol);
-                            }} />
+                            <Input
+                                maxLength={3}
+                                value={countryCurrencyCode}
+                                onChange={(event) => {
+                                    const code =
+                                        event.target.value.toUpperCase();
+                                    setCountryCurrencyCode(code);
+                                    const selected = currencyByCode.get(code);
+                                    if (selected?.symbol)
+                                        setCountryCurrencySymbol(
+                                            selected.symbol,
+                                        );
+                                }}
+                            />
                             <InputError message={errors.currency_code} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Currency Symbol</Label>
-                            <Input value={countryCurrencySymbol} onChange={(event) => setCountryCurrencySymbol(event.target.value)} />
+                            <Input
+                                value={countryCurrencySymbol}
+                                onChange={(event) =>
+                                    setCountryCurrencySymbol(event.target.value)
+                                }
+                            />
                             <InputError message={errors.currency_symbol} />
                         </div>
                     </div>
                     <DialogFooter className="sm:justify-between">
-                        <Button variant="outline" onClick={resetCountryForm}>Clear</Button>
-                        <Button onClick={submitCountry} disabled={isSubmitting || !countryName.trim() || !countryCode.trim()}>
+                        <Button variant="outline" onClick={resetCountryForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={submitCountry}
+                            disabled={
+                                isSubmitting ||
+                                !countryName.trim() ||
+                                !countryCode.trim()
+                            }
+                        >
                             <Save className="mr-2 h-4 w-4" />
                             {countryId ? 'Update Country' : 'Save Country'}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {countries.map((country: Country) => (
-                            <div key={country.id} className="flex items-center justify-between rounded border p-2">
+                            <div
+                                key={country.id}
+                                className="flex items-center justify-between rounded border p-2"
+                            >
                                 <div>
-                                    <p className="text-sm font-medium">{country.name} ({country.code})</p>
-                                    <p className="text-xs text-muted-foreground">{country.currency_code} {country.currency_symbol ?? '-'}</p>
+                                    <p className="text-sm font-medium">
+                                        {country.name} ({country.code})
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {country.currency_code}{' '}
+                                        {country.currency_symbol ?? '-'}
+                                    </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => {
-                                        setCountryId(country.id);
-                                        setCountryName(country.name);
-                                        setCountryCode(country.code);
-                                        setCountryCurrencyCode(country.currency_code);
-                                        setCountryCurrencySymbol(country.currency_symbol ?? '');
-                                        setErrors({});
-                                    }}>
-                                        <Pencil className="mr-1 h-3 w-3" />Edit
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setCountryId(country.id);
+                                            setCountryName(country.name);
+                                            setCountryCode(country.code);
+                                            setCountryCurrencyCode(
+                                                country.currency_code,
+                                            );
+                                            setCountryCurrencySymbol(
+                                                country.currency_symbol ?? '',
+                                            );
+                                            setErrors({});
+                                        }}
+                                    >
+                                        <Pencil className="mr-1 h-3 w-3" />
+                                        Edit
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => router.delete(`/countries/${country.id}`, { preserveScroll: true })}>
-                                        <Trash2 className="mr-1 h-3 w-3" />Delete
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            router.delete(
+                                                `/countries/${country.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Trash2 className="mr-1 h-3 w-3" />
+                                        Delete
                                     </Button>
                                 </div>
                             </div>
@@ -309,51 +402,102 @@ export function ToolsLauncher() {
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Manage Currencies</DialogTitle>
-                        <DialogDescription>Global currencies for inventory, payments and other modules.</DialogDescription>
+                        <DialogDescription>
+                            Global currencies for inventory, payments and other
+                            modules.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="grid gap-2">
                             <Label>Name</Label>
-                            <Input value={currencyName} onChange={(event) => setCurrencyName(event.target.value)} />
+                            <Input
+                                value={currencyName}
+                                onChange={(event) =>
+                                    setCurrencyName(event.target.value)
+                                }
+                            />
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Code</Label>
-                            <Input maxLength={3} value={currencyCode} onChange={(event) => setCurrencyCode(event.target.value)} />
+                            <Input
+                                maxLength={3}
+                                value={currencyCode}
+                                onChange={(event) =>
+                                    setCurrencyCode(event.target.value)
+                                }
+                            />
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Symbol</Label>
-                            <Input value={currencySymbol} onChange={(event) => setCurrencySymbol(event.target.value)} />
+                            <Input
+                                value={currencySymbol}
+                                onChange={(event) =>
+                                    setCurrencySymbol(event.target.value)
+                                }
+                            />
                             <InputError message={errors.symbol} />
                         </div>
                     </div>
                     <DialogFooter className="sm:justify-between">
-                        <Button variant="outline" onClick={resetCurrencyForm}>Clear</Button>
-                        <Button onClick={submitCurrency} disabled={isSubmitting || !currencyName.trim() || !currencyCode.trim() || !currencySymbol.trim()}>
+                        <Button variant="outline" onClick={resetCurrencyForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={submitCurrency}
+                            disabled={
+                                isSubmitting ||
+                                !currencyName.trim() ||
+                                !currencyCode.trim() ||
+                                !currencySymbol.trim()
+                            }
+                        >
                             <Save className="mr-2 h-4 w-4" />
                             {currencyId ? 'Update Currency' : 'Save Currency'}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {currencies.map((currency: Currency) => (
-                            <div key={currency.id} className="flex items-center justify-between rounded border p-2">
+                            <div
+                                key={currency.id}
+                                className="flex items-center justify-between rounded border p-2"
+                            >
                                 <div>
-                                    <p className="text-sm font-medium">{currency.name} ({currency.code})</p>
-                                    <p className="text-xs text-muted-foreground">{currency.symbol}</p>
+                                    <p className="text-sm font-medium">
+                                        {currency.name} ({currency.code})
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {currency.symbol}
+                                    </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => {
-                                        setCurrencyId(currency.id);
-                                        setCurrencyName(currency.name);
-                                        setCurrencyCode(currency.code);
-                                        setCurrencySymbol(currency.symbol);
-                                        setErrors({});
-                                    }}>
-                                        <Pencil className="mr-1 h-3 w-3" />Edit
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setCurrencyId(currency.id);
+                                            setCurrencyName(currency.name);
+                                            setCurrencyCode(currency.code);
+                                            setCurrencySymbol(currency.symbol);
+                                            setErrors({});
+                                        }}
+                                    >
+                                        <Pencil className="mr-1 h-3 w-3" />
+                                        Edit
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => router.delete(`/currencies/${currency.id}`, { preserveScroll: true })}>
-                                        <Trash2 className="mr-1 h-3 w-3" />Delete
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            router.delete(
+                                                `/currencies/${currency.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Trash2 className="mr-1 h-3 w-3" />
+                                        Delete
                                     </Button>
                                 </div>
                             </div>
@@ -366,75 +510,147 @@ export function ToolsLauncher() {
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>Manage Vendors</DialogTitle>
-                        <DialogDescription>Global vendor CRUD for all purchasing modules.</DialogDescription>
+                        <DialogDescription>
+                            Global vendor CRUD for all purchasing modules.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>Store Name</Label>
-                            <Input value={vendorName} onChange={(event) => setVendorName(event.target.value)} />
+                            <Input
+                                value={vendorName}
+                                onChange={(event) =>
+                                    setVendorName(event.target.value)
+                                }
+                            />
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Category</Label>
-                            <Input value={vendorCategory} onChange={(event) => setVendorCategory(event.target.value)} />
+                            <Input
+                                value={vendorCategory}
+                                onChange={(event) =>
+                                    setVendorCategory(event.target.value)
+                                }
+                            />
                             <InputError message={errors.category} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Contact Person</Label>
-                            <Input value={vendorContact} onChange={(event) => setVendorContact(event.target.value)} />
+                            <Input
+                                value={vendorContact}
+                                onChange={(event) =>
+                                    setVendorContact(event.target.value)
+                                }
+                            />
                             <InputError message={errors.contact_person} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Phone</Label>
-                            <Input value={vendorPhone} onChange={(event) => setVendorPhone(event.target.value)} />
+                            <Input
+                                value={vendorPhone}
+                                onChange={(event) =>
+                                    setVendorPhone(event.target.value)
+                                }
+                            />
                             <InputError message={errors.phone} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Email</Label>
-                            <Input value={vendorEmail} onChange={(event) => setVendorEmail(event.target.value)} />
+                            <Input
+                                value={vendorEmail}
+                                onChange={(event) =>
+                                    setVendorEmail(event.target.value)
+                                }
+                            />
                             <InputError message={errors.email} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Address</Label>
-                            <Input value={vendorAddress} onChange={(event) => setVendorAddress(event.target.value)} />
+                            <Input
+                                value={vendorAddress}
+                                onChange={(event) =>
+                                    setVendorAddress(event.target.value)
+                                }
+                            />
                             <InputError message={errors.address} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label>Notes</Label>
-                            <Input value={vendorNotes} onChange={(event) => setVendorNotes(event.target.value)} />
+                            <Input
+                                value={vendorNotes}
+                                onChange={(event) =>
+                                    setVendorNotes(event.target.value)
+                                }
+                            />
                             <InputError message={errors.notes} />
                         </div>
                     </div>
                     <DialogFooter className="sm:justify-between">
-                        <Button variant="outline" onClick={resetVendorForm}>Clear</Button>
-                        <Button onClick={submitVendor} disabled={isSubmitting || !vendorName.trim()}>
+                        <Button variant="outline" onClick={resetVendorForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={submitVendor}
+                            disabled={isSubmitting || !vendorName.trim()}
+                        >
                             <Save className="mr-2 h-4 w-4" />
                             {vendorId ? 'Update Vendor' : 'Save Vendor'}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {vendors.map((vendor: Vendor) => (
-                            <div key={vendor.id} className="flex items-center justify-between rounded border p-2">
+                            <div
+                                key={vendor.id}
+                                className="flex items-center justify-between rounded border p-2"
+                            >
                                 <div>
-                                    <p className="text-sm font-medium">{vendor.name}</p>
-                                    <p className="text-xs text-muted-foreground">{vendor.category || '-'} | {vendor.contact_person || '-'} | {vendor.phone || '-'}</p>
+                                    <p className="text-sm font-medium">
+                                        {vendor.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {vendor.category || '-'} |{' '}
+                                        {vendor.contact_person || '-'} |{' '}
+                                        {vendor.phone || '-'}
+                                    </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => {
-                                        setVendorId(vendor.id);
-                                        setVendorName(vendor.name);
-                                        setVendorCategory(vendor.category ?? '');
-                                        setVendorAddress(vendor.address ?? '');
-                                        setVendorContact(vendor.contact_person ?? '');
-                                        setVendorPhone(vendor.phone ?? '');
-                                        setVendorEmail(vendor.email ?? '');
-                                        setVendorNotes(vendor.notes ?? '');
-                                        setErrors({});
-                                    }}>
-                                        <Pencil className="mr-1 h-3 w-3" />Edit
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setVendorId(vendor.id);
+                                            setVendorName(vendor.name);
+                                            setVendorCategory(
+                                                vendor.category ?? '',
+                                            );
+                                            setVendorAddress(
+                                                vendor.address ?? '',
+                                            );
+                                            setVendorContact(
+                                                vendor.contact_person ?? '',
+                                            );
+                                            setVendorPhone(vendor.phone ?? '');
+                                            setVendorEmail(vendor.email ?? '');
+                                            setVendorNotes(vendor.notes ?? '');
+                                            setErrors({});
+                                        }}
+                                    >
+                                        <Pencil className="mr-1 h-3 w-3" />
+                                        Edit
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => router.delete(`/vendors/${vendor.id}`, { preserveScroll: true })}>
-                                        <Trash2 className="mr-1 h-3 w-3" />Delete
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            router.delete(
+                                                `/vendors/${vendor.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Trash2 className="mr-1 h-3 w-3" />
+                                        Delete
                                     </Button>
                                 </div>
                             </div>

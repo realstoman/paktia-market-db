@@ -211,7 +211,7 @@ class InventoryController extends Controller
 
         Vendor::create($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Vendor created successfully.');
     }
 
@@ -230,7 +230,7 @@ class InventoryController extends Controller
 
         $vendor->update($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Vendor updated successfully.');
     }
 
@@ -238,7 +238,7 @@ class InventoryController extends Controller
     {
         $vendor->delete();
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Vendor deleted successfully.');
     }
 
@@ -255,7 +255,7 @@ class InventoryController extends Controller
 
         Currency::create($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Currency created successfully.');
     }
 
@@ -272,7 +272,7 @@ class InventoryController extends Controller
 
         $currency->update($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Currency updated successfully.');
     }
 
@@ -280,7 +280,7 @@ class InventoryController extends Controller
     {
         $currency->delete();
 
-        return redirect()->route('inventory.index')
+        return redirect()->back()
             ->with('success', 'Currency deleted successfully.');
     }
 }
