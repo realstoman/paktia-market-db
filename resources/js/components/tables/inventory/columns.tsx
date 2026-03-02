@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Branch, InventoryItem, Vendor } from '@/types';
-import { formatPrice } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { ImageViewerDialog } from './image-viewer-dialog';
@@ -42,7 +42,6 @@ export const buildColumns = (
     vendors: Vendor[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
-    const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
     return [
         {
@@ -105,14 +104,6 @@ export const buildColumns = (
             header: 'Branch',
         },
         {
-            id: 'vendor.name',
-            accessorFn: (row) =>
-                row.vendor?.name ||
-                (row.vendor_id ? vendorById.get(row.vendor_id)?.name : null) ||
-                '-',
-            header: 'Vendor',
-        },
-        {
             accessorKey: 'quantity',
             header: 'Stock',
             cell: ({ row }) => {
@@ -127,7 +118,7 @@ export const buildColumns = (
         {
             accessorKey: 'unit_price',
             header: 'Single Price',
-            cell: ({ row }) => formatPrice(row.original.unit_price ?? 0),
+            cell: ({ row }) => formatNumber(row.original.unit_price ?? 0),
         },
         {
             id: 'total_price',
@@ -138,13 +129,13 @@ export const buildColumns = (
                 const total =
                     Number(row.original.quantity || 0) *
                     Number(row.original.unit_price || 0);
-                return formatPrice(total);
+                return formatNumber(total);
             },
         },
         {
             accessorKey: 'paid_amount',
             header: 'Paid',
-            cell: ({ row }) => formatPrice(row.original.paid_amount ?? 0),
+            cell: ({ row }) => formatNumber(row.original.paid_amount ?? 0),
         },
         {
             id: 'outstanding_amount',
@@ -156,7 +147,7 @@ export const buildColumns = (
                         Number(row.paid_amount || 0),
                 ),
             cell: ({ row }) =>
-                formatPrice(
+                formatNumber(
                     Math.max(
                         0,
                         Number(row.original.quantity || 0) *
