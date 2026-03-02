@@ -22,10 +22,19 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryItem, Vendor } from '@/types';
+import { Branch, InventoryCurrency, InventoryItem, Vendor } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Building2, ImagePlus, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
+import {
+    Building2,
+    Coins,
+    ImagePlus,
+    Pencil,
+    Plus,
+    Save,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -40,16 +49,19 @@ interface InventoryClientProps {
     data: InventoryItem[];
     branches: Branch[];
     vendors: Vendor[];
+    currencies: InventoryCurrency[];
     isLoading?: boolean;
 }
 
 const MAX_IMAGES = 10;
 const VENDOR_NONE = '__none__';
+const DEFAULT_CURRENCY_CODE = 'AFN';
 
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
     branches,
     vendors,
+    currencies,
     isLoading = false,
 }) => {
     const FILTER_ALL = '__all__';
@@ -62,6 +74,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [unitPrice, setUnitPrice] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [vendorId, setVendorId] = useState(VENDOR_NONE);
+    const [currencyCode, setCurrencyCode] = useState(DEFAULT_CURRENCY_CODE);
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
     const [receipt, setReceipt] = useState<File | null>(null);
@@ -69,8 +82,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
+    const [isCurrencyDialogOpen, setIsCurrencyDialogOpen] = useState(false);
     const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
+    const [isCurrencySubmitting, setIsCurrencySubmitting] = useState(false);
     const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
+    const [currencyErrors, setCurrencyErrors] = useState<Record<string, string>>(
+        {},
+    );
     const [vendorName, setVendorName] = useState('');
     const [vendorCategory, setVendorCategory] = useState('');
     const [vendorAddress, setVendorAddress] = useState('');
@@ -79,6 +97,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
     const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
+    const [currencyName, setCurrencyName] = useState('');
+    const [currencyCodeInput, setCurrencyCodeInput] = useState('');
+    const [currencySymbol, setCurrencySymbol] = useState('');
+    const [editingCurrencyId, setEditingCurrencyId] = useState<number | null>(
+        null,
+    );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
 
@@ -102,6 +126,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setUnitPrice('');
         setPaidAmount('');
         setVendorId(VENDOR_NONE);
+        setCurrencyCode(DEFAULT_CURRENCY_CODE);
         setDescription('');
         setIsUsable(true);
         setReceipt(null);
@@ -211,6 +236,89 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         );
     };
 
+    const resetCurrencyForm = () => {
+        setCurrencyName('');
+        setCurrencyCodeInput('');
+        setCurrencySymbol('');
+        setCurrencyErrors({});
+        setEditingCurrencyId(null);
+    };
+
+    const populateCurrencyForm = (currency: InventoryCurrency) => {
+        setCurrencyName(currency.name ?? '');
+        setCurrencyCodeInput(currency.code ?? '');
+        setCurrencySymbol(currency.symbol ?? '');
+        setCurrencyErrors({});
+        setEditingCurrencyId(currency.id);
+        setIsCurrencyDialogOpen(true);
+    };
+
+    const handleSaveCurrency = () => {
+        if (
+            !currencyName.trim() ||
+            !currencyCodeInput.trim() ||
+            !currencySymbol.trim() ||
+            isCurrencySubmitting
+        ) {
+            return;
+        }
+
+        setIsCurrencySubmitting(true);
+
+        const payload = {
+            name: currencyName.trim(),
+            code: currencyCodeInput.trim().toUpperCase(),
+            symbol: currencySymbol.trim(),
+            is_active: true,
+        };
+
+        const url = editingCurrencyId
+            ? `/inventory/currencies/${editingCurrencyId}`
+            : '/inventory/currencies';
+
+        router.post(
+            url,
+            editingCurrencyId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        editingCurrencyId
+                            ? 'Currency updated successfully.'
+                            : 'Currency created successfully.',
+                    );
+                    setIsCurrencyDialogOpen(false);
+                    resetCurrencyForm();
+                },
+                onError: (validationErrors) => {
+                    setCurrencyErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save currency.',
+                    );
+                },
+                onFinish: () => {
+                    setIsCurrencySubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteCurrency = (currency: InventoryCurrency) => {
+        router.delete(`/inventory/currencies/${currency.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Currency deleted successfully.');
+                if (currency.code === currencyCode) {
+                    setCurrencyCode(DEFAULT_CURRENCY_CODE);
+                }
+            },
+            onError: () => {
+                toast.error('Failed to delete currency.');
+            },
+        });
+    };
+
     const handleCreate = () => {
         if (
             !name.trim() ||
@@ -219,6 +327,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             !quantity ||
             !unitPrice ||
             !paidAmount ||
+            !currencyCode ||
             isSubmitting
         ) {
             return;
@@ -235,6 +344,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 quantity: Number(quantity),
                 unit_price: Number(unitPrice),
                 paid_amount: Number(paidAmount),
+                currency_code: currencyCode,
                 vendor_id:
                     vendorId && vendorId !== VENDOR_NONE
                         ? Number(vendorId)
@@ -273,6 +383,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         return qty * price;
     }, [quantity, unitPrice]);
 
+    const selectedCurrencySymbol = useMemo(() => {
+        const matched = currencies.find((entry) => entry.code === currencyCode);
+        return matched?.symbol ?? '';
+    }, [currencies, currencyCode]);
+
     const remainingAmount = useMemo(() => {
         const paid = Number(paidAmount);
         if (Number.isNaN(paid)) return totalPrice;
@@ -280,8 +395,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     }, [paidAmount, totalPrice]);
 
     const tableColumns = useMemo(
-        () => buildColumns(branches, vendors),
-        [branches, vendors],
+        () => buildColumns(branches, vendors, currencies),
+        [branches, vendors, currencies],
     );
 
     const availableTypes = useMemo(() => {
@@ -349,6 +464,17 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     >
                         <Building2 className="h-4 w-4" />
                         Manage Vendors
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            resetCurrencyForm();
+                            setIsCurrencyDialogOpen(true);
+                        }}
+                        className="gap-2"
+                    >
+                        <Coins className="h-4 w-4" />
+                        Manage Currencies
                     </Button>
                     <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                         <Plus className="h-4 w-4" />
@@ -572,6 +698,136 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             </Dialog>
 
             <Dialog
+                open={isCurrencyDialogOpen}
+                onOpenChange={(open) => {
+                    setIsCurrencyDialogOpen(open);
+                    if (!open) {
+                        resetCurrencyForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingCurrencyId
+                                ? 'Edit Currency'
+                                : 'Manage Currencies'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, update, and remove currencies by name and symbol.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={currencyName}
+                                onChange={(event) =>
+                                    setCurrencyName(event.target.value)
+                                }
+                            />
+                            <InputError message={currencyErrors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Code</Label>
+                            <Input
+                                maxLength={3}
+                                value={currencyCodeInput}
+                                onChange={(event) =>
+                                    setCurrencyCodeInput(event.target.value)
+                                }
+                            />
+                            <InputError message={currencyErrors.code} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Symbol</Label>
+                            <Input
+                                value={currencySymbol}
+                                onChange={(event) =>
+                                    setCurrencySymbol(event.target.value)
+                                }
+                            />
+                            <InputError message={currencyErrors.symbol} />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button
+                            variant="outline"
+                            onClick={resetCurrencyForm}
+                            disabled={isCurrencySubmitting}
+                        >
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={handleSaveCurrency}
+                            disabled={
+                                !currencyName.trim() ||
+                                !currencyCodeInput.trim() ||
+                                !currencySymbol.trim() ||
+                                isCurrencySubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {editingCurrencyId
+                                ? 'Update Currency'
+                                : 'Save Currency'}
+                        </Button>
+                    </DialogFooter>
+
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Existing Currencies</p>
+                        <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
+                            {currencies.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    No currencies yet.
+                                </p>
+                            ) : (
+                                currencies.map((currency) => (
+                                    <div
+                                        key={currency.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {currency.name} ({currency.code})
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Symbol: {currency.symbol}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    populateCurrencyForm(currency)
+                                                }
+                                            >
+                                                <Pencil className="mr-1 h-3 w-3" />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteCurrency(currency)
+                                                }
+                                            >
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
@@ -640,6 +896,28 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.vendor_id} />
                         </div>
                         <div className="grid gap-2">
+                            <Label>Currency</Label>
+                            <Select
+                                value={currencyCode}
+                                onValueChange={setCurrencyCode}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {currencies.map((currency) => (
+                                        <SelectItem
+                                            key={currency.id}
+                                            value={currency.code}
+                                        >
+                                            {currency.code} ({currency.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.currency_code} />
+                        </div>
+                        <div className="grid gap-2">
                             <Label>Type</Label>
                             <Select value={type} onValueChange={setType}>
                                 <SelectTrigger>
@@ -682,7 +960,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.quantity} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Single Price</Label>
+                            <Label>
+                                Single Price {selectedCurrencySymbol || ''}
+                            </Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -695,15 +975,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.unit_price} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Total Price (Auto)</Label>
+                            <Label>
+                                Total Price (Auto) {selectedCurrencySymbol || ''}
+                            </Label>
                             <Input
-                                value={formatPrice(totalPrice)}
+                                value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
                                 readOnly
                                 className="bg-muted"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Paid Amount</Label>
+                            <Label>
+                                Paid Amount {selectedCurrencySymbol || ''}
+                            </Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -716,9 +1000,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.paid_amount} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Remaining Amount (Auto)</Label>
+                            <Label>
+                                Remaining Amount (Auto){' '}
+                                {selectedCurrencySymbol || ''}
+                            </Label>
                             <Input
-                                value={formatPrice(remainingAmount)}
+                                value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
                                 readOnly
                                 className="bg-muted"
                             />

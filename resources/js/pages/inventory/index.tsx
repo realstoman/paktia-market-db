@@ -10,7 +10,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, InventoryItem, Vendor } from '@/types';
+import {
+    Branch,
+    BreadcrumbItem,
+    InventoryCurrency,
+    InventoryItem,
+    Vendor,
+} from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import {
@@ -38,12 +44,14 @@ interface InventoryPageProps {
     inventoryItems: InventoryItem[];
     branches: Branch[];
     vendors: Vendor[];
+    currencies: InventoryCurrency[];
 }
 
 export default function InventoryPage({
     inventoryItems,
     branches,
     vendors,
+    currencies,
 }: InventoryPageProps) {
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
@@ -235,6 +243,7 @@ export default function InventoryPage({
                             data={inventoryItems}
                             branches={branches}
                             vendors={vendors}
+                            currencies={currencies}
                         />
                     </div>
                 </div>

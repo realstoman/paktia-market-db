@@ -1,7 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, InventoryItem, Vendor } from '@/types';
+import {
+    Branch,
+    InventoryCurrency,
+    InventoryItem,
+    Vendor,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
@@ -40,6 +45,7 @@ const getInitials = (value?: string) => {
 export const buildColumns = (
     branches: Branch[],
     vendors: Vendor[],
+    currencies: InventoryCurrency[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
 
@@ -118,7 +124,10 @@ export const buildColumns = (
         {
             accessorKey: 'unit_price',
             header: 'Single Price',
-            cell: ({ row }) => formatNumber(row.original.unit_price ?? 0),
+            cell: ({ row }) =>
+                `${row.original.currency_symbol ?? ''}${formatNumber(
+                    row.original.unit_price ?? 0,
+                )}`,
         },
         {
             id: 'total_price',
@@ -129,13 +138,16 @@ export const buildColumns = (
                 const total =
                     Number(row.original.quantity || 0) *
                     Number(row.original.unit_price || 0);
-                return formatNumber(total);
+                return `${row.original.currency_symbol ?? ''}${formatNumber(total)}`;
             },
         },
         {
             accessorKey: 'paid_amount',
             header: 'Paid',
-            cell: ({ row }) => formatNumber(row.original.paid_amount ?? 0),
+            cell: ({ row }) =>
+                `${row.original.currency_symbol ?? ''}${formatNumber(
+                    row.original.paid_amount ?? 0,
+                )}`,
         },
         {
             id: 'outstanding_amount',
@@ -147,14 +159,14 @@ export const buildColumns = (
                         Number(row.paid_amount || 0),
                 ),
             cell: ({ row }) =>
-                formatNumber(
+                `${row.original.currency_symbol ?? ''}${formatNumber(
                     Math.max(
                         0,
                         Number(row.original.quantity || 0) *
                             Number(row.original.unit_price || 0) -
                             Number(row.original.paid_amount || 0),
                     ),
-                ),
+                )}`,
         },
         {
             accessorKey: 'is_usable',
@@ -221,6 +233,7 @@ export const buildColumns = (
                     data={row.original}
                     branches={branches}
                     vendors={vendors}
+                    currencies={currencies}
                 />
             ),
         },

@@ -26,7 +26,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryItem, Vendor } from '@/types';
+import { Branch, InventoryCurrency, InventoryItem, Vendor } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
@@ -37,12 +37,14 @@ interface CellActionProps {
     data: InventoryItem;
     branches: Branch[];
     vendors: Vendor[];
+    currencies: InventoryCurrency[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     branches,
     vendors,
+    currencies,
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -66,6 +68,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editVendorId, setEditVendorId] = useState(
         data.vendor_id ? String(data.vendor_id) : VENDOR_NONE,
     );
+    const [editCurrencyCode, setEditCurrencyCode] = useState(
+        data.currency_code ?? 'AFN',
+    );
     const [editDescription, setEditDescription] = useState(data.description ?? '');
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
@@ -84,6 +89,13 @@ export const CellAction: React.FC<CellActionProps> = ({
         return qty * unitPrice;
     }, [editQuantity, editUnitPrice]);
 
+    const editCurrencySymbol = useMemo(() => {
+        const matched = currencies.find(
+            (currency) => currency.code === editCurrencyCode,
+        );
+        return matched?.symbol ?? data.currency_symbol ?? '';
+    }, [currencies, data.currency_symbol, editCurrencyCode]);
+
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
@@ -93,6 +105,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));
         setEditVendorId(data.vendor_id ? String(data.vendor_id) : VENDOR_NONE);
+        setEditCurrencyCode(data.currency_code ?? 'AFN');
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
         setEditReceipt(null);
@@ -143,6 +156,7 @@ export const CellAction: React.FC<CellActionProps> = ({
             !editQuantity ||
             !editUnitPrice ||
             !editPaidAmount ||
+            !editCurrencyCode ||
             isEditSubmitting
         ) {
             return;
@@ -160,6 +174,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 quantity: Number(editQuantity),
                 unit_price: Number(editUnitPrice),
                 paid_amount: Number(editPaidAmount),
+                currency_code: editCurrencyCode,
                 vendor_id:
                     editVendorId !== VENDOR_NONE ? Number(editVendorId) : null,
                 description: editDescription.trim() || null,
@@ -293,6 +308,28 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.vendor_id} />
                         </div>
                         <div className="grid gap-2">
+                            <Label>Currency</Label>
+                            <Select
+                                value={editCurrencyCode}
+                                onValueChange={setEditCurrencyCode}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {currencies.map((currency) => (
+                                        <SelectItem
+                                            key={currency.id}
+                                            value={currency.code}
+                                        >
+                                            {currency.code} ({currency.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.currency_code} />
+                        </div>
+                        <div className="grid gap-2">
                             <Label>Unit</Label>
                             <Input
                                 value={editUnit}
@@ -314,7 +351,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.quantity} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Single Price</Label>
+                            <Label>Single Price {editCurrencySymbol}</Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -327,7 +364,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.unit_price} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Total Price (Auto)</Label>
+                            <Label>Total Price (Auto) {editCurrencySymbol}</Label>
                             <Input
                                 value={formatPrice(editTotalPrice)}
                                 readOnly
@@ -335,7 +372,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Paid Amount</Label>
+                            <Label>Paid Amount {editCurrencySymbol}</Label>
                             <Input
                                 type="number"
                                 min="0"
@@ -348,15 +385,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.paid_amount} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Remaining Amount (Auto)</Label>
+                            <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
                             <Input
-                                value={formatPrice(
+                                value={`${editCurrencySymbol}${formatPrice(
                                     Math.max(
                                         0,
                                         editTotalPrice -
                                             (Number(editPaidAmount) || 0),
                                     ),
-                                )}
+                                )}`}
                                 readOnly
                                 className="bg-muted"
                             />
@@ -432,6 +469,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 !editQuantity ||
                                 !editUnitPrice ||
                                 !editPaidAmount ||
+                                !editCurrencyCode ||
                                 isEditSubmitting
                             }
                         >
@@ -483,7 +521,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 Single Price
                             </p>
                             <p className="font-medium">
-                                {formatPrice(data.unit_price ?? 0)}
+                                {`${data.currency_symbol ?? ''}${formatPrice(data.unit_price ?? 0)}`}
                             </p>
                         </div>
                         <div>
@@ -491,10 +529,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 Total Price
                             </p>
                             <p className="font-medium">
-                                {formatPrice(
+                                {`${data.currency_symbol ?? ''}${formatPrice(
                                     Number(data.quantity || 0) *
                                         Number(data.unit_price || 0),
-                                )}
+                                )}`}
                             </p>
                         </div>
                         <div>
@@ -502,7 +540,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 Paid Amount
                             </p>
                             <p className="font-medium">
-                                {formatPrice(data.paid_amount ?? 0)}
+                                {`${data.currency_symbol ?? ''}${formatPrice(data.paid_amount ?? 0)}`}
                             </p>
                         </div>
                         <div>
@@ -510,7 +548,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 Remaining Amount
                             </p>
                             <p className="font-medium">
-                                {formatPrice(data.outstanding_amount ?? 0)}
+                                {`${data.currency_symbol ?? ''}${formatPrice(data.outstanding_amount ?? 0)}`}
                             </p>
                         </div>
                         <div className="sm:col-span-2">

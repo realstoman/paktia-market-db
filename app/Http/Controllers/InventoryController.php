@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\InventoryCurrency;
 use App\Models\InventoryItem;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class InventoryController extends Controller
             'inventoryItems' => $inventoryItems,
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'vendors' => Vendor::orderBy('name')->get(),
+            'currencies' => InventoryCurrency::orderBy('name')->get(),
         ]);
     }
 
@@ -43,6 +45,7 @@ class InventoryController extends Controller
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
+            'currency_code' => 'required|string|size:3|exists:inventory_currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
@@ -58,6 +61,11 @@ class InventoryController extends Controller
         }
 
         DB::transaction(function () use ($validated, $request) {
+            $currency = InventoryCurrency::where(
+                'code',
+                strtoupper($validated['currency_code']),
+            )->firstOrFail();
+
             $receiptPath = null;
             if ($request->hasFile('receipt')) {
                 $receiptPath = $request->file('receipt')->store('inventory/receipts', 'public');
@@ -73,6 +81,8 @@ class InventoryController extends Controller
                 'quantity' => $validated['quantity'],
                 'unit_price' => $validated['unit_price'],
                 'paid_amount' => $validated['paid_amount'],
+                'currency_code' => $currency->code,
+                'currency_symbol' => $currency->symbol,
                 'receipt_path' => $receiptPath,
                 'is_usable' => $validated['is_usable'] ?? true,
             ]);
@@ -129,6 +139,7 @@ class InventoryController extends Controller
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
+            'currency_code' => 'required|string|size:3|exists:inventory_currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
@@ -142,6 +153,11 @@ class InventoryController extends Controller
         }
 
         DB::transaction(function () use ($inventory, $validated, $request) {
+            $currency = InventoryCurrency::where(
+                'code',
+                strtoupper($validated['currency_code']),
+            )->firstOrFail();
+
             $oldQuantity = (float) $inventory->quantity;
             $newQuantity = (float) $validated['quantity'];
 
@@ -155,6 +171,8 @@ class InventoryController extends Controller
                 'quantity' => $newQuantity,
                 'unit_price' => $validated['unit_price'],
                 'paid_amount' => $validated['paid_amount'],
+                'currency_code' => $currency->code,
+                'currency_symbol' => $currency->symbol,
                 'is_usable' => $validated['is_usable'] ?? true,
             ];
 
@@ -214,5 +232,47 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Vendor updated successfully.');
+    }
+
+    public function storeCurrency(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|size:3|unique:inventory_currencies,code',
+            'symbol' => 'required|string|max:10',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['code'] = strtoupper($validated['code']);
+
+        InventoryCurrency::create($validated);
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Currency created successfully.');
+    }
+
+    public function updateCurrency(Request $request, InventoryCurrency $currency)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|size:3|unique:inventory_currencies,code,'.$currency->id,
+            'symbol' => 'required|string|max:10',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['code'] = strtoupper($validated['code']);
+
+        $currency->update($validated);
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Currency updated successfully.');
+    }
+
+    public function destroyCurrency(InventoryCurrency $currency)
+    {
+        $currency->delete();
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Currency deleted successfully.');
     }
 }

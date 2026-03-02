@@ -239,6 +239,8 @@ export interface InventoryItem {
     quantity: number | string;
     unit_price?: number | string;
     paid_amount?: number | string;
+    currency_code?: string;
+    currency_symbol?: string;
     total_price?: number | string;
     outstanding_amount?: number | string;
     receipt_path?: string | null;
@@ -260,6 +262,17 @@ export interface Vendor {
     phone?: string | null;
     email?: string | null;
     notes?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface InventoryCurrency {
+    id: number;
+    name: string;
+    code: string;
+    symbol: string;
     is_active?: boolean;
     created_at?: string;
     updated_at?: string;

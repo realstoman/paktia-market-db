@@ -16,6 +16,8 @@ class InventoryItem extends Model
         'quantity',
         'unit_price',
         'paid_amount',
+        'currency_code',
+        'currency_symbol',
         'receipt_path',
         'is_usable',
     ];
