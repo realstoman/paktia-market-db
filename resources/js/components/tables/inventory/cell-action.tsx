@@ -26,7 +26,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryCurrency, InventoryItem, Vendor } from '@/types';
+import { Branch, Currency, InventoryItem, Vendor } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
@@ -37,7 +37,7 @@ interface CellActionProps {
     data: InventoryItem;
     branches: Branch[];
     vendors: Vendor[];
-    currencies: InventoryCurrency[];
+    currencies: Currency[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({

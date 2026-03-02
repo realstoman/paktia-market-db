@@ -28,6 +28,11 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    tools?: {
+        countries: Country[];
+        currencies: Currency[];
+        vendors: Vendor[];
+    };
     sidebarOpen: boolean;
     [key: string]: unknown;
 }
@@ -268,7 +273,7 @@ export interface Vendor {
     [key: string]: unknown;
 }
 
-export interface InventoryCurrency {
+export interface Currency {
     id: number;
     name: string;
     code: string;

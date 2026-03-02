@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class InventoryCurrency extends Model
+class Currency extends Model
 {
     protected $fillable = [
         'name',

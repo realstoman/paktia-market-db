@@ -1,6 +1,7 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { ToolsLauncher } from '@/components/tools-launcher';
 import {
     Sidebar,
     SidebarContent,
@@ -81,11 +82,6 @@ const mainNavItems: NavItem[] = [
         icon: ShieldCheck,
         can: 'role.view',
     },
-    {
-        title: 'Countries',
-        href: '/countries',
-        icon: Globe,
-    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -118,6 +114,7 @@ export function AppSidebar() {
 
             <SidebarContent className="bg-white dark:bg-brand-bg-dark">
                 <NavMain items={mainNavItems} />
+                <ToolsLauncher />
             </SidebarContent>
 
             <SidebarFooter className="bg-white dark:bg-brand-bg-dark">

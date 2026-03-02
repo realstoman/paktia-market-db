@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Branch,
-    InventoryCurrency,
+    Currency,
     InventoryItem,
     Vendor,
 } from '@/types';
@@ -45,7 +45,7 @@ const getInitials = (value?: string) => {
 export const buildColumns = (
     branches: Branch[],
     vendors: Vendor[],
-    currencies: InventoryCurrency[],
+    currencies: Currency[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
 

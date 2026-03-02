@@ -13,7 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import {
     Branch,
     BreadcrumbItem,
-    InventoryCurrency,
+    Currency,
     InventoryItem,
     Vendor,
 } from '@/types';
@@ -44,7 +44,7 @@ interface InventoryPageProps {
     inventoryItems: InventoryItem[];
     branches: Branch[];
     vendors: Vendor[];
-    currencies: InventoryCurrency[];
+    currencies: Currency[];
 }
 
 export default function InventoryPage({

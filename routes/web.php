@@ -188,11 +188,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
-    Route::post('inventory/vendors', [InventoryController::class, 'storeVendor'])->name('inventory.vendors.store');
-    Route::put('inventory/vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('inventory.vendors.update');
-    Route::post('inventory/currencies', [InventoryController::class, 'storeCurrency'])->name('inventory.currencies.store');
-    Route::put('inventory/currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('inventory.currencies.update');
-    Route::delete('inventory/currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('inventory.currencies.destroy');
+    Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
+    Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
+    Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
+    Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
+    Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
+    Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
     // API helpers

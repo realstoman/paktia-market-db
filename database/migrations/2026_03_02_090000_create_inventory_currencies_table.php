@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_currencies', function (Blueprint $table) {
+        Schema::create('currencies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('code', 3)->unique();
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::table('inventory_currencies')->insert([
+        DB::table('currencies')->insert([
             [
                 'name' => 'Afghan Afghani',
                 'code' => 'AFN',
@@ -46,7 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventory_currencies');
+        Schema::dropIfExists('currencies');
     }
 };
-

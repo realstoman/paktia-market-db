@@ -22,12 +22,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, InventoryCurrency, InventoryItem, Vendor } from '@/types';
+import { Branch, Currency, InventoryItem, Vendor } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
-    Building2,
-    Coins,
     ImagePlus,
     Pencil,
     Plus,
@@ -49,7 +47,7 @@ interface InventoryClientProps {
     data: InventoryItem[];
     branches: Branch[];
     vendors: Vendor[];
-    currencies: InventoryCurrency[];
+    currencies: Currency[];
     isLoading?: boolean;
 }
 
@@ -205,8 +203,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         };
 
         const url = editingVendorId
-            ? `/inventory/vendors/${editingVendorId}`
-            : '/inventory/vendors';
+            ? `/vendors/${editingVendorId}`
+            : '/vendors';
 
         router.post(
             url,
@@ -244,7 +242,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setEditingCurrencyId(null);
     };
 
-    const populateCurrencyForm = (currency: InventoryCurrency) => {
+    const populateCurrencyForm = (currency: Currency) => {
         setCurrencyName(currency.name ?? '');
         setCurrencyCodeInput(currency.code ?? '');
         setCurrencySymbol(currency.symbol ?? '');
@@ -273,8 +271,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         };
 
         const url = editingCurrencyId
-            ? `/inventory/currencies/${editingCurrencyId}`
-            : '/inventory/currencies';
+            ? `/currencies/${editingCurrencyId}`
+            : '/currencies';
 
         router.post(
             url,
@@ -304,8 +302,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         );
     };
 
-    const handleDeleteCurrency = (currency: InventoryCurrency) => {
-        router.delete(`/inventory/currencies/${currency.id}`, {
+    const handleDeleteCurrency = (currency: Currency) => {
+        router.delete(`/currencies/${currency.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Currency deleted successfully.');
@@ -453,34 +451,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     title={`Inventory Items: ${formatNumber(data.length)}`}
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            resetVendorForm();
-                            setIsVendorDialogOpen(true);
-                        }}
-                        className="gap-2"
-                    >
-                        <Building2 className="h-4 w-4" />
-                        Manage Vendors
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            resetCurrencyForm();
-                            setIsCurrencyDialogOpen(true);
-                        }}
-                        className="gap-2"
-                    >
-                        <Coins className="h-4 w-4" />
-                        Manage Currencies
-                    </Button>
-                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add New Item
-                    </Button>
-                </div>
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add New Item
+                </Button>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
-use App\Models\InventoryCurrency;
+use App\Models\Currency;
 use App\Models\InventoryItem;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -30,7 +30,7 @@ class InventoryController extends Controller
             'inventoryItems' => $inventoryItems,
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'vendors' => Vendor::orderBy('name')->get(),
-            'currencies' => InventoryCurrency::orderBy('name')->get(),
+            'currencies' => Currency::orderBy('name')->get(),
         ]);
     }
 
@@ -45,7 +45,7 @@ class InventoryController extends Controller
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
-            'currency_code' => 'required|string|size:3|exists:inventory_currencies,code',
+            'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
@@ -61,7 +61,7 @@ class InventoryController extends Controller
         }
 
         DB::transaction(function () use ($validated, $request) {
-            $currency = InventoryCurrency::where(
+            $currency = Currency::where(
                 'code',
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
@@ -139,7 +139,7 @@ class InventoryController extends Controller
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
-            'currency_code' => 'required|string|size:3|exists:inventory_currencies,code',
+            'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
@@ -153,7 +153,7 @@ class InventoryController extends Controller
         }
 
         DB::transaction(function () use ($inventory, $validated, $request) {
-            $currency = InventoryCurrency::where(
+            $currency = Currency::where(
                 'code',
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
@@ -234,28 +234,36 @@ class InventoryController extends Controller
             ->with('success', 'Vendor updated successfully.');
     }
 
+    public function destroyVendor(Vendor $vendor)
+    {
+        $vendor->delete();
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Vendor deleted successfully.');
+    }
+
     public function storeCurrency(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|size:3|unique:inventory_currencies,code',
+            'code' => 'required|string|size:3|unique:currencies,code',
             'symbol' => 'required|string|max:10',
             'is_active' => 'boolean',
         ]);
 
         $validated['code'] = strtoupper($validated['code']);
 
-        InventoryCurrency::create($validated);
+        Currency::create($validated);
 
         return redirect()->route('inventory.index')
             ->with('success', 'Currency created successfully.');
     }
 
-    public function updateCurrency(Request $request, InventoryCurrency $currency)
+    public function updateCurrency(Request $request, Currency $currency)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|size:3|unique:inventory_currencies,code,'.$currency->id,
+            'code' => 'required|string|size:3|unique:currencies,code,'.$currency->id,
             'symbol' => 'required|string|max:10',
             'is_active' => 'boolean',
         ]);
@@ -268,7 +276,7 @@ class InventoryController extends Controller
             ->with('success', 'Currency updated successfully.');
     }
 
-    public function destroyCurrency(InventoryCurrency $currency)
+    public function destroyCurrency(Currency $currency)
     {
         $currency->delete();
 
