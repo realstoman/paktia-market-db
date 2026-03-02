@@ -22,10 +22,17 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import Dashboard from '@/pages/dashboard';
 import { Country, Currency, SharedData, Vendor } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { Building2, Coins, Globe, Pencil, Save, Trash2 } from 'lucide-react';
+import {
+    Building2,
+    Coins,
+    Globe,
+    LayoutDashboard,
+    Pencil,
+    Save,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -214,7 +221,7 @@ export function ToolsLauncher() {
                                 <SidebarMenuButton
                                     tooltip={{ children: 'Tools' }}
                                 >
-                                    <Dashboard />
+                                    <LayoutDashboard />
                                     <span className="text-base">Tools</span>
                                 </SidebarMenuButton>
                             </PopoverTrigger>
