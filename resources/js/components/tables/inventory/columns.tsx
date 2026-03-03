@@ -48,6 +48,7 @@ export const buildColumns = (
     currencies: Currency[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
+    const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
     return [
         {
@@ -108,6 +109,14 @@ export const buildColumns = (
                 (row.branch_id ? branchById.get(row.branch_id)?.name : null) ||
                 'Unknown',
             header: 'Branch',
+        },
+        {
+            id: 'vendor.name',
+            accessorFn: (row) =>
+                row.vendor?.name ||
+                (row.vendor_id ? vendorById.get(row.vendor_id)?.name : null) ||
+                '-',
+            header: 'Vendor',
         },
         {
             accessorKey: 'quantity',
@@ -215,14 +224,6 @@ export const buildColumns = (
                         View
                     </a>
                 );
-            },
-        },
-        {
-            accessorKey: 'created_at',
-            header: 'Created At',
-            cell: ({ row }) => {
-                const date = new Date(row.getValue('created_at'));
-                return date.toLocaleDateString();
             },
         },
         {
