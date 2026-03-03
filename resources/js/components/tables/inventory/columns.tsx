@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     Branch,
     Currency,
+    InventoryCategory,
     InventoryItem,
     Unit,
     Vendor,
@@ -48,6 +49,7 @@ export const buildColumns = (
     vendors: Vendor[],
     currencies: Currency[],
     units: Unit[],
+    categories: InventoryCategory[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
@@ -238,6 +240,7 @@ export const buildColumns = (
                     vendors={vendors}
                     currencies={currencies}
                     units={units}
+                    categories={categories}
                 />
             ),
         },

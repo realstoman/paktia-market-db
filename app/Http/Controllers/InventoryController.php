@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Currency;
+use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Unit;
 use App\Models\Vendor;
@@ -19,6 +20,7 @@ class InventoryController extends Controller
             'branch',
             'vendor',
             'unitReference',
+            'categoryReference',
             'images',
             'transactions',
         ])
@@ -34,6 +36,7 @@ class InventoryController extends Controller
             'vendors' => Vendor::orderBy('name')->get(),
             'currencies' => Currency::orderBy('name')->get(),
             'units' => Unit::orderBy('name')->get(),
+            'categories' => InventoryCategory::orderBy('name')->get(),
         ]);
     }
 
@@ -51,6 +54,7 @@ class InventoryController extends Controller
             'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'unit_id' => 'nullable|exists:units,id',
+            'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
@@ -83,6 +87,7 @@ class InventoryController extends Controller
                 'branch_id' => $validated['branch_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
@@ -151,6 +156,7 @@ class InventoryController extends Controller
             'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'unit_id' => 'nullable|exists:units,id',
+            'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
@@ -179,6 +185,7 @@ class InventoryController extends Controller
                 'branch_id' => $validated['branch_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
@@ -335,5 +342,43 @@ class InventoryController extends Controller
 
         return redirect()->back()
             ->with('success', 'Unit deleted successfully.');
+    }
+
+    public function storeInventoryCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        InventoryCategory::create($validated);
+
+        return redirect()->back()
+            ->with('success', 'Category created successfully.');
+    }
+
+    public function updateInventoryCategory(
+        Request $request,
+        InventoryCategory $inventoryCategory,
+    ) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        $inventoryCategory->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Category updated successfully.');
+    }
+
+    public function destroyInventoryCategory(InventoryCategory $inventoryCategory)
+    {
+        $inventoryCategory->delete();
+
+        return redirect()->back()
+            ->with('success', 'Category deleted successfully.');
     }
 }

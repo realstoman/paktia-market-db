@@ -14,6 +14,7 @@ import {
     Branch,
     BreadcrumbItem,
     Currency,
+    InventoryCategory,
     InventoryItem,
     Unit,
     Vendor,
@@ -47,6 +48,7 @@ interface InventoryPageProps {
     vendors: Vendor[];
     currencies: Currency[];
     units: Unit[];
+    categories: InventoryCategory[];
 }
 
 export default function InventoryPage({
@@ -55,6 +57,7 @@ export default function InventoryPage({
     vendors,
     currencies,
     units,
+    categories,
 }: InventoryPageProps) {
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
@@ -248,6 +251,7 @@ export default function InventoryPage({
                             vendors={vendors}
                             currencies={currencies}
                             units={units}
+                            categories={categories}
                         />
                     </div>
                 </div>

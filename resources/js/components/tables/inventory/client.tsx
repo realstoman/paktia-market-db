@@ -22,7 +22,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Currency, InventoryItem, Unit, Vendor } from '@/types';
+import {
+    Branch,
+    Currency,
+    InventoryCategory,
+    InventoryItem,
+    Unit,
+    Vendor,
+} from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
@@ -49,6 +56,7 @@ interface InventoryClientProps {
     vendors: Vendor[];
     currencies: Currency[];
     units: Unit[];
+    categories: InventoryCategory[];
     isLoading?: boolean;
 }
 
@@ -62,6 +70,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     vendors,
     currencies,
     units,
+    categories,
     isLoading = false,
 }) => {
     const FILTER_ALL = '__all__';
@@ -74,6 +83,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [paidAmount, setPaidAmount] = useState('');
     const [vendorId, setVendorId] = useState(VENDOR_NONE);
     const [unitId, setUnitId] = useState('');
+    const [categoryId, setCategoryId] = useState('');
     const [currencyCode, setCurrencyCode] = useState(DEFAULT_CURRENCY_CODE);
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
@@ -84,6 +94,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
     const [isCurrencyDialogOpen, setIsCurrencyDialogOpen] = useState(false);
     const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
+    const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
     const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
     const [isCurrencySubmitting, setIsCurrencySubmitting] = useState(false);
     const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
@@ -100,6 +111,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [unitName, setUnitName] = useState('');
     const [unitSymbol, setUnitSymbol] = useState('');
     const [unitDescription, setUnitDescription] = useState('');
+    const [categoryName, setCategoryName] = useState('');
+    const [categoryDescription, setCategoryDescription] = useState('');
     const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
     const [currencyName, setCurrencyName] = useState('');
     const [currencyCodeInput, setCurrencyCodeInput] = useState('');
@@ -108,6 +121,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         null,
     );
     const [editingUnitId, setEditingUnitId] = useState<number | null>(null);
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+        null,
+    );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
 
@@ -131,6 +147,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setPaidAmount('');
         setVendorId(VENDOR_NONE);
         setUnitId('');
+        setCategoryId('');
         setCurrencyCode(DEFAULT_CURRENCY_CODE);
         setDescription('');
         setIsUsable(true);
@@ -184,6 +201,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setUnitDescription('');
         setErrors({});
         setEditingUnitId(null);
+    };
+
+    const resetCategoryForm = () => {
+        setCategoryName('');
+        setCategoryDescription('');
+        setErrors({});
+        setEditingCategoryId(null);
+    };
+
+    const populateCategoryForm = (category: InventoryCategory) => {
+        setCategoryName(category.name ?? '');
+        setCategoryDescription(category.description ?? '');
+        setErrors({});
+        setEditingCategoryId(category.id);
+        setIsCategoryDialogOpen(true);
     };
 
     const populateUnitForm = (unit: Unit) => {
@@ -400,6 +432,66 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         });
     };
 
+    const handleSaveCategory = () => {
+        if (!categoryName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            name: categoryName.trim(),
+            description: categoryDescription.trim() || null,
+            is_active: true,
+        };
+
+        const url = editingCategoryId
+            ? `/inventory-categories/${editingCategoryId}`
+            : '/inventory-categories';
+
+        router.post(
+            url,
+            editingCategoryId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        editingCategoryId
+                            ? 'Category updated successfully.'
+                            : 'Category created successfully.',
+                    );
+                    setIsCategoryDialogOpen(false);
+                    resetCategoryForm();
+                },
+                onError: (validationErrors) => {
+                    setErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save category.',
+                    );
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteCategory = (category: InventoryCategory) => {
+        router.delete(`/inventory-categories/${category.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Category deleted successfully.');
+                if (String(category.id) === categoryId) {
+                    setCategoryId('');
+                }
+            },
+            onError: () => {
+                toast.error('Failed to delete category.');
+            },
+        });
+    };
+
     const handleCreate = () => {
         if (
             !name.trim() ||
@@ -430,6 +522,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         ? Number(vendorId)
                         : null,
                 unit_id: unitId ? Number(unitId) : null,
+                category_id: categoryId ? Number(categoryId) : null,
                 description: description.trim() || null,
                 is_usable: isUsable,
                 receipt,
@@ -476,8 +569,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     }, [paidAmount, totalPrice]);
 
     const tableColumns = useMemo(
-        () => buildColumns(branches, vendors, currencies, units),
-        [branches, vendors, currencies, units],
+        () => buildColumns(branches, vendors, currencies, units, categories),
+        [branches, vendors, currencies, units, categories],
     );
 
     const availableTypes = useMemo(() => {
@@ -535,6 +628,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            resetCategoryForm();
+                            setIsCategoryDialogOpen(true);
+                        }}
+                        className="gap-2"
+                    >
+                        Manage Categories
+                    </Button>
                     <Button
                         variant="outline"
                         onClick={() => {
@@ -1010,6 +1113,113 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             </Dialog>
 
             <Dialog
+                open={isCategoryDialogOpen}
+                onOpenChange={(open) => {
+                    setIsCategoryDialogOpen(open);
+                    if (!open) {
+                        resetCategoryForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingCategoryId
+                                ? 'Edit Category'
+                                : 'Manage Categories'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, update, and remove inventory categories.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={categoryName}
+                                onChange={(event) =>
+                                    setCategoryName(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Description</Label>
+                            <Input
+                                value={categoryDescription}
+                                onChange={(event) =>
+                                    setCategoryDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.description} />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button variant="outline" onClick={resetCategoryForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={handleSaveCategory}
+                            disabled={isSubmitting || !categoryName.trim()}
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {editingCategoryId
+                                ? 'Update Category'
+                                : 'Save Category'}
+                        </Button>
+                    </DialogFooter>
+
+                    <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
+                        {categories.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No categories yet.
+                            </p>
+                        ) : (
+                            categories.map((entry) => (
+                                <div
+                                    key={entry.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div>
+                                        <p className="text-sm font-medium">
+                                            {entry.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {entry.description || '-'}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                populateCategoryForm(entry)
+                                            }
+                                        >
+                                            <Pencil className="mr-1 h-3 w-3" />
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleDeleteCategory(entry)
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
@@ -1137,6 +1347,28 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.unit_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Category</Label>
+                            <Select
+                                value={categoryId}
+                                onValueChange={setCategoryId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((entry) => (
+                                        <SelectItem
+                                            key={entry.id}
+                                            value={String(entry.id)}
+                                        >
+                                            {entry.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.category_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Initial Quantity</Label>
