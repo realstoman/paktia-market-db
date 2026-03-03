@@ -476,8 +476,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     }, [paidAmount, totalPrice]);
 
     const tableColumns = useMemo(
-        () => buildColumns(branches, vendors, currencies),
-        [branches, vendors, currencies],
+        () => buildColumns(branches, vendors, currencies, units),
+        [branches, vendors, currencies, units],
     );
 
     const availableTypes = useMemo(() => {

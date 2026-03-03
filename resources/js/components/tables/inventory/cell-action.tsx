@@ -26,7 +26,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Currency, InventoryItem, Vendor } from '@/types';
+import { Branch, Currency, InventoryItem, Unit, Vendor } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
@@ -38,6 +38,7 @@ interface CellActionProps {
     branches: Branch[];
     vendors: Vendor[];
     currencies: Currency[];
+    units: Unit[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
@@ -45,6 +46,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     branches,
     vendors,
     currencies,
+    units,
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -67,6 +69,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [editVendorId, setEditVendorId] = useState(
         data.vendor_id ? String(data.vendor_id) : VENDOR_NONE,
+    );
+    const [editUnitId, setEditUnitId] = useState(
+        data.unit_id ? String(data.unit_id) : '',
     );
     const [editCurrencyCode, setEditCurrencyCode] = useState(
         data.currency_code ?? 'AFN',
@@ -105,6 +110,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));
         setEditVendorId(data.vendor_id ? String(data.vendor_id) : VENDOR_NONE);
+        setEditUnitId(data.unit_id ? String(data.unit_id) : '');
         setEditCurrencyCode(data.currency_code ?? 'AFN');
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
@@ -177,6 +183,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 currency_code: editCurrencyCode,
                 vendor_id:
                     editVendorId !== VENDOR_NONE ? Number(editVendorId) : null,
+                unit_id: editUnitId ? Number(editUnitId) : null,
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
@@ -328,6 +335,28 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.currency_code} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Unit</Label>
+                            <Select
+                                value={editUnitId}
+                                onValueChange={setEditUnitId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {units.map((entry) => (
+                                        <SelectItem
+                                            key={entry.id}
+                                            value={String(entry.id)}
+                                        >
+                                            {entry.name} ({entry.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.unit_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Unit</Label>
