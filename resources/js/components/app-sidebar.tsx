@@ -17,7 +17,6 @@ import { Link } from '@inertiajs/react';
 import {
     Boxes,
     Building2,
-    ChefHat,
     CookingPot,
     Globe,
     LayoutGrid,
@@ -63,12 +62,6 @@ const mainNavItems: NavItem[] = [
         href: '/branches',
         icon: Building2,
         can: 'branch.view',
-    },
-    {
-        title: 'Kitchens',
-        href: '/kitchens',
-        icon: ChefHat,
-        can: 'kitchen.view',
     },
     {
         title: 'Users',

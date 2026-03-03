@@ -2,12 +2,16 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\KitchenType;
 use App\Models\Country;
 use App\Models\Currency;
+use App\Models\Kitchen;
+use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -60,6 +64,21 @@ class HandleInertiaRequests extends Middleware
                 'vendors' => Schema::hasTable('vendors')
                     ? Vendor::orderBy('name')->get()
                     : [],
+                'kitchens' => Schema::hasTable('kitchens')
+                    ? Kitchen::with(['branches', 'products'])
+                        ->orderBy('name')
+                        ->get()
+                    : [],
+                'products' => Schema::hasTable('products')
+                    ? Product::orderBy('name')->get(['id', 'name', 'kitchen_id'])
+                    : [],
+                'kitchenTypes' => array_map(
+                    fn (KitchenType $type) => [
+                        'label' => Str::title(str_replace('_', ' ', $type->value)),
+                        'value' => $type->value,
+                    ],
+                    KitchenType::cases(),
+                ),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
