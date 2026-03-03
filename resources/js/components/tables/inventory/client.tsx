@@ -22,7 +22,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Currency, InventoryItem, Vendor } from '@/types';
+import { Branch, Currency, InventoryItem, Unit, Vendor } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
@@ -48,6 +48,7 @@ interface InventoryClientProps {
     branches: Branch[];
     vendors: Vendor[];
     currencies: Currency[];
+    units: Unit[];
     isLoading?: boolean;
 }
 
@@ -60,6 +61,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     branches,
     vendors,
     currencies,
+    units,
     isLoading = false,
 }) => {
     const FILTER_ALL = '__all__';
@@ -67,11 +69,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [type, setType] = useState('consumable');
-    const [unit, setUnit] = useState('');
     const [quantity, setQuantity] = useState('');
     const [unitPrice, setUnitPrice] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [vendorId, setVendorId] = useState(VENDOR_NONE);
+    const [unitId, setUnitId] = useState('');
     const [currencyCode, setCurrencyCode] = useState(DEFAULT_CURRENCY_CODE);
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
@@ -81,6 +83,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
     const [isCurrencyDialogOpen, setIsCurrencyDialogOpen] = useState(false);
+    const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
     const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
     const [isCurrencySubmitting, setIsCurrencySubmitting] = useState(false);
     const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
@@ -94,6 +97,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [vendorPhone, setVendorPhone] = useState('');
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
+    const [unitName, setUnitName] = useState('');
+    const [unitSymbol, setUnitSymbol] = useState('');
+    const [unitDescription, setUnitDescription] = useState('');
     const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
     const [currencyName, setCurrencyName] = useState('');
     const [currencyCodeInput, setCurrencyCodeInput] = useState('');
@@ -101,6 +107,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [editingCurrencyId, setEditingCurrencyId] = useState<number | null>(
         null,
     );
+    const [editingUnitId, setEditingUnitId] = useState<number | null>(null);
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
 
@@ -119,11 +126,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setName('');
         setBranchId('');
         setType('consumable');
-        setUnit('');
         setQuantity('');
         setUnitPrice('');
         setPaidAmount('');
         setVendorId(VENDOR_NONE);
+        setUnitId('');
         setCurrencyCode(DEFAULT_CURRENCY_CODE);
         setDescription('');
         setIsUsable(true);
@@ -169,6 +176,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setVendorNotes('');
         setVendorErrors({});
         setEditingVendorId(null);
+    };
+
+    const resetUnitForm = () => {
+        setUnitName('');
+        setUnitSymbol('');
+        setUnitDescription('');
+        setErrors({});
+        setEditingUnitId(null);
+    };
+
+    const populateUnitForm = (unit: Unit) => {
+        setUnitName(unit.name ?? '');
+        setUnitSymbol(unit.symbol ?? '');
+        setUnitDescription(unit.description ?? '');
+        setErrors({});
+        setEditingUnitId(unit.id);
+        setIsUnitDialogOpen(true);
     };
 
     const populateVendorForm = (vendor: Vendor) => {
@@ -317,6 +341,65 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         });
     };
 
+    const handleSaveUnit = () => {
+        if (!unitName.trim() || !unitSymbol.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            name: unitName.trim(),
+            symbol: unitSymbol.trim(),
+            description: unitDescription.trim() || null,
+            is_active: true,
+        };
+
+        const url = editingUnitId ? `/units/${editingUnitId}` : '/units';
+
+        router.post(
+            url,
+            editingUnitId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        editingUnitId
+                            ? 'Unit updated successfully.'
+                            : 'Unit created successfully.',
+                    );
+                    setIsUnitDialogOpen(false);
+                    resetUnitForm();
+                },
+                onError: (validationErrors) => {
+                    setErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save unit.',
+                    );
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteUnit = (unit: Unit) => {
+        router.delete(`/units/${unit.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Unit deleted successfully.');
+                if (String(unit.id) === unitId) {
+                    setUnitId('');
+                }
+            },
+            onError: () => {
+                toast.error('Failed to delete unit.');
+            },
+        });
+    };
+
     const handleCreate = () => {
         if (
             !name.trim() ||
@@ -338,7 +421,6 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 branch_id: Number(branchId),
                 name: name.trim(),
                 type,
-                unit: unit.trim() || null,
                 quantity: Number(quantity),
                 unit_price: Number(unitPrice),
                 paid_amount: Number(paidAmount),
@@ -347,6 +429,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     vendorId && vendorId !== VENDOR_NONE
                         ? Number(vendorId)
                         : null,
+                unit_id: unitId ? Number(unitId) : null,
                 description: description.trim() || null,
                 is_usable: isUsable,
                 receipt,
@@ -451,10 +534,22 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     title={`Inventory Items: ${formatNumber(data.length)}`}
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add New Item
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            resetUnitForm();
+                            setIsUnitDialogOpen(true);
+                        }}
+                        className="gap-2"
+                    >
+                        Manage Units
+                    </Button>
+                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New Item
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
@@ -802,6 +897,119 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             </Dialog>
 
             <Dialog
+                open={isUnitDialogOpen}
+                onOpenChange={(open) => {
+                    setIsUnitDialogOpen(open);
+                    if (!open) {
+                        resetUnitForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingUnitId ? 'Edit Unit' : 'Manage Units'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, update, and remove units used in inventory items.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={unitName}
+                                onChange={(event) =>
+                                    setUnitName(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Symbol</Label>
+                            <Input
+                                value={unitSymbol}
+                                onChange={(event) =>
+                                    setUnitSymbol(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.symbol} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Description</Label>
+                            <Input
+                                value={unitDescription}
+                                onChange={(event) =>
+                                    setUnitDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.description} />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button variant="outline" onClick={resetUnitForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={handleSaveUnit}
+                            disabled={
+                                isSubmitting ||
+                                !unitName.trim() ||
+                                !unitSymbol.trim()
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {editingUnitId ? 'Update Unit' : 'Save Unit'}
+                        </Button>
+                    </DialogFooter>
+
+                    <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
+                        {units.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No units yet.
+                            </p>
+                        ) : (
+                            units.map((entry) => (
+                                <div
+                                    key={entry.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div>
+                                        <p className="text-sm font-medium">
+                                            {entry.name} ({entry.symbol})
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {entry.description || '-'}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => populateUnitForm(entry)}
+                                        >
+                                            <Pencil className="mr-1 h-3 w-3" />
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDeleteUnit(entry)}
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
@@ -913,12 +1121,22 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>Unit</Label>
-                            <Input
-                                placeholder="kg, bag, piece, box"
-                                value={unit}
-                                onChange={(event) => setUnit(event.target.value)}
-                            />
-                            <InputError message={errors.unit} />
+                            <Select value={unitId} onValueChange={setUnitId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {units.map((entry) => (
+                                        <SelectItem
+                                            key={entry.id}
+                                            value={String(entry.id)}
+                                        >
+                                            {entry.name} ({entry.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.unit_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Initial Quantity</Label>

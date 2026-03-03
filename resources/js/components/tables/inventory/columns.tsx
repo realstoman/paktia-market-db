@@ -5,6 +5,7 @@ import {
     Branch,
     Currency,
     InventoryItem,
+    Unit,
     Vendor,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -46,6 +47,7 @@ export const buildColumns = (
     branches: Branch[],
     vendors: Vendor[],
     currencies: Currency[],
+    units: Unit[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
@@ -235,6 +237,7 @@ export const buildColumns = (
                     branches={branches}
                     vendors={vendors}
                     currencies={currencies}
+                    units={units}
                 />
             ),
         },

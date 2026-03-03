@@ -194,6 +194,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
     Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
     Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
+    Route::post('units', [InventoryController::class, 'storeUnit'])->name('units.store');
+    Route::put('units/{unit}', [InventoryController::class, 'updateUnit'])->name('units.update');
+    Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
 
     // API helpers

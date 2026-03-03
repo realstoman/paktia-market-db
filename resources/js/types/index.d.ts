@@ -238,8 +238,10 @@ export interface InventoryItem {
     id: number;
     branch_id: number;
     vendor_id?: number | null;
+    unit_id?: number | null;
     branch?: Branch | null;
     vendor?: Vendor | null;
+    unitReference?: Unit | null;
     name: string;
     description?: string | null;
     type: string;
@@ -281,6 +283,17 @@ export interface Currency {
     name: string;
     code: string;
     symbol: string;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Unit {
+    id: number;
+    name: string;
+    symbol: string;
+    description?: string | null;
     is_active?: boolean;
     created_at?: string;
     updated_at?: string;

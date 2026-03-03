@@ -9,6 +9,7 @@ class InventoryItem extends Model
     protected $fillable = [
         'branch_id',
         'vendor_id',
+        'unit_id',
         'name',
         'description',
         'type',
@@ -43,6 +44,11 @@ class InventoryItem extends Model
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function unitReference()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     public function images()
