@@ -59,7 +59,6 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
     const [editName, setEditName] = useState(data.name);
     const [editType, setEditType] = useState(data.type);
-    const [editUnit, setEditUnit] = useState(data.unit ?? '');
     const [editQuantity, setEditQuantity] = useState(String(data.quantity ?? ''));
     const [editUnitPrice, setEditUnitPrice] = useState(
         String(data.unit_price ?? ''),
@@ -105,7 +104,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
         setEditType(data.type);
-        setEditUnit(data.unit ?? '');
         setEditQuantity(String(data.quantity ?? ''));
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));
@@ -176,7 +174,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                 branch_id: Number(editBranchId),
                 name: editName.trim(),
                 type: editType.trim(),
-                unit: editUnit.trim() || null,
                 quantity: Number(editQuantity),
                 unit_price: Number(editUnitPrice),
                 paid_amount: Number(editPaidAmount),
@@ -357,14 +354,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.unit_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Unit</Label>
-                            <Input
-                                value={editUnit}
-                                onChange={(event) => setEditUnit(event.target.value)}
-                            />
-                            <InputError message={editErrors.unit} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Quantity</Label>
