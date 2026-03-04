@@ -195,14 +195,6 @@ export const buildColumns = (
         },
     },
     {
-        accessorKey: 'created_at',
-        header: 'Created At',
-        cell: ({ row }) => {
-            const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
-        },
-    },
-    {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
