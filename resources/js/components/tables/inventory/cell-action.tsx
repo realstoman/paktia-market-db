@@ -26,7 +26,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Currency, InventoryItem, Vendor } from '@/types';
+import {
+    Branch,
+    Currency,
+    InventoryCategory,
+    InventoryItem,
+    Unit,
+    Vendor,
+} from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
@@ -38,6 +45,8 @@ interface CellActionProps {
     branches: Branch[];
     vendors: Vendor[];
     currencies: Currency[];
+    units: Unit[];
+    categories: InventoryCategory[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
@@ -45,6 +54,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     branches,
     vendors,
     currencies,
+    units,
+    categories,
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -57,7 +68,6 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
     const [editName, setEditName] = useState(data.name);
     const [editType, setEditType] = useState(data.type);
-    const [editUnit, setEditUnit] = useState(data.unit ?? '');
     const [editQuantity, setEditQuantity] = useState(String(data.quantity ?? ''));
     const [editUnitPrice, setEditUnitPrice] = useState(
         String(data.unit_price ?? ''),
@@ -67,6 +77,12 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [editVendorId, setEditVendorId] = useState(
         data.vendor_id ? String(data.vendor_id) : VENDOR_NONE,
+    );
+    const [editUnitId, setEditUnitId] = useState(
+        data.unit_id ? String(data.unit_id) : '',
+    );
+    const [editCategoryId, setEditCategoryId] = useState(
+        data.category_id ? String(data.category_id) : '',
     );
     const [editCurrencyCode, setEditCurrencyCode] = useState(
         data.currency_code ?? 'AFN',
@@ -100,11 +116,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
         setEditType(data.type);
-        setEditUnit(data.unit ?? '');
         setEditQuantity(String(data.quantity ?? ''));
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));
         setEditVendorId(data.vendor_id ? String(data.vendor_id) : VENDOR_NONE);
+        setEditUnitId(data.unit_id ? String(data.unit_id) : '');
+        setEditCategoryId(data.category_id ? String(data.category_id) : '');
         setEditCurrencyCode(data.currency_code ?? 'AFN');
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
@@ -170,13 +187,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                 branch_id: Number(editBranchId),
                 name: editName.trim(),
                 type: editType.trim(),
-                unit: editUnit.trim() || null,
                 quantity: Number(editQuantity),
                 unit_price: Number(editUnitPrice),
                 paid_amount: Number(editPaidAmount),
                 currency_code: editCurrencyCode,
                 vendor_id:
                     editVendorId !== VENDOR_NONE ? Number(editVendorId) : null,
+                unit_id: editUnitId ? Number(editUnitId) : null,
+                category_id: editCategoryId ? Number(editCategoryId) : null,
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
@@ -331,11 +349,47 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>Unit</Label>
-                            <Input
-                                value={editUnit}
-                                onChange={(event) => setEditUnit(event.target.value)}
-                            />
-                            <InputError message={editErrors.unit} />
+                            <Select
+                                value={editUnitId}
+                                onValueChange={setEditUnitId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {units.map((entry) => (
+                                        <SelectItem
+                                            key={entry.id}
+                                            value={String(entry.id)}
+                                        >
+                                            {entry.name} ({entry.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.unit_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Category</Label>
+                            <Select
+                                value={editCategoryId}
+                                onValueChange={setEditCategoryId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((entry) => (
+                                        <SelectItem
+                                            key={entry.id}
+                                            value={String(entry.id)}
+                                        >
+                                            {entry.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.category_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Quantity</Label>

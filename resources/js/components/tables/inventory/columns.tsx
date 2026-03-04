@@ -4,7 +4,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     Branch,
     Currency,
+    InventoryCategory,
     InventoryItem,
+    Unit,
     Vendor,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -46,8 +48,11 @@ export const buildColumns = (
     branches: Branch[],
     vendors: Vendor[],
     currencies: Currency[],
+    units: Unit[],
+    categories: InventoryCategory[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
+    const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
     return [
         {
@@ -108,6 +113,14 @@ export const buildColumns = (
                 (row.branch_id ? branchById.get(row.branch_id)?.name : null) ||
                 'Unknown',
             header: 'Branch',
+        },
+        {
+            id: 'vendor.name',
+            accessorFn: (row) =>
+                row.vendor?.name ||
+                (row.vendor_id ? vendorById.get(row.vendor_id)?.name : null) ||
+                '-',
+            header: 'Vendor',
         },
         {
             accessorKey: 'quantity',
@@ -218,14 +231,6 @@ export const buildColumns = (
             },
         },
         {
-            accessorKey: 'created_at',
-            header: 'Created At',
-            cell: ({ row }) => {
-                const date = new Date(row.getValue('created_at'));
-                return date.toLocaleDateString();
-            },
-        },
-        {
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => (
@@ -234,6 +239,8 @@ export const buildColumns = (
                     branches={branches}
                     vendors={vendors}
                     currencies={currencies}
+                    units={units}
+                    categories={categories}
                 />
             ),
         },

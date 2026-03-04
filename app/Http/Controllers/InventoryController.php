@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Currency;
+use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\Unit;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,8 @@ class InventoryController extends Controller
         $inventoryItems = InventoryItem::with([
             'branch',
             'vendor',
+            'unitReference',
+            'categoryReference',
             'images',
             'transactions',
         ])
@@ -31,6 +35,8 @@ class InventoryController extends Controller
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'vendors' => Vendor::orderBy('name')->get(),
             'currencies' => Currency::orderBy('name')->get(),
+            'units' => Unit::orderBy('name')->get(),
+            'categories' => InventoryCategory::orderBy('name')->get(),
         ]);
     }
 
@@ -47,6 +53,8 @@ class InventoryController extends Controller
             'paid_amount' => 'required|numeric|min:0',
             'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
+            'unit_id' => 'nullable|exists:units,id',
+            'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
             'images.*' => 'image|max:4096',
@@ -65,6 +73,10 @@ class InventoryController extends Controller
                 'code',
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
+            $unit = null;
+            if (!empty($validated['unit_id'])) {
+                $unit = Unit::find($validated['unit_id']);
+            }
 
             $receiptPath = null;
             if ($request->hasFile('receipt')) {
@@ -74,10 +86,12 @@ class InventoryController extends Controller
             $item = InventoryItem::create([
                 'branch_id' => $validated['branch_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
+                'unit_id' => $validated['unit_id'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
-                'unit' => $validated['unit'] ?? null,
+                'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
                 'quantity' => $validated['quantity'],
                 'unit_price' => $validated['unit_price'],
                 'paid_amount' => $validated['paid_amount'],
@@ -141,6 +155,8 @@ class InventoryController extends Controller
             'paid_amount' => 'required|numeric|min:0',
             'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
+            'unit_id' => 'nullable|exists:units,id',
+            'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
@@ -157,6 +173,10 @@ class InventoryController extends Controller
                 'code',
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
+            $unit = null;
+            if (!empty($validated['unit_id'])) {
+                $unit = Unit::find($validated['unit_id']);
+            }
 
             $oldQuantity = (float) $inventory->quantity;
             $newQuantity = (float) $validated['quantity'];
@@ -164,10 +184,12 @@ class InventoryController extends Controller
             $payload = [
                 'branch_id' => $validated['branch_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
+                'unit_id' => $validated['unit_id'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
-                'unit' => $validated['unit'] ?? null,
+                'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
                 'quantity' => $newQuantity,
                 'unit_price' => $validated['unit_price'],
                 'paid_amount' => $validated['paid_amount'],
@@ -282,5 +304,81 @@ class InventoryController extends Controller
 
         return redirect()->back()
             ->with('success', 'Currency deleted successfully.');
+    }
+
+    public function storeUnit(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'symbol' => 'required|string|max:20',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        Unit::create($validated);
+
+        return redirect()->back()
+            ->with('success', 'Unit created successfully.');
+    }
+
+    public function updateUnit(Request $request, Unit $unit)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'symbol' => 'required|string|max:20',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        $unit->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Unit updated successfully.');
+    }
+
+    public function destroyUnit(Unit $unit)
+    {
+        $unit->delete();
+
+        return redirect()->back()
+            ->with('success', 'Unit deleted successfully.');
+    }
+
+    public function storeInventoryCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        InventoryCategory::create($validated);
+
+        return redirect()->back()
+            ->with('success', 'Category created successfully.');
+    }
+
+    public function updateInventoryCategory(
+        Request $request,
+        InventoryCategory $inventoryCategory,
+    ) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        $inventoryCategory->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Category updated successfully.');
+    }
+
+    public function destroyInventoryCategory(InventoryCategory $inventoryCategory)
+    {
+        $inventoryCategory->delete();
+
+        return redirect()->back()
+            ->with('success', 'Category deleted successfully.');
     }
 }

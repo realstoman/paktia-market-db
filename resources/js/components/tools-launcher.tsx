@@ -22,10 +22,19 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Country, Currency, SharedData, Vendor } from '@/types';
+import { KitchensClient } from '@/components/tables/kitchens/client';
+import {
+    Country,
+    Currency,
+    Kitchen,
+    Product,
+    SharedData,
+    Vendor,
+} from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import {
     Building2,
+    ChefHat,
     Coins,
     Globe,
     LayoutDashboard,
@@ -50,10 +59,23 @@ export function ToolsLauncher() {
         () => page.props.tools?.vendors ?? [],
         [page.props.tools?.vendors],
     );
+    const kitchens = useMemo(
+        () => page.props.tools?.kitchens ?? [],
+        [page.props.tools?.kitchens],
+    );
+    const products = useMemo(
+        () => page.props.tools?.products ?? [],
+        [page.props.tools?.products],
+    );
+    const kitchenTypes = useMemo(
+        () => page.props.tools?.kitchenTypes ?? [],
+        [page.props.tools?.kitchenTypes],
+    );
 
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
     const [isCurrenciesOpen, setIsCurrenciesOpen] = useState(false);
     const [isVendorsOpen, setIsVendorsOpen] = useState(false);
+    const [isKitchensOpen, setIsKitchensOpen] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -267,6 +289,14 @@ export function ToolsLauncher() {
                                     >
                                         <Building2 className="h-5 w-5" />
                                         <span className="text-xs">Vendors</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-20 flex-col gap-2"
+                                        onClick={() => setIsKitchensOpen(true)}
+                                    >
+                                        <ChefHat className="h-5 w-5" />
+                                        <span className="text-xs">Kitchens</span>
                                     </Button>
                                 </div>
                             </PopoverContent>
@@ -662,6 +692,24 @@ export function ToolsLauncher() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isKitchensOpen} onOpenChange={setIsKitchensOpen}>
+                <DialogContent className="sm:max-w-6xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Kitchens</DialogTitle>
+                        <DialogDescription>
+                            Manage kitchens with the same table columns and actions.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="max-h-[75vh] overflow-auto pr-1">
+                        <KitchensClient
+                            data={kitchens as Kitchen[]}
+                            products={products as Product[]}
+                            kitchenTypes={kitchenTypes}
+                        />
                     </div>
                 </DialogContent>
             </Dialog>
