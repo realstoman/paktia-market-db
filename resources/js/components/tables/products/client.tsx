@@ -89,6 +89,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [categoryName, setCategoryName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
     const [typeName, setTypeName] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [kitchenFilter, setKitchenFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -305,6 +309,98 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         [categories, kitchens, types],
     );
 
+    const filteredData = useMemo(() => {
+        return data.filter((product) => {
+            const byCategory =
+                categoryFilter === 'all' ||
+                String(product.product_category_id ?? '') === categoryFilter;
+            const byKitchen =
+                kitchenFilter === 'all' ||
+                String(product.kitchen_id ?? '') === kitchenFilter;
+            const byType =
+                typeFilter === 'all' ||
+                (product.type ?? '').trim().toLowerCase() === typeFilter;
+            const byStatus =
+                statusFilter === 'all' ||
+                (statusFilter === 'active'
+                    ? !!product.is_active
+                    : !product.is_active);
+
+            return byCategory && byKitchen && byType && byStatus;
+        });
+    }, [categoryFilter, data, kitchenFilter, statusFilter, typeFilter]);
+
+    const filterToolbar = useMemo(
+        () => (
+            <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map((category) => (
+                            <SelectItem key={category.id} value={String(category.id)}>
+                                {category.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={kitchenFilter} onValueChange={setKitchenFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Kitchen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Kitchens</SelectItem>
+                        {kitchens.map((kitchen) => (
+                            <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {availableTypes.map((productType) => (
+                            <SelectItem
+                                key={productType}
+                                value={productType.trim().toLowerCase()}
+                            >
+                                <span className="capitalize">{productType}</span>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        ),
+        [
+            availableTypes,
+            categories,
+            categoryFilter,
+            kitchenFilter,
+            kitchens,
+            statusFilter,
+            typeFilter,
+        ],
+    );
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
@@ -341,9 +437,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     'type',
                 ]}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search products by name or category..."
+                toolbar={filterToolbar}
             />
 
             <Dialog
