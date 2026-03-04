@@ -722,7 +722,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>
                             {editingVendorId ? 'Edit Vendor' : 'Manage Vendors'}
@@ -1237,299 +1237,301 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label>Name</Label>
-                            <Input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                            />
-                            <InputError message={errors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Vendor (optional)</Label>
-                            <Select value={vendorId} onValueChange={setVendorId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={VENDOR_NONE}>
-                                        No Vendor
-                                    </SelectItem>
-                                    {vendors.map((vendor) => (
-                                        <SelectItem
-                                            key={vendor.id}
-                                            value={String(vendor.id)}
-                                        >
-                                            {vendor.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.vendor_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Currency</Label>
-                            <Select
-                                value={currencyCode}
-                                onValueChange={setCurrencyCode}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencies.map((currency) => (
-                                        <SelectItem
-                                            key={currency.id}
-                                            value={currency.code}
-                                        >
-                                            {currency.code} ({currency.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.currency_code} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Select value={type} onValueChange={setType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="consumable">
-                                        Consumable
-                                    </SelectItem>
-                                    <SelectItem value="fixed">Fixed</SelectItem>
-                                    <SelectItem value="grocery">
-                                        Grocery
-                                    </SelectItem>
-                                    <SelectItem value="food">Food</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Unit</Label>
-                            <Select value={unitId} onValueChange={setUnitId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {units.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name} ({entry.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.unit_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select
-                                value={categoryId}
-                                onValueChange={setCategoryId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Initial Quantity</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={quantity}
-                                onChange={(event) =>
-                                    setQuantity(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.quantity} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Single Price {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={unitPrice}
-                                onChange={(event) =>
-                                    setUnitPrice(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.unit_price} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Total Price (Auto) {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Paid Amount {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={paidAmount}
-                                onChange={(event) =>
-                                    setPaidAmount(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.paid_amount} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Remaining Amount (Auto){' '}
-                                {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    checked={isUsable}
-                                    onCheckedChange={(checked) =>
-                                        setIsUsable(!!checked)
-                                    }
-                                />
-                                <span className="text-sm text-muted-foreground">
-                                    Usable item
-                                </span>
-                            </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={description}
-                                onChange={(event) =>
-                                    setDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="inventory-receipt">
-                                Receipt/Bill (image or PDF)
-                            </Label>
-                            <Input
-                                id="inventory-receipt"
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(event) =>
-                                    setReceipt(event.target.files?.[0] ?? null)
-                                }
-                            />
-                            {receipt ? (
-                                <p className="text-xs text-muted-foreground">
-                                    Selected: {receipt.name}
-                                </p>
-                            ) : null}
-                            <InputError message={errors.receipt} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Images (up to 10)</Label>
-                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Upload item images.
-                                    </p>
-                                    <Label
-                                        htmlFor="inventory-images"
-                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                    >
-                                        <ImagePlus className="h-4 w-4" />
-                                        Select Images
-                                    </Label>
-                                </div>
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Name</Label>
                                 <Input
-                                    id="inventory-images"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="hidden"
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                />
+                                <InputError message={errors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select value={branchId} onValueChange={setBranchId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Vendor (optional)</Label>
+                                <Select value={vendorId} onValueChange={setVendorId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={VENDOR_NONE}>
+                                            No Vendor
+                                        </SelectItem>
+                                        {vendors.map((vendor) => (
+                                            <SelectItem
+                                                key={vendor.id}
+                                                value={String(vendor.id)}
+                                            >
+                                                {vendor.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.vendor_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Currency</Label>
+                                <Select
+                                    value={currencyCode}
+                                    onValueChange={setCurrencyCode}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem
+                                                key={currency.id}
+                                                value={currency.code}
+                                            >
+                                                {currency.code} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.currency_code} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={type} onValueChange={setType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="consumable">
+                                            Consumable
+                                        </SelectItem>
+                                        <SelectItem value="fixed">Fixed</SelectItem>
+                                        <SelectItem value="grocery">
+                                            Grocery
+                                        </SelectItem>
+                                        <SelectItem value="food">Food</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Unit</Label>
+                                <Select value={unitId} onValueChange={setUnitId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select unit" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name} ({entry.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.unit_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={categoryId}
+                                    onValueChange={setCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.category_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Initial Quantity</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={quantity}
                                     onChange={(event) =>
-                                        handleImageChange(event.target.files)
+                                        setQuantity(event.target.value)
                                     }
                                 />
-                                {images.length > 0 ? (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {images.map((image) => (
-                                            <div
-                                                key={image.id}
-                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={image.preview}
-                                                    alt={image.file.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                    onClick={() =>
-                                                        removeSelectedImage(
-                                                            image.id,
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : null}
+                                <InputError message={errors.quantity} />
                             </div>
-                            <InputError message={errors.images} />
+                            <div className="grid gap-2">
+                                <Label>
+                                    Single Price {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={unitPrice}
+                                    onChange={(event) =>
+                                        setUnitPrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.unit_price} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Total Price (Auto) {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Paid Amount {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={paidAmount}
+                                    onChange={(event) =>
+                                        setPaidAmount(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.paid_amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Remaining Amount (Auto){' '}
+                                    {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        checked={isUsable}
+                                        onCheckedChange={(checked) =>
+                                            setIsUsable(!!checked)
+                                        }
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        Usable item
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.description} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="inventory-receipt">
+                                    Receipt/Bill (image or PDF)
+                                </Label>
+                                <Input
+                                    id="inventory-receipt"
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(event) =>
+                                        setReceipt(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                {receipt ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        Selected: {receipt.name}
+                                    </p>
+                                ) : null}
+                                <InputError message={errors.receipt} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Images (up to 10)</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload item images.
+                                        </p>
+                                        <Label
+                                            htmlFor="inventory-images"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="inventory-images"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleImageChange(event.target.files)
+                                        }
+                                    />
+                                    {images.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {images.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeSelectedImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={errors.images} />
+                            </div>
                         </div>
                     </div>
 
