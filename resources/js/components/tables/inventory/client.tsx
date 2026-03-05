@@ -32,14 +32,7 @@ import {
 } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import {
-    ImagePlus,
-    Pencil,
-    Plus,
-    Save,
-    Trash2,
-    X,
-} from 'lucide-react';
+import { ImagePlus, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -105,10 +98,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
     const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
     const [isCurrencySubmitting, setIsCurrencySubmitting] = useState(false);
-    const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
-    const [currencyErrors, setCurrencyErrors] = useState<Record<string, string>>(
+    const [vendorErrors, setVendorErrors] = useState<Record<string, string>>(
         {},
     );
+    const [currencyErrors, setCurrencyErrors] = useState<
+        Record<string, string>
+    >({});
     const [vendorName, setVendorName] = useState('');
     const [vendorCategory, setVendorCategory] = useState('');
     const [vendorAddress, setVendorAddress] = useState('');
@@ -132,7 +127,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
         null,
     );
-    const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
+    const [selectedBranchFilter, setSelectedBranchFilter] =
+        useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
     const [usageDate, setUsageDate] = useState(
         new Date().toISOString().slice(0, 10),
@@ -727,10 +723,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
             const typeMatch =
                 selectedTypeFilter === FILTER_ALL ||
-                ((selectedTypeFilter === 'usable' && item.is_usable) ||
-                    (selectedTypeFilter === 'not_usable' && !item.is_usable) ||
-                    (item.type ?? '').trim().toLowerCase() ===
-                        selectedTypeFilter);
+                (selectedTypeFilter === 'usable' && item.is_usable) ||
+                (selectedTypeFilter === 'not_usable' && !item.is_usable) ||
+                (item.type ?? '').trim().toLowerCase() === selectedTypeFilter;
 
             return branchMatch && typeMatch;
         });
@@ -791,7 +786,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     >
                         Manage Units
                     </Button>
-                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
                         <Plus className="h-4 w-4" />
                         Add New Item
                     </Button>
@@ -836,7 +834,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <SelectValue placeholder="Filter by type" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={FILTER_ALL}>All Types</SelectItem>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Types
+                                </SelectItem>
                                 <SelectItem value="usable">Usable</SelectItem>
                                 <SelectItem value="not_usable">
                                     Not Usable
@@ -999,7 +999,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => populateVendorForm(vendor)}
+                                            onClick={() =>
+                                                populateVendorForm(vendor)
+                                            }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
                                             Edit
@@ -1029,7 +1031,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 : 'Manage Currencies'}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove currencies by name and symbol.
+                            Add, update, and remove currencies by name and
+                            symbol.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1092,7 +1095,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     </DialogFooter>
 
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">Existing Currencies</p>
+                        <p className="text-sm font-medium">
+                            Existing Currencies
+                        </p>
                         <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                             {currencies.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
@@ -1106,7 +1111,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     >
                                         <div>
                                             <p className="text-sm font-medium">
-                                                {currency.name} ({currency.code})
+                                                {currency.name} ({currency.code}
+                                                )
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 Symbol: {currency.symbol}
@@ -1117,7 +1123,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() =>
-                                                    populateCurrencyForm(currency)
+                                                    populateCurrencyForm(
+                                                        currency,
+                                                    )
                                                 }
                                             >
                                                 <Pencil className="mr-1 h-3 w-3" />
@@ -1127,7 +1135,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() =>
-                                                    handleDeleteCurrency(currency)
+                                                    handleDeleteCurrency(
+                                                        currency,
+                                                    )
                                                 }
                                             >
                                                 <Trash2 className="mr-1 h-3 w-3" />
@@ -1157,7 +1167,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             {editingUnitId ? 'Edit Unit' : 'Manage Units'}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove units used in inventory items.
+                            Add, update, and remove units used in inventory
+                            items.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1234,7 +1245,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => populateUnitForm(entry)}
+                                            onClick={() =>
+                                                populateUnitForm(entry)
+                                            }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
                                             Edit
@@ -1242,7 +1255,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => handleDeleteUnit(entry)}
+                                            onClick={() =>
+                                                handleDeleteUnit(entry)
+                                            }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
                                             Delete
@@ -1375,8 +1390,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     <DialogHeader>
                         <DialogTitle>Create Inventory Item</DialogTitle>
                         <DialogDescription>
-                            Add a new item with stock quantity, price, receipt/bill,
-                            and images.
+                            Add a new item with stock quantity, price,
+                            receipt/bill, and images.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1386,13 +1401,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>Name</Label>
                                 <Input
                                     value={name}
-                                    onChange={(event) => setName(event.target.value)}
+                                    onChange={(event) =>
+                                        setName(event.target.value)
+                                    }
                                 />
                                 <InputError message={errors.name} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Branch</Label>
-                                <Select value={branchId} onValueChange={setBranchId}>
+                                <Select
+                                    value={branchId}
+                                    onValueChange={setBranchId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select branch" />
                                     </SelectTrigger>
@@ -1411,7 +1431,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Vendor (optional)</Label>
-                                <Select value={vendorId} onValueChange={setVendorId}>
+                                <Select
+                                    value={vendorId}
+                                    onValueChange={setVendorId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select vendor" />
                                     </SelectTrigger>
@@ -1446,7 +1469,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 key={currency.id}
                                                 value={currency.code}
                                             >
-                                                {currency.code} ({currency.symbol})
+                                                {currency.code} (
+                                                {currency.symbol})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -1463,19 +1487,28 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         <SelectItem value="consumable">
                                             Consumable
                                         </SelectItem>
-                                        <SelectItem value="fixed">Fixed</SelectItem>
+                                        <SelectItem value="fixed">
+                                            Fixed
+                                        </SelectItem>
                                         <SelectItem value="grocery">
                                             Grocery
                                         </SelectItem>
-                                        <SelectItem value="food">Food</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
+                                        <SelectItem value="food">
+                                            Food
+                                        </SelectItem>
+                                        <SelectItem value="other">
+                                            Other
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError message={errors.type} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Unit</Label>
-                                <Select value={unitId} onValueChange={setUnitId}>
+                                <Select
+                                    value={unitId}
+                                    onValueChange={setUnitId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select unit" />
                                     </SelectTrigger>
@@ -1544,7 +1577,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Total Price (Auto) {selectedCurrencySymbol || ''}
+                                    Total Price (Auto){' '}
+                                    {selectedCurrencySymbol || ''}
                                 </Label>
                                 <Input
                                     value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
@@ -1610,7 +1644,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     type="file"
                                     accept="image/*,.pdf"
                                     onChange={(event) =>
-                                        setReceipt(event.target.files?.[0] ?? null)
+                                        setReceipt(
+                                            event.target.files?.[0] ?? null,
+                                        )
                                     }
                                 />
                                 {receipt ? (
@@ -1642,7 +1678,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         accept="image/*"
                                         className="hidden"
                                         onChange={(event) =>
-                                            handleImageChange(event.target.files)
+                                            handleImageChange(
+                                                event.target.files,
+                                            )
                                         }
                                     />
                                     {images.length > 0 ? (
@@ -1659,7 +1697,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     />
                                                     <button
                                                         type="button"
-                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
                                                         onClick={() =>
                                                             removeSelectedImage(
                                                                 image.id,
@@ -1741,7 +1779,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 {usageItems.map((row, index) => {
                                     const selectedItem = usableItems.find(
                                         (item) =>
-                                            String(item.id) === row.inventoryItemId,
+                                            String(item.id) ===
+                                            row.inventoryItemId,
                                     );
 
                                     return (
@@ -1753,8 +1792,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 <div className="grid gap-2">
                                                     <Label>Usable Item</Label>
                                                     <Select
-                                                        value={row.inventoryItemId}
-                                                        onValueChange={(value) =>
+                                                        value={
+                                                            row.inventoryItemId
+                                                        }
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             updateUsageItemField(
                                                                 row.id,
                                                                 'inventoryItemId',
@@ -1766,21 +1809,35 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                             <SelectValue placeholder="Select usable item" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {usableItems.map((item) => (
-                                                                <SelectItem
-                                                                    key={item.id}
-                                                                    value={String(item.id)}
-                                                                >
-                                                                    {item.name} (
-                                                                    {item.branch?.name ??
-                                                                        `Branch #${item.branch_id}`}
-                                                                    ) - Available:{' '}
-                                                                    {Number(
-                                                                        item.quantity || 0,
-                                                                    )}{' '}
-                                                                    {item.unit ?? 'unit'}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {usableItems.map(
+                                                                (item) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            item.id
+                                                                        }
+                                                                        value={String(
+                                                                            item.id,
+                                                                        )}
+                                                                    >
+                                                                        {
+                                                                            item.name
+                                                                        }{' '}
+                                                                        (
+                                                                        {item
+                                                                            .branch
+                                                                            ?.name ??
+                                                                            `Branch #${item.branch_id}`}
+                                                                        ) -
+                                                                        Available:{' '}
+                                                                        {Number(
+                                                                            item.quantity ||
+                                                                                0,
+                                                                        )}{' '}
+                                                                        {item.unit ??
+                                                                            'unit'}
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                     <InputError
@@ -1802,7 +1859,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                             updateUsageItemField(
                                                                 row.id,
                                                                 'quantityUsed',
-                                                                event.target.value,
+                                                                event.target
+                                                                    .value,
                                                             )
                                                         }
                                                     />
@@ -1815,14 +1873,17 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     />
                                                 </div>
                                                 <div className="grid gap-2 sm:col-span-2">
-                                                    <Label>Note (optional)</Label>
+                                                    <Label>
+                                                        Note (optional)
+                                                    </Label>
                                                     <Textarea
                                                         value={row.note}
                                                         onChange={(event) =>
                                                             updateUsageItemField(
                                                                 row.id,
                                                                 'note',
-                                                                event.target.value,
+                                                                event.target
+                                                                    .value,
                                                             )
                                                         }
                                                     />
@@ -1839,13 +1900,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             {selectedItem ? (
                                                 <p className="text-xs text-muted-foreground">
                                                     Unit Price:{' '}
-                                                    {selectedItem.currency_symbol ?? ''}
+                                                    {selectedItem.currency_symbol ??
+                                                        ''}
                                                     {formatPrice(
-                                                        selectedItem.unit_price || 0,
+                                                        selectedItem.unit_price ||
+                                                            0,
                                                     )}{' '}
                                                     | Available:{' '}
-                                                    {Number(selectedItem.quantity || 0)}{' '}
-                                                    {selectedItem.unit ?? 'unit'}
+                                                    {Number(
+                                                        selectedItem.quantity ||
+                                                            0,
+                                                    )}{' '}
+                                                    {selectedItem.unit ??
+                                                        'unit'}
                                                 </p>
                                             ) : null}
 
@@ -1888,7 +1955,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         Total Number Used
                                     </p>
                                     <p className="text-lg font-semibold">
-                                        {formatNumber(usageSummary.totalQuantityUsed)}
+                                        {formatNumber(
+                                            usageSummary.totalQuantityUsed,
+                                        )}
                                     </p>
                                 </div>
                                 <div>
@@ -1917,7 +1986,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 !usageDate ||
                                 usageItems.some(
                                     (row) =>
-                                        !row.inventoryItemId || !row.quantityUsed,
+                                        !row.inventoryItemId ||
+                                        !row.quantityUsed,
                                 ) ||
                                 isUsageSubmitting
                             }

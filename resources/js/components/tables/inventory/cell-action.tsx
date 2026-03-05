@@ -107,7 +107,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
     const [editName, setEditName] = useState(data.name);
     const [editType, setEditType] = useState(data.type);
-    const [editQuantity, setEditQuantity] = useState(String(data.quantity ?? ''));
+    const [editQuantity, setEditQuantity] = useState(
+        String(data.quantity ?? ''),
+    );
     const [editUnitPrice, setEditUnitPrice] = useState(
         String(data.unit_price ?? ''),
     );
@@ -126,7 +128,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editCurrencyCode, setEditCurrencyCode] = useState(
         data.currency_code ?? 'AFN',
     );
-    const [editDescription, setEditDescription] = useState(data.description ?? '');
+    const [editDescription, setEditDescription] = useState(
+        data.description ?? '',
+    );
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
     const [editImages, setEditImages] = useState<PendingImage[]>([]);
@@ -399,7 +403,9 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Inventory Item?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Delete Inventory Item?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             This will permanently delete "{data.name}" and
                             cascade related records (images and transactions).
@@ -415,7 +421,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     Number(data.outstanding_amount ?? 0),
                                 ),
                             )}
-                            {data.vendor?.name ? ` (Vendor: ${data.vendor.name})` : ''}
+                            {data.vendor?.name
+                                ? ` (Vendor: ${data.vendor.name})`
+                                : ''}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -448,7 +456,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label>Name</Label>
                                 <Input
                                     value={editName}
-                                    onChange={(event) => setEditName(event.target.value)}
+                                    onChange={(event) =>
+                                        setEditName(event.target.value)
+                                    }
                                 />
                                 <InputError message={editErrors.name} />
                             </div>
@@ -478,7 +488,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label>Type</Label>
                                 <Input
                                     value={editType}
-                                    onChange={(event) => setEditType(event.target.value)}
+                                    onChange={(event) =>
+                                        setEditType(event.target.value)
+                                    }
                                 />
                                 <InputError message={editErrors.type} />
                             </div>
@@ -522,12 +534,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 key={currency.id}
                                                 value={currency.code}
                                             >
-                                                {currency.code} ({currency.symbol})
+                                                {currency.code} (
+                                                {currency.symbol})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={editErrors.currency_code} />
+                                <InputError
+                                    message={editErrors.currency_code}
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Unit</Label>
@@ -600,7 +615,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.unit_price} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Total Price (Auto) {editCurrencySymbol}</Label>
+                                <Label>
+                                    Total Price (Auto) {editCurrencySymbol}
+                                </Label>
                                 <Input
                                     value={formatPrice(editTotalPrice)}
                                     readOnly
@@ -621,7 +638,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.paid_amount} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
+                                <Label>
+                                    Remaining Amount (Auto) {editCurrencySymbol}
+                                </Label>
                                 <Input
                                     value={`${editCurrencySymbol}${formatPrice(
                                         Math.max(
@@ -666,12 +685,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     type="file"
                                     accept="image/*,.pdf"
                                     onChange={(event) =>
-                                        setEditReceipt(event.target.files?.[0] ?? null)
+                                        setEditReceipt(
+                                            event.target.files?.[0] ?? null,
+                                        )
                                     }
                                 />
                                 {data.receipt_url || data.receipt_path ? (
                                     <a
-                                        href={String(data.receipt_url ?? data.receipt_path)}
+                                        href={String(
+                                            data.receipt_url ??
+                                                data.receipt_path,
+                                        )}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="text-xs text-blue-600 hover:underline"
@@ -691,7 +715,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload additional images for this item.
+                                            Upload additional images for this
+                                            item.
                                         </p>
                                         <Label
                                             htmlFor={`edit-images-${data.id}`}
@@ -708,7 +733,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         accept="image/*"
                                         className="hidden"
                                         onChange={(event) =>
-                                            handleEditImageChange(event.target.files)
+                                            handleEditImageChange(
+                                                event.target.files,
+                                            )
                                         }
                                     />
                                     {editImages.length > 0 ? (
@@ -725,9 +752,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     />
                                                     <button
                                                         type="button"
-                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
                                                         onClick={() =>
-                                                            removeEditImage(image.id)
+                                                            removeEditImage(
+                                                                image.id,
+                                                            )
                                                         }
                                                     >
                                                         <Trash2 className="h-3 w-3" />
@@ -781,27 +810,41 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <p className="text-xs text-muted-foreground">Type</p>
-                            <p className="font-medium capitalize">{data.type}</p>
+                            <p className="text-xs text-muted-foreground">
+                                Type
+                            </p>
+                            <p className="font-medium capitalize">
+                                {data.type}
+                            </p>
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Branch</p>
+                            <p className="text-xs text-muted-foreground">
+                                Branch
+                            </p>
                             <p className="font-medium">
                                 {data.branch?.name ?? 'Unknown'}
                             </p>
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Vendor</p>
-                            <p className="font-medium">{data.vendor?.name ?? '-'}</p>
+                            <p className="text-xs text-muted-foreground">
+                                Vendor
+                            </p>
+                            <p className="font-medium">
+                                {data.vendor?.name ?? '-'}
+                            </p>
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Stock</p>
+                            <p className="text-xs text-muted-foreground">
+                                Stock
+                            </p>
                             <p className="font-medium">
                                 {Number(data.quantity)} {data.unit ?? 'unit'}
                             </p>
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Usable</p>
+                            <p className="text-xs text-muted-foreground">
+                                Usable
+                            </p>
                             <p className="font-medium">
                                 {data.is_usable ? 'Yes' : 'No'}
                             </p>
@@ -847,7 +890,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </p>
                             {data.receipt_url || data.receipt_path ? (
                                 <a
-                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    href={String(
+                                        data.receipt_url ?? data.receipt_path,
+                                    )}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="font-medium text-blue-600 hover:underline"
@@ -869,7 +914,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">Latest Transactions</p>
+                        <p className="text-sm font-medium">
+                            Latest Transactions
+                        </p>
                         <div className="max-h-48 space-y-2 overflow-auto rounded-md border p-3">
                             {latestTransactions.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
@@ -882,7 +929,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         className="flex items-center justify-between rounded-md border p-2 text-sm"
                                     >
                                         <span className="capitalize">
-                                            {transaction.action.replace('_', ' ')}
+                                            {transaction.action.replace(
+                                                '_',
+                                                ' ',
+                                            )}
                                         </span>
                                         <span>
                                             {Number(transaction.quantity)}{' '}
@@ -912,11 +962,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <table className="w-full text-sm">
                             <thead className="bg-muted/40 text-left">
                                 <tr>
-                                    <th className="px-3 py-2 font-medium">Date</th>
+                                    <th className="px-3 py-2 font-medium">
+                                        Date
+                                    </th>
                                     <th className="px-3 py-2 font-medium">
                                         Usage Amount
                                     </th>
-                                    <th className="px-3 py-2 font-medium">Note</th>
+                                    <th className="px-3 py-2 font-medium">
+                                        Note
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -940,7 +994,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                   month: 'short',
                                                   day: 'numeric',
                                               }).format(
-                                                  new Date(transaction.created_at),
+                                                  new Date(
+                                                      transaction.created_at,
+                                                  ),
                                               )
                                             : '-';
 
@@ -953,7 +1009,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     {dateLabel}
                                                 </td>
                                                 <td className="px-3 py-2">
-                                                    {quantity} {data.unit ?? 'unit'}
+                                                    {quantity}{' '}
+                                                    {data.unit ?? 'unit'}
                                                 </td>
                                                 <td className="px-3 py-2 text-muted-foreground">
                                                     {transaction.note || '-'}
@@ -1018,14 +1075,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                         {restockHasNewPrice ? (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor={`restock-currency-${data.id}`}>
+                                    <Label
+                                        htmlFor={`restock-currency-${data.id}`}
+                                    >
                                         Currency
                                     </Label>
                                     <Select
                                         value={restockCurrencyCode}
                                         onValueChange={setRestockCurrencyCode}
                                     >
-                                        <SelectTrigger id={`restock-currency-${data.id}`}>
+                                        <SelectTrigger
+                                            id={`restock-currency-${data.id}`}
+                                        >
                                             <SelectValue placeholder="Select currency" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -1034,12 +1095,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     key={currency.id}
                                                     value={currency.code}
                                                 >
-                                                    {currency.code} ({currency.symbol})
+                                                    {currency.code} (
+                                                    {currency.symbol})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <InputError message={errors.currency_code} />
+                                    <InputError
+                                        message={errors.currency_code}
+                                    />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor={`restock-price-${data.id}`}>
@@ -1052,7 +1116,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         step="0.01"
                                         value={restockUnitPrice}
                                         onChange={(event) =>
-                                            setRestockUnitPrice(event.target.value)
+                                            setRestockUnitPrice(
+                                                event.target.value,
+                                            )
                                         }
                                     />
                                     <InputError message={errors.unit_price} />
@@ -1088,7 +1154,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             />
                             {data.receipt_url || data.receipt_path ? (
                                 <a
-                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    href={String(
+                                        data.receipt_url ?? data.receipt_path,
+                                    )}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="text-xs text-blue-600 hover:underline"
@@ -1118,7 +1186,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !restockQty ||
                                 (restockHasNewPrice &&
-                                    (!restockCurrencyCode || !restockUnitPrice)) ||
+                                    (!restockCurrencyCode ||
+                                        !restockUnitPrice)) ||
                                 isSubmitting
                             }
                         >

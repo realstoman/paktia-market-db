@@ -92,7 +92,9 @@ export const buildColumns = (
                             {imageUrl ? (
                                 <AvatarImage src={imageUrl} alt={item.name} />
                             ) : null}
-                            <AvatarFallback>{getInitials(item.name)}</AvatarFallback>
+                            <AvatarFallback>
+                                {getInitials(item.name)}
+                            </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                             <span className="font-medium text-neutral-900 dark:text-neutral-100">
