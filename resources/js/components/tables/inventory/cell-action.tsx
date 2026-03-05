@@ -47,6 +47,7 @@ import {
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
+    CalendarClock,
     Eye,
     ImagePlus,
     MoreHorizontal,
@@ -85,6 +86,7 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -134,6 +136,13 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     const latestTransactions = useMemo(
         () => (data.transactions ?? []).slice(0, 5),
+        [data.transactions],
+    );
+    const usageTransactions = useMemo(
+        () =>
+            (data.transactions ?? []).filter(
+                (transaction) => transaction.action === 'usage_cycle',
+            ),
         [data.transactions],
     );
 
@@ -356,6 +365,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Eye className="mr-2 h-4 w-4" />
                         Details
                     </DropdownMenuItem>
+                    {data.is_usable ? (
+                        <DropdownMenuItem
+                            onClick={() => setIsUsageHistoryOpen(true)}
+                        >
+                            <CalendarClock className="mr-2 h-4 w-4" />
+                            Usage History
+                        </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem
                         onClick={() => {
                             resetEditForm();
@@ -875,6 +892,78 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 ))
                             )}
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isUsageHistoryOpen}
+                onOpenChange={setIsUsageHistoryOpen}
+            >
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Usage History - {data.name}</DialogTitle>
+                        <DialogDescription>
+                            Usage cycle records for this usable item.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="max-h-[65vh] overflow-y-auto rounded-md border">
+                        <table className="w-full text-sm">
+                            <thead className="bg-muted/40 text-left">
+                                <tr>
+                                    <th className="px-3 py-2 font-medium">Date</th>
+                                    <th className="px-3 py-2 font-medium">
+                                        Usage Amount
+                                    </th>
+                                    <th className="px-3 py-2 font-medium">Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {usageTransactions.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={3}
+                                            className="px-3 py-6 text-center text-muted-foreground"
+                                        >
+                                            No usage history found.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    usageTransactions.map((transaction) => {
+                                        const quantity = Math.abs(
+                                            Number(transaction.quantity || 0),
+                                        );
+                                        const dateLabel = transaction.created_at
+                                            ? new Intl.DateTimeFormat('en-US', {
+                                                  year: 'numeric',
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                              }).format(
+                                                  new Date(transaction.created_at),
+                                              )
+                                            : '-';
+
+                                        return (
+                                            <tr
+                                                key={transaction.id}
+                                                className="border-t"
+                                            >
+                                                <td className="px-3 py-2">
+                                                    {dateLabel}
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    {quantity} {data.unit ?? 'unit'}
+                                                </td>
+                                                <td className="px-3 py-2 text-muted-foreground">
+                                                    {transaction.note || '-'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </DialogContent>
             </Dialog>
