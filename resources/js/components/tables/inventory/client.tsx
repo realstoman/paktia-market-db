@@ -30,7 +30,7 @@ import {
     Unit,
     Vendor,
 } from '@/types';
-import { formatNumber, formatPrice } from '@/utils/format';
+import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
     ImagePlus,
@@ -73,8 +73,15 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     categories,
     isLoading = false,
 }) => {
+    interface UsageCycleItem {
+        id: string;
+        inventoryItemId: string;
+        quantityUsed: string;
+    }
+
     const FILTER_ALL = '__all__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isUsageCycleOpen, setIsUsageCycleOpen] = useState(false);
     const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [type, setType] = useState('consumable');
@@ -126,6 +133,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
+    const [usageDate, setUsageDate] = useState(
+        new Date().toISOString().slice(0, 10),
+    );
+    const [usageItems, setUsageItems] = useState<UsageCycleItem[]>([
+        {
+            id: 'usage-0',
+            inventoryItemId: '',
+            quantityUsed: '',
+        },
+    ]);
+    const [usageErrors, setUsageErrors] = useState<Record<string, string>>({});
+    const [isUsageSubmitting, setIsUsageSubmitting] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -154,6 +173,47 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setReceipt(null);
         clearSelectedImages();
         setErrors({});
+    };
+
+    const resetUsageCycleForm = () => {
+        setUsageDate(new Date().toISOString().slice(0, 10));
+        setUsageItems([
+            {
+                id: `${Date.now()}-usage-0`,
+                inventoryItemId: '',
+                quantityUsed: '',
+            },
+        ]);
+        setUsageErrors({});
+    };
+
+    const addUsageItemRow = () => {
+        setUsageItems((prev) => [
+            ...prev,
+            {
+                id: `${Date.now()}-usage-${prev.length}`,
+                inventoryItemId: '',
+                quantityUsed: '',
+            },
+        ]);
+    };
+
+    const removeUsageItemRow = (rowId: string) => {
+        setUsageItems((prev) =>
+            prev.length === 1 ? prev : prev.filter((row) => row.id !== rowId),
+        );
+    };
+
+    const updateUsageItemField = (
+        rowId: string,
+        field: 'inventoryItemId' | 'quantityUsed',
+        value: string,
+    ) => {
+        setUsageItems((prev) =>
+            prev.map((row) =>
+                row.id === rowId ? { ...row, [field]: value } : row,
+            ),
+        );
     };
 
     const handleImageChange = (files: FileList | null) => {
@@ -550,6 +610,46 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         );
     };
 
+    const handleSaveUsageCycle = () => {
+        const hasInvalidRows = usageItems.some(
+            (row) => !row.inventoryItemId || !row.quantityUsed,
+        );
+
+        if (!usageDate || hasInvalidRows || isUsageSubmitting) {
+            return;
+        }
+
+        setIsUsageSubmitting(true);
+        router.post(
+            '/inventory/usage-cycle',
+            {
+                usage_date: usageDate,
+                items: usageItems.map((row) => ({
+                    inventory_item_id: Number(row.inventoryItemId),
+                    quantity: Number(row.quantityUsed),
+                })),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Usage cycle saved successfully.');
+                    setIsUsageCycleOpen(false);
+                    resetUsageCycleForm();
+                },
+                onError: (validationErrors) => {
+                    setUsageErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save usage cycle.',
+                    );
+                },
+                onFinish: () => {
+                    setIsUsageSubmitting(false);
+                },
+            },
+        );
+    };
+
     const totalPrice = useMemo(() => {
         const qty = Number(quantity);
         const price = Number(unitPrice);
@@ -567,6 +667,37 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         if (Number.isNaN(paid)) return totalPrice;
         return Math.max(0, totalPrice - paid);
     }, [paidAmount, totalPrice]);
+
+    const usableItems = useMemo(() => {
+        return data.filter(
+            (item) => item.is_usable && Number(item.quantity || 0) > 0,
+        );
+    }, [data]);
+
+    const usageSummary = useMemo(() => {
+        let totalQuantityUsed = 0;
+        let totalValuation = 0;
+
+        for (const row of usageItems) {
+            const qty = Number(row.quantityUsed || 0);
+            if (Number.isNaN(qty) || qty <= 0) continue;
+
+            const selectedItem = usableItems.find(
+                (item) => String(item.id) === row.inventoryItemId,
+            );
+
+            if (!selectedItem) continue;
+
+            const unitPrice = Number(selectedItem.unit_price || 0);
+            totalQuantityUsed += qty;
+            totalValuation += qty * unitPrice;
+        }
+
+        return {
+            totalQuantityUsed,
+            totalValuation,
+        };
+    }, [usageItems, usableItems]);
 
     const tableColumns = useMemo(
         () => buildColumns(branches, vendors, currencies, units, categories),
@@ -628,6 +759,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsUsageCycleOpen(true)}
+                        className="gap-2"
+                    >
+                        Usage Cycle
+                    </Button>
                     <Button
                         variant="outline"
                         onClick={() => {
@@ -1558,6 +1696,209 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Create Item
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isUsageCycleOpen}
+                onOpenChange={(open) => {
+                    setIsUsageCycleOpen(open);
+                    if (!open) {
+                        resetUsageCycleForm();
+                    }
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Usage Cycle</DialogTitle>
+                        <DialogDescription>
+                            Record usable item consumption and deduct stock.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label>Date</Label>
+                                <Input
+                                    type="date"
+                                    value={usageDate}
+                                    onChange={(event) =>
+                                        setUsageDate(event.target.value)
+                                    }
+                                />
+                                <InputError message={usageErrors.usage_date} />
+                            </div>
+
+                            <div className="space-y-3">
+                                {usageItems.map((row, index) => {
+                                    const selectedItem = usableItems.find(
+                                        (item) =>
+                                            String(item.id) === row.inventoryItemId,
+                                    );
+
+                                    return (
+                                        <div
+                                            key={row.id}
+                                            className="space-y-3 rounded-md border p-3"
+                                        >
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div className="grid gap-2">
+                                                    <Label>Usable Item</Label>
+                                                    <Select
+                                                        value={row.inventoryItemId}
+                                                        onValueChange={(value) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'inventoryItemId',
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select usable item" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {usableItems.map((item) => (
+                                                                <SelectItem
+                                                                    key={item.id}
+                                                                    value={String(item.id)}
+                                                                >
+                                                                    {item.name} (
+                                                                    {item.branch?.name ??
+                                                                        `Branch #${item.branch_id}`}
+                                                                    ) - Available:{' '}
+                                                                    {Number(
+                                                                        item.quantity || 0,
+                                                                    )}{' '}
+                                                                    {item.unit ?? 'unit'}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.inventory_item_id`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Quantity Used</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="0.01"
+                                                        step="0.01"
+                                                        value={row.quantityUsed}
+                                                        onChange={(event) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'quantityUsed',
+                                                                event.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.quantity`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {selectedItem ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Unit Price:{' '}
+                                                    {selectedItem.currency_symbol ?? ''}
+                                                    {formatPrice(
+                                                        selectedItem.unit_price || 0,
+                                                    )}{' '}
+                                                    | Available:{' '}
+                                                    {Number(selectedItem.quantity || 0)}{' '}
+                                                    {selectedItem.unit ?? 'unit'}
+                                                </p>
+                                            ) : null}
+
+                                            {usageItems.length > 1 ? (
+                                                <div className="flex justify-end">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            removeUsageItemRow(
+                                                                row.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="mr-1 h-3 w-3" />
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={addUsageItemRow}
+                                    className="gap-2"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Add Item
+                                </Button>
+                                <InputError message={usageErrors.items} />
+                            </div>
+
+                            <div className="grid gap-2 rounded-md border p-3 sm:grid-cols-2">
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Total Number Used
+                                    </p>
+                                    <p className="text-lg font-semibold">
+                                        {formatNumber(usageSummary.totalQuantityUsed)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Total Valuation
+                                    </p>
+                                    <p className="text-lg font-semibold">
+                                        {formatAfn(usageSummary.totalValuation)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsUsageCycleOpen(false)}
+                            disabled={isUsageSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveUsageCycle}
+                            disabled={
+                                !usageDate ||
+                                usageItems.some(
+                                    (row) =>
+                                        !row.inventoryItemId || !row.quantityUsed,
+                                ) ||
+                                isUsageSubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Usage Cycle
                         </Button>
                     </DialogFooter>
                 </DialogContent>

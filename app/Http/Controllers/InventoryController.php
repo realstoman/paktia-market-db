@@ -8,9 +8,11 @@ use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Unit;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
@@ -180,6 +182,54 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item restocked successfully.');
+    }
+
+    public function storeUsageCycle(Request $request)
+    {
+        $validated = $request->validate([
+            'usage_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.inventory_item_id' => 'required|exists:inventory_items,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $usageDate = Carbon::parse($validated['usage_date'])->startOfDay();
+
+            foreach ($validated['items'] as $index => $entry) {
+                $item = InventoryItem::query()
+                    ->lockForUpdate()
+                    ->findOrFail($entry['inventory_item_id']);
+
+                if (! $item->is_usable) {
+                    throw ValidationException::withMessages([
+                        "items.$index.inventory_item_id" => 'Selected item is not usable.',
+                    ]);
+                }
+
+                $usedQuantity = (float) $entry['quantity'];
+                $availableQuantity = (float) $item->quantity;
+
+                if ($usedQuantity > $availableQuantity) {
+                    throw ValidationException::withMessages([
+                        "items.$index.quantity" => 'Used quantity exceeds available stock.',
+                    ]);
+                }
+
+                $item->decrement('quantity', $usedQuantity);
+
+                $item->transactions()->create([
+                    'action' => 'usage_cycle',
+                    'quantity' => -$usedQuantity,
+                    'note' => 'Usage cycle entry.',
+                    'created_at' => $usageDate,
+                    'updated_at' => $usageDate,
+                ]);
+            }
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Usage cycle saved successfully.');
     }
 
     public function update(Request $request, InventoryItem $inventory)
