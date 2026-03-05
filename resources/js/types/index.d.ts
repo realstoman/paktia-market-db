@@ -89,6 +89,8 @@ export interface Employee {
     phone?: string | null;
     address?: string | null;
     description?: string | null;
+    profile_picture?: string | null;
+    attachments?: string[] | null;
     branch?: string | null;
     branch_id?: number | null;
     employment_type?: string | null;

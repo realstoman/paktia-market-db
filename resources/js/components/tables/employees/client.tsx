@@ -60,6 +60,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [status, setStatus] = useState('active');
     const [address, setAddress] = useState('');
     const [description, setDescription] = useState('');
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
+    const [attachments, setAttachments] = useState<File[]>([]);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -77,6 +79,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setStatus('active');
         setAddress('');
         setDescription('');
+        setProfilePicture(null);
+        setAttachments([]);
         setCreateErrors({});
     };
 
@@ -111,9 +115,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 is_active: status === 'active',
                 address: address.trim() || null,
                 description: description.trim() || null,
+                profile_picture: profilePicture,
+                attachments,
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Employee created successfully.');
                     setIsCreateOpen(false);
@@ -395,6 +402,61 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                                 <InputError
                                     message={createErrors.description}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-profile-picture">
+                                    Employee picture
+                                </Label>
+                                <Input
+                                    id="employee-profile-picture"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(event) =>
+                                        setProfilePicture(
+                                            event.target.files?.[0] ?? null,
+                                        )
+                                    }
+                                />
+                                {profilePicture ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        Selected: {profilePicture.name}
+                                    </p>
+                                ) : null}
+                                <InputError
+                                    message={createErrors.profile_picture}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-attachments">
+                                    Attachments
+                                </Label>
+                                <Input
+                                    id="employee-attachments"
+                                    type="file"
+                                    multiple
+                                    accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                    onChange={(event) =>
+                                        setAttachments(
+                                            Array.from(
+                                                event.target.files ?? [],
+                                            ),
+                                        )
+                                    }
+                                />
+                                {attachments.length > 0 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {attachments.length} file(s) selected
+                                    </p>
+                                ) : null}
+                                <InputError
+                                    message={
+                                        createErrors.attachments ??
+                                        Object.entries(createErrors).find(
+                                            ([key]) =>
+                                                key.startsWith('attachments.'),
+                                        )?.[1]
+                                    }
                                 />
                             </div>
                         </div>

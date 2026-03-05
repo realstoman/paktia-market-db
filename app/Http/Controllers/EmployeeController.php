@@ -10,6 +10,7 @@ use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -31,6 +32,8 @@ class EmployeeController extends Controller
                 'phone' => $employee->phone,
                 'address' => $employee->address,
                 'description' => $employee->description,
+                'profile_picture' => $employee->profile_picture,
+                'attachments' => $employee->attachments,
                 'branch' => $employee->branch?->name,
                 'branch_id' => $employee->branch_id,
                 'employment_type' => $employee->employmentType?->name,
@@ -60,6 +63,20 @@ class EmployeeController extends Controller
         Gate::authorize(PermissionEnum::EMPLOYEES_CREATE->value);
 
         $validated = $request->validate($this->rules());
+
+        if ($request->hasFile('profile_picture')) {
+            $validated['profile_picture'] = $request
+                ->file('profile_picture')
+                ->store('employees/profile-pictures', 'public');
+        }
+
+        $attachments = $request->file('attachments', []);
+        if (! empty($attachments)) {
+            $validated['attachments'] = collect($attachments)
+                ->map(fn ($file) => $file->store('employees/attachments', 'public'))
+                ->values()
+                ->all();
+        }
 
         Employee::create($validated);
 
@@ -95,6 +112,14 @@ class EmployeeController extends Controller
     {
         Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
 
+        if (! empty($employee->profile_picture)) {
+            Storage::disk('public')->delete($employee->profile_picture);
+        }
+
+        if (! empty($employee->attachments)) {
+            Storage::disk('public')->delete($employee->attachments);
+        }
+
         $employee->delete();
 
         return redirect()->route('employees.index')
@@ -117,6 +142,13 @@ class EmployeeController extends Controller
             'description' => ['nullable', 'string'],
             'salary' => ['nullable', 'numeric', 'min:0'],
             'salary_currency' => ['required', Rule::in(['AFN', 'USD'])],
+            'profile_picture' => ['nullable', 'image', 'max:4096'],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => [
+                'file',
+                'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,csv,txt',
+                'max:5120',
+            ],
             'status' => [
                 'required',
                 Rule::in(array_map(static fn (EmployeeStatus $status) => $status->value, EmployeeStatus::cases())),
