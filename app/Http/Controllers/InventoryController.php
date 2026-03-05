@@ -191,6 +191,7 @@ class InventoryController extends Controller
             'items' => 'required|array|min:1',
             'items.*.inventory_item_id' => 'required|exists:inventory_items,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.note' => 'nullable|string|max:1000',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -221,7 +222,7 @@ class InventoryController extends Controller
                 $item->transactions()->create([
                     'action' => 'usage_cycle',
                     'quantity' => -$usedQuantity,
-                    'note' => 'Usage cycle entry.',
+                    'note' => $entry['note'] ?? 'Usage cycle entry.',
                     'created_at' => $usageDate,
                     'updated_at' => $usageDate,
                 ]);

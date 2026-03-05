@@ -77,6 +77,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         id: string;
         inventoryItemId: string;
         quantityUsed: string;
+        note: string;
     }
 
     const FILTER_ALL = '__all__';
@@ -141,6 +142,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             id: 'usage-0',
             inventoryItemId: '',
             quantityUsed: '',
+            note: '',
         },
     ]);
     const [usageErrors, setUsageErrors] = useState<Record<string, string>>({});
@@ -182,6 +184,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 id: `${Date.now()}-usage-0`,
                 inventoryItemId: '',
                 quantityUsed: '',
+                note: '',
             },
         ]);
         setUsageErrors({});
@@ -194,6 +197,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 id: `${Date.now()}-usage-${prev.length}`,
                 inventoryItemId: '',
                 quantityUsed: '',
+                note: '',
             },
         ]);
     };
@@ -206,7 +210,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
     const updateUsageItemField = (
         rowId: string,
-        field: 'inventoryItemId' | 'quantityUsed',
+        field: 'inventoryItemId' | 'quantityUsed' | 'note',
         value: string,
     ) => {
         setUsageItems((prev) =>
@@ -627,6 +631,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 items: usageItems.map((row) => ({
                     inventory_item_id: Number(row.inventoryItemId),
                     quantity: Number(row.quantityUsed),
+                    note: row.note.trim() || null,
                 })),
             },
             {
@@ -1805,6 +1810,26 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                         message={
                                                             usageErrors[
                                                                 `items.${index}.quantity`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2 sm:col-span-2">
+                                                    <Label>Note (optional)</Label>
+                                                    <Textarea
+                                                        value={row.note}
+                                                        onChange={(event) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'note',
+                                                                event.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.note`
                                                             ]
                                                         }
                                                     />
