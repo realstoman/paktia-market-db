@@ -25,7 +25,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { FileText, ImagePlus, Plus, Trash2, UserRound, X } from 'lucide-react';
+import {
+    BriefcaseBusiness,
+    FileText,
+    ImagePlus,
+    Pencil,
+    Plus,
+    Trash2,
+    UserRound,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -72,6 +81,16 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isPositionsOpen, setIsPositionsOpen] = useState(false);
+    const [positionName, setPositionName] = useState('');
+    const [positionDescription, setPositionDescription] = useState('');
+    const [editingPositionId, setEditingPositionId] = useState<number | null>(
+        null,
+    );
+    const [positionErrors, setPositionErrors] = useState<Record<string, string>>(
+        {},
+    );
+    const [isPositionSubmitting, setIsPositionSubmitting] = useState(false);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -183,6 +202,86 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         );
     };
 
+    const resetPositionForm = () => {
+        setPositionName('');
+        setPositionDescription('');
+        setEditingPositionId(null);
+        setPositionErrors({});
+    };
+
+    const handleSavePosition = () => {
+        if (!positionName.trim() || isPositionSubmitting) {
+            return;
+        }
+
+        setIsPositionSubmitting(true);
+
+        const payload = {
+            name: positionName.trim(),
+            description: positionDescription.trim() || null,
+            is_active: true,
+        };
+
+        if (editingPositionId) {
+            router.put(`/employee-positions/${editingPositionId}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Employee position updated.');
+                    resetPositionForm();
+                },
+                onError: (errors) => {
+                    setPositionErrors(errors);
+                },
+                onFinish: () => {
+                    setIsPositionSubmitting(false);
+                },
+            });
+            return;
+        }
+
+        router.post('/employee-positions', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Employee position created.');
+                resetPositionForm();
+            },
+            onError: (errors) => {
+                setPositionErrors(errors);
+            },
+            onFinish: () => {
+                setIsPositionSubmitting(false);
+            },
+        });
+    };
+
+    const startEditingPosition = (position: EmployeePosition) => {
+        setEditingPositionId(position.id);
+        setPositionName(position.name);
+        setPositionDescription(position.description ?? '');
+        setPositionErrors({});
+    };
+
+    const handleDeletePosition = (position: EmployeePosition) => {
+        if (isPositionSubmitting) {
+            return;
+        }
+
+        setIsPositionSubmitting(true);
+
+        router.delete(`/employee-positions/${position.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Employee position deleted.');
+                if (editingPositionId === position.id) {
+                    resetPositionForm();
+                }
+            },
+            onFinish: () => {
+                setIsPositionSubmitting(false);
+            },
+        });
+    };
+
     const tableColumns = useMemo(
         () => buildColumns(branches, employmentTypes, employeePositions),
         [branches, employmentTypes, employeePositions],
@@ -201,10 +300,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     title={`Employees: ${formatNumber(data.length)}`}
                     description="Manage employee records"
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create Employee
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsPositionsOpen(true)}
+                        className="gap-2"
+                    >
+                        <BriefcaseBusiness className="h-4 w-4" />
+                        Manage Positions
+                    </Button>
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add Employee
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
@@ -223,6 +335,145 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             />
 
             <Dialog
+                open={isPositionsOpen}
+                onOpenChange={(open) => {
+                    setIsPositionsOpen(open);
+                    if (!open) {
+                        resetPositionForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <BriefcaseBusiness className="h-5 w-5" />
+                            Employee Position Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, edit, and remove employee positions.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2 sm:col-span-1">
+                                <Label htmlFor="position-name">
+                                    Position name
+                                </Label>
+                                <Input
+                                    id="position-name"
+                                    value={positionName}
+                                    onChange={(event) =>
+                                        setPositionName(event.target.value)
+                                    }
+                                    placeholder="e.g. Floor Manager"
+                                />
+                                <InputError message={positionErrors.name} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-1">
+                                <Label htmlFor="position-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="position-description"
+                                    value={positionDescription}
+                                    onChange={(event) =>
+                                        setPositionDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="Optional"
+                                />
+                                <InputError
+                                    message={positionErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSavePosition}
+                                    disabled={
+                                        !positionName.trim() ||
+                                        isPositionSubmitting
+                                    }
+                                >
+                                    {editingPositionId
+                                        ? 'Update Position'
+                                        : 'Add Position'}
+                                </Button>
+                                {editingPositionId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetPositionForm}
+                                        disabled={isPositionSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {employeePositions.length > 0 ? (
+                                    employeePositions.map((position) => (
+                                        <div
+                                            key={position.id}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {position.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {position.description || '—'}
+                                                </p>
+                                            </div>
+                                            <div className="ml-3 flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        startEditingPosition(
+                                                            position,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        isPositionSubmitting
+                                                    }
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDeletePosition(
+                                                            position,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        isPositionSubmitting
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No positions found.
+                                    </p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
@@ -235,7 +486,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <UserRound className="h-5 w-5" />
-                            Create Employee
+                            Add Employee
                         </DialogTitle>
                         <DialogDescription>
                             Add employee profile, employment type, position, and
@@ -589,7 +840,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             }
                         >
                             <Plus className="mr-2 h-4 w-4" />
-                            Create Employee
+                            Add Employee
                         </Button>
                     </DialogFooter>
                 </DialogContent>

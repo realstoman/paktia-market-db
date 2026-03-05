@@ -158,6 +158,61 @@ class EmployeeController extends Controller
             ->with('success', 'Employee deleted successfully.');
     }
 
+    public function storePosition(Request $request)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:employee_positions,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        EmployeePosition::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employee position created successfully.');
+    }
+
+    public function updatePosition(Request $request, EmployeePosition $employeePosition)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('employee_positions', 'name')->ignore($employeePosition->id),
+            ],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        $employeePosition->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employee position updated successfully.');
+    }
+
+    public function destroyPosition(EmployeePosition $employeePosition)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $employeePosition->delete();
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employee position deleted successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
