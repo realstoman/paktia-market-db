@@ -10,7 +10,6 @@ use App\Models\Unit;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
@@ -43,72 +42,33 @@ class InventoryController extends Controller
 
     public function store(Request $request)
     {
-        $isBulkRequest = is_array($request->input('items'));
-
-        $rules = [
+        $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'type' => 'required|string|max:100',
             'unit' => 'nullable|string|max:50',
+            'quantity' => 'required|numeric|min:0',
+            'unit_price' => 'required|numeric|min:0',
             'paid_amount' => 'required|numeric|min:0',
             'currency_code' => 'required|string|size:3|exists:currencies,code',
             'vendor_id' => 'nullable|exists:vendors,id',
             'unit_id' => 'nullable|exists:units,id',
             'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
+            'images' => 'array|max:10',
+            'images.*' => 'image|max:4096',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
-        ];
+        ]);
 
-        if ($isBulkRequest) {
-            $rules = array_merge($rules, [
-                'items' => 'required|array|min:1',
-                'items.*.name' => 'required|string|max:255',
-                'items.*.quantity' => 'required|numeric|min:0',
-                'items.*.unit_price' => 'required|numeric|min:0',
-                'items.*.images' => 'nullable|array|max:10',
-                'items.*.images.*' => 'image|max:4096',
-            ]);
-        } else {
-            $rules = array_merge($rules, [
-                'name' => 'required|string|max:255',
-                'quantity' => 'required|numeric|min:0',
-                'unit_price' => 'required|numeric|min:0',
-                'images' => 'array|max:10',
-                'images.*' => 'image|max:4096',
-            ]);
-        }
-
-        $validated = $request->validate($rules);
-
-        $lineItems = $isBulkRequest
-            ? collect($validated['items'])
-                ->map(fn ($item) => [
-                    'name' => $item['name'],
-                    'quantity' => (float) $item['quantity'],
-                    'unit_price' => (float) $item['unit_price'],
-                ])
-                ->values()
-                ->all()
-            : [[
-                'name' => $validated['name'],
-                'quantity' => (float) $validated['quantity'],
-                'unit_price' => (float) $validated['unit_price'],
-            ]];
-
-        $totalAmount = collect($lineItems)->sum(
-            fn (array $item) => $item['quantity'] * $item['unit_price'],
-        );
-
-        if ((float) $validated['paid_amount'] > $totalAmount) {
+        $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
+        if ((float) $validated['paid_amount'] > $total) {
             return back()->withErrors([
                 'paid_amount' => 'Paid amount cannot be greater than total amount.',
             ])->withInput();
         }
 
-        $createdCount = 0;
-        $updatedCount = 0;
-
-        DB::transaction(function () use ($validated, $request, $lineItems, $isBulkRequest, $totalAmount, &$createdCount, &$updatedCount) {
+        DB::transaction(function () use ($validated, $request) {
             $currency = Currency::where(
                 'code',
                 strtoupper($validated['currency_code']),
@@ -123,125 +83,42 @@ class InventoryController extends Controller
                 $receiptPath = $request->file('receipt')->store('inventory/receipts', 'public');
             }
 
-            $remainingPaid = (float) $validated['paid_amount'];
-            $lastItemIndex = count($lineItems) - 1;
+            $item = InventoryItem::create([
+                'branch_id' => $validated['branch_id'],
+                'vendor_id' => $validated['vendor_id'] ?? null,
+                'unit_id' => $validated['unit_id'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'type' => strtolower(trim($validated['type'])),
+                'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
+                'quantity' => $validated['quantity'],
+                'unit_price' => $validated['unit_price'],
+                'paid_amount' => $validated['paid_amount'],
+                'currency_code' => $currency->code,
+                'currency_symbol' => $currency->symbol,
+                'receipt_path' => $receiptPath,
+                'is_usable' => $validated['is_usable'] ?? true,
+            ]);
 
-            foreach ($lineItems as $lineIndex => $lineItem) {
-                $lineTotal = $lineItem['quantity'] * $lineItem['unit_price'];
+            $item->transactions()->create([
+                'action' => 'initial_stock',
+                'quantity' => $validated['quantity'],
+                'note' => 'Initial stock created.',
+            ]);
 
-                if ($lineIndex === $lastItemIndex) {
-                    $linePaid = max(0, $remainingPaid);
-                } else {
-                    $linePaid = $totalAmount > 0
-                        ? round(($lineTotal / $totalAmount) * (float) $validated['paid_amount'], 2)
-                        : 0;
-                    $linePaid = min($linePaid, $remainingPaid);
-                }
-                $remainingPaid = max(0, $remainingPaid - $linePaid);
-
-                $normalizedName = trim($lineItem['name']);
-                $itemType = strtolower(trim($validated['type']));
-                $vendorId = $validated['vendor_id'] ?? null;
-                $unitId = $validated['unit_id'] ?? null;
-                $categoryId = $validated['category_id'] ?? null;
-                $isUsable = $validated['is_usable'] ?? true;
-
-                $existingItemQuery = InventoryItem::query()
-                    ->where('branch_id', $validated['branch_id'])
-                    ->whereRaw('LOWER(TRIM(name)) = ?', [Str::lower($normalizedName)])
-                    ->where('type', $itemType)
-                    ->where('currency_code', $currency->code)
-                    ->where('is_usable', $isUsable);
-
-                if ($vendorId === null) {
-                    $existingItemQuery->whereNull('vendor_id');
-                } else {
-                    $existingItemQuery->where('vendor_id', $vendorId);
-                }
-
-                if ($unitId === null) {
-                    $existingItemQuery->whereNull('unit_id');
-                } else {
-                    $existingItemQuery->where('unit_id', $unitId);
-                }
-
-                if ($categoryId === null) {
-                    $existingItemQuery->whereNull('category_id');
-                } else {
-                    $existingItemQuery->where('category_id', $categoryId);
-                }
-
-                $item = $existingItemQuery->first();
-
-                if ($item) {
-                    $item->update([
-                        'quantity' => (float) $item->quantity + $lineItem['quantity'],
-                        'unit_price' => $lineItem['unit_price'],
-                        'paid_amount' => (float) $item->paid_amount + $linePaid,
-                        'description' => $validated['description'] ?? $item->description,
-                        'unit' => $unit?->symbol ?? $validated['unit'] ?? $item->unit,
-                        'currency_symbol' => $currency->symbol,
-                        'receipt_path' => $receiptPath ?? $item->receipt_path,
-                    ]);
-
-                    $item->transactions()->create([
-                        'action' => 'restock',
-                        'quantity' => $lineItem['quantity'],
-                        'note' => 'Stock added from purchase entry.',
-                    ]);
-                    $updatedCount++;
-                } else {
-                    $item = InventoryItem::create([
-                        'branch_id' => $validated['branch_id'],
-                        'vendor_id' => $vendorId,
-                        'unit_id' => $unitId,
-                        'category_id' => $categoryId,
-                        'name' => $normalizedName,
-                        'description' => $validated['description'] ?? null,
-                        'type' => $itemType,
-                        'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
-                        'quantity' => $lineItem['quantity'],
-                        'unit_price' => $lineItem['unit_price'],
-                        'paid_amount' => $linePaid,
-                        'currency_code' => $currency->code,
-                        'currency_symbol' => $currency->symbol,
-                        'receipt_path' => $receiptPath,
-                        'is_usable' => $isUsable,
-                    ]);
-
-                    $item->transactions()->create([
-                        'action' => 'initial_stock',
-                        'quantity' => $lineItem['quantity'],
-                        'note' => 'Initial stock created.',
-                    ]);
-                    $createdCount++;
-                }
-
-                $images = $isBulkRequest
-                    ? $request->file("items.$lineIndex.images", [])
-                    : $request->file('images', []);
-
-                foreach ($images as $imageIndex => $image) {
-                    $path = $image->store('inventory', 'public');
-                    $item->images()->create([
-                        'path' => $path,
-                        'sort_order' => $imageIndex,
-                    ]);
-                }
+            $images = $request->file('images', []);
+            foreach ($images as $index => $image) {
+                $path = $image->store('inventory', 'public');
+                $item->images()->create([
+                    'path' => $path,
+                    'sort_order' => $index,
+                ]);
             }
         });
 
-        $message = 'Inventory updated successfully.';
-        if ($createdCount > 0 && $updatedCount > 0) {
-            $message = "$createdCount item(s) created and $updatedCount item(s) restocked.";
-        } elseif ($createdCount > 0) {
-            $message = "$createdCount item(s) created successfully.";
-        } elseif ($updatedCount > 0) {
-            $message = "$updatedCount item(s) restocked successfully.";
-        }
-
         return redirect()->route('inventory.index')
-            ->with('success', $message);
+            ->with('success', 'Inventory item created successfully.');
     }
 
     public function restock(Request $request, InventoryItem $inventory)

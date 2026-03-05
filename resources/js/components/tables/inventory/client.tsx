@@ -40,7 +40,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
@@ -48,14 +48,6 @@ interface SelectedImage {
     id: string;
     file: File;
     preview: string;
-}
-
-interface BulkInsertItem {
-    id: string;
-    name: string;
-    quantity: string;
-    unitPrice: string;
-    images: SelectedImage[];
 }
 
 interface InventoryClientProps {
@@ -72,14 +64,6 @@ const MAX_IMAGES = 10;
 const VENDOR_NONE = '__none__';
 const DEFAULT_CURRENCY_CODE = 'AFN';
 
-const createBulkInsertItem = (): BulkInsertItem => ({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    name: '',
-    quantity: '',
-    unitPrice: '',
-    images: [],
-});
-
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
     branches,
@@ -91,11 +75,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 }) => {
     const FILTER_ALL = '__all__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [items, setItems] = useState<BulkInsertItem[]>([
-        createBulkInsertItem(),
-    ]);
+    const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [type, setType] = useState('consumable');
+    const [quantity, setQuantity] = useState('');
+    const [unitPrice, setUnitPrice] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [vendorId, setVendorId] = useState(VENDOR_NONE);
     const [unitId, setUnitId] = useState('');
@@ -104,6 +88,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
     const [receipt, setReceipt] = useState<File | null>(null);
+    const [images, setImages] = useState<SelectedImage[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
@@ -141,34 +126,24 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
-    const activeImagePreviews = useRef<Set<string>>(new Set());
-
-    useEffect(() => {
-        const nextPreviews = new Set(
-            items.flatMap((entry) => entry.images.map((image) => image.preview)),
-        );
-
-        activeImagePreviews.current.forEach((preview) => {
-            if (!nextPreviews.has(preview)) {
-                URL.revokeObjectURL(preview);
-            }
-        });
-
-        activeImagePreviews.current = nextPreviews;
-    }, [items]);
 
     useEffect(() => {
         return () => {
-            activeImagePreviews.current.forEach((preview) => {
-                URL.revokeObjectURL(preview);
-            });
+            images.forEach((image) => URL.revokeObjectURL(image.preview));
         };
-    }, []);
+    }, [images]);
+
+    const clearSelectedImages = () => {
+        images.forEach((image) => URL.revokeObjectURL(image.preview));
+        setImages([]);
+    };
 
     const resetForm = () => {
-        setItems([createBulkInsertItem()]);
+        setName('');
         setBranchId('');
         setType('consumable');
+        setQuantity('');
+        setUnitPrice('');
         setPaidAmount('');
         setVendorId(VENDOR_NONE);
         setUnitId('');
@@ -177,72 +152,35 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setDescription('');
         setIsUsable(true);
         setReceipt(null);
+        clearSelectedImages();
         setErrors({});
     };
 
-    const addItemRow = () => {
-        setItems((prev) => [...prev, createBulkInsertItem()]);
-    };
+    const handleImageChange = (files: FileList | null) => {
+        if (!files) return;
 
-    const removeItemRow = (itemId: string) => {
-        setItems((prev) => {
-            if (prev.length === 1) {
-                return prev;
-            }
-            return prev.filter((item) => item.id !== itemId);
+        setImages((prev) => {
+            const remainingSlots = MAX_IMAGES - prev.length;
+            const nextFiles = Array.from(files).slice(0, remainingSlots);
+            return [
+                ...prev,
+                ...nextFiles.map((file, index) => ({
+                    id: `${Date.now()}-${file.name}-${index}`,
+                    file,
+                    preview: URL.createObjectURL(file),
+                })),
+            ];
         });
     };
 
-    const updateItemField = (
-        itemId: string,
-        field: keyof Omit<BulkInsertItem, 'id' | 'images'>,
-        value: string,
-    ) => {
-        setItems((prev) =>
-            prev.map((item) =>
-                item.id === itemId ? { ...item, [field]: value } : item,
-            ),
-        );
-    };
-
-    const handleItemImageChange = (itemId: string, files: FileList | null) => {
-        if (!files) return;
-
-        setItems((prev) =>
-            prev.map((item) => {
-                if (item.id !== itemId) {
-                    return item;
-                }
-
-                const remainingSlots = MAX_IMAGES - item.images.length;
-                const nextFiles = Array.from(files).slice(0, remainingSlots);
-                return {
-                    ...item,
-                    images: [
-                        ...item.images,
-                        ...nextFiles.map((file, index) => ({
-                            id: `${Date.now()}-${file.name}-${index}`,
-                            file,
-                            preview: URL.createObjectURL(file),
-                        })),
-                    ],
-                };
-            }),
-        );
-    };
-
-    const removeItemImage = (itemId: string, imageId: string) => {
-        setItems((prev) =>
-            prev.map((item) => {
-                if (item.id !== itemId) {
-                    return item;
-                }
-                return {
-                    ...item,
-                    images: item.images.filter((image) => image.id !== imageId),
-                };
-            }),
-        );
+    const removeSelectedImage = (id: string) => {
+        setImages((prev) => {
+            const target = prev.find((item) => item.id === id);
+            if (target) {
+                URL.revokeObjectURL(target.preview);
+            }
+            return prev.filter((item) => item.id !== id);
+        });
     };
 
     const resetVendorForm = () => {
@@ -555,15 +493,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const handleCreate = () => {
-        const hasInvalidItem = items.some(
-            (item) =>
-                !item.name.trim() || !item.quantity.trim() || !item.unitPrice.trim(),
-        );
-
         if (
+            !name.trim() ||
             !branchId ||
             !type ||
-            hasInvalidItem ||
+            !quantity ||
+            !unitPrice ||
             !paidAmount ||
             !currencyCode ||
             isSubmitting
@@ -576,7 +511,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             '/inventory',
             {
                 branch_id: Number(branchId),
+                name: name.trim(),
                 type,
+                quantity: Number(quantity),
+                unit_price: Number(unitPrice),
                 paid_amount: Number(paidAmount),
                 currency_code: currencyCode,
                 vendor_id:
@@ -588,18 +526,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 description: description.trim() || null,
                 is_usable: isUsable,
                 receipt,
-                items: items.map((item) => ({
-                    name: item.name.trim(),
-                    quantity: Number(item.quantity),
-                    unit_price: Number(item.unitPrice),
-                    images: item.images.map((image) => image.file),
-                })),
+                images: images.map((image) => image.file),
             },
             {
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Inventory items created successfully.');
+                    toast.success('Inventory item created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -618,13 +551,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const totalPrice = useMemo(() => {
-        return items.reduce((sum, item) => {
-            const qty = Number(item.quantity);
-            const price = Number(item.unitPrice);
-            if (Number.isNaN(qty) || Number.isNaN(price)) return sum;
-            return sum + qty * price;
-        }, 0);
-    }, [items]);
+        const qty = Number(quantity);
+        const price = Number(unitPrice);
+        if (Number.isNaN(qty) || Number.isNaN(price)) return 0;
+        return qty * price;
+    }, [quantity, unitPrice]);
 
     const selectedCurrencySymbol = useMemo(() => {
         const matched = currencies.find((entry) => entry.code === currencyCode);
@@ -636,22 +567,6 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         if (Number.isNaN(paid)) return totalPrice;
         return Math.max(0, totalPrice - paid);
     }, [paidAmount, totalPrice]);
-
-    const canSubmitCreate = useMemo(() => {
-        const hasInvalidItem = items.some(
-            (item) =>
-                !item.name.trim() || !item.quantity.trim() || !item.unitPrice.trim(),
-        );
-
-        return (
-            !!branchId &&
-            !!type &&
-            !!paidAmount &&
-            !!currencyCode &&
-            !hasInvalidItem &&
-            !isSubmitting
-        );
-    }, [branchId, type, paidAmount, currencyCode, items, isSubmitting]);
 
     const tableColumns = useMemo(
         () => buildColumns(branches, vendors, currencies, units, categories),
@@ -1313,22 +1228,25 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-5xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Create Inventory Items</DialogTitle>
+                        <DialogTitle>Create Inventory Item</DialogTitle>
                         <DialogDescription>
-                            Add multiple items from one wholesale bill in one
-                            submission. If an item with the same name and shared
-                            details already exists, quantity will be added to it.
+                            Add a new item with stock quantity, price, receipt/bill,
+                            and images.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
-                        <div className="space-y-5">
-                            <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
-                                <h4 className="text-sm font-semibold sm:col-span-2">
-                                    Shared Details
-                                </h4>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Name</Label>
+                                <Input
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                />
+                                <InputError message={errors.name} />
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Branch</Label>
                                 <Select value={branchId} onValueChange={setBranchId}>
@@ -1453,6 +1371,70 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 </Select>
                                 <InputError message={errors.category_id} />
                             </div>
+                            <div className="grid gap-2">
+                                <Label>Initial Quantity</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={quantity}
+                                    onChange={(event) =>
+                                        setQuantity(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.quantity} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Single Price {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={unitPrice}
+                                    onChange={(event) =>
+                                        setUnitPrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.unit_price} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Total Price (Auto) {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Paid Amount {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={paidAmount}
+                                    onChange={(event) =>
+                                        setPaidAmount(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.paid_amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Remaining Amount (Auto){' '}
+                                    {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
                             <div className="flex items-end">
                                 <div className="flex items-center gap-2">
                                     <Checkbox
@@ -1466,256 +1448,6 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     </span>
                                 </div>
                             </div>
-                            <InputError message={errors.is_usable} />
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="text-sm font-semibold">
-                                        Items
-                                    </h4>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={addItemRow}
-                                        className="gap-2"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Add Another Item
-                                    </Button>
-                                </div>
-                                <InputError message={errors.items} />
-                                <div className="space-y-3">
-                                    {items.map((item, index) => {
-                                        const itemTotal =
-                                            Number(item.quantity || 0) *
-                                            Number(item.unitPrice || 0);
-                                        const imagesInputId = `inventory-item-images-${item.id}`;
-
-                                        return (
-                                            <div
-                                                key={item.id}
-                                                className="space-y-3 rounded-lg border p-4"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-sm font-medium">
-                                                        Item {index + 1}
-                                                    </p>
-                                                    {items.length > 1 ? (
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                removeItemRow(item.id)
-                                                            }
-                                                        >
-                                                            <Trash2 className="mr-1 h-3 w-3" />
-                                                            Remove
-                                                        </Button>
-                                                    ) : null}
-                                                </div>
-
-                                                <div className="grid gap-3 sm:grid-cols-4">
-                                                    <div className="grid gap-2 sm:col-span-2">
-                                                        <Label>Name</Label>
-                                                        <Input
-                                                            value={item.name}
-                                                            onChange={(event) =>
-                                                                updateItemField(
-                                                                    item.id,
-                                                                    'name',
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `items.${index}.name`
-                                                                ]
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label>Quantity</Label>
-                                                        <Input
-                                                            type="number"
-                                                            min="0"
-                                                            step="0.01"
-                                                            value={item.quantity}
-                                                            onChange={(event) =>
-                                                                updateItemField(
-                                                                    item.id,
-                                                                    'quantity',
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `items.${index}.quantity`
-                                                                ]
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label>
-                                                            Single Price{' '}
-                                                            {selectedCurrencySymbol ||
-                                                                ''}
-                                                        </Label>
-                                                        <Input
-                                                            type="number"
-                                                            min="0"
-                                                            step="0.01"
-                                                            value={item.unitPrice}
-                                                            onChange={(event) =>
-                                                                updateItemField(
-                                                                    item.id,
-                                                                    'unitPrice',
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `items.${index}.unit_price`
-                                                                ]
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="grid gap-2 sm:col-span-4">
-                                                        <Label>
-                                                            Line Total {selectedCurrencySymbol || ''}
-                                                        </Label>
-                                                        <Input
-                                                            readOnly
-                                                            className="bg-muted"
-                                                            value={`${selectedCurrencySymbol}${formatPrice(itemTotal)}`}
-                                                        />
-                                                    </div>
-                                                    <div className="grid gap-2 sm:col-span-4">
-                                                        <Label>
-                                                            Item Images (up to 10)
-                                                        </Label>
-                                                        <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                                            <div className="flex items-center justify-between gap-3">
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    Upload images for this item.
-                                                                </p>
-                                                                <Label
-                                                                    htmlFor={imagesInputId}
-                                                                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                                                >
-                                                                    <ImagePlus className="h-4 w-4" />
-                                                                    Select Images
-                                                                </Label>
-                                                            </div>
-                                                            <Input
-                                                                id={imagesInputId}
-                                                                type="file"
-                                                                multiple
-                                                                accept="image/*"
-                                                                className="hidden"
-                                                                onChange={(event) =>
-                                                                    handleItemImageChange(
-                                                                        item.id,
-                                                                        event.target.files,
-                                                                    )
-                                                                }
-                                                            />
-                                                            {item.images.length > 0 ? (
-                                                                <div className="mt-3 flex flex-wrap gap-2">
-                                                                    {item.images.map((image) => (
-                                                                        <div
-                                                                            key={image.id}
-                                                                            className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                                                        >
-                                                                            <img
-                                                                                src={image.preview}
-                                                                                alt={image.file.name}
-                                                                                className="h-full w-full object-cover"
-                                                                            />
-                                                                            <button
-                                                                                type="button"
-                                                                                className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                                                onClick={() =>
-                                                                                    removeItemImage(
-                                                                                        item.id,
-                                                                                        image.id,
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <Trash2 className="h-3 w-3" />
-                                                                            </button>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            ) : null}
-                                                        </div>
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `items.${index}.images`
-                                                                ] ??
-                                                                errors[
-                                                                    `items.${index}.images.0`
-                                                                ]
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-3">
-                                <div className="grid gap-2">
-                                    <Label>
-                                        Total Amount {selectedCurrencySymbol || ''}
-                                    </Label>
-                                    <Input
-                                        readOnly
-                                        className="bg-muted"
-                                        value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label>
-                                        Paid Amount {selectedCurrencySymbol || ''}
-                                    </Label>
-                                    <Input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={paidAmount}
-                                        onChange={(event) =>
-                                            setPaidAmount(event.target.value)
-                                        }
-                                    />
-                                    <InputError message={errors.paid_amount} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label>
-                                        Remaining Amount {selectedCurrencySymbol || ''}
-                                    </Label>
-                                    <Input
-                                        readOnly
-                                        className="bg-muted"
-                                        value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
-                                    />
-                                </div>
-                            </div>
-
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>Description</Label>
                                 <Textarea
@@ -1745,6 +1477,61 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 ) : null}
                                 <InputError message={errors.receipt} />
                             </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Images (up to 10)</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload item images.
+                                        </p>
+                                        <Label
+                                            htmlFor="inventory-images"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="inventory-images"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleImageChange(event.target.files)
+                                        }
+                                    />
+                                    {images.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {images.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeSelectedImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={errors.images} />
+                            </div>
                         </div>
                     </div>
 
@@ -1759,10 +1546,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         </Button>
                         <Button
                             onClick={handleCreate}
-                            disabled={!canSubmitCreate}
+                            disabled={
+                                !name.trim() ||
+                                !branchId ||
+                                !type ||
+                                !quantity ||
+                                !unitPrice ||
+                                !paidAmount ||
+                                isSubmitting
+                            }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Items
+                            Create Item
                         </Button>
                     </DialogFooter>
                 </DialogContent>
