@@ -40,7 +40,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
@@ -48,6 +48,14 @@ interface SelectedImage {
     id: string;
     file: File;
     preview: string;
+}
+
+interface BulkInsertItem {
+    id: string;
+    name: string;
+    quantity: string;
+    unitPrice: string;
+    images: SelectedImage[];
 }
 
 interface InventoryClientProps {
@@ -64,6 +72,14 @@ const MAX_IMAGES = 10;
 const VENDOR_NONE = '__none__';
 const DEFAULT_CURRENCY_CODE = 'AFN';
 
+const createBulkInsertItem = (): BulkInsertItem => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: '',
+    quantity: '',
+    unitPrice: '',
+    images: [],
+});
+
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
     branches,
@@ -75,11 +91,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 }) => {
     const FILTER_ALL = '__all__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [name, setName] = useState('');
+    const [items, setItems] = useState<BulkInsertItem[]>([
+        createBulkInsertItem(),
+    ]);
     const [branchId, setBranchId] = useState('');
     const [type, setType] = useState('consumable');
-    const [quantity, setQuantity] = useState('');
-    const [unitPrice, setUnitPrice] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [vendorId, setVendorId] = useState(VENDOR_NONE);
     const [unitId, setUnitId] = useState('');
@@ -88,7 +104,6 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [description, setDescription] = useState('');
     const [isUsable, setIsUsable] = useState(true);
     const [receipt, setReceipt] = useState<File | null>(null);
-    const [images, setImages] = useState<SelectedImage[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
@@ -126,24 +141,34 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
+    const activeImagePreviews = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        const nextPreviews = new Set(
+            items.flatMap((entry) => entry.images.map((image) => image.preview)),
+        );
+
+        activeImagePreviews.current.forEach((preview) => {
+            if (!nextPreviews.has(preview)) {
+                URL.revokeObjectURL(preview);
+            }
+        });
+
+        activeImagePreviews.current = nextPreviews;
+    }, [items]);
 
     useEffect(() => {
         return () => {
-            images.forEach((image) => URL.revokeObjectURL(image.preview));
+            activeImagePreviews.current.forEach((preview) => {
+                URL.revokeObjectURL(preview);
+            });
         };
-    }, [images]);
-
-    const clearSelectedImages = () => {
-        images.forEach((image) => URL.revokeObjectURL(image.preview));
-        setImages([]);
-    };
+    }, []);
 
     const resetForm = () => {
-        setName('');
+        setItems([createBulkInsertItem()]);
         setBranchId('');
         setType('consumable');
-        setQuantity('');
-        setUnitPrice('');
         setPaidAmount('');
         setVendorId(VENDOR_NONE);
         setUnitId('');
@@ -152,35 +177,72 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setDescription('');
         setIsUsable(true);
         setReceipt(null);
-        clearSelectedImages();
         setErrors({});
     };
 
-    const handleImageChange = (files: FileList | null) => {
-        if (!files) return;
+    const addItemRow = () => {
+        setItems((prev) => [...prev, createBulkInsertItem()]);
+    };
 
-        setImages((prev) => {
-            const remainingSlots = MAX_IMAGES - prev.length;
-            const nextFiles = Array.from(files).slice(0, remainingSlots);
-            return [
-                ...prev,
-                ...nextFiles.map((file, index) => ({
-                    id: `${Date.now()}-${file.name}-${index}`,
-                    file,
-                    preview: URL.createObjectURL(file),
-                })),
-            ];
+    const removeItemRow = (itemId: string) => {
+        setItems((prev) => {
+            if (prev.length === 1) {
+                return prev;
+            }
+            return prev.filter((item) => item.id !== itemId);
         });
     };
 
-    const removeSelectedImage = (id: string) => {
-        setImages((prev) => {
-            const target = prev.find((item) => item.id === id);
-            if (target) {
-                URL.revokeObjectURL(target.preview);
-            }
-            return prev.filter((item) => item.id !== id);
-        });
+    const updateItemField = (
+        itemId: string,
+        field: keyof Omit<BulkInsertItem, 'id' | 'images'>,
+        value: string,
+    ) => {
+        setItems((prev) =>
+            prev.map((item) =>
+                item.id === itemId ? { ...item, [field]: value } : item,
+            ),
+        );
+    };
+
+    const handleItemImageChange = (itemId: string, files: FileList | null) => {
+        if (!files) return;
+
+        setItems((prev) =>
+            prev.map((item) => {
+                if (item.id !== itemId) {
+                    return item;
+                }
+
+                const remainingSlots = MAX_IMAGES - item.images.length;
+                const nextFiles = Array.from(files).slice(0, remainingSlots);
+                return {
+                    ...item,
+                    images: [
+                        ...item.images,
+                        ...nextFiles.map((file, index) => ({
+                            id: `${Date.now()}-${file.name}-${index}`,
+                            file,
+                            preview: URL.createObjectURL(file),
+                        })),
+                    ],
+                };
+            }),
+        );
+    };
+
+    const removeItemImage = (itemId: string, imageId: string) => {
+        setItems((prev) =>
+            prev.map((item) => {
+                if (item.id !== itemId) {
+                    return item;
+                }
+                return {
+                    ...item,
+                    images: item.images.filter((image) => image.id !== imageId),
+                };
+            }),
+        );
     };
 
     const resetVendorForm = () => {
