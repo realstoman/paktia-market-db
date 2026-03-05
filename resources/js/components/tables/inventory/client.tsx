@@ -137,6 +137,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [selectedBranchFilter, setSelectedBranchFilter] =
         useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
+    const [selectedVendorFilter, setSelectedVendorFilter] =
+        useState(FILTER_ALL);
     const [usageDate, setUsageDate] = useState(
         new Date().toISOString().slice(0, 10),
     );
@@ -811,15 +813,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 selectedBranchFilter === FILTER_ALL ||
                 String(item.branch_id) === selectedBranchFilter;
 
+            const vendorMatch =
+                selectedVendorFilter === FILTER_ALL ||
+                String(item.vendor_id ?? '') === selectedVendorFilter;
+
             const typeMatch =
                 selectedTypeFilter === FILTER_ALL ||
                 (selectedTypeFilter === 'usable' && item.is_usable) ||
                 (selectedTypeFilter === 'not_usable' && !item.is_usable) ||
                 (item.type ?? '').trim().toLowerCase() === selectedTypeFilter;
 
-            return branchMatch && typeMatch;
+            return branchMatch && vendorMatch && typeMatch;
         });
-    }, [data, selectedBranchFilter, selectedTypeFilter]);
+    }, [data, selectedBranchFilter, selectedVendorFilter, selectedTypeFilter]);
 
     const vendorOutstanding = useMemo(() => {
         const outstandingByVendor = new Map<number, number>();
@@ -948,6 +954,28 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     >
                                         {typeEntry.charAt(0).toUpperCase() +
                                             typeEntry.slice(1)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedVendorFilter}
+                            onValueChange={setSelectedVendorFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[220px]">
+                                <SelectValue placeholder="Filter by vendor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Vendors
+                                </SelectItem>
+                                {vendors.map((vendor) => (
+                                    <SelectItem
+                                        key={vendor.id}
+                                        value={String(vendor.id)}
+                                    >
+                                        {vendor.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
