@@ -33,7 +33,16 @@ import {
 } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { ImagePlus, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
+import {
+    Clock,
+    ImagePlus,
+    Pencil,
+    Plus,
+    Save,
+    Tag,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -860,7 +869,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         onClick={() => setIsUsageCycleOpen(true)}
                         className="gap-2"
                     >
-                        Usage Cycle
+                        <Clock className="h-4 w-4" />
+                        Usage
                     </Button>
                     <Button
                         variant="outline"
@@ -870,7 +880,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         }}
                         className="gap-2"
                     >
-                        Manage Categories
+                        <Tag className="h-4 w-4" />
+                        Categories
                     </Button>
                     <Button
                         variant="outline"
@@ -880,7 +891,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         }}
                         className="gap-2"
                     >
-                        Manage Units
+                        <ImagePlus className="h-4 w-4" />
+                        Units
                     </Button>
                     <Button
                         variant="outline"
@@ -890,7 +902,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         }}
                         className="gap-2"
                     >
-                        Manage Types
+                        <Pencil className="h-4 w-4" />
+                        Types
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -1730,7 +1743,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={errors.inventory_type_id} />
+                                <InputError
+                                    message={errors.inventory_type_id}
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Unit</Label>

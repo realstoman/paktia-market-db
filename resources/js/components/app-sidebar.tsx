@@ -54,15 +54,15 @@ const mainNavItems: NavItem[] = [
         can: 'inventory.view',
     },
     {
-        title: 'Finance',
-        href: '/finance',
-        icon: Wallet,
-    },
-    {
         title: 'Employees',
         href: '/employees',
         icon: UserRound,
         can: 'employees.view',
+    },
+    {
+        title: 'Finance',
+        href: '/finance',
+        icon: Wallet,
     },
     {
         title: 'Branches',
