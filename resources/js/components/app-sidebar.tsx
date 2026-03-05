@@ -23,6 +23,7 @@ import {
     Package,
     ShieldCheck,
     Smartphone,
+    UserRound,
     Users,
     Wallet,
 } from 'lucide-react';
@@ -56,6 +57,12 @@ const mainNavItems: NavItem[] = [
         title: 'Finance',
         href: '/finance',
         icon: Wallet,
+    },
+    {
+        title: 'Employees',
+        href: '/employees',
+        icon: UserRound,
+        can: 'employees.view',
     },
     {
         title: 'Branches',

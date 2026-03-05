@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -34,13 +35,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Ban,
     CheckCircle,
     Edit,
-    Eye,
     MoreHorizontal,
     Save,
     Trash,
@@ -51,78 +52,109 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
-    data: User;
-    roles: Role[];
-    countries: Country[];
-    provinces: Province[];
+    data: Employee;
     branches: Branch[];
+    employmentTypes: EmploymentType[];
+    employeePositions: EmployeePosition[];
 }
+
+const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
+const CURRENCIES = ['AFN', 'USD'];
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
-    roles,
-    countries,
-    provinces,
     branches,
+    employmentTypes,
+    employeePositions,
 }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isBlockOpen, setIsBlockOpen] = useState(false);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [editName, setEditName] = useState(data.name);
-    const [editEmail, setEditEmail] = useState(data.email);
-    const [editRoleId, setEditRoleId] = useState(
-        data.role_ids?.[0] ? String(data.role_ids[0]) : '',
-    );
-    const [editCountryId, setEditCountryId] = useState(
-        data.country_id ? String(data.country_id) : '',
-    );
-    const [editProvinceId, setEditProvinceId] = useState(
-        data.province_id ? String(data.province_id) : '',
-    );
+
+    const [editFirstName, setEditFirstName] = useState(data.first_name ?? '');
+    const [editLastName, setEditLastName] = useState(data.last_name ?? '');
+    const [editPhone, setEditPhone] = useState(data.phone ?? '');
     const [editBranchId, setEditBranchId] = useState(
         data.branch_id ? String(data.branch_id) : '',
     );
-    const [editPassword, setEditPassword] = useState('');
-    const [editPasswordConfirmation, setEditPasswordConfirmation] =
-        useState('');
+    const [editEmploymentTypeId, setEditEmploymentTypeId] = useState(
+        data.employment_type_id ? String(data.employment_type_id) : '',
+    );
+    const [editEmployeePositionId, setEditEmployeePositionId] = useState(
+        data.employee_position_id ? String(data.employee_position_id) : '',
+    );
+    const [editSalary, setEditSalary] = useState(
+        data.salary !== null && data.salary !== undefined ? String(data.salary) : '',
+    );
+    const [editSalaryCurrency, setEditSalaryCurrency] = useState(
+        data.salary_currency ?? 'AFN',
+    );
+    const [editStatus, setEditStatus] = useState(
+        data.status ?? (data.is_active ? 'active' : 'inactive'),
+    );
+    const [editAddress, setEditAddress] = useState(data.address ?? '');
+    const [editDescription, setEditDescription] = useState(data.description ?? '');
+
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetEdit = () => {
-        setEditName(data.name);
-        setEditEmail(data.email);
-        setEditRoleId(data.role_ids?.[0] ? String(data.role_ids[0]) : '');
-        setEditCountryId(data.country_id ? String(data.country_id) : '');
-        setEditProvinceId(data.province_id ? String(data.province_id) : '');
+        setEditFirstName(data.first_name ?? '');
+        setEditLastName(data.last_name ?? '');
+        setEditPhone(data.phone ?? '');
         setEditBranchId(data.branch_id ? String(data.branch_id) : '');
-        setEditPassword('');
-        setEditPasswordConfirmation('');
+        setEditEmploymentTypeId(
+            data.employment_type_id ? String(data.employment_type_id) : '',
+        );
+        setEditEmployeePositionId(
+            data.employee_position_id ? String(data.employee_position_id) : '',
+        );
+        setEditSalary(
+            data.salary !== null && data.salary !== undefined ? String(data.salary) : '',
+        );
+        setEditSalaryCurrency(data.salary_currency ?? 'AFN');
+        setEditStatus(data.status ?? (data.is_active ? 'active' : 'inactive'));
+        setEditAddress(data.address ?? '');
+        setEditDescription(data.description ?? '');
         setEditErrors({});
     };
 
     const handleEditSubmit = () => {
-        if (!editName.trim() || !editEmail.trim() || isSubmitting) {
+        if (
+            !editFirstName.trim() ||
+            !editLastName.trim() ||
+            !editBranchId ||
+            isSubmitting
+        ) {
             return;
         }
 
         setIsSubmitting(true);
 
         router.put(
-            `/users/${data.id}`,
+            `/employees/${data.id}`,
             {
-                name: editName.trim(),
-                email: editEmail.trim(),
-                password: editPassword || null,
-                password_confirmation: editPasswordConfirmation || null,
-                roles: editRoleId ? [Number(editRoleId)] : [],
-                country_id: editCountryId ? Number(editCountryId) : null,
-                province_id: editProvinceId ? Number(editProvinceId) : null,
-                branch_id: editBranchId ? Number(editBranchId) : null,
+                first_name: editFirstName.trim(),
+                last_name: editLastName.trim(),
+                phone: editPhone.trim() || null,
+                branch_id: Number(editBranchId),
+                employment_type_id: editEmploymentTypeId
+                    ? Number(editEmploymentTypeId)
+                    : null,
+                employee_position_id: editEmployeePositionId
+                    ? Number(editEmployeePositionId)
+                    : null,
+                salary: editSalary.trim() ? Number(editSalary) : null,
+                salary_currency: editSalaryCurrency,
+                status: editStatus,
+                is_active: editStatus === 'active',
+                address: editAddress.trim() || null,
+                description: editDescription.trim() || null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('User updated successfully.');
+                    toast.success('Employee updated successfully.');
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -135,28 +167,22 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
     };
 
-    const editRoleError =
-        editErrors.roles ??
-        Object.entries(editErrors).find(([key]) =>
-            key.startsWith('roles.'),
-        )?.[1];
-
-    const handleBlock = () => {
+    const handleToggleStatus = () => {
         if (isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
-        router.post(`/users/${data.id}/block`, undefined, {
+        router.post(`/employees/${data.id}/toggle-active`, undefined, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(
                     data.is_active
-                        ? 'User blocked successfully.'
-                        : 'User unblocked successfully.',
+                        ? 'Employee marked inactive.'
+                        : 'Employee marked active.',
                 );
-                setIsBlockOpen(false);
+                setIsStatusOpen(false);
             },
             onFinish: () => {
                 setIsSubmitting(false);
@@ -171,10 +197,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setIsSubmitting(true);
 
-        router.delete(`/users/${data.id}`, {
+        router.delete(`/employees/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('User deleted successfully.');
+                toast.success('Employee deleted successfully.');
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -195,12 +221,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
-                        onClick={() => router.visit(`/users/${data.id}`)}
-                    >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
                             setIsEditOpen(true);
@@ -209,9 +229,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
+                    <DropdownMenuItem onClick={() => setIsStatusOpen(true)}>
                         <Ban className="mr-2 h-4 w-4" />
-                        {data.is_active ? 'Block' : 'Unblock'}
+                        {data.is_active ? 'Mark Inactive' : 'Mark Active'}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                         <Trash className="mr-2 h-4 w-4 text-red-600" />
@@ -221,167 +241,219 @@ export const CellAction: React.FC<CellActionProps> = ({
             </DropdownMenu>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogTitle>Edit Employee</DialogTitle>
                         <DialogDescription>
-                            Update profile details and role assignments.
+                            Update employee profile, employment type, position, and salary details.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-name-${data.id}`}>Name</Label>
-                            <Input
-                                id={`edit-name-${data.id}`}
-                                value={editName}
-                                onChange={(event) =>
-                                    setEditName(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-email-${data.id}`}>
-                                Email
-                            </Label>
-                            <Input
-                                id={`edit-email-${data.id}`}
-                                type="email"
-                                value={editEmail}
-                                onChange={(event) =>
-                                    setEditEmail(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.email} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-password-${data.id}`}>
-                                New password
-                            </Label>
-                            <Input
-                                id={`edit-password-${data.id}`}
-                                type="password"
-                                value={editPassword}
-                                onChange={(event) =>
-                                    setEditPassword(event.target.value)
-                                }
-                                placeholder="Leave blank to keep current"
-                            />
-                            <InputError message={editErrors.password} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-password-confirm-${data.id}`}>
-                                Confirm password
-                            </Label>
-                            <Input
-                                id={`edit-password-confirm-${data.id}`}
-                                type="password"
-                                value={editPasswordConfirmation}
-                                onChange={(event) =>
-                                    setEditPasswordConfirmation(
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            <InputError
-                                message={editErrors.password_confirmation}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Role</Label>
-                            <Select
-                                value={editRoleId}
-                                onValueChange={setEditRoleId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem
-                                            key={role.id}
-                                            value={String(role.id)}
-                                        >
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editRoleError} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Country</Label>
-                            <Select
-                                value={editCountryId}
-                                onValueChange={(value) => {
-                                    setEditCountryId(value);
-                                    if (value !== editCountryId) {
-                                        setEditProvinceId('');
+                    <ScrollArea className="max-h-[70vh]">
+                        <div className="grid gap-4 px-1 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-first-name-${data.id}`}>
+                                    First name
+                                </Label>
+                                <Input
+                                    id={`edit-first-name-${data.id}`}
+                                    value={editFirstName}
+                                    onChange={(event) =>
+                                        setEditFirstName(event.target.value)
                                     }
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {countries.map((country) => (
-                                        <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
-                                        >
-                                            {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.country_id} />
+                                />
+                                <InputError message={editErrors.first_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-last-name-${data.id}`}>
+                                    Last name
+                                </Label>
+                                <Input
+                                    id={`edit-last-name-${data.id}`}
+                                    value={editLastName}
+                                    onChange={(event) =>
+                                        setEditLastName(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.last_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-phone-${data.id}`}>Phone</Label>
+                                <Input
+                                    id={`edit-phone-${data.id}`}
+                                    value={editPhone}
+                                    onChange={(event) =>
+                                        setEditPhone(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.phone} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select
+                                    value={editBranchId}
+                                    onValueChange={setEditBranchId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Employment type</Label>
+                                <Select
+                                    value={editEmploymentTypeId}
+                                    onValueChange={setEditEmploymentTypeId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select employment type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {employmentTypes.map((type) => (
+                                            <SelectItem
+                                                key={type.id}
+                                                value={String(type.id)}
+                                            >
+                                                {type.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={editErrors.employment_type_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Employee position</Label>
+                                <Select
+                                    value={editEmployeePositionId}
+                                    onValueChange={setEditEmployeePositionId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select position" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {employeePositions.map((position) => (
+                                            <SelectItem
+                                                key={position.id}
+                                                value={String(position.id)}
+                                            >
+                                                {position.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={editErrors.employee_position_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-salary-${data.id}`}>
+                                    Salary
+                                </Label>
+                                <Input
+                                    id={`edit-salary-${data.id}`}
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editSalary}
+                                    onChange={(event) =>
+                                        setEditSalary(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.salary} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Salary currency</Label>
+                                <Select
+                                    value={editSalaryCurrency}
+                                    onValueChange={setEditSalaryCurrency}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCIES.map((currency) => (
+                                            <SelectItem
+                                                key={currency}
+                                                value={currency}
+                                            >
+                                                {currency}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={editErrors.salary_currency}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Status</Label>
+                                <Select
+                                    value={editStatus}
+                                    onValueChange={setEditStatus}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {EMPLOYEE_STATUSES.map((status) => (
+                                            <SelectItem key={status} value={status}>
+                                                {status
+                                                    .split('_')
+                                                    .map(
+                                                        (part) =>
+                                                            part
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                            part.slice(1),
+                                                    )
+                                                    .join(' ')}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.status} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor={`edit-address-${data.id}`}>
+                                    Address
+                                </Label>
+                                <Input
+                                    id={`edit-address-${data.id}`}
+                                    value={editAddress}
+                                    onChange={(event) =>
+                                        setEditAddress(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.address} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor={`edit-description-${data.id}`}>
+                                    Description
+                                </Label>
+                                <Textarea
+                                    id={`edit-description-${data.id}`}
+                                    value={editDescription}
+                                    onChange={(event) =>
+                                        setEditDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.description} />
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Province</Label>
-                            <Select
-                                value={editProvinceId}
-                                onValueChange={setEditProvinceId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {provinces.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.province_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select
-                                value={editBranchId}
-                                onValueChange={setEditBranchId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.branch_id} />
-                        </div>
-                    </div>
+                    </ScrollArea>
 
                     <DialogFooter>
                         <Button
@@ -395,8 +467,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Button
                             onClick={handleEditSubmit}
                             disabled={
-                                !editName.trim() ||
-                                !editEmail.trim() ||
+                                !editFirstName.trim() ||
+                                !editLastName.trim() ||
+                                !editBranchId ||
                                 isSubmitting
                             }
                         >
@@ -407,16 +480,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={isBlockOpen} onOpenChange={setIsBlockOpen}>
+            <AlertDialog open={isStatusOpen} onOpenChange={setIsStatusOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {data.is_active ? 'Block user' : 'Unblock user'}
+                            {data.is_active
+                                ? 'Mark employee inactive'
+                                : 'Mark employee active'}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will prevent the user from signing in.'
-                                : 'This will restore access for the user.'}
+                                ? 'This will mark employee as inactive in the system.'
+                                : 'This will mark employee as active in the system.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -426,18 +501,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
-                            onClick={handleBlock}
+                            onClick={handleToggleStatus}
                             disabled={isSubmitting}
                         >
                             {data.is_active ? (
                                 <>
                                     <Ban className="mr-2 h-4 w-4" />
-                                    Block user
+                                    Mark Inactive
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Unblock user
+                                    Mark Active
                                 </>
                             )}
                         </AlertDialogAction>
@@ -448,10 +523,9 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete user</AlertDialogTitle>
+                        <AlertDialogTitle>Delete employee</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the user and revoke all
-                            role assignments.
+                            This will permanently remove the employee record.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -465,7 +539,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete user
+                            Delete employee
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
