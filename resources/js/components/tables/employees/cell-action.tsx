@@ -42,6 +42,7 @@ import {
     Ban,
     CheckCircle,
     Edit,
+    Eye,
     FileText,
     ImagePlus,
     MoreHorizontal,
@@ -92,6 +93,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     employmentTypes,
     employeePositions,
 }) => {
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -329,6 +331,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
@@ -348,6 +354,148 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Employee Details</DialogTitle>
+                        <DialogDescription>
+                            Profile overview and attachments.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <ScrollArea className="max-h-[70vh]">
+                        <div className="space-y-6 px-1">
+                            <div className="rounded-xl border bg-gradient-to-r from-neutral-50 to-white p-5 dark:from-neutral-900 dark:to-neutral-950">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                    {currentProfilePictureUrl ? (
+                                        <img
+                                            src={currentProfilePictureUrl}
+                                            alt={data.full_name ?? 'Employee'}
+                                            className="h-24 w-24 rounded-xl border object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-24 w-24 items-center justify-center rounded-xl border bg-muted text-xl font-semibold text-muted-foreground">
+                                            {`${data.first_name?.charAt(0) ?? ''}${data.last_name?.charAt(0) ?? ''}`.toUpperCase() ||
+                                                'NA'}
+                                        </div>
+                                    )}
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-semibold">
+                                            {data.full_name ??
+                                                `${data.first_name} ${data.last_name}`}
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            {data.employee_position ?? 'No position assigned'}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                    data.is_active
+                                                        ? 'bg-emerald-100 text-emerald-700'
+                                                        : 'bg-red-100 text-red-700'
+                                                }`}
+                                            >
+                                                {(data.status ??
+                                                    (data.is_active
+                                                        ? 'active'
+                                                        : 'inactive'))
+                                                    .split('_')
+                                                    .map(
+                                                        (part) =>
+                                                            part
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                            part.slice(1),
+                                                    )
+                                                    .join(' ')}
+                                            </span>
+                                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                                {data.employment_type ??
+                                                    'No employment type'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="rounded-lg border p-4">
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Contact
+                                    </p>
+                                    <div className="space-y-2 text-sm">
+                                        <p>
+                                            <span className="font-medium">Phone:</span>{' '}
+                                            {data.phone || '—'}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Address:</span>{' '}
+                                            {data.address || '—'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border p-4">
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Employment
+                                    </p>
+                                    <div className="space-y-2 text-sm">
+                                        <p>
+                                            <span className="font-medium">Branch:</span>{' '}
+                                            {data.branch || '—'}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Salary:</span>{' '}
+                                            {data.salary
+                                                ? `${Number(data.salary).toLocaleString()} ${data.salary_currency ?? 'AFN'}`
+                                                : '—'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-lg border p-4">
+                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Description
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    {data.description || 'No description provided.'}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg border p-4">
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Attachments
+                                </p>
+                                {existingAttachments.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {existingAttachments.map(
+                                            (path, index) => (
+                                                <a
+                                                    key={`${path}-${index}`}
+                                                    href={publicStorageUrl(path)}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
+                                                >
+                                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="truncate">
+                                                        {fileNameFromPath(path)}
+                                                    </span>
+                                                </a>
+                                            ),
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No attachments uploaded.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-4xl">
