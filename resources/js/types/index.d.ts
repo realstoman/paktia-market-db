@@ -285,10 +285,12 @@ export interface InventoryItem {
     vendor_id?: number | null;
     unit_id?: number | null;
     category_id?: number | null;
+    inventory_type_id?: number | null;
     branch?: Branch | null;
     vendor?: Vendor | null;
     unitReference?: Unit | null;
     categoryReference?: InventoryCategory | null;
+    typeReference?: InventoryType | null;
     name: string;
     description?: string | null;
     type: string;
@@ -348,6 +350,16 @@ export interface Unit {
 }
 
 export interface InventoryCategory {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface InventoryType {
     id: number;
     name: string;
     description?: string | null;

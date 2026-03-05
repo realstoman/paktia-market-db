@@ -27,6 +27,7 @@ import {
     Currency,
     InventoryCategory,
     InventoryItem,
+    InventoryType,
     Unit,
     Vendor,
 } from '@/types';
@@ -50,6 +51,7 @@ interface InventoryClientProps {
     currencies: Currency[];
     units: Unit[];
     categories: InventoryCategory[];
+    inventoryTypes: InventoryType[];
     isLoading?: boolean;
 }
 
@@ -64,6 +66,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     currencies,
     units,
     categories,
+    inventoryTypes,
     isLoading = false,
 }) => {
     interface UsageCycleItem {
@@ -78,7 +81,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isUsageCycleOpen, setIsUsageCycleOpen] = useState(false);
     const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
-    const [type, setType] = useState('consumable');
+    const [inventoryTypeId, setInventoryTypeId] = useState('');
     const [quantity, setQuantity] = useState('');
     const [unitPrice, setUnitPrice] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
@@ -95,6 +98,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isVendorDialogOpen, setIsVendorDialogOpen] = useState(false);
     const [isCurrencyDialogOpen, setIsCurrencyDialogOpen] = useState(false);
     const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
+    const [isTypeDialogOpen, setIsTypeDialogOpen] = useState(false);
     const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
     const [isVendorSubmitting, setIsVendorSubmitting] = useState(false);
     const [isCurrencySubmitting, setIsCurrencySubmitting] = useState(false);
@@ -114,6 +118,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [unitName, setUnitName] = useState('');
     const [unitSymbol, setUnitSymbol] = useState('');
     const [unitDescription, setUnitDescription] = useState('');
+    const [typeName, setTypeName] = useState('');
+    const [typeDescription, setTypeDescription] = useState('');
     const [categoryName, setCategoryName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
     const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
@@ -124,6 +130,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         null,
     );
     const [editingUnitId, setEditingUnitId] = useState<number | null>(null);
+    const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
         null,
     );
@@ -158,7 +165,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const resetForm = () => {
         setName('');
         setBranchId('');
-        setType('consumable');
+        setInventoryTypeId('');
         setQuantity('');
         setUnitPrice('');
         setPaidAmount('');
@@ -263,6 +270,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setEditingUnitId(null);
     };
 
+    const resetTypeForm = () => {
+        setTypeName('');
+        setTypeDescription('');
+        setErrors({});
+        setEditingTypeId(null);
+    };
+
     const resetCategoryForm = () => {
         setCategoryName('');
         setCategoryDescription('');
@@ -285,6 +299,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setErrors({});
         setEditingUnitId(unit.id);
         setIsUnitDialogOpen(true);
+    };
+
+    const populateTypeForm = (entry: InventoryType) => {
+        setTypeName(entry.name ?? '');
+        setTypeDescription(entry.description ?? '');
+        setErrors({});
+        setEditingTypeId(entry.id);
+        setIsTypeDialogOpen(true);
     };
 
     const populateVendorForm = (vendor: Vendor) => {
@@ -492,6 +514,66 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         });
     };
 
+    const handleSaveType = () => {
+        if (!typeName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            name: typeName.trim(),
+            description: typeDescription.trim() || null,
+            is_active: true,
+        };
+
+        const url = editingTypeId
+            ? `/inventory-types/${editingTypeId}`
+            : '/inventory-types';
+
+        router.post(
+            url,
+            editingTypeId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        editingTypeId
+                            ? 'Inventory type updated successfully.'
+                            : 'Inventory type created successfully.',
+                    );
+                    setIsTypeDialogOpen(false);
+                    resetTypeForm();
+                },
+                onError: (validationErrors) => {
+                    setErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save inventory type.',
+                    );
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteType = (entry: InventoryType) => {
+        router.delete(`/inventory-types/${entry.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Inventory type deleted successfully.');
+                if (String(entry.id) === inventoryTypeId) {
+                    setInventoryTypeId('');
+                }
+            },
+            onError: () => {
+                toast.error('Failed to delete inventory type.');
+            },
+        });
+    };
+
     const handleSaveCategory = () => {
         if (!categoryName.trim() || isSubmitting) {
             return;
@@ -556,7 +638,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         if (
             !name.trim() ||
             !branchId ||
-            !type ||
+            !inventoryTypeId ||
             !quantity ||
             !unitPrice ||
             !paidAmount ||
@@ -572,7 +654,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             {
                 branch_id: Number(branchId),
                 name: name.trim(),
-                type,
+                inventory_type_id: Number(inventoryTypeId),
                 quantity: Number(quantity),
                 unit_price: Number(unitPrice),
                 paid_amount: Number(paidAmount),
@@ -701,8 +783,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     }, [usageItems, usableItems]);
 
     const tableColumns = useMemo(
-        () => buildColumns(branches, vendors, currencies, units, categories),
-        [branches, vendors, currencies, units, categories],
+        () =>
+            buildColumns(
+                branches,
+                vendors,
+                currencies,
+                units,
+                categories,
+                inventoryTypes,
+            ),
+        [branches, vendors, currencies, units, categories, inventoryTypes],
     );
 
     const availableTypes = useMemo(() => {
@@ -785,6 +875,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         className="gap-2"
                     >
                         Manage Units
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            resetTypeForm();
+                            setIsTypeDialogOpen(true);
+                        }}
+                        className="gap-2"
+                    >
+                        Manage Types
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -1271,6 +1371,111 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             </Dialog>
 
             <Dialog
+                open={isTypeDialogOpen}
+                onOpenChange={(open) => {
+                    setIsTypeDialogOpen(open);
+                    if (!open) {
+                        resetTypeForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingTypeId
+                                ? 'Edit Inventory Type'
+                                : 'Manage Inventory Types'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, update, and remove inventory item types.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={typeName}
+                                onChange={(event) =>
+                                    setTypeName(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Description</Label>
+                            <Input
+                                value={typeDescription}
+                                onChange={(event) =>
+                                    setTypeDescription(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.description} />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button variant="outline" onClick={resetTypeForm}>
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={handleSaveType}
+                            disabled={isSubmitting || !typeName.trim()}
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {editingTypeId ? 'Update Type' : 'Save Type'}
+                        </Button>
+                    </DialogFooter>
+
+                    <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
+                        {inventoryTypes.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No inventory types yet.
+                            </p>
+                        ) : (
+                            inventoryTypes.map((entry) => (
+                                <div
+                                    key={entry.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div>
+                                        <p className="text-sm font-medium">
+                                            {entry.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {entry.description || '-'}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                populateTypeForm(entry)
+                                            }
+                                        >
+                                            <Pencil className="mr-1 h-3 w-3" />
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleDeleteType(entry)
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
                 open={isCategoryDialogOpen}
                 onOpenChange={(open) => {
                     setIsCategoryDialogOpen(open);
@@ -1479,29 +1684,25 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Type</Label>
-                                <Select value={type} onValueChange={setType}>
+                                <Select
+                                    value={inventoryTypeId}
+                                    onValueChange={setInventoryTypeId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="consumable">
-                                            Consumable
-                                        </SelectItem>
-                                        <SelectItem value="fixed">
-                                            Fixed
-                                        </SelectItem>
-                                        <SelectItem value="grocery">
-                                            Grocery
-                                        </SelectItem>
-                                        <SelectItem value="food">
-                                            Food
-                                        </SelectItem>
-                                        <SelectItem value="other">
-                                            Other
-                                        </SelectItem>
+                                        {inventoryTypes.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={errors.type} />
+                                <InputError message={errors.inventory_type_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Unit</Label>
@@ -1730,7 +1931,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !branchId ||
-                                !type ||
+                                !inventoryTypeId ||
                                 !quantity ||
                                 !unitPrice ||
                                 !paidAmount ||

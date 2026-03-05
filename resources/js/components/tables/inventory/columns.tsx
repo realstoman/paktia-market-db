@@ -6,6 +6,7 @@ import {
     Currency,
     InventoryCategory,
     InventoryItem,
+    InventoryType,
     Unit,
     Vendor,
 } from '@/types';
@@ -50,6 +51,7 @@ export const buildColumns = (
     currencies: Currency[],
     units: Unit[],
     categories: InventoryCategory[],
+    inventoryTypes: InventoryType[],
 ): ColumnDef<InventoryItem>[] => {
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
@@ -216,6 +218,7 @@ export const buildColumns = (
                     currencies={currencies}
                     units={units}
                     categories={categories}
+                    inventoryTypes={inventoryTypes}
                 />
             ),
         },

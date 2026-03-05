@@ -11,6 +11,7 @@ class InventoryItem extends Model
         'vendor_id',
         'unit_id',
         'category_id',
+        'inventory_type_id',
         'name',
         'description',
         'type',
@@ -55,6 +56,11 @@ class InventoryItem extends Model
     public function categoryReference()
     {
         return $this->belongsTo(InventoryCategory::class, 'category_id');
+    }
+
+    public function typeReference()
+    {
+        return $this->belongsTo(InventoryType::class, 'inventory_type_id');
     }
 
     public function images()

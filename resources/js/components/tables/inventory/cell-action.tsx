@@ -41,6 +41,7 @@ import {
     Currency,
     InventoryCategory,
     InventoryItem,
+    InventoryType,
     Unit,
     Vendor,
 } from '@/types';
@@ -66,6 +67,7 @@ interface CellActionProps {
     currencies: Currency[];
     units: Unit[];
     categories: InventoryCategory[];
+    inventoryTypes: InventoryType[];
 }
 
 interface PendingImage {
@@ -83,6 +85,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     currencies,
     units,
     categories,
+    inventoryTypes,
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -106,7 +109,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
     const [editName, setEditName] = useState(data.name);
-    const [editType, setEditType] = useState(data.type);
+    const [editTypeId, setEditTypeId] = useState(
+        data.inventory_type_id ? String(data.inventory_type_id) : '',
+    );
     const [editQuantity, setEditQuantity] = useState(
         String(data.quantity ?? ''),
     );
@@ -180,7 +185,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
-        setEditType(data.type);
+        setEditTypeId(data.inventory_type_id ? String(data.inventory_type_id) : '');
         setEditQuantity(String(data.quantity ?? ''));
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));
@@ -282,7 +287,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         if (
             !editName.trim() ||
             !editBranchId ||
-            !editType ||
+            !editTypeId ||
             !editQuantity ||
             !editUnitPrice ||
             !editPaidAmount ||
@@ -299,7 +304,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 _method: 'put',
                 branch_id: Number(editBranchId),
                 name: editName.trim(),
-                type: editType.trim(),
+                inventory_type_id: Number(editTypeId),
                 quantity: Number(editQuantity),
                 unit_price: Number(editUnitPrice),
                 paid_amount: Number(editPaidAmount),
@@ -486,13 +491,27 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Type</Label>
-                                <Input
-                                    value={editType}
-                                    onChange={(event) =>
-                                        setEditType(event.target.value)
-                                    }
+                                <Select
+                                    value={editTypeId}
+                                    onValueChange={setEditTypeId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {inventoryTypes.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={editErrors.inventory_type_id}
                                 />
-                                <InputError message={editErrors.type} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Vendor</Label>
@@ -784,7 +803,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !editName.trim() ||
                                 !editBranchId ||
-                                !editType.trim() ||
+                                !editTypeId ||
                                 !editQuantity ||
                                 !editUnitPrice ||
                                 !editPaidAmount ||

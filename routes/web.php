@@ -200,6 +200,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('units', [InventoryController::class, 'storeUnit'])->name('units.store');
     Route::put('units/{unit}', [InventoryController::class, 'updateUnit'])->name('units.update');
     Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
+    Route::post('inventory-types', [InventoryController::class, 'storeInventoryType'])->name('inventory-types.store');
+    Route::put('inventory-types/{inventoryType}', [InventoryController::class, 'updateInventoryType'])->name('inventory-types.update');
+    Route::delete('inventory-types/{inventoryType}', [InventoryController::class, 'destroyInventoryType'])->name('inventory-types.destroy');
     Route::post('inventory-categories', [InventoryController::class, 'storeInventoryCategory'])->name('inventory-categories.store');
     Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
     Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
