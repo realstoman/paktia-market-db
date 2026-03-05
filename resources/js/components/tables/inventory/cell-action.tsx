@@ -48,13 +48,14 @@ import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
     Eye,
+    ImagePlus,
     MoreHorizontal,
     PackagePlus,
     Pencil,
     Save,
     Trash2,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -65,6 +66,14 @@ interface CellActionProps {
     units: Unit[];
     categories: InventoryCategory[];
 }
+
+interface PendingImage {
+    id: string;
+    file: File;
+    preview: string;
+}
+
+const MAX_EDIT_IMAGES = 10;
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
@@ -117,6 +126,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editDescription, setEditDescription] = useState(data.description ?? '');
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
+    const [editImages, setEditImages] = useState<PendingImage[]>([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSubmitting, setIsEditSubmitting] = useState(false);
     const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
@@ -147,6 +157,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         return matched?.symbol ?? data.currency_symbol ?? '';
     }, [currencies, data.currency_symbol, restockCurrencyCode]);
 
+    useEffect(() => {
+        return () => {
+            editImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        };
+    }, [editImages]);
+
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
@@ -161,7 +177,36 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
         setEditReceipt(null);
+        editImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        setEditImages([]);
         setEditErrors({});
+    };
+
+    const handleEditImageChange = (files: FileList | null) => {
+        if (!files) return;
+
+        setEditImages((prev) => {
+            const remainingSlots = MAX_EDIT_IMAGES - prev.length;
+            const nextFiles = Array.from(files).slice(0, remainingSlots);
+            return [
+                ...prev,
+                ...nextFiles.map((file, index) => ({
+                    id: `${Date.now()}-${file.name}-${index}`,
+                    file,
+                    preview: URL.createObjectURL(file),
+                })),
+            ];
+        });
+    };
+
+    const removeEditImage = (id: string) => {
+        setEditImages((prev) => {
+            const target = prev.find((image) => image.id === id);
+            if (target) {
+                URL.revokeObjectURL(target.preview);
+            }
+            return prev.filter((image) => image.id !== id);
+        });
     };
 
     const resetRestockForm = () => {
@@ -249,6 +294,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
+                images: editImages.map((image) => image.file),
             },
             {
                 preserveScroll: true,
@@ -617,6 +663,59 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </p>
                             ) : null}
                             <InputError message={editErrors.receipt} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Add New Images (optional)</Label>
+                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm text-muted-foreground">
+                                        Upload additional images for this item.
+                                    </p>
+                                    <Label
+                                        htmlFor={`edit-images-${data.id}`}
+                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                    >
+                                        <ImagePlus className="h-4 w-4" />
+                                        Select Images
+                                    </Label>
+                                </div>
+                                <Input
+                                    id={`edit-images-${data.id}`}
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(event) =>
+                                        handleEditImageChange(event.target.files)
+                                    }
+                                />
+                                {editImages.length > 0 ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {editImages.map((image) => (
+                                            <div
+                                                key={image.id}
+                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                            >
+                                                <img
+                                                    src={image.preview}
+                                                    alt={image.file.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                    onClick={() =>
+                                                        removeEditImage(image.id)
+                                                    }
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <InputError message={editErrors.images} />
                         </div>
                     </div>
 

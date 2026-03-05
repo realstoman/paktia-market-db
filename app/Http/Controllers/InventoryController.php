@@ -179,6 +179,8 @@ class InventoryController extends Controller
             'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|max:4096',
         ]);
 
         $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
@@ -223,6 +225,17 @@ class InventoryController extends Controller
             }
 
             $inventory->update($payload);
+
+            $existingImageCount = $inventory->images()->count();
+            $newImages = $request->file('images', []);
+
+            foreach ($newImages as $index => $image) {
+                $path = $image->store('inventory', 'public');
+                $inventory->images()->create([
+                    'path' => $path,
+                    'sort_order' => $existingImageCount + $index,
+                ]);
+            }
 
             $delta = $newQuantity - $oldQuantity;
             if (abs($delta) > 0.00001) {
