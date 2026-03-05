@@ -413,7 +413,7 @@ export const CellAction: React.FC<CellActionProps> = ({
             </AlertDialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Edit Inventory Item</DialogTitle>
                         <DialogDescription>
@@ -421,301 +421,303 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label>Name</Label>
-                            <Input
-                                value={editName}
-                                onChange={(event) => setEditName(event.target.value)}
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select
-                                value={editBranchId}
-                                onValueChange={setEditBranchId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Input
-                                value={editType}
-                                onChange={(event) => setEditType(event.target.value)}
-                            />
-                            <InputError message={editErrors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Vendor</Label>
-                            <Select
-                                value={editVendorId}
-                                onValueChange={setEditVendorId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={VENDOR_NONE}>
-                                        No Vendor
-                                    </SelectItem>
-                                    {vendors.map((vendor) => (
-                                        <SelectItem
-                                            key={vendor.id}
-                                            value={String(vendor.id)}
-                                        >
-                                            {vendor.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.vendor_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Currency</Label>
-                            <Select
-                                value={editCurrencyCode}
-                                onValueChange={setEditCurrencyCode}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencies.map((currency) => (
-                                        <SelectItem
-                                            key={currency.id}
-                                            value={currency.code}
-                                        >
-                                            {currency.code} ({currency.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.currency_code} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Unit</Label>
-                            <Select
-                                value={editUnitId}
-                                onValueChange={setEditUnitId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {units.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name} ({entry.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.unit_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select
-                                value={editCategoryId}
-                                onValueChange={setEditCategoryId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Quantity</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editQuantity}
-                                onChange={(event) =>
-                                    setEditQuantity(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.quantity} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Single Price {editCurrencySymbol}</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editUnitPrice}
-                                onChange={(event) =>
-                                    setEditUnitPrice(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.unit_price} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Total Price (Auto) {editCurrencySymbol}</Label>
-                            <Input
-                                value={formatPrice(editTotalPrice)}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Paid Amount {editCurrencySymbol}</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editPaidAmount}
-                                onChange={(event) =>
-                                    setEditPaidAmount(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.paid_amount} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
-                            <Input
-                                value={`${editCurrencySymbol}${formatPrice(
-                                    Math.max(
-                                        0,
-                                        editTotalPrice -
-                                            (Number(editPaidAmount) || 0),
-                                    ),
-                                )}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    checked={editUsable}
-                                    onCheckedChange={(checked) =>
-                                        setEditUsable(!!checked)
-                                    }
-                                />
-                                <span className="text-sm text-muted-foreground">
-                                    Usable item
-                                </span>
-                            </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={editDescription}
-                                onChange={(event) =>
-                                    setEditDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`edit-receipt-${data.id}`}>
-                                Replace Receipt/Bill (optional)
-                            </Label>
-                            <Input
-                                id={`edit-receipt-${data.id}`}
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(event) =>
-                                    setEditReceipt(event.target.files?.[0] ?? null)
-                                }
-                            />
-                            {data.receipt_url || data.receipt_path ? (
-                                <a
-                                    href={String(data.receipt_url ?? data.receipt_path)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-xs text-blue-600 hover:underline"
-                                >
-                                    View current receipt
-                                </a>
-                            ) : null}
-                            {editReceipt ? (
-                                <p className="text-xs text-muted-foreground">
-                                    New file: {editReceipt.name}
-                                </p>
-                            ) : null}
-                            <InputError message={editErrors.receipt} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Add New Images (optional)</Label>
-                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Upload additional images for this item.
-                                    </p>
-                                    <Label
-                                        htmlFor={`edit-images-${data.id}`}
-                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                    >
-                                        <ImagePlus className="h-4 w-4" />
-                                        Select Images
-                                    </Label>
-                                </div>
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Name</Label>
                                 <Input
-                                    id={`edit-images-${data.id}`}
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="hidden"
+                                    value={editName}
+                                    onChange={(event) => setEditName(event.target.value)}
+                                />
+                                <InputError message={editErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select
+                                    value={editBranchId}
+                                    onValueChange={setEditBranchId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Input
+                                    value={editType}
+                                    onChange={(event) => setEditType(event.target.value)}
+                                />
+                                <InputError message={editErrors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Vendor</Label>
+                                <Select
+                                    value={editVendorId}
+                                    onValueChange={setEditVendorId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={VENDOR_NONE}>
+                                            No Vendor
+                                        </SelectItem>
+                                        {vendors.map((vendor) => (
+                                            <SelectItem
+                                                key={vendor.id}
+                                                value={String(vendor.id)}
+                                            >
+                                                {vendor.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.vendor_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Currency</Label>
+                                <Select
+                                    value={editCurrencyCode}
+                                    onValueChange={setEditCurrencyCode}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem
+                                                key={currency.id}
+                                                value={currency.code}
+                                            >
+                                                {currency.code} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.currency_code} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Unit</Label>
+                                <Select
+                                    value={editUnitId}
+                                    onValueChange={setEditUnitId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select unit" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name} ({entry.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.unit_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={editCategoryId}
+                                    onValueChange={setEditCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.category_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Quantity</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editQuantity}
                                     onChange={(event) =>
-                                        handleEditImageChange(event.target.files)
+                                        setEditQuantity(event.target.value)
                                     }
                                 />
-                                {editImages.length > 0 ? (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {editImages.map((image) => (
-                                            <div
-                                                key={image.id}
-                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={image.preview}
-                                                    alt={image.file.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                    onClick={() =>
-                                                        removeEditImage(image.id)
-                                                    }
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : null}
+                                <InputError message={editErrors.quantity} />
                             </div>
-                            <InputError message={editErrors.images} />
+                            <div className="grid gap-2">
+                                <Label>Single Price {editCurrencySymbol}</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editUnitPrice}
+                                    onChange={(event) =>
+                                        setEditUnitPrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.unit_price} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Total Price (Auto) {editCurrencySymbol}</Label>
+                                <Input
+                                    value={formatPrice(editTotalPrice)}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Paid Amount {editCurrencySymbol}</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editPaidAmount}
+                                    onChange={(event) =>
+                                        setEditPaidAmount(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.paid_amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
+                                <Input
+                                    value={`${editCurrencySymbol}${formatPrice(
+                                        Math.max(
+                                            0,
+                                            editTotalPrice -
+                                                (Number(editPaidAmount) || 0),
+                                        ),
+                                    )}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        checked={editUsable}
+                                        onCheckedChange={(checked) =>
+                                            setEditUsable(!!checked)
+                                        }
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        Usable item
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={editDescription}
+                                    onChange={(event) =>
+                                        setEditDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.description} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor={`edit-receipt-${data.id}`}>
+                                    Replace Receipt/Bill (optional)
+                                </Label>
+                                <Input
+                                    id={`edit-receipt-${data.id}`}
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(event) =>
+                                        setEditReceipt(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                {data.receipt_url || data.receipt_path ? (
+                                    <a
+                                        href={String(data.receipt_url ?? data.receipt_path)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-xs text-blue-600 hover:underline"
+                                    >
+                                        View current receipt
+                                    </a>
+                                ) : null}
+                                {editReceipt ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        New file: {editReceipt.name}
+                                    </p>
+                                ) : null}
+                                <InputError message={editErrors.receipt} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Add New Images (optional)</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload additional images for this item.
+                                        </p>
+                                        <Label
+                                            htmlFor={`edit-images-${data.id}`}
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id={`edit-images-${data.id}`}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleEditImageChange(event.target.files)
+                                        }
+                                    />
+                                    {editImages.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {editImages.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeEditImage(image.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={editErrors.images} />
+                            </div>
                         </div>
                     </div>
 
