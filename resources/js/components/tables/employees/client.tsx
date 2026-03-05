@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -20,80 +21,96 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Link, router } from '@inertiajs/react';
-import { Plus, ShieldCheck, User as UserIcon, X } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { Plus, UserRound, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
-interface UsersClientProps {
-    data: User[];
-    roles: Role[];
-    countries: Country[];
-    provinces: Province[];
+interface EmployeeClientProps {
+    data: Employee[];
     branches: Branch[];
+    employmentTypes: EmploymentType[];
+    employeePositions: EmployeePosition[];
     isLoading?: boolean;
 }
 
-export const UsersClient: React.FC<UsersClientProps> = ({
+const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
+const CURRENCIES = ['AFN', 'USD'];
+
+export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     data,
-    roles,
-    countries,
-    provinces,
     branches,
+    employmentTypes,
+    employeePositions,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [roleId, setRoleId] = useState<string>('');
-    const [countryId, setCountryId] = useState<string>('');
-    const [provinceId, setProvinceId] = useState<string>('');
-    const [branchId, setBranchId] = useState<string>('');
-    const [password, setPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [branchId, setBranchId] = useState('');
+    const [employmentTypeId, setEmploymentTypeId] = useState('');
+    const [employeePositionId, setEmployeePositionId] = useState('');
+    const [salary, setSalary] = useState('');
+    const [salaryCurrency, setSalaryCurrency] = useState('AFN');
+    const [status, setStatus] = useState('active');
+    const [address, setAddress] = useState('');
+    const [description, setDescription] = useState('');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
-        setName('');
-        setEmail('');
-        setRoleId('');
-        setCountryId('');
-        setProvinceId('');
+        setFirstName('');
+        setLastName('');
+        setPhone('');
         setBranchId('');
-        setPassword('');
-        setPasswordConfirmation('');
+        setEmploymentTypeId('');
+        setEmployeePositionId('');
+        setSalary('');
+        setSalaryCurrency('AFN');
+        setStatus('active');
+        setAddress('');
+        setDescription('');
         setCreateErrors({});
     };
 
     const handleCreateSubmit = () => {
-        if (!name.trim() || !email.trim() || !password || isSubmitting) {
+        if (!firstName.trim() || !lastName.trim() || !branchId || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
         router.post(
-            '/users',
+            '/employees',
             {
-                name: name.trim(),
-                email: email.trim(),
-                password,
-                password_confirmation: passwordConfirmation,
-                roles: roleId ? [Number(roleId)] : [],
-                country_id: countryId ? Number(countryId) : null,
-                province_id: provinceId ? Number(provinceId) : null,
-                branch_id: branchId ? Number(branchId) : null,
+                first_name: firstName.trim(),
+                last_name: lastName.trim(),
+                phone: phone.trim() || null,
+                branch_id: Number(branchId),
+                employment_type_id: employmentTypeId
+                    ? Number(employmentTypeId)
+                    : null,
+                employee_position_id: employeePositionId
+                    ? Number(employeePositionId)
+                    : null,
+                salary: salary.trim() ? Number(salary) : null,
+                salary_currency: salaryCurrency,
+                status,
+                is_active: status === 'active',
+                address: address.trim() || null,
+                description: description.trim() || null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('User created successfully.');
+                    toast.success('Employee created successfully.');
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -107,54 +124,37 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         );
     };
 
-    const createRoleError =
-        createErrors.roles ??
-        Object.entries(createErrors).find(([key]) =>
-            key.startsWith('roles.'),
-        )?.[1];
-
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches),
-        [roles, countries, provinces, branches],
+        () => buildColumns(branches, employmentTypes, employeePositions),
+        [branches, employmentTypes, employeePositions],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Users: ${formatNumber(data.length)}`}
-                    description="Manage system users"
+                    title={`Employees: ${formatNumber(data.length)}`}
+                    description="Manage employee records"
                 />
-                <div className="gap-2">
-                    <Link href="/roles">
-                        <Button className="mr-2 gap-2" variant={'outline'}>
-                            <ShieldCheck className="h-4 w-4" />
-                            Roles
-                        </Button>
-                    </Link>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add User
-                    </Button>
-                </div>
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Employee
+                </Button>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
                 searchKey={[
-                    'name',
-                    'email',
+                    'full_name',
+                    'phone',
                     'branch',
-                    'province',
-                    'country',
-                    'is_active',
+                    'employee_position',
+                    'employment_type',
+                    'status',
                 ]}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search users by name or email..."
+                searchPlaceholder="Search employees by name, phone, or branch..."
             />
 
             <Dialog
@@ -166,162 +166,209 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
-                            <UserIcon className="h-5 w-5" />
-                            Create User
+                            <UserRound className="h-5 w-5" />
+                            Create Employee
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new user and assign roles and location.
+                            Add employee profile, employment type, position, and salary details.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-name">Name</Label>
-                            <Input
-                                id="user-name"
-                                value={name}
-                                onChange={(event) =>
-                                    setName(event.target.value)
-                                }
-                                placeholder="Full name"
-                            />
-                            <InputError message={createErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-email">Email</Label>
-                            <Input
-                                id="user-email"
-                                type="email"
-                                value={email}
-                                onChange={(event) =>
-                                    setEmail(event.target.value)
-                                }
-                                placeholder="user@babataste.com"
-                            />
-                            <InputError message={createErrors.email} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-password">Password</Label>
-                            <Input
-                                id="user-password"
-                                type="password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.password} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="user-password-confirm">
-                                Confirm password
-                            </Label>
-                            <Input
-                                id="user-password-confirm"
-                                type="password"
-                                value={passwordConfirmation}
-                                onChange={(event) =>
-                                    setPasswordConfirmation(event.target.value)
-                                }
-                            />
-                            <InputError
-                                message={createErrors.password_confirmation}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Role</Label>
-                            <Select value={roleId} onValueChange={setRoleId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem
-                                            key={role.id}
-                                            value={String(role.id)}
-                                        >
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createRoleError} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Country</Label>
-                            <Select
-                                value={countryId}
-                                onValueChange={(value) => {
-                                    setCountryId(value);
-                                    if (value !== countryId) {
-                                        setProvinceId('');
+                    <ScrollArea className="max-h-[70vh]">
+                        <div className="grid gap-4 px-1 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-first-name">First name</Label>
+                                <Input
+                                    id="employee-first-name"
+                                    value={firstName}
+                                    onChange={(event) =>
+                                        setFirstName(event.target.value)
                                     }
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {countries.map((country) => (
-                                        <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
-                                        >
-                                            {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.country_id} />
+                                    placeholder="First name"
+                                />
+                                <InputError message={createErrors.first_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-last-name">Last name</Label>
+                                <Input
+                                    id="employee-last-name"
+                                    value={lastName}
+                                    onChange={(event) =>
+                                        setLastName(event.target.value)
+                                    }
+                                    placeholder="Last name"
+                                />
+                                <InputError message={createErrors.last_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-phone">Phone</Label>
+                                <Input
+                                    id="employee-phone"
+                                    value={phone}
+                                    onChange={(event) => setPhone(event.target.value)}
+                                    placeholder="07xx xxx xxx"
+                                />
+                                <InputError message={createErrors.phone} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select value={branchId} onValueChange={setBranchId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Employment type</Label>
+                                <Select
+                                    value={employmentTypeId}
+                                    onValueChange={setEmploymentTypeId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select employment type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {employmentTypes.map((type) => (
+                                            <SelectItem
+                                                key={type.id}
+                                                value={String(type.id)}
+                                            >
+                                                {type.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={createErrors.employment_type_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Employee position</Label>
+                                <Select
+                                    value={employeePositionId}
+                                    onValueChange={setEmployeePositionId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select position" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {employeePositions.map((position) => (
+                                            <SelectItem
+                                                key={position.id}
+                                                value={String(position.id)}
+                                            >
+                                                {position.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={createErrors.employee_position_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-salary">Salary</Label>
+                                <Input
+                                    id="employee-salary"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={salary}
+                                    onChange={(event) => setSalary(event.target.value)}
+                                    placeholder="0.00"
+                                />
+                                <InputError message={createErrors.salary} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Salary currency</Label>
+                                <Select
+                                    value={salaryCurrency}
+                                    onValueChange={setSalaryCurrency}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCIES.map((currency) => (
+                                            <SelectItem
+                                                key={currency}
+                                                value={currency}
+                                            >
+                                                {currency}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={createErrors.salary_currency}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Status</Label>
+                                <Select value={status} onValueChange={setStatus}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {EMPLOYEE_STATUSES.map((employeeStatus) => (
+                                            <SelectItem
+                                                key={employeeStatus}
+                                                value={employeeStatus}
+                                            >
+                                                {employeeStatus
+                                                    .split('_')
+                                                    .map(
+                                                        (part) =>
+                                                            part
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                            part.slice(1),
+                                                    )
+                                                    .join(' ')}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.status} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="employee-address">Address</Label>
+                                <Input
+                                    id="employee-address"
+                                    value={address}
+                                    onChange={(event) => setAddress(event.target.value)}
+                                    placeholder="Address"
+                                />
+                                <InputError message={createErrors.address} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="employee-description">Description</Label>
+                                <Textarea
+                                    id="employee-description"
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(event.target.value)
+                                    }
+                                    placeholder="Notes about this employee"
+                                />
+                                <InputError message={createErrors.description} />
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Province</Label>
-                            <Select
-                                value={provinceId}
-                                onValueChange={setProvinceId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {provinces.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.province_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select
-                                value={branchId}
-                                onValueChange={setBranchId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.branch_id} />
-                        </div>
-                    </div>
+                    </ScrollArea>
 
                     <DialogFooter>
                         <Button
@@ -335,14 +382,14 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={
-                                !name.trim() ||
-                                !email.trim() ||
-                                !password ||
+                                !firstName.trim() ||
+                                !lastName.trim() ||
+                                !branchId ||
                                 isSubmitting
                             }
                         >
                             <Plus className="mr-2 h-4 w-4" />
-                            Create User
+                            Create Employee
                         </Button>
                     </DialogFooter>
                 </DialogContent>
