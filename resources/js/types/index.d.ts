@@ -61,6 +61,51 @@ export interface User {
     [key: string]: unknown;
 }
 
+export interface EmploymentType {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface EmployeePosition {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Employee {
+    id: number;
+    first_name: string;
+    last_name: string;
+    full_name?: string;
+    phone?: string | null;
+    address?: string | null;
+    description?: string | null;
+    profile_picture?: string | null;
+    attachments?: string[] | null;
+    branch?: string | null;
+    branch_id?: number | null;
+    employment_type?: string | null;
+    employment_type_id?: number | null;
+    employee_position?: string | null;
+    employee_position_id?: number | null;
+    salary?: number | string | null;
+    salary_currency?: 'AFN' | 'USD';
+    status?: string;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Role {
     id: number;
     name: string;
@@ -240,10 +285,12 @@ export interface InventoryItem {
     vendor_id?: number | null;
     unit_id?: number | null;
     category_id?: number | null;
+    inventory_type_id?: number | null;
     branch?: Branch | null;
     vendor?: Vendor | null;
     unitReference?: Unit | null;
     categoryReference?: InventoryCategory | null;
+    typeReference?: InventoryType | null;
     name: string;
     description?: string | null;
     type: string;
@@ -303,6 +350,16 @@ export interface Unit {
 }
 
 export interface InventoryCategory {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface InventoryType {
     id: number;
     name: string;
     description?: string | null;

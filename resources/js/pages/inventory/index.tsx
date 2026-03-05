@@ -23,6 +23,7 @@ import {
     Currency,
     InventoryCategory,
     InventoryItem,
+    InventoryType,
     Unit,
     Vendor,
 } from '@/types';
@@ -55,6 +56,7 @@ interface InventoryPageProps {
     currencies: Currency[];
     units: Unit[];
     categories: InventoryCategory[];
+    inventoryTypes: InventoryType[];
 }
 
 export default function InventoryPage({
@@ -64,6 +66,7 @@ export default function InventoryPage({
     currencies,
     units,
     categories,
+    inventoryTypes,
 }: InventoryPageProps) {
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
@@ -392,6 +395,7 @@ export default function InventoryPage({
                             currencies={currencies}
                             units={units}
                             categories={categories}
+                            inventoryTypes={inventoryTypes}
                         />
                     </div>
                 </div>

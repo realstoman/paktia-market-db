@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Currency;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\InventoryType;
 use App\Models\Unit;
 use App\Models\Vendor;
 use Carbon\Carbon;
@@ -24,6 +25,7 @@ class InventoryController extends Controller
             'vendor',
             'unitReference',
             'categoryReference',
+            'typeReference',
             'images',
             'transactions',
         ])
@@ -40,6 +42,7 @@ class InventoryController extends Controller
             'currencies' => Currency::orderBy('name')->get(),
             'units' => Unit::orderBy('name')->get(),
             'categories' => InventoryCategory::orderBy('name')->get(),
+            'inventoryTypes' => InventoryType::orderBy('name')->get(),
         ]);
     }
 
@@ -49,7 +52,7 @@ class InventoryController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'type' => 'required|string|max:100',
+            'inventory_type_id' => 'required|exists:inventory_types,id',
             'unit' => 'nullable|string|max:50',
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
@@ -80,6 +83,9 @@ class InventoryController extends Controller
             if (!empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
+            $inventoryType = InventoryType::findOrFail(
+                $validated['inventory_type_id'],
+            );
 
             $receiptPath = null;
             if ($request->hasFile('receipt')) {
@@ -91,9 +97,10 @@ class InventoryController extends Controller
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
+                'inventory_type_id' => $validated['inventory_type_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'type' => strtolower(trim($validated['type'])),
+                'type' => strtolower(trim($inventoryType->name)),
                 'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
                 'quantity' => $validated['quantity'],
                 'unit_price' => $validated['unit_price'],
@@ -239,7 +246,7 @@ class InventoryController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'type' => 'required|string|max:100',
+            'inventory_type_id' => 'required|exists:inventory_types,id',
             'unit' => 'nullable|string|max:50',
             'quantity' => 'required|numeric|min:0',
             'unit_price' => 'required|numeric|min:0',
@@ -270,6 +277,9 @@ class InventoryController extends Controller
             if (!empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
+            $inventoryType = InventoryType::findOrFail(
+                $validated['inventory_type_id'],
+            );
 
             $oldQuantity = (float) $inventory->quantity;
             $newQuantity = (float) $validated['quantity'];
@@ -279,9 +289,10 @@ class InventoryController extends Controller
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
+                'inventory_type_id' => $validated['inventory_type_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'type' => strtolower(trim($validated['type'])),
+                'type' => strtolower(trim($inventoryType->name)),
                 'unit' => $unit?->symbol ?? $validated['unit'] ?? null,
                 'quantity' => $newQuantity,
                 'unit_price' => $validated['unit_price'],
@@ -474,6 +485,44 @@ class InventoryController extends Controller
 
         return redirect()->back()
             ->with('success', 'Unit deleted successfully.');
+    }
+
+    public function storeInventoryType(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:inventory_types,name',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        InventoryType::create($validated);
+
+        return redirect()->back()
+            ->with('success', 'Inventory type created successfully.');
+    }
+
+    public function updateInventoryType(
+        Request $request,
+        InventoryType $inventoryType,
+    ) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:inventory_types,name,'.$inventoryType->id,
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
+        ]);
+
+        $inventoryType->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Inventory type updated successfully.');
+    }
+
+    public function destroyInventoryType(InventoryType $inventoryType)
+    {
+        $inventoryType->delete();
+
+        return redirect()->back()
+            ->with('success', 'Inventory type deleted successfully.');
     }
 
     public function storeInventoryCategory(Request $request)
