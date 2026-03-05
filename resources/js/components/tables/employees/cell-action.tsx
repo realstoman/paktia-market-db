@@ -35,6 +35,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { router } from '@inertiajs/react';
@@ -49,6 +57,7 @@ import {
     Save,
     Trash,
     Trash2,
+    Wallet,
     X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -94,6 +103,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     employeePositions,
 }) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -158,6 +168,42 @@ export const CellAction: React.FC<CellActionProps> = ({
         () => (Array.isArray(data.attachments) ? data.attachments : []),
         [data.attachments],
     );
+
+    const staticPreviousPayments = useMemo(
+        () => [
+            {
+                id: '1',
+                date: '2026-02-28',
+                type: 'Salary',
+                amount: 25000,
+                currency: data.salary_currency ?? 'AFN',
+                note: 'Monthly salary - February',
+            },
+            {
+                id: '2',
+                date: '2026-02-16',
+                type: 'Takeout',
+                amount: 3500,
+                currency: data.salary_currency ?? 'AFN',
+                note: 'Personal advance',
+            },
+            {
+                id: '3',
+                date: '2026-01-31',
+                type: 'Salary',
+                amount: 25000,
+                currency: data.salary_currency ?? 'AFN',
+                note: 'Monthly salary - January',
+            },
+        ],
+        [data.salary_currency],
+    );
+
+    const nextSalaryDate = useMemo(() => {
+        const next = new Date();
+        next.setMonth(next.getMonth() + 1, 0);
+        return next.toLocaleDateString();
+    }, []);
 
     const resetEdit = () => {
         setEditFirstName(data.first_name ?? '');
@@ -335,6 +381,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsFinanceOpen(true)}>
+                        <Wallet className="mr-2 h-4 w-4" />
+                        Employee Finances
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
@@ -491,6 +541,97 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         No attachments uploaded.
                                     </p>
                                 )}
+                            </div>
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isFinanceOpen} onOpenChange={setIsFinanceOpen}>
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Employee Finances</DialogTitle>
+                        <DialogDescription>
+                            Static preview of salary and takeout records.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <ScrollArea className="max-h-[70vh]">
+                        <div className="space-y-6 px-1">
+                            <div className="rounded-xl border bg-gradient-to-r from-emerald-50 to-white p-5 dark:from-emerald-950/30 dark:to-neutral-950">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                                    Upcoming Payment
+                                </p>
+                                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                                    <div>
+                                        <p className="text-2xl font-semibold">
+                                            {`${Number(data.salary ?? 25000).toLocaleString()} ${data.salary_currency ?? 'AFN'}`}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Monthly salary for{' '}
+                                            {data.full_name ??
+                                                `${data.first_name} ${data.last_name}`}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
+                                        Due date: {nextSalaryDate}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border p-4">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold">
+                                        Previous Payments
+                                    </h4>
+                                    <span className="text-xs text-muted-foreground">
+                                        Salary + Takeouts
+                                    </span>
+                                </div>
+
+                                <div className="overflow-hidden rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Amount</TableHead>
+                                                <TableHead>Note</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {staticPreviousPayments.map(
+                                                (payment) => (
+                                                    <TableRow key={payment.id}>
+                                                        <TableCell>
+                                                            {new Date(
+                                                                payment.date,
+                                                            ).toLocaleDateString()}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span
+                                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                                                    payment.type ===
+                                                                    'Salary'
+                                                                        ? 'bg-blue-100 text-blue-700'
+                                                                        : 'bg-amber-100 text-amber-700'
+                                                                }`}
+                                                            >
+                                                                {payment.type}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="font-medium">
+                                                            {`${payment.amount.toLocaleString()} ${payment.currency}`}
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground">
+                                                            {payment.note}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ),
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
                         </div>
                     </ScrollArea>
