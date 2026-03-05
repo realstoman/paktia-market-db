@@ -130,9 +130,10 @@ class InventoryController extends Controller
             'apply_new_price' => 'sometimes|boolean',
             'currency_code' => 'required_if:apply_new_price,true|string|size:3|exists:currencies,code',
             'unit_price' => 'required_if:apply_new_price,true|numeric|min:0',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
-        DB::transaction(function () use ($inventory, $validated) {
+        DB::transaction(function () use ($inventory, $validated, $request) {
             if (!empty($validated['apply_new_price'])) {
                 $currency = Currency::where(
                     'code',
@@ -144,6 +145,25 @@ class InventoryController extends Controller
                     'currency_code' => $currency->code,
                     'currency_symbol' => $currency->symbol,
                 ]);
+            }
+
+            if ($request->hasFile('receipt')) {
+                $oldReceiptPath = $inventory->receipt_path;
+                $newReceiptPath = $request->file('receipt')->store(
+                    'inventory/receipts',
+                    'public',
+                );
+
+                $inventory->update([
+                    'receipt_path' => $newReceiptPath,
+                ]);
+
+                if ($oldReceiptPath) {
+                    $normalizedOldPath = str_starts_with($oldReceiptPath, 'public/')
+                        ? str_replace('public/', '', $oldReceiptPath)
+                        : $oldReceiptPath;
+                    Storage::disk('public')->delete($normalizedOldPath);
+                }
             }
 
             $inventory->increment('quantity', $validated['quantity']);

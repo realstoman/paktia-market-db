@@ -90,6 +90,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
     const [restockNote, setRestockNote] = useState('');
+    const [restockReceipt, setRestockReceipt] = useState<File | null>(null);
     const [restockHasNewPrice, setRestockHasNewPrice] = useState(false);
     const [restockCurrencyCode, setRestockCurrencyCode] = useState(
         data.currency_code ?? 'AFN',
@@ -219,6 +220,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 ? String(data.unit_price)
                 : '',
         );
+        setRestockReceipt(null);
         setErrors({});
     };
 
@@ -239,9 +241,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                 unit_price: restockHasNewPrice
                     ? Number(restockUnitPrice)
                     : null,
+                receipt: restockReceipt,
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Item restocked successfully.');
                     setIsRestockOpen(false);
@@ -978,6 +982,37 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             />
                             <InputError message={errors.note} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor={`restock-receipt-${data.id}`}>
+                                Upload Receipt/Bill (optional)
+                            </Label>
+                            <Input
+                                id={`restock-receipt-${data.id}`}
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={(event) =>
+                                    setRestockReceipt(
+                                        event.target.files?.[0] ?? null,
+                                    )
+                                }
+                            />
+                            {data.receipt_url || data.receipt_path ? (
+                                <a
+                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs text-blue-600 hover:underline"
+                                >
+                                    View current receipt
+                                </a>
+                            ) : null}
+                            {restockReceipt ? (
+                                <p className="text-xs text-muted-foreground">
+                                    New file: {restockReceipt.name}
+                                </p>
+                            ) : null}
+                            <InputError message={errors.receipt} />
                         </div>
                     </div>
 
