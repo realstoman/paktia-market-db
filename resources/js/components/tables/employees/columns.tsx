@@ -5,6 +5,22 @@ import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
+const publicStorageUrl = (path?: string | null) => {
+    if (!path) {
+        return null;
+    }
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
+    if (path.startsWith('/storage/')) {
+        return path;
+    }
+
+    return `/storage/${path.replace(/^\/+/, '')}`;
+};
+
 export const buildColumns = (
     branches: Branch[],
     employmentTypes: EmploymentType[],
@@ -30,6 +46,31 @@ export const buildColumns = (
         ),
         enableSorting: false,
         enableHiding: false,
+    },
+    {
+        id: 'photo',
+        header: 'Photo',
+        cell: ({ row }) => {
+            const photoUrl = publicStorageUrl(row.original.profile_picture);
+            const initials = `${row.original.first_name?.charAt(0) ?? ''}${row.original.last_name?.charAt(0) ?? ''}`.toUpperCase();
+
+            return (
+                <div className="flex items-center">
+                    {photoUrl ? (
+                        <img
+                            src={photoUrl}
+                            alt={row.original.full_name ?? 'Employee'}
+                            className="h-10 w-10 rounded-full border object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-muted-foreground">
+                            {initials || 'NA'}
+                        </div>
+                    )}
+                </div>
+            );
+        },
+        enableSorting: false,
     },
     {
         accessorKey: 'id',
