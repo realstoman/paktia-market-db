@@ -30,7 +30,7 @@ import {
     Unit,
     Vendor,
 } from '@/types';
-import { formatNumber, formatPrice } from '@/utils/format';
+import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
     ImagePlus,
@@ -73,8 +73,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     categories,
     isLoading = false,
 }) => {
+    interface UsageCycleItem {
+        id: string;
+        inventoryItemId: string;
+        quantityUsed: string;
+        note: string;
+    }
+
     const FILTER_ALL = '__all__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isUsageCycleOpen, setIsUsageCycleOpen] = useState(false);
     const [name, setName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [type, setType] = useState('consumable');
@@ -126,6 +134,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     );
     const [selectedBranchFilter, setSelectedBranchFilter] = useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
+    const [usageDate, setUsageDate] = useState(
+        new Date().toISOString().slice(0, 10),
+    );
+    const [usageItems, setUsageItems] = useState<UsageCycleItem[]>([
+        {
+            id: 'usage-0',
+            inventoryItemId: '',
+            quantityUsed: '',
+            note: '',
+        },
+    ]);
+    const [usageErrors, setUsageErrors] = useState<Record<string, string>>({});
+    const [isUsageSubmitting, setIsUsageSubmitting] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -154,6 +175,49 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setReceipt(null);
         clearSelectedImages();
         setErrors({});
+    };
+
+    const resetUsageCycleForm = () => {
+        setUsageDate(new Date().toISOString().slice(0, 10));
+        setUsageItems([
+            {
+                id: `${Date.now()}-usage-0`,
+                inventoryItemId: '',
+                quantityUsed: '',
+                note: '',
+            },
+        ]);
+        setUsageErrors({});
+    };
+
+    const addUsageItemRow = () => {
+        setUsageItems((prev) => [
+            ...prev,
+            {
+                id: `${Date.now()}-usage-${prev.length}`,
+                inventoryItemId: '',
+                quantityUsed: '',
+                note: '',
+            },
+        ]);
+    };
+
+    const removeUsageItemRow = (rowId: string) => {
+        setUsageItems((prev) =>
+            prev.length === 1 ? prev : prev.filter((row) => row.id !== rowId),
+        );
+    };
+
+    const updateUsageItemField = (
+        rowId: string,
+        field: 'inventoryItemId' | 'quantityUsed' | 'note',
+        value: string,
+    ) => {
+        setUsageItems((prev) =>
+            prev.map((row) =>
+                row.id === rowId ? { ...row, [field]: value } : row,
+            ),
+        );
     };
 
     const handleImageChange = (files: FileList | null) => {
@@ -550,6 +614,47 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         );
     };
 
+    const handleSaveUsageCycle = () => {
+        const hasInvalidRows = usageItems.some(
+            (row) => !row.inventoryItemId || !row.quantityUsed,
+        );
+
+        if (!usageDate || hasInvalidRows || isUsageSubmitting) {
+            return;
+        }
+
+        setIsUsageSubmitting(true);
+        router.post(
+            '/inventory/usage-cycle',
+            {
+                usage_date: usageDate,
+                items: usageItems.map((row) => ({
+                    inventory_item_id: Number(row.inventoryItemId),
+                    quantity: Number(row.quantityUsed),
+                    note: row.note.trim() || null,
+                })),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Usage cycle saved successfully.');
+                    setIsUsageCycleOpen(false);
+                    resetUsageCycleForm();
+                },
+                onError: (validationErrors) => {
+                    setUsageErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            'Failed to save usage cycle.',
+                    );
+                },
+                onFinish: () => {
+                    setIsUsageSubmitting(false);
+                },
+            },
+        );
+    };
+
     const totalPrice = useMemo(() => {
         const qty = Number(quantity);
         const price = Number(unitPrice);
@@ -567,6 +672,37 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         if (Number.isNaN(paid)) return totalPrice;
         return Math.max(0, totalPrice - paid);
     }, [paidAmount, totalPrice]);
+
+    const usableItems = useMemo(() => {
+        return data.filter(
+            (item) => item.is_usable && Number(item.quantity || 0) > 0,
+        );
+    }, [data]);
+
+    const usageSummary = useMemo(() => {
+        let totalQuantityUsed = 0;
+        let totalValuation = 0;
+
+        for (const row of usageItems) {
+            const qty = Number(row.quantityUsed || 0);
+            if (Number.isNaN(qty) || qty <= 0) continue;
+
+            const selectedItem = usableItems.find(
+                (item) => String(item.id) === row.inventoryItemId,
+            );
+
+            if (!selectedItem) continue;
+
+            const unitPrice = Number(selectedItem.unit_price || 0);
+            totalQuantityUsed += qty;
+            totalValuation += qty * unitPrice;
+        }
+
+        return {
+            totalQuantityUsed,
+            totalValuation,
+        };
+    }, [usageItems, usableItems]);
 
     const tableColumns = useMemo(
         () => buildColumns(branches, vendors, currencies, units, categories),
@@ -628,6 +764,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     description="Manage grocery, food supplies, and other usable/non-usable inventory."
                 />
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsUsageCycleOpen(true)}
+                        className="gap-2"
+                    >
+                        Usage Cycle
+                    </Button>
                     <Button
                         variant="outline"
                         onClick={() => {
@@ -722,7 +865,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>
                             {editingVendorId ? 'Edit Vendor' : 'Manage Vendors'}
@@ -1228,7 +1371,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>Create Inventory Item</DialogTitle>
                         <DialogDescription>
@@ -1237,299 +1380,301 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label>Name</Label>
-                            <Input
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                            />
-                            <InputError message={errors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select value={branchId} onValueChange={setBranchId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Vendor (optional)</Label>
-                            <Select value={vendorId} onValueChange={setVendorId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={VENDOR_NONE}>
-                                        No Vendor
-                                    </SelectItem>
-                                    {vendors.map((vendor) => (
-                                        <SelectItem
-                                            key={vendor.id}
-                                            value={String(vendor.id)}
-                                        >
-                                            {vendor.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.vendor_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Currency</Label>
-                            <Select
-                                value={currencyCode}
-                                onValueChange={setCurrencyCode}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencies.map((currency) => (
-                                        <SelectItem
-                                            key={currency.id}
-                                            value={currency.code}
-                                        >
-                                            {currency.code} ({currency.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.currency_code} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Select value={type} onValueChange={setType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="consumable">
-                                        Consumable
-                                    </SelectItem>
-                                    <SelectItem value="fixed">Fixed</SelectItem>
-                                    <SelectItem value="grocery">
-                                        Grocery
-                                    </SelectItem>
-                                    <SelectItem value="food">Food</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Unit</Label>
-                            <Select value={unitId} onValueChange={setUnitId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {units.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name} ({entry.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.unit_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select
-                                value={categoryId}
-                                onValueChange={setCategoryId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Initial Quantity</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={quantity}
-                                onChange={(event) =>
-                                    setQuantity(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.quantity} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Single Price {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={unitPrice}
-                                onChange={(event) =>
-                                    setUnitPrice(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.unit_price} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Total Price (Auto) {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Paid Amount {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={paidAmount}
-                                onChange={(event) =>
-                                    setPaidAmount(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.paid_amount} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                Remaining Amount (Auto){' '}
-                                {selectedCurrencySymbol || ''}
-                            </Label>
-                            <Input
-                                value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    checked={isUsable}
-                                    onCheckedChange={(checked) =>
-                                        setIsUsable(!!checked)
-                                    }
-                                />
-                                <span className="text-sm text-muted-foreground">
-                                    Usable item
-                                </span>
-                            </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={description}
-                                onChange={(event) =>
-                                    setDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={errors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="inventory-receipt">
-                                Receipt/Bill (image or PDF)
-                            </Label>
-                            <Input
-                                id="inventory-receipt"
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(event) =>
-                                    setReceipt(event.target.files?.[0] ?? null)
-                                }
-                            />
-                            {receipt ? (
-                                <p className="text-xs text-muted-foreground">
-                                    Selected: {receipt.name}
-                                </p>
-                            ) : null}
-                            <InputError message={errors.receipt} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Images (up to 10)</Label>
-                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Upload item images.
-                                    </p>
-                                    <Label
-                                        htmlFor="inventory-images"
-                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                    >
-                                        <ImagePlus className="h-4 w-4" />
-                                        Select Images
-                                    </Label>
-                                </div>
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Name</Label>
                                 <Input
-                                    id="inventory-images"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="hidden"
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                />
+                                <InputError message={errors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select value={branchId} onValueChange={setBranchId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Vendor (optional)</Label>
+                                <Select value={vendorId} onValueChange={setVendorId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={VENDOR_NONE}>
+                                            No Vendor
+                                        </SelectItem>
+                                        {vendors.map((vendor) => (
+                                            <SelectItem
+                                                key={vendor.id}
+                                                value={String(vendor.id)}
+                                            >
+                                                {vendor.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.vendor_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Currency</Label>
+                                <Select
+                                    value={currencyCode}
+                                    onValueChange={setCurrencyCode}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem
+                                                key={currency.id}
+                                                value={currency.code}
+                                            >
+                                                {currency.code} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.currency_code} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={type} onValueChange={setType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="consumable">
+                                            Consumable
+                                        </SelectItem>
+                                        <SelectItem value="fixed">Fixed</SelectItem>
+                                        <SelectItem value="grocery">
+                                            Grocery
+                                        </SelectItem>
+                                        <SelectItem value="food">Food</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Unit</Label>
+                                <Select value={unitId} onValueChange={setUnitId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select unit" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name} ({entry.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.unit_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={categoryId}
+                                    onValueChange={setCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={errors.category_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Initial Quantity</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={quantity}
                                     onChange={(event) =>
-                                        handleImageChange(event.target.files)
+                                        setQuantity(event.target.value)
                                     }
                                 />
-                                {images.length > 0 ? (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {images.map((image) => (
-                                            <div
-                                                key={image.id}
-                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={image.preview}
-                                                    alt={image.file.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                    onClick={() =>
-                                                        removeSelectedImage(
-                                                            image.id,
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : null}
+                                <InputError message={errors.quantity} />
                             </div>
-                            <InputError message={errors.images} />
+                            <div className="grid gap-2">
+                                <Label>
+                                    Single Price {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={unitPrice}
+                                    onChange={(event) =>
+                                        setUnitPrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.unit_price} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Total Price (Auto) {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(totalPrice)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Paid Amount {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={paidAmount}
+                                    onChange={(event) =>
+                                        setPaidAmount(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.paid_amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    Remaining Amount (Auto){' '}
+                                    {selectedCurrencySymbol || ''}
+                                </Label>
+                                <Input
+                                    value={`${selectedCurrencySymbol}${formatPrice(remainingAmount)}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        checked={isUsable}
+                                        onCheckedChange={(checked) =>
+                                            setIsUsable(!!checked)
+                                        }
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        Usable item
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.description} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="inventory-receipt">
+                                    Receipt/Bill (image or PDF)
+                                </Label>
+                                <Input
+                                    id="inventory-receipt"
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(event) =>
+                                        setReceipt(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                {receipt ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        Selected: {receipt.name}
+                                    </p>
+                                ) : null}
+                                <InputError message={errors.receipt} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Images (up to 10)</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload item images.
+                                        </p>
+                                        <Label
+                                            htmlFor="inventory-images"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="inventory-images"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleImageChange(event.target.files)
+                                        }
+                                    />
+                                    {images.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {images.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeSelectedImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={errors.images} />
+                            </div>
                         </div>
                     </div>
 
@@ -1556,6 +1701,229 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Create Item
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isUsageCycleOpen}
+                onOpenChange={(open) => {
+                    setIsUsageCycleOpen(open);
+                    if (!open) {
+                        resetUsageCycleForm();
+                    }
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Usage Cycle</DialogTitle>
+                        <DialogDescription>
+                            Record usable item consumption and deduct stock.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label>Date</Label>
+                                <Input
+                                    type="date"
+                                    value={usageDate}
+                                    onChange={(event) =>
+                                        setUsageDate(event.target.value)
+                                    }
+                                />
+                                <InputError message={usageErrors.usage_date} />
+                            </div>
+
+                            <div className="space-y-3">
+                                {usageItems.map((row, index) => {
+                                    const selectedItem = usableItems.find(
+                                        (item) =>
+                                            String(item.id) === row.inventoryItemId,
+                                    );
+
+                                    return (
+                                        <div
+                                            key={row.id}
+                                            className="space-y-3 rounded-md border p-3"
+                                        >
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div className="grid gap-2">
+                                                    <Label>Usable Item</Label>
+                                                    <Select
+                                                        value={row.inventoryItemId}
+                                                        onValueChange={(value) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'inventoryItemId',
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select usable item" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {usableItems.map((item) => (
+                                                                <SelectItem
+                                                                    key={item.id}
+                                                                    value={String(item.id)}
+                                                                >
+                                                                    {item.name} (
+                                                                    {item.branch?.name ??
+                                                                        `Branch #${item.branch_id}`}
+                                                                    ) - Available:{' '}
+                                                                    {Number(
+                                                                        item.quantity || 0,
+                                                                    )}{' '}
+                                                                    {item.unit ?? 'unit'}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.inventory_item_id`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Quantity Used</Label>
+                                                    <Input
+                                                        type="number"
+                                                        min="0.01"
+                                                        step="0.01"
+                                                        value={row.quantityUsed}
+                                                        onChange={(event) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'quantityUsed',
+                                                                event.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.quantity`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2 sm:col-span-2">
+                                                    <Label>Note (optional)</Label>
+                                                    <Textarea
+                                                        value={row.note}
+                                                        onChange={(event) =>
+                                                            updateUsageItemField(
+                                                                row.id,
+                                                                'note',
+                                                                event.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            usageErrors[
+                                                                `items.${index}.note`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {selectedItem ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Unit Price:{' '}
+                                                    {selectedItem.currency_symbol ?? ''}
+                                                    {formatPrice(
+                                                        selectedItem.unit_price || 0,
+                                                    )}{' '}
+                                                    | Available:{' '}
+                                                    {Number(selectedItem.quantity || 0)}{' '}
+                                                    {selectedItem.unit ?? 'unit'}
+                                                </p>
+                                            ) : null}
+
+                                            {usageItems.length > 1 ? (
+                                                <div className="flex justify-end">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            removeUsageItemRow(
+                                                                row.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="mr-1 h-3 w-3" />
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={addUsageItemRow}
+                                    className="gap-2"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Add Item
+                                </Button>
+                                <InputError message={usageErrors.items} />
+                            </div>
+
+                            <div className="grid gap-2 rounded-md border p-3 sm:grid-cols-2">
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Total Number Used
+                                    </p>
+                                    <p className="text-lg font-semibold">
+                                        {formatNumber(usageSummary.totalQuantityUsed)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Total Valuation
+                                    </p>
+                                    <p className="text-lg font-semibold">
+                                        {formatAfn(usageSummary.totalValuation)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsUsageCycleOpen(false)}
+                            disabled={isUsageSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveUsageCycle}
+                            disabled={
+                                !usageDate ||
+                                usageItems.some(
+                                    (row) =>
+                                        !row.inventoryItemId || !row.quantityUsed,
+                                ) ||
+                                isUsageSubmitting
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Usage Cycle
                         </Button>
                     </DialogFooter>
                 </DialogContent>

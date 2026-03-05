@@ -22,8 +22,8 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { router } from '@inertiajs/react';
-import { Plus, User as UserIcon, X } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { Plus, ShieldCheck, User as UserIcon, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -125,10 +125,21 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     title={`System Users: ${formatNumber(data.length)}`}
                     description="Manage system users"
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add New
-                </Button>
+                <div className="gap-2">
+                    <Link href="/roles">
+                        <Button className="mr-2 gap-2" variant={'outline'}>
+                            <ShieldCheck className="h-4 w-4" />
+                            Roles
+                        </Button>
+                    </Link>
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add User
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable

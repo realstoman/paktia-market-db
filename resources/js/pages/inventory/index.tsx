@@ -3,6 +3,13 @@
 import { InventoryClient } from '@/components/tables/inventory/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -24,7 +31,6 @@ import { Head } from '@inertiajs/react';
 import {
     Banknote,
     Boxes,
-    PackageCheck,
     PackageMinus,
     PackageX,
     Warehouse,
@@ -62,6 +68,7 @@ export default function InventoryPage({
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
+    const [isVendorOwedModalOpen, setIsVendorOwedModalOpen] = useState(false);
 
     const statsItems = useMemo(() => {
         if (selectedBranchId === BRANCH_FILTER_ALL) {
@@ -116,6 +123,64 @@ export default function InventoryPage({
             totalOwed,
         };
     }, [statsItems]);
+
+    const vendorOwedRows = useMemo(() => {
+        const vendorMap = new Map<
+            number,
+            {
+                vendorName: string;
+                owedAmount: number;
+                lastPaidAt: number | null;
+            }
+        >();
+
+        for (const item of statsItems) {
+            if (!item.vendor_id) continue;
+
+            const total =
+                (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
+            const paid = Number(item.paid_amount) || 0;
+            const owed = Math.max(0, total - paid);
+
+            const vendorName =
+                item.vendor?.name ??
+                vendors.find((vendor) => vendor.id === item.vendor_id)?.name ??
+                `Vendor #${item.vendor_id}`;
+
+            const existing = vendorMap.get(item.vendor_id) ?? {
+                vendorName,
+                owedAmount: 0,
+                lastPaidAt: null,
+            };
+
+            existing.owedAmount += owed;
+
+            if (paid > 0 && item.updated_at) {
+                const paidAt = new Date(item.updated_at).getTime();
+                if (!Number.isNaN(paidAt)) {
+                    existing.lastPaidAt = Math.max(
+                        existing.lastPaidAt ?? 0,
+                        paidAt,
+                    );
+                }
+            }
+
+            vendorMap.set(item.vendor_id, existing);
+        }
+
+        return Array.from(vendorMap.values())
+            .filter((entry) => entry.owedAmount > 0)
+            .sort((a, b) => b.owedAmount - a.owedAmount);
+    }, [statsItems, vendors]);
+
+    const formatPaidDate = (timestamp: number | null) => {
+        if (!timestamp) return 'No payment recorded';
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        }).format(new Date(timestamp));
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -180,17 +245,28 @@ export default function InventoryPage({
                             </CardContent>
                         </Card>
 
-                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
+                        <Card className="gap-3 border-red-200 bg-red-50 py-4 shadow-none md:col-span-6 dark:border-red-900/50 dark:bg-red-950/20">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                 <CardTitle className="text-sm">
                                     Amount Owed to Vendors
                                 </CardTitle>
-                                <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                                <Banknote className="h-4 w-4 text-red-600 dark:text-red-400" />
                             </CardHeader>
                             <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatAfn(stats.totalOwed)}
-                                </p>
+                                <div className="flex items-end justify-between gap-3">
+                                    <p className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-300">
+                                        {formatAfn(stats.totalOwed)}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setIsVendorOwedModalOpen(true)
+                                        }
+                                        className="text-xs font-medium text-red-700 underline underline-offset-4 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
+                                    >
+                                        View details
+                                    </button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -243,7 +319,71 @@ export default function InventoryPage({
                     </div>
                 </div>
 
-                    <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
+                <Dialog
+                    open={isVendorOwedModalOpen}
+                    onOpenChange={setIsVendorOwedModalOpen}
+                >
+                    <DialogContent className="sm:max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Amount Owed to Vendors</DialogTitle>
+                            <DialogDescription>
+                                Outstanding payable amounts grouped by vendor
+                                and last payment date.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="max-h-[60vh] overflow-auto rounded-md border">
+                            <table className="w-full text-sm">
+                                <thead className="bg-muted/40 text-left">
+                                    <tr>
+                                        <th className="px-3 py-2 font-medium">
+                                            Vendor
+                                        </th>
+                                        <th className="px-3 py-2 font-medium">
+                                            Amount Owed
+                                        </th>
+                                        <th className="px-3 py-2 font-medium">
+                                            Last Paid
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {vendorOwedRows.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={3}
+                                                className="px-3 py-6 text-center text-muted-foreground"
+                                            >
+                                                No outstanding vendor balance.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        vendorOwedRows.map((row) => (
+                                            <tr
+                                                key={row.vendorName}
+                                                className="border-t"
+                                            >
+                                                <td className="px-3 py-2">
+                                                    {row.vendorName}
+                                                </td>
+                                                <td className="px-3 py-2 font-medium text-red-700 dark:text-red-300">
+                                                    {formatAfn(row.owedAmount)}
+                                                </td>
+                                                <td className="px-3 py-2 text-muted-foreground">
+                                                    {formatPaidDate(
+                                                        row.lastPaidAt,
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
                     <div className="p-6 text-gray-900">
                         <InventoryClient
                             data={inventoryItems}

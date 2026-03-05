@@ -8,8 +8,11 @@ use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Unit;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
@@ -126,20 +129,108 @@ class InventoryController extends Controller
         $validated = $request->validate([
             'quantity' => 'required|numeric|min:0.01',
             'note' => 'nullable|string|max:1000',
+            'apply_new_price' => 'sometimes|boolean',
+            'currency_code' => 'required_if:apply_new_price,true|string|size:3|exists:currencies,code',
+            'unit_price' => 'required_if:apply_new_price,true|numeric|min:0',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
-        DB::transaction(function () use ($inventory, $validated) {
+        DB::transaction(function () use ($inventory, $validated, $request) {
+            if (!empty($validated['apply_new_price'])) {
+                $currency = Currency::where(
+                    'code',
+                    strtoupper($validated['currency_code']),
+                )->firstOrFail();
+
+                $inventory->update([
+                    'unit_price' => $validated['unit_price'],
+                    'currency_code' => $currency->code,
+                    'currency_symbol' => $currency->symbol,
+                ]);
+            }
+
+            if ($request->hasFile('receipt')) {
+                $oldReceiptPath = $inventory->receipt_path;
+                $newReceiptPath = $request->file('receipt')->store(
+                    'inventory/receipts',
+                    'public',
+                );
+
+                $inventory->update([
+                    'receipt_path' => $newReceiptPath,
+                ]);
+
+                if ($oldReceiptPath) {
+                    $normalizedOldPath = str_starts_with($oldReceiptPath, 'public/')
+                        ? str_replace('public/', '', $oldReceiptPath)
+                        : $oldReceiptPath;
+                    Storage::disk('public')->delete($normalizedOldPath);
+                }
+            }
+
             $inventory->increment('quantity', $validated['quantity']);
 
             $inventory->transactions()->create([
                 'action' => 'restock',
                 'quantity' => $validated['quantity'],
-                'note' => $validated['note'] ?? null,
+                'note' => $validated['note']
+                    ?? (!empty($validated['apply_new_price'])
+                        ? 'Restocked with updated price.'
+                        : null),
             ]);
         });
 
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item restocked successfully.');
+    }
+
+    public function storeUsageCycle(Request $request)
+    {
+        $validated = $request->validate([
+            'usage_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.inventory_item_id' => 'required|exists:inventory_items,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.note' => 'nullable|string|max:1000',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $usageDate = Carbon::parse($validated['usage_date'])->startOfDay();
+
+            foreach ($validated['items'] as $index => $entry) {
+                $item = InventoryItem::query()
+                    ->lockForUpdate()
+                    ->findOrFail($entry['inventory_item_id']);
+
+                if (! $item->is_usable) {
+                    throw ValidationException::withMessages([
+                        "items.$index.inventory_item_id" => 'Selected item is not usable.',
+                    ]);
+                }
+
+                $usedQuantity = (float) $entry['quantity'];
+                $availableQuantity = (float) $item->quantity;
+
+                if ($usedQuantity > $availableQuantity) {
+                    throw ValidationException::withMessages([
+                        "items.$index.quantity" => 'Used quantity exceeds available stock.',
+                    ]);
+                }
+
+                $item->decrement('quantity', $usedQuantity);
+
+                $item->transactions()->create([
+                    'action' => 'usage_cycle',
+                    'quantity' => -$usedQuantity,
+                    'note' => $entry['note'] ?? 'Usage cycle entry.',
+                    'created_at' => $usageDate,
+                    'updated_at' => $usageDate,
+                ]);
+            }
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Usage cycle saved successfully.');
     }
 
     public function update(Request $request, InventoryItem $inventory)
@@ -159,6 +250,8 @@ class InventoryController extends Controller
             'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|max:4096',
         ]);
 
         $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
@@ -204,6 +297,17 @@ class InventoryController extends Controller
 
             $inventory->update($payload);
 
+            $existingImageCount = $inventory->images()->count();
+            $newImages = $request->file('images', []);
+
+            foreach ($newImages as $index => $image) {
+                $path = $image->store('inventory', 'public');
+                $inventory->images()->create([
+                    'path' => $path,
+                    'sort_order' => $existingImageCount + $index,
+                ]);
+            }
+
             $delta = $newQuantity - $oldQuantity;
             if (abs($delta) > 0.00001) {
                 $inventory->transactions()->create([
@@ -216,6 +320,34 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item updated successfully.');
+    }
+
+    public function destroy(InventoryItem $inventory)
+    {
+        DB::transaction(function () use ($inventory) {
+            $imagePaths = $inventory->images()
+                ->pluck('path')
+                ->filter()
+                ->all();
+            $receiptPath = $inventory->receipt_path;
+
+            // Related rows are removed by FK cascade; delete files explicitly.
+            $inventory->delete();
+
+            foreach ($imagePaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            if ($receiptPath) {
+                $normalizedPath = str_starts_with($receiptPath, 'public/')
+                    ? str_replace('public/', '', $receiptPath)
+                    : $receiptPath;
+                Storage::disk('public')->delete($normalizedPath);
+            }
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Inventory item deleted successfully.');
     }
 
     public function storeVendor(Request $request)

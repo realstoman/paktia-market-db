@@ -89,6 +89,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [categoryName, setCategoryName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
     const [typeName, setTypeName] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [kitchenFilter, setKitchenFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -305,6 +309,109 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         [categories, kitchens, types],
     );
 
+    const filteredData = useMemo(() => {
+        return data.filter((product) => {
+            const byCategory =
+                categoryFilter === 'all' ||
+                String(product.product_category_id ?? '') === categoryFilter;
+            const byKitchen =
+                kitchenFilter === 'all' ||
+                String(product.kitchen_id ?? '') === kitchenFilter;
+            const byType =
+                typeFilter === 'all' ||
+                (product.type ?? '').trim().toLowerCase() === typeFilter;
+            const byStatus =
+                statusFilter === 'all' ||
+                (statusFilter === 'active'
+                    ? !!product.is_active
+                    : !product.is_active);
+
+            return byCategory && byKitchen && byType && byStatus;
+        });
+    }, [categoryFilter, data, kitchenFilter, statusFilter, typeFilter]);
+
+    const filterToolbar = useMemo(
+        () => (
+            <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+                <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                >
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map((category) => (
+                            <SelectItem
+                                key={category.id}
+                                value={String(category.id)}
+                            >
+                                {category.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={kitchenFilter} onValueChange={setKitchenFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Kitchen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Kitchens</SelectItem>
+                        {kitchens.map((kitchen) => (
+                            <SelectItem
+                                key={kitchen.id}
+                                value={String(kitchen.id)}
+                            >
+                                {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {availableTypes.map((productType) => (
+                            <SelectItem
+                                key={productType}
+                                value={productType.trim().toLowerCase()}
+                            >
+                                <span className="capitalize">
+                                    {productType}
+                                </span>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-10 w-44">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        ),
+        [
+            availableTypes,
+            categories,
+            categoryFilter,
+            kitchenFilter,
+            kitchens,
+            statusFilter,
+            typeFilter,
+        ],
+    );
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
@@ -321,7 +428,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         <Settings2 className="h-4 w-4" />
                         Manage Categories & Types
                     </Button>
-                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
                         <Plus className="h-4 w-4" />
                         Add New Product
                     </Button>
@@ -341,9 +451,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     'type',
                 ]}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search products by name or category..."
+                toolbar={filterToolbar}
             />
 
             <Dialog
@@ -362,239 +473,283 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             Create Product
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new product with images and optional size pricing.
+                            Add a new product with images and optional size
+                            pricing.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="product-name">Name</Label>
-                            <Input
-                                id="product-name"
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                            />
-                            <InputError message={createErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="product-pashto-name">
-                                Pashto Name
-                            </Label>
-                            <Input
-                                id="product-pashto-name"
-                                value={pashtoName}
-                                onChange={(event) =>
-                                    setPashtoName(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.pashto_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="product-dari-name">Dari Name</Label>
-                            <Input
-                                id="product-dari-name"
-                                value={dariName}
-                                onChange={(event) =>
-                                    setDariName(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.dari_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select value={categoryId} onValueChange={setCategoryId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem
-                                            key={category.id}
-                                            value={String(category.id)}
-                                        >
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.product_category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Kitchen</Label>
-                            <Select value={kitchenId} onValueChange={setKitchenId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select kitchen" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {kitchens.map((kitchen) => (
-                                        <SelectItem
-                                            key={kitchen.id}
-                                            value={String(kitchen.id)}
-                                        >
-                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.kitchen_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Select value={type} onValueChange={setType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableTypes.map((productType) => (
-                                        <SelectItem
-                                            key={productType}
-                                            value={productType}
-                                        >
-                                            <span className="capitalize">
-                                                {productType}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="product-base-price">Base Price (AFN)</Label>
-                            <Input
-                                id="product-base-price"
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={basePrice}
-                                onChange={(event) => setBasePrice(event.target.value)}
-                            />
-                            <InputError message={createErrors.base_price} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="product-description">Description</Label>
-                            <Textarea
-                                id="product-description"
-                                value={description}
-                                onChange={(event) => setDescription(event.target.value)}
-                            />
-                            <InputError message={createErrors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="product-pashto-description">
-                                Pashto Description
-                            </Label>
-                            <Textarea
-                                id="product-pashto-description"
-                                value={pashtoDescription}
-                                onChange={(event) =>
-                                    setPashtoDescription(event.target.value)
-                                }
-                            />
-                            <InputError
-                                message={createErrors.pashto_description}
-                            />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="product-dari-description">
-                                Dari Description
-                            </Label>
-                            <Textarea
-                                id="product-dari-description"
-                                value={dariDescription}
-                                onChange={(event) =>
-                                    setDariDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.dari_description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Size Pricing (Optional, AFN)</Label>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {sizes.map((size) => (
-                                    <div
-                                        key={size.id}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <span className="w-28 text-sm text-muted-foreground">
-                                            {size.name}
-                                        </span>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="1"
-                                            placeholder="Use base price"
-                                            value={sizePrices[size.id] ?? ''}
-                                            onChange={(event) =>
-                                                handleSizePriceChange(
-                                                    size.id,
-                                                    event.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="product-images">Product Images</Label>
-                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Upload up to {MAX_IMAGES} images. Recommended size: 400x400 or 400x480.
-                                    </p>
-                                    <Label
-                                        htmlFor="product-images"
-                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                    >
-                                        <ImagePlus className="h-4 w-4" />
-                                        Select Images
-                                    </Label>
-                                </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="product-name">Name</Label>
                                 <Input
-                                    id="product-images"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={(event) => handleImageChange(event.target.files)}
-                                    className="hidden"
+                                    id="product-name"
+                                    value={name}
+                                    onChange={(event) =>
+                                        setName(event.target.value)
+                                    }
                                 />
-                                {images.length > 0 ? (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {images.map((image) => (
-                                            <div
-                                                key={image.id}
-                                                className="group relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={image.preview}
-                                                    alt={image.file.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                    onClick={() => removeSelectedImage(image.id)}
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : null}
+                                <InputError message={createErrors.name} />
                             </div>
-                            <InputError message={createErrors.images} />
-                        </div>
-                        <div className="flex items-center gap-2 sm:col-span-2">
-                            <Checkbox
-                                checked={isActive}
-                                onCheckedChange={(checked) => setIsActive(!!checked)}
-                            />
-                            <span className="text-sm text-muted-foreground">
-                                Active product
-                            </span>
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="product-pashto-name">
+                                    Pashto Name
+                                </Label>
+                                <Input
+                                    id="product-pashto-name"
+                                    value={pashtoName}
+                                    onChange={(event) =>
+                                        setPashtoName(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.pashto_name}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="product-dari-name">
+                                    Dari Name
+                                </Label>
+                                <Input
+                                    id="product-dari-name"
+                                    value={dariName}
+                                    onChange={(event) =>
+                                        setDariName(event.target.value)
+                                    }
+                                />
+                                <InputError message={createErrors.dari_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={categoryId}
+                                    onValueChange={setCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem
+                                                key={category.id}
+                                                value={String(category.id)}
+                                            >
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={createErrors.product_category_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Kitchen</Label>
+                                <Select
+                                    value={kitchenId}
+                                    onValueChange={setKitchenId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select kitchen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kitchens.map((kitchen) => (
+                                            <SelectItem
+                                                key={kitchen.id}
+                                                value={String(kitchen.id)}
+                                            >
+                                                {kitchen.name ??
+                                                    `Kitchen #${kitchen.id}`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.kitchen_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={type} onValueChange={setType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableTypes.map((productType) => (
+                                            <SelectItem
+                                                key={productType}
+                                                value={productType}
+                                            >
+                                                <span className="capitalize">
+                                                    {productType}
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="product-base-price">
+                                    Base Price (AFN)
+                                </Label>
+                                <Input
+                                    id="product-base-price"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={basePrice}
+                                    onChange={(event) =>
+                                        setBasePrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={createErrors.base_price} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="product-description">
+                                    Description
+                                </Label>
+                                <Textarea
+                                    id="product-description"
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.description}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="product-pashto-description">
+                                    Pashto Description
+                                </Label>
+                                <Textarea
+                                    id="product-pashto-description"
+                                    value={pashtoDescription}
+                                    onChange={(event) =>
+                                        setPashtoDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.pashto_description}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="product-dari-description">
+                                    Dari Description
+                                </Label>
+                                <Textarea
+                                    id="product-dari-description"
+                                    value={dariDescription}
+                                    onChange={(event) =>
+                                        setDariDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.dari_description}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Size Pricing (Optional, AFN)</Label>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {sizes.map((size) => (
+                                        <div
+                                            key={size.id}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <span className="w-28 text-sm text-muted-foreground">
+                                                {size.name}
+                                            </span>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                placeholder="Use base price"
+                                                value={
+                                                    sizePrices[size.id] ?? ''
+                                                }
+                                                onChange={(event) =>
+                                                    handleSizePriceChange(
+                                                        size.id,
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="product-images">
+                                    Product Images
+                                </Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload up to {MAX_IMAGES} images.
+                                            Recommended size: 400x400 or
+                                            400x480.
+                                        </p>
+                                        <Label
+                                            htmlFor="product-images"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="product-images"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(event) =>
+                                            handleImageChange(
+                                                event.target.files,
+                                            )
+                                        }
+                                        className="hidden"
+                                    />
+                                    {images.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {images.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="group relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeSelectedImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={createErrors.images} />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Checkbox
+                                    checked={isActive}
+                                    onCheckedChange={(checked) =>
+                                        setIsActive(!!checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Active product
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -630,7 +785,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     <DialogHeader>
                         <DialogTitle>Manage Categories & Types</DialogTitle>
                         <DialogDescription>
-                            Create or remove product categories and product types.
+                            Create or remove product categories and product
+                            types.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 sm:grid-cols-2">
@@ -651,14 +807,18 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     placeholder="Category description (optional)"
                                     value={categoryDescription}
                                     onChange={(event) =>
-                                        setCategoryDescription(event.target.value)
+                                        setCategoryDescription(
+                                            event.target.value,
+                                        )
                                     }
                                 />
                                 <Button
                                     type="button"
                                     onClick={handleCategoryCreate}
                                     className="w-full"
-                                    disabled={!categoryName.trim() || isSubmitting}
+                                    disabled={
+                                        !categoryName.trim() || isSubmitting
+                                    }
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
                                     Add Category
@@ -683,7 +843,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             size="sm"
                                             variant="ghost"
                                             onClick={() =>
-                                                handleCategoryDelete(category.id)
+                                                handleCategoryDelete(
+                                                    category.id,
+                                                )
                                             }
                                         >
                                             <Trash2 className="h-4 w-4 text-red-600" />

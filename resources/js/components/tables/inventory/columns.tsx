@@ -155,33 +155,6 @@ export const buildColumns = (
             },
         },
         {
-            accessorKey: 'paid_amount',
-            header: 'Paid',
-            cell: ({ row }) =>
-                `${row.original.currency_symbol ?? ''}${formatNumber(
-                    row.original.paid_amount ?? 0,
-                )}`,
-        },
-        {
-            id: 'outstanding_amount',
-            header: 'Remaining',
-            accessorFn: (row) =>
-                Math.max(
-                    0,
-                    Number(row.quantity || 0) * Number(row.unit_price || 0) -
-                        Number(row.paid_amount || 0),
-                ),
-            cell: ({ row }) =>
-                `${row.original.currency_symbol ?? ''}${formatNumber(
-                    Math.max(
-                        0,
-                        Number(row.original.quantity || 0) *
-                            Number(row.original.unit_price || 0) -
-                            Number(row.original.paid_amount || 0),
-                    ),
-                )}`,
-        },
-        {
             accessorKey: 'is_usable',
             header: 'Usable',
             cell: ({ row }) =>

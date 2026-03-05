@@ -1,4 +1,14 @@
 import InputError from '@/components/input-error';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -36,8 +46,17 @@ import {
 } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import {
+    CalendarClock,
+    Eye,
+    ImagePlus,
+    MoreHorizontal,
+    PackagePlus,
+    Pencil,
+    Save,
+    Trash2,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -49,6 +68,14 @@ interface CellActionProps {
     categories: InventoryCategory[];
 }
 
+interface PendingImage {
+    id: string;
+    file: File;
+    preview: string;
+}
+
+const MAX_EDIT_IMAGES = 10;
+
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     branches,
@@ -59,10 +86,22 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
     const [restockNote, setRestockNote] = useState('');
+    const [restockReceipt, setRestockReceipt] = useState<File | null>(null);
+    const [restockHasNewPrice, setRestockHasNewPrice] = useState(false);
+    const [restockCurrencyCode, setRestockCurrencyCode] = useState(
+        data.currency_code ?? 'AFN',
+    );
+    const [restockUnitPrice, setRestockUnitPrice] = useState(
+        data.unit_price !== undefined && data.unit_price !== null
+            ? String(data.unit_price)
+            : '',
+    );
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
@@ -90,11 +129,20 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editDescription, setEditDescription] = useState(data.description ?? '');
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
+    const [editImages, setEditImages] = useState<PendingImage[]>([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
 
     const latestTransactions = useMemo(
         () => (data.transactions ?? []).slice(0, 5),
+        [data.transactions],
+    );
+    const usageTransactions = useMemo(
+        () =>
+            (data.transactions ?? []).filter(
+                (transaction) => transaction.action === 'usage_cycle',
+            ),
         [data.transactions],
     );
 
@@ -112,6 +160,19 @@ export const CellAction: React.FC<CellActionProps> = ({
         return matched?.symbol ?? data.currency_symbol ?? '';
     }, [currencies, data.currency_symbol, editCurrencyCode]);
 
+    const restockCurrencySymbol = useMemo(() => {
+        const matched = currencies.find(
+            (currency) => currency.code === restockCurrencyCode,
+        );
+        return matched?.symbol ?? data.currency_symbol ?? '';
+    }, [currencies, data.currency_symbol, restockCurrencyCode]);
+
+    useEffect(() => {
+        return () => {
+            editImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        };
+    }, [editImages]);
+
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
@@ -126,7 +187,50 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
         setEditReceipt(null);
+        editImages.forEach((image) => URL.revokeObjectURL(image.preview));
+        setEditImages([]);
         setEditErrors({});
+    };
+
+    const handleEditImageChange = (files: FileList | null) => {
+        if (!files) return;
+
+        setEditImages((prev) => {
+            const remainingSlots = MAX_EDIT_IMAGES - prev.length;
+            const nextFiles = Array.from(files).slice(0, remainingSlots);
+            return [
+                ...prev,
+                ...nextFiles.map((file, index) => ({
+                    id: `${Date.now()}-${file.name}-${index}`,
+                    file,
+                    preview: URL.createObjectURL(file),
+                })),
+            ];
+        });
+    };
+
+    const removeEditImage = (id: string) => {
+        setEditImages((prev) => {
+            const target = prev.find((image) => image.id === id);
+            if (target) {
+                URL.revokeObjectURL(target.preview);
+            }
+            return prev.filter((image) => image.id !== id);
+        });
+    };
+
+    const resetRestockForm = () => {
+        setRestockQty('');
+        setRestockNote('');
+        setRestockHasNewPrice(false);
+        setRestockCurrencyCode(data.currency_code ?? 'AFN');
+        setRestockUnitPrice(
+            data.unit_price !== undefined && data.unit_price !== null
+                ? String(data.unit_price)
+                : '',
+        );
+        setRestockReceipt(null);
+        setErrors({});
     };
 
     const handleRestock = () => {
@@ -141,15 +245,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 quantity: Number(restockQty),
                 note: restockNote.trim() || null,
+                apply_new_price: restockHasNewPrice,
+                currency_code: restockHasNewPrice ? restockCurrencyCode : null,
+                unit_price: restockHasNewPrice
+                    ? Number(restockUnitPrice)
+                    : null,
+                receipt: restockReceipt,
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Item restocked successfully.');
                     setIsRestockOpen(false);
-                    setRestockQty('');
-                    setRestockNote('');
-                    setErrors({});
+                    resetRestockForm();
                 },
                 onError: (validationErrors) => {
                     setErrors(validationErrors);
@@ -198,6 +307,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
+                images: editImages.map((image) => image.file),
             },
             {
                 preserveScroll: true,
@@ -221,6 +331,25 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
     };
 
+    const handleDelete = () => {
+        if (isDeleteSubmitting) return;
+
+        setIsDeleteSubmitting(true);
+        router.delete(`/inventory/${data.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Inventory item deleted successfully.');
+                setIsDeleteOpen(false);
+            },
+            onError: () => {
+                toast.error('Failed to delete inventory item.');
+            },
+            onFinish: () => {
+                setIsDeleteSubmitting(false);
+            },
+        });
+    };
+
     return (
         <>
             <DropdownMenu modal={false}>
@@ -236,6 +365,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Eye className="mr-2 h-4 w-4" />
                         Details
                     </DropdownMenuItem>
+                    {data.is_usable ? (
+                        <DropdownMenuItem
+                            onClick={() => setIsUsageHistoryOpen(true)}
+                        >
+                            <CalendarClock className="mr-2 h-4 w-4" />
+                            Usage History
+                        </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem
                         onClick={() => {
                             resetEditForm();
@@ -249,11 +386,55 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <PackagePlus className="mr-2 h-4 w-4" />
                         Restock
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => setIsDeleteOpen(true)}
+                        className="text-red-600 focus:text-red-600"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
+            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Inventory Item?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete "{data.name}" and
+                            cascade related records (images and transactions).
+                            <br />
+                            <br />
+                            Current stock: {Number(data.quantity || 0)}{' '}
+                            {data.unit ?? 'unit'}
+                            <br />
+                            Payment due: {data.currency_symbol ?? ''}
+                            {formatPrice(
+                                Math.max(
+                                    0,
+                                    Number(data.outstanding_amount ?? 0),
+                                ),
+                            )}
+                            {data.vendor?.name ? ` (Vendor: ${data.vendor.name})` : ''}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleteSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleteSubmitting}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Edit Inventory Item</DialogTitle>
                         <DialogDescription>
@@ -261,248 +442,303 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label>Name</Label>
-                            <Input
-                                value={editName}
-                                onChange={(event) => setEditName(event.target.value)}
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Branch</Label>
-                            <Select
-                                value={editBranchId}
-                                onValueChange={setEditBranchId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
+                    <div className="max-h-[68vh] overflow-y-auto pr-1">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label>Name</Label>
+                                <Input
+                                    value={editName}
+                                    onChange={(event) => setEditName(event.target.value)}
+                                />
+                                <InputError message={editErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Branch</Label>
+                                <Select
+                                    value={editBranchId}
+                                    onValueChange={setEditBranchId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem
+                                                key={branch.id}
+                                                value={String(branch.id)}
+                                            >
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Input
+                                    value={editType}
+                                    onChange={(event) => setEditType(event.target.value)}
+                                />
+                                <InputError message={editErrors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Vendor</Label>
+                                <Select
+                                    value={editVendorId}
+                                    onValueChange={setEditVendorId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={VENDOR_NONE}>
+                                            No Vendor
                                         </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Input
-                                value={editType}
-                                onChange={(event) => setEditType(event.target.value)}
-                            />
-                            <InputError message={editErrors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Vendor</Label>
-                            <Select
-                                value={editVendorId}
-                                onValueChange={setEditVendorId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={VENDOR_NONE}>
-                                        No Vendor
-                                    </SelectItem>
-                                    {vendors.map((vendor) => (
-                                        <SelectItem
-                                            key={vendor.id}
-                                            value={String(vendor.id)}
-                                        >
-                                            {vendor.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.vendor_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Currency</Label>
-                            <Select
-                                value={editCurrencyCode}
-                                onValueChange={setEditCurrencyCode}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {currencies.map((currency) => (
-                                        <SelectItem
-                                            key={currency.id}
-                                            value={currency.code}
-                                        >
-                                            {currency.code} ({currency.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.currency_code} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Unit</Label>
-                            <Select
-                                value={editUnitId}
-                                onValueChange={setEditUnitId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {units.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name} ({entry.symbol})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.unit_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select
-                                value={editCategoryId}
-                                onValueChange={setEditCategoryId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((entry) => (
-                                        <SelectItem
-                                            key={entry.id}
-                                            value={String(entry.id)}
-                                        >
-                                            {entry.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Quantity</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editQuantity}
-                                onChange={(event) =>
-                                    setEditQuantity(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.quantity} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Single Price {editCurrencySymbol}</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editUnitPrice}
-                                onChange={(event) =>
-                                    setEditUnitPrice(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.unit_price} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Total Price (Auto) {editCurrencySymbol}</Label>
-                            <Input
-                                value={formatPrice(editTotalPrice)}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Paid Amount {editCurrencySymbol}</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={editPaidAmount}
-                                onChange={(event) =>
-                                    setEditPaidAmount(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.paid_amount} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
-                            <Input
-                                value={`${editCurrencySymbol}${formatPrice(
-                                    Math.max(
-                                        0,
-                                        editTotalPrice -
-                                            (Number(editPaidAmount) || 0),
-                                    ),
-                                )}`}
-                                readOnly
-                                className="bg-muted"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    checked={editUsable}
-                                    onCheckedChange={(checked) =>
-                                        setEditUsable(!!checked)
+                                        {vendors.map((vendor) => (
+                                            <SelectItem
+                                                key={vendor.id}
+                                                value={String(vendor.id)}
+                                            >
+                                                {vendor.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.vendor_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Currency</Label>
+                                <Select
+                                    value={editCurrencyCode}
+                                    onValueChange={setEditCurrencyCode}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem
+                                                key={currency.id}
+                                                value={currency.code}
+                                            >
+                                                {currency.code} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.currency_code} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Unit</Label>
+                                <Select
+                                    value={editUnitId}
+                                    onValueChange={setEditUnitId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select unit" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {units.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name} ({entry.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.unit_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={editCategoryId}
+                                    onValueChange={setEditCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((entry) => (
+                                            <SelectItem
+                                                key={entry.id}
+                                                value={String(entry.id)}
+                                            >
+                                                {entry.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.category_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Quantity</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editQuantity}
+                                    onChange={(event) =>
+                                        setEditQuantity(event.target.value)
                                     }
                                 />
-                                <span className="text-sm text-muted-foreground">
-                                    Usable item
-                                </span>
+                                <InputError message={editErrors.quantity} />
                             </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={editDescription}
-                                onChange={(event) =>
-                                    setEditDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`edit-receipt-${data.id}`}>
-                                Replace Receipt/Bill (optional)
-                            </Label>
-                            <Input
-                                id={`edit-receipt-${data.id}`}
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(event) =>
-                                    setEditReceipt(event.target.files?.[0] ?? null)
-                                }
-                            />
-                            {data.receipt_url || data.receipt_path ? (
-                                <a
-                                    href={String(data.receipt_url ?? data.receipt_path)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-xs text-blue-600 hover:underline"
-                                >
-                                    View current receipt
-                                </a>
-                            ) : null}
-                            {editReceipt ? (
-                                <p className="text-xs text-muted-foreground">
-                                    New file: {editReceipt.name}
-                                </p>
-                            ) : null}
-                            <InputError message={editErrors.receipt} />
+                            <div className="grid gap-2">
+                                <Label>Single Price {editCurrencySymbol}</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editUnitPrice}
+                                    onChange={(event) =>
+                                        setEditUnitPrice(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.unit_price} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Total Price (Auto) {editCurrencySymbol}</Label>
+                                <Input
+                                    value={formatPrice(editTotalPrice)}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Paid Amount {editCurrencySymbol}</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editPaidAmount}
+                                    onChange={(event) =>
+                                        setEditPaidAmount(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.paid_amount} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Remaining Amount (Auto) {editCurrencySymbol}</Label>
+                                <Input
+                                    value={`${editCurrencySymbol}${formatPrice(
+                                        Math.max(
+                                            0,
+                                            editTotalPrice -
+                                                (Number(editPaidAmount) || 0),
+                                        ),
+                                    )}`}
+                                    readOnly
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        checked={editUsable}
+                                        onCheckedChange={(checked) =>
+                                            setEditUsable(!!checked)
+                                        }
+                                    />
+                                    <span className="text-sm text-muted-foreground">
+                                        Usable item
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={editDescription}
+                                    onChange={(event) =>
+                                        setEditDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.description} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor={`edit-receipt-${data.id}`}>
+                                    Replace Receipt/Bill (optional)
+                                </Label>
+                                <Input
+                                    id={`edit-receipt-${data.id}`}
+                                    type="file"
+                                    accept="image/*,.pdf"
+                                    onChange={(event) =>
+                                        setEditReceipt(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                {data.receipt_url || data.receipt_path ? (
+                                    <a
+                                        href={String(data.receipt_url ?? data.receipt_path)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-xs text-blue-600 hover:underline"
+                                    >
+                                        View current receipt
+                                    </a>
+                                ) : null}
+                                {editReceipt ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        New file: {editReceipt.name}
+                                    </p>
+                                ) : null}
+                                <InputError message={editErrors.receipt} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Add New Images (optional)</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload additional images for this item.
+                                        </p>
+                                        <Label
+                                            htmlFor={`edit-images-${data.id}`}
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id={`edit-images-${data.id}`}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleEditImageChange(event.target.files)
+                                        }
+                                    />
+                                    {editImages.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {editImages.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeEditImage(image.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={editErrors.images} />
+                            </div>
                         </div>
                     </div>
 
@@ -660,7 +896,87 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isRestockOpen} onOpenChange={setIsRestockOpen}>
+            <Dialog
+                open={isUsageHistoryOpen}
+                onOpenChange={setIsUsageHistoryOpen}
+            >
+                <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Usage History - {data.name}</DialogTitle>
+                        <DialogDescription>
+                            Usage cycle records for this usable item.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="max-h-[65vh] overflow-y-auto rounded-md border">
+                        <table className="w-full text-sm">
+                            <thead className="bg-muted/40 text-left">
+                                <tr>
+                                    <th className="px-3 py-2 font-medium">Date</th>
+                                    <th className="px-3 py-2 font-medium">
+                                        Usage Amount
+                                    </th>
+                                    <th className="px-3 py-2 font-medium">Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {usageTransactions.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={3}
+                                            className="px-3 py-6 text-center text-muted-foreground"
+                                        >
+                                            No usage history found.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    usageTransactions.map((transaction) => {
+                                        const quantity = Math.abs(
+                                            Number(transaction.quantity || 0),
+                                        );
+                                        const dateLabel = transaction.created_at
+                                            ? new Intl.DateTimeFormat('en-US', {
+                                                  year: 'numeric',
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                              }).format(
+                                                  new Date(transaction.created_at),
+                                              )
+                                            : '-';
+
+                                        return (
+                                            <tr
+                                                key={transaction.id}
+                                                className="border-t"
+                                            >
+                                                <td className="px-3 py-2">
+                                                    {dateLabel}
+                                                </td>
+                                                <td className="px-3 py-2">
+                                                    {quantity} {data.unit ?? 'unit'}
+                                                </td>
+                                                <td className="px-3 py-2 text-muted-foreground">
+                                                    {transaction.note || '-'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isRestockOpen}
+                onOpenChange={(open) => {
+                    setIsRestockOpen(open);
+                    if (!open) {
+                        resetRestockForm();
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Restock {data.name}</DialogTitle>
@@ -687,6 +1003,63 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={errors.quantity} />
                         </div>
                         <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    checked={restockHasNewPrice}
+                                    onCheckedChange={(checked) =>
+                                        setRestockHasNewPrice(!!checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Apply new price to all stock
+                                </span>
+                            </div>
+                        </div>
+                        {restockHasNewPrice ? (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label htmlFor={`restock-currency-${data.id}`}>
+                                        Currency
+                                    </Label>
+                                    <Select
+                                        value={restockCurrencyCode}
+                                        onValueChange={setRestockCurrencyCode}
+                                    >
+                                        <SelectTrigger id={`restock-currency-${data.id}`}>
+                                            <SelectValue placeholder="Select currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {currencies.map((currency) => (
+                                                <SelectItem
+                                                    key={currency.id}
+                                                    value={currency.code}
+                                                >
+                                                    {currency.code} ({currency.symbol})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency_code} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor={`restock-price-${data.id}`}>
+                                        New Single Price {restockCurrencySymbol}
+                                    </Label>
+                                    <Input
+                                        id={`restock-price-${data.id}`}
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={restockUnitPrice}
+                                        onChange={(event) =>
+                                            setRestockUnitPrice(event.target.value)
+                                        }
+                                    />
+                                    <InputError message={errors.unit_price} />
+                                </div>
+                            </>
+                        ) : null}
+                        <div className="grid gap-2">
                             <Label htmlFor={`restock-note-${data.id}`}>
                                 Note (optional)
                             </Label>
@@ -698,6 +1071,37 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             />
                             <InputError message={errors.note} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor={`restock-receipt-${data.id}`}>
+                                Upload Receipt/Bill (optional)
+                            </Label>
+                            <Input
+                                id={`restock-receipt-${data.id}`}
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={(event) =>
+                                    setRestockReceipt(
+                                        event.target.files?.[0] ?? null,
+                                    )
+                                }
+                            />
+                            {data.receipt_url || data.receipt_path ? (
+                                <a
+                                    href={String(data.receipt_url ?? data.receipt_path)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs text-blue-600 hover:underline"
+                                >
+                                    View current receipt
+                                </a>
+                            ) : null}
+                            {restockReceipt ? (
+                                <p className="text-xs text-muted-foreground">
+                                    New file: {restockReceipt.name}
+                                </p>
+                            ) : null}
+                            <InputError message={errors.receipt} />
                         </div>
                     </div>
 
@@ -711,7 +1115,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </Button>
                         <Button
                             onClick={handleRestock}
-                            disabled={!restockQty || isSubmitting}
+                            disabled={
+                                !restockQty ||
+                                (restockHasNewPrice &&
+                                    (!restockCurrencyCode || !restockUnitPrice)) ||
+                                isSubmitting
+                            }
                         >
                             <Save className="mr-2 h-4 w-4" />
                             Save Restock
