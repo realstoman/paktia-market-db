@@ -1,16 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 export const buildColumns = (
-    roles: Role[],
-    countries: Country[],
-    provinces: Province[],
     branches: Branch[],
-): ColumnDef<User>[] => [
+    employmentTypes: EmploymentType[],
+    employeePositions: EmployeePosition[],
+): ColumnDef<Employee>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -37,68 +36,66 @@ export const buildColumns = (
         header: 'ID',
     },
     {
-        accessorKey: 'name',
+        accessorKey: 'full_name',
         header: 'Name',
     },
     {
-        accessorKey: 'email',
-        header: 'Email',
+        accessorKey: 'phone',
+        header: 'Phone',
+        cell: ({ row }) => row.original.phone || '—',
     },
     {
-        accessorKey: 'roles',
-        header: 'Role',
-        cell: ({ row }) => {
-            const roles = row.original.roles ?? [];
-            if (roles.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        No role
-                    </span>
-                );
-            }
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {roles.map((role, index) =>
-                        typeof role === 'string' ? (
-                            <Badge key={`${role}-${index}`} variant="secondary">
-                                {role}
-                            </Badge>
-                        ) : (
-                            <Badge key={role.id} variant="secondary">
-                                {role.name}
-                            </Badge>
-                        ),
-                    )}
-                </div>
-            );
-        },
+        accessorKey: 'employment_type',
+        header: 'Employment Type',
+        cell: ({ row }) => row.original.employment_type || '—',
+    },
+    {
+        accessorKey: 'employee_position',
+        header: 'Position',
+        cell: ({ row }) => row.original.employee_position || '—',
     },
     {
         accessorKey: 'branch',
         header: 'Branch',
+        cell: ({ row }) => row.original.branch || '—',
     },
     {
-        accessorKey: 'province',
-        header: 'Province',
+        accessorKey: 'salary',
+        header: 'Salary',
+        cell: ({ row }) => {
+            const salary = row.original.salary;
+            if (salary === null || salary === undefined || salary === '') {
+                return '—';
+            }
+
+            const numericSalary = Number(salary);
+            if (Number.isNaN(numericSalary)) {
+                return '—';
+            }
+
+            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}`;
+        },
     },
     {
-        accessorKey: 'country',
-        header: 'Country',
-    },
-    {
-        accessorKey: 'is_active',
+        accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const active = row.getValue('is_active');
+            const active = row.original.is_active;
+            const status = row.original.status || (active ? 'active' : 'inactive');
+            const label = status
+                .split('_')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+
             return active ? (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                     <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
+                    {label}
                 </Badge>
             ) : (
                 <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
                     <Ban className="h-4 w-4 text-red-600" />
-                    Blocked
+                    {label}
                 </Badge>
             );
         },
@@ -107,8 +104,12 @@ export const buildColumns = (
         accessorKey: 'created_at',
         header: 'Created At',
         cell: ({ row }) => {
-            const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
+            const createdAt = row.original.created_at;
+            if (!createdAt) {
+                return '—';
+            }
+
+            return new Date(createdAt).toLocaleDateString();
         },
     },
     {
@@ -117,10 +118,9 @@ export const buildColumns = (
         cell: ({ row }) => (
             <CellAction
                 data={row.original}
-                roles={roles}
-                countries={countries}
-                provinces={provinces}
                 branches={branches}
+                employmentTypes={employmentTypes}
+                employeePositions={employeePositions}
             />
         ),
     },

@@ -81,7 +81,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     };
 
     const handleCreateSubmit = () => {
-        if (!firstName.trim() || !lastName.trim() || !branchId || isSubmitting) {
+        if (
+            !firstName.trim() ||
+            !lastName.trim() ||
+            !branchId ||
+            isSubmitting
+        ) {
             return;
         }
 
@@ -173,14 +178,17 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             Create Employee
                         </DialogTitle>
                         <DialogDescription>
-                            Add employee profile, employment type, position, and salary details.
+                            Add employee profile, employment type, position, and
+                            salary details.
                         </DialogDescription>
                     </DialogHeader>
 
                     <ScrollArea className="max-h-[70vh]">
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-first-name">First name</Label>
+                                <Label htmlFor="employee-first-name">
+                                    First name
+                                </Label>
                                 <Input
                                     id="employee-first-name"
                                     value={firstName}
@@ -192,7 +200,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.first_name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-last-name">Last name</Label>
+                                <Label htmlFor="employee-last-name">
+                                    Last name
+                                </Label>
                                 <Input
                                     id="employee-last-name"
                                     value={lastName}
@@ -208,14 +218,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <Input
                                     id="employee-phone"
                                     value={phone}
-                                    onChange={(event) => setPhone(event.target.value)}
+                                    onChange={(event) =>
+                                        setPhone(event.target.value)
+                                    }
                                     placeholder="07xx xxx xxx"
                                 />
                                 <InputError message={createErrors.phone} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Branch</Label>
-                                <Select value={branchId} onValueChange={setBranchId}>
+                                <Select
+                                    value={branchId}
+                                    onValueChange={setBranchId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select branch" />
                                     </SelectTrigger>
@@ -288,7 +303,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     min="0"
                                     step="0.01"
                                     value={salary}
-                                    onChange={(event) => setSalary(event.target.value)}
+                                    onChange={(event) =>
+                                        setSalary(event.target.value)
+                                    }
                                     placeholder="0.00"
                                 />
                                 <InputError message={createErrors.salary} />
@@ -319,44 +336,55 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Status</Label>
-                                <Select value={status} onValueChange={setStatus}>
+                                <Select
+                                    value={status}
+                                    onValueChange={setStatus}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {EMPLOYEE_STATUSES.map((employeeStatus) => (
-                                            <SelectItem
-                                                key={employeeStatus}
-                                                value={employeeStatus}
-                                            >
-                                                {employeeStatus
-                                                    .split('_')
-                                                    .map(
-                                                        (part) =>
-                                                            part
-                                                                .charAt(0)
-                                                                .toUpperCase() +
-                                                            part.slice(1),
-                                                    )
-                                                    .join(' ')}
-                                            </SelectItem>
-                                        ))}
+                                        {EMPLOYEE_STATUSES.map(
+                                            (employeeStatus) => (
+                                                <SelectItem
+                                                    key={employeeStatus}
+                                                    value={employeeStatus}
+                                                >
+                                                    {employeeStatus
+                                                        .split('_')
+                                                        .map(
+                                                            (part) =>
+                                                                part
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                part.slice(1),
+                                                        )
+                                                        .join(' ')}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <InputError message={createErrors.status} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label htmlFor="employee-address">Address</Label>
+                                <Label htmlFor="employee-address">
+                                    Address
+                                </Label>
                                 <Input
                                     id="employee-address"
                                     value={address}
-                                    onChange={(event) => setAddress(event.target.value)}
+                                    onChange={(event) =>
+                                        setAddress(event.target.value)
+                                    }
                                     placeholder="Address"
                                 />
                                 <InputError message={createErrors.address} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label htmlFor="employee-description">Description</Label>
+                                <Label htmlFor="employee-description">
+                                    Description
+                                </Label>
                                 <Textarea
                                     id="employee-description"
                                     value={description}
@@ -365,7 +393,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                     placeholder="Notes about this employee"
                                 />
-                                <InputError message={createErrors.description} />
+                                <InputError
+                                    message={createErrors.description}
+                                />
                             </div>
                         </div>
                     </ScrollArea>
