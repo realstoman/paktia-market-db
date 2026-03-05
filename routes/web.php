@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
@@ -203,6 +204,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
     Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+
+    // Employees
+    Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
+    Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+    Route::post('employees/{employee}/toggle-active', [EmployeeController::class, 'toggleActive'])->name('employees.toggle-active');
+    Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

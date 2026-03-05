@@ -61,6 +61,49 @@ export interface User {
     [key: string]: unknown;
 }
 
+export interface EmploymentType {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface EmployeePosition {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Employee {
+    id: number;
+    first_name: string;
+    last_name: string;
+    full_name?: string;
+    phone?: string | null;
+    address?: string | null;
+    description?: string | null;
+    branch?: string | null;
+    branch_id?: number | null;
+    employment_type?: string | null;
+    employment_type_id?: number | null;
+    employee_position?: string | null;
+    employee_position_id?: number | null;
+    salary?: number | string | null;
+    salary_currency?: 'AFN' | 'USD';
+    status?: string;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Role {
     id: number;
     name: string;
