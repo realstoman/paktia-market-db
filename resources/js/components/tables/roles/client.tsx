@@ -16,8 +16,8 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Permission, Role } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { router } from '@inertiajs/react';
-import { Plus, Save, ShieldCheck, ShieldPlus, X } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { Plus, Save, ShieldCheck, ShieldPlus, Users2, X } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -166,19 +166,25 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     description="Manage system roles and permissions"
                 />
                 <div className="flex gap-2">
+                    <Link href="/users">
+                        <Button className="gap-2" variant={'outline'}>
+                            <Users2 className="h-4 w-4" />
+                            Users
+                        </Button>
+                    </Link>
                     <Button
                         variant="outline"
                         onClick={() => setIsPermissionOpen(true)}
                         className="gap-2"
                     >
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                         Add Permission
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                         Add Role
                     </Button>
                 </div>
