@@ -302,8 +302,21 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Inventory Item?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete "{data.name}" and cascade
-                            related records (images and transactions).
+                            This will permanently delete "{data.name}" and
+                            cascade related records (images and transactions).
+                            <br />
+                            <br />
+                            Current stock: {Number(data.quantity || 0)}{' '}
+                            {data.unit ?? 'unit'}
+                            <br />
+                            Payment due: {data.currency_symbol ?? ''}
+                            {formatPrice(
+                                Math.max(
+                                    0,
+                                    Number(data.outstanding_amount ?? 0),
+                                ),
+                            )}
+                            {data.vendor?.name ? ` (Vendor: ${data.vendor.name})` : ''}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
