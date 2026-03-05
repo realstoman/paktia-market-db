@@ -1,4 +1,14 @@
 import InputError from '@/components/input-error';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -36,7 +46,14 @@ import {
 } from '@/types';
 import { formatPrice } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Eye, MoreHorizontal, Save, PackagePlus, Pencil } from 'lucide-react';
+import {
+    Eye,
+    MoreHorizontal,
+    PackagePlus,
+    Pencil,
+    Save,
+    Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -61,6 +78,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
     const [restockNote, setRestockNote] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -92,6 +110,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
 
     const latestTransactions = useMemo(
         () => (data.transactions ?? []).slice(0, 5),
@@ -221,6 +240,25 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
     };
 
+    const handleDelete = () => {
+        if (isDeleteSubmitting) return;
+
+        setIsDeleteSubmitting(true);
+        router.delete(`/inventory/${data.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Inventory item deleted successfully.');
+                setIsDeleteOpen(false);
+            },
+            onError: () => {
+                toast.error('Failed to delete inventory item.');
+            },
+            onFinish: () => {
+                setIsDeleteSubmitting(false);
+            },
+        });
+    };
+
     return (
         <>
             <DropdownMenu modal={false}>
@@ -249,8 +287,39 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <PackagePlus className="mr-2 h-4 w-4" />
                         Restock
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => setIsDeleteOpen(true)}
+                        className="text-red-600 focus:text-red-600"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Inventory Item?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete "{data.name}" and cascade
+                            related records (images and transactions).
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleteSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleteSubmitting}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">

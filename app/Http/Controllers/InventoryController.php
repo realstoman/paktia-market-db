@@ -10,6 +10,7 @@ use App\Models\Unit;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
@@ -216,6 +217,34 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Inventory item updated successfully.');
+    }
+
+    public function destroy(InventoryItem $inventory)
+    {
+        DB::transaction(function () use ($inventory) {
+            $imagePaths = $inventory->images()
+                ->pluck('path')
+                ->filter()
+                ->all();
+            $receiptPath = $inventory->receipt_path;
+
+            // Related rows are removed by FK cascade; delete files explicitly.
+            $inventory->delete();
+
+            foreach ($imagePaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            if ($receiptPath) {
+                $normalizedPath = str_starts_with($receiptPath, 'public/')
+                    ? str_replace('public/', '', $receiptPath)
+                    : $receiptPath;
+                Storage::disk('public')->delete($normalizedPath);
+            }
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Inventory item deleted successfully.');
     }
 
     public function storeVendor(Request $request)

@@ -187,6 +187,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
     Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
+    Route::delete('inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
     Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
     Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
     Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
