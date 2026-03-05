@@ -90,6 +90,38 @@ class EmployeeController extends Controller
 
         $validated = $request->validate($this->rules());
 
+        if ($request->hasFile('profile_picture')) {
+            if (! empty($employee->profile_picture)) {
+                Storage::disk('public')->delete($employee->profile_picture);
+            }
+
+            $validated['profile_picture'] = $request
+                ->file('profile_picture')
+                ->store('employees/profile-pictures', 'public');
+        }
+
+        $attachments = $request->file('attachments', []);
+        if (! empty($attachments)) {
+            $currentAttachments = is_array($employee->attachments)
+                ? $employee->attachments
+                : [];
+
+            if ((count($currentAttachments) + count($attachments)) > 25) {
+                return back()->withErrors([
+                    'attachments' => 'Total attachments cannot exceed 25 files.',
+                ])->withInput();
+            }
+
+            $storedAttachments = collect($attachments)
+                ->map(fn ($file) => $file->store('employees/attachments', 'public'))
+                ->values()
+                ->all();
+
+            $validated['attachments'] = array_values(
+                array_merge($currentAttachments, $storedAttachments),
+            );
+        }
+
         $employee->update($validated);
 
         return redirect()->route('employees.index')
@@ -143,7 +175,7 @@ class EmployeeController extends Controller
             'salary' => ['nullable', 'numeric', 'min:0'],
             'salary_currency' => ['required', Rule::in(['AFN', 'USD'])],
             'profile_picture' => ['nullable', 'image', 'max:4096'],
-            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments' => ['nullable', 'array', 'max:25'],
             'attachments.*' => [
                 'file',
                 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,csv,txt',

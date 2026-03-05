@@ -42,13 +42,15 @@ import {
     Ban,
     CheckCircle,
     Edit,
+    FileText,
+    ImagePlus,
     MoreHorizontal,
     Save,
     Trash,
     Trash2,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -58,8 +60,31 @@ interface CellActionProps {
     employeePositions: EmployeePosition[];
 }
 
+interface SelectedAttachment {
+    id: string;
+    file: File;
+}
+
 const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
+const MAX_ATTACHMENTS = 25;
+
+const publicStorageUrl = (path: string) => {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
+    if (path.startsWith('/storage/')) {
+        return path;
+    }
+
+    return `/storage/${path.replace(/^\/+/, '')}`;
+};
+
+const fileNameFromPath = (path: string) => {
+    const segments = path.split('/');
+    return segments[segments.length - 1] || path;
+};
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
@@ -84,7 +109,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         data.employee_position_id ? String(data.employee_position_id) : '',
     );
     const [editSalary, setEditSalary] = useState(
-        data.salary !== null && data.salary !== undefined ? String(data.salary) : '',
+        data.salary !== null && data.salary !== undefined
+            ? String(data.salary)
+            : '',
     );
     const [editSalaryCurrency, setEditSalaryCurrency] = useState(
         data.salary_currency ?? 'AFN',
@@ -95,8 +122,40 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editAddress, setEditAddress] = useState(data.address ?? '');
     const [editDescription, setEditDescription] = useState(data.description ?? '');
 
+    const [editProfilePicture, setEditProfilePicture] = useState<File | null>(null);
+    const [editAttachments, setEditAttachments] = useState<SelectedAttachment[]>(
+        [],
+    );
+
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const editProfilePicturePreview = useMemo(
+        () =>
+            editProfilePicture ? URL.createObjectURL(editProfilePicture) : null,
+        [editProfilePicture],
+    );
+
+    useEffect(() => {
+        return () => {
+            if (editProfilePicturePreview) {
+                URL.revokeObjectURL(editProfilePicturePreview);
+            }
+        };
+    }, [editProfilePicturePreview]);
+
+    const currentProfilePictureUrl = useMemo(() => {
+        if (!data.profile_picture) {
+            return null;
+        }
+
+        return publicStorageUrl(data.profile_picture);
+    }, [data.profile_picture]);
+
+    const existingAttachments = useMemo(
+        () => (Array.isArray(data.attachments) ? data.attachments : []),
+        [data.attachments],
+    );
 
     const resetEdit = () => {
         setEditFirstName(data.first_name ?? '');
@@ -110,13 +169,54 @@ export const CellAction: React.FC<CellActionProps> = ({
             data.employee_position_id ? String(data.employee_position_id) : '',
         );
         setEditSalary(
-            data.salary !== null && data.salary !== undefined ? String(data.salary) : '',
+            data.salary !== null && data.salary !== undefined
+                ? String(data.salary)
+                : '',
         );
         setEditSalaryCurrency(data.salary_currency ?? 'AFN');
         setEditStatus(data.status ?? (data.is_active ? 'active' : 'inactive'));
         setEditAddress(data.address ?? '');
         setEditDescription(data.description ?? '');
+        setEditProfilePicture(null);
+        setEditAttachments([]);
         setEditErrors({});
+    };
+
+    const handleEditAttachmentChange = (files: FileList | null) => {
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        const selected = Array.from(files).map((file) => ({
+            id: `${Date.now()}-${Math.random()}`,
+            file,
+        }));
+
+        setEditAttachments((current) => {
+            const totalCount =
+                existingAttachments.length + current.length + selected.length;
+
+            if (totalCount > MAX_ATTACHMENTS) {
+                toast.error(
+                    `Total attachments cannot exceed ${MAX_ATTACHMENTS}.`,
+                );
+
+                const allowedNew = Math.max(
+                    0,
+                    MAX_ATTACHMENTS - existingAttachments.length - current.length,
+                );
+
+                return [...current, ...selected.slice(0, allowedNew)];
+            }
+
+            return [...current, ...selected];
+        });
+    };
+
+    const removeEditAttachment = (id: string) => {
+        setEditAttachments((current) =>
+            current.filter((attachment) => attachment.id !== id),
+        );
     };
 
     const handleEditSubmit = () => {
@@ -150,9 +250,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                 is_active: editStatus === 'active',
                 address: editAddress.trim() || null,
                 description: editDescription.trim() || null,
+                profile_picture: editProfilePicture,
+                attachments: editAttachments.map((item) => item.file),
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Employee updated successfully.');
                     setIsEditOpen(false);
@@ -166,6 +269,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             },
         );
     };
+
+    const attachmentError =
+        editErrors.attachments ??
+        Object.entries(editErrors).find(([key]) =>
+            key.startsWith('attachments.'),
+        )?.[1];
 
     const handleToggleStatus = () => {
         if (isSubmitting) {
@@ -245,7 +354,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <DialogHeader>
                         <DialogTitle>Edit Employee</DialogTitle>
                         <DialogDescription>
-                            Update employee profile, employment type, position, and salary details.
+                            Update employee profile, employment type, position,
+                            salary details, and files.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -278,7 +388,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.last_name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor={`edit-phone-${data.id}`}>Phone</Label>
+                                <Label htmlFor={`edit-phone-${data.id}`}>
+                                    Phone
+                                </Label>
                                 <Input
                                     id={`edit-phone-${data.id}`}
                                     value={editPhone}
@@ -451,6 +563,152 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                 />
                                 <InputError message={editErrors.description} />
+                            </div>
+
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Profile picture</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Replace employee profile picture.
+                                        </p>
+                                        <Label
+                                            htmlFor={`edit-profile-picture-${data.id}`}
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Picture
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id={`edit-profile-picture-${data.id}`}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            setEditProfilePicture(
+                                                event.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    <div className="mt-3 flex items-center gap-3">
+                                        {currentProfilePictureUrl ? (
+                                            <img
+                                                src={currentProfilePictureUrl}
+                                                alt="Current profile"
+                                                className="h-16 w-16 rounded-md border object-cover"
+                                            />
+                                        ) : null}
+                                        {editProfilePicturePreview ? (
+                                            <div className="relative h-16 w-16 overflow-hidden rounded-md border">
+                                                <img
+                                                    src={editProfilePicturePreview}
+                                                    alt="New profile preview"
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                    onClick={() =>
+                                                        setEditProfilePicture(
+                                                            null,
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                                <InputError message={editErrors.profile_picture} />
+                            </div>
+
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    Attachments (up to {MAX_ATTACHMENTS} total)
+                                </Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Add new attachment files.
+                                        </p>
+                                        <Label
+                                            htmlFor={`edit-attachments-${data.id}`}
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Files
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id={`edit-attachments-${data.id}`}
+                                        type="file"
+                                        multiple
+                                        accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleEditAttachmentChange(
+                                                event.target.files,
+                                            )
+                                        }
+                                    />
+
+                                    {existingAttachments.length > 0 ? (
+                                        <div className="mt-3 space-y-2">
+                                            <p className="text-xs font-medium text-muted-foreground">
+                                                Current attachments
+                                            </p>
+                                            {existingAttachments.map((path, index) => (
+                                                <a
+                                                    key={`${path}-${index}`}
+                                                    href={publicStorageUrl(path)}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
+                                                >
+                                                    <FileText className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="truncate">
+                                                        {fileNameFromPath(path)}
+                                                    </span>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    ) : null}
+
+                                    {editAttachments.length > 0 ? (
+                                        <div className="mt-3 space-y-2">
+                                            <p className="text-xs font-medium text-muted-foreground">
+                                                New attachments to add
+                                            </p>
+                                            {editAttachments.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                                                >
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="truncate">
+                                                            {item.file.name}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="rounded p-1 text-muted-foreground hover:bg-muted"
+                                                        onClick={() =>
+                                                            removeEditAttachment(
+                                                                item.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={attachmentError} />
                             </div>
                         </div>
                     </ScrollArea>

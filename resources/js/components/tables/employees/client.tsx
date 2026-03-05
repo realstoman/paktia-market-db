@@ -25,8 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Plus, UserRound, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { FileText, ImagePlus, Plus, Trash2, UserRound, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
@@ -38,8 +38,14 @@ interface EmployeeClientProps {
     isLoading?: boolean;
 }
 
+interface SelectedAttachment {
+    id: string;
+    file: File;
+}
+
 const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
+const MAX_ATTACHMENTS = 25;
 
 export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     data,
@@ -61,11 +67,24 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [address, setAddress] = useState('');
     const [description, setDescription] = useState('');
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
-    const [attachments, setAttachments] = useState<File[]>([]);
+    const [attachments, setAttachments] = useState<SelectedAttachment[]>([]);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const profilePicturePreview = useMemo(
+        () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
+        [profilePicture],
+    );
+
+    useEffect(() => {
+        return () => {
+            if (profilePicturePreview) {
+                URL.revokeObjectURL(profilePicturePreview);
+            }
+        };
+    }, [profilePicturePreview]);
 
     const resetForm = () => {
         setFirstName('');
@@ -82,6 +101,32 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setProfilePicture(null);
         setAttachments([]);
         setCreateErrors({});
+    };
+
+    const handleAttachmentChange = (files: FileList | null) => {
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        const selected = Array.from(files).map((file) => ({
+            id: `${Date.now()}-${Math.random()}`,
+            file,
+        }));
+
+        setAttachments((current) => {
+            const merged = [...current, ...selected];
+
+            if (merged.length > MAX_ATTACHMENTS) {
+                toast.error(`You can upload up to ${MAX_ATTACHMENTS} attachments.`);
+                return merged.slice(0, MAX_ATTACHMENTS);
+            }
+
+            return merged;
+        });
+    };
+
+    const removeAttachment = (id: string) => {
+        setAttachments((current) => current.filter((item) => item.id !== id));
     };
 
     const handleCreateSubmit = () => {
@@ -116,7 +161,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 address: address.trim() || null,
                 description: description.trim() || null,
                 profile_picture: profilePicture,
-                attachments,
+                attachments: attachments.map((item) => item.file),
             },
             {
                 preserveScroll: true,
@@ -140,6 +185,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         () => buildColumns(branches, employmentTypes, employeePositions),
         [branches, employmentTypes, employeePositions],
     );
+
+    const attachmentError =
+        createErrors.attachments ??
+        Object.entries(createErrors).find(([key]) =>
+            key.startsWith('attachments.'),
+        )?.[1];
 
     return (
         <div className="space-y-4">
@@ -193,9 +244,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     <ScrollArea className="max-h-[70vh]">
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-first-name">
-                                    First name
-                                </Label>
+                                <Label htmlFor="employee-first-name">First name</Label>
                                 <Input
                                     id="employee-first-name"
                                     value={firstName}
@@ -207,9 +256,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.first_name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-last-name">
-                                    Last name
-                                </Label>
+                                <Label htmlFor="employee-last-name">Last name</Label>
                                 <Input
                                     id="employee-last-name"
                                     value={lastName}
@@ -234,10 +281,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Branch</Label>
-                                <Select
-                                    value={branchId}
-                                    onValueChange={setBranchId}
-                                >
+                                <Select value={branchId} onValueChange={setBranchId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select branch" />
                                     </SelectTrigger>
@@ -343,10 +387,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Status</Label>
-                                <Select
-                                    value={status}
-                                    onValueChange={setStatus}
-                                >
+                                <Select value={status} onValueChange={setStatus}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
@@ -375,9 +416,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.status} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label htmlFor="employee-address">
-                                    Address
-                                </Label>
+                                <Label htmlFor="employee-address">Address</Label>
                                 <Input
                                     id="employee-address"
                                     value={address}
@@ -389,9 +428,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.address} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label htmlFor="employee-description">
-                                    Description
-                                </Label>
+                                <Label htmlFor="employee-description">Description</Label>
                                 <Textarea
                                     id="employee-description"
                                     value={description}
@@ -404,60 +441,112 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     message={createErrors.description}
                                 />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="employee-profile-picture">
-                                    Employee picture
-                                </Label>
-                                <Input
-                                    id="employee-profile-picture"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(event) =>
-                                        setProfilePicture(
-                                            event.target.files?.[0] ?? null,
-                                        )
-                                    }
-                                />
-                                {profilePicture ? (
-                                    <p className="text-xs text-muted-foreground">
-                                        Selected: {profilePicture.name}
-                                    </p>
-                                ) : null}
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Profile picture</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload employee profile picture.
+                                        </p>
+                                        <Label
+                                            htmlFor="employee-profile-picture"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Picture
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="employee-profile-picture"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            setProfilePicture(
+                                                event.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    {profilePicturePreview ? (
+                                        <div className="mt-3 relative h-24 w-24 overflow-hidden rounded-md border">
+                                            <img
+                                                src={profilePicturePreview}
+                                                alt="Profile preview"
+                                                className="h-full w-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                onClick={() =>
+                                                    setProfilePicture(null)
+                                                }
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                </div>
                                 <InputError
                                     message={createErrors.profile_picture}
                                 />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="employee-attachments">
-                                    Attachments
-                                </Label>
-                                <Input
-                                    id="employee-attachments"
-                                    type="file"
-                                    multiple
-                                    accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
-                                    onChange={(event) =>
-                                        setAttachments(
-                                            Array.from(
-                                                event.target.files ?? [],
-                                            ),
-                                        )
-                                    }
-                                />
-                                {attachments.length > 0 ? (
-                                    <p className="text-xs text-muted-foreground">
-                                        {attachments.length} file(s) selected
-                                    </p>
-                                ) : null}
-                                <InputError
-                                    message={
-                                        createErrors.attachments ??
-                                        Object.entries(createErrors).find(
-                                            ([key]) =>
-                                                key.startsWith('attachments.'),
-                                        )?.[1]
-                                    }
-                                />
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Attachments (up to {MAX_ATTACHMENTS})</Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload multiple files, documents, and images.
+                                        </p>
+                                        <Label
+                                            htmlFor="employee-attachments"
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Files
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id="employee-attachments"
+                                        type="file"
+                                        multiple
+                                        accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                                        className="hidden"
+                                        onChange={(event) =>
+                                            handleAttachmentChange(
+                                                event.target.files,
+                                            )
+                                        }
+                                    />
+                                    {attachments.length > 0 ? (
+                                        <div className="mt-3 space-y-2">
+                                            {attachments.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-center justify-between rounded-md border px-3 py-2"
+                                                >
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="truncate">
+                                                            {item.file.name}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="rounded p-1 text-muted-foreground hover:bg-muted"
+                                                        onClick={() =>
+                                                            removeAttachment(
+                                                                item.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={attachmentError} />
                             </div>
                         </div>
                     </ScrollArea>
