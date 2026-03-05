@@ -127,15 +127,34 @@ class InventoryController extends Controller
         $validated = $request->validate([
             'quantity' => 'required|numeric|min:0.01',
             'note' => 'nullable|string|max:1000',
+            'apply_new_price' => 'sometimes|boolean',
+            'currency_code' => 'required_if:apply_new_price,true|string|size:3|exists:currencies,code',
+            'unit_price' => 'required_if:apply_new_price,true|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($inventory, $validated) {
+            if (!empty($validated['apply_new_price'])) {
+                $currency = Currency::where(
+                    'code',
+                    strtoupper($validated['currency_code']),
+                )->firstOrFail();
+
+                $inventory->update([
+                    'unit_price' => $validated['unit_price'],
+                    'currency_code' => $currency->code,
+                    'currency_symbol' => $currency->symbol,
+                ]);
+            }
+
             $inventory->increment('quantity', $validated['quantity']);
 
             $inventory->transactions()->create([
                 'action' => 'restock',
                 'quantity' => $validated['quantity'],
-                'note' => $validated['note'] ?? null,
+                'note' => $validated['note']
+                    ?? (!empty($validated['apply_new_price'])
+                        ? 'Restocked with updated price.'
+                        : null),
             ]);
         });
 

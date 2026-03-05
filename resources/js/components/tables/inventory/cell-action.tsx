@@ -81,6 +81,15 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
     const [restockNote, setRestockNote] = useState('');
+    const [restockHasNewPrice, setRestockHasNewPrice] = useState(false);
+    const [restockCurrencyCode, setRestockCurrencyCode] = useState(
+        data.currency_code ?? 'AFN',
+    );
+    const [restockUnitPrice, setRestockUnitPrice] = useState(
+        data.unit_price !== undefined && data.unit_price !== null
+            ? String(data.unit_price)
+            : '',
+    );
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
@@ -131,6 +140,13 @@ export const CellAction: React.FC<CellActionProps> = ({
         return matched?.symbol ?? data.currency_symbol ?? '';
     }, [currencies, data.currency_symbol, editCurrencyCode]);
 
+    const restockCurrencySymbol = useMemo(() => {
+        const matched = currencies.find(
+            (currency) => currency.code === restockCurrencyCode,
+        );
+        return matched?.symbol ?? data.currency_symbol ?? '';
+    }, [currencies, data.currency_symbol, restockCurrencyCode]);
+
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
@@ -148,6 +164,19 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditErrors({});
     };
 
+    const resetRestockForm = () => {
+        setRestockQty('');
+        setRestockNote('');
+        setRestockHasNewPrice(false);
+        setRestockCurrencyCode(data.currency_code ?? 'AFN');
+        setRestockUnitPrice(
+            data.unit_price !== undefined && data.unit_price !== null
+                ? String(data.unit_price)
+                : '',
+        );
+        setErrors({});
+    };
+
     const handleRestock = () => {
         if (!restockQty || isSubmitting) {
             return;
@@ -160,15 +189,18 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 quantity: Number(restockQty),
                 note: restockNote.trim() || null,
+                apply_new_price: restockHasNewPrice,
+                currency_code: restockHasNewPrice ? restockCurrencyCode : null,
+                unit_price: restockHasNewPrice
+                    ? Number(restockUnitPrice)
+                    : null,
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success('Item restocked successfully.');
                     setIsRestockOpen(false);
-                    setRestockQty('');
-                    setRestockNote('');
-                    setErrors({});
+                    resetRestockForm();
                 },
                 onError: (validationErrors) => {
                     setErrors(validationErrors);
@@ -742,7 +774,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isRestockOpen} onOpenChange={setIsRestockOpen}>
+            <Dialog
+                open={isRestockOpen}
+                onOpenChange={(open) => {
+                    setIsRestockOpen(open);
+                    if (!open) {
+                        resetRestockForm();
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Restock {data.name}</DialogTitle>
@@ -769,6 +809,63 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={errors.quantity} />
                         </div>
                         <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    checked={restockHasNewPrice}
+                                    onCheckedChange={(checked) =>
+                                        setRestockHasNewPrice(!!checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Apply new price to all stock
+                                </span>
+                            </div>
+                        </div>
+                        {restockHasNewPrice ? (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label htmlFor={`restock-currency-${data.id}`}>
+                                        Currency
+                                    </Label>
+                                    <Select
+                                        value={restockCurrencyCode}
+                                        onValueChange={setRestockCurrencyCode}
+                                    >
+                                        <SelectTrigger id={`restock-currency-${data.id}`}>
+                                            <SelectValue placeholder="Select currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {currencies.map((currency) => (
+                                                <SelectItem
+                                                    key={currency.id}
+                                                    value={currency.code}
+                                                >
+                                                    {currency.code} ({currency.symbol})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency_code} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor={`restock-price-${data.id}`}>
+                                        New Single Price {restockCurrencySymbol}
+                                    </Label>
+                                    <Input
+                                        id={`restock-price-${data.id}`}
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={restockUnitPrice}
+                                        onChange={(event) =>
+                                            setRestockUnitPrice(event.target.value)
+                                        }
+                                    />
+                                    <InputError message={errors.unit_price} />
+                                </div>
+                            </>
+                        ) : null}
+                        <div className="grid gap-2">
                             <Label htmlFor={`restock-note-${data.id}`}>
                                 Note (optional)
                             </Label>
@@ -793,7 +890,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </Button>
                         <Button
                             onClick={handleRestock}
-                            disabled={!restockQty || isSubmitting}
+                            disabled={
+                                !restockQty ||
+                                (restockHasNewPrice &&
+                                    (!restockCurrencyCode || !restockUnitPrice)) ||
+                                isSubmitting
+                            }
                         >
                             <Save className="mr-2 h-4 w-4" />
                             Save Restock
