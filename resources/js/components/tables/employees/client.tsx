@@ -31,6 +31,7 @@ import {
     ImagePlus,
     Pencil,
     Plus,
+    Shapes,
     Trash2,
     UserRound,
     X,
@@ -87,10 +88,22 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [editingPositionId, setEditingPositionId] = useState<number | null>(
         null,
     );
-    const [positionErrors, setPositionErrors] = useState<Record<string, string>>(
-        {},
-    );
+    const [positionErrors, setPositionErrors] = useState<
+        Record<string, string>
+    >({});
     const [isPositionSubmitting, setIsPositionSubmitting] = useState(false);
+    const [isEmploymentTypesOpen, setIsEmploymentTypesOpen] = useState(false);
+    const [employmentTypeName, setEmploymentTypeName] = useState('');
+    const [employmentTypeDescription, setEmploymentTypeDescription] =
+        useState('');
+    const [editingEmploymentTypeId, setEditingEmploymentTypeId] = useState<
+        number | null
+    >(null);
+    const [employmentTypeErrors, setEmploymentTypeErrors] = useState<
+        Record<string, string>
+    >({});
+    const [isEmploymentTypeSubmitting, setIsEmploymentTypeSubmitting] =
+        useState(false);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -282,6 +295,90 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     };
 
+    const resetEmploymentTypeForm = () => {
+        setEmploymentTypeName('');
+        setEmploymentTypeDescription('');
+        setEditingEmploymentTypeId(null);
+        setEmploymentTypeErrors({});
+    };
+
+    const handleSaveEmploymentType = () => {
+        if (!employmentTypeName.trim() || isEmploymentTypeSubmitting) {
+            return;
+        }
+
+        setIsEmploymentTypeSubmitting(true);
+
+        const payload = {
+            name: employmentTypeName.trim(),
+            description: employmentTypeDescription.trim() || null,
+            is_active: true,
+        };
+
+        if (editingEmploymentTypeId) {
+            router.put(
+                `/employment-types/${editingEmploymentTypeId}`,
+                payload,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Employment type updated.');
+                        resetEmploymentTypeForm();
+                    },
+                    onError: (errors) => {
+                        setEmploymentTypeErrors(errors);
+                    },
+                    onFinish: () => {
+                        setIsEmploymentTypeSubmitting(false);
+                    },
+                },
+            );
+            return;
+        }
+
+        router.post('/employment-types', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Employment type created.');
+                resetEmploymentTypeForm();
+            },
+            onError: (errors) => {
+                setEmploymentTypeErrors(errors);
+            },
+            onFinish: () => {
+                setIsEmploymentTypeSubmitting(false);
+            },
+        });
+    };
+
+    const startEditingEmploymentType = (type: EmploymentType) => {
+        setEditingEmploymentTypeId(type.id);
+        setEmploymentTypeName(type.name);
+        setEmploymentTypeDescription(type.description ?? '');
+        setEmploymentTypeErrors({});
+    };
+
+    const handleDeleteEmploymentType = (type: EmploymentType) => {
+        if (isEmploymentTypeSubmitting) {
+            return;
+        }
+
+        setIsEmploymentTypeSubmitting(true);
+
+        router.delete(`/employment-types/${type.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Employment type deleted.');
+                if (editingEmploymentTypeId === type.id) {
+                    resetEmploymentTypeForm();
+                }
+            },
+            onFinish: () => {
+                setIsEmploymentTypeSubmitting(false);
+            },
+        });
+    };
+
     const tableColumns = useMemo(
         () => buildColumns(branches, employmentTypes, employeePositions),
         [branches, employmentTypes, employeePositions],
@@ -303,11 +400,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
+                        onClick={() => setIsEmploymentTypesOpen(true)}
+                        className="gap-2"
+                    >
+                        <Shapes className="h-4 w-4" />
+                        Employment Types
+                    </Button>
+                    <Button
+                        variant="outline"
                         onClick={() => setIsPositionsOpen(true)}
                         className="gap-2"
                     >
                         <BriefcaseBusiness className="h-4 w-4" />
-                        Manage Positions
+                        Positions
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -333,6 +438,149 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 isLoading={isLoading}
                 searchPlaceholder="Search employees by name, phone, or branch..."
             />
+
+            <Dialog
+                open={isEmploymentTypesOpen}
+                onOpenChange={(open) => {
+                    setIsEmploymentTypesOpen(open);
+                    if (!open) {
+                        resetEmploymentTypeForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Shapes className="h-5 w-5" />
+                            Employment Type Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, edit, and remove employment types.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2 sm:col-span-1">
+                                <Label htmlFor="employment-type-name">
+                                    Type name
+                                </Label>
+                                <Input
+                                    id="employment-type-name"
+                                    value={employmentTypeName}
+                                    onChange={(event) =>
+                                        setEmploymentTypeName(
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="e.g. Full Time"
+                                />
+                                <InputError
+                                    message={employmentTypeErrors.name}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-1">
+                                <Label htmlFor="employment-type-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="employment-type-description"
+                                    value={employmentTypeDescription}
+                                    onChange={(event) =>
+                                        setEmploymentTypeDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="Optional"
+                                />
+                                <InputError
+                                    message={employmentTypeErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSaveEmploymentType}
+                                    disabled={
+                                        !employmentTypeName.trim() ||
+                                        isEmploymentTypeSubmitting
+                                    }
+                                >
+                                    {editingEmploymentTypeId
+                                        ? 'Update Employment Type'
+                                        : 'Add Employment Type'}
+                                </Button>
+                                {editingEmploymentTypeId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetEmploymentTypeForm}
+                                        disabled={isEmploymentTypeSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {employmentTypes.length > 0 ? (
+                                    employmentTypes.map((type) => (
+                                        <div
+                                            key={type.id}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {type.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {type.description || '—'}
+                                                </p>
+                                            </div>
+                                            <div className="ml-3 flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        startEditingEmploymentType(
+                                                            type,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        isEmploymentTypeSubmitting
+                                                    }
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDeleteEmploymentType(
+                                                            type,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        isEmploymentTypeSubmitting
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No employment types found.
+                                    </p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <Dialog
                 open={isPositionsOpen}
@@ -425,7 +673,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                     {position.name}
                                                 </p>
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {position.description || '—'}
+                                                    {position.description ||
+                                                        '—'}
                                                 </p>
                                             </div>
                                             <div className="ml-3 flex items-center gap-1">

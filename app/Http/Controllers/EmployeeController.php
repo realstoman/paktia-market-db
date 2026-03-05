@@ -213,6 +213,61 @@ class EmployeeController extends Controller
             ->with('success', 'Employee position deleted successfully.');
     }
 
+    public function storeEmploymentType(Request $request)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:employment_types,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        EmploymentType::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employment type created successfully.');
+    }
+
+    public function updateEmploymentType(Request $request, EmploymentType $employmentType)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('employment_types', 'name')->ignore($employmentType->id),
+            ],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        $employmentType->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employment type updated successfully.');
+    }
+
+    public function destroyEmploymentType(EmploymentType $employmentType)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $employmentType->delete();
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Employment type deleted successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
