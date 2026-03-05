@@ -1318,7 +1318,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         <DialogTitle>Create Inventory Items</DialogTitle>
                         <DialogDescription>
                             Add multiple items from one wholesale bill in one
-                            submission.
+                            submission. If an item with the same name and shared
+                            details already exists, quantity will be added to it.
                         </DialogDescription>
                     </DialogHeader>
 
