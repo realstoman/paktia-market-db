@@ -108,7 +108,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         foreach ($analyticsRows as $row) {
             $dateKey = (string) $row->order_date;
-            $status = (string) $row->status;
+            $status = $row->status instanceof \BackedEnum
+                ? $row->status->value
+                : (string) $row->status;
             $count = (int) $row->total;
 
             if (! isset($analyticsByDate[$dateKey])) {
