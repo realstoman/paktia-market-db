@@ -1,0 +1,125 @@
+<?php
+
+use App\Models\Branch;
+use App\Models\Country;
+use App\Models\Kitchen;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\ProductType;
+use App\Models\Province;
+use function Pest\Laravel\getJson;
+
+function createProductApiBaseData(): array
+{
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'name' => 'Baba Main',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'is_active' => true,
+    ]);
+
+    $kitchen = Kitchen::create([
+        'branch_id' => $branch->id,
+        'name' => 'Hot Kitchen',
+        'is_active' => true,
+    ]);
+
+    return [$branch, $kitchen];
+}
+
+test('api v1 products index returns products with images', function () {
+    [, $kitchen] = createProductApiBaseData();
+    $category = ProductCategory::create(['name' => 'Main Dishes']);
+    ProductType::create(['name' => 'food']);
+
+    $product = Product::create([
+        'product_category_id' => $category->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Kabuli Pulao',
+        'type' => 'food',
+        'base_price' => 450,
+        'is_active' => true,
+    ]);
+
+    $product->images()->createMany([
+        ['path' => 'products/pulao-1.jpg', 'sort_order' => 0],
+        ['path' => 'products/pulao-2.jpg', 'sort_order' => 1],
+    ]);
+
+    $this->getJson('/api/v1/products?type=food&category_id='.$category->id)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonPath('data.0.images_count', 2)
+        ->assertJsonPath('data.0.images.0.path', 'products/pulao-1.jpg')
+        ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao-1.jpg');
+});
+
+test('api v1 products show returns a single product', function () {
+    [, $kitchen] = createProductApiBaseData();
+    $category = ProductCategory::create(['name' => 'Drinks']);
+
+    $product = Product::create([
+        'product_category_id' => $category->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Doogh',
+        'type' => 'beverage',
+        'base_price' => 80,
+        'is_active' => true,
+    ]);
+
+    $product->images()->create([
+        'path' => 'products/doogh.jpg',
+        'sort_order' => 0,
+    ]);
+
+    expect($product->fresh()->load('category')->category?->name)->toBe('Drinks');
+
+    getJson('/api/v1/products/'.$product->id)
+        ->assertOk()
+        ->assertJsonPath('data.id', $product->id)
+        ->assertJsonPath('data.category_name', 'Drinks')
+        ->assertJsonPath('data.images.0.url', '/storage/products/doogh.jpg');
+});
+
+test('api v1 product categories index and show work', function () {
+    $category = ProductCategory::create([
+        'name' => 'Desserts',
+        'description' => 'Sweet items',
+    ]);
+
+    $this->getJson('/api/v1/products/categories')
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Desserts');
+
+    $this->getJson('/api/v1/products/categories/'.$category->id)
+        ->assertOk()
+        ->assertJsonPath('data.id', $category->id)
+        ->assertJsonPath('data.name', 'Desserts');
+});
+
+test('api v1 product types index and show work', function () {
+    $type = ProductType::create(['name' => 'beverage']);
+
+    $this->getJson('/api/v1/products/types')
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'beverage');
+
+    $this->getJson('/api/v1/products/types/'.$type->id)
+        ->assertOk()
+        ->assertJsonPath('data.id', $type->id)
+        ->assertJsonPath('data.name', 'beverage');
+});

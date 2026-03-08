@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
+use App\Enums\OrderType;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -20,6 +22,11 @@ class Order extends Model
         'paid_amount',
         'change_amount',
         'status',
+    ];
+
+    protected $casts = [
+        'order_type' => OrderType::class,
+        'status' => OrderStatus::class,
     ];
 
     public function branch()
