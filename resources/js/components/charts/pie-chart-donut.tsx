@@ -21,44 +21,53 @@ import {
 
 export const description = 'A donut chart with text';
 
-const chartData = [
-    { browser: 'chrome', visitors: 1400, fill: 'var(--color-chrome)' },
-    { browser: 'safari', visitors: 800, fill: 'var(--color-safari)' },
-    { browser: 'firefox', visitors: 400, fill: 'var(--color-firefox)' },
-    { browser: 'edge', visitors: 200, fill: 'var(--color-edge)' },
-    { browser: 'other', visitors: 650, fill: 'var(--color-other)' },
-];
-
 const chartConfig = {
-    visitors: {
-        label: 'Visitors',
+    value: {
+        label: 'Items',
     },
-    chrome: {
-        label: 'Chrome',
+    usable: {
+        label: 'Usable',
         color: 'var(--chart-1)',
     },
-    safari: {
-        label: 'Safari',
+    fixed: {
+        label: 'Fixed',
         color: 'var(--chart-2)',
-    },
-    firefox: {
-        label: 'Firefox',
-        color: 'var(--chart-3)',
-    },
-    edge: {
-        label: 'Edge',
-        color: 'var(--chart-4)',
     },
     other: {
         label: 'Other',
-        color: 'var(--chart-5)',
+        color: 'var(--chart-3)',
     },
 } satisfies ChartConfig;
 
-export function PieChartDonutText() {
-    const totalVisitors = React.useMemo(() => {
-        return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-    }, []);
+interface PieDatum {
+    key: 'usable' | 'fixed' | 'other';
+    label: string;
+    value: number;
+}
+
+interface PieChartDonutTextProps {
+    data?: PieDatum[];
+    total?: number;
+}
+
+export function PieChartDonutText({ data = [], total = 0 }: PieChartDonutTextProps) {
+    const chartData = React.useMemo(
+        () =>
+            data.map((item) => ({
+                segment: item.key,
+                value: item.value,
+                fill: `var(--color-${item.key})`,
+            })),
+        [data],
+    );
+
+    const totalItems = React.useMemo(() => {
+        if (typeof total === 'number' && total >= 0) {
+            return total;
+        }
+
+        return chartData.reduce((acc, curr) => acc + curr.value, 0);
+    }, [chartData, total]);
 
     return (
         <Card className="flex flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
@@ -78,8 +87,8 @@ export function PieChartDonutText() {
                         />
                         <Pie
                             data={chartData}
-                            dataKey="visitors"
-                            nameKey="browser"
+                            dataKey="value"
+                            nameKey="segment"
                             innerRadius={60}
                             strokeWidth={5}
                         >
@@ -102,7 +111,7 @@ export function PieChartDonutText() {
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-3xl font-bold"
                                                 >
-                                                    {totalVisitors.toLocaleString()}
+                                                    {totalItems.toLocaleString()}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}
@@ -122,11 +131,11 @@ export function PieChartDonutText() {
             </CardContent>
             <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
                 <div className="flex items-start gap-2 leading-none font-medium">
-                    Trending up by 5.2% this month{' '}
+                    Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    Showing total inventory items in the restaurant
+                    Showing usable, fixed, and other inventory items
                 </div>
             </CardFooter>
         </Card>

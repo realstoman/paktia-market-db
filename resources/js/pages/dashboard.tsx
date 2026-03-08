@@ -137,6 +137,18 @@ interface DashboardProps {
             total_quantity: number;
         }>;
         selectedDate: string;
+        inventory: {
+            totalItems: number;
+            totalFixedItems: number;
+            totalUsableItems: number;
+            inventoryValue: number;
+            amountOwedToVendors: number;
+            pie: Array<{
+                key: 'usable' | 'fixed' | 'other';
+                label: string;
+                value: number;
+            }>;
+        };
     };
 }
 
@@ -178,6 +190,7 @@ export default function Dashboard({ data }: DashboardProps) {
     const orderAnalyticsData = data?.orderAnalytics ?? [];
     const recentOrders = data?.recentOrders ?? [];
     const topOrderedDishes = data?.topOrderedDishes ?? [];
+    const inventoryStats = data?.inventory;
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -445,7 +458,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <StatusCard
                                     title="Total Items"
                                     value={formatNumber(
-                                        data?.orders.pending || 234567,
+                                        inventoryStats?.totalItems ?? 0,
                                     )}
                                     color=""
                                     icon={<Package className="h-5 w-5" />}
@@ -453,7 +466,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <StatusCard
                                     title="Usable Items"
                                     value={formatNumber(
-                                        data?.orders.pending || 7652,
+                                        inventoryStats?.totalUsableItems ?? 0,
                                     )}
                                     color=""
                                     icon={<Cherry className="h-4 w-4" />}
@@ -461,23 +474,35 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <StatusCard
                                     title="Fixed Items"
                                     value={formatNumber(
-                                        data?.orders.pending || 8965,
+                                        inventoryStats?.totalFixedItems ?? 0,
                                     )}
                                     color=""
                                     icon={<TvMinimal className="h-4 w-4" />}
                                 />
                                 <StatusCard
-                                    title="Less in Stock"
-                                    value={formatNumber(
-                                        data?.orders.pending || 265,
-                                    )}
+                                    title="Inventory Value"
+                                    value={`${formatPrice(
+                                        inventoryStats?.inventoryValue ?? 0,
+                                    )} ؋`}
+                                    color=""
+                                    icon={<TrendingUp className="h-4 w-4" />}
+                                />
+                                <StatusCard
+                                    title="Amount Owed Vendors"
+                                    value={`${formatPrice(
+                                        inventoryStats?.amountOwedToVendors ??
+                                            0,
+                                    )} ؋`}
                                     color=""
                                     icon={<TrendingDown className="h-4 w-4" />}
                                 />
                             </CardContent>
                         </Card>
                         <div className="relative overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
-                            <PieChartDonutText />
+                            <PieChartDonutText
+                                data={inventoryStats?.pie}
+                                total={inventoryStats?.totalItems ?? 0}
+                            />
                         </div>
                     </div>
                 </div>
