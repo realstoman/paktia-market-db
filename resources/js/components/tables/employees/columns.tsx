@@ -100,7 +100,26 @@ export const buildColumns = (
     {
         accessorKey: 'shift',
         header: 'Shift',
-        cell: ({ row }) => row.original.shift || '—',
+        cell: ({ row }) => {
+            const shift = row.original.shift;
+            if (!shift) {
+                return '—';
+            }
+
+            const nameMatch = shift.match(/^(.*?)\s*\((.*?)\)$/);
+            if (!nameMatch) {
+                return shift;
+            }
+
+            const [, name, time] = nameMatch;
+
+            return (
+                <div className="leading-tight">
+                    <p className="text-sm font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">{time}</p>
+                </div>
+            );
+        },
     },
     {
         accessorKey: 'employee_position',
