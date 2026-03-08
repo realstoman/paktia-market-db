@@ -64,6 +64,7 @@ interface SelectedAttachment {
 const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
+const FILTER_ALL = '__all__';
 
 const formatTimeTo12Hour = (time?: string | null) => {
     if (!time) {
@@ -145,6 +146,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
     const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
     const [isShiftSubmitting, setIsShiftSubmitting] = useState(false);
+    const [selectedBranchFilter, setSelectedBranchFilter] =
+        useState(FILTER_ALL);
+    const [selectedEmploymentTypeFilter, setSelectedEmploymentTypeFilter] =
+        useState(FILTER_ALL);
+    const [selectedPositionFilter, setSelectedPositionFilter] =
+        useState(FILTER_ALL);
+    const [selectedShiftFilter, setSelectedShiftFilter] = useState(FILTER_ALL);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -546,6 +554,37 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         Object.entries(createErrors).find(([key]) =>
             key.startsWith('attachments.'),
         )?.[1];
+    const filteredData = useMemo(() => {
+        return data.filter((employee) => {
+            const branchMatch =
+                selectedBranchFilter === FILTER_ALL ||
+                String(employee.branch_id ?? '') === selectedBranchFilter;
+            const employmentTypeMatch =
+                selectedEmploymentTypeFilter === FILTER_ALL ||
+                String(employee.employment_type_id ?? '') ===
+                    selectedEmploymentTypeFilter;
+            const positionMatch =
+                selectedPositionFilter === FILTER_ALL ||
+                String(employee.employee_position_id ?? '') ===
+                    selectedPositionFilter;
+            const shiftMatch =
+                selectedShiftFilter === FILTER_ALL ||
+                String(employee.shift_id ?? '') === selectedShiftFilter;
+
+            return (
+                branchMatch &&
+                employmentTypeMatch &&
+                positionMatch &&
+                shiftMatch
+            );
+        });
+    }, [
+        data,
+        selectedBranchFilter,
+        selectedEmploymentTypeFilter,
+        selectedPositionFilter,
+        selectedShiftFilter,
+    ]);
 
     return (
         <div className="space-y-4">
@@ -599,9 +638,100 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     'status',
                 ]}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search employees by name, phone, or branch..."
+                toolbar={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select
+                            value={selectedBranchFilter}
+                            onValueChange={setSelectedBranchFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[170px]">
+                                <SelectValue placeholder="Branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Branches
+                                </SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem
+                                        key={branch.id}
+                                        value={String(branch.id)}
+                                    >
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedEmploymentTypeFilter}
+                            onValueChange={setSelectedEmploymentTypeFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[190px]">
+                                <SelectValue placeholder="Employment Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Employment Types
+                                </SelectItem>
+                                {employmentTypes.map((type) => (
+                                    <SelectItem
+                                        key={type.id}
+                                        value={String(type.id)}
+                                    >
+                                        {type.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedPositionFilter}
+                            onValueChange={setSelectedPositionFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[180px]">
+                                <SelectValue placeholder="Position" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Positions
+                                </SelectItem>
+                                {employeePositions.map((position) => (
+                                    <SelectItem
+                                        key={position.id}
+                                        value={String(position.id)}
+                                    >
+                                        {position.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedShiftFilter}
+                            onValueChange={setSelectedShiftFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[170px]">
+                                <SelectValue placeholder="Shift" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Shifts
+                                </SelectItem>
+                                {shifts.map((shift) => (
+                                    <SelectItem
+                                        key={shift.id}
+                                        value={String(shift.id)}
+                                    >
+                                        {shift.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                }
             />
 
             <Dialog
