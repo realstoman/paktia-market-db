@@ -48,9 +48,27 @@ interface PieDatum {
 interface PieChartDonutTextProps {
     data?: PieDatum[];
     total?: number;
+    totalFixedItems?: number;
+    totalUsableItems?: number;
+    inventoryValue?: number;
+    amountOwedToVendors?: number;
 }
 
-export function PieChartDonutText({ data = [], total = 0 }: PieChartDonutTextProps) {
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(value);
+}
+
+export function PieChartDonutText({
+    data = [],
+    total = 0,
+    totalFixedItems = 0,
+    totalUsableItems = 0,
+    inventoryValue = 0,
+    amountOwedToVendors = 0,
+}: PieChartDonutTextProps) {
     const chartData = React.useMemo(
         () =>
             data.map((item) => ({
@@ -129,13 +147,55 @@ export function PieChartDonutText({ data = [], total = 0 }: PieChartDonutTextPro
                     </PieChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
+            <CardFooter className="flex-col items-start gap-3 pb-4 text-sm">
                 <div className="flex items-start gap-2 leading-none font-medium">
                     Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
                     Showing usable, fixed, and other inventory items
+                </div>
+                <div className="grid w-full grid-cols-1 gap-2 pt-1 text-xs sm:grid-cols-2">
+                    <div className="rounded-md border px-2 py-1.5">
+                        <span className="text-muted-foreground">
+                            Total Items:
+                        </span>{' '}
+                        <span className="font-semibold">
+                            {totalItems.toLocaleString()}
+                        </span>
+                    </div>
+                    <div className="rounded-md border px-2 py-1.5">
+                        <span className="text-muted-foreground">
+                            Fixed Items:
+                        </span>{' '}
+                        <span className="font-semibold">
+                            {totalFixedItems.toLocaleString()}
+                        </span>
+                    </div>
+                    <div className="rounded-md border px-2 py-1.5">
+                        <span className="text-muted-foreground">
+                            Usable Items:
+                        </span>{' '}
+                        <span className="font-semibold">
+                            {totalUsableItems.toLocaleString()}
+                        </span>
+                    </div>
+                    <div className="rounded-md border px-2 py-1.5">
+                        <span className="text-muted-foreground">
+                            Inventory Value:
+                        </span>{' '}
+                        <span className="font-semibold">
+                            {formatCurrency(inventoryValue)} ؋
+                        </span>
+                    </div>
+                    <div className="rounded-md border px-2 py-1.5 sm:col-span-2">
+                        <span className="text-muted-foreground">
+                            Owed to Vendors:
+                        </span>{' '}
+                        <span className="font-semibold text-red-600 dark:text-red-300">
+                            {formatCurrency(amountOwedToVendors)} ؋
+                        </span>
+                    </div>
                 </div>
             </CardFooter>
         </Card>

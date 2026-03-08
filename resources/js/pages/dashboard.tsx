@@ -502,6 +502,18 @@ export default function Dashboard({ data }: DashboardProps) {
                             <PieChartDonutText
                                 data={inventoryStats?.pie}
                                 total={inventoryStats?.totalItems ?? 0}
+                                totalFixedItems={
+                                    inventoryStats?.totalFixedItems ?? 0
+                                }
+                                totalUsableItems={
+                                    inventoryStats?.totalUsableItems ?? 0
+                                }
+                                inventoryValue={
+                                    inventoryStats?.inventoryValue ?? 0
+                                }
+                                amountOwedToVendors={
+                                    inventoryStats?.amountOwedToVendors ?? 0
+                                }
                             />
                         </div>
                     </div>
