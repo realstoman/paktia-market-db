@@ -42,7 +42,7 @@ class EmployeeController extends Controller
                 'employee_position' => $employee->employeePosition?->name,
                 'employee_position_id' => $employee->employee_position_id,
                 'shift' => $employee->shift
-                    ? $employee->shift->name.' ('.substr((string) $employee->shift->start_time, 0, 5).' - '.substr((string) $employee->shift->end_time, 0, 5).')'
+                    ? $employee->shift->name.' ('.$this->formatTimeTo12Hour((string) $employee->shift->start_time).' - '.$this->formatTimeTo12Hour((string) $employee->shift->end_time).')'
                     : null,
                 'shift_id' => $employee->shift_id,
                 'salary' => $employee->salary,
@@ -367,5 +367,16 @@ class EmployeeController extends Controller
             ],
             'is_active' => ['required', 'boolean'],
         ];
+    }
+
+    private function formatTimeTo12Hour(string $time): string
+    {
+        $timestamp = strtotime($time);
+
+        if ($timestamp === false) {
+            return $time;
+        }
+
+        return date('g:i A', $timestamp);
     }
 }

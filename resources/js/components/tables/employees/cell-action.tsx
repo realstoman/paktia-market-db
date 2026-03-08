@@ -86,6 +86,26 @@ const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
 
+const formatTimeTo12Hour = (time?: string | null) => {
+    if (!time) {
+        return '';
+    }
+
+    const [hourPart, minutePart] = String(time).split(':');
+    const hour = Number(hourPart);
+    const minute = Number(minutePart ?? '0');
+
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+        return String(time);
+    }
+
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    const normalizedHour = hour % 12 || 12;
+    const normalizedMinute = String(minute).padStart(2, '0');
+
+    return `${normalizedHour}:${normalizedMinute} ${suffix}`;
+};
+
 const publicStorageUrl = (path: string) => {
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
@@ -791,7 +811,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 key={shift.id}
                                                 value={String(shift.id)}
                                             >
-                                                {`${shift.name} (${String(shift.start_time).slice(0, 5)} - ${String(shift.end_time).slice(0, 5)})`}
+                                                {`${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
