@@ -37,12 +37,12 @@ const chartConfig = {
         label: 'Total Usable Items',
         color: 'var(--chart-3)',
     },
-    inventoryValue: {
-        label: 'Inventory Value',
+    lowStockItems: {
+        label: 'Low Stock Items',
         color: 'var(--chart-4)',
     },
-    amountOwedToVendors: {
-        label: 'Amount Owed Vendors',
+    outOfStockItems: {
+        label: 'Out of Stock Items',
         color: 'var(--chart-5)',
     },
 } satisfies ChartConfig;
@@ -51,16 +51,16 @@ interface PieChartDonutTextProps {
     total?: number;
     totalFixedItems?: number;
     totalUsableItems?: number;
-    inventoryValue?: number;
-    amountOwedToVendors?: number;
+    lowStockItems?: number;
+    outOfStockItems?: number;
 }
 
 export function PieChartDonutText({
     total = 0,
     totalFixedItems = 0,
     totalUsableItems = 0,
-    inventoryValue = 0,
-    amountOwedToVendors = 0,
+    lowStockItems = 0,
+    outOfStockItems = 0,
 }: PieChartDonutTextProps) {
     const chartData = React.useMemo(
         () => [
@@ -83,21 +83,21 @@ export function PieChartDonutText({
                 fill: 'var(--color-totalUsableItems)',
             },
             {
-                segment: 'inventoryValue',
-                label: 'Inventory Value',
-                value: inventoryValue,
-                fill: 'var(--color-inventoryValue)',
+                segment: 'lowStockItems',
+                label: 'Low Stock Items',
+                value: lowStockItems,
+                fill: 'var(--color-lowStockItems)',
             },
             {
-                segment: 'amountOwedToVendors',
-                label: 'Amount Owed Vendors',
-                value: amountOwedToVendors,
-                fill: 'var(--color-amountOwedToVendors)',
+                segment: 'outOfStockItems',
+                label: 'Out of Stock Items',
+                value: outOfStockItems,
+                fill: 'var(--color-outOfStockItems)',
             },
         ],
         [
-            amountOwedToVendors,
-            inventoryValue,
+            lowStockItems,
+            outOfStockItems,
             total,
             totalFixedItems,
             totalUsableItems,
@@ -172,8 +172,8 @@ export function PieChartDonutText({
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    5-color breakdown: items, fixed, usable, value, and vendor
-                    owed.
+                    5-color breakdown: items, fixed, usable, low stock, and
+                    out of stock.
                 </div>
             </CardFooter>
         </Card>

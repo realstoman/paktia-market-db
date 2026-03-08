@@ -141,6 +141,8 @@ interface DashboardProps {
             totalItems: number;
             totalFixedItems: number;
             totalUsableItems: number;
+            lowStockItems: number;
+            outOfStockItems: number;
             inventoryValue: number;
             amountOwedToVendors: number;
             pie: Array<{
@@ -507,11 +509,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                 totalUsableItems={
                                     inventoryStats?.totalUsableItems ?? 0
                                 }
-                                inventoryValue={
-                                    inventoryStats?.inventoryValue ?? 0
+                                lowStockItems={
+                                    inventoryStats?.lowStockItems ?? 0
                                 }
-                                amountOwedToVendors={
-                                    inventoryStats?.amountOwedToVendors ?? 0
+                                outOfStockItems={
+                                    inventoryStats?.outOfStockItems ?? 0
                                 }
                             />
                         </div>

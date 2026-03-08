@@ -141,6 +141,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $totalUsableItems = $inventoryItems
             ->filter(fn (InventoryItem $item) => (bool) $item->is_usable)
             ->count();
+        $lowStockItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity > 0 && (float) $item->quantity <= 10)
+            ->count();
+        $outOfStockItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity <= 0)
+            ->count();
 
         $inventoryValue = 0.0;
         $amountOwedToVendors = 0.0;
@@ -172,6 +178,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'totalItems' => $totalInventoryItems,
                     'totalFixedItems' => $totalFixedItems,
                     'totalUsableItems' => $totalUsableItems,
+                    'lowStockItems' => $lowStockItems,
+                    'outOfStockItems' => $outOfStockItems,
                     'inventoryValue' => round($inventoryValue, 2),
                     'amountOwedToVendors' => round($amountOwedToVendors, 2),
                     'pie' => $inventoryPie,
