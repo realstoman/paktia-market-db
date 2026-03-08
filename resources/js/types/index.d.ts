@@ -113,6 +113,9 @@ export interface Employee {
     shift_id?: number | null;
     salary?: number | string | null;
     salary_currency?: 'AFN' | 'USD';
+    contract_start_date?: string | null;
+    contract_end_date?: string | null;
+    contract_amount?: number | string | null;
     status?: string;
     is_active?: boolean;
     created_at?: string;

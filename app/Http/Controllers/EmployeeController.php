@@ -47,6 +47,9 @@ class EmployeeController extends Controller
                 'shift_id' => $employee->shift_id,
                 'salary' => $employee->salary,
                 'salary_currency' => $employee->salary_currency,
+                'contract_start_date' => $employee->contract_start_date?->toDateString(),
+                'contract_end_date' => $employee->contract_end_date?->toDateString(),
+                'contract_amount' => $employee->contract_amount,
                 'status' => $employee->status,
                 'is_active' => $employee->is_active,
                 'created_at' => $employee->created_at,
@@ -83,6 +86,8 @@ class EmployeeController extends Controller
                 ->values()
                 ->all();
         }
+
+        $this->normalizeCompensationPayload($validated);
 
         Employee::create($validated);
 
@@ -127,6 +132,8 @@ class EmployeeController extends Controller
                 array_merge($currentAttachments, $storedAttachments),
             );
         }
+
+        $this->normalizeCompensationPayload($validated);
 
         $employee->update($validated);
 
@@ -352,8 +359,12 @@ class EmployeeController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'salary' => ['nullable', 'numeric', 'min:0'],
+            'is_contract_based' => ['required', 'boolean'],
+            'salary' => ['nullable', 'numeric', 'min:0', 'required_unless:is_contract_based,true'],
             'salary_currency' => ['required', Rule::in(['AFN', 'USD'])],
+            'contract_start_date' => ['nullable', 'date', 'required_if:is_contract_based,true'],
+            'contract_end_date' => ['nullable', 'date', 'required_if:is_contract_based,true', 'after_or_equal:contract_start_date'],
+            'contract_amount' => ['nullable', 'numeric', 'min:0', 'required_if:is_contract_based,true'],
             'profile_picture' => ['nullable', 'image', 'max:4096'],
             'attachments' => ['nullable', 'array', 'max:25'],
             'attachments.*' => [
@@ -378,5 +389,23 @@ class EmployeeController extends Controller
         }
 
         return date('g:i A', $timestamp);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function normalizeCompensationPayload(array &$validated): void
+    {
+        $isContract = (bool) ($validated['is_contract_based'] ?? false);
+
+        if ($isContract) {
+            $validated['salary'] = null;
+        } else {
+            $validated['contract_start_date'] = null;
+            $validated['contract_end_date'] = null;
+            $validated['contract_amount'] = null;
+        }
+
+        unset($validated['is_contract_based']);
     }
 }

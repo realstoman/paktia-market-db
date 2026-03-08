@@ -24,6 +24,9 @@ class Employee extends Model
         'attachments',
         'salary',
         'salary_currency',
+        'contract_start_date',
+        'contract_end_date',
+        'contract_amount',
         'status',
         'is_active',
     ];
@@ -31,6 +34,9 @@ class Employee extends Model
     protected $casts = [
         'attachments' => 'array',
         'salary' => 'decimal:2',
+        'contract_amount' => 'decimal:2',
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
         'is_active' => 'boolean',
     ];
 
