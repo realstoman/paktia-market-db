@@ -500,7 +500,6 @@ export default function Dashboard({ data }: DashboardProps) {
                         </Card>
                         <div className="relative overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
                             <PieChartDonutText
-                                data={inventoryStats?.pie}
                                 total={inventoryStats?.totalItems ?? 0}
                                 totalFixedItems={
                                     inventoryStats?.totalFixedItems ?? 0
