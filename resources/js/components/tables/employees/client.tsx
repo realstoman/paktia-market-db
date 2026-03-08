@@ -22,7 +22,13 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
+import {
+    Branch,
+    Employee,
+    EmployeePosition,
+    EmploymentType,
+    Shift,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
@@ -32,6 +38,7 @@ import {
     Pencil,
     Plus,
     Shapes,
+    Clock3,
     Trash2,
     UserRound,
     X,
@@ -45,6 +52,7 @@ interface EmployeeClientProps {
     branches: Branch[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
+    shifts: Shift[];
     isLoading?: boolean;
 }
 
@@ -56,12 +64,34 @@ interface SelectedAttachment {
 const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
+const FILTER_ALL = '__all__';
+
+const formatTimeTo12Hour = (time?: string | null) => {
+    if (!time) {
+        return '';
+    }
+
+    const [hourPart, minutePart] = String(time).split(':');
+    const hour = Number(hourPart);
+    const minute = Number(minutePart ?? '0');
+
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+        return String(time);
+    }
+
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    const normalizedHour = hour % 12 || 12;
+    const normalizedMinute = String(minute).padStart(2, '0');
+
+    return `${normalizedHour}:${normalizedMinute} ${suffix}`;
+};
 
 export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     data,
     branches,
     employmentTypes,
     employeePositions,
+    shifts,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -71,7 +101,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [branchId, setBranchId] = useState('');
     const [employmentTypeId, setEmploymentTypeId] = useState('');
     const [employeePositionId, setEmployeePositionId] = useState('');
+    const [shiftId, setShiftId] = useState('');
     const [salary, setSalary] = useState('');
+    const [contractStartDate, setContractStartDate] = useState('');
+    const [contractEndDate, setContractEndDate] = useState('');
+    const [contractAmount, setContractAmount] = useState('');
     const [salaryCurrency, setSalaryCurrency] = useState('AFN');
     const [status, setStatus] = useState('active');
     const [address, setAddress] = useState('');
@@ -104,6 +138,21 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     >({});
     const [isEmploymentTypeSubmitting, setIsEmploymentTypeSubmitting] =
         useState(false);
+    const [isShiftsOpen, setIsShiftsOpen] = useState(false);
+    const [shiftName, setShiftName] = useState('');
+    const [shiftStartTime, setShiftStartTime] = useState('08:00');
+    const [shiftEndTime, setShiftEndTime] = useState('16:00');
+    const [shiftDescription, setShiftDescription] = useState('');
+    const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
+    const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
+    const [isShiftSubmitting, setIsShiftSubmitting] = useState(false);
+    const [selectedBranchFilter, setSelectedBranchFilter] =
+        useState(FILTER_ALL);
+    const [selectedEmploymentTypeFilter, setSelectedEmploymentTypeFilter] =
+        useState(FILTER_ALL);
+    const [selectedPositionFilter, setSelectedPositionFilter] =
+        useState(FILTER_ALL);
+    const [selectedShiftFilter, setSelectedShiftFilter] = useState(FILTER_ALL);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -125,7 +174,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setBranchId('');
         setEmploymentTypeId('');
         setEmployeePositionId('');
+        setShiftId('');
         setSalary('');
+        setContractStartDate('');
+        setContractEndDate('');
+        setContractAmount('');
         setSalaryCurrency('AFN');
         setStatus('active');
         setAddress('');
@@ -159,6 +212,22 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     };
 
+    const selectedEmploymentTypeName = useMemo(() => {
+        if (!employmentTypeId) {
+            return '';
+        }
+
+        return (
+            employmentTypes.find((type) => String(type.id) === employmentTypeId)
+                ?.name ?? ''
+        );
+    }, [employmentTypeId, employmentTypes]);
+
+    const isContractBased = useMemo(
+        () => selectedEmploymentTypeName.toLowerCase().includes('contract'),
+        [selectedEmploymentTypeName],
+    );
+
     const removeAttachment = (id: string) => {
         setAttachments((current) => current.filter((item) => item.id !== id));
     };
@@ -188,8 +257,17 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 employee_position_id: employeePositionId
                     ? Number(employeePositionId)
                     : null,
-                salary: salary.trim() ? Number(salary) : null,
+                shift_id: shiftId ? Number(shiftId) : null,
+                is_contract_based: isContractBased,
+                salary:
+                    !isContractBased && salary.trim() ? Number(salary) : null,
                 salary_currency: salaryCurrency,
+                contract_start_date: contractStartDate || null,
+                contract_end_date: contractEndDate || null,
+                contract_amount:
+                    isContractBased && contractAmount.trim()
+                        ? Number(contractAmount)
+                        : null,
                 status,
                 is_active: status === 'active',
                 address: address.trim() || null,
@@ -379,9 +457,96 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     };
 
+    const resetShiftForm = () => {
+        setShiftName('');
+        setShiftStartTime('08:00');
+        setShiftEndTime('16:00');
+        setShiftDescription('');
+        setEditingShiftId(null);
+        setShiftErrors({});
+    };
+
+    const handleSaveShift = () => {
+        if (!shiftName.trim() || isShiftSubmitting) {
+            return;
+        }
+
+        setIsShiftSubmitting(true);
+
+        const payload = {
+            name: shiftName.trim(),
+            start_time: shiftStartTime,
+            end_time: shiftEndTime,
+            description: shiftDescription.trim() || null,
+            is_active: true,
+        };
+
+        if (editingShiftId) {
+            router.put(`/shifts/${editingShiftId}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Shift updated.');
+                    resetShiftForm();
+                },
+                onError: (errors) => {
+                    setShiftErrors(errors);
+                },
+                onFinish: () => {
+                    setIsShiftSubmitting(false);
+                },
+            });
+            return;
+        }
+
+        router.post('/shifts', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Shift created.');
+                resetShiftForm();
+            },
+            onError: (errors) => {
+                setShiftErrors(errors);
+            },
+            onFinish: () => {
+                setIsShiftSubmitting(false);
+            },
+        });
+    };
+
+    const startEditingShift = (shift: Shift) => {
+        setEditingShiftId(shift.id);
+        setShiftName(shift.name);
+        setShiftStartTime(String(shift.start_time).slice(0, 5));
+        setShiftEndTime(String(shift.end_time).slice(0, 5));
+        setShiftDescription(shift.description ?? '');
+        setShiftErrors({});
+    };
+
+    const handleDeleteShift = (shift: Shift) => {
+        if (isShiftSubmitting) {
+            return;
+        }
+
+        setIsShiftSubmitting(true);
+
+        router.delete(`/shifts/${shift.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Shift deleted.');
+                if (editingShiftId === shift.id) {
+                    resetShiftForm();
+                }
+            },
+            onFinish: () => {
+                setIsShiftSubmitting(false);
+            },
+        });
+    };
+
     const tableColumns = useMemo(
-        () => buildColumns(branches, employmentTypes, employeePositions),
-        [branches, employmentTypes, employeePositions],
+        () =>
+            buildColumns(branches, employmentTypes, employeePositions, shifts),
+        [branches, employmentTypes, employeePositions, shifts],
     );
 
     const attachmentError =
@@ -389,6 +554,37 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         Object.entries(createErrors).find(([key]) =>
             key.startsWith('attachments.'),
         )?.[1];
+    const filteredData = useMemo(() => {
+        return data.filter((employee) => {
+            const branchMatch =
+                selectedBranchFilter === FILTER_ALL ||
+                String(employee.branch_id ?? '') === selectedBranchFilter;
+            const employmentTypeMatch =
+                selectedEmploymentTypeFilter === FILTER_ALL ||
+                String(employee.employment_type_id ?? '') ===
+                    selectedEmploymentTypeFilter;
+            const positionMatch =
+                selectedPositionFilter === FILTER_ALL ||
+                String(employee.employee_position_id ?? '') ===
+                    selectedPositionFilter;
+            const shiftMatch =
+                selectedShiftFilter === FILTER_ALL ||
+                String(employee.shift_id ?? '') === selectedShiftFilter;
+
+            return (
+                branchMatch &&
+                employmentTypeMatch &&
+                positionMatch &&
+                shiftMatch
+            );
+        });
+    }, [
+        data,
+        selectedBranchFilter,
+        selectedEmploymentTypeFilter,
+        selectedPositionFilter,
+        selectedShiftFilter,
+    ]);
 
     return (
         <div className="space-y-4">
@@ -405,6 +601,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     >
                         <Shapes className="h-4 w-4" />
                         Employment Types
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsShiftsOpen(true)}
+                        className="gap-2"
+                    >
+                        <Clock3 className="h-4 w-4" />
+                        Shifts
                     </Button>
                     <Button
                         variant="outline"
@@ -434,9 +638,100 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     'status',
                 ]}
                 columns={tableColumns}
-                data={data}
+                data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder="Search employees by name, phone, or branch..."
+                toolbar={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select
+                            value={selectedBranchFilter}
+                            onValueChange={setSelectedBranchFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[170px]">
+                                <SelectValue placeholder="Branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Branches
+                                </SelectItem>
+                                {branches.map((branch) => (
+                                    <SelectItem
+                                        key={branch.id}
+                                        value={String(branch.id)}
+                                    >
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedEmploymentTypeFilter}
+                            onValueChange={setSelectedEmploymentTypeFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[190px]">
+                                <SelectValue placeholder="Employment Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Employment Types
+                                </SelectItem>
+                                {employmentTypes.map((type) => (
+                                    <SelectItem
+                                        key={type.id}
+                                        value={String(type.id)}
+                                    >
+                                        {type.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedPositionFilter}
+                            onValueChange={setSelectedPositionFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[180px]">
+                                <SelectValue placeholder="Position" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Positions
+                                </SelectItem>
+                                {employeePositions.map((position) => (
+                                    <SelectItem
+                                        key={position.id}
+                                        value={String(position.id)}
+                                    >
+                                        {position.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedShiftFilter}
+                            onValueChange={setSelectedShiftFilter}
+                        >
+                            <SelectTrigger className="h-10 w-[170px]">
+                                <SelectValue placeholder="Shift" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FILTER_ALL}>
+                                    All Shifts
+                                </SelectItem>
+                                {shifts.map((shift) => (
+                                    <SelectItem
+                                        key={shift.id}
+                                        value={String(shift.id)}
+                                    >
+                                        {shift.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                }
             />
 
             <Dialog
@@ -574,6 +869,161 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
                                         No employment types found.
+                                    </p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isShiftsOpen}
+                onOpenChange={(open) => {
+                    setIsShiftsOpen(open);
+                    if (!open) {
+                        resetShiftForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Clock3 className="h-5 w-5" />
+                            Shift Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, edit, and remove employee shifts.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="shift-name">Shift name</Label>
+                                <Input
+                                    id="shift-name"
+                                    value={shiftName}
+                                    onChange={(event) =>
+                                        setShiftName(event.target.value)
+                                    }
+                                    placeholder="e.g. Day Shift"
+                                />
+                                <InputError message={shiftErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="shift-start-time">
+                                    Start time
+                                </Label>
+                                <Input
+                                    id="shift-start-time"
+                                    type="time"
+                                    value={shiftStartTime}
+                                    onChange={(event) =>
+                                        setShiftStartTime(event.target.value)
+                                    }
+                                />
+                                <InputError message={shiftErrors.start_time} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="shift-end-time">End time</Label>
+                                <Input
+                                    id="shift-end-time"
+                                    type="time"
+                                    value={shiftEndTime}
+                                    onChange={(event) =>
+                                        setShiftEndTime(event.target.value)
+                                    }
+                                />
+                                <InputError message={shiftErrors.end_time} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="shift-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="shift-description"
+                                    value={shiftDescription}
+                                    onChange={(event) =>
+                                        setShiftDescription(event.target.value)
+                                    }
+                                    placeholder="Optional"
+                                />
+                                <InputError
+                                    message={shiftErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSaveShift}
+                                    disabled={
+                                        !shiftName.trim() || isShiftSubmitting
+                                    }
+                                >
+                                    {editingShiftId
+                                        ? 'Update Shift'
+                                        : 'Add Shift'}
+                                </Button>
+                                {editingShiftId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetShiftForm}
+                                        disabled={isShiftSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {shifts.length > 0 ? (
+                                    shifts.map((shift) => (
+                                        <div
+                                            key={shift.id}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {shift.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {`${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)}`}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {shift.description || '—'}
+                                                </p>
+                                            </div>
+                                            <div className="ml-3 flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        startEditingShift(shift)
+                                                    }
+                                                    disabled={isShiftSubmitting}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDeleteShift(shift)
+                                                    }
+                                                    disabled={isShiftSubmitting}
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No shifts found.
                                     </p>
                                 )}
                             </div>
@@ -739,7 +1189,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         </DialogTitle>
                         <DialogDescription>
                             Add employee profile, employment type, position, and
-                            salary details.
+                            compensation details.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -856,22 +1306,95 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-salary">Salary</Label>
+                                <Label>Shift</Label>
+                                <Select value={shiftId} onValueChange={setShiftId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select shift" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {shifts.map((shift) => (
+                                            <SelectItem
+                                                key={shift.id}
+                                                value={String(shift.id)}
+                                            >
+                                                {`${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.shift_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-salary">
+                                    {isContractBased
+                                        ? 'Contract Amount'
+                                        : 'Salary'}
+                                </Label>
                                 <Input
                                     id="employee-salary"
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={salary}
+                                    value={
+                                        isContractBased
+                                            ? contractAmount
+                                            : salary
+                                    }
                                     onChange={(event) =>
-                                        setSalary(event.target.value)
+                                        isContractBased
+                                            ? setContractAmount(
+                                                  event.target.value,
+                                              )
+                                            : setSalary(event.target.value)
                                     }
                                     placeholder="0.00"
                                 />
-                                <InputError message={createErrors.salary} />
+                                <InputError
+                                    message={
+                                        isContractBased
+                                            ? createErrors.contract_amount
+                                            : createErrors.salary
+                                    }
+                                />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Salary currency</Label>
+                                <Label htmlFor="contract-start-date">
+                                    {isContractBased
+                                        ? 'Contract start date'
+                                        : 'Work start date'}
+                                </Label>
+                                <Input
+                                    id="contract-start-date"
+                                    type="date"
+                                    value={contractStartDate}
+                                    onChange={(event) =>
+                                        setContractStartDate(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.contract_start_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="contract-end-date">
+                                    {isContractBased
+                                        ? 'Contract end date'
+                                        : 'Work end date'}
+                                </Label>
+                                <Input
+                                    id="contract-end-date"
+                                    type="date"
+                                    value={contractEndDate}
+                                    onChange={(event) =>
+                                        setContractEndDate(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.contract_end_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Payment Currency</Label>
                                 <Select
                                     value={salaryCurrency}
                                     onValueChange={setSalaryCurrency}
@@ -1085,6 +1608,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 !firstName.trim() ||
                                 !lastName.trim() ||
                                 !branchId ||
+                                !contractStartDate ||
+                                !contractEndDate ||
+                                (isContractBased &&
+                                    (!contractStartDate ||
+                                        !contractEndDate ||
+                                        !contractAmount.trim())) ||
+                                (!isContractBased && !salary.trim()) ||
                                 isSubmitting
                             }
                         >

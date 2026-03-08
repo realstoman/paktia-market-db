@@ -21,44 +21,90 @@ import {
 
 export const description = 'A donut chart with text';
 
-const chartData = [
-    { browser: 'chrome', visitors: 1400, fill: 'var(--color-chrome)' },
-    { browser: 'safari', visitors: 800, fill: 'var(--color-safari)' },
-    { browser: 'firefox', visitors: 400, fill: 'var(--color-firefox)' },
-    { browser: 'edge', visitors: 200, fill: 'var(--color-edge)' },
-    { browser: 'other', visitors: 650, fill: 'var(--color-other)' },
-];
-
 const chartConfig = {
-    visitors: {
-        label: 'Visitors',
+    value: {
+        label: 'Value',
     },
-    chrome: {
-        label: 'Chrome',
+    totalItems: {
+        label: 'Total Items',
         color: 'var(--chart-1)',
     },
-    safari: {
-        label: 'Safari',
+    totalFixedItems: {
+        label: 'Total Fixed Items',
         color: 'var(--chart-2)',
     },
-    firefox: {
-        label: 'Firefox',
+    totalUsableItems: {
+        label: 'Total Usable Items',
         color: 'var(--chart-3)',
     },
-    edge: {
-        label: 'Edge',
+    lowStockItems: {
+        label: 'Low Stock Items',
         color: 'var(--chart-4)',
     },
-    other: {
-        label: 'Other',
+    outOfStockItems: {
+        label: 'Out of Stock Items',
         color: 'var(--chart-5)',
     },
 } satisfies ChartConfig;
 
-export function PieChartDonutText() {
-    const totalVisitors = React.useMemo(() => {
-        return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-    }, []);
+interface PieChartDonutTextProps {
+    total?: number;
+    totalFixedItems?: number;
+    totalUsableItems?: number;
+    lowStockItems?: number;
+    outOfStockItems?: number;
+}
+
+export function PieChartDonutText({
+    total = 0,
+    totalFixedItems = 0,
+    totalUsableItems = 0,
+    lowStockItems = 0,
+    outOfStockItems = 0,
+}: PieChartDonutTextProps) {
+    const chartData = React.useMemo(
+        () => [
+            {
+                segment: 'totalItems',
+                label: 'Total Items',
+                value: total,
+                fill: 'var(--color-totalItems)',
+            },
+            {
+                segment: 'totalFixedItems',
+                label: 'Total Fixed Items',
+                value: totalFixedItems,
+                fill: 'var(--color-totalFixedItems)',
+            },
+            {
+                segment: 'totalUsableItems',
+                label: 'Total Usable Items',
+                value: totalUsableItems,
+                fill: 'var(--color-totalUsableItems)',
+            },
+            {
+                segment: 'lowStockItems',
+                label: 'Low Stock Items',
+                value: lowStockItems,
+                fill: 'var(--color-lowStockItems)',
+            },
+            {
+                segment: 'outOfStockItems',
+                label: 'Out of Stock Items',
+                value: outOfStockItems,
+                fill: 'var(--color-outOfStockItems)',
+            },
+        ],
+        [
+            lowStockItems,
+            outOfStockItems,
+            total,
+            totalFixedItems,
+            totalUsableItems,
+        ],
+    );
+
+    const totalItems = typeof total === 'number' && total >= 0 ? total : 0;
 
     return (
         <Card className="flex flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
@@ -74,12 +120,12 @@ export function PieChartDonutText() {
                     <PieChart>
                         <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
+                            content={<ChartTooltipContent />}
                         />
                         <Pie
                             data={chartData}
-                            dataKey="visitors"
-                            nameKey="browser"
+                            dataKey="value"
+                            nameKey="segment"
                             innerRadius={60}
                             strokeWidth={5}
                         >
@@ -102,7 +148,7 @@ export function PieChartDonutText() {
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-3xl font-bold"
                                                 >
-                                                    {totalVisitors.toLocaleString()}
+                                                    {totalItems.toLocaleString()}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}
@@ -120,13 +166,14 @@ export function PieChartDonutText() {
                     </PieChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
+            <CardFooter className="flex-col items-start gap-3 pb-4 text-sm">
                 <div className="flex items-start gap-2 leading-none font-medium">
-                    Trending up by 5.2% this month{' '}
+                    Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    Showing total inventory items in the restaurant
+                    5-color breakdown: items, fixed, usable, low stock, and
+                    out of stock.
                 </div>
             </CardFooter>
         </Card>

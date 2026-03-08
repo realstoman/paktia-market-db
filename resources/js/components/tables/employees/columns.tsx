@@ -1,6 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
+import {
+    Branch,
+    Employee,
+    EmployeePosition,
+    EmploymentType,
+    Shift,
+} from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -25,6 +31,7 @@ export const buildColumns = (
     branches: Branch[],
     employmentTypes: EmploymentType[],
     employeePositions: EmployeePosition[],
+    shifts: Shift[],
 ): ColumnDef<Employee>[] => [
     {
         id: 'select',
@@ -91,6 +98,30 @@ export const buildColumns = (
         cell: ({ row }) => row.original.employment_type || '—',
     },
     {
+        accessorKey: 'shift',
+        header: 'Shift',
+        cell: ({ row }) => {
+            const shift = row.original.shift;
+            if (!shift) {
+                return '—';
+            }
+
+            const nameMatch = shift.match(/^(.*?)\s*\((.*?)\)$/);
+            if (!nameMatch) {
+                return shift;
+            }
+
+            const [, name, time] = nameMatch;
+
+            return (
+                <div className="leading-tight">
+                    <p className="text-sm font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">{time}</p>
+                </div>
+            );
+        },
+    },
+    {
         accessorKey: 'employee_position',
         header: 'Position',
         cell: ({ row }) => row.original.employee_position || '—',
@@ -104,17 +135,22 @@ export const buildColumns = (
         accessorKey: 'salary',
         header: 'Salary',
         cell: ({ row }) => {
-            const salary = row.original.salary;
-            if (salary === null || salary === undefined || salary === '') {
+            const compensation =
+                row.original.contract_amount ?? row.original.salary;
+            if (
+                compensation === null ||
+                compensation === undefined ||
+                compensation === ''
+            ) {
                 return '—';
             }
 
-            const numericSalary = Number(salary);
+            const numericSalary = Number(compensation);
             if (Number.isNaN(numericSalary)) {
                 return '—';
             }
 
-            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}`;
+            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ' (Contract)' : ''}`;
         },
     },
     {
@@ -162,6 +198,7 @@ export const buildColumns = (
                 branches={branches}
                 employmentTypes={employmentTypes}
                 employeePositions={employeePositions}
+                shifts={shifts}
             />
         ),
     },

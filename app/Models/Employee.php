@@ -14,6 +14,7 @@ class Employee extends Model
         'branch_id',
         'employment_type_id',
         'employee_position_id',
+        'shift_id',
         'first_name',
         'last_name',
         'phone',
@@ -23,6 +24,9 @@ class Employee extends Model
         'attachments',
         'salary',
         'salary_currency',
+        'contract_start_date',
+        'contract_end_date',
+        'contract_amount',
         'status',
         'is_active',
     ];
@@ -30,6 +34,9 @@ class Employee extends Model
     protected $casts = [
         'attachments' => 'array',
         'salary' => 'decimal:2',
+        'contract_amount' => 'decimal:2',
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
         'is_active' => 'boolean',
     ];
 
@@ -51,5 +58,10 @@ class Employee extends Model
     public function employeePosition()
     {
         return $this->belongsTo(EmployeePosition::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
     }
 }

@@ -13,6 +13,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Carbon\Carbon;
@@ -132,6 +133,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
             }
         }
 
+        $inventoryItems = InventoryItem::query()->get();
+        $totalInventoryItems = $inventoryItems->count();
+        $totalFixedItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => str($item->type)->lower()->trim()->value() === 'fixed')
+            ->count();
+        $totalUsableItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (bool) $item->is_usable)
+            ->count();
+        $lowStockItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity > 0 && (float) $item->quantity <= 10)
+            ->count();
+        $outOfStockItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity <= 0)
+            ->count();
+
+        $inventoryValue = 0.0;
+        $amountOwedToVendors = 0.0;
+
+        foreach ($inventoryItems as $item) {
+            $quantity = (float) $item->quantity;
+            $unitPrice = (float) ($item->unit_price ?? 0);
+            $paidAmount = (float) ($item->paid_amount ?? 0);
+            $itemTotal = $quantity * $unitPrice;
+
+            $inventoryValue += $itemTotal;
+            $amountOwedToVendors += max(0, $itemTotal - $paidAmount);
+        }
+
+        $inventoryPie = [
+            ['key' => 'usable', 'label' => 'Usable', 'value' => $totalUsableItems],
+            ['key' => 'fixed', 'label' => 'Fixed', 'value' => $totalFixedItems],
+            ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
+        ];
+
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $orderStats,
@@ -139,6 +174,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'recentOrders' => $recentOrders,
                 'topOrderedDishes' => $topOrderedDishes,
                 'selectedDate' => $selectedDateString,
+                'inventory' => [
+                    'totalItems' => $totalInventoryItems,
+                    'totalFixedItems' => $totalFixedItems,
+                    'totalUsableItems' => $totalUsableItems,
+                    'lowStockItems' => $lowStockItems,
+                    'outOfStockItems' => $outOfStockItems,
+                    'inventoryValue' => round($inventoryValue, 2),
+                    'amountOwedToVendors' => round($amountOwedToVendors, 2),
+                    'pie' => $inventoryPie,
+                ],
             ],
         ]);
     })->name('dashboard');
@@ -222,6 +267,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('employment-types', [EmployeeController::class, 'storeEmploymentType'])->name('employment-types.store');
     Route::put('employment-types/{employmentType}', [EmployeeController::class, 'updateEmploymentType'])->name('employment-types.update');
     Route::delete('employment-types/{employmentType}', [EmployeeController::class, 'destroyEmploymentType'])->name('employment-types.destroy');
+    Route::post('shifts', [EmployeeController::class, 'storeShift'])->name('shifts.store');
+    Route::put('shifts/{shift}', [EmployeeController::class, 'updateShift'])->name('shifts.update');
+    Route::delete('shifts/{shift}', [EmployeeController::class, 'destroyShift'])->name('shifts.destroy');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

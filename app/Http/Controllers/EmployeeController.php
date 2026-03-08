@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class EmployeeController extends Controller
         Gate::authorize(PermissionEnum::EMPLOYEES_VIEW->value);
 
         $employees = Employee::query()
-            ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name'])
+            ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Employee $employee) => [
@@ -40,8 +41,15 @@ class EmployeeController extends Controller
                 'employment_type_id' => $employee->employment_type_id,
                 'employee_position' => $employee->employeePosition?->name,
                 'employee_position_id' => $employee->employee_position_id,
+                'shift' => $employee->shift
+                    ? $employee->shift->name.' ('.$this->formatTimeTo12Hour((string) $employee->shift->start_time).' - '.$this->formatTimeTo12Hour((string) $employee->shift->end_time).')'
+                    : null,
+                'shift_id' => $employee->shift_id,
                 'salary' => $employee->salary,
                 'salary_currency' => $employee->salary_currency,
+                'contract_start_date' => $employee->contract_start_date?->toDateString(),
+                'contract_end_date' => $employee->contract_end_date?->toDateString(),
+                'contract_amount' => $employee->contract_amount,
                 'status' => $employee->status,
                 'is_active' => $employee->is_active,
                 'created_at' => $employee->created_at,
@@ -54,6 +62,7 @@ class EmployeeController extends Controller
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name']),
             'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name']),
+            'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
             'canCreate' => Gate::allows(PermissionEnum::EMPLOYEES_CREATE->value),
         ]);
     }
@@ -77,6 +86,8 @@ class EmployeeController extends Controller
                 ->values()
                 ->all();
         }
+
+        $this->normalizeCompensationPayload($validated);
 
         Employee::create($validated);
 
@@ -121,6 +132,8 @@ class EmployeeController extends Controller
                 array_merge($currentAttachments, $storedAttachments),
             );
         }
+
+        $this->normalizeCompensationPayload($validated);
 
         $employee->update($validated);
 
@@ -268,6 +281,69 @@ class EmployeeController extends Controller
             ->with('success', 'Employment type deleted successfully.');
     }
 
+    public function storeShift(Request $request)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:shifts,name'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        Shift::create([
+            'name' => $validated['name'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift created successfully.');
+    }
+
+    public function updateShift(Request $request, Shift $shift)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('shifts', 'name')->ignore($shift->id),
+            ],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        $shift->update([
+            'name' => $validated['name'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift updated successfully.');
+    }
+
+    public function destroyShift(Shift $shift)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $shift->delete();
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift deleted successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -277,13 +353,18 @@ class EmployeeController extends Controller
             'branch_id' => ['required', 'exists:branches,id'],
             'employment_type_id' => ['nullable', 'exists:employment_types,id'],
             'employee_position_id' => ['nullable', 'exists:employee_positions,id'],
+            'shift_id' => ['nullable', 'exists:shifts,id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'salary' => ['nullable', 'numeric', 'min:0'],
+            'is_contract_based' => ['required', 'boolean'],
+            'salary' => ['nullable', 'numeric', 'min:0', 'required_unless:is_contract_based,true'],
             'salary_currency' => ['required', Rule::in(['AFN', 'USD'])],
+            'contract_start_date' => ['nullable', 'date', 'required_with:employment_type_id'],
+            'contract_end_date' => ['nullable', 'date', 'required_with:employment_type_id', 'after_or_equal:contract_start_date'],
+            'contract_amount' => ['nullable', 'numeric', 'min:0', 'required_if:is_contract_based,true'],
             'profile_picture' => ['nullable', 'image', 'max:4096'],
             'attachments' => ['nullable', 'array', 'max:25'],
             'attachments.*' => [
@@ -297,5 +378,32 @@ class EmployeeController extends Controller
             ],
             'is_active' => ['required', 'boolean'],
         ];
+    }
+
+    private function formatTimeTo12Hour(string $time): string
+    {
+        $timestamp = strtotime($time);
+
+        if ($timestamp === false) {
+            return $time;
+        }
+
+        return date('g:i A', $timestamp);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function normalizeCompensationPayload(array &$validated): void
+    {
+        $isContract = (bool) ($validated['is_contract_based'] ?? false);
+
+        if ($isContract) {
+            $validated['salary'] = null;
+        } else {
+            $validated['contract_amount'] = null;
+        }
+
+        unset($validated['is_contract_based']);
     }
 }
