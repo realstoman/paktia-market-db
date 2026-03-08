@@ -13,6 +13,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Carbon\Carbon;
@@ -132,6 +133,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             }
         }
 
+        $inventoryItems = InventoryItem::query()->get();
+        $totalInventoryItems = $inventoryItems->count();
+        $totalFixedItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => str($item->type)->lower()->trim()->value() === 'fixed')
+            ->count();
+        $totalUsableItems = $inventoryItems
+            ->filter(fn (InventoryItem $item) => (bool) $item->is_usable)
+            ->count();
+
+        $inventoryValue = 0.0;
+        $amountOwedToVendors = 0.0;
+
+        foreach ($inventoryItems as $item) {
+            $quantity = (float) $item->quantity;
+            $unitPrice = (float) ($item->unit_price ?? 0);
+            $paidAmount = (float) ($item->paid_amount ?? 0);
+            $itemTotal = $quantity * $unitPrice;
+
+            $inventoryValue += $itemTotal;
+            $amountOwedToVendors += max(0, $itemTotal - $paidAmount);
+        }
+
+        $inventoryPie = [
+            ['key' => 'usable', 'label' => 'Usable', 'value' => $totalUsableItems],
+            ['key' => 'fixed', 'label' => 'Fixed', 'value' => $totalFixedItems],
+            ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
+        ];
+
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $orderStats,
@@ -139,6 +168,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'recentOrders' => $recentOrders,
                 'topOrderedDishes' => $topOrderedDishes,
                 'selectedDate' => $selectedDateString,
+                'inventory' => [
+                    'totalItems' => $totalInventoryItems,
+                    'totalFixedItems' => $totalFixedItems,
+                    'totalUsableItems' => $totalUsableItems,
+                    'inventoryValue' => round($inventoryValue, 2),
+                    'amountOwedToVendors' => round($amountOwedToVendors, 2),
+                    'pie' => $inventoryPie,
+                ],
             ],
         ]);
     })->name('dashboard');
