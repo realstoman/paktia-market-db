@@ -102,6 +102,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [employeePositionId, setEmployeePositionId] = useState('');
     const [shiftId, setShiftId] = useState('');
     const [salary, setSalary] = useState('');
+    const [contractStartDate, setContractStartDate] = useState('');
+    const [contractEndDate, setContractEndDate] = useState('');
+    const [contractAmount, setContractAmount] = useState('');
     const [salaryCurrency, setSalaryCurrency] = useState('AFN');
     const [status, setStatus] = useState('active');
     const [address, setAddress] = useState('');
@@ -165,6 +168,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setEmployeePositionId('');
         setShiftId('');
         setSalary('');
+        setContractStartDate('');
+        setContractEndDate('');
+        setContractAmount('');
         setSalaryCurrency('AFN');
         setStatus('active');
         setAddress('');
@@ -198,6 +204,22 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     };
 
+    const selectedEmploymentTypeName = useMemo(() => {
+        if (!employmentTypeId) {
+            return '';
+        }
+
+        return (
+            employmentTypes.find((type) => String(type.id) === employmentTypeId)
+                ?.name ?? ''
+        );
+    }, [employmentTypeId, employmentTypes]);
+
+    const isContractBased = useMemo(
+        () => selectedEmploymentTypeName.toLowerCase().includes('contract'),
+        [selectedEmploymentTypeName],
+    );
+
     const removeAttachment = (id: string) => {
         setAttachments((current) => current.filter((item) => item.id !== id));
     };
@@ -228,8 +250,20 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     ? Number(employeePositionId)
                     : null,
                 shift_id: shiftId ? Number(shiftId) : null,
-                salary: salary.trim() ? Number(salary) : null,
+                is_contract_based: isContractBased,
+                salary:
+                    !isContractBased && salary.trim() ? Number(salary) : null,
                 salary_currency: salaryCurrency,
+                contract_start_date: isContractBased
+                    ? contractStartDate || null
+                    : null,
+                contract_end_date: isContractBased
+                    ? contractEndDate || null
+                    : null,
+                contract_amount:
+                    isContractBased && contractAmount.trim()
+                        ? Number(contractAmount)
+                        : null,
                 status,
                 is_active: status === 'active',
                 address: address.trim() || null,
@@ -1029,7 +1063,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         </DialogTitle>
                         <DialogDescription>
                             Add employee profile, employment type, position, and
-                            salary details.
+                            compensation details.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1165,20 +1199,80 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-salary">Salary</Label>
+                                <Label htmlFor="employee-salary">
+                                    {isContractBased
+                                        ? 'Contract Amount'
+                                        : 'Salary'}
+                                </Label>
                                 <Input
                                     id="employee-salary"
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={salary}
+                                    value={
+                                        isContractBased
+                                            ? contractAmount
+                                            : salary
+                                    }
                                     onChange={(event) =>
-                                        setSalary(event.target.value)
+                                        isContractBased
+                                            ? setContractAmount(
+                                                  event.target.value,
+                                              )
+                                            : setSalary(event.target.value)
                                     }
                                     placeholder="0.00"
                                 />
-                                <InputError message={createErrors.salary} />
+                                <InputError
+                                    message={
+                                        isContractBased
+                                            ? createErrors.contract_amount
+                                            : createErrors.salary
+                                    }
+                                />
                             </div>
+                            {isContractBased ? (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="contract-start-date">
+                                        Contract start date
+                                    </Label>
+                                    <Input
+                                        id="contract-start-date"
+                                        type="date"
+                                        value={contractStartDate}
+                                        onChange={(event) =>
+                                            setContractStartDate(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={
+                                            createErrors.contract_start_date
+                                        }
+                                    />
+                                </div>
+                            ) : null}
+                            {isContractBased ? (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="contract-end-date">
+                                        Contract end date
+                                    </Label>
+                                    <Input
+                                        id="contract-end-date"
+                                        type="date"
+                                        value={contractEndDate}
+                                        onChange={(event) =>
+                                            setContractEndDate(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.contract_end_date}
+                                    />
+                                </div>
+                            ) : null}
                             <div className="grid gap-2">
                                 <Label>Salary currency</Label>
                                 <Select
@@ -1394,6 +1488,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 !firstName.trim() ||
                                 !lastName.trim() ||
                                 !branchId ||
+                                (isContractBased &&
+                                    (!contractStartDate ||
+                                        !contractEndDate ||
+                                        !contractAmount.trim())) ||
+                                (!isContractBased && !salary.trim()) ||
                                 isSubmitting
                             }
                         >

@@ -135,17 +135,22 @@ export const buildColumns = (
         accessorKey: 'salary',
         header: 'Salary',
         cell: ({ row }) => {
-            const salary = row.original.salary;
-            if (salary === null || salary === undefined || salary === '') {
+            const compensation =
+                row.original.contract_amount ?? row.original.salary;
+            if (
+                compensation === null ||
+                compensation === undefined ||
+                compensation === ''
+            ) {
                 return '—';
             }
 
-            const numericSalary = Number(salary);
+            const numericSalary = Number(compensation);
             if (Number.isNaN(numericSalary)) {
                 return '—';
             }
 
-            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}`;
+            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ' (Contract)' : ''}`;
         },
     },
     {
