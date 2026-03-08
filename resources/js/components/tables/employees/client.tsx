@@ -1264,7 +1264,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Salary currency</Label>
+                                <Label>Payment Currency</Label>
                                 <Select
                                     value={salaryCurrency}
                                     onValueChange={setSalaryCurrency}

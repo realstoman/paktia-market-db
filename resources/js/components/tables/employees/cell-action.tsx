@@ -174,12 +174,16 @@ export const CellAction: React.FC<CellActionProps> = ({
         data.status ?? (data.is_active ? 'active' : 'inactive'),
     );
     const [editAddress, setEditAddress] = useState(data.address ?? '');
-    const [editDescription, setEditDescription] = useState(data.description ?? '');
-
-    const [editProfilePicture, setEditProfilePicture] = useState<File | null>(null);
-    const [editAttachments, setEditAttachments] = useState<SelectedAttachment[]>(
-        [],
+    const [editDescription, setEditDescription] = useState(
+        data.description ?? '',
     );
+
+    const [editProfilePicture, setEditProfilePicture] = useState<File | null>(
+        null,
+    );
+    const [editAttachments, setEditAttachments] = useState<
+        SelectedAttachment[]
+    >([]);
 
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -318,7 +322,9 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                 const allowedNew = Math.max(
                     0,
-                    MAX_ATTACHMENTS - existingAttachments.length - current.length,
+                    MAX_ATTACHMENTS -
+                        existingAttachments.length -
+                        current.length,
                 );
 
                 return [...current, ...selected.slice(0, allowedNew)];
@@ -514,7 +520,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 `${data.first_name} ${data.last_name}`}
                                         </h3>
                                         <p className="text-sm text-muted-foreground">
-                                            {data.employee_position ?? 'No position assigned'}
+                                            {data.employee_position ??
+                                                'No position assigned'}
                                         </p>
                                         <div className="flex flex-wrap gap-2 pt-1">
                                             <span
@@ -524,10 +531,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                         : 'bg-red-100 text-red-700'
                                                 }`}
                                             >
-                                                {(data.status ??
+                                                {(
+                                                    data.status ??
                                                     (data.is_active
                                                         ? 'active'
-                                                        : 'inactive'))
+                                                        : 'inactive')
+                                                )
                                                     .split('_')
                                                     .map(
                                                         (part) =>
@@ -549,31 +558,39 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="rounded-lg border p-4">
-                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                         Contact
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
-                                            <span className="font-medium">Phone:</span>{' '}
+                                            <span className="font-medium">
+                                                Phone:
+                                            </span>{' '}
                                             {data.phone || '—'}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Address:</span>{' '}
+                                            <span className="font-medium">
+                                                Address:
+                                            </span>{' '}
                                             {data.address || '—'}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="rounded-lg border p-4">
-                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                         Employment
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
-                                            <span className="font-medium">Branch:</span>{' '}
+                                            <span className="font-medium">
+                                                Branch:
+                                            </span>{' '}
                                             {data.branch || '—'}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Salary:</span>{' '}
+                                            <span className="font-medium">
+                                                Salary:
+                                            </span>{' '}
                                             {data.contract_amount
                                                 ? `${Number(data.contract_amount).toLocaleString()} ${data.salary_currency ?? 'AFN'} (Contract)`
                                                 : data.salary
@@ -592,7 +609,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 : '—'}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Shift:</span>{' '}
+                                            <span className="font-medium">
+                                                Shift:
+                                            </span>{' '}
                                             {data.shift || '—'}
                                         </p>
                                     </div>
@@ -600,16 +619,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
 
                             <div className="rounded-lg border p-4">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                     Description
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    {data.description || 'No description provided.'}
+                                    {data.description ||
+                                        'No description provided.'}
                                 </p>
                             </div>
 
                             <div className="rounded-lg border p-4">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                <p className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                     Attachments
                                 </p>
                                 {existingAttachments.length > 0 ? (
@@ -618,7 +638,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             (path, index) => (
                                                 <a
                                                     key={`${path}-${index}`}
-                                                    href={publicStorageUrl(path)}
+                                                    href={publicStorageUrl(
+                                                        path,
+                                                    )}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
@@ -654,7 +676,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <ScrollArea className="max-h-[70vh]">
                         <div className="space-y-6 px-1">
                             <div className="rounded-xl border bg-gradient-to-r from-emerald-50 to-white p-5 dark:from-emerald-950/30 dark:to-neutral-950">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                                <p className="text-xs font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
                                     Upcoming Payment
                                 </p>
                                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -951,10 +973,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Salary currency</Label>
+                                <Label>Payment currency</Label>
                                 <Select
                                     value={editSalaryCurrency}
-                                    onValueChange={setEditSalaryCurrency}
+                                    onValueChange={(value) =>
+                                        setEditSalaryCurrency(
+                                            value as typeof editSalaryCurrency,
+                                        )
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select currency" />
@@ -985,7 +1011,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {EMPLOYEE_STATUSES.map((status) => (
-                                            <SelectItem key={status} value={status}>
+                                            <SelectItem
+                                                key={status}
+                                                value={status}
+                                            >
                                                 {status
                                                     .split('_')
                                                     .map(
@@ -1066,13 +1095,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         {editProfilePicturePreview ? (
                                             <div className="relative h-16 w-16 overflow-hidden rounded-md border">
                                                 <img
-                                                    src={editProfilePicturePreview}
+                                                    src={
+                                                        editProfilePicturePreview
+                                                    }
                                                     alt="New profile preview"
                                                     className="h-full w-full object-cover"
                                                 />
                                                 <button
                                                     type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
+                                                    className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
                                                     onClick={() =>
                                                         setEditProfilePicture(
                                                             null,
@@ -1085,7 +1116,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         ) : null}
                                     </div>
                                 </div>
-                                <InputError message={editErrors.profile_picture} />
+                                <InputError
+                                    message={editErrors.profile_picture}
+                                />
                             </div>
 
                             <div className="grid gap-2 sm:col-span-2">
@@ -1123,20 +1156,26 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             <p className="text-xs font-medium text-muted-foreground">
                                                 Current attachments
                                             </p>
-                                            {existingAttachments.map((path, index) => (
-                                                <a
-                                                    key={`${path}-${index}`}
-                                                    href={publicStorageUrl(path)}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
-                                                >
-                                                    <FileText className="h-4 w-4 text-muted-foreground" />
-                                                    <span className="truncate">
-                                                        {fileNameFromPath(path)}
-                                                    </span>
-                                                </a>
-                                            ))}
+                                            {existingAttachments.map(
+                                                (path, index) => (
+                                                    <a
+                                                        key={`${path}-${index}`}
+                                                        href={publicStorageUrl(
+                                                            path,
+                                                        )}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
+                                                    >
+                                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="truncate">
+                                                            {fileNameFromPath(
+                                                                path,
+                                                            )}
+                                                        </span>
+                                                    </a>
+                                                ),
+                                            )}
                                         </div>
                                     ) : null}
 
@@ -1198,8 +1237,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     (!editContractStartDate ||
                                         !editContractEndDate ||
                                         !editContractAmount.trim())) ||
-                                (!editIsContractBased &&
-                                    !editSalary.trim()) ||
+                                (!editIsContractBased && !editSalary.trim()) ||
                                 isSubmitting
                             }
                         >
