@@ -254,12 +254,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 salary:
                     !isContractBased && salary.trim() ? Number(salary) : null,
                 salary_currency: salaryCurrency,
-                contract_start_date: isContractBased
-                    ? contractStartDate || null
-                    : null,
-                contract_end_date: isContractBased
-                    ? contractEndDate || null
-                    : null,
+                contract_start_date: contractStartDate || null,
+                contract_end_date: contractEndDate || null,
                 contract_amount:
                     isContractBased && contractAmount.trim()
                         ? Number(contractAmount)
@@ -1231,48 +1227,42 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                 />
                             </div>
-                            {isContractBased ? (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="contract-start-date">
-                                        Contract start date
-                                    </Label>
-                                    <Input
-                                        id="contract-start-date"
-                                        type="date"
-                                        value={contractStartDate}
-                                        onChange={(event) =>
-                                            setContractStartDate(
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={
-                                            createErrors.contract_start_date
-                                        }
-                                    />
-                                </div>
-                            ) : null}
-                            {isContractBased ? (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="contract-end-date">
-                                        Contract end date
-                                    </Label>
-                                    <Input
-                                        id="contract-end-date"
-                                        type="date"
-                                        value={contractEndDate}
-                                        onChange={(event) =>
-                                            setContractEndDate(
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={createErrors.contract_end_date}
-                                    />
-                                </div>
-                            ) : null}
+                            <div className="grid gap-2">
+                                <Label htmlFor="contract-start-date">
+                                    {isContractBased
+                                        ? 'Contract start date'
+                                        : 'Work start date'}
+                                </Label>
+                                <Input
+                                    id="contract-start-date"
+                                    type="date"
+                                    value={contractStartDate}
+                                    onChange={(event) =>
+                                        setContractStartDate(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.contract_start_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="contract-end-date">
+                                    {isContractBased
+                                        ? 'Contract end date'
+                                        : 'Work end date'}
+                                </Label>
+                                <Input
+                                    id="contract-end-date"
+                                    type="date"
+                                    value={contractEndDate}
+                                    onChange={(event) =>
+                                        setContractEndDate(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.contract_end_date}
+                                />
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Salary currency</Label>
                                 <Select
@@ -1488,6 +1478,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 !firstName.trim() ||
                                 !lastName.trim() ||
                                 !branchId ||
+                                !contractStartDate ||
+                                !contractEndDate ||
                                 (isContractBased &&
                                     (!contractStartDate ||
                                         !contractEndDate ||

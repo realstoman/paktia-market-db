@@ -362,8 +362,8 @@ class EmployeeController extends Controller
             'is_contract_based' => ['required', 'boolean'],
             'salary' => ['nullable', 'numeric', 'min:0', 'required_unless:is_contract_based,true'],
             'salary_currency' => ['required', Rule::in(['AFN', 'USD'])],
-            'contract_start_date' => ['nullable', 'date', 'required_if:is_contract_based,true'],
-            'contract_end_date' => ['nullable', 'date', 'required_if:is_contract_based,true', 'after_or_equal:contract_start_date'],
+            'contract_start_date' => ['nullable', 'date', 'required_with:employment_type_id'],
+            'contract_end_date' => ['nullable', 'date', 'required_with:employment_type_id', 'after_or_equal:contract_start_date'],
             'contract_amount' => ['nullable', 'numeric', 'min:0', 'required_if:is_contract_based,true'],
             'profile_picture' => ['nullable', 'image', 'max:4096'],
             'attachments' => ['nullable', 'array', 'max:25'],
@@ -401,8 +401,6 @@ class EmployeeController extends Controller
         if ($isContract) {
             $validated['salary'] = null;
         } else {
-            $validated['contract_start_date'] = null;
-            $validated['contract_end_date'] = null;
             $validated['contract_amount'] = null;
         }
 

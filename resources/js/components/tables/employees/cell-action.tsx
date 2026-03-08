@@ -366,12 +366,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                         ? Number(editSalary)
                         : null,
                 salary_currency: editSalaryCurrency,
-                contract_start_date: editIsContractBased
-                    ? editContractStartDate || null
-                    : null,
-                contract_end_date: editIsContractBased
-                    ? editContractEndDate || null
-                    : null,
+                contract_start_date: editContractStartDate || null,
+                contract_end_date: editContractEndDate || null,
                 contract_amount:
                     editIsContractBased && editContractAmount.trim()
                         ? Number(editContractAmount)
@@ -586,7 +582,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                Contract Duration:
+                                                {data.contract_amount
+                                                    ? 'Contract Duration:'
+                                                    : 'Work Duration:'}
                                             </span>{' '}
                                             {data.contract_start_date &&
                                             data.contract_end_date
@@ -910,50 +908,48 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                 />
                             </div>
-                            {editIsContractBased ? (
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor={`edit-contract-start-${data.id}`}
-                                    >
-                                        Contract start date
-                                    </Label>
-                                    <Input
-                                        id={`edit-contract-start-${data.id}`}
-                                        type="date"
-                                        value={editContractStartDate}
-                                        onChange={(event) =>
-                                            setEditContractStartDate(
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={editErrors.contract_start_date}
-                                    />
-                                </div>
-                            ) : null}
-                            {editIsContractBased ? (
-                                <div className="grid gap-2">
-                                    <Label
-                                        htmlFor={`edit-contract-end-${data.id}`}
-                                    >
-                                        Contract end date
-                                    </Label>
-                                    <Input
-                                        id={`edit-contract-end-${data.id}`}
-                                        type="date"
-                                        value={editContractEndDate}
-                                        onChange={(event) =>
-                                            setEditContractEndDate(
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={editErrors.contract_end_date}
-                                    />
-                                </div>
-                            ) : null}
+                            <div className="grid gap-2">
+                                <Label
+                                    htmlFor={`edit-contract-start-${data.id}`}
+                                >
+                                    {editIsContractBased
+                                        ? 'Contract start date'
+                                        : 'Work start date'}
+                                </Label>
+                                <Input
+                                    id={`edit-contract-start-${data.id}`}
+                                    type="date"
+                                    value={editContractStartDate}
+                                    onChange={(event) =>
+                                        setEditContractStartDate(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={editErrors.contract_start_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-contract-end-${data.id}`}>
+                                    {editIsContractBased
+                                        ? 'Contract end date'
+                                        : 'Work end date'}
+                                </Label>
+                                <Input
+                                    id={`edit-contract-end-${data.id}`}
+                                    type="date"
+                                    value={editContractEndDate}
+                                    onChange={(event) =>
+                                        setEditContractEndDate(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={editErrors.contract_end_date}
+                                />
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Salary currency</Label>
                                 <Select
@@ -1196,6 +1192,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 !editFirstName.trim() ||
                                 !editLastName.trim() ||
                                 !editBranchId ||
+                                !editContractStartDate ||
+                                !editContractEndDate ||
                                 (editIsContractBased &&
                                     (!editContractStartDate ||
                                         !editContractEndDate ||
