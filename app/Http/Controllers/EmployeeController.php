@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class EmployeeController extends Controller
         Gate::authorize(PermissionEnum::EMPLOYEES_VIEW->value);
 
         $employees = Employee::query()
-            ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name'])
+            ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Employee $employee) => [
@@ -40,6 +41,10 @@ class EmployeeController extends Controller
                 'employment_type_id' => $employee->employment_type_id,
                 'employee_position' => $employee->employeePosition?->name,
                 'employee_position_id' => $employee->employee_position_id,
+                'shift' => $employee->shift
+                    ? $employee->shift->name.' ('.substr((string) $employee->shift->start_time, 0, 5).' - '.substr((string) $employee->shift->end_time, 0, 5).')'
+                    : null,
+                'shift_id' => $employee->shift_id,
                 'salary' => $employee->salary,
                 'salary_currency' => $employee->salary_currency,
                 'status' => $employee->status,
@@ -54,6 +59,7 @@ class EmployeeController extends Controller
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name']),
             'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name']),
+            'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
             'canCreate' => Gate::allows(PermissionEnum::EMPLOYEES_CREATE->value),
         ]);
     }
@@ -268,6 +274,69 @@ class EmployeeController extends Controller
             ->with('success', 'Employment type deleted successfully.');
     }
 
+    public function storeShift(Request $request)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:shifts,name'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        Shift::create([
+            'name' => $validated['name'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift created successfully.');
+    }
+
+    public function updateShift(Request $request, Shift $shift)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('shifts', 'name')->ignore($shift->id),
+            ],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        $shift->update([
+            'name' => $validated['name'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift updated successfully.');
+    }
+
+    public function destroyShift(Shift $shift)
+    {
+        Gate::authorize(PermissionEnum::EMPLOYEES_UPDATE->value);
+
+        $shift->delete();
+
+        return redirect()->route('employees.index')
+            ->with('success', 'Shift deleted successfully.');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -277,6 +346,7 @@ class EmployeeController extends Controller
             'branch_id' => ['required', 'exists:branches,id'],
             'employment_type_id' => ['nullable', 'exists:employment_types,id'],
             'employee_position_id' => ['nullable', 'exists:employee_positions,id'],
+            'shift_id' => ['nullable', 'exists:shifts,id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],

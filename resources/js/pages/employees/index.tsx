@@ -9,6 +9,7 @@ import {
     Employee,
     EmployeePosition,
     EmploymentType,
+    Shift,
 } from '@/types';
 import { Head } from '@inertiajs/react';
 
@@ -28,6 +29,7 @@ interface EmployeesPageProps {
     branches: Branch[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
+    shifts: Shift[];
 }
 
 export default function EmployeesPage({
@@ -35,6 +37,7 @@ export default function EmployeesPage({
     branches,
     employmentTypes,
     employeePositions,
+    shifts,
 }: EmployeesPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -46,6 +49,7 @@ export default function EmployeesPage({
                         branches={branches}
                         employmentTypes={employmentTypes}
                         employeePositions={employeePositions}
+                        shifts={shifts}
                     />
                 </div>
             </div>

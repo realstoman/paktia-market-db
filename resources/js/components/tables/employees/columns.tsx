@@ -1,6 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
+import {
+    Branch,
+    Employee,
+    EmployeePosition,
+    EmploymentType,
+    Shift,
+} from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -25,6 +31,7 @@ export const buildColumns = (
     branches: Branch[],
     employmentTypes: EmploymentType[],
     employeePositions: EmployeePosition[],
+    shifts: Shift[],
 ): ColumnDef<Employee>[] => [
     {
         id: 'select',
@@ -89,6 +96,11 @@ export const buildColumns = (
         accessorKey: 'employment_type',
         header: 'Employment Type',
         cell: ({ row }) => row.original.employment_type || '—',
+    },
+    {
+        accessorKey: 'shift',
+        header: 'Shift',
+        cell: ({ row }) => row.original.shift || '—',
     },
     {
         accessorKey: 'employee_position',
@@ -162,6 +174,7 @@ export const buildColumns = (
                 branches={branches}
                 employmentTypes={employmentTypes}
                 employeePositions={employeePositions}
+                shifts={shifts}
             />
         ),
     },

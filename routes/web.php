@@ -267,6 +267,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('employment-types', [EmployeeController::class, 'storeEmploymentType'])->name('employment-types.store');
     Route::put('employment-types/{employmentType}', [EmployeeController::class, 'updateEmploymentType'])->name('employment-types.update');
     Route::delete('employment-types/{employmentType}', [EmployeeController::class, 'destroyEmploymentType'])->name('employment-types.destroy');
+    Route::post('shifts', [EmployeeController::class, 'storeShift'])->name('shifts.store');
+    Route::put('shifts/{shift}', [EmployeeController::class, 'updateShift'])->name('shifts.update');
+    Route::delete('shifts/{shift}', [EmployeeController::class, 'destroyShift'])->name('shifts.destroy');
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);

@@ -22,7 +22,13 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
+import {
+    Branch,
+    Employee,
+    EmployeePosition,
+    EmploymentType,
+    Shift,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
@@ -32,6 +38,7 @@ import {
     Pencil,
     Plus,
     Shapes,
+    Clock3,
     Trash2,
     UserRound,
     X,
@@ -45,6 +52,7 @@ interface EmployeeClientProps {
     branches: Branch[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
+    shifts: Shift[];
     isLoading?: boolean;
 }
 
@@ -62,6 +70,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     branches,
     employmentTypes,
     employeePositions,
+    shifts,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -71,6 +80,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [branchId, setBranchId] = useState('');
     const [employmentTypeId, setEmploymentTypeId] = useState('');
     const [employeePositionId, setEmployeePositionId] = useState('');
+    const [shiftId, setShiftId] = useState('');
     const [salary, setSalary] = useState('');
     const [salaryCurrency, setSalaryCurrency] = useState('AFN');
     const [status, setStatus] = useState('active');
@@ -104,6 +114,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     >({});
     const [isEmploymentTypeSubmitting, setIsEmploymentTypeSubmitting] =
         useState(false);
+    const [isShiftsOpen, setIsShiftsOpen] = useState(false);
+    const [shiftName, setShiftName] = useState('');
+    const [shiftStartTime, setShiftStartTime] = useState('08:00');
+    const [shiftEndTime, setShiftEndTime] = useState('16:00');
+    const [shiftDescription, setShiftDescription] = useState('');
+    const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
+    const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
+    const [isShiftSubmitting, setIsShiftSubmitting] = useState(false);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -125,6 +143,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setBranchId('');
         setEmploymentTypeId('');
         setEmployeePositionId('');
+        setShiftId('');
         setSalary('');
         setSalaryCurrency('AFN');
         setStatus('active');
@@ -188,6 +207,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 employee_position_id: employeePositionId
                     ? Number(employeePositionId)
                     : null,
+                shift_id: shiftId ? Number(shiftId) : null,
                 salary: salary.trim() ? Number(salary) : null,
                 salary_currency: salaryCurrency,
                 status,
@@ -379,9 +399,96 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     };
 
+    const resetShiftForm = () => {
+        setShiftName('');
+        setShiftStartTime('08:00');
+        setShiftEndTime('16:00');
+        setShiftDescription('');
+        setEditingShiftId(null);
+        setShiftErrors({});
+    };
+
+    const handleSaveShift = () => {
+        if (!shiftName.trim() || isShiftSubmitting) {
+            return;
+        }
+
+        setIsShiftSubmitting(true);
+
+        const payload = {
+            name: shiftName.trim(),
+            start_time: shiftStartTime,
+            end_time: shiftEndTime,
+            description: shiftDescription.trim() || null,
+            is_active: true,
+        };
+
+        if (editingShiftId) {
+            router.put(`/shifts/${editingShiftId}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Shift updated.');
+                    resetShiftForm();
+                },
+                onError: (errors) => {
+                    setShiftErrors(errors);
+                },
+                onFinish: () => {
+                    setIsShiftSubmitting(false);
+                },
+            });
+            return;
+        }
+
+        router.post('/shifts', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Shift created.');
+                resetShiftForm();
+            },
+            onError: (errors) => {
+                setShiftErrors(errors);
+            },
+            onFinish: () => {
+                setIsShiftSubmitting(false);
+            },
+        });
+    };
+
+    const startEditingShift = (shift: Shift) => {
+        setEditingShiftId(shift.id);
+        setShiftName(shift.name);
+        setShiftStartTime(String(shift.start_time).slice(0, 5));
+        setShiftEndTime(String(shift.end_time).slice(0, 5));
+        setShiftDescription(shift.description ?? '');
+        setShiftErrors({});
+    };
+
+    const handleDeleteShift = (shift: Shift) => {
+        if (isShiftSubmitting) {
+            return;
+        }
+
+        setIsShiftSubmitting(true);
+
+        router.delete(`/shifts/${shift.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Shift deleted.');
+                if (editingShiftId === shift.id) {
+                    resetShiftForm();
+                }
+            },
+            onFinish: () => {
+                setIsShiftSubmitting(false);
+            },
+        });
+    };
+
     const tableColumns = useMemo(
-        () => buildColumns(branches, employmentTypes, employeePositions),
-        [branches, employmentTypes, employeePositions],
+        () =>
+            buildColumns(branches, employmentTypes, employeePositions, shifts),
+        [branches, employmentTypes, employeePositions, shifts],
     );
 
     const attachmentError =
@@ -405,6 +512,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     >
                         <Shapes className="h-4 w-4" />
                         Employment Types
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsShiftsOpen(true)}
+                        className="gap-2"
+                    >
+                        <Clock3 className="h-4 w-4" />
+                        Shifts
                     </Button>
                     <Button
                         variant="outline"
@@ -574,6 +689,161 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
                                         No employment types found.
+                                    </p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isShiftsOpen}
+                onOpenChange={(open) => {
+                    setIsShiftsOpen(open);
+                    if (!open) {
+                        resetShiftForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Clock3 className="h-5 w-5" />
+                            Shift Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, edit, and remove employee shifts.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="shift-name">Shift name</Label>
+                                <Input
+                                    id="shift-name"
+                                    value={shiftName}
+                                    onChange={(event) =>
+                                        setShiftName(event.target.value)
+                                    }
+                                    placeholder="e.g. Day Shift"
+                                />
+                                <InputError message={shiftErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="shift-start-time">
+                                    Start time
+                                </Label>
+                                <Input
+                                    id="shift-start-time"
+                                    type="time"
+                                    value={shiftStartTime}
+                                    onChange={(event) =>
+                                        setShiftStartTime(event.target.value)
+                                    }
+                                />
+                                <InputError message={shiftErrors.start_time} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="shift-end-time">End time</Label>
+                                <Input
+                                    id="shift-end-time"
+                                    type="time"
+                                    value={shiftEndTime}
+                                    onChange={(event) =>
+                                        setShiftEndTime(event.target.value)
+                                    }
+                                />
+                                <InputError message={shiftErrors.end_time} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label htmlFor="shift-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="shift-description"
+                                    value={shiftDescription}
+                                    onChange={(event) =>
+                                        setShiftDescription(event.target.value)
+                                    }
+                                    placeholder="Optional"
+                                />
+                                <InputError
+                                    message={shiftErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSaveShift}
+                                    disabled={
+                                        !shiftName.trim() || isShiftSubmitting
+                                    }
+                                >
+                                    {editingShiftId
+                                        ? 'Update Shift'
+                                        : 'Add Shift'}
+                                </Button>
+                                {editingShiftId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetShiftForm}
+                                        disabled={isShiftSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {shifts.length > 0 ? (
+                                    shifts.map((shift) => (
+                                        <div
+                                            key={shift.id}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2"
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {shift.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {`${String(shift.start_time).slice(0, 5)} - ${String(shift.end_time).slice(0, 5)}`}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {shift.description || '—'}
+                                                </p>
+                                            </div>
+                                            <div className="ml-3 flex items-center gap-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        startEditingShift(shift)
+                                                    }
+                                                    disabled={isShiftSubmitting}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDeleteShift(shift)
+                                                    }
+                                                    disabled={isShiftSubmitting}
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        No shifts found.
                                     </p>
                                 )}
                             </div>
@@ -854,6 +1124,25 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError
                                     message={createErrors.employee_position_id}
                                 />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Shift</Label>
+                                <Select value={shiftId} onValueChange={setShiftId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select shift" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {shifts.map((shift) => (
+                                            <SelectItem
+                                                key={shift.id}
+                                                value={String(shift.id)}
+                                            >
+                                                {`${shift.name} (${String(shift.start_time).slice(0, 5)} - ${String(shift.end_time).slice(0, 5)})`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="employee-salary">Salary</Label>

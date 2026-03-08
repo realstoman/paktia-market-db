@@ -81,6 +81,18 @@ export interface EmployeePosition {
     [key: string]: unknown;
 }
 
+export interface Shift {
+    id: number;
+    name: string;
+    start_time: string;
+    end_time: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Employee {
     id: number;
     first_name: string;
@@ -97,6 +109,8 @@ export interface Employee {
     employment_type_id?: number | null;
     employee_position?: string | null;
     employee_position_id?: number | null;
+    shift?: string | null;
+    shift_id?: number | null;
     salary?: number | string | null;
     salary_currency?: 'AFN' | 'USD';
     status?: string;

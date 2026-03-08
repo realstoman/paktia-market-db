@@ -44,7 +44,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Employee, EmployeePosition, EmploymentType } from '@/types';
+import {
+    Branch,
+    Employee,
+    EmployeePosition,
+    EmploymentType,
+    Shift,
+} from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Ban,
@@ -68,6 +74,7 @@ interface CellActionProps {
     branches: Branch[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
+    shifts: Shift[];
 }
 
 interface SelectedAttachment {
@@ -101,6 +108,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     branches,
     employmentTypes,
     employeePositions,
+    shifts,
 }) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
@@ -119,6 +127,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [editEmployeePositionId, setEditEmployeePositionId] = useState(
         data.employee_position_id ? String(data.employee_position_id) : '',
+    );
+    const [editShiftId, setEditShiftId] = useState(
+        data.shift_id ? String(data.shift_id) : '',
     );
     const [editSalary, setEditSalary] = useState(
         data.salary !== null && data.salary !== undefined
@@ -216,6 +227,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditEmployeePositionId(
             data.employee_position_id ? String(data.employee_position_id) : '',
         );
+        setEditShiftId(data.shift_id ? String(data.shift_id) : '');
         setEditSalary(
             data.salary !== null && data.salary !== undefined
                 ? String(data.salary)
@@ -292,6 +304,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 employee_position_id: editEmployeePositionId
                     ? Number(editEmployeePositionId)
                     : null,
+                shift_id: editShiftId ? Number(editShiftId) : null,
                 salary: editSalary.trim() ? Number(editSalary) : null,
                 salary_currency: editSalaryCurrency,
                 status: editStatus,
@@ -499,6 +512,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             {data.salary
                                                 ? `${Number(data.salary).toLocaleString()} ${data.salary_currency ?? 'AFN'}`
                                                 : '—'}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Shift:</span>{' '}
+                                            {data.shift || '—'}
                                         </p>
                                     </div>
                                 </div>
@@ -758,6 +775,28 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError
                                     message={editErrors.employee_position_id}
                                 />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Shift</Label>
+                                <Select
+                                    value={editShiftId}
+                                    onValueChange={setEditShiftId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select shift" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {shifts.map((shift) => (
+                                            <SelectItem
+                                                key={shift.id}
+                                                value={String(shift.id)}
+                                            >
+                                                {`${shift.name} (${String(shift.start_time).slice(0, 5)} - ${String(shift.end_time).slice(0, 5)})`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-salary-${data.id}`}>

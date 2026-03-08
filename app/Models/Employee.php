@@ -14,6 +14,7 @@ class Employee extends Model
         'branch_id',
         'employment_type_id',
         'employee_position_id',
+        'shift_id',
         'first_name',
         'last_name',
         'phone',
@@ -51,5 +52,10 @@ class Employee extends Model
     public function employeePosition()
     {
         return $this->belongsTo(EmployeePosition::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
     }
 }
