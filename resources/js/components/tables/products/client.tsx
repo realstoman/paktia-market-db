@@ -888,12 +888,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                     />
                                                 ) : null}
                                             </div>
-                                            <p className="text-sm font-medium">
-                                                {category.name}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {category.description || '-'}
-                                            </p>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {category.name}
+                                                </p>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.description ||
+                                                        '-'}
+                                                </p>
+                                            </div>
                                         </div>
                                         <Button
                                             type="button"
