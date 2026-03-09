@@ -98,30 +98,55 @@ test('api v1 products show returns a single product', function () {
 test('api v1 product categories index and show work', function () {
     $category = ProductCategory::create([
         'name' => 'Desserts',
+        'pashto_name' => 'خواږه',
+        'dari_name' => 'شیرینی',
         'description' => 'Sweet items',
+        'pashto_description' => 'د خوږو توکو کتګوري',
+        'dari_description' => 'دسته‌بندی خوراکی‌های شیرین',
+        'image_path' => 'product-categories/desserts-hero.jpg',
     ]);
 
     $this->getJson('/api/v1/products/categories')
         ->assertOk()
-        ->assertJsonPath('data.0.name', 'Desserts');
+        ->assertJsonPath('data.0.name', 'Desserts')
+        ->assertJsonPath('data.0.pashto_name', 'خواږه')
+        ->assertJsonPath('data.0.dari_name', 'شیرینی')
+        ->assertJsonPath('data.0.image_url', '/storage/product-categories/desserts-hero.jpg');
 
     $this->getJson('/api/v1/products/categories/'.$category->id)
         ->assertOk()
         ->assertJsonPath('data.id', $category->id)
-        ->assertJsonPath('data.name', 'Desserts');
+        ->assertJsonPath('data.name', 'Desserts')
+        ->assertJsonPath('data.pashto_description', 'د خوږو توکو کتګوري')
+        ->assertJsonPath('data.dari_description', 'دسته‌بندی خوراکی‌های شیرین')
+        ->assertJsonPath('data.image_path', 'product-categories/desserts-hero.jpg');
 });
 
 test('api v1 product types index and show work', function () {
-    $type = ProductType::create(['name' => 'beverage']);
+    $type = ProductType::create([
+        'name' => 'beverage',
+        'pashto_name' => 'څښاک',
+        'dari_name' => 'نوشیدنی',
+        'description' => 'Drinks and juices',
+        'pashto_description' => 'د څښاک کتګوري',
+        'dari_description' => 'دسته نوشیدنی‌ها',
+        'image_path' => 'product-types/beverage-banner.jpg',
+    ]);
 
     $this->getJson('/api/v1/products/types')
         ->assertOk()
-        ->assertJsonPath('data.0.name', 'beverage');
+        ->assertJsonPath('data.0.name', 'beverage')
+        ->assertJsonPath('data.0.pashto_name', 'څښاک')
+        ->assertJsonPath('data.0.dari_name', 'نوشیدنی')
+        ->assertJsonPath('data.0.image_url', '/storage/product-types/beverage-banner.jpg');
 
     $this->getJson('/api/v1/products/types/'.$type->id)
         ->assertOk()
         ->assertJsonPath('data.id', $type->id)
-        ->assertJsonPath('data.name', 'beverage');
+        ->assertJsonPath('data.name', 'beverage')
+        ->assertJsonPath('data.pashto_description', 'د څښاک کتګوري')
+        ->assertJsonPath('data.dari_description', 'دسته نوشیدنی‌ها')
+        ->assertJsonPath('data.image_path', 'product-types/beverage-banner.jpg');
 });
 
 test('api v1 category products endpoint returns products for the selected category', function () {

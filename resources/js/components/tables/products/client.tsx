@@ -32,6 +32,7 @@ import {
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
+    Edit3,
     ImagePlus,
     PackagePlus,
     Plus,
@@ -62,6 +63,8 @@ interface ProductsClientProps {
 
 const MAX_IMAGES = 10;
 const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
+const CATEGORY_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
+const TYPE_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
 
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
@@ -72,7 +75,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [isMetaOpen, setIsMetaOpen] = useState(false);
+    const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
+    const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
     const [name, setName] = useState('');
     const [pashtoName, setPashtoName] = useState('');
     const [dariName, setDariName] = useState('');
@@ -87,8 +91,30 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [categoryName, setCategoryName] = useState('');
+    const [categoryPashtoName, setCategoryPashtoName] = useState('');
+    const [categoryDariName, setCategoryDariName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
+    const [categoryPashtoDescription, setCategoryPashtoDescription] =
+        useState('');
+    const [categoryDariDescription, setCategoryDariDescription] = useState('');
+    const [categoryImage, setCategoryImage] = useState<File | null>(null);
+    const [categoryImagePreview, setCategoryImagePreview] = useState<
+        string | null
+    >(null);
     const [typeName, setTypeName] = useState('');
+    const [typePashtoName, setTypePashtoName] = useState('');
+    const [typeDariName, setTypeDariName] = useState('');
+    const [typeDescription, setTypeDescription] = useState('');
+    const [typePashtoDescription, setTypePashtoDescription] = useState('');
+    const [typeDariDescription, setTypeDariDescription] = useState('');
+    const [typeImage, setTypeImage] = useState<File | null>(null);
+    const [typeImagePreview, setTypeImagePreview] = useState<string | null>(
+        null,
+    );
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+        null,
+    );
+    const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -99,11 +125,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [metaErrors, setMetaErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const revokePreviewIfBlob = (previewUrl: string | null) => {
+        if (previewUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+        }
+    };
+
     useEffect(() => {
         return () => {
             images.forEach((image) => URL.revokeObjectURL(image.preview));
+            revokePreviewIfBlob(categoryImagePreview);
+            revokePreviewIfBlob(typeImagePreview);
         };
-    }, [images]);
+    }, [images, categoryImagePreview, typeImagePreview]);
 
     const clearSelectedImages = () => {
         images.forEach((image) => URL.revokeObjectURL(image.preview));
@@ -223,18 +257,27 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }
 
         setIsSubmitting(true);
-        router.post(
-            '/products/categories',
-            {
-                name: categoryName.trim(),
-                description: categoryDescription.trim() || null,
-            },
-            {
+        const payload = {
+            name: categoryName.trim(),
+            pashto_name: categoryPashtoName.trim() || null,
+            dari_name: categoryDariName.trim() || null,
+            description: categoryDescription.trim() || null,
+            pashto_description: categoryPashtoDescription.trim() || null,
+            dari_description: categoryDariDescription.trim() || null,
+            image: categoryImage,
+        };
+
+        const requestUrl = editingCategoryId
+            ? `/products/categories/${editingCategoryId}`
+            : '/products/categories';
+
+        if (editingCategoryId) {
+            router.put(requestUrl, payload, {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Category created successfully.');
-                    setCategoryName('');
-                    setCategoryDescription('');
+                    toast.success('Category updated successfully.');
+                    resetCategoryForm();
                     setMetaErrors({});
                 },
                 onError: (errors) => {
@@ -243,8 +286,46 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
+            });
+
+            return;
+        }
+
+        router.post(requestUrl, payload, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Category created successfully.');
+                resetCategoryForm();
+                setMetaErrors({});
             },
-        );
+            onError: (errors) => {
+                setMetaErrors(errors);
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
+    const resetCategoryForm = () => {
+        setCategoryName('');
+        setCategoryPashtoName('');
+        setCategoryDariName('');
+        setCategoryDescription('');
+        setCategoryPashtoDescription('');
+        setCategoryDariDescription('');
+        setEditingCategoryId(null);
+        revokePreviewIfBlob(categoryImagePreview);
+        setCategoryImage(null);
+        setCategoryImagePreview(null);
+    };
+
+    const handleCategoryImageChange = (file: File | null) => {
+        revokePreviewIfBlob(categoryImagePreview);
+
+        setCategoryImage(file);
+        setCategoryImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleCategoryDelete = (id: number) => {
@@ -259,32 +340,111 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         });
     };
 
+    const handleCategoryEdit = (category: ProductCategory) => {
+        setEditingCategoryId(category.id);
+        setCategoryName(category.name);
+        setCategoryPashtoName(category.pashto_name ?? '');
+        setCategoryDariName(category.dari_name ?? '');
+        setCategoryDescription(category.description ?? '');
+        setCategoryPashtoDescription(category.pashto_description ?? '');
+        setCategoryDariDescription(category.dari_description ?? '');
+        revokePreviewIfBlob(categoryImagePreview);
+        setCategoryImage(null);
+        setCategoryImagePreview(category.image_url ?? null);
+        setMetaErrors({});
+    };
+
     const handleTypeCreate = () => {
         if (!typeName.trim() || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
-        router.post(
-            '/products/types',
-            {
-                name: typeName.trim().toLowerCase(),
-            },
-            {
+        const payload = {
+            name: typeName.trim().toLowerCase(),
+            pashto_name: typePashtoName.trim() || null,
+            dari_name: typeDariName.trim() || null,
+            description: typeDescription.trim() || null,
+            pashto_description: typePashtoDescription.trim() || null,
+            dari_description: typeDariDescription.trim() || null,
+            image: typeImage,
+        };
+
+        const requestUrl = editingTypeId
+            ? `/products/types/${editingTypeId}`
+            : '/products/types';
+
+        if (editingTypeId) {
+            router.put(requestUrl, payload, {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Type created successfully.');
-                    setTypeName('');
+                    toast.success('Type updated successfully.');
+                    resetTypeForm();
                     setMetaErrors({});
                 },
                 onError: (errors) => {
                     setMetaErrors(errors);
+                    toast.error(
+                        String(
+                            errors.name ??
+                                errors.image ??
+                                errors.type ??
+                                'Unable to update type.',
+                        ),
+                    );
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
+            });
+
+            return;
+        }
+
+        router.post(requestUrl, payload, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Type created successfully.');
+                resetTypeForm();
+                setMetaErrors({});
             },
-        );
+            onError: (errors) => {
+                setMetaErrors(errors);
+                toast.error(
+                    String(
+                        errors.name ??
+                            errors.image ??
+                            errors.type ??
+                            'Unable to create type.',
+                    ),
+                );
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
+    const resetTypeForm = () => {
+        setTypeName('');
+        setTypePashtoName('');
+        setTypeDariName('');
+        setTypeDescription('');
+        setTypePashtoDescription('');
+        setTypeDariDescription('');
+        setEditingTypeId(null);
+        revokePreviewIfBlob(typeImagePreview);
+        setTypeImage(null);
+        setTypeImagePreview(null);
+    };
+
+    const handleTypeImageChange = (file: File | null) => {
+        revokePreviewIfBlob(typeImagePreview);
+
+        setTypeImage(file);
+        setTypeImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleTypeDelete = (id: number) => {
@@ -297,6 +457,20 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 setMetaErrors(errors);
             },
         });
+    };
+
+    const handleTypeEdit = (productType: ProductType) => {
+        setEditingTypeId(productType.id);
+        setTypeName(productType.name);
+        setTypePashtoName(productType.pashto_name ?? '');
+        setTypeDariName(productType.dari_name ?? '');
+        setTypeDescription(productType.description ?? '');
+        setTypePashtoDescription(productType.pashto_description ?? '');
+        setTypeDariDescription(productType.dari_description ?? '');
+        revokePreviewIfBlob(typeImagePreview);
+        setTypeImage(null);
+        setTypeImagePreview(productType.image_url ?? null);
+        setMetaErrors({});
     };
 
     const availableTypes = useMemo(() => {
@@ -422,11 +596,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => setIsMetaOpen(true)}
+                        onClick={() => setIsCategoryMetaOpen(true)}
+                        className="gap-2"
+                    >
+                        <Tag className="h-4 w-4" />
+                        Manage Categories
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsTypeMetaOpen(true)}
                         className="gap-2"
                     >
                         <Settings2 className="h-4 w-4" />
-                        Manage Categories & Types
+                        Manage Types
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -780,64 +962,164 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isMetaOpen} onOpenChange={setIsMetaOpen}>
-                <DialogContent className="sm:max-w-4xl">
+            <Dialog
+                open={isCategoryMetaOpen}
+                onOpenChange={(open) => {
+                    setIsCategoryMetaOpen(open);
+                    if (!open) {
+                        resetCategoryForm();
+                        setMetaErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Categories & Types</DialogTitle>
+                        <DialogTitle>Manage Categories</DialogTitle>
                         <DialogDescription>
-                            Create or remove product categories and product
-                            types.
+                            Create, edit, and remove product categories.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-6 sm:grid-cols-2">
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Tag className="h-4 w-4" />
-                                <h4 className="font-medium">Categories</h4>
-                            </div>
-                            <div className="space-y-2 rounded-md border p-3">
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Input
+                                placeholder="Category name"
+                                value={categoryName}
+                                onChange={(event) =>
+                                    setCategoryName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Pashto title (optional)"
+                                value={categoryPashtoName}
+                                onChange={(event) =>
+                                    setCategoryPashtoName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Dari title (optional)"
+                                value={categoryDariName}
+                                onChange={(event) =>
+                                    setCategoryDariName(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Category description (optional)"
+                                value={categoryDescription}
+                                onChange={(event) =>
+                                    setCategoryDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Pashto description (optional)"
+                                value={categoryPashtoDescription}
+                                onChange={(event) =>
+                                    setCategoryPashtoDescription(
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <Textarea
+                                placeholder="Dari description (optional)"
+                                value={categoryDariDescription}
+                                onChange={(event) =>
+                                    setCategoryDariDescription(
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <div className="space-y-2">
                                 <Input
-                                    placeholder="Category name"
-                                    value={categoryName}
+                                    type="file"
+                                    accept="image/*"
                                     onChange={(event) =>
-                                        setCategoryName(event.target.value)
-                                    }
-                                />
-                                <Textarea
-                                    placeholder="Category description (optional)"
-                                    value={categoryDescription}
-                                    onChange={(event) =>
-                                        setCategoryDescription(
-                                            event.target.value,
+                                        handleCategoryImageChange(
+                                            event.target.files?.[0] ?? null,
                                         )
                                     }
                                 />
+                                <p className="text-xs text-muted-foreground">
+                                    {CATEGORY_IMAGE_DIMENSION_HINT}
+                                </p>
+                                {categoryImagePreview && (
+                                    <div className="overflow-hidden rounded-md border">
+                                        <img
+                                            src={categoryImagePreview}
+                                            alt="Category preview"
+                                            className="h-24 w-full object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <InputError message={metaErrors.image} />
+                            </div>
+                            <Button
+                                type="button"
+                                onClick={handleCategoryCreate}
+                                className="w-full"
+                                disabled={!categoryName.trim() || isSubmitting}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {editingCategoryId
+                                    ? 'Update Category'
+                                    : 'Add Category'}
+                            </Button>
+                            {editingCategoryId && (
                                 <Button
                                     type="button"
-                                    onClick={handleCategoryCreate}
+                                    variant="outline"
                                     className="w-full"
-                                    disabled={
-                                        !categoryName.trim() || isSubmitting
-                                    }
+                                    onClick={resetCategoryForm}
+                                    disabled={isSubmitting}
                                 >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Add Category
+                                    Cancel Edit
                                 </Button>
-                            </div>
-                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                                {categories.map((category) => (
-                                    <div
-                                        key={category.id}
-                                        className="flex items-center justify-between rounded-md border p-2"
-                                    >
-                                        <div>
-                                            <p className="text-sm font-medium">
+                            )}
+                        </div>
+                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                            {categories.map((category) => (
+                                <div
+                                    key={category.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                            {category.image_url ? (
+                                                <img
+                                                    src={category.image_url}
+                                                    alt={category.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium">
                                                 {category.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
+                                            {category.pashto_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.pashto_name}
+                                                </p>
+                                            ) : null}
+                                            {category.dari_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.dari_name}
+                                                </p>
+                                            ) : null}
+                                            <p className="truncate text-xs text-muted-foreground">
                                                 {category.description || '-'}
                                             </p>
                                         </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleCategoryEdit(category)
+                                            }
+                                        >
+                                            <Edit3 className="h-4 w-4 text-blue-600" />
+                                        </Button>
                                         <Button
                                             type="button"
                                             size="sm"
@@ -851,42 +1133,172 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             <Trash2 className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
+                    </div>
+                    <InputError
+                        message={
+                            metaErrors.name ||
+                            metaErrors.category ||
+                            metaErrors.image
+                        }
+                    />
+                </DialogContent>
+            </Dialog>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Tag className="h-4 w-4" />
-                                <h4 className="font-medium">Types</h4>
-                            </div>
-                            <div className="space-y-2 rounded-md border p-3">
+            <Dialog
+                open={isTypeMetaOpen}
+                onOpenChange={(open) => {
+                    setIsTypeMetaOpen(open);
+                    if (!open) {
+                        resetTypeForm();
+                        setMetaErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Types</DialogTitle>
+                        <DialogDescription>
+                            Create, edit, or remove product types.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Input
+                                placeholder="Type name (example: food)"
+                                value={typeName}
+                                onChange={(event) =>
+                                    setTypeName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Pashto title (optional)"
+                                value={typePashtoName}
+                                onChange={(event) =>
+                                    setTypePashtoName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Dari title (optional)"
+                                value={typeDariName}
+                                onChange={(event) =>
+                                    setTypeDariName(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Type description (optional)"
+                                value={typeDescription}
+                                onChange={(event) =>
+                                    setTypeDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Pashto description (optional)"
+                                value={typePashtoDescription}
+                                onChange={(event) =>
+                                    setTypePashtoDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Dari description (optional)"
+                                value={typeDariDescription}
+                                onChange={(event) =>
+                                    setTypeDariDescription(event.target.value)
+                                }
+                            />
+                            <div className="space-y-2">
                                 <Input
-                                    placeholder="Type name (example: food)"
-                                    value={typeName}
+                                    type="file"
+                                    accept="image/*"
                                     onChange={(event) =>
-                                        setTypeName(event.target.value)
+                                        handleTypeImageChange(
+                                            event.target.files?.[0] ?? null,
+                                        )
                                     }
                                 />
+                                <p className="text-xs text-muted-foreground">
+                                    {TYPE_IMAGE_DIMENSION_HINT}
+                                </p>
+                                {typeImagePreview && (
+                                    <div className="overflow-hidden rounded-md border">
+                                        <img
+                                            src={typeImagePreview}
+                                            alt="Type preview"
+                                            className="h-24 w-full object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <InputError message={metaErrors.image} />
+                            </div>
+                            <Button
+                                type="button"
+                                onClick={handleTypeCreate}
+                                className="w-full"
+                                disabled={!typeName.trim() || isSubmitting}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {editingTypeId ? 'Update Type' : 'Add Type'}
+                            </Button>
+                            {editingTypeId && (
                                 <Button
                                     type="button"
-                                    onClick={handleTypeCreate}
+                                    variant="outline"
                                     className="w-full"
-                                    disabled={!typeName.trim() || isSubmitting}
+                                    onClick={resetTypeForm}
+                                    disabled={isSubmitting}
                                 >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Add Type
+                                    Cancel Edit
                                 </Button>
-                            </div>
-                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                                {types.map((productType) => (
-                                    <div
-                                        key={productType.id}
-                                        className="flex items-center justify-between rounded-md border p-2"
-                                    >
-                                        <p className="text-sm font-medium capitalize">
-                                            {productType.name}
-                                        </p>
+                            )}
+                        </div>
+                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                            {types.map((productType) => (
+                                <div
+                                    key={productType.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                            {productType.image_url ? (
+                                                <img
+                                                    src={productType.image_url}
+                                                    alt={productType.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium capitalize">
+                                                {productType.name}
+                                            </p>
+                                            {productType.pashto_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {productType.pashto_name}
+                                                </p>
+                                            ) : null}
+                                            {productType.dari_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {productType.dari_name}
+                                                </p>
+                                            ) : null}
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {productType.description || '-'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleTypeEdit(productType)
+                                            }
+                                        >
+                                            <Edit3 className="h-4 w-4 text-blue-600" />
+                                        </Button>
                                         <Button
                                             type="button"
                                             size="sm"
@@ -898,8 +1310,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             <Trash2 className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                     <InputError

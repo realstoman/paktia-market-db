@@ -208,13 +208,63 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name',
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
         ]);
 
-        ProductCategory::create($validated);
+        $imagePath = $request->file('image')?->store('product-categories', 'public');
+
+        ProductCategory::create([
+            'name' => $validated['name'],
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
+            'image_path' => $imagePath,
+        ]);
 
         return redirect()->route('products.index')
             ->with('success', 'Product category created successfully.');
+    }
+
+    public function updateCategory(Request $request, ProductCategory $category)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:product_categories,name,'.$category->id,
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+        ]);
+
+        $payload = [
+            'name' => $validated['name'],
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($category->image_path) {
+                Storage::disk('public')->delete($category->image_path);
+            }
+
+            $payload['image_path'] = $request->file('image')->store('product-categories', 'public');
+        }
+
+        $category->update($payload);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product category updated successfully.');
     }
 
     public function destroyCategory(ProductCategory $category)
@@ -223,6 +273,10 @@ class ProductController extends Controller
             throw ValidationException::withMessages([
                 'category' => 'This category is in use by products and cannot be deleted.',
             ]);
+        }
+
+        if ($category->image_path) {
+            Storage::disk('public')->delete($category->image_path);
         }
 
         $category->delete();
@@ -235,14 +289,74 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50|unique:product_types,name',
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
         ]);
 
+        $normalizedName = strtolower(trim($validated['name']));
+        $imagePath = $request->file('image')?->store('product-types', 'public');
+
         ProductType::create([
-            'name' => strtolower(trim($validated['name'])),
+            'name' => $normalizedName,
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
+            'image_path' => $imagePath,
         ]);
 
         return redirect()->route('products.index')
             ->with('success', 'Product type created successfully.');
+    }
+
+    public function updateType(Request $request, ProductType $type)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:product_types,name,'.$type->id,
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+        ]);
+
+        $oldName = $type->name;
+        $newName = strtolower(trim($validated['name']));
+        $payload = [
+            'name' => $newName,
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($type->image_path) {
+                Storage::disk('public')->delete($type->image_path);
+            }
+
+            $payload['image_path'] = $request->file('image')->store('product-types', 'public');
+        }
+
+        DB::transaction(function () use ($oldName, $newName, $payload, $type) {
+            $type->update($payload);
+
+            if ($oldName !== $newName) {
+                Product::where('type', $oldName)->update([
+                    'type' => $newName,
+                ]);
+            }
+        });
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product type updated successfully.');
     }
 
     public function destroyType(ProductType $type)
@@ -251,6 +365,10 @@ class ProductController extends Controller
             throw ValidationException::withMessages([
                 'type' => 'This type is in use by products and cannot be deleted.',
             ]);
+        }
+
+        if ($type->image_path) {
+            Storage::disk('public')->delete($type->image_path);
         }
 
         $type->delete();
