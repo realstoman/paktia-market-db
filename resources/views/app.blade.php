@@ -32,9 +32,11 @@
 
         <title inertia>{{ config('app.name', 'Baba Restaurant') }}</title>
 
-        <link rel="icon" href="/favicon.ico">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.icon">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.icon">
+        @php
+            $faviconUrl = asset('favicon.ico') . '?v=' . filemtime(public_path('favicon.ico'));
+        @endphp
+        <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+        <link rel="shortcut icon" href="{{ $faviconUrl }}">
         <link rel="apple-touch-icon" href="/brand/logo-full.png">
         <meta name="theme-color" content="#111827">
 
