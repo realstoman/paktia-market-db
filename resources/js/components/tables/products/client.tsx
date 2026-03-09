@@ -32,6 +32,7 @@ import {
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
+    Edit3,
     ImagePlus,
     PackagePlus,
     Plus,
@@ -94,6 +95,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         string | null
     >(null);
     const [typeName, setTypeName] = useState('');
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+        null,
+    );
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -104,12 +108,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [metaErrors, setMetaErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const revokePreviewIfBlob = (previewUrl: string | null) => {
+        if (previewUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+        }
+    };
+
     useEffect(() => {
         return () => {
             images.forEach((image) => URL.revokeObjectURL(image.preview));
-            if (categoryImagePreview) {
-                URL.revokeObjectURL(categoryImagePreview);
-            }
+            revokePreviewIfBlob(categoryImagePreview);
         };
     }, [images, categoryImagePreview]);
 
@@ -231,41 +239,50 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }
 
         setIsSubmitting(true);
-        router.post(
-            '/products/categories',
-            {
-                name: categoryName.trim(),
-                description: categoryDescription.trim() || null,
-                image: categoryImage,
+        const payload = {
+            name: categoryName.trim(),
+            description: categoryDescription.trim() || null,
+            image: categoryImage,
+        };
+
+        const requestUrl = editingCategoryId
+            ? `/products/categories/${editingCategoryId}`
+            : '/products/categories';
+
+        const requestMethod = editingCategoryId ? router.put : router.post;
+
+        requestMethod(requestUrl, payload, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success(
+                    editingCategoryId
+                        ? 'Category updated successfully.'
+                        : 'Category created successfully.',
+                );
+                resetCategoryForm();
+                setMetaErrors({});
             },
-            {
-                preserveScroll: true,
-                forceFormData: true,
-                onSuccess: () => {
-                    toast.success('Category created successfully.');
-                    setCategoryName('');
-                    setCategoryDescription('');
-                    if (categoryImagePreview) {
-                        URL.revokeObjectURL(categoryImagePreview);
-                    }
-                    setCategoryImage(null);
-                    setCategoryImagePreview(null);
-                    setMetaErrors({});
-                },
-                onError: (errors) => {
-                    setMetaErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+            onError: (errors) => {
+                setMetaErrors(errors);
             },
-        );
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
+    const resetCategoryForm = () => {
+        setCategoryName('');
+        setCategoryDescription('');
+        setEditingCategoryId(null);
+        revokePreviewIfBlob(categoryImagePreview);
+        setCategoryImage(null);
+        setCategoryImagePreview(null);
     };
 
     const handleCategoryImageChange = (file: File | null) => {
-        if (categoryImagePreview) {
-            URL.revokeObjectURL(categoryImagePreview);
-        }
+        revokePreviewIfBlob(categoryImagePreview);
 
         setCategoryImage(file);
         setCategoryImagePreview(file ? URL.createObjectURL(file) : null);
@@ -281,6 +298,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 setMetaErrors(errors);
             },
         });
+    };
+
+    const handleCategoryEdit = (category: ProductCategory) => {
+        setEditingCategoryId(category.id);
+        setCategoryName(category.name);
+        setCategoryDescription(category.description ?? '');
+        revokePreviewIfBlob(categoryImagePreview);
+        setCategoryImage(null);
+        setCategoryImagePreview(category.image_url ?? null);
+        setMetaErrors({});
     };
 
     const handleTypeCreate = () => {
@@ -869,8 +896,21 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     }
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Add Category
+                                    {editingCategoryId
+                                        ? 'Update Category'
+                                        : 'Add Category'}
                                 </Button>
+                                {editingCategoryId && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={resetCategoryForm}
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                )}
                             </div>
                             <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
                                 {categories.map((category) => (
@@ -898,6 +938,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                 </p>
                                             </div>
                                         </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleCategoryEdit(category)
+                                            }
+                                        >
+                                            <Edit3 className="h-4 w-4 text-blue-600" />
+                                        </Button>
                                         <Button
                                             type="button"
                                             size="sm"

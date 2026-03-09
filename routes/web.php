@@ -222,6 +222,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Products & Orders
     Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('products/categories', [ProductController::class, 'storeCategory'])->name('products.categories.store');
+    Route::put('products/categories/{category}', [ProductController::class, 'updateCategory'])->name('products.categories.update');
     Route::delete('products/categories/{category}', [ProductController::class, 'destroyCategory'])->name('products.categories.destroy');
     Route::post('products/types', [ProductController::class, 'storeType'])->name('products.types.store');
     Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');

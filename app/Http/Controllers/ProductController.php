@@ -224,6 +224,33 @@ class ProductController extends Controller
             ->with('success', 'Product category created successfully.');
     }
 
+    public function updateCategory(Request $request, ProductCategory $category)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:product_categories,name,'.$category->id,
+            'description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+        ]);
+
+        $payload = [
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($category->image_path) {
+                Storage::disk('public')->delete($category->image_path);
+            }
+
+            $payload['image_path'] = $request->file('image')->store('product-categories', 'public');
+        }
+
+        $category->update($payload);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product category updated successfully.');
+    }
+
     public function destroyCategory(ProductCategory $category)
     {
         if ($category->products()->exists()) {
