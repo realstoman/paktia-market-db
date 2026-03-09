@@ -62,6 +62,7 @@ interface ProductsClientProps {
 
 const MAX_IMAGES = 10;
 const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
+const CATEGORY_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
 
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
@@ -88,6 +89,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [categoryName, setCategoryName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
+    const [categoryImage, setCategoryImage] = useState<File | null>(null);
+    const [categoryImagePreview, setCategoryImagePreview] = useState<
+        string | null
+    >(null);
     const [typeName, setTypeName] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
@@ -102,8 +107,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     useEffect(() => {
         return () => {
             images.forEach((image) => URL.revokeObjectURL(image.preview));
+            if (categoryImagePreview) {
+                URL.revokeObjectURL(categoryImagePreview);
+            }
         };
-    }, [images]);
+    }, [images, categoryImagePreview]);
 
     const clearSelectedImages = () => {
         images.forEach((image) => URL.revokeObjectURL(image.preview));
@@ -228,13 +236,20 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             {
                 name: categoryName.trim(),
                 description: categoryDescription.trim() || null,
+                image: categoryImage,
             },
             {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Category created successfully.');
                     setCategoryName('');
                     setCategoryDescription('');
+                    if (categoryImagePreview) {
+                        URL.revokeObjectURL(categoryImagePreview);
+                    }
+                    setCategoryImage(null);
+                    setCategoryImagePreview(null);
                     setMetaErrors({});
                 },
                 onError: (errors) => {
@@ -245,6 +260,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 },
             },
         );
+    };
+
+    const handleCategoryImageChange = (file: File | null) => {
+        if (categoryImagePreview) {
+            URL.revokeObjectURL(categoryImagePreview);
+        }
+
+        setCategoryImage(file);
+        setCategoryImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleCategoryDelete = (id: number) => {
@@ -812,6 +836,30 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                         )
                                     }
                                 />
+                                <div className="space-y-2">
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(event) =>
+                                            handleCategoryImageChange(
+                                                event.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        {CATEGORY_IMAGE_DIMENSION_HINT}
+                                    </p>
+                                    {categoryImagePreview && (
+                                        <div className="overflow-hidden rounded-md border">
+                                            <img
+                                                src={categoryImagePreview}
+                                                alt="Category preview"
+                                                className="h-24 w-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                    <InputError message={metaErrors.image} />
+                                </div>
                                 <Button
                                     type="button"
                                     onClick={handleCategoryCreate}
@@ -830,7 +878,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                         key={category.id}
                                         className="flex items-center justify-between rounded-md border p-2"
                                     >
-                                        <div>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                                {category.image_url ? (
+                                                    <img
+                                                        src={category.image_url}
+                                                        alt={category.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : null}
+                                            </div>
                                             <p className="text-sm font-medium">
                                                 {category.name}
                                             </p>

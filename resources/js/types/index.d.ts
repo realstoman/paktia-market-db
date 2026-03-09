@@ -215,6 +215,8 @@ export interface ProductCategory {
     id: number;
     name: string;
     description?: string | null;
+    image_path?: string | null;
+    image_url?: string | null;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

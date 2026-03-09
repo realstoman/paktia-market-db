@@ -13,6 +13,8 @@ class ProductCategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'image_path' => $this->image_path,
+            'image_url' => $this->image_url,
             'products_count' => (int) ($this->products_count ?? 0),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

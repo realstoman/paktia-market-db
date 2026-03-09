@@ -209,9 +209,16 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name',
             'description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
         ]);
 
-        ProductCategory::create($validated);
+        $imagePath = $request->file('image')?->store('product-categories', 'public');
+
+        ProductCategory::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'image_path' => $imagePath,
+        ]);
 
         return redirect()->route('products.index')
             ->with('success', 'Product category created successfully.');
@@ -223,6 +230,10 @@ class ProductController extends Controller
             throw ValidationException::withMessages([
                 'category' => 'This category is in use by products and cannot be deleted.',
             ]);
+        }
+
+        if ($category->image_path) {
+            Storage::disk('public')->delete($category->image_path);
         }
 
         $category->delete();
