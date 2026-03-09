@@ -74,7 +74,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [isMetaOpen, setIsMetaOpen] = useState(false);
+    const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
+    const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
     const [name, setName] = useState('');
     const [pashtoName, setPashtoName] = useState('');
     const [dariName, setDariName] = useState('');
@@ -490,11 +491,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => setIsMetaOpen(true)}
+                        onClick={() => setIsCategoryMetaOpen(true)}
+                        className="gap-2"
+                    >
+                        <Tag className="h-4 w-4" />
+                        Manage Categories
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsTypeMetaOpen(true)}
                         className="gap-2"
                     >
                         <Settings2 className="h-4 w-4" />
-                        Manage Categories & Types
+                        Manage Types
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -848,231 +857,248 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isMetaOpen} onOpenChange={setIsMetaOpen}>
-                <DialogContent className="sm:max-w-4xl">
+            <Dialog
+                open={isCategoryMetaOpen}
+                onOpenChange={(open) => {
+                    setIsCategoryMetaOpen(open);
+                    if (!open) {
+                        resetCategoryForm();
+                        setMetaErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Categories & Types</DialogTitle>
+                        <DialogTitle>Manage Categories</DialogTitle>
                         <DialogDescription>
-                            Create or remove product categories and product
-                            types.
+                            Create, edit, and remove product categories.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-6 sm:grid-cols-2">
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Tag className="h-4 w-4" />
-                                <h4 className="font-medium">Categories</h4>
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Input
+                                placeholder="Category name"
+                                value={categoryName}
+                                onChange={(event) =>
+                                    setCategoryName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Pashto title (optional)"
+                                value={categoryPashtoName}
+                                onChange={(event) =>
+                                    setCategoryPashtoName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Dari title (optional)"
+                                value={categoryDariName}
+                                onChange={(event) =>
+                                    setCategoryDariName(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Category description (optional)"
+                                value={categoryDescription}
+                                onChange={(event) =>
+                                    setCategoryDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Pashto description (optional)"
+                                value={categoryPashtoDescription}
+                                onChange={(event) =>
+                                    setCategoryPashtoDescription(
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <Textarea
+                                placeholder="Dari description (optional)"
+                                value={categoryDariDescription}
+                                onChange={(event) =>
+                                    setCategoryDariDescription(
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <div className="space-y-2">
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(event) =>
+                                        handleCategoryImageChange(
+                                            event.target.files?.[0] ?? null,
+                                        )
+                                    }
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    {CATEGORY_IMAGE_DIMENSION_HINT}
+                                </p>
+                                {categoryImagePreview && (
+                                    <div className="overflow-hidden rounded-md border">
+                                        <img
+                                            src={categoryImagePreview}
+                                            alt="Category preview"
+                                            className="h-24 w-full object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <InputError message={metaErrors.image} />
                             </div>
-                            <div className="space-y-2 rounded-md border p-3">
-                                <Input
-                                    placeholder="Category name"
-                                    value={categoryName}
-                                    onChange={(event) =>
-                                        setCategoryName(event.target.value)
-                                    }
-                                />
-                                <Input
-                                    placeholder="Pashto title (optional)"
-                                    value={categoryPashtoName}
-                                    onChange={(event) =>
-                                        setCategoryPashtoName(
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <Input
-                                    placeholder="Dari title (optional)"
-                                    value={categoryDariName}
-                                    onChange={(event) =>
-                                        setCategoryDariName(event.target.value)
-                                    }
-                                />
-                                <Textarea
-                                    placeholder="Category description (optional)"
-                                    value={categoryDescription}
-                                    onChange={(event) =>
-                                        setCategoryDescription(
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <Textarea
-                                    placeholder="Pashto description (optional)"
-                                    value={categoryPashtoDescription}
-                                    onChange={(event) =>
-                                        setCategoryPashtoDescription(
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <Textarea
-                                    placeholder="Dari description (optional)"
-                                    value={categoryDariDescription}
-                                    onChange={(event) =>
-                                        setCategoryDariDescription(
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <div className="space-y-2">
-                                    <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(event) =>
-                                            handleCategoryImageChange(
-                                                event.target.files?.[0] ?? null,
-                                            )
-                                        }
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        {CATEGORY_IMAGE_DIMENSION_HINT}
-                                    </p>
-                                    {categoryImagePreview && (
-                                        <div className="overflow-hidden rounded-md border">
-                                            <img
-                                                src={categoryImagePreview}
-                                                alt="Category preview"
-                                                className="h-24 w-full object-cover"
-                                            />
-                                        </div>
-                                    )}
-                                    <InputError message={metaErrors.image} />
-                                </div>
+                            <Button
+                                type="button"
+                                onClick={handleCategoryCreate}
+                                className="w-full"
+                                disabled={!categoryName.trim() || isSubmitting}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {editingCategoryId
+                                    ? 'Update Category'
+                                    : 'Add Category'}
+                            </Button>
+                            {editingCategoryId && (
                                 <Button
                                     type="button"
-                                    onClick={handleCategoryCreate}
+                                    variant="outline"
                                     className="w-full"
-                                    disabled={
-                                        !categoryName.trim() || isSubmitting
-                                    }
+                                    onClick={resetCategoryForm}
+                                    disabled={isSubmitting}
                                 >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {editingCategoryId
-                                        ? 'Update Category'
-                                        : 'Add Category'}
+                                    Cancel Edit
                                 </Button>
-                                {editingCategoryId && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={resetCategoryForm}
-                                        disabled={isSubmitting}
-                                    >
-                                        Cancel Edit
-                                    </Button>
-                                )}
-                            </div>
-                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                                {categories.map((category) => (
-                                    <div
-                                        key={category.id}
-                                        className="flex items-center justify-between rounded-md border p-2"
-                                    >
-                                        <div className="flex min-w-0 items-center gap-2">
-                                            <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
-                                                {category.image_url ? (
-                                                    <img
-                                                        src={category.image_url}
-                                                        alt={category.name}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : null}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="truncate text-sm font-medium">
-                                                    {category.name}
-                                                </p>
-                                                {category.pashto_name ? (
-                                                    <p className="truncate text-xs text-muted-foreground">
-                                                        {category.pashto_name}
-                                                    </p>
-                                                ) : null}
-                                                {category.dari_name ? (
-                                                    <p className="truncate text-xs text-muted-foreground">
-                                                        {category.dari_name}
-                                                    </p>
-                                                ) : null}
-                                                <p className="truncate text-xs text-muted-foreground">
-                                                    {category.description ||
-                                                        '-'}
-                                                </p>
-                                            </div>
+                            )}
+                        </div>
+                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                            {categories.map((category) => (
+                                <div
+                                    key={category.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                            {category.image_url ? (
+                                                <img
+                                                    src={category.image_url}
+                                                    alt={category.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    handleCategoryEdit(category)
-                                                }
-                                            >
-                                                <Edit3 className="h-4 w-4 text-blue-600" />
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    handleCategoryDelete(
-                                                        category.id,
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
-                                            </Button>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium">
+                                                {category.name}
+                                            </p>
+                                            {category.pashto_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.pashto_name}
+                                                </p>
+                                            ) : null}
+                                            {category.dari_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.dari_name}
+                                                </p>
+                                            ) : null}
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {category.description || '-'}
+                                            </p>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Tag className="h-4 w-4" />
-                                <h4 className="font-medium">Types</h4>
-                            </div>
-                            <div className="space-y-2 rounded-md border p-3">
-                                <Input
-                                    placeholder="Type name (example: food)"
-                                    value={typeName}
-                                    onChange={(event) =>
-                                        setTypeName(event.target.value)
-                                    }
-                                />
-                                <Button
-                                    type="button"
-                                    onClick={handleTypeCreate}
-                                    className="w-full"
-                                    disabled={!typeName.trim() || isSubmitting}
-                                >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Add Type
-                                </Button>
-                            </div>
-                            <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                                {types.map((productType) => (
-                                    <div
-                                        key={productType.id}
-                                        className="flex items-center justify-between rounded-md border p-2"
-                                    >
-                                        <p className="text-sm font-medium capitalize">
-                                            {productType.name}
-                                        </p>
+                                    <div className="flex items-center gap-1">
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant="ghost"
                                             onClick={() =>
-                                                handleTypeDelete(productType.id)
+                                                handleCategoryEdit(category)
+                                            }
+                                        >
+                                            <Edit3 className="h-4 w-4 text-blue-600" />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleCategoryDelete(
+                                                    category.id,
+                                                )
                                             }
                                         >
                                             <Trash2 className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <InputError
+                        message={
+                            metaErrors.name ||
+                            metaErrors.category ||
+                            metaErrors.image
+                        }
+                    />
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isTypeMetaOpen}
+                onOpenChange={(open) => {
+                    setIsTypeMetaOpen(open);
+                    if (!open) {
+                        setTypeName('');
+                        setMetaErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Types</DialogTitle>
+                        <DialogDescription>
+                            Create or remove product types.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Input
+                                placeholder="Type name (example: food)"
+                                value={typeName}
+                                onChange={(event) =>
+                                    setTypeName(event.target.value)
+                                }
+                            />
+                            <Button
+                                type="button"
+                                onClick={handleTypeCreate}
+                                className="w-full"
+                                disabled={!typeName.trim() || isSubmitting}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Type
+                            </Button>
+                        </div>
+                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
+                            {types.map((productType) => (
+                                <div
+                                    key={productType.id}
+                                    className="flex items-center justify-between rounded-md border p-2"
+                                >
+                                    <p className="text-sm font-medium capitalize">
+                                        {productType.name}
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() =>
+                                            handleTypeDelete(productType.id)
+                                        }
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                    </Button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                     <InputError
