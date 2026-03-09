@@ -214,7 +214,11 @@ export interface Province {
 export interface ProductCategory {
     id: number;
     name: string;
+    pashto_name?: string | null;
+    dari_name?: string | null;
     description?: string | null;
+    pashto_description?: string | null;
+    dari_description?: string | null;
     image_path?: string | null;
     image_url?: string | null;
     created_at?: string;

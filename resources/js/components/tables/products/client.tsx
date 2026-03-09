@@ -89,7 +89,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [categoryName, setCategoryName] = useState('');
+    const [categoryPashtoName, setCategoryPashtoName] = useState('');
+    const [categoryDariName, setCategoryDariName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
+    const [categoryPashtoDescription, setCategoryPashtoDescription] =
+        useState('');
+    const [categoryDariDescription, setCategoryDariDescription] = useState('');
     const [categoryImage, setCategoryImage] = useState<File | null>(null);
     const [categoryImagePreview, setCategoryImagePreview] = useState<
         string | null
@@ -241,7 +246,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         setIsSubmitting(true);
         const payload = {
             name: categoryName.trim(),
+            pashto_name: categoryPashtoName.trim() || null,
+            dari_name: categoryDariName.trim() || null,
             description: categoryDescription.trim() || null,
+            pashto_description: categoryPashtoDescription.trim() || null,
+            dari_description: categoryDariDescription.trim() || null,
             image: categoryImage,
         };
 
@@ -274,7 +283,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
     const resetCategoryForm = () => {
         setCategoryName('');
+        setCategoryPashtoName('');
+        setCategoryDariName('');
         setCategoryDescription('');
+        setCategoryPashtoDescription('');
+        setCategoryDariDescription('');
         setEditingCategoryId(null);
         revokePreviewIfBlob(categoryImagePreview);
         setCategoryImage(null);
@@ -303,7 +316,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const handleCategoryEdit = (category: ProductCategory) => {
         setEditingCategoryId(category.id);
         setCategoryName(category.name);
+        setCategoryPashtoName(category.pashto_name ?? '');
+        setCategoryDariName(category.dari_name ?? '');
         setCategoryDescription(category.description ?? '');
+        setCategoryPashtoDescription(category.pashto_description ?? '');
+        setCategoryDariDescription(category.dari_description ?? '');
         revokePreviewIfBlob(categoryImagePreview);
         setCategoryImage(null);
         setCategoryImagePreview(category.image_url ?? null);
@@ -854,11 +871,45 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                         setCategoryName(event.target.value)
                                     }
                                 />
+                                <Input
+                                    placeholder="Pashto title (optional)"
+                                    value={categoryPashtoName}
+                                    onChange={(event) =>
+                                        setCategoryPashtoName(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Input
+                                    placeholder="Dari title (optional)"
+                                    value={categoryDariName}
+                                    onChange={(event) =>
+                                        setCategoryDariName(event.target.value)
+                                    }
+                                />
                                 <Textarea
                                     placeholder="Category description (optional)"
                                     value={categoryDescription}
                                     onChange={(event) =>
                                         setCategoryDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Textarea
+                                    placeholder="Pashto description (optional)"
+                                    value={categoryPashtoDescription}
+                                    onChange={(event) =>
+                                        setCategoryPashtoDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Textarea
+                                    placeholder="Dari description (optional)"
+                                    value={categoryDariDescription}
+                                    onChange={(event) =>
+                                        setCategoryDariDescription(
                                             event.target.value,
                                         )
                                     }
@@ -932,34 +983,46 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                 <p className="truncate text-sm font-medium">
                                                     {category.name}
                                                 </p>
+                                                {category.pashto_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {category.pashto_name}
+                                                    </p>
+                                                ) : null}
+                                                {category.dari_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {category.dari_name}
+                                                    </p>
+                                                ) : null}
                                                 <p className="truncate text-xs text-muted-foreground">
                                                     {category.description ||
                                                         '-'}
                                                 </p>
                                             </div>
                                         </div>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleCategoryEdit(category)
-                                            }
-                                        >
-                                            <Edit3 className="h-4 w-4 text-blue-600" />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleCategoryDelete(
-                                                    category.id,
-                                                )
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleCategoryEdit(category)
+                                                }
+                                            >
+                                                <Edit3 className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleCategoryDelete(
+                                                        category.id,
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

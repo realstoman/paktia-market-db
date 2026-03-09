@@ -8,7 +8,11 @@ class ProductCategory extends Model
 {
     protected $fillable = [
         'name',
+        'pashto_name',
+        'dari_name',
         'description',
+        'pashto_description',
+        'dari_description',
         'image_path',
     ];
 

@@ -12,7 +12,11 @@ class ProductCategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'pashto_name' => $this->pashto_name,
+            'dari_name' => $this->dari_name,
             'description' => $this->description,
+            'pashto_description' => $this->pashto_description,
+            'dari_description' => $this->dari_description,
             'image_path' => $this->image_path,
             'image_url' => $this->image_url,
             'products_count' => (int) ($this->products_count ?? 0),

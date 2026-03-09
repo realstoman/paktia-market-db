@@ -98,19 +98,27 @@ test('api v1 products show returns a single product', function () {
 test('api v1 product categories index and show work', function () {
     $category = ProductCategory::create([
         'name' => 'Desserts',
+        'pashto_name' => 'خواږه',
+        'dari_name' => 'شیرینی',
         'description' => 'Sweet items',
+        'pashto_description' => 'د خوږو توکو کتګوري',
+        'dari_description' => 'دسته‌بندی خوراکی‌های شیرین',
         'image_path' => 'product-categories/desserts-hero.jpg',
     ]);
 
     $this->getJson('/api/v1/products/categories')
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Desserts')
+        ->assertJsonPath('data.0.pashto_name', 'خواږه')
+        ->assertJsonPath('data.0.dari_name', 'شیرینی')
         ->assertJsonPath('data.0.image_url', '/storage/product-categories/desserts-hero.jpg');
 
     $this->getJson('/api/v1/products/categories/'.$category->id)
         ->assertOk()
         ->assertJsonPath('data.id', $category->id)
         ->assertJsonPath('data.name', 'Desserts')
+        ->assertJsonPath('data.pashto_description', 'د خوږو توکو کتګوري')
+        ->assertJsonPath('data.dari_description', 'دسته‌بندی خوراکی‌های شیرین')
         ->assertJsonPath('data.image_path', 'product-categories/desserts-hero.jpg');
 });
 

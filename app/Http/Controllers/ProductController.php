@@ -208,7 +208,11 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name',
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
             'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
         ]);
 
@@ -216,7 +220,11 @@ class ProductController extends Controller
 
         ProductCategory::create([
             'name' => $validated['name'],
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
             'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
             'image_path' => $imagePath,
         ]);
 
@@ -228,13 +236,21 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name,'.$category->id,
+            'pashto_name' => 'nullable|string|max:255',
+            'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'pashto_description' => 'nullable|string|max:1000',
+            'dari_description' => 'nullable|string|max:1000',
             'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
         ]);
 
         $payload = [
             'name' => $validated['name'],
+            'pashto_name' => $validated['pashto_name'] ?? null,
+            'dari_name' => $validated['dari_name'] ?? null,
             'description' => $validated['description'] ?? null,
+            'pashto_description' => $validated['pashto_description'] ?? null,
+            'dari_description' => $validated['dari_description'] ?? null,
         ];
 
         if ($request->hasFile('image')) {
