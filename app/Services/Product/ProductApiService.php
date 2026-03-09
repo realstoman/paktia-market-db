@@ -78,6 +78,17 @@ class ProductApiService
         return $type;
     }
 
+    public function productsByType(ProductType $type): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with(['category', 'kitchen', 'images'])
+            ->withCount('images')
+            ->where('type', $type->name)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+    }
+
     private function applyFilters(Builder $query, array $filters): void
     {
         $query

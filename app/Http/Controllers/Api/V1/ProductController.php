@@ -51,4 +51,9 @@ class ProductController extends Controller
     {
         return ProductTypeResource::make($service->type($type));
     }
+
+    public function productsByType(ProductType $type, ProductApiService $service): AnonymousResourceCollection
+    {
+        return ProductResource::collection($service->productsByType($type));
+    }
 }
