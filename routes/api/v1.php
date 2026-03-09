@@ -9,6 +9,7 @@ Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.sho
 
 Route::get('products/categories', [ProductController::class, 'categories'])->name('products.categories.index');
 Route::get('products/categories/{category}', [ProductController::class, 'showCategory'])->name('products.categories.show');
+Route::get('products/categories/{category}/products', [ProductController::class, 'productsByCategory'])->name('products.categories.products');
 Route::get('products/types', [ProductController::class, 'types'])->name('products.types.index');
 Route::get('products/types/{type}', [ProductController::class, 'showType'])->name('products.types.show');
 Route::get('products', [ProductController::class, 'index'])->name('products.index');

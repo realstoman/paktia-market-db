@@ -48,6 +48,17 @@ class ProductApiService
         return $category->loadCount('products');
     }
 
+    public function productsByCategory(ProductCategory $category): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with(['category', 'kitchen', 'images'])
+            ->withCount('images')
+            ->where('product_category_id', $category->id)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+    }
+
     public function types(): Collection
     {
         return ProductType::query()

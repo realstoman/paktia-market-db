@@ -123,3 +123,39 @@ test('api v1 product types index and show work', function () {
         ->assertJsonPath('data.id', $type->id)
         ->assertJsonPath('data.name', 'beverage');
 });
+
+test('api v1 category products endpoint returns products for the selected category', function () {
+    [, $kitchen] = createProductApiBaseData();
+    $mainCategory = ProductCategory::create(['name' => 'Main Dishes']);
+    $drinkCategory = ProductCategory::create(['name' => 'Drinks']);
+
+    $mainProduct = Product::create([
+        'product_category_id' => $mainCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Kabuli Pulao',
+        'type' => 'food',
+        'base_price' => 450,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $drinkCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Doogh',
+        'type' => 'beverage',
+        'base_price' => 80,
+        'is_active' => true,
+    ]);
+
+    $mainProduct->images()->create([
+        'path' => 'products/pulao.jpg',
+        'sort_order' => 0,
+    ]);
+
+    $this->getJson('/api/v1/products/categories/'.$mainCategory->id.'/products')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $mainProduct->id)
+        ->assertJsonPath('data.0.category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao.jpg');
+});
