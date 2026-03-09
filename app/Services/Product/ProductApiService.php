@@ -48,6 +48,17 @@ class ProductApiService
         return $category->loadCount('products');
     }
 
+    public function productsByCategory(ProductCategory $category): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with(['category', 'kitchen', 'images'])
+            ->withCount('images')
+            ->where('product_category_id', $category->id)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+    }
+
     public function types(): Collection
     {
         return ProductType::query()
@@ -65,6 +76,17 @@ class ProductApiService
         $type->setAttribute('products_count', Product::where('type', $type->name)->count());
 
         return $type;
+    }
+
+    public function productsByType(ProductType $type): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with(['category', 'kitchen', 'images'])
+            ->withCount('images')
+            ->where('type', $type->name)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
     }
 
     private function applyFilters(Builder $query, array $filters): void

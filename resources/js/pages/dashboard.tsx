@@ -219,10 +219,10 @@ export default function Dashboard({ data }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-2 overflow-x-auto rounded-xl">
+            <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {/* Statistics */}
-                <div className="grid auto-rows-min gap-2 md:grid-cols-4">
-                    <div className="col-span-1 flex flex-col gap-2">
+                <div className="grid auto-rows-min grid-cols-1 gap-3 md:grid-cols-4">
+                    <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
                         <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
@@ -299,7 +299,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex h-full flex-col justify-between overflow-hidden rounded-xl border border-neutral-200/50 bg-white py-4 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                    <Card className="col-span-2 flex h-full w-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border border-neutral-200/50 bg-white py-4 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-2">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
                                 <div className="space-y-1">
@@ -444,7 +444,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         />
                     </Card>
 
-                    <div className="col-span-1 flex flex-col gap-2">
+                    <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
                         <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
@@ -522,9 +522,9 @@ export default function Dashboard({ data }: DashboardProps) {
 
                 {/* Recent orders and top foods */}
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden pb-1 md:min-h-min">
-                    <div className="grid gap-2 lg:grid-cols-12">
-                        <div className="lg:col-span-4">
-                            <Card className="h-full border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+                        <div className="w-full min-w-0 lg:col-span-4">
+                            <Card className="h-full w-full min-w-0 border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader>
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
@@ -571,8 +571,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                 </CardContent>
                             </Card>
                         </div>
-                        <div className="lg:col-span-8">
-                            <Card className="h-full border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                        <div className="w-full min-w-0 lg:col-span-8">
+                            <Card className="h-full w-full min-w-0 border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader className="flex flex-row items-start justify-between">
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
@@ -589,77 +589,82 @@ export default function Dashboard({ data }: DashboardProps) {
                                         View all
                                     </a>
                                 </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Order #</TableHead>
-                                                <TableHead>Type</TableHead>
-                                                <TableHead>Items</TableHead>
-                                                <TableHead>QTY</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">
-                                                    Total
-                                                </TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {recentOrders.map((order) => (
-                                                <TableRow key={order.id}>
-                                                    <TableCell className="font-medium">
-                                                        #{order.id}
-                                                    </TableCell>
-                                                    <TableCell className="capitalize">
-                                                        {order.order_type?.replace(
-                                                            '_',
-                                                            ' ',
-                                                        ) ?? '-'}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {order.items
-                                                            ?.slice(0, 2)
-                                                            .map(
-                                                                (item) =>
-                                                                    item
-                                                                        .product
-                                                                        ?.name ??
-                                                                    'Unknown Item',
-                                                            )
-                                                            .join(', ') || '-'}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {order.items?.reduce(
-                                                            (total, item) =>
-                                                                total +
-                                                                Number(
-                                                                    item.quantity,
-                                                                ),
-                                                            0,
-                                                        ) ?? 0}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <span
-                                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                                getOrderStatusBadgeClass(
-                                                                    order.status,
-                                                                )
-                                                            }`}
-                                                        >
-                                                            {formatOrderStatus(
-                                                                order.status,
-                                                            )}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {formatPrice(
-                                                            order.total_amount,
-                                                        )}{' '}
-                                                        ؋
-                                                    </TableCell>
+                                <CardContent className="max-h-[28rem] overflow-y-auto">
+                                    <div className="min-w-0 overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>
+                                                        Order #
+                                                    </TableHead>
+                                                    <TableHead>Type</TableHead>
+                                                    <TableHead>Items</TableHead>
+                                                    <TableHead>QTY</TableHead>
+                                                    <TableHead>
+                                                        Status
+                                                    </TableHead>
+                                                    <TableHead className="text-right">
+                                                        Total
+                                                    </TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {recentOrders.map((order) => (
+                                                    <TableRow key={order.id}>
+                                                        <TableCell className="font-medium">
+                                                            #{order.id}
+                                                        </TableCell>
+                                                        <TableCell className="capitalize">
+                                                            {order.order_type?.replace(
+                                                                '_',
+                                                                ' ',
+                                                            ) ?? '-'}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {order.items
+                                                                ?.slice(0, 2)
+                                                                .map(
+                                                                    (item) =>
+                                                                        item
+                                                                            .product
+                                                                            ?.name ??
+                                                                        'Unknown Item',
+                                                                )
+                                                                .join(', ') ||
+                                                                '-'}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {order.items?.reduce(
+                                                                (total, item) =>
+                                                                    total +
+                                                                    Number(
+                                                                        item.quantity,
+                                                                    ),
+                                                                0,
+                                                            ) ?? 0}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <span
+                                                                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getOrderStatusBadgeClass(
+                                                                    order.status,
+                                                                )}`}
+                                                            >
+                                                                {formatOrderStatus(
+                                                                    order.status,
+                                                                )}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {formatPrice(
+                                                                order.total_amount,
+                                                            )}{' '}
+                                                            ؋
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
                                     <div className="mt-4 text-right">
                                         <a
                                             href="/orders"

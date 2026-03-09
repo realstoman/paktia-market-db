@@ -14,7 +14,7 @@ import {
     type SharedData,
 } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Bell, ChevronsUpDown } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import AppearanceToggleDropdown from './appearance-dropdown';
 import LanguageDropdown from './language-dropdown';
 import { Button } from './ui/button';
@@ -28,11 +28,13 @@ export function AppSidebarHeader({
 
     return (
         <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-lg border border-neutral-100/90 bg-white px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
-                <Breadcrumbs breadcrumbs={breadcrumbs} />
+                <div className="min-w-0 flex-1">
+                    <Breadcrumbs breadcrumbs={breadcrumbs} />
+                </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="ml-2 flex shrink-0 items-center gap-2">
                 <AppearanceToggleDropdown />
                 <LanguageDropdown />
                 <DropdownMenu>
@@ -78,9 +80,13 @@ export function AppSidebarHeader({
                 </DropdownMenu>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 gap-2 px-2">
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-full border border-neutral-200/70 bg-neutral-100 transition-all duration-300 hover:bg-neutral-200/70 dark:border-neutral-700/90 dark:bg-neutral-950"
+                        >
+                            <UserInfo user={auth.user} showName={false} />
+                            <span className="sr-only">User menu</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
