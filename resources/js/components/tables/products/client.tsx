@@ -385,6 +385,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 },
                 onError: (errors) => {
                     setMetaErrors(errors);
+                    toast.error(
+                        String(
+                            errors.name ??
+                                errors.image ??
+                                errors.type ??
+                                'Unable to update type.',
+                        ),
+                    );
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
@@ -404,6 +412,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             },
             onError: (errors) => {
                 setMetaErrors(errors);
+                toast.error(
+                    String(
+                        errors.name ??
+                            errors.image ??
+                            errors.type ??
+                            'Unable to create type.',
+                    ),
+                );
             },
             onFinish: () => {
                 setIsSubmitting(false);
