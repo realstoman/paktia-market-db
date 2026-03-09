@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = import.meta.env.VITE_APP_NAME || '"Baba Restaurant"';
+const appName = 'Baba Restaurant';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
