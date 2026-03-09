@@ -33,11 +33,17 @@
         <title inertia>{{ config('app.name', 'Baba Restaurant') }}</title>
 
         @php
-            $faviconUrl = asset('favicon.ico') . '?v=' . filemtime(public_path('favicon.ico'));
+            $faviconIcoVersion = filemtime(public_path('favicon.ico'));
+            $favicon16Version = filemtime(public_path('favicon-16x16.png'));
+            $favicon32Version = filemtime(public_path('favicon-32x32.png'));
+            $appleTouchVersion = filemtime(public_path('apple-touch-icon.png'));
         @endphp
-        <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
-        <link rel="shortcut icon" href="{{ $faviconUrl }}">
-        <link rel="apple-touch-icon" href="/brand/logo-full.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v={{ $appleTouchVersion }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v={{ $favicon32Version }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v={{ $favicon16Version }}">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
+        <link rel="shortcut icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
+        <link rel="manifest" href="/site.webmanifest">
         <meta name="theme-color" content="#111827">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
