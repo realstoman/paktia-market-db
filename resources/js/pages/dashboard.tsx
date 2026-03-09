@@ -219,9 +219,9 @@ export default function Dashboard({ data }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-2 overflow-x-auto rounded-xl">
+            <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {/* Statistics */}
-                <div className="grid auto-rows-min gap-2 md:grid-cols-4">
+                <div className="grid auto-rows-min gap-3 md:grid-cols-4">
                     <div className="col-span-1 flex flex-col gap-2">
                         <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                             <CardHeader>
@@ -620,8 +620,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             ?.slice(0, 2)
                                                             .map(
                                                                 (item) =>
-                                                                    item
-                                                                        .product
+                                                                    item.product
                                                                         ?.name ??
                                                                     'Unknown Item',
                                                             )
@@ -639,11 +638,9 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     </TableCell>
                                                     <TableCell>
                                                         <span
-                                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                                getOrderStatusBadgeClass(
-                                                                    order.status,
-                                                                )
-                                                            }`}
+                                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${getOrderStatusBadgeClass(
+                                                                order.status,
+                                                            )}`}
                                                         >
                                                             {formatOrderStatus(
                                                                 order.status,

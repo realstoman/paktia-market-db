@@ -18,26 +18,33 @@ export function Breadcrumbs({
     return (
         <>
             {breadcrumbs.length > 0 && (
-                <Breadcrumb>
-                    <BreadcrumbList>
+                <Breadcrumb className="min-w-0">
+                    <BreadcrumbList className="min-w-0 flex-nowrap overflow-hidden">
                         {breadcrumbs.map((item, index) => {
                             const isLast = index === breadcrumbs.length - 1;
                             return (
                                 <Fragment key={index}>
-                                    <BreadcrumbItem>
+                                    <BreadcrumbItem
+                                        className={`max-w-full min-w-0 ${!isLast ? 'hidden sm:inline-flex' : ''}`}
+                                    >
                                         {isLast ? (
-                                            <BreadcrumbPage>
+                                            <BreadcrumbPage className="block truncate">
                                                 {item.title}
                                             </BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink asChild>
+                                            <BreadcrumbLink
+                                                asChild
+                                                className="block truncate"
+                                            >
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
                                             </BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
-                                    {!isLast && <BreadcrumbSeparator />}
+                                    {!isLast && (
+                                        <BreadcrumbSeparator className="hidden shrink-0 sm:flex" />
+                                    )}
                                 </Fragment>
                             );
                         })}
