@@ -32,18 +32,20 @@ export default function AuthLayout({
 
                         {/* Footer - Security Note */}
                         <div className="mt-8 border-t border-slate-800 pt-6 text-left">
-                            <p className="justify-left flex items-center gap-1 text-left text-sm text-slate-400">
-                                <Copyright className="h-4 w-4" /> Copyright{' '}
-                                {new Date().getFullYear()}
-                                <a
-                                    href="https://babataste.com"
-                                    className="text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    {brand.name}.
-                                </a>
-                                All rights reserved.
+                            <p className="justify-left flex items-start gap-2 text-left text-sm text-slate-400">
+                                <Copyright className="mt-1 h-4 w-4" />{' '}
+                                <div>
+                                    Copyright {new Date().getFullYear()}
+                                    <a
+                                        href="https://babataste.com"
+                                        className="pr-1 pl-1 text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {brand.name}.
+                                    </a>
+                                    All rights reserved.
+                                </div>
                             </p>
                             <p className="justify-left flex items-center gap-1 pt-2 text-left text-sm text-slate-400">
                                 <ShieldCheck className="h-4 w-4" />
