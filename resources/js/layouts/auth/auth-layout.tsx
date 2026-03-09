@@ -36,8 +36,10 @@ export default function AuthLayout({
                                 <Copyright className="h-4 w-4" /> Copyright{' '}
                                 {new Date().getFullYear()}
                                 <a
-                                    href="#"
+                                    href="https://babataste.com"
                                     className="text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
+                                    target="_blank"
+                                    rel="noreferrer"
                                 >
                                     {brand.name}.
                                 </a>
