@@ -64,6 +64,7 @@ interface ProductsClientProps {
 const MAX_IMAGES = 10;
 const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
 const CATEGORY_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
+const TYPE_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
 
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
@@ -101,9 +102,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         string | null
     >(null);
     const [typeName, setTypeName] = useState('');
+    const [typePashtoName, setTypePashtoName] = useState('');
+    const [typeDariName, setTypeDariName] = useState('');
+    const [typeDescription, setTypeDescription] = useState('');
+    const [typePashtoDescription, setTypePashtoDescription] = useState('');
+    const [typeDariDescription, setTypeDariDescription] = useState('');
+    const [typeImage, setTypeImage] = useState<File | null>(null);
+    const [typeImagePreview, setTypeImagePreview] = useState<string | null>(
+        null,
+    );
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
         null,
     );
+    const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -124,8 +135,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         return () => {
             images.forEach((image) => URL.revokeObjectURL(image.preview));
             revokePreviewIfBlob(categoryImagePreview);
+            revokePreviewIfBlob(typeImagePreview);
         };
-    }, [images, categoryImagePreview]);
+    }, [images, categoryImagePreview, typeImagePreview]);
 
     const clearSelectedImages = () => {
         images.forEach((image) => URL.revokeObjectURL(image.preview));
@@ -348,16 +360,27 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }
 
         setIsSubmitting(true);
-        router.post(
-            '/products/types',
-            {
-                name: typeName.trim().toLowerCase(),
-            },
-            {
+        const payload = {
+            name: typeName.trim().toLowerCase(),
+            pashto_name: typePashtoName.trim() || null,
+            dari_name: typeDariName.trim() || null,
+            description: typeDescription.trim() || null,
+            pashto_description: typePashtoDescription.trim() || null,
+            dari_description: typeDariDescription.trim() || null,
+            image: typeImage,
+        };
+
+        const requestUrl = editingTypeId
+            ? `/products/types/${editingTypeId}`
+            : '/products/types';
+
+        if (editingTypeId) {
+            router.put(requestUrl, payload, {
                 preserveScroll: true,
+                forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Type created successfully.');
-                    setTypeName('');
+                    toast.success('Type updated successfully.');
+                    resetTypeForm();
                     setMetaErrors({});
                 },
                 onError: (errors) => {
@@ -366,8 +389,46 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 onFinish: () => {
                     setIsSubmitting(false);
                 },
+            });
+
+            return;
+        }
+
+        router.post(requestUrl, payload, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Type created successfully.');
+                resetTypeForm();
+                setMetaErrors({});
             },
-        );
+            onError: (errors) => {
+                setMetaErrors(errors);
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
+    const resetTypeForm = () => {
+        setTypeName('');
+        setTypePashtoName('');
+        setTypeDariName('');
+        setTypeDescription('');
+        setTypePashtoDescription('');
+        setTypeDariDescription('');
+        setEditingTypeId(null);
+        revokePreviewIfBlob(typeImagePreview);
+        setTypeImage(null);
+        setTypeImagePreview(null);
+    };
+
+    const handleTypeImageChange = (file: File | null) => {
+        revokePreviewIfBlob(typeImagePreview);
+
+        setTypeImage(file);
+        setTypeImagePreview(file ? URL.createObjectURL(file) : null);
     };
 
     const handleTypeDelete = (id: number) => {
@@ -380,6 +441,20 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 setMetaErrors(errors);
             },
         });
+    };
+
+    const handleTypeEdit = (productType: ProductType) => {
+        setEditingTypeId(productType.id);
+        setTypeName(productType.name);
+        setTypePashtoName(productType.pashto_name ?? '');
+        setTypeDariName(productType.dari_name ?? '');
+        setTypeDescription(productType.description ?? '');
+        setTypePashtoDescription(productType.pashto_description ?? '');
+        setTypeDariDescription(productType.dari_description ?? '');
+        revokePreviewIfBlob(typeImagePreview);
+        setTypeImage(null);
+        setTypeImagePreview(productType.image_url ?? null);
+        setMetaErrors({});
     };
 
     const availableTypes = useMemo(() => {
@@ -1061,7 +1136,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 onOpenChange={(open) => {
                     setIsTypeMetaOpen(open);
                     if (!open) {
-                        setTypeName('');
+                        resetTypeForm();
                         setMetaErrors({});
                     }
                 }}
@@ -1070,7 +1145,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     <DialogHeader>
                         <DialogTitle>Manage Types</DialogTitle>
                         <DialogDescription>
-                            Create or remove product types.
+                            Create, edit, or remove product types.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3">
@@ -1082,6 +1157,65 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     setTypeName(event.target.value)
                                 }
                             />
+                            <Input
+                                placeholder="Pashto title (optional)"
+                                value={typePashtoName}
+                                onChange={(event) =>
+                                    setTypePashtoName(event.target.value)
+                                }
+                            />
+                            <Input
+                                placeholder="Dari title (optional)"
+                                value={typeDariName}
+                                onChange={(event) =>
+                                    setTypeDariName(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Type description (optional)"
+                                value={typeDescription}
+                                onChange={(event) =>
+                                    setTypeDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Pashto description (optional)"
+                                value={typePashtoDescription}
+                                onChange={(event) =>
+                                    setTypePashtoDescription(event.target.value)
+                                }
+                            />
+                            <Textarea
+                                placeholder="Dari description (optional)"
+                                value={typeDariDescription}
+                                onChange={(event) =>
+                                    setTypeDariDescription(event.target.value)
+                                }
+                            />
+                            <div className="space-y-2">
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(event) =>
+                                        handleTypeImageChange(
+                                            event.target.files?.[0] ?? null,
+                                        )
+                                    }
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    {TYPE_IMAGE_DIMENSION_HINT}
+                                </p>
+                                {typeImagePreview && (
+                                    <div className="overflow-hidden rounded-md border">
+                                        <img
+                                            src={typeImagePreview}
+                                            alt="Type preview"
+                                            className="h-24 w-full object-cover"
+                                        />
+                                    </div>
+                                )}
+                                <InputError message={metaErrors.image} />
+                            </div>
                             <Button
                                 type="button"
                                 onClick={handleTypeCreate}
@@ -1089,8 +1223,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 disabled={!typeName.trim() || isSubmitting}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Type
+                                {editingTypeId ? 'Update Type' : 'Add Type'}
                             </Button>
+                            {editingTypeId && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={resetTypeForm}
+                                    disabled={isSubmitting}
+                                >
+                                    Cancel Edit
+                                </Button>
+                            )}
                         </div>
                         <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
                             {types.map((productType) => (
@@ -1098,19 +1243,57 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     key={productType.id}
                                     className="flex items-center justify-between rounded-md border p-2"
                                 >
-                                    <p className="text-sm font-medium capitalize">
-                                        {productType.name}
-                                    </p>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() =>
-                                            handleTypeDelete(productType.id)
-                                        }
-                                    >
-                                        <Trash2 className="h-4 w-4 text-red-600" />
-                                    </Button>
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                            {productType.image_url ? (
+                                                <img
+                                                    src={productType.image_url}
+                                                    alt={productType.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium capitalize">
+                                                {productType.name}
+                                            </p>
+                                            {productType.pashto_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {productType.pashto_name}
+                                                </p>
+                                            ) : null}
+                                            {productType.dari_name ? (
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {productType.dari_name}
+                                                </p>
+                                            ) : null}
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {productType.description || '-'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleTypeEdit(productType)
+                                            }
+                                        >
+                                            <Edit3 className="h-4 w-4 text-blue-600" />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                handleTypeDelete(productType.id)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
