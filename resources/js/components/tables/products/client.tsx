@@ -259,17 +259,31 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             ? `/products/categories/${editingCategoryId}`
             : '/products/categories';
 
-        const requestMethod = editingCategoryId ? router.put : router.post;
+        if (editingCategoryId) {
+            router.put(requestUrl, payload, {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    toast.success('Category updated successfully.');
+                    resetCategoryForm();
+                    setMetaErrors({});
+                },
+                onError: (errors) => {
+                    setMetaErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            });
 
-        requestMethod(requestUrl, payload, {
+            return;
+        }
+
+        router.post(requestUrl, payload, {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
-                toast.success(
-                    editingCategoryId
-                        ? 'Category updated successfully.'
-                        : 'Category created successfully.',
-                );
+                toast.success('Category created successfully.');
                 resetCategoryForm();
                 setMetaErrors({});
             },
