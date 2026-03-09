@@ -78,9 +78,17 @@ export function AppSidebarHeader({
                 </DropdownMenu>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 gap-2 px-2">
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
+                        <Button
+                            variant="ghost"
+                            className="h-9 gap-2 px-1.5 sm:px-2"
+                        >
+                            <div className="sm:hidden">
+                                <UserInfo user={auth.user} showName={false} />
+                            </div>
+                            <div className="hidden min-w-0 flex-1 sm:flex">
+                                <UserInfo user={auth.user} />
+                            </div>
+                            <ChevronsUpDown className="hidden size-4 sm:block" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
