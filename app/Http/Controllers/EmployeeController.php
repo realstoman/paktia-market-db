@@ -60,8 +60,8 @@ class EmployeeController extends Controller
         return Inertia::render('employees/index', [
             'employees' => $employees,
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
-            'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name']),
-            'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name']),
+            'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name', 'description']),
+            'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name', 'description']),
             'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
             'canCreate' => Gate::allows(PermissionEnum::EMPLOYEES_CREATE->value),
         ]);

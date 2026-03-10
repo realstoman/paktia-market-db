@@ -18,6 +18,7 @@ import {
     IceCreamCone,
     Layers3,
     Package,
+    Tags,
     UtensilsCrossed,
     type LucideIcon,
 } from 'lucide-react';
@@ -141,6 +142,20 @@ export default function ProductsPage({
                             </Card>
                         );
                     })}
+
+                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
+                            <CardTitle className="text-sm">
+                                Total Categories
+                            </CardTitle>
+                            <Tags className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold tracking-tight">
+                                {formatNumber(categories.length)}
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <div className="rounded-lg bg-white p-6 text-gray-900 dark:bg-brand-bg-dark">

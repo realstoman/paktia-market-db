@@ -2,16 +2,17 @@
 
 namespace App\Http\Middleware;
 
-use App\Enums\KitchenType;
+use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\Kitchen;
+use App\Models\KitchenCategory;
+use App\Models\KitchenType;
 use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -65,20 +66,48 @@ class HandleInertiaRequests extends Middleware
                     ? Vendor::orderBy('name')->get()
                     : [],
                 'kitchens' => Schema::hasTable('kitchens')
-                    ? Kitchen::with(['branches', 'products'])
+                    ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines', 'kitchenCategories'])
                         ->orderBy('name')
                         ->get()
+                        ->map(fn (Kitchen $kitchen) => [
+                            'id' => $kitchen->id,
+                            'name' => $kitchen->name,
+                            'type' => $kitchen->kitchenType?->name,
+                            'kitchen_type' => $kitchen->kitchenType?->name,
+                            'kitchen_type_id' => $kitchen->kitchen_type_id,
+                            'cuisines' => $kitchen->cuisines->map(fn (Cuisine $cuisine) => [
+                                'id' => $cuisine->id,
+                                'name' => $cuisine->name,
+                                'description' => $cuisine->description,
+                            ])->values(),
+                            'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
+                            'kitchen_categories' => $kitchen->kitchenCategories->map(fn (KitchenCategory $category) => [
+                                'id' => $category->id,
+                                'name' => $category->name,
+                                'description' => $category->description,
+                            ])->values(),
+                            'kitchen_categories_label' => $kitchen->kitchenCategories->pluck('name')->join(', '),
+                            'is_active' => $kitchen->is_active,
+                            'branch_id' => $kitchen->branch_id,
+                            'branches' => $kitchen->branches,
+                            'products' => $kitchen->products,
+                            'created_at' => $kitchen->created_at,
+                            'updated_at' => $kitchen->updated_at,
+                        ])
+                        ->values()
                     : [],
                 'products' => Schema::hasTable('products')
                     ? Product::orderBy('name')->get(['id', 'name', 'kitchen_id'])
                     : [],
-                'kitchenTypes' => array_map(
-                    fn (KitchenType $type) => [
-                        'label' => Str::title(str_replace('_', ' ', $type->value)),
-                        'value' => $type->value,
-                    ],
-                    KitchenType::cases(),
-                ),
+                'kitchenTypes' => Schema::hasTable('kitchen_types')
+                    ? KitchenType::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
+                'cuisines' => Schema::hasTable('cuisines')
+                    ? Cuisine::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
+                'kitchenCategories' => Schema::hasTable('kitchen_categories')
+                    ? KitchenCategory::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
