@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/sidebar';
 import { KitchensClient } from '@/components/tables/kitchens/client';
 import {
+    Banner,
     Country,
     Cuisine,
     Currency,
@@ -39,13 +40,15 @@ import {
     Building2,
     ChefHat,
     Coins,
+    ImagePlus,
     Globe,
     LayoutDashboard,
+    Link2,
     Pencil,
     Save,
     Trash2,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export function ToolsLauncher() {
@@ -61,6 +64,10 @@ export function ToolsLauncher() {
     const vendors = useMemo(
         () => page.props.tools?.vendors ?? [],
         [page.props.tools?.vendors],
+    );
+    const banners = useMemo(
+        () => page.props.tools?.banners ?? [],
+        [page.props.tools?.banners],
     );
     const kitchens = useMemo(
         () => page.props.tools?.kitchens ?? [],
@@ -86,6 +93,7 @@ export function ToolsLauncher() {
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
     const [isCurrenciesOpen, setIsCurrenciesOpen] = useState(false);
     const [isVendorsOpen, setIsVendorsOpen] = useState(false);
+    const [isBannersOpen, setIsBannersOpen] = useState(false);
     const [isKitchensOpen, setIsKitchensOpen] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,6 +117,19 @@ export function ToolsLauncher() {
     const [vendorPhone, setVendorPhone] = useState('');
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
+
+    const [bannerId, setBannerId] = useState<number | null>(null);
+    const [bannerTitle, setBannerTitle] = useState('');
+    const [bannerLink, setBannerLink] = useState('');
+    const [bannerLinkType, setBannerLinkType] = useState<
+        'internal' | 'external'
+    >('internal');
+    const [bannerSortOrder, setBannerSortOrder] = useState('0');
+    const [bannerIsActive, setBannerIsActive] = useState(true);
+    const [bannerImage, setBannerImage] = useState<File | null>(null);
+    const [bannerImagePreview, setBannerImagePreview] = useState<
+        string | null
+    >(null);
 
     const currencyByCode = useMemo(() => {
         return new Map(currencies.map((entry) => [entry.code, entry]));
@@ -140,6 +161,31 @@ export function ToolsLauncher() {
         setVendorPhone('');
         setVendorEmail('');
         setVendorNotes('');
+        setErrors({});
+    };
+
+    const revokeObjectUrlIfBlob = (url: string | null) => {
+        if (url?.startsWith('blob:')) {
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            revokeObjectUrlIfBlob(bannerImagePreview);
+        };
+    }, [bannerImagePreview]);
+
+    const resetBannerForm = () => {
+        setBannerId(null);
+        setBannerTitle('');
+        setBannerLink('');
+        setBannerLinkType('internal');
+        setBannerSortOrder('0');
+        setBannerIsActive(true);
+        setBannerImage(null);
+        revokeObjectUrlIfBlob(bannerImagePreview);
+        setBannerImagePreview(null);
         setErrors({});
     };
 
@@ -243,6 +289,47 @@ export function ToolsLauncher() {
         );
     };
 
+    const submitBanner = () => {
+        if (
+            !bannerTitle.trim() ||
+            (!bannerId && !bannerImage) ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            bannerId ? `/banners/${bannerId}` : '/banners',
+            {
+                ...(bannerId ? { _method: 'put' } : {}),
+                title: bannerTitle.trim(),
+                link: bannerLink.trim() || null,
+                link_type: bannerLinkType,
+                sort_order: bannerSortOrder.trim()
+                    ? Number(bannerSortOrder)
+                    : 0,
+                is_active: bannerIsActive,
+                image: bannerImage,
+            },
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    toast.success(
+                        bannerId
+                            ? 'Banner updated successfully.'
+                            : 'Banner created successfully.',
+                    );
+                    resetBannerForm();
+                },
+                onError: (validationErrors) => setErrors(validationErrors),
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
+    };
+
     return (
         <>
             <SidebarGroup className="px-2 py-2">
@@ -300,6 +387,17 @@ export function ToolsLauncher() {
                                     >
                                         <Building2 className="h-5 w-5" />
                                         <span className="text-xs">Vendors</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-20 flex-col gap-2"
+                                        onClick={() => {
+                                            resetBannerForm();
+                                            setIsBannersOpen(true);
+                                        }}
+                                    >
+                                        <ImagePlus className="h-5 w-5" />
+                                        <span className="text-xs">Banners</span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -693,6 +791,260 @@ export function ToolsLauncher() {
                                         onClick={() =>
                                             router.delete(
                                                 `/vendors/${vendor.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Trash2 className="mr-1 h-3 w-3" />
+                                        Delete
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isBannersOpen} onOpenChange={setIsBannersOpen}>
+                <DialogContent className="sm:max-w-5xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Banners</DialogTitle>
+                        <DialogDescription>
+                            Home-screen slider banners for the mobile app.
+                            Use internal links for app routes and external links
+                            for websites or social pages.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                        <div className="grid gap-4">
+                            <div className="grid gap-2">
+                                <Label>Title</Label>
+                                <Input
+                                    value={bannerTitle}
+                                    onChange={(event) =>
+                                        setBannerTitle(event.target.value)
+                                    }
+                                    placeholder="Qabuli Palaw Special"
+                                />
+                                <InputError message={errors.title} />
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label>Link Type</Label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={bannerLinkType}
+                                        onChange={(event) =>
+                                            setBannerLinkType(
+                                                event.target.value as
+                                                    | 'internal'
+                                                    | 'external',
+                                            )
+                                        }
+                                    >
+                                        <option value="internal">
+                                            Internal
+                                        </option>
+                                        <option value="external">
+                                            External
+                                        </option>
+                                    </select>
+                                    <InputError message={errors.link_type} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Sort Order</Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        value={bannerSortOrder}
+                                        onChange={(event) =>
+                                            setBannerSortOrder(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError message={errors.sort_order} />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Link</Label>
+                                <Input
+                                    value={bannerLink}
+                                    onChange={(event) =>
+                                        setBannerLink(event.target.value)
+                                    }
+                                    placeholder={
+                                        bannerLinkType === 'internal'
+                                            ? '/products/qabuli-palaw'
+                                            : 'https://facebook.com/babataste'
+                                    }
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Internal links can be app routes or deep
+                                    links. External links should be full URLs.
+                                </p>
+                                <InputError message={errors.link} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Banner Image</Label>
+                                <Input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    onChange={(event) => {
+                                        const file =
+                                            event.target.files?.[0] ?? null;
+
+                                        setBannerImage(file);
+                                        revokeObjectUrlIfBlob(
+                                            bannerImagePreview,
+                                        );
+                                        setBannerImagePreview(
+                                            file
+                                                ? URL.createObjectURL(file)
+                                                : null,
+                                        );
+                                    }}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Use a wide image for the mobile slider.
+                                </p>
+                                <InputError message={errors.image} />
+                            </div>
+
+                            <label className="flex items-center gap-2 text-sm">
+                                <input
+                                    type="checkbox"
+                                    checked={bannerIsActive}
+                                    onChange={(event) =>
+                                        setBannerIsActive(
+                                            event.target.checked,
+                                        )
+                                    }
+                                />
+                                Active banner
+                            </label>
+
+                            <DialogFooter className="sm:justify-between">
+                                <Button
+                                    variant="outline"
+                                    onClick={resetBannerForm}
+                                >
+                                    Clear
+                                </Button>
+                                <Button
+                                    onClick={submitBanner}
+                                    disabled={
+                                        isSubmitting ||
+                                        !bannerTitle.trim() ||
+                                        (!bannerId && !bannerImage)
+                                    }
+                                >
+                                    <Save className="mr-2 h-4 w-4" />
+                                    {bannerId ? 'Update Banner' : 'Save Banner'}
+                                </Button>
+                            </DialogFooter>
+                        </div>
+
+                        <div className="rounded-lg border bg-muted/20 p-3">
+                            <p className="mb-2 text-sm font-medium">Preview</p>
+                            {bannerImagePreview ? (
+                                <img
+                                    src={bannerImagePreview}
+                                    alt={bannerTitle || 'Banner preview'}
+                                    className="h-44 w-full rounded-md object-cover"
+                                />
+                            ) : (
+                                <div className="flex h-44 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+                                    Select an image to preview it.
+                                </div>
+                            )}
+                            <div className="mt-3 space-y-1 text-sm">
+                                <p className="font-medium">
+                                    {bannerTitle || 'Banner title'}
+                                </p>
+                                <p className="flex items-center gap-2 text-muted-foreground">
+                                    <Link2 className="h-4 w-4" />
+                                    {bannerLink || 'No link configured'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-h-72 space-y-2 overflow-auto rounded-md border p-3">
+                        {banners.map((banner: Banner) => (
+                            <div
+                                key={banner.id}
+                                className="flex flex-col gap-3 rounded border p-3 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                                <div className="flex items-center gap-3">
+                                    {banner.image_url ? (
+                                        <img
+                                            src={banner.image_url}
+                                            alt={banner.title}
+                                            className="h-16 w-24 rounded object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-16 w-24 items-center justify-center rounded border text-xs text-muted-foreground">
+                                            No image
+                                        </div>
+                                    )}
+                                    <div>
+                                        <p className="text-sm font-medium">
+                                            {banner.title}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {banner.link_type} | order:{' '}
+                                            {banner.sort_order ?? 0} |{' '}
+                                            {banner.is_active
+                                                ? 'active'
+                                                : 'inactive'}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {banner.link || 'No link'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setBannerId(banner.id);
+                                            setBannerTitle(banner.title);
+                                            setBannerLink(banner.link ?? '');
+                                            setBannerLinkType(
+                                                banner.link_type,
+                                            );
+                                            setBannerSortOrder(
+                                                String(
+                                                    banner.sort_order ?? 0,
+                                                ),
+                                            );
+                                            setBannerIsActive(
+                                                banner.is_active ?? true,
+                                            );
+                                            setBannerImage(null);
+                                            revokeObjectUrlIfBlob(
+                                                bannerImagePreview,
+                                            );
+                                            setBannerImagePreview(
+                                                banner.image_url ?? null,
+                                            );
+                                            setErrors({});
+                                        }}
+                                    >
+                                        <Pencil className="mr-1 h-3 w-3" />
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            router.delete(
+                                                `/banners/${banner.id}`,
                                                 { preserveScroll: true },
                                             )
                                         }

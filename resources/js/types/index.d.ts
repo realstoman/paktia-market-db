@@ -32,6 +32,7 @@ export interface SharedData {
         countries: Country[];
         currencies: Currency[];
         vendors: Vendor[];
+        banners: Banner[];
         kitchens: Kitchen[];
         products: Product[];
         kitchenTypes: KitchenType[];
@@ -389,6 +390,20 @@ export interface Vendor {
     phone?: string | null;
     email?: string | null;
     notes?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Banner {
+    id: number;
+    title: string;
+    image_path: string;
+    image_url?: string;
+    link?: string | null;
+    link_type: 'internal' | 'external';
+    sort_order?: number;
     is_active?: boolean;
     created_at?: string;
     updated_at?: string;

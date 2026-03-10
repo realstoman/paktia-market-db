@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Banner;
 use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
@@ -64,6 +65,12 @@ class HandleInertiaRequests extends Middleware
                     : [],
                 'vendors' => Schema::hasTable('vendors')
                     ? Vendor::orderBy('name')->get()
+                    : [],
+                'banners' => Schema::hasTable('banners')
+                    ? Banner::query()
+                        ->orderBy('sort_order')
+                        ->orderByDesc('id')
+                        ->get()
                     : [],
                 'kitchens' => Schema::hasTable('kitchens')
                     ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines', 'kitchenCategories'])
