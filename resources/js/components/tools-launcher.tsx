@@ -25,8 +25,10 @@ import {
 import { KitchensClient } from '@/components/tables/kitchens/client';
 import {
     Country,
+    Cuisine,
     Currency,
     Kitchen,
+    KitchenType,
     Product,
     SharedData,
     Vendor,
@@ -70,6 +72,10 @@ export function ToolsLauncher() {
     const kitchenTypes = useMemo(
         () => page.props.tools?.kitchenTypes ?? [],
         [page.props.tools?.kitchenTypes],
+    );
+    const cuisines = useMemo(
+        () => page.props.tools?.cuisines ?? [],
+        [page.props.tools?.cuisines],
     );
 
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
@@ -708,7 +714,8 @@ export function ToolsLauncher() {
                         <KitchensClient
                             data={kitchens as Kitchen[]}
                             products={products as Product[]}
-                            kitchenTypes={kitchenTypes}
+                            kitchenTypes={kitchenTypes as KitchenType[]}
+                            cuisines={cuisines as Cuisine[]}
                         />
                     </div>
                 </DialogContent>

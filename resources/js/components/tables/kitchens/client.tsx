@@ -20,10 +20,12 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Kitchen, Product } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Cuisine, Kitchen, KitchenType, Product } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { ChefHat, Plus, Save, X } from 'lucide-react';
+import { ChefHat, CookingPot, Plus, Save, Shapes, UtensilsCrossed, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -31,7 +33,8 @@ import { buildColumns } from './columns';
 interface KitchensClientProps {
     data: Kitchen[];
     products: Product[];
-    kitchenTypes: { label: string; value: string }[];
+    kitchenTypes: KitchenType[];
+    cuisines: Cuisine[];
     isLoading?: boolean;
 }
 
@@ -39,24 +42,68 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     data,
     products,
     kitchenTypes,
+    cuisines,
     isLoading = false,
 }) => {
+    const NO_KITCHEN_TYPE = '__none__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isKitchenTypesOpen, setIsKitchenTypesOpen] = useState(false);
+    const [isCuisinesOpen, setIsCuisinesOpen] = useState(false);
     const [name, setName] = useState('');
-    const [type, setType] = useState('');
+    const [kitchenTypeId, setKitchenTypeId] = useState(NO_KITCHEN_TYPE);
+    const [selectedCuisineIds, setSelectedCuisineIds] = useState<number[]>([]);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [kitchenTypeName, setKitchenTypeName] = useState('');
+    const [kitchenTypeDescription, setKitchenTypeDescription] = useState('');
+    const [editingKitchenTypeId, setEditingKitchenTypeId] = useState<
+        number | null
+    >(null);
+    const [kitchenTypeErrors, setKitchenTypeErrors] = useState<
+        Record<string, string>
+    >({});
+    const [cuisineName, setCuisineName] = useState('');
+    const [cuisineDescription, setCuisineDescription] = useState('');
+    const [editingCuisineId, setEditingCuisineId] = useState<number | null>(
+        null,
+    );
+    const [cuisineErrors, setCuisineErrors] = useState<Record<string, string>>(
+        {},
+    );
 
     const resetForm = () => {
         setName('');
-        setType('');
+        setKitchenTypeId(NO_KITCHEN_TYPE);
+        setSelectedCuisineIds([]);
         setCreateErrors({});
     };
 
+    const resetKitchenTypeForm = () => {
+        setKitchenTypeName('');
+        setKitchenTypeDescription('');
+        setEditingKitchenTypeId(null);
+        setKitchenTypeErrors({});
+    };
+
+    const resetCuisineForm = () => {
+        setCuisineName('');
+        setCuisineDescription('');
+        setEditingCuisineId(null);
+        setCuisineErrors({});
+    };
+
+    const toggleCuisine = (cuisineId: number) => {
+        setSelectedCuisineIds((current) =>
+            current.includes(cuisineId)
+                ? current.filter((id) => id !== cuisineId)
+                : [...current, cuisineId],
+        );
+    };
+
     const handleCreateSubmit = () => {
-        if (!name.trim() || !type || isSubmitting) {
+        if (!name.trim() || isSubmitting) {
             return;
         }
 
@@ -66,7 +113,11 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             '/kitchens',
             {
                 name: name.trim(),
-                type,
+                kitchen_type_id:
+                    kitchenTypeId !== NO_KITCHEN_TYPE
+                        ? Number(kitchenTypeId)
+                        : null,
+                cuisines: selectedCuisineIds,
             },
             {
                 preserveScroll: true,
@@ -85,9 +136,130 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         );
     };
 
+    const handleSaveKitchenType = () => {
+        if (!kitchenTypeName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            name: kitchenTypeName.trim(),
+            description: kitchenTypeDescription.trim() || null,
+        };
+
+        if (editingKitchenTypeId) {
+            router.put(`/kitchen-types/${editingKitchenTypeId}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Kitchen type updated successfully.');
+                    resetKitchenTypeForm();
+                },
+                onError: (errors) => setKitchenTypeErrors(errors),
+                onFinish: () => setIsSubmitting(false),
+            });
+            return;
+        }
+
+        router.post('/kitchen-types', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Kitchen type created successfully.');
+                resetKitchenTypeForm();
+            },
+            onError: (errors) => setKitchenTypeErrors(errors),
+            onFinish: () => setIsSubmitting(false),
+        });
+    };
+
+    const handleDeleteKitchenType = (entry: KitchenType) => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.delete(`/kitchen-types/${entry.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Kitchen type deleted successfully.');
+                if (editingKitchenTypeId === entry.id) {
+                    resetKitchenTypeForm();
+                }
+            },
+            onError: (errors) => {
+                setKitchenTypeErrors(errors);
+                toast.error(
+                    errors.kitchen_type ||
+                        'Failed to delete kitchen type.',
+                );
+            },
+            onFinish: () => setIsSubmitting(false),
+        });
+    };
+
+    const handleSaveCuisine = () => {
+        if (!cuisineName.trim() || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            name: cuisineName.trim(),
+            description: cuisineDescription.trim() || null,
+        };
+
+        if (editingCuisineId) {
+            router.put(`/cuisines/${editingCuisineId}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Cuisine updated successfully.');
+                    resetCuisineForm();
+                },
+                onError: (errors) => setCuisineErrors(errors),
+                onFinish: () => setIsSubmitting(false),
+            });
+            return;
+        }
+
+        router.post('/cuisines', payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Cuisine created successfully.');
+                resetCuisineForm();
+            },
+            onError: (errors) => setCuisineErrors(errors),
+            onFinish: () => setIsSubmitting(false),
+        });
+    };
+
+    const handleDeleteCuisine = (entry: Cuisine) => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.delete(`/cuisines/${entry.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Cuisine deleted successfully.');
+                if (editingCuisineId === entry.id) {
+                    resetCuisineForm();
+                }
+            },
+            onError: (errors) => {
+                setCuisineErrors(errors);
+                toast.error(errors.cuisine || 'Failed to delete cuisine.');
+            },
+            onFinish: () => setIsSubmitting(false),
+        });
+    };
+
     const tableColumns = useMemo(
-        () => buildColumns(kitchenTypes, products),
-        [kitchenTypes, products],
+        () => buildColumns(kitchenTypes, cuisines, products),
+        [kitchenTypes, cuisines, products],
     );
 
     return (
@@ -97,14 +269,41 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     title={`Kitchens: ${formatNumber(data.length)}`}
                     description="Manage kitchens"
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add New
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsCuisinesOpen(true)}
+                        className="gap-2"
+                    >
+                        <UtensilsCrossed className="h-4 w-4" />
+                        Cuisines
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsKitchenTypesOpen(true)}
+                        className="gap-2"
+                    >
+                        <Shapes className="h-4 w-4" />
+                        Kitchen Types
+                    </Button>
+                    <Button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add New
+                    </Button>
+                </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'type', 'branches', 'products']}
+                searchKey={[
+                    'name',
+                    'kitchen_type',
+                    'cuisines_label',
+                    'branches',
+                    'products',
+                ]}
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
@@ -127,7 +326,8 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             Create Kitchen
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new kitchen and assign it to a branch.
+                            Add a kitchen, choose its station type, and assign
+                            one or more cuisines.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -144,24 +344,64 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Select value={type} onValueChange={setType}>
+                            <Label>Kitchen Type</Label>
+                            <Select
+                                value={kitchenTypeId}
+                                onValueChange={setKitchenTypeId}
+                            >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Select kitchen type" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                        <SelectItem value={NO_KITCHEN_TYPE}>
+                                            No Kitchen Type
+                                        </SelectItem>
                                     {kitchenTypes.map((kitchenType) => (
                                         <SelectItem
-                                            key={kitchenType.value}
-                                            value={kitchenType.value}
+                                            key={kitchenType.id}
+                                            value={String(kitchenType.id)}
                                         >
-                                            {kitchenType.label}
+                                            {kitchenType.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.type} />
+                            <InputError
+                                message={createErrors.kitchen_type_id}
+                            />
                         </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Cuisines</Label>
+                        <ScrollArea className="h-44 rounded-md border p-3">
+                            <div className="space-y-2">
+                                {cuisines.map((cuisine) => (
+                                    <label
+                                        key={cuisine.id}
+                                        className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm"
+                                    >
+                                        <Checkbox
+                                            checked={selectedCuisineIds.includes(
+                                                cuisine.id,
+                                            )}
+                                            onCheckedChange={() =>
+                                                toggleCuisine(cuisine.id)
+                                            }
+                                        />
+                                        <div className="min-w-0">
+                                            <p className="font-medium">
+                                                {cuisine.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {cuisine.description || '—'}
+                                            </p>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                        <InputError message={createErrors.cuisines} />
                     </div>
 
                     <DialogFooter>
@@ -175,12 +415,264 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
-                            disabled={!name.trim() || !type || isSubmitting}
+                            disabled={!name.trim() || isSubmitting}
                         >
                             <Save className="mr-2 h-5 w-5" />
                             Create Kitchen
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isKitchenTypesOpen}
+                onOpenChange={(open) => {
+                    setIsKitchenTypesOpen(open);
+                    if (!open) {
+                        resetKitchenTypeForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Shapes className="h-5 w-5" />
+                            Kitchen Type Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Manage kitchen station types such as Main, Grill,
+                            or Drinks.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="kitchen-type-name">Name</Label>
+                                <Input
+                                    id="kitchen-type-name"
+                                    value={kitchenTypeName}
+                                    onChange={(event) =>
+                                        setKitchenTypeName(event.target.value)
+                                    }
+                                />
+                                <InputError message={kitchenTypeErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="kitchen-type-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="kitchen-type-description"
+                                    value={kitchenTypeDescription}
+                                    onChange={(event) =>
+                                        setKitchenTypeDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={kitchenTypeErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSaveKitchenType}
+                                    disabled={
+                                        !kitchenTypeName.trim() || isSubmitting
+                                    }
+                                >
+                                    {editingKitchenTypeId
+                                        ? 'Update Kitchen Type'
+                                        : 'Add Kitchen Type'}
+                                </Button>
+                                {editingKitchenTypeId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetKitchenTypeForm}
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {kitchenTypes.map((entry) => (
+                                    <div
+                                        key={entry.id}
+                                        className="flex items-center justify-between rounded-md border px-3 py-2"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium">
+                                                {entry.name}
+                                            </p>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {entry.description || '—'}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditingKitchenTypeId(
+                                                        entry.id,
+                                                    );
+                                                    setKitchenTypeName(
+                                                        entry.name,
+                                                    );
+                                                    setKitchenTypeDescription(
+                                                        entry.description ?? '',
+                                                    );
+                                                    setKitchenTypeErrors({});
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteKitchenType(
+                                                        entry,
+                                                    )
+                                                }
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isCuisinesOpen}
+                onOpenChange={(open) => {
+                    setIsCuisinesOpen(open);
+                    if (!open) {
+                        resetCuisineForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CookingPot className="h-5 w-5" />
+                            Cuisine Manager
+                        </DialogTitle>
+                        <DialogDescription>
+                            Manage cuisines such as Afghan, Indian, and
+                            Pakistani.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="cuisine-name">Name</Label>
+                                <Input
+                                    id="cuisine-name"
+                                    value={cuisineName}
+                                    onChange={(event) =>
+                                        setCuisineName(event.target.value)
+                                    }
+                                />
+                                <InputError message={cuisineErrors.name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="cuisine-description">
+                                    Description
+                                </Label>
+                                <Input
+                                    id="cuisine-description"
+                                    value={cuisineDescription}
+                                    onChange={(event) =>
+                                        setCuisineDescription(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={cuisineErrors.description}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Button
+                                    onClick={handleSaveCuisine}
+                                    disabled={
+                                        !cuisineName.trim() || isSubmitting
+                                    }
+                                >
+                                    {editingCuisineId
+                                        ? 'Update Cuisine'
+                                        : 'Add Cuisine'}
+                                </Button>
+                                {editingCuisineId ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={resetCuisineForm}
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel Edit
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <ScrollArea className="h-[320px] rounded-lg border p-3">
+                            <div className="space-y-2">
+                                {cuisines.map((entry) => (
+                                    <div
+                                        key={entry.id}
+                                        className="flex items-center justify-between rounded-md border px-3 py-2"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium">
+                                                {entry.name}
+                                            </p>
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {entry.description || '—'}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditingCuisineId(
+                                                        entry.id,
+                                                    );
+                                                    setCuisineName(entry.name);
+                                                    setCuisineDescription(
+                                                        entry.description ?? '',
+                                                    );
+                                                    setCuisineErrors({});
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteCuisine(entry)
+                                                }
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

@@ -21,8 +21,26 @@ class KitchenController extends Controller
 
     public function show(Kitchen $kitchen)
     {
+        $kitchen->load(['branches', 'kitchenType', 'cuisines']);
+
         return Inertia::render('location/kitchens/show', [
-            'kitchen' => $kitchen->load(['branches', 'kitchenType', 'cuisines']),
+            'kitchen' => [
+                'id' => $kitchen->id,
+                'name' => $kitchen->name,
+                'type' => $kitchen->kitchenType?->name,
+                'kitchen_type' => $kitchen->kitchenType?->name,
+                'kitchen_type_id' => $kitchen->kitchen_type_id,
+                'cuisines' => $kitchen->cuisines->map(fn (Cuisine $cuisine) => [
+                    'id' => $cuisine->id,
+                    'name' => $cuisine->name,
+                    'description' => $cuisine->description,
+                ])->values(),
+                'branch_id' => $kitchen->branch_id,
+                'branches' => $kitchen->branches,
+                'is_active' => $kitchen->is_active,
+                'created_at' => $kitchen->created_at,
+                'updated_at' => $kitchen->updated_at,
+            ],
         ]);
     }
 

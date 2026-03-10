@@ -68,6 +68,26 @@ class HandleInertiaRequests extends Middleware
                     ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines'])
                         ->orderBy('name')
                         ->get()
+                        ->map(fn (Kitchen $kitchen) => [
+                            'id' => $kitchen->id,
+                            'name' => $kitchen->name,
+                            'type' => $kitchen->kitchenType?->name,
+                            'kitchen_type' => $kitchen->kitchenType?->name,
+                            'kitchen_type_id' => $kitchen->kitchen_type_id,
+                            'cuisines' => $kitchen->cuisines->map(fn (Cuisine $cuisine) => [
+                                'id' => $cuisine->id,
+                                'name' => $cuisine->name,
+                                'description' => $cuisine->description,
+                            ])->values(),
+                            'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
+                            'is_active' => $kitchen->is_active,
+                            'branch_id' => $kitchen->branch_id,
+                            'branches' => $kitchen->branches,
+                            'products' => $kitchen->products,
+                            'created_at' => $kitchen->created_at,
+                            'updated_at' => $kitchen->updated_at,
+                        ])
+                        ->values()
                     : [],
                 'products' => Schema::hasTable('products')
                     ? Product::orderBy('name')->get(['id', 'name', 'kitchen_id'])

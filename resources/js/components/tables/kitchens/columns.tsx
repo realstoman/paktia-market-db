@@ -1,12 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Kitchen, Product } from '@/types';
+import { Cuisine, Kitchen, KitchenType, Product } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 export const buildColumns = (
-    kitchenTypes: { label: string; value: string }[],
+    kitchenTypes: KitchenType[],
+    cuisines: Cuisine[],
     products: Product[],
 ): ColumnDef<Kitchen>[] => [
     {
@@ -39,9 +40,33 @@ export const buildColumns = (
         header: 'Name',
     },
     {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => row.getValue('type') || '—',
+        accessorKey: 'kitchen_type',
+        header: 'Kitchen Type',
+        cell: ({ row }) => row.getValue('kitchen_type') || '—',
+    },
+    {
+        accessorKey: 'cuisines_label',
+        header: 'Cuisines',
+        cell: ({ row }) => {
+            const kitchenCuisines = row.original.cuisines ?? [];
+            if (kitchenCuisines.length === 0) {
+                return '—';
+            }
+
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {kitchenCuisines.map((cuisine) => (
+                        <Badge
+                            key={cuisine.id}
+                            variant="secondary"
+                            className="text-xs"
+                        >
+                            {cuisine.name}
+                        </Badge>
+                    ))}
+                </div>
+            );
+        },
     },
     {
         id: 'products',
@@ -102,6 +127,7 @@ export const buildColumns = (
             <CellAction
                 data={row.original}
                 kitchenTypes={kitchenTypes}
+                cuisines={cuisines}
                 products={products}
             />
         ),
