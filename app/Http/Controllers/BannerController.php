@@ -15,6 +15,7 @@ class BannerController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'banner_type' => ['required', Rule::in(['product', 'gift', 'category', 'type', 'social'])],
             'image' => ['required', ...self::IMAGE_RULE],
             'link' => ['nullable', 'string', 'max:2048'],
             'link_type' => ['required', Rule::in(['internal', 'external'])],
@@ -26,6 +27,7 @@ class BannerController extends Controller
 
         Banner::create([
             'title' => $validated['title'],
+            'banner_type' => $validated['banner_type'],
             'image_path' => $imagePath,
             'link' => $validated['link'] ?? null,
             'link_type' => $validated['link_type'],
@@ -40,6 +42,7 @@ class BannerController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'banner_type' => ['required', Rule::in(['product', 'gift', 'category', 'type', 'social'])],
             'image' => ['nullable', ...self::IMAGE_RULE],
             'link' => ['nullable', 'string', 'max:2048'],
             'link_type' => ['required', Rule::in(['internal', 'external'])],
@@ -59,6 +62,7 @@ class BannerController extends Controller
 
         $banner->update([
             'title' => $validated['title'],
+            'banner_type' => $validated['banner_type'],
             'image_path' => $imagePath,
             'link' => $validated['link'] ?? null,
             'link_type' => $validated['link_type'],

@@ -399,6 +399,7 @@ export interface Vendor {
 export interface Banner {
     id: number;
     title: string;
+    banner_type: 'product' | 'gift' | 'category' | 'type' | 'social';
     image_path: string;
     image_url?: string;
     link?: string | null;

@@ -120,6 +120,9 @@ export function ToolsLauncher() {
 
     const [bannerId, setBannerId] = useState<number | null>(null);
     const [bannerTitle, setBannerTitle] = useState('');
+    const [bannerType, setBannerType] = useState<
+        'product' | 'gift' | 'category' | 'type' | 'social'
+    >('product');
     const [bannerLink, setBannerLink] = useState('');
     const [bannerLinkType, setBannerLinkType] = useState<
         'internal' | 'external'
@@ -179,6 +182,7 @@ export function ToolsLauncher() {
     const resetBannerForm = () => {
         setBannerId(null);
         setBannerTitle('');
+        setBannerType('product');
         setBannerLink('');
         setBannerLinkType('internal');
         setBannerSortOrder('0');
@@ -305,6 +309,7 @@ export function ToolsLauncher() {
             {
                 ...(bannerId ? { _method: 'put' } : {}),
                 title: bannerTitle.trim(),
+                banner_type: bannerType,
                 link: bannerLink.trim() || null,
                 link_type: bannerLinkType,
                 sort_order: bannerSortOrder.trim()
@@ -831,6 +836,32 @@ export function ToolsLauncher() {
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
+                                    <Label>Banner Type</Label>
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={bannerType}
+                                        onChange={(event) =>
+                                            setBannerType(
+                                                event.target.value as
+                                                    | 'product'
+                                                    | 'gift'
+                                                    | 'category'
+                                                    | 'type'
+                                                    | 'social',
+                                            )
+                                        }
+                                    >
+                                        <option value="product">Product</option>
+                                        <option value="gift">Gift</option>
+                                        <option value="category">
+                                            Category
+                                        </option>
+                                        <option value="type">Type</option>
+                                        <option value="social">Social</option>
+                                    </select>
+                                    <InputError message={errors.banner_type} />
+                                </div>
+                                <div className="grid gap-2">
                                     <Label>Link Type</Label>
                                     <select
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -882,8 +913,18 @@ export function ToolsLauncher() {
                                     }
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Internal links can be app routes or deep
-                                    links. External links should be full URLs.
+                                    {bannerType === 'product' &&
+                                    bannerLinkType === 'internal'
+                                        ? 'Use a product route or deep link.'
+                                        : bannerType === 'category' &&
+                                            bannerLinkType === 'internal'
+                                          ? 'Use a category route such as Afghan dishes.'
+                                          : bannerType === 'type' &&
+                                              bannerLinkType === 'internal'
+                                            ? 'Use a type route such as dessert.'
+                                            : bannerType === 'social'
+                                              ? 'Social banners usually point to a full external URL.'
+                                              : 'Internal links can be app routes or deep links. External links should be full URLs.'}
                                 </p>
                                 <InputError message={errors.link} />
                             </div>
@@ -965,6 +1006,9 @@ export function ToolsLauncher() {
                                 <p className="font-medium">
                                     {bannerTitle || 'Banner title'}
                                 </p>
+                                <p className="text-muted-foreground">
+                                    Type: {bannerType}
+                                </p>
                                 <p className="flex items-center gap-2 text-muted-foreground">
                                     <Link2 className="h-4 w-4" />
                                     {bannerLink || 'No link configured'}
@@ -996,6 +1040,7 @@ export function ToolsLauncher() {
                                             {banner.title}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
+                                            {banner.banner_type} |{' '}
                                             {banner.link_type} | order:{' '}
                                             {banner.sort_order ?? 0} |{' '}
                                             {banner.is_active
@@ -1014,6 +1059,7 @@ export function ToolsLauncher() {
                                         onClick={() => {
                                             setBannerId(banner.id);
                                             setBannerTitle(banner.title);
+                                            setBannerType(banner.banner_type);
                                             setBannerLink(banner.link ?? '');
                                             setBannerLinkType(
                                                 banner.link_type,

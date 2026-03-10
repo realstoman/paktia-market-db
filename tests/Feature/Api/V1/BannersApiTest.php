@@ -5,6 +5,7 @@ use App\Models\Banner;
 test('api v1 banners index returns only active banners in slider order', function () {
     Banner::create([
         'title' => 'Inactive Banner',
+        'banner_type' => 'social',
         'image_path' => 'banners/inactive.jpg',
         'link' => 'https://facebook.com/babataste',
         'link_type' => 'external',
@@ -14,6 +15,7 @@ test('api v1 banners index returns only active banners in slider order', functio
 
     $second = Banner::create([
         'title' => 'Qabuli Palaw',
+        'banner_type' => 'product',
         'image_path' => 'banners/qabuli.jpg',
         'link' => '/products/qabuli-palaw',
         'link_type' => 'internal',
@@ -23,6 +25,7 @@ test('api v1 banners index returns only active banners in slider order', functio
 
     $first = Banner::create([
         'title' => 'Facebook Promo',
+        'banner_type' => 'social',
         'image_path' => 'banners/facebook.jpg',
         'link' => 'https://facebook.com/babataste',
         'link_type' => 'external',
@@ -34,8 +37,10 @@ test('api v1 banners index returns only active banners in slider order', functio
         ->assertOk()
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('data.0.id', $first->id)
+        ->assertJsonPath('data.0.banner_type', 'social')
         ->assertJsonPath('data.0.link_type', 'external')
         ->assertJsonPath('data.0.image_url', '/storage/banners/facebook.jpg')
         ->assertJsonPath('data.1.id', $second->id)
+        ->assertJsonPath('data.1.banner_type', 'product')
         ->assertJsonPath('data.1.link', '/products/qabuli-palaw');
 });
