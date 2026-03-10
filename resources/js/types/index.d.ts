@@ -34,7 +34,8 @@ export interface SharedData {
         vendors: Vendor[];
         kitchens: Kitchen[];
         products: Product[];
-        kitchenTypes: { label: string; value: string }[];
+        kitchenTypes: KitchenType[];
+        cuisines: Cuisine[];
     };
     sidebarOpen: boolean;
     [key: string]: unknown;
