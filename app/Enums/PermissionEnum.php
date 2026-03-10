@@ -39,6 +39,12 @@ enum PermissionEnum: string
     case PRODUCTS_UPDATE = 'products.update';
     case PRODUCTS_DELETE = 'products.delete';
 
+    // Banners
+    case BANNERS_VIEW = 'banners.view';
+    case BANNERS_CREATE = 'banners.create';
+    case BANNERS_UPDATE = 'banners.update';
+    case BANNERS_DELETE = 'banners.delete';
+
     // Inventory
     case INVENTORY_VIEW = 'inventory.view';
     case INVENTORY_ADJUST = 'inventory.adjust';

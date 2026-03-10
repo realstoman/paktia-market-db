@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
@@ -252,6 +253,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
     Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
     Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
+    Route::post('banners', [BannerController::class, 'store'])->name('banners.store');
+    Route::put('banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
+    Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
     Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
     Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
     Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');

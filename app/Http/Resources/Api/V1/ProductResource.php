@@ -23,6 +23,7 @@ class ProductResource extends JsonResource
             'kitchen_name' => $this->kitchen?->name,
             'type' => $this->type,
             'base_price' => (float) $this->base_price,
+            'sizes' => ProductSizeResource::collection($this->whenLoaded('sizes')),
             'is_active' => (bool) $this->is_active,
             'images_count' => $this->images_count ?? $this->images?->count() ?? 0,
             'images' => ProductImageResource::collection($this->whenLoaded('images')),

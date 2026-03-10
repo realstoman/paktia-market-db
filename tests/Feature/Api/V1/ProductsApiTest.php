@@ -5,6 +5,7 @@ use App\Models\Country;
 use App\Models\Kitchen;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductSize;
 use App\Models\ProductType;
 use App\Models\Province;
 use function Pest\Laravel\getJson;
@@ -44,6 +45,8 @@ test('api v1 products index returns products with images', function () {
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Main Dishes']);
     ProductType::create(['name' => 'food']);
+    $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
+    $large = ProductSize::create(['name' => 'Large', 'code' => 'L']);
 
     $product = Product::create([
         'product_category_id' => $category->id,
@@ -58,12 +61,20 @@ test('api v1 products index returns products with images', function () {
         ['path' => 'products/pulao-1.jpg', 'sort_order' => 0],
         ['path' => 'products/pulao-2.jpg', 'sort_order' => 1],
     ]);
+    $product->sizes()->sync([
+        $small->id => ['price' => 400],
+        $large->id => ['price' => 650],
+    ]);
 
     $this->getJson('/api/v1/products?type=food&category_id='.$category->id)
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $product->id)
         ->assertJsonPath('data.0.images_count', 2)
+        ->assertJsonPath('data.0.sizes.0.name', 'Small')
+        ->assertJsonPath('data.0.sizes.0.price', 400)
+        ->assertJsonPath('data.0.sizes.1.name', 'Large')
+        ->assertJsonPath('data.0.sizes.1.price', 650)
         ->assertJsonPath('data.0.images.0.path', 'products/pulao-1.jpg')
         ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao-1.jpg');
 });
@@ -71,6 +82,7 @@ test('api v1 products index returns products with images', function () {
 test('api v1 products show returns a single product', function () {
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Drinks']);
+    $medium = ProductSize::create(['name' => 'Medium', 'code' => 'M']);
 
     $product = Product::create([
         'product_category_id' => $category->id,
@@ -85,6 +97,9 @@ test('api v1 products show returns a single product', function () {
         'path' => 'products/doogh.jpg',
         'sort_order' => 0,
     ]);
+    $product->sizes()->sync([
+        $medium->id => ['price' => 120],
+    ]);
 
     expect($product->fresh()->load('category')->category?->name)->toBe('Drinks');
 
@@ -92,6 +107,9 @@ test('api v1 products show returns a single product', function () {
         ->assertOk()
         ->assertJsonPath('data.id', $product->id)
         ->assertJsonPath('data.category_name', 'Drinks')
+        ->assertJsonPath('data.sizes.0.name', 'Medium')
+        ->assertJsonPath('data.sizes.0.code', 'M')
+        ->assertJsonPath('data.sizes.0.price', 120)
         ->assertJsonPath('data.images.0.url', '/storage/products/doogh.jpg');
 });
 
@@ -153,6 +171,7 @@ test('api v1 category products endpoint returns products for the selected catego
     [, $kitchen] = createProductApiBaseData();
     $mainCategory = ProductCategory::create(['name' => 'Main Dishes']);
     $drinkCategory = ProductCategory::create(['name' => 'Drinks']);
+    $family = ProductSize::create(['name' => 'Family', 'code' => 'F']);
 
     $mainProduct = Product::create([
         'product_category_id' => $mainCategory->id,
@@ -176,12 +195,17 @@ test('api v1 category products endpoint returns products for the selected catego
         'path' => 'products/pulao.jpg',
         'sort_order' => 0,
     ]);
+    $mainProduct->sizes()->sync([
+        $family->id => ['price' => 900],
+    ]);
 
     $this->getJson('/api/v1/products/categories/'.$mainCategory->id.'/products')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $mainProduct->id)
         ->assertJsonPath('data.0.category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.sizes.0.name', 'Family')
+        ->assertJsonPath('data.0.sizes.0.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao.jpg');
 });
 
@@ -190,6 +214,8 @@ test('api v1 type products endpoint returns products for the selected type', fun
     $category = ProductCategory::create(['name' => 'Mixed']);
     $foodType = ProductType::create(['name' => 'food']);
     ProductType::create(['name' => 'beverage']);
+    $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
+    $family = ProductSize::create(['name' => 'Family', 'code' => 'F']);
 
     $foodProduct = Product::create([
         'product_category_id' => $category->id,
@@ -213,11 +239,19 @@ test('api v1 type products endpoint returns products for the selected type', fun
         'path' => 'products/mantu.jpg',
         'sort_order' => 0,
     ]);
+    $foodProduct->sizes()->sync([
+        $small->id => ['price' => 300],
+        $family->id => ['price' => 900],
+    ]);
 
     $this->getJson('/api/v1/products/types/'.$foodType->id.'/products')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodProduct->id)
         ->assertJsonPath('data.0.type', 'food')
+        ->assertJsonPath('data.0.sizes.0.name', 'Small')
+        ->assertJsonPath('data.0.sizes.0.price', 300)
+        ->assertJsonPath('data.0.sizes.1.name', 'Family')
+        ->assertJsonPath('data.0.sizes.1.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/mantu.jpg');
 });
