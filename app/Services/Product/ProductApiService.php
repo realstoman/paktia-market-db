@@ -18,7 +18,7 @@ class ProductApiService
         $sortDirection = $filters['sort_direction'] ?? 'asc';
 
         $query = Product::query()
-            ->with(['category', 'kitchen', 'images'])
+            ->with(['category', 'kitchen', 'images', 'sizes'])
             ->withCount('images');
 
         $this->applyFilters($query, $filters);
@@ -31,7 +31,7 @@ class ProductApiService
 
     public function getById(Product $product): Product
     {
-        return $product->load(['category', 'kitchen', 'images'])
+        return $product->load(['category', 'kitchen', 'images', 'sizes'])
             ->loadCount('images');
     }
 
@@ -51,7 +51,7 @@ class ProductApiService
     public function productsByCategory(ProductCategory $category): LengthAwarePaginator
     {
         return Product::query()
-            ->with(['category', 'kitchen', 'images'])
+            ->with(['category', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('product_category_id', $category->id)
             ->orderBy('name')
@@ -81,7 +81,7 @@ class ProductApiService
     public function productsByType(ProductType $type): LengthAwarePaginator
     {
         return Product::query()
-            ->with(['category', 'kitchen', 'images'])
+            ->with(['category', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('type', $type->name)
             ->orderBy('name')
