@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cuisine;
 use App\Models\Kitchen;
+use App\Models\KitchenCategory;
 use App\Models\KitchenType;
 use App\Services\Location\KitchenService;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class KitchenController extends Controller
 
     public function show(Kitchen $kitchen)
     {
-        $kitchen->load(['branches', 'kitchenType', 'cuisines']);
+        $kitchen->load(['branches', 'kitchenType', 'cuisines', 'kitchenCategories']);
 
         return Inertia::render('location/kitchens/show', [
             'kitchen' => [
@@ -34,6 +35,11 @@ class KitchenController extends Controller
                     'id' => $cuisine->id,
                     'name' => $cuisine->name,
                     'description' => $cuisine->description,
+                ])->values(),
+                'kitchen_categories' => $kitchen->kitchenCategories->map(fn (KitchenCategory $category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
                 ])->values(),
                 'branch_id' => $kitchen->branch_id,
                 'branches' => $kitchen->branches,
@@ -51,6 +57,8 @@ class KitchenController extends Controller
             'kitchen_type_id' => ['nullable', 'exists:kitchen_types,id'],
             'cuisines' => ['nullable', 'array'],
             'cuisines.*' => ['integer', 'exists:cuisines,id'],
+            'kitchen_categories' => ['nullable', 'array'],
+            'kitchen_categories.*' => ['integer', 'exists:kitchen_categories,id'],
         ]);
 
         $service->create($validated);
@@ -66,6 +74,8 @@ class KitchenController extends Controller
             'kitchen_type_id' => ['nullable', 'exists:kitchen_types,id'],
             'cuisines' => ['nullable', 'array'],
             'cuisines.*' => ['integer', 'exists:cuisines,id'],
+            'kitchen_categories' => ['nullable', 'array'],
+            'kitchen_categories.*' => ['integer', 'exists:kitchen_categories,id'],
         ]);
 
         $service->update($kitchen, $validated);
@@ -212,5 +222,52 @@ class KitchenController extends Controller
 
         return redirect()->route('kitchens.index')
             ->with('success', 'Cuisine deleted successfully.');
+    }
+
+    public function storeKitchenCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:kitchen_categories,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        KitchenCategory::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen category created successfully.');
+    }
+
+    public function updateKitchenCategory(Request $request, KitchenCategory $kitchenCategory)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('kitchen_categories', 'name')->ignore($kitchenCategory->id)],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $kitchenCategory->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen category updated successfully.');
+    }
+
+    public function destroyKitchenCategory(KitchenCategory $kitchenCategory)
+    {
+        if ($kitchenCategory->kitchens()->exists()) {
+            return back()->withErrors([
+                'kitchen_category' => 'This kitchen category is assigned to kitchens and cannot be deleted.',
+            ]);
+        }
+
+        $kitchenCategory->delete();
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen category deleted successfully.');
     }
 }

@@ -223,6 +223,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('cuisines', [KitchenController::class, 'storeCuisine'])->name('cuisines.store');
     Route::put('cuisines/{cuisine}', [KitchenController::class, 'updateCuisine'])->name('cuisines.update');
     Route::delete('cuisines/{cuisine}', [KitchenController::class, 'destroyCuisine'])->name('cuisines.destroy');
+    Route::post('kitchen-categories', [KitchenController::class, 'storeKitchenCategory'])->name('kitchen-categories.store');
+    Route::put('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'updateKitchenCategory'])->name('kitchen-categories.update');
+    Route::delete('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'destroyKitchenCategory'])->name('kitchen-categories.destroy');
     Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
 
     // Products & Orders

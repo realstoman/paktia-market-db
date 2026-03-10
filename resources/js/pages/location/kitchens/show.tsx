@@ -88,6 +88,32 @@ export default function KitchenShow({ kitchen }: KitchenShowProps) {
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">
+                                    Kitchen Categories
+                                </TableCell>
+                                <TableCell>
+                                    {(kitchen.kitchen_categories ?? []).length ===
+                                    0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            No kitchen categories assigned
+                                        </span>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-1">
+                                            {(
+                                                kitchen.kitchen_categories ?? []
+                                            ).map((category) => (
+                                                <Badge
+                                                    key={category.id}
+                                                    variant="secondary"
+                                                >
+                                                    {category.name}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">
                                     Status
                                 </TableCell>
                                 <TableCell>

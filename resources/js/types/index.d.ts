@@ -36,6 +36,7 @@ export interface SharedData {
         products: Product[];
         kitchenTypes: KitchenType[];
         cuisines: Cuisine[];
+        kitchenCategories: KitchenCategory[];
     };
     sidebarOpen: boolean;
     [key: string]: unknown;
@@ -181,6 +182,8 @@ export interface Kitchen {
     kitchen_type_id?: number | null;
     cuisines?: Cuisine[];
     cuisines_label?: string | null;
+    kitchen_categories?: KitchenCategory[];
+    kitchen_categories_label?: string | null;
     branch?: string | null;
     branch_id?: number | null;
     country?: string | null;
@@ -204,6 +207,16 @@ export interface KitchenType {
 }
 
 export interface Cuisine {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface KitchenCategory {
     id: number;
     name: string;
     description?: string | null;

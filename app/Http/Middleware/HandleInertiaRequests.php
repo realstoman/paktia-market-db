@@ -6,6 +6,7 @@ use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\Kitchen;
+use App\Models\KitchenCategory;
 use App\Models\KitchenType;
 use App\Models\Product;
 use App\Models\Vendor;
@@ -65,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                     ? Vendor::orderBy('name')->get()
                     : [],
                 'kitchens' => Schema::hasTable('kitchens')
-                    ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines'])
+                    ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines', 'kitchenCategories'])
                         ->orderBy('name')
                         ->get()
                         ->map(fn (Kitchen $kitchen) => [
@@ -80,6 +81,12 @@ class HandleInertiaRequests extends Middleware
                                 'description' => $cuisine->description,
                             ])->values(),
                             'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
+                            'kitchen_categories' => $kitchen->kitchenCategories->map(fn (KitchenCategory $category) => [
+                                'id' => $category->id,
+                                'name' => $category->name,
+                                'description' => $category->description,
+                            ])->values(),
+                            'kitchen_categories_label' => $kitchen->kitchenCategories->pluck('name')->join(', '),
                             'is_active' => $kitchen->is_active,
                             'branch_id' => $kitchen->branch_id,
                             'branches' => $kitchen->branches,
@@ -97,6 +104,9 @@ class HandleInertiaRequests extends Middleware
                     : [],
                 'cuisines' => Schema::hasTable('cuisines')
                     ? Cuisine::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
+                'kitchenCategories' => Schema::hasTable('kitchen_categories')
+                    ? KitchenCategory::orderBy('name')->get(['id', 'name', 'description'])
                     : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
