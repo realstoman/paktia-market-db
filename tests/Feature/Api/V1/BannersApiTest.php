@@ -44,3 +44,38 @@ test('api v1 banners index returns only active banners in slider order', functio
         ->assertJsonPath('data.1.banner_type', 'product')
         ->assertJsonPath('data.1.link', '/products/qabuli-palaw');
 });
+
+test('api v1 banners show returns a single active banner', function () {
+    $banner = Banner::create([
+        'title' => 'Afghan Dishes',
+        'banner_type' => 'category',
+        'image_path' => 'banners/afghan-dishes.jpg',
+        'link' => '/categories/afghan-dishes',
+        'link_type' => 'internal',
+        'sort_order' => 3,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/banners/'.$banner->id)
+        ->assertOk()
+        ->assertJsonPath('data.id', $banner->id)
+        ->assertJsonPath('data.title', 'Afghan Dishes')
+        ->assertJsonPath('data.banner_type', 'category')
+        ->assertJsonPath('data.link_type', 'internal')
+        ->assertJsonPath('data.image_url', '/storage/banners/afghan-dishes.jpg');
+});
+
+test('api v1 banners show returns 404 for inactive banners', function () {
+    $banner = Banner::create([
+        'title' => 'Hidden Banner',
+        'banner_type' => 'gift',
+        'image_path' => 'banners/hidden.jpg',
+        'link' => '/gifts/nowruz',
+        'link_type' => 'internal',
+        'sort_order' => 4,
+        'is_active' => false,
+    ]);
+
+    $this->getJson('/api/v1/banners/'.$banner->id)
+        ->assertNotFound();
+});

@@ -19,4 +19,11 @@ class BannerController extends Controller
 
         return BannerResource::collection($banners);
     }
+
+    public function show(Banner $banner): BannerResource
+    {
+        abort_unless($banner->is_active, 404);
+
+        return BannerResource::make($banner);
+    }
 }

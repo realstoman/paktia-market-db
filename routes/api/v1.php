@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('banners', [BannerController::class, 'index'])->name('banners.index');
+Route::get('banners/{banner}', [BannerController::class, 'show'])->name('banners.show');
 
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
