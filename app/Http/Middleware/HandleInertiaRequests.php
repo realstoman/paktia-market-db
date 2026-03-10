@@ -2,16 +2,16 @@
 
 namespace App\Http\Middleware;
 
-use App\Enums\KitchenType;
+use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\Kitchen;
+use App\Models\KitchenType;
 use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -65,20 +65,19 @@ class HandleInertiaRequests extends Middleware
                     ? Vendor::orderBy('name')->get()
                     : [],
                 'kitchens' => Schema::hasTable('kitchens')
-                    ? Kitchen::with(['branches', 'products'])
+                    ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines'])
                         ->orderBy('name')
                         ->get()
                     : [],
                 'products' => Schema::hasTable('products')
                     ? Product::orderBy('name')->get(['id', 'name', 'kitchen_id'])
                     : [],
-                'kitchenTypes' => array_map(
-                    fn (KitchenType $type) => [
-                        'label' => Str::title(str_replace('_', ' ', $type->value)),
-                        'value' => $type->value,
-                    ],
-                    KitchenType::cases(),
-                ),
+                'kitchenTypes' => Schema::hasTable('kitchen_types')
+                    ? KitchenType::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
+                'cuisines' => Schema::hasTable('cuisines')
+                    ? Cuisine::orderBy('name')->get(['id', 'name', 'description'])
+                    : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

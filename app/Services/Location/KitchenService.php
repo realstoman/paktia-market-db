@@ -2,23 +2,32 @@
 
 namespace App\Services\Location;
 
-use App\Enums\KitchenType;
 use App\Models\Branch;
+use App\Models\Cuisine;
 use App\Models\Kitchen;
+use App\Models\KitchenType;
 use App\Models\Product;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class KitchenService
 {
     public function getIndexData(): array
     {
-        $kitchens = Kitchen::with(['branches', 'products'])->get();
+        $kitchens = Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines'])->get();
 
         $kitchens->transform(function (Kitchen $kitchen) {
             return [
                 'id' => $kitchen->id,
                 'name' => $kitchen->name,
-                'type' => $kitchen->type,
+                'type' => $kitchen->kitchenType?->name,
+                'kitchen_type' => $kitchen->kitchenType?->name,
+                'kitchen_type_id' => $kitchen->kitchen_type_id,
+                'cuisines' => $kitchen->cuisines->map(fn (Cuisine $cuisine) => [
+                    'id' => $cuisine->id,
+                    'name' => $cuisine->name,
+                    'description' => $cuisine->description,
+                ])->values(),
+                'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
                 'is_active' => $kitchen->is_active,
                 'branch_id' => $kitchen->branch_id,
                 'branches' => $kitchen->branches,
@@ -32,25 +41,41 @@ class KitchenService
             'kitchens' => $kitchens,
             'branches' => Branch::orderBy('name')->get(),
             'products' => Product::orderBy('name')->get(['id', 'name', 'kitchen_id']),
-            'kitchenTypes' => array_map(
-                fn (KitchenType $type) => [
-                    'label' => Str::title(str_replace('_', ' ', $type->value)),
-                    'value' => $type->value,
-                ],
-                KitchenType::cases(),
-            ),
+            'kitchenTypes' => KitchenType::orderBy('name')->get(['id', 'name', 'description']),
+            'cuisines' => Cuisine::orderBy('name')->get(['id', 'name', 'description']),
         ];
     }
 
     public function create(array $data): Kitchen
     {
-        return Kitchen::create($data);
+        return DB::transaction(function () use ($data) {
+            $cuisineIds = $data['cuisines'] ?? [];
+            unset($data['cuisines']);
+
+            $kitchen = Kitchen::create([
+                ...$data,
+                'type' => null,
+            ]);
+            $kitchen->cuisines()->sync($cuisineIds);
+
+            return $kitchen->load(['kitchenType', 'cuisines']);
+        });
     }
 
     public function update(Kitchen $kitchen, array $data): Kitchen
     {
-        $kitchen->update($data);
-        return $kitchen;
+        return DB::transaction(function () use ($kitchen, $data) {
+            $cuisineIds = $data['cuisines'] ?? [];
+            unset($data['cuisines']);
+
+            $kitchen->update([
+                ...$data,
+                'type' => null,
+            ]);
+            $kitchen->cuisines()->sync($cuisineIds);
+
+            return $kitchen->load(['kitchenType', 'cuisines']);
+        });
     }
 
     public function toggleActive(Kitchen $kitchen): Kitchen

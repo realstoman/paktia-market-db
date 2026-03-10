@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Enums\KitchenType;
+use App\Models\Cuisine;
 use App\Models\Kitchen;
+use App\Models\KitchenType;
 use App\Services\Location\KitchenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class KitchenController extends Controller
     public function show(Kitchen $kitchen)
     {
         return Inertia::render('location/kitchens/show', [
-            'kitchen' => $kitchen->load(['branches']),
+            'kitchen' => $kitchen->load(['branches', 'kitchenType', 'cuisines']),
         ]);
     }
 
@@ -29,7 +30,9 @@ class KitchenController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => ['required', Rule::enum(KitchenType::class)],
+            'kitchen_type_id' => ['nullable', 'exists:kitchen_types,id'],
+            'cuisines' => ['nullable', 'array'],
+            'cuisines.*' => ['integer', 'exists:cuisines,id'],
         ]);
 
         $service->create($validated);
@@ -42,7 +45,9 @@ class KitchenController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => ['required', Rule::enum(KitchenType::class)],
+            'kitchen_type_id' => ['nullable', 'exists:kitchen_types,id'],
+            'cuisines' => ['nullable', 'array'],
+            'cuisines.*' => ['integer', 'exists:cuisines,id'],
         ]);
 
         $service->update($kitchen, $validated);
@@ -95,5 +100,99 @@ class KitchenController extends Controller
 
         return redirect()->route('kitchens.index')
             ->with('success', 'Kitchen products updated successfully.');
+    }
+
+    public function storeKitchenType(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:kitchen_types,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        KitchenType::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen type created successfully.');
+    }
+
+    public function updateKitchenType(Request $request, KitchenType $kitchenType)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('kitchen_types', 'name')->ignore($kitchenType->id)],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $kitchenType->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen type updated successfully.');
+    }
+
+    public function destroyKitchenType(KitchenType $kitchenType)
+    {
+        if ($kitchenType->kitchens()->exists()) {
+            return back()->withErrors([
+                'kitchen_type' => 'This kitchen type is currently assigned to kitchens and cannot be deleted.',
+            ]);
+        }
+
+        $kitchenType->delete();
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Kitchen type deleted successfully.');
+    }
+
+    public function storeCuisine(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:cuisines,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        Cuisine::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Cuisine created successfully.');
+    }
+
+    public function updateCuisine(Request $request, Cuisine $cuisine)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('cuisines', 'name')->ignore($cuisine->id)],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $cuisine->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Cuisine updated successfully.');
+    }
+
+    public function destroyCuisine(Cuisine $cuisine)
+    {
+        if ($cuisine->kitchens()->exists()) {
+            return back()->withErrors([
+                'cuisine' => 'This cuisine is assigned to kitchens and cannot be deleted.',
+            ]);
+        }
+
+        $cuisine->delete();
+
+        return redirect()->route('kitchens.index')
+            ->with('success', 'Cuisine deleted successfully.');
     }
 }

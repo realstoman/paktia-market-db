@@ -176,6 +176,10 @@ export interface Kitchen {
     id: number;
     name?: string;
     type?: string | null;
+    kitchen_type?: string | null;
+    kitchen_type_id?: number | null;
+    cuisines?: Cuisine[];
+    cuisines_label?: string | null;
     branch?: string | null;
     branch_id?: number | null;
     country?: string | null;
@@ -183,6 +187,26 @@ export interface Kitchen {
     is_active?: boolean;
     branches?: Branch[];
     products?: Product[];
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface KitchenType {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Cuisine {
+    id: number;
+    name: string;
+    description?: string | null;
+    is_active?: boolean;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
