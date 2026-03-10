@@ -36,11 +36,13 @@ class KitchenController extends Controller
                     'name' => $cuisine->name,
                     'description' => $cuisine->description,
                 ])->values(),
+                'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
                 'kitchen_categories' => $kitchen->kitchenCategories->map(fn (KitchenCategory $category) => [
                     'id' => $category->id,
                     'name' => $category->name,
                     'description' => $category->description,
                 ])->values(),
+                'kitchen_categories_label' => $kitchen->kitchenCategories->pluck('name')->join(', '),
                 'branch_id' => $kitchen->branch_id,
                 'branches' => $kitchen->branches,
                 'is_active' => $kitchen->is_active,

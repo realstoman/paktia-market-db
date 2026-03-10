@@ -36,7 +36,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Cuisine, Kitchen, KitchenType, Product } from '@/types';
+import {
+    Cuisine,
+    Kitchen,
+    KitchenCategory,
+    KitchenType,
+    Product,
+} from '@/types';
 import { router } from '@inertiajs/react';
 import {
     CookingPot,
@@ -57,6 +63,7 @@ interface CellActionProps {
     data: Kitchen;
     kitchenTypes: KitchenType[];
     cuisines: Cuisine[];
+    kitchenCategories: KitchenCategory[];
     products: Product[];
 }
 
@@ -64,6 +71,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     data,
     kitchenTypes,
     cuisines,
+    kitchenCategories,
     products,
 }) => {
     const NO_KITCHEN_TYPE = '__none__';
@@ -78,6 +86,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [selectedCuisineIds, setSelectedCuisineIds] = useState<number[]>(
         (data.cuisines ?? []).map((cuisine) => cuisine.id),
     );
+    const [selectedKitchenCategoryIds, setSelectedKitchenCategoryIds] =
+        useState<number[]>(
+            (data.kitchen_categories ?? []).map((category) => category.id),
+        );
     const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
         new Set((data.products ?? []).map((product) => product.id)),
     );
@@ -98,6 +110,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
         setSelectedCuisineIds(
             (data.cuisines ?? []).map((cuisine) => cuisine.id),
+        );
+        setSelectedKitchenCategoryIds(
+            (data.kitchen_categories ?? []).map((category) => category.id),
         );
         setSelectedProductIds(
             new Set((data.products ?? []).map((product) => product.id)),
@@ -132,6 +147,14 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
     };
 
+    const toggleKitchenCategory = (kitchenCategoryId: number) => {
+        setSelectedKitchenCategoryIds((current) =>
+            current.includes(kitchenCategoryId)
+                ? current.filter((id) => id !== kitchenCategoryId)
+                : [...current, kitchenCategoryId],
+        );
+    };
+
     const handleEditSubmit = () => {
         if (!name.trim() || isSubmitting) {
             return;
@@ -148,6 +171,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     ? Number(kitchenTypeId)
                     : null,
                 cuisines: selectedCuisineIds,
+                kitchen_categories: selectedKitchenCategoryIds,
             },
             {
                 preserveScroll: true,
@@ -359,6 +383,42 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </div>
                             </ScrollArea>
                             <InputError message={editErrors.cuisines} />
+                        </div>
+                        <div className="mt-4 grid gap-2">
+                            <Label>Kitchen Categories</Label>
+                            <ScrollArea className="h-44 rounded-md border p-3">
+                                <div className="space-y-2">
+                                    {kitchenCategories.map((category) => (
+                                        <label
+                                            key={category.id}
+                                            className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm"
+                                        >
+                                            <Checkbox
+                                                checked={selectedKitchenCategoryIds.includes(
+                                                    category.id,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleKitchenCategory(
+                                                        category.id,
+                                                    )
+                                                }
+                                            />
+                                            <div className="min-w-0">
+                                                <p className="font-medium">
+                                                    {category.name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {category.description ||
+                                                        '—'}
+                                                </p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                            <InputError
+                                message={editErrors.kitchen_categories}
+                            />
                         </div>
                     </div>
 

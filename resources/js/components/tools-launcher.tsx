@@ -28,6 +28,7 @@ import {
     Cuisine,
     Currency,
     Kitchen,
+    KitchenCategory,
     KitchenType,
     Product,
     SharedData,
@@ -76,6 +77,10 @@ export function ToolsLauncher() {
     const cuisines = useMemo(
         () => page.props.tools?.cuisines ?? [],
         [page.props.tools?.cuisines],
+    );
+    const kitchenCategories = useMemo(
+        () => page.props.tools?.kitchenCategories ?? [],
+        [page.props.tools?.kitchenCategories],
     );
 
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
@@ -716,6 +721,9 @@ export function ToolsLauncher() {
                             products={products as Product[]}
                             kitchenTypes={kitchenTypes as KitchenType[]}
                             cuisines={cuisines as Cuisine[]}
+                            kitchenCategories={
+                                kitchenCategories as KitchenCategory[]
+                            }
                         />
                     </div>
                 </DialogContent>
