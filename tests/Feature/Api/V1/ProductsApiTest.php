@@ -71,10 +71,10 @@ test('api v1 products index returns products with images', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $product->id)
         ->assertJsonPath('data.0.images_count', 2)
-        ->assertJsonPath('data.0.sizes.0.name', 'Large')
-        ->assertJsonPath('data.0.sizes.0.price', 650.0)
-        ->assertJsonPath('data.0.sizes.1.name', 'Small')
-        ->assertJsonPath('data.0.sizes.1.price', 400.0)
+        ->assertJsonPath('data.0.sizes.0.name', 'Small')
+        ->assertJsonPath('data.0.sizes.0.price', 400)
+        ->assertJsonPath('data.0.sizes.1.name', 'Large')
+        ->assertJsonPath('data.0.sizes.1.price', 650)
         ->assertJsonPath('data.0.images.0.path', 'products/pulao-1.jpg')
         ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao-1.jpg');
 });
@@ -109,7 +109,7 @@ test('api v1 products show returns a single product', function () {
         ->assertJsonPath('data.category_name', 'Drinks')
         ->assertJsonPath('data.sizes.0.name', 'Medium')
         ->assertJsonPath('data.sizes.0.code', 'M')
-        ->assertJsonPath('data.sizes.0.price', 120.0)
+        ->assertJsonPath('data.sizes.0.price', 120)
         ->assertJsonPath('data.images.0.url', '/storage/products/doogh.jpg');
 });
 
@@ -205,7 +205,7 @@ test('api v1 category products endpoint returns products for the selected catego
         ->assertJsonPath('data.0.id', $mainProduct->id)
         ->assertJsonPath('data.0.category_name', 'Main Dishes')
         ->assertJsonPath('data.0.sizes.0.name', 'Family')
-        ->assertJsonPath('data.0.sizes.0.price', 900.0)
+        ->assertJsonPath('data.0.sizes.0.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao.jpg');
 });
 
@@ -249,9 +249,9 @@ test('api v1 type products endpoint returns products for the selected type', fun
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodProduct->id)
         ->assertJsonPath('data.0.type', 'food')
-        ->assertJsonPath('data.0.sizes.0.name', 'Family')
-        ->assertJsonPath('data.0.sizes.0.price', 900.0)
-        ->assertJsonPath('data.0.sizes.1.name', 'Small')
-        ->assertJsonPath('data.0.sizes.1.price', 300.0)
+        ->assertJsonPath('data.0.sizes.0.name', 'Small')
+        ->assertJsonPath('data.0.sizes.0.price', 300)
+        ->assertJsonPath('data.0.sizes.1.name', 'Family')
+        ->assertJsonPath('data.0.sizes.1.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/mantu.jpg');
 });
