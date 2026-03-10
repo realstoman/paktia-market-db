@@ -21,6 +21,9 @@ class KitchenCategory extends Model
 
     public function kitchens()
     {
-        return $this->belongsToMany(Kitchen::class)->withTimestamps();
+        return $this->belongsToMany(
+            Kitchen::class,
+            'kitchen_category_kitchen',
+        )->withTimestamps();
     }
 }
