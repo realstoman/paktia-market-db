@@ -18,6 +18,8 @@ use Inertia\Inertia;
 
 class InventoryController extends Controller
 {
+    private const IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
+
     public function index()
     {
         $inventoryItems = InventoryItem::with([
@@ -63,7 +65,7 @@ class InventoryController extends Controller
             'category_id' => 'nullable|exists:inventory_categories,id',
             'is_usable' => 'boolean',
             'images' => 'array|max:10',
-            'images.*' => 'image|max:4096',
+            'images.*' => self::IMAGE_RULE,
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ]);
 
@@ -258,7 +260,7 @@ class InventoryController extends Controller
             'is_usable' => 'boolean',
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             'images' => 'nullable|array|max:10',
-            'images.*' => 'image|max:4096',
+            'images.*' => self::IMAGE_RULE,
         ]);
 
         $total = (float) $validated['quantity'] * (float) $validated['unit_price'];

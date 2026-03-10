@@ -365,7 +365,7 @@ class EmployeeController extends Controller
             'contract_start_date' => ['nullable', 'date', 'required_with:employment_type_id'],
             'contract_end_date' => ['nullable', 'date', 'required_with:employment_type_id', 'after_or_equal:contract_start_date'],
             'contract_amount' => ['nullable', 'numeric', 'min:0', 'required_if:is_contract_based,true'],
-            'profile_picture' => ['nullable', 'image', 'max:4096'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'attachments' => ['nullable', 'array', 'max:25'],
             'attachments.*' => [
                 'file',

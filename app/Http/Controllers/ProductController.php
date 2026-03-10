@@ -16,6 +16,10 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    private const IMAGE_RULE = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
+    private const GALLERY_IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
+    private const CATEGORY_TYPE_IMAGE_DIMENSIONS = 'dimensions:min_width=1200,min_height=500,ratio=12/5';
+
     public function index()
     {
         $products = Product::with(['category', 'kitchen', 'sizes', 'images'])
@@ -52,7 +56,7 @@ class ProductController extends Controller
             'size_prices.*.product_size_id' => 'required|exists:product_sizes,id',
             'size_prices.*.price' => 'required|integer|min:0',
             'images' => 'array|max:10',
-            'images.*' => 'image|max:4096',
+            'images.*' => self::GALLERY_IMAGE_RULE,
         ]);
 
         DB::transaction(function () use ($request, $validated) {
@@ -114,7 +118,7 @@ class ProductController extends Controller
             'remove_image_ids' => 'array',
             'remove_image_ids.*' => 'integer|exists:product_images,id',
             'images' => 'array|max:10',
-            'images.*' => 'image|max:4096',
+            'images.*' => self::GALLERY_IMAGE_RULE,
         ]);
 
         $removeImageIds = collect($validated['remove_image_ids'] ?? []);
@@ -213,7 +217,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $imagePath = $request->file('image')?->store('product-categories', 'public');
@@ -241,7 +245,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $payload = [
@@ -294,7 +298,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $normalizedName = strtolower(trim($validated['name']));
@@ -323,7 +327,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:5120|dimensions:min_width=1200,min_height=500,ratio=12/5',
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $oldName = $type->name;
