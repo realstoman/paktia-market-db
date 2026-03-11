@@ -257,24 +257,32 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }
 
         setIsSubmitting(true);
-        const payload = {
-            name: categoryName.trim(),
-            pashto_name: categoryPashtoName.trim() || null,
-            dari_name: categoryDariName.trim() || null,
-            description: categoryDescription.trim() || null,
-            pashto_description: categoryPashtoDescription.trim() || null,
-            dari_description: categoryDariDescription.trim() || null,
-            image: categoryImage,
-        };
+        setMetaErrors({});
+
+        const payload = new FormData();
+        payload.append('name', categoryName.trim());
+        payload.append('pashto_name', categoryPashtoName.trim());
+        payload.append('dari_name', categoryDariName.trim());
+        payload.append('description', categoryDescription.trim());
+        payload.append(
+            'pashto_description',
+            categoryPashtoDescription.trim(),
+        );
+        payload.append('dari_description', categoryDariDescription.trim());
+
+        if (categoryImage) {
+            payload.append('image', categoryImage);
+        }
 
         const requestUrl = editingCategoryId
             ? `/products/categories/${editingCategoryId}`
             : '/products/categories';
 
         if (editingCategoryId) {
-            router.put(requestUrl, payload, {
+            payload.append('_method', 'put');
+
+            router.post(requestUrl, payload, {
                 preserveScroll: true,
-                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Category updated successfully.');
                     resetCategoryForm();
@@ -293,7 +301,6 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
         router.post(requestUrl, payload, {
             preserveScroll: true,
-            forceFormData: true,
             onSuccess: () => {
                 toast.success('Category created successfully.');
                 resetCategoryForm();
