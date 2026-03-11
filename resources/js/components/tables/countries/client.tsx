@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -20,11 +21,11 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Country } from '@/types';
+import { Country, Province } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Globe, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, Globe, MapPinned, Plus, Save, Trash2, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns } from './columns';
 
@@ -33,18 +34,28 @@ interface CountriesClientProps {
     isLoading?: boolean;
 }
 
+type ProvinceWithCountry = Province & {
+    countryId: number;
+    countryName: string;
+};
+
 export const CountriesClient: React.FC<CountriesClientProps> = ({
     data,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [isProvinceOpen, setIsProvinceOpen] = useState(false);
+    const [isCitiesOpen, setIsCitiesOpen] = useState(false);
+    const [isEditCityOpen, setIsEditCityOpen] = useState(false);
     const [name, setName] = useState('');
     const [code, setCode] = useState('');
     const [currencyCode, setCurrencyCode] = useState('');
     const [currencySymbol, setCurrencySymbol] = useState('');
     const [provinceName, setProvinceName] = useState('');
     const [provinceCountryId, setProvinceCountryId] = useState('');
+    const [cityFilterCountryId, setCityFilterCountryId] = useState('');
+    const [editingProvinceId, setEditingProvinceId] = useState<number | null>(
+        null,
+    );
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -64,6 +75,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
     const resetProvinceForm = () => {
         setProvinceName('');
         setProvinceCountryId('');
+        setEditingProvinceId(null);
         setProvinceErrors({});
     };
 
@@ -120,8 +132,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Province created successfully.');
-                    setIsProvinceOpen(false);
+                    toast.success('City created successfully.');
                     resetProvinceForm();
                 },
                 onError: (errors) => {
@@ -134,21 +145,110 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
         );
     };
 
+    const countryOptions = useMemo(
+        () => [
+            { value: '', label: 'All countries' },
+            ...data.map((country) => ({
+                value: String(country.id),
+                label: country.name,
+            })),
+        ],
+        [data],
+    );
+
+    const allProvinces = useMemo<ProvinceWithCountry[]>(
+        () =>
+            data.flatMap((country) =>
+                (country.provinces ?? []).map((province) => ({
+                    ...province,
+                    countryId: country.id,
+                    countryName: country.name,
+                })),
+            ),
+        [data],
+    );
+
+    const filteredProvinces = useMemo(
+        () =>
+            allProvinces.filter((province) =>
+                cityFilterCountryId
+                    ? String(province.countryId) === cityFilterCountryId
+                    : true,
+            ),
+        [allProvinces, cityFilterCountryId],
+    );
+
+    const openEditCity = (province: ProvinceWithCountry) => {
+        setEditingProvinceId(province.id);
+        setProvinceName(province.name);
+        setProvinceCountryId(String(province.countryId));
+        setProvinceErrors({});
+        setIsEditCityOpen(true);
+    };
+
+    const handleEditProvince = () => {
+        if (!editingProvinceId || !provinceName.trim() || !provinceCountryId) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.put(
+            `/provinces/${editingProvinceId}`,
+            {
+                name: provinceName.trim(),
+                country_id: Number(provinceCountryId),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('City updated successfully.');
+                    setIsEditCityOpen(false);
+                    resetProvinceForm();
+                },
+                onError: (errors) => {
+                    setProvinceErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleDeleteProvince = (provinceId: number) => {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.delete(`/provinces/${provinceId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('City deleted successfully.');
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
                     title={`System Countries: ${formatNumber(data.length)}`}
-                    description="Manage system countries"
+                    description="Manage system countries and cities"
                 />
                 <div className="flex gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => setIsProvinceOpen(true)}
+                        onClick={() => setIsCitiesOpen(true)}
                         className="gap-2"
                     >
-                        <Plus className="h-4 w-4" />
-                        Add Province
+                        <MapPinned className="h-4 w-4" />
+                        Cities
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
@@ -270,9 +370,157 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             </Dialog>
 
             <Dialog
-                open={isProvinceOpen}
+                open={isCitiesOpen}
                 onOpenChange={(open) => {
-                    setIsProvinceOpen(open);
+                    setIsCitiesOpen(open);
+                    if (!open) {
+                        resetProvinceForm();
+                        setCityFilterCountryId('');
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <MapPinned className="mr-2 h-5 w-5" />
+                            Manage Cities
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add, edit, or delete cities and assign them to a
+                            country.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                        <div className="space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+                            <div className="grid gap-2">
+                                <Label>Country</Label>
+                                <Select
+                                    value={provinceCountryId}
+                                    onValueChange={setProvinceCountryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select country" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {data.map((country) => (
+                                            <SelectItem
+                                                key={country.id}
+                                                value={String(country.id)}
+                                            >
+                                                {country.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={provinceErrors.country_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="city-name">City name</Label>
+                                <Input
+                                    id="city-name"
+                                    value={provinceName}
+                                    onChange={(event) =>
+                                        setProvinceName(event.target.value)
+                                    }
+                                    placeholder="Kabul"
+                                />
+                                <InputError message={provinceErrors.name} />
+                            </div>
+                            <Button
+                                onClick={handleCreateProvince}
+                                disabled={
+                                    !provinceName.trim() ||
+                                    !provinceCountryId ||
+                                    isSubmitting
+                                }
+                                className="w-full gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Add City
+                            </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <SearchableDropdown
+                                value={cityFilterCountryId}
+                                options={countryOptions}
+                                onValueChange={setCityFilterCountryId}
+                                placeholder="All countries"
+                                searchPlaceholder="Search countries..."
+                                emptyText="No countries found."
+                                className="sm:w-[240px]"
+                            />
+                            <div className="max-h-[360px] space-y-2 overflow-y-auto rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+                                {filteredProvinces.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        No cities found.
+                                    </p>
+                                ) : (
+                                    filteredProvinces.map((province) => (
+                                        <div
+                                            key={province.id}
+                                            className="flex items-center justify-between rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+                                        >
+                                            <div>
+                                                <p className="font-medium">
+                                                    {province.name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {province.countryName}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        openEditCity(province)
+                                                    }
+                                                >
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        handleDeleteProvince(
+                                                            province.id,
+                                                        )
+                                                    }
+                                                    disabled={isSubmitting}
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCitiesOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            <X className="mr-2 h-5 w-5" />
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isEditCityOpen}
+                onOpenChange={(open) => {
+                    setIsEditCityOpen(open);
                     if (!open) {
                         resetProvinceForm();
                     }
@@ -280,12 +528,9 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <Globe className="mr-2 h-5 w-5" />
-                            Create Province
-                        </DialogTitle>
+                        <DialogTitle>Edit City</DialogTitle>
                         <DialogDescription>
-                            Add a province and assign it to a country.
+                            Update the city and assign it to a country.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -313,9 +558,9 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                             <InputError message={provinceErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="province-name">Name</Label>
+                            <Label htmlFor="edit-city-name">City name</Label>
                             <Input
-                                id="province-name"
+                                id="edit-city-name"
                                 value={provinceName}
                                 onChange={(event) =>
                                     setProvinceName(event.target.value)
@@ -328,14 +573,14 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                     <DialogFooter>
                         <Button
                             variant="outline"
-                            onClick={() => setIsProvinceOpen(false)}
+                            onClick={() => setIsEditCityOpen(false)}
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleCreateProvince}
+                            onClick={handleEditProvince}
                             disabled={
                                 !provinceName.trim() ||
                                 !provinceCountryId ||
@@ -343,7 +588,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Province
+                            Save Changes
                         </Button>
                     </DialogFooter>
                 </DialogContent>
