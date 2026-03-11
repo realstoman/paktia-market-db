@@ -152,20 +152,20 @@ class FinanceController extends Controller
             ];
         }
 
-        $branchRevenue = Branch::query()
-            ->leftJoin('orders', function ($join) use ($startDate, $endDate) {
-                $join->on('branches.id', '=', 'orders.branch_id')
-                    ->where('orders.status', OrderStatus::COMPLETED->value)
-                    ->whereBetween('orders.created_at', [$startDate, $endDate]);
+        $branchRevenue = Order::query()
+            ->join('branches', 'branches.id', '=', 'orders.branch_id')
+            ->where('orders.status', OrderStatus::COMPLETED->value)
+            ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+            ->when($paymentMethod, function ($query, $method) {
+                $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
             })
-            ->when($branchId, fn ($query) => $query->where('branches.id', $branchId))
-            ->select('branches.id', 'branches.name')
-            ->selectRaw('COALESCE(SUM(orders.total_amount), 0) as revenue')
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->selectRaw('branches.name as branch, COALESCE(SUM(orders.total_amount), 0) as revenue')
             ->groupBy('branches.id', 'branches.name')
             ->orderByDesc('revenue')
             ->get()
             ->map(fn ($row) => [
-                'branch' => $row->name,
+                'branch' => $row->branch,
                 'revenue' => (float) $row->revenue,
             ])
             ->values();
@@ -183,6 +183,7 @@ class FinanceController extends Controller
             ->limit(6)
             ->get()
             ->map(fn ($row) => [
+                'value' => (string) $row->expense_type,
                 'category' => str($row->expense_type)->replace('_', ' ')->title()->toString(),
                 'amount' => (float) $row->total,
             ])
