@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -32,6 +33,7 @@ import {
     KitchenCategory,
     KitchenType,
     Product,
+    Province,
     SharedData,
     Vendor,
 } from '@/types';
@@ -60,6 +62,10 @@ export function ToolsLauncher() {
     const currencies = useMemo(
         () => page.props.tools?.currencies ?? [],
         [page.props.tools?.currencies],
+    );
+    const provinces = useMemo(
+        () => page.props.tools?.provinces ?? [],
+        [page.props.tools?.provinces],
     );
     const vendors = useMemo(
         () => page.props.tools?.vendors ?? [],
@@ -91,6 +97,7 @@ export function ToolsLauncher() {
     );
 
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
+    const [isCitiesOpen, setIsCitiesOpen] = useState(false);
     const [isCurrenciesOpen, setIsCurrenciesOpen] = useState(false);
     const [isVendorsOpen, setIsVendorsOpen] = useState(false);
     const [isBannersOpen, setIsBannersOpen] = useState(false);
@@ -133,6 +140,10 @@ export function ToolsLauncher() {
     const [bannerImagePreview, setBannerImagePreview] = useState<
         string | null
     >(null);
+    const [provinceId, setProvinceId] = useState<number | null>(null);
+    const [provinceName, setProvinceName] = useState('');
+    const [provinceCountryId, setProvinceCountryId] = useState('');
+    const [provinceFilterCountryId, setProvinceFilterCountryId] = useState('');
 
     const currencyByCode = useMemo(() => {
         return new Map(currencies.map((entry) => [entry.code, entry]));
@@ -152,6 +163,13 @@ export function ToolsLauncher() {
         setCurrencyName('');
         setCurrencyCode('');
         setCurrencySymbol('');
+        setErrors({});
+    };
+
+    const resetProvinceForm = () => {
+        setProvinceId(null);
+        setProvinceName('');
+        setProvinceCountryId('');
         setErrors({});
     };
 
@@ -193,6 +211,25 @@ export function ToolsLauncher() {
         setErrors({});
     };
 
+    const countryOptions = useMemo(
+        () => [
+            { value: '', label: 'All countries' },
+            ...countries.map((country) => ({
+                value: String(country.id),
+                label: country.name,
+            })),
+        ],
+        [countries],
+    );
+
+    const filteredProvinces = useMemo(() => {
+        return provinces.filter((province) =>
+            provinceFilterCountryId
+                ? String(province.country_id ?? '') === provinceFilterCountryId
+                : true,
+        );
+    }, [provinces, provinceFilterCountryId]);
+
     const submitCountry = () => {
         if (!countryName.trim() || !countryCode.trim() || isSubmitting) return;
         setIsSubmitting(true);
@@ -216,6 +253,34 @@ export function ToolsLauncher() {
                             : 'Country created successfully.',
                     );
                     resetCountryForm();
+                },
+                onError: (validationErrors) => setErrors(validationErrors),
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
+    };
+
+    const submitProvince = () => {
+        if (!provinceName.trim() || !provinceCountryId || isSubmitting) return;
+        setIsSubmitting(true);
+
+        const payload = {
+            name: provinceName.trim(),
+            country_id: Number(provinceCountryId),
+        };
+
+        router.post(
+            provinceId ? `/provinces/${provinceId}` : '/provinces',
+            provinceId ? { _method: 'put', ...payload } : payload,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        provinceId
+                            ? 'City updated successfully.'
+                            : 'City created successfully.',
+                    );
+                    resetProvinceForm();
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -368,6 +433,18 @@ export function ToolsLauncher() {
                                         <span className="text-xs">
                                             Countries
                                         </span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-20 flex-col gap-2"
+                                        onClick={() => {
+                                            resetProvinceForm();
+                                            setProvinceFilterCountryId('');
+                                            setIsCitiesOpen(true);
+                                        }}
+                                    >
+                                        <Globe className="h-5 w-5" />
+                                        <span className="text-xs">Cities</span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -545,6 +622,154 @@ export function ToolsLauncher() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCitiesOpen} onOpenChange={setIsCitiesOpen}>
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Cities</DialogTitle>
+                        <DialogDescription>
+                            Add, edit, or delete cities and assign them to a country.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 sm:grid-cols-[320px_minmax(0,1fr)]">
+                        <div className="grid gap-4 rounded-md border p-4">
+                            <div className="grid gap-2">
+                                <Label>Country</Label>
+                                <SearchableDropdown
+                                    value={provinceCountryId}
+                                    options={countryOptions.filter(
+                                        (option) => option.value !== '',
+                                    )}
+                                    onValueChange={setProvinceCountryId}
+                                    placeholder="Select country"
+                                    searchPlaceholder="Search countries..."
+                                    emptyText="No countries found."
+                                />
+                                <InputError message={errors.country_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>City Name</Label>
+                                <Input
+                                    value={provinceName}
+                                    onChange={(event) =>
+                                        setProvinceName(event.target.value)
+                                    }
+                                />
+                                <InputError message={errors.name} />
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={resetProvinceForm}
+                                    disabled={isSubmitting}
+                                >
+                                    Clear
+                                </Button>
+                                <Button
+                                    onClick={submitProvince}
+                                    disabled={
+                                        isSubmitting ||
+                                        !provinceName.trim() ||
+                                        !provinceCountryId
+                                    }
+                                >
+                                    <Save className="mr-2 h-4 w-4" />
+                                    {provinceId ? 'Update City' : 'Save City'}
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <SearchableDropdown
+                                value={provinceFilterCountryId}
+                                options={countryOptions}
+                                onValueChange={setProvinceFilterCountryId}
+                                placeholder="All countries"
+                                searchPlaceholder="Search countries..."
+                                emptyText="No countries found."
+                                className="sm:w-[240px]"
+                            />
+                            <div className="max-h-72 space-y-2 overflow-auto rounded-md border p-3">
+                                {filteredProvinces.map((province: Province) => (
+                                    <div
+                                        key={province.id}
+                                        className="flex items-center justify-between rounded border p-2"
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {province.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {typeof province.country === 'string'
+                                                    ? province.country
+                                                    : province.country?.name ??
+                                                      countries.find(
+                                                          (country) =>
+                                                              country.id ===
+                                                              province.country_id,
+                                                      )?.name ??
+                                                      '-'}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setProvinceId(province.id);
+                                                    setProvinceName(
+                                                        province.name,
+                                                    );
+                                                    setProvinceCountryId(
+                                                        String(
+                                                            province.country_id ??
+                                                                '',
+                                                        ),
+                                                    );
+                                                    setErrors({});
+                                                }}
+                                            >
+                                                <Pencil className="mr-1 h-3 w-3" />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    router.delete(
+                                                        `/provinces/${province.id}`,
+                                                        {
+                                                            preserveScroll: true,
+                                                            onSuccess: () => {
+                                                                toast.success(
+                                                                    'City deleted successfully.',
+                                                                );
+                                                                if (
+                                                                    provinceId ===
+                                                                    province.id
+                                                                ) {
+                                                                    resetProvinceForm();
+                                                                }
+                                                            },
+                                                        },
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {filteredProvinces.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">
+                                        No cities found.
+                                    </p>
+                                ) : null}
+                            </div>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
