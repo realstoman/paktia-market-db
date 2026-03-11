@@ -1,5 +1,15 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -116,6 +126,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         null,
     );
     const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
+    const [categoryToDelete, setCategoryToDelete] =
+        useState<ProductCategory | null>(null);
+    const [typeToDelete, setTypeToDelete] = useState<ProductType | null>(null);
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -1136,18 +1149,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    handleCategoryDelete(
-                                                        category.id,
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
-                                            </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                setCategoryToDelete(category)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -1317,16 +1328,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    handleTypeDelete(productType.id)
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
-                                            </Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                setTypeToDelete(productType)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -1342,6 +1353,80 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     />
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={categoryToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setCategoryToDelete(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete category</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {categoryToDelete
+                                ? `Are you sure you want to delete "${categoryToDelete.name}"? This action cannot be undone.`
+                                : 'Are you sure you want to delete this category?'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            disabled={isSubmitting || categoryToDelete === null}
+                            onClick={() => {
+                                if (categoryToDelete) {
+                                    handleCategoryDelete(categoryToDelete.id);
+                                    setCategoryToDelete(null);
+                                }
+                            }}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={typeToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setTypeToDelete(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete type</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {typeToDelete
+                                ? `Are you sure you want to delete "${typeToDelete.name}"? This action cannot be undone.`
+                                : 'Are you sure you want to delete this type?'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            disabled={isSubmitting || typeToDelete === null}
+                            onClick={() => {
+                                if (typeToDelete) {
+                                    handleTypeDelete(typeToDelete.id);
+                                    setTypeToDelete(null);
+                                }
+                            }}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
