@@ -20,6 +20,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -986,14 +987,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="flex max-h-[84vh] flex-col overflow-hidden sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Manage Categories</DialogTitle>
                         <DialogDescription>
                             Create, edit, and remove product categories.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-3">
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
                             <Input
                                 placeholder="Category name"
@@ -1088,68 +1089,70 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                            {categories.map((category) => (
-                                <div
-                                    key={category.id}
-                                    className="flex items-center justify-between rounded-md border p-2"
-                                >
-                                    <div className="flex min-w-0 items-center gap-2">
-                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
-                                            {category.image_url ? (
-                                                <img
-                                                    src={category.image_url}
-                                                    alt={category.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            ) : null}
+                        <ScrollArea className="min-h-0 flex-1 rounded-md border">
+                            <div className="space-y-2 p-2">
+                                {categories.map((category) => (
+                                    <div
+                                        key={category.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                                {category.image_url ? (
+                                                    <img
+                                                        src={category.image_url}
+                                                        alt={category.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : null}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium">
+                                                    {category.name}
+                                                </p>
+                                                {category.pashto_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {category.pashto_name}
+                                                    </p>
+                                                ) : null}
+                                                {category.dari_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {category.dari_name}
+                                                    </p>
+                                                ) : null}
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {category.description || '-'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium">
-                                                {category.name}
-                                            </p>
-                                            {category.pashto_name ? (
-                                                <p className="truncate text-xs text-muted-foreground">
-                                                    {category.pashto_name}
-                                                </p>
-                                            ) : null}
-                                            {category.dari_name ? (
-                                                <p className="truncate text-xs text-muted-foreground">
-                                                    {category.dari_name}
-                                                </p>
-                                            ) : null}
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {category.description || '-'}
-                                            </p>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleCategoryEdit(category)
+                                                }
+                                            >
+                                                <Edit3 className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleCategoryDelete(
+                                                        category.id,
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleCategoryEdit(category)
-                                            }
-                                        >
-                                            <Edit3 className="h-4 w-4 text-blue-600" />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleCategoryDelete(
-                                                    category.id,
-                                                )
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
                     </div>
                     <InputError
                         message={
@@ -1171,14 +1174,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-xl">
+                <DialogContent className="flex max-h-[84vh] flex-col overflow-hidden sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Manage Types</DialogTitle>
                         <DialogDescription>
                             Create, edit, or remove product types.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-3">
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
                             <Input
                                 placeholder="Type name (example: food)"
@@ -1267,66 +1270,68 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <div className="max-h-52 space-y-2 overflow-y-auto rounded-md border p-2">
-                            {types.map((productType) => (
-                                <div
-                                    key={productType.id}
-                                    className="flex items-center justify-between rounded-md border p-2"
-                                >
-                                    <div className="flex min-w-0 items-center gap-2">
-                                        <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
-                                            {productType.image_url ? (
-                                                <img
-                                                    src={productType.image_url}
-                                                    alt={productType.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            ) : null}
+                        <ScrollArea className="min-h-0 flex-1 rounded-md border">
+                            <div className="space-y-2 p-2">
+                                {types.map((productType) => (
+                                    <div
+                                        key={productType.id}
+                                        className="flex items-center justify-between rounded-md border p-2"
+                                    >
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
+                                                {productType.image_url ? (
+                                                    <img
+                                                        src={productType.image_url}
+                                                        alt={productType.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : null}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-medium capitalize">
+                                                    {productType.name}
+                                                </p>
+                                                {productType.pashto_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {productType.pashto_name}
+                                                    </p>
+                                                ) : null}
+                                                {productType.dari_name ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {productType.dari_name}
+                                                    </p>
+                                                ) : null}
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {productType.description || '-'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium capitalize">
-                                                {productType.name}
-                                            </p>
-                                            {productType.pashto_name ? (
-                                                <p className="truncate text-xs text-muted-foreground">
-                                                    {productType.pashto_name}
-                                                </p>
-                                            ) : null}
-                                            {productType.dari_name ? (
-                                                <p className="truncate text-xs text-muted-foreground">
-                                                    {productType.dari_name}
-                                                </p>
-                                            ) : null}
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {productType.description || '-'}
-                                            </p>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleTypeEdit(productType)
+                                                }
+                                            >
+                                                <Edit3 className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    handleTypeDelete(productType.id)
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleTypeEdit(productType)
-                                            }
-                                        >
-                                            <Edit3 className="h-4 w-4 text-blue-600" />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                handleTypeDelete(productType.id)
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
                     </div>
                     <InputError
                         message={
