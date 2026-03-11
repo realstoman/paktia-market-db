@@ -186,6 +186,31 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         ],
         [branches, selectedCountryFilter, selectedProvinceFilter],
     );
+    const createProvinceOptions = useMemo(
+        () =>
+            provinces.filter((province) => {
+                if (!countryId) {
+                    return true;
+                }
+
+                return String(province.country_id ?? '') === countryId;
+            }),
+        [provinces, countryId],
+    );
+    const createBranchOptions = useMemo(
+        () =>
+            branches.filter((branch) => {
+                const matchesCountry = countryId
+                    ? String(branch.country_id ?? '') === countryId
+                    : true;
+                const matchesProvince = provinceId
+                    ? String(branch.province_id ?? '') === provinceId
+                    : true;
+
+                return matchesCountry && matchesProvince;
+            }),
+        [branches, countryId, provinceId],
+    );
     const filteredUsers = useMemo(
         () =>
             data.filter((user) => {
@@ -419,6 +444,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                     setCountryId(value);
                                     if (value !== countryId) {
                                         setProvinceId('');
+                                        setBranchId('');
                                     }
                                 }}
                             >
@@ -442,13 +468,18 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <Label>Province</Label>
                             <Select
                                 value={provinceId}
-                                onValueChange={setProvinceId}
+                                onValueChange={(value) => {
+                                    setProvinceId(value);
+                                    if (value !== provinceId) {
+                                        setBranchId('');
+                                    }
+                                }}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select province" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
+                                    {createProvinceOptions.map((province) => (
                                         <SelectItem
                                             key={province.id}
                                             value={String(province.id)}
@@ -470,7 +501,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                     <SelectValue placeholder="Select branch" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {branches.map((branch) => (
+                                    {createBranchOptions.map((branch) => (
                                         <SelectItem
                                             key={branch.id}
                                             value={String(branch.id)}
