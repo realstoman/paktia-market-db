@@ -121,16 +121,25 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         [countries, provinces, kitchens],
     );
     const countryFilterOptions = useMemo(
-        () =>
-            countries.map((country) => ({
+        () => [
+            {
+                value: '',
+                label: 'All countries',
+            },
+            ...countries.map((country) => ({
                 value: String(country.id),
                 label: country.name,
             })),
+        ],
         [countries],
     );
     const provinceFilterOptions = useMemo(
-        () =>
-            provinces
+        () => [
+            {
+                value: '',
+                label: 'All cities',
+            },
+            ...provinces
                 .filter((province) => {
                     if (!selectedCountryFilter) {
                         return true;
@@ -145,6 +154,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     value: String(province.id),
                     label: province.name,
                 })),
+        ],
         [provinces, selectedCountryFilter],
     );
     const filteredBranches = useMemo(
