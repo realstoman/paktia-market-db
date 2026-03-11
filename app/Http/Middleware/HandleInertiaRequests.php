@@ -10,6 +10,7 @@ use App\Models\Kitchen;
 use App\Models\KitchenCategory;
 use App\Models\KitchenType;
 use App\Models\Product;
+use App\Models\Province;
 use App\Models\Vendor;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -58,7 +59,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'tools' => [
                 'countries' => Schema::hasTable('countries')
-                    ? Country::orderBy('name')->get()
+                    ? Country::with('provinces')->orderBy('name')->get()
+                    : [],
+                'provinces' => Schema::hasTable('provinces')
+                    ? Province::with('country')->orderBy('name')->get()
                     : [],
                 'currencies' => Schema::hasTable('currencies')
                     ? Currency::orderBy('name')->get()
