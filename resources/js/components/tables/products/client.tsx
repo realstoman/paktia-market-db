@@ -360,24 +360,32 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }
 
         setIsSubmitting(true);
-        const payload = {
-            name: typeName.trim().toLowerCase(),
-            pashto_name: typePashtoName.trim() || null,
-            dari_name: typeDariName.trim() || null,
-            description: typeDescription.trim() || null,
-            pashto_description: typePashtoDescription.trim() || null,
-            dari_description: typeDariDescription.trim() || null,
-            image: typeImage,
-        };
+        setMetaErrors({});
+
+        const payload = new FormData();
+        payload.append('name', typeName.trim().toLowerCase());
+        payload.append('pashto_name', typePashtoName.trim());
+        payload.append('dari_name', typeDariName.trim());
+        payload.append('description', typeDescription.trim());
+        payload.append(
+            'pashto_description',
+            typePashtoDescription.trim(),
+        );
+        payload.append('dari_description', typeDariDescription.trim());
+
+        if (typeImage) {
+            payload.append('image', typeImage);
+        }
 
         const requestUrl = editingTypeId
             ? `/products/types/${editingTypeId}`
             : '/products/types';
 
         if (editingTypeId) {
-            router.put(requestUrl, payload, {
+            payload.append('_method', 'put');
+
+            router.post(requestUrl, payload, {
                 preserveScroll: true,
-                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Type updated successfully.');
                     resetTypeForm();
@@ -404,7 +412,6 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
         router.post(requestUrl, payload, {
             preserveScroll: true,
-            forceFormData: true,
             onSuccess: () => {
                 toast.success('Type created successfully.');
                 resetTypeForm();
