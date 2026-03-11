@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -46,6 +47,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedRoleFilter, setSelectedRoleFilter] = useState('');
+    const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
+    const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('');
+    const [selectedBranchFilter, setSelectedBranchFilter] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [roleId, setRoleId] = useState<string>('');
@@ -117,6 +122,115 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         () => buildColumns(roles, countries, provinces, branches),
         [roles, countries, provinces, branches],
     );
+    const roleFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All roles' },
+            ...roles.map((role) => ({
+                value: String(role.id),
+                label: role.name,
+            })),
+        ],
+        [roles],
+    );
+    const countryFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All countries' },
+            ...countries.map((country) => ({
+                value: String(country.id),
+                label: country.name,
+            })),
+        ],
+        [countries],
+    );
+    const provinceFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All cities' },
+            ...provinces
+                .filter((province) => {
+                    if (!selectedCountryFilter) {
+                        return true;
+                    }
+
+                    return (
+                        String(province.country_id ?? '') ===
+                        selectedCountryFilter
+                    );
+                })
+                .map((province) => ({
+                    value: String(province.id),
+                    label: province.name,
+                })),
+        ],
+        [provinces, selectedCountryFilter],
+    );
+    const branchFilterOptions = useMemo(
+        () => [
+            { value: '', label: 'All branches' },
+            ...branches
+                .filter((branch) => {
+                    const matchesCountry = selectedCountryFilter
+                        ? String(branch.country_id ?? '') ===
+                          selectedCountryFilter
+                        : true;
+                    const matchesProvince = selectedProvinceFilter
+                        ? String(branch.province_id ?? '') ===
+                          selectedProvinceFilter
+                        : true;
+
+                    return matchesCountry && matchesProvince;
+                })
+                .map((branch) => ({
+                    value: String(branch.id),
+                    label: branch.name,
+                })),
+        ],
+        [branches, selectedCountryFilter, selectedProvinceFilter],
+    );
+    const filteredUsers = useMemo(
+        () =>
+            data.filter((user) => {
+                const matchesRole = selectedRoleFilter
+                    ? (user.roles ?? []).some((role) => {
+                          if (typeof role === 'string') {
+                              const matchedRole = roles.find(
+                                  (item) => item.name === role,
+                              );
+
+                              return (
+                                  String(matchedRole?.id ?? '') ===
+                                  selectedRoleFilter
+                              );
+                          }
+
+                          return String(role.id) === selectedRoleFilter;
+                      })
+                    : true;
+                const matchesCountry = selectedCountryFilter
+                    ? String(user.country_id ?? '') === selectedCountryFilter
+                    : true;
+                const matchesProvince = selectedProvinceFilter
+                    ? String(user.province_id ?? '') === selectedProvinceFilter
+                    : true;
+                const matchesBranch = selectedBranchFilter
+                    ? String(user.branch_id ?? '') === selectedBranchFilter
+                    : true;
+
+                return (
+                    matchesRole &&
+                    matchesCountry &&
+                    matchesProvince &&
+                    matchesBranch
+                );
+            }),
+        [
+            data,
+            roles,
+            selectedRoleFilter,
+            selectedCountryFilter,
+            selectedProvinceFilter,
+            selectedBranchFilter,
+        ],
+    );
 
     return (
         <div className="space-y-4">
@@ -152,9 +266,56 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     'is_active',
                 ]}
                 columns={tableColumns}
-                data={data}
+                data={filteredUsers}
                 isLoading={isLoading}
                 searchPlaceholder="Search users by name or email..."
+                toolbar={
+                    <div className="flex w-full flex-col gap-3 xl:w-auto xl:flex-row">
+                        <SearchableDropdown
+                            value={selectedRoleFilter}
+                            options={roleFilterOptions}
+                            onValueChange={setSelectedRoleFilter}
+                            placeholder="All roles"
+                            searchPlaceholder="Search roles..."
+                            emptyText="No roles found."
+                            className="xl:w-[180px]"
+                        />
+                        <SearchableDropdown
+                            value={selectedCountryFilter}
+                            options={countryFilterOptions}
+                            onValueChange={(value) => {
+                                setSelectedCountryFilter(value);
+                                setSelectedProvinceFilter('');
+                                setSelectedBranchFilter('');
+                            }}
+                            placeholder="All countries"
+                            searchPlaceholder="Search countries..."
+                            emptyText="No countries found."
+                            className="xl:w-[180px]"
+                        />
+                        <SearchableDropdown
+                            value={selectedProvinceFilter}
+                            options={provinceFilterOptions}
+                            onValueChange={(value) => {
+                                setSelectedProvinceFilter(value);
+                                setSelectedBranchFilter('');
+                            }}
+                            placeholder="All cities"
+                            searchPlaceholder="Search cities..."
+                            emptyText="No cities found."
+                            className="xl:w-[180px]"
+                        />
+                        <SearchableDropdown
+                            value={selectedBranchFilter}
+                            options={branchFilterOptions}
+                            onValueChange={setSelectedBranchFilter}
+                            placeholder="All branches"
+                            searchPlaceholder="Search branches..."
+                            emptyText="No branches found."
+                            className="xl:w-[180px]"
+                        />
+                    </div>
+                }
             />
 
             <Dialog
