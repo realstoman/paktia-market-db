@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -923,76 +924,72 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 searchPlaceholder="Search inventory by item, type, or branch..."
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
-                        <Select
+                        <SearchableDropdown
                             value={selectedBranchFilter}
                             onValueChange={setSelectedBranchFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[180px]">
-                                <SelectValue placeholder="Filter by branch" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    All Branches
-                                </SelectItem>
-                                {branches.map((branch) => (
-                                    <SelectItem
-                                        key={branch.id}
-                                        value={String(branch.id)}
-                                    >
-                                        {branch.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            placeholder="Filter by branch"
+                            searchPlaceholder="Search branches..."
+                            emptyText="No branches found."
+                            className="w-[180px]"
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: 'All Branches',
+                                },
+                                ...branches.map((branch) => ({
+                                    value: String(branch.id),
+                                    label: branch.name,
+                                })),
+                            ]}
+                        />
 
-                        <Select
+                        <SearchableDropdown
                             value={selectedTypeFilter}
                             onValueChange={setSelectedTypeFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[200px]">
-                                <SelectValue placeholder="Filter by type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    All Types
-                                </SelectItem>
-                                <SelectItem value="usable">Usable</SelectItem>
-                                <SelectItem value="not_usable">
-                                    Not Usable
-                                </SelectItem>
-                                {availableTypes.map((typeEntry) => (
-                                    <SelectItem
-                                        key={typeEntry}
-                                        value={typeEntry}
-                                    >
-                                        {typeEntry.charAt(0).toUpperCase() +
-                                            typeEntry.slice(1)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            placeholder="Filter by type"
+                            searchPlaceholder="Search types..."
+                            emptyText="No types found."
+                            className="w-[200px]"
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: 'All Types',
+                                },
+                                {
+                                    value: 'usable',
+                                    label: 'Usable',
+                                },
+                                {
+                                    value: 'not_usable',
+                                    label: 'Not Usable',
+                                },
+                                ...availableTypes.map((typeEntry) => ({
+                                    value: typeEntry,
+                                    label:
+                                        typeEntry.charAt(0).toUpperCase() +
+                                        typeEntry.slice(1),
+                                })),
+                            ]}
+                        />
 
-                        <Select
+                        <SearchableDropdown
                             value={selectedVendorFilter}
                             onValueChange={setSelectedVendorFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[220px]">
-                                <SelectValue placeholder="Filter by vendor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    All Vendors
-                                </SelectItem>
-                                {vendors.map((vendor) => (
-                                    <SelectItem
-                                        key={vendor.id}
-                                        value={String(vendor.id)}
-                                    >
-                                        {vendor.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            placeholder="Filter by vendor"
+                            searchPlaceholder="Search vendors..."
+                            emptyText="No vendors found."
+                            className="w-[220px]"
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: 'All Vendors',
+                                },
+                                ...vendors.map((vendor) => ({
+                                    value: String(vendor.id),
+                                    label: vendor.name,
+                                })),
+                            ]}
+                        />
                     </div>
                 }
             />
