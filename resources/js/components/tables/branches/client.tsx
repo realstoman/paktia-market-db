@@ -294,52 +294,37 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
-            <div className="flex flex-col gap-3 rounded-lg border border-neutral-200/70 p-4 dark:border-neutral-800 sm:flex-row sm:items-end">
-                <div className="grid gap-2 sm:min-w-[220px]">
-                    <Label>Filter by country</Label>
-                    <SearchableDropdown
-                        value={selectedCountryFilter}
-                        options={countryFilterOptions}
-                        onValueChange={(value) => {
-                            setSelectedCountryFilter(value);
-                            setSelectedProvinceFilter('');
-                        }}
-                        placeholder="All countries"
-                        searchPlaceholder="Search countries..."
-                        emptyText="No countries found."
-                    />
-                </div>
-                <div className="grid gap-2 sm:min-w-[220px]">
-                    <Label>Filter by city</Label>
-                    <SearchableDropdown
-                        value={selectedProvinceFilter}
-                        options={provinceFilterOptions}
-                        onValueChange={setSelectedProvinceFilter}
-                        placeholder="All cities"
-                        searchPlaceholder="Search cities..."
-                        emptyText="No cities found."
-                    />
-                </div>
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                        setSelectedCountryFilter('');
-                        setSelectedProvinceFilter('');
-                    }}
-                    disabled={
-                        !selectedCountryFilter && !selectedProvinceFilter
-                    }
-                >
-                    Clear filters
-                </Button>
-            </div>
             <DataTable
                 searchKey={['name', 'country', 'province', 'address']}
                 columns={tableColumns}
                 data={filteredBranches}
                 isLoading={isLoading}
                 searchPlaceholder="Search branches by name, country or province..."
+                toolbar={
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                        <SearchableDropdown
+                            value={selectedCountryFilter}
+                            options={countryFilterOptions}
+                            onValueChange={(value) => {
+                                setSelectedCountryFilter(value);
+                                setSelectedProvinceFilter('');
+                            }}
+                            placeholder="All countries"
+                            searchPlaceholder="Search countries..."
+                            emptyText="No countries found."
+                            className="sm:w-[220px]"
+                        />
+                        <SearchableDropdown
+                            value={selectedProvinceFilter}
+                            options={provinceFilterOptions}
+                            onValueChange={setSelectedProvinceFilter}
+                            placeholder="All cities"
+                            searchPlaceholder="Search cities..."
+                            emptyText="No cities found."
+                            className="sm:w-[220px]"
+                        />
+                    </div>
+                }
             />
 
             <Dialog
