@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -535,72 +536,69 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const filterToolbar = useMemo(
         () => (
             <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
-                <Select
+                <SearchableDropdown
                     value={categoryFilter}
+                    options={[
+                        { value: 'all', label: 'All Categories' },
+                        ...categories.map((category) => ({
+                            value: String(category.id),
+                            label: category.name,
+                        })),
+                    ]}
                     onValueChange={setCategoryFilter}
-                >
-                    <SelectTrigger className="h-10 w-44">
-                        <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map((category) => (
-                            <SelectItem
-                                key={category.id}
-                                value={String(category.id)}
-                            >
-                                {category.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                    placeholder="Category"
+                    searchPlaceholder="Search categories..."
+                    emptyText="No categories found."
+                    className="w-44"
+                />
 
-                <Select value={kitchenFilter} onValueChange={setKitchenFilter}>
-                    <SelectTrigger className="h-10 w-44">
-                        <SelectValue placeholder="Kitchen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Kitchens</SelectItem>
-                        {kitchens.map((kitchen) => (
-                            <SelectItem
-                                key={kitchen.id}
-                                value={String(kitchen.id)}
-                            >
-                                {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <SearchableDropdown
+                    value={kitchenFilter}
+                    options={[
+                        { value: 'all', label: 'All Kitchens' },
+                        ...kitchens.map((kitchen) => ({
+                            value: String(kitchen.id),
+                            label: kitchen.name ?? `Kitchen #${kitchen.id}`,
+                        })),
+                    ]}
+                    onValueChange={setKitchenFilter}
+                    placeholder="Kitchen"
+                    searchPlaceholder="Search kitchens..."
+                    emptyText="No kitchens found."
+                    className="w-44"
+                />
 
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="h-10 w-44">
-                        <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        {availableTypes.map((productType) => (
-                            <SelectItem
-                                key={productType}
-                                value={productType.trim().toLowerCase()}
-                            >
-                                <span className="capitalize">
-                                    {productType}
-                                </span>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <SearchableDropdown
+                    value={typeFilter}
+                    options={[
+                        { value: 'all', label: 'All Types' },
+                        ...availableTypes.map((productType) => ({
+                            value: productType.trim().toLowerCase(),
+                            label:
+                                productType.charAt(0).toUpperCase() +
+                                productType.slice(1),
+                        })),
+                    ]}
+                    onValueChange={setTypeFilter}
+                    placeholder="Type"
+                    searchPlaceholder="Search types..."
+                    emptyText="No types found."
+                    className="w-44"
+                />
 
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-10 w-44">
-                        <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                </Select>
+                <SearchableDropdown
+                    value={statusFilter}
+                    options={[
+                        { value: 'all', label: 'All Statuses' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'inactive', label: 'Inactive' },
+                    ]}
+                    onValueChange={setStatusFilter}
+                    placeholder="Status"
+                    searchPlaceholder="Search statuses..."
+                    emptyText="No statuses found."
+                    className="w-44"
+                />
             </div>
         ),
         [

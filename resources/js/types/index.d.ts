@@ -30,6 +30,7 @@ export interface SharedData {
     auth: Auth;
     tools?: {
         countries: Country[];
+        provinces: Province[];
         currencies: Currency[];
         vendors: Vendor[];
         banners: Banner[];
@@ -247,6 +248,7 @@ export interface Province {
     created_at: string;
     updated_at: string;
     country_id?: number;
+    country?: Country | null;
     [key: string]: unknown;
 }
 
