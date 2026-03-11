@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -48,6 +49,8 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
+    const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('');
     const [name, setName] = useState('');
     const [countryId, setCountryId] = useState('');
     const [provinceId, setProvinceId] = useState('');
@@ -116,6 +119,49 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     const tableColumns = useMemo(
         () => buildColumns(countries, provinces, kitchens),
         [countries, provinces, kitchens],
+    );
+    const countryFilterOptions = useMemo(
+        () =>
+            countries.map((country) => ({
+                value: String(country.id),
+                label: country.name,
+            })),
+        [countries],
+    );
+    const provinceFilterOptions = useMemo(
+        () =>
+            provinces
+                .filter((province) => {
+                    if (!selectedCountryFilter) {
+                        return true;
+                    }
+
+                    return (
+                        String(province.country_id ?? '') ===
+                        selectedCountryFilter
+                    );
+                })
+                .map((province) => ({
+                    value: String(province.id),
+                    label: province.name,
+                })),
+        [provinces, selectedCountryFilter],
+    );
+    const filteredBranches = useMemo(
+        () =>
+            data.filter((branch) => {
+                const matchesCountry = selectedCountryFilter
+                    ? String(branch.country_id ?? '') ===
+                      selectedCountryFilter
+                    : true;
+                const matchesProvince = selectedProvinceFilter
+                    ? String(branch.province_id ?? '') ===
+                      selectedProvinceFilter
+                    : true;
+
+                return matchesCountry && matchesProvince;
+            }),
+        [data, selectedCountryFilter, selectedProvinceFilter],
     );
     const filteredBranchTables = useMemo(
         () =>
@@ -248,10 +294,50 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
+            <div className="flex flex-col gap-3 rounded-lg border border-neutral-200/70 p-4 dark:border-neutral-800 sm:flex-row sm:items-end">
+                <div className="grid gap-2 sm:min-w-[220px]">
+                    <Label>Filter by country</Label>
+                    <SearchableDropdown
+                        value={selectedCountryFilter}
+                        options={countryFilterOptions}
+                        onValueChange={(value) => {
+                            setSelectedCountryFilter(value);
+                            setSelectedProvinceFilter('');
+                        }}
+                        placeholder="All countries"
+                        searchPlaceholder="Search countries..."
+                        emptyText="No countries found."
+                    />
+                </div>
+                <div className="grid gap-2 sm:min-w-[220px]">
+                    <Label>Filter by city</Label>
+                    <SearchableDropdown
+                        value={selectedProvinceFilter}
+                        options={provinceFilterOptions}
+                        onValueChange={setSelectedProvinceFilter}
+                        placeholder="All cities"
+                        searchPlaceholder="Search cities..."
+                        emptyText="No cities found."
+                    />
+                </div>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                        setSelectedCountryFilter('');
+                        setSelectedProvinceFilter('');
+                    }}
+                    disabled={
+                        !selectedCountryFilter && !selectedProvinceFilter
+                    }
+                >
+                    Clear filters
+                </Button>
+            </div>
             <DataTable
                 searchKey={['name', 'country', 'province', 'address']}
                 columns={tableColumns}
-                data={data}
+                data={filteredBranches}
                 isLoading={isLoading}
                 searchPlaceholder="Search branches by name, country or province..."
             />
