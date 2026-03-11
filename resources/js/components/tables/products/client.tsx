@@ -994,8 +994,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             Create, edit, and remove product categories.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex min-h-0 flex-1 flex-col gap-3">
-                        <div className="space-y-2 rounded-md border p-3">
+                    <ScrollArea className="min-h-0 flex-1">
+                        <div className="space-y-3 pr-4">
+                            <div className="space-y-2 rounded-md border p-3">
                             <Input
                                 placeholder="Category name"
                                 value={categoryName}
@@ -1088,9 +1089,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     Cancel Edit
                                 </Button>
                             )}
-                        </div>
-                        <ScrollArea className="min-h-0 flex-1 rounded-md border">
-                            <div className="space-y-2 p-2">
+                            </div>
+                            <div className="space-y-2 rounded-md border p-2">
                                 {categories.map((category) => (
                                     <div
                                         key={category.id}
@@ -1152,8 +1152,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     </div>
                                 ))}
                             </div>
-                        </ScrollArea>
-                    </div>
+                        </div>
+                    </ScrollArea>
                     <InputError
                         message={
                             metaErrors.name ||
@@ -1181,8 +1181,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             Create, edit, or remove product types.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex min-h-0 flex-1 flex-col gap-3">
-                        <div className="space-y-2 rounded-md border p-3">
+                    <ScrollArea className="min-h-0 flex-1">
+                        <div className="space-y-3 pr-4">
+                            <div className="space-y-2 rounded-md border p-3">
                             <Input
                                 placeholder="Type name (example: food)"
                                 value={typeName}
@@ -1269,9 +1270,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     Cancel Edit
                                 </Button>
                             )}
-                        </div>
-                        <ScrollArea className="min-h-0 flex-1 rounded-md border">
-                            <div className="space-y-2 p-2">
+                            </div>
+                            <div className="space-y-2 rounded-md border p-2">
                                 {types.map((productType) => (
                                     <div
                                         key={productType.id}
@@ -1331,8 +1331,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     </div>
                                 ))}
                             </div>
-                        </ScrollArea>
-                    </div>
+                        </div>
+                    </ScrollArea>
                     <InputError
                         message={
                             metaErrors.name ||
