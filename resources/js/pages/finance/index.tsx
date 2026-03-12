@@ -70,7 +70,14 @@ const RANGE_OPTIONS = [
 
 const PAYMENT_METHODS = ['cash', 'card', 'crypto'];
 
-const PIE_COLORS = ['#14532d', '#15803d', '#65a30d', '#f59e0b', '#f97316', '#b91c1c'];
+const PIE_COLORS = [
+    '#14532d',
+    '#15803d',
+    '#65a30d',
+    '#f59e0b',
+    '#f97316',
+    '#b91c1c',
+];
 
 interface FinanceFilters {
     range: string;
@@ -200,7 +207,7 @@ function SummaryCard({
         <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
             <CardContent className="flex items-start justify-between p-5">
                 <div className="space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-[0.22em] text-neutral-500">
+                    <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
                         {title}
                     </p>
                     <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
@@ -254,7 +261,10 @@ export default function FinancePage({
                         }),
                     ),
                 ),
-            ).map((item) => JSON.parse(item) as { value: string; category: string }),
+            ).map(
+                (item) =>
+                    JSON.parse(item) as { value: string; category: string },
+            ),
         [dashboard.topExpenseCategories],
     );
 
@@ -266,7 +276,7 @@ export default function FinancePage({
                 <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] p-6 shadow-none dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#111827_0%,#0f172a_45%,#0b2a1f_100%)]">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-3xl space-y-3">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1 text-xs font-medium tracking-[0.24em] text-neutral-600 uppercase dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300">
                                 <ChartNoAxesCombined className="h-3.5 w-3.5" />
                                 Finance Dashboard
                             </div>
@@ -287,15 +297,17 @@ export default function FinancePage({
 
                         <div className="grid grid-cols-2 gap-3 lg:min-w-[420px]">
                             <div className="rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
-                                <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                     Ledger Accounts
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-                                    {formatNumber(dashboard.ledgerStats.accounts)}
+                                    {formatNumber(
+                                        dashboard.ledgerStats.accounts,
+                                    )}
                                 </p>
                             </div>
                             <div className="rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
-                                <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                     Approval Queue
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
@@ -348,7 +360,7 @@ export default function FinancePage({
 
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                             <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                                <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Branch
                                 </p>
                                 <Select
@@ -379,7 +391,7 @@ export default function FinancePage({
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                                <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Payment Method
                                 </p>
                                 <Select
@@ -410,7 +422,7 @@ export default function FinancePage({
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                                <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Expense Category
                                 </p>
                                 <Select
@@ -441,7 +453,7 @@ export default function FinancePage({
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                                <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Start Date
                                 </p>
                                 <input
@@ -450,13 +462,13 @@ export default function FinancePage({
                                     onChange={(event) =>
                                         setStartDate(event.target.value)
                                     }
-                                    className="border-input bg-background focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
+                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                     disabled={range !== 'custom'}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                                <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     End Date
                                 </p>
                                 <input
@@ -465,7 +477,7 @@ export default function FinancePage({
                                     onChange={(event) =>
                                         setEndDate(event.target.value)
                                     }
-                                    className="border-input bg-background focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
+                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                     disabled={range !== 'custom'}
                                 />
                             </div>
@@ -563,7 +575,9 @@ export default function FinancePage({
                 <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Revenue, Expense, and Operating Result</CardTitle>
+                            <CardTitle>
+                                Revenue, Expense, and Operating Result
+                            </CardTitle>
                             <CardDescription>
                                 Daily trend for the selected finance window.
                             </CardDescription>
@@ -614,7 +628,11 @@ export default function FinancePage({
                                             strokeDasharray="3 3"
                                             vertical={false}
                                         />
-                                        <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                        <XAxis
+                                            dataKey="label"
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
                                         <YAxis
                                             tickLine={false}
                                             axisLine={false}
@@ -681,8 +699,8 @@ export default function FinancePage({
                                 ))
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                    No payment data is available for the selected
-                                    filters.
+                                    No payment data is available for the
+                                    selected filters.
                                 </div>
                             )}
                         </CardContent>
@@ -705,7 +723,11 @@ export default function FinancePage({
                                             strokeDasharray="3 3"
                                             vertical={false}
                                         />
-                                        <XAxis dataKey="branch" tickLine={false} axisLine={false} />
+                                        <XAxis
+                                            dataKey="branch"
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
                                         <YAxis
                                             tickLine={false}
                                             axisLine={false}
@@ -741,7 +763,9 @@ export default function FinancePage({
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
-                                            data={dashboard.topExpenseCategories}
+                                            data={
+                                                dashboard.topExpenseCategories
+                                            }
                                             dataKey="amount"
                                             nameKey="category"
                                             innerRadius={48}
@@ -822,15 +846,17 @@ export default function FinancePage({
                         <CardContent className="space-y-4">
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                    <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                         Accounts
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
-                                        {formatNumber(dashboard.ledgerStats.accounts)}
+                                        {formatNumber(
+                                            dashboard.ledgerStats.accounts,
+                                        )}
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                    <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                         Journals
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
@@ -840,22 +866,24 @@ export default function FinancePage({
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                    <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                         Draft Journals
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
-                                            dashboard.ledgerStats.draft_journals,
+                                            dashboard.ledgerStats
+                                                .draft_journals,
                                         )}
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+                                    <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
                                         Approval Queue
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
-                                            dashboard.ledgerStats.approval_queue,
+                                            dashboard.ledgerStats
+                                                .approval_queue,
                                         )}
                                     </p>
                                 </div>
