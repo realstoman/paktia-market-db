@@ -21,20 +21,26 @@ export function OrderStatusStatCard({
     return (
         <Card
             className={cn(
-                'gap-3 border-neutral-200 bg-white py-4 shadow-none dark:border-neutral-800 dark:bg-neutral-900',
+                'gap-3 overflow-hidden border-white/80 bg-white py-4 shadow-none dark:border-neutral-800 dark:bg-neutral-900',
                 className,
             )}
         >
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                <CardTitle className="text-sm">{title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm text-[#102F33] dark:text-neutral-100">
+                    {title}
+                </CardTitle>
+                <div className="rounded-full border border-white/70 bg-white/80 p-2 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white">
+                    <Icon className="h-4 w-4" />
+                </div>
             </CardHeader>
             <CardContent className="flex items-end justify-between gap-3">
-                <p className="text-2xl font-semibold tracking-tight">{value}</p>
+                <p className="text-2xl font-semibold tracking-tight text-[#102F33] dark:text-white">
+                    {value}
+                </p>
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 gap-1.5 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-8 gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 text-xs text-[#102F33] hover:bg-white hover:text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                     onClick={onDetailsClick}
                 >
                     Details

@@ -73,7 +73,7 @@ export function OrderAnalyticsChart({
     );
 
     return (
-        <Card className="rounded-none border-none bg-white shadow-none dark:bg-brand-bg-dark">
+        <Card className="rounded-none border-none bg-white pt-0 shadow-none dark:bg-brand-bg-dark">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
                 <div className="space-y-1">
                     <CardTitle className="text-lg font-semibold">
@@ -85,7 +85,7 @@ export function OrderAnalyticsChart({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-nowrap">
                         <LegendItem
                             label="Pending"
                             color="var(--chart-neutral)"
@@ -94,10 +94,7 @@ export function OrderAnalyticsChart({
                             label="Preparing"
                             color="var(--chart-sky)"
                         />
-                        <LegendItem
-                            label="Ready"
-                            color="var(--chart-ready)"
-                        />
+                        <LegendItem label="Ready" color="var(--chart-ready)" />
                         <LegendItem
                             label="Completed"
                             color="var(--chart-green)"
@@ -110,7 +107,7 @@ export function OrderAnalyticsChart({
                 </div>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="pb-0">
                 <ChartContainer
                     config={chartConfig}
                     className="h-[300px] w-full"
@@ -131,25 +128,95 @@ export function OrderAnalyticsChart({
                             stroke="#e9edf3"
                         />
                         <defs>
-                            <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--chart-neutral)" stopOpacity={0.42} />
-                                <stop offset="95%" stopColor="var(--chart-neutral)" stopOpacity={0.02} />
+                            <linearGradient
+                                id="fillPending"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--chart-neutral)"
+                                    stopOpacity={0.42}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--chart-neutral)"
+                                    stopOpacity={0.02}
+                                />
                             </linearGradient>
-                            <linearGradient id="fillPreparing" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--chart-sky)" stopOpacity={0.42} />
-                                <stop offset="95%" stopColor="var(--chart-sky)" stopOpacity={0.02} />
+                            <linearGradient
+                                id="fillPreparing"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--chart-sky)"
+                                    stopOpacity={0.42}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--chart-sky)"
+                                    stopOpacity={0.02}
+                                />
                             </linearGradient>
-                            <linearGradient id="fillReady" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--chart-ready)" stopOpacity={0.42} />
-                                <stop offset="95%" stopColor="var(--chart-ready)" stopOpacity={0.02} />
+                            <linearGradient
+                                id="fillReady"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--chart-ready)"
+                                    stopOpacity={0.42}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--chart-ready)"
+                                    stopOpacity={0.02}
+                                />
                             </linearGradient>
-                            <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--chart-green)" stopOpacity={0.42} />
-                                <stop offset="95%" stopColor="var(--chart-green)" stopOpacity={0.02} />
+                            <linearGradient
+                                id="fillCompleted"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--chart-green)"
+                                    stopOpacity={0.42}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--chart-green)"
+                                    stopOpacity={0.02}
+                                />
                             </linearGradient>
-                            <linearGradient id="fillCancelled" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--chart-red)" stopOpacity={0.42} />
-                                <stop offset="95%" stopColor="var(--chart-red)" stopOpacity={0.02} />
+                            <linearGradient
+                                id="fillCancelled"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                    offset="5%"
+                                    stopColor="var(--chart-red)"
+                                    stopOpacity={0.42}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor="var(--chart-red)"
+                                    stopOpacity={0.02}
+                                />
                             </linearGradient>
                         </defs>
 

@@ -68,6 +68,7 @@ interface InventoryClientProps {
 const MAX_IMAGES = 10;
 const VENDOR_NONE = '__none__';
 const DEFAULT_CURRENCY_CODE = 'AFN';
+const LOW_STOCK_THRESHOLD = 10;
 
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
@@ -149,6 +150,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
     const [selectedVendorFilter, setSelectedVendorFilter] =
         useState(FILTER_ALL);
+    const [selectedStockFilter, setSelectedStockFilter] = useState(FILTER_ALL);
     const [usageDate, setUsageDate] = useState(
         new Date().toISOString().slice(0, 10),
     );
@@ -819,6 +821,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
+            const quantity = Number(item.quantity || 0);
             const branchMatch =
                 selectedBranchFilter === FILTER_ALL ||
                 String(item.branch_id) === selectedBranchFilter;
@@ -833,9 +836,22 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 (selectedTypeFilter === 'not_usable' && !item.is_usable) ||
                 (item.type ?? '').trim().toLowerCase() === selectedTypeFilter;
 
-            return branchMatch && vendorMatch && typeMatch;
+            const stockMatch =
+                selectedStockFilter === FILTER_ALL ||
+                (selectedStockFilter === 'low_stock' &&
+                    quantity > 0 &&
+                    quantity <= LOW_STOCK_THRESHOLD) ||
+                (selectedStockFilter === 'out_of_stock' && quantity <= 0);
+
+            return branchMatch && vendorMatch && typeMatch && stockMatch;
         });
-    }, [data, selectedBranchFilter, selectedVendorFilter, selectedTypeFilter]);
+    }, [
+        data,
+        selectedBranchFilter,
+        selectedVendorFilter,
+        selectedTypeFilter,
+        selectedStockFilter,
+    ]);
 
     const vendorOutstanding = useMemo(() => {
         const outstandingByVendor = new Map<number, number>();
@@ -988,6 +1004,29 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     value: String(vendor.id),
                                     label: vendor.name,
                                 })),
+                            ]}
+                        />
+
+                        <SearchableDropdown
+                            value={selectedStockFilter}
+                            onValueChange={setSelectedStockFilter}
+                            placeholder="Filter by stock"
+                            searchPlaceholder="Search stock status..."
+                            emptyText="No stock filters found."
+                            className="w-[220px]"
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: 'All Stock Levels',
+                                },
+                                {
+                                    value: 'low_stock',
+                                    label: `Low Stock (<= ${LOW_STOCK_THRESHOLD})`,
+                                },
+                                {
+                                    value: 'out_of_stock',
+                                    label: 'Out of Stock',
+                                },
                             ]}
                         />
                     </div>

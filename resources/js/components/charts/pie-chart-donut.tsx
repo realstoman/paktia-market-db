@@ -115,7 +115,7 @@ export function PieChartDonutText({
             <CardContent className="flex-1 pb-0">
                 <ChartContainer
                     config={chartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
+                    className="mx-auto aspect-square max-h-[225px]"
                 >
                     <PieChart>
                         <ChartTooltip
@@ -166,14 +166,14 @@ export function PieChartDonutText({
                     </PieChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-3 pb-4 text-sm">
+            <CardFooter className="flex-col items-start gap-3 pb-0 text-sm">
                 <div className="flex items-start gap-2 leading-none font-medium">
                     Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
                 <div className="leading-none text-muted-foreground">
-                    5-color breakdown: items, fixed, usable, low stock, and
-                    out of stock.
+                    5-color breakdown: items, fixed, usable, low stock, and out
+                    of stock.
                 </div>
             </CardFooter>
         </Card>
