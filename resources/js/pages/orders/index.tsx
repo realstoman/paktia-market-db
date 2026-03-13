@@ -218,7 +218,7 @@ export default function OrdersPage({
                     </div>
                 </div>
 
-                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] p-4 shadow-none dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#16373b_0%,#102f33_45%,#0d2225_100%)]">
+                <section className="overflow-hidden rounded-3xl border border-neutral-900 bg-black p-4 shadow-none dark:border-neutral-800">
                     <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
                     <Card className="gap-3 overflow-hidden border-white/80 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
                         <CardHeader className="pb-0">
