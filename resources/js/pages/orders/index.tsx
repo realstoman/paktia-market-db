@@ -218,62 +218,62 @@ export default function OrdersPage({
                     </div>
                 </div>
 
-                <section className="overflow-hidden rounded-3xl border border-neutral-900 bg-black p-4 shadow-none dark:border-neutral-800">
+                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] p-4 shadow-none dark:border-neutral-800 dark:bg-none dark:bg-black">
                     <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
-                    <Card className="gap-3 overflow-hidden border-white/80 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
-                        <CardHeader className="pb-0">
-                            <CardTitle className="text-xl text-[#102F33] dark:text-white">
-                                Baba Restaurant
-                            </CardTitle>
-                            <CardDescription className="text-sm text-[#35565a] dark:text-neutral-300">
-                                {isAllTime
-                                    ? 'All time records for orders'
-                                    : `Order statistics for ${todayDate}`}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-1">
-                            <p className="text-2xl font-semibold text-[#102F33] dark:text-white">
-                                {formatNumber(orders.length)}
-                            </p>
-                            <p className="text-xs text-[#4c6a6e] dark:text-neutral-300">
-                                {isAllTime
-                                    ? `All time since ${restaurantStartedDate ?? '-'}`
-                                    : 'Total orders today'}
-                            </p>
-                        </CardContent>
-                    </Card>
+                        <Card className="gap-3 overflow-hidden border-white/80 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
+                            <CardHeader className="pb-0">
+                                <CardTitle className="text-xl text-[#102F33] dark:text-white">
+                                    Baba Restaurant
+                                </CardTitle>
+                                <CardDescription className="text-sm text-[#35565a] dark:text-neutral-300">
+                                    {isAllTime
+                                        ? 'All time records for orders'
+                                        : `Order statistics for ${todayDate}`}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                <p className="text-2xl font-semibold text-[#102F33] dark:text-white">
+                                    {formatNumber(orders.length)}
+                                </p>
+                                <p className="text-xs text-[#4c6a6e] dark:text-neutral-300">
+                                    {isAllTime
+                                        ? `All time since ${restaurantStartedDate ?? '-'}`
+                                        : 'Total orders today'}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
-                        {topRowStatusCards.map((card) => {
-                            return (
-                                <OrderStatusStatCard
-                                    key={card.key}
-                                    title={card.title}
-                                    value={formatNumber(stats[card.key])}
-                                    icon={card.icon}
-                                    className="md:col-span-6"
-                                    onDetailsClick={() =>
-                                        setSelectedStatus(card.key)
-                                    }
-                                />
-                            );
-                        })}
+                        <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
+                            {topRowStatusCards.map((card) => {
+                                return (
+                                    <OrderStatusStatCard
+                                        key={card.key}
+                                        title={card.title}
+                                        value={formatNumber(stats[card.key])}
+                                        icon={card.icon}
+                                        className="md:col-span-6"
+                                        onDetailsClick={() =>
+                                            setSelectedStatus(card.key)
+                                        }
+                                    />
+                                );
+                            })}
 
-                        {bottomRowStatusCards.map((card) => {
-                            return (
-                                <OrderStatusStatCard
-                                    key={card.key}
-                                    title={card.title}
-                                    value={formatNumber(stats[card.key])}
-                                    icon={card.icon}
-                                    className="md:col-span-4"
-                                    onDetailsClick={() =>
-                                        setSelectedStatus(card.key)
-                                    }
-                                />
-                            );
-                        })}
-                    </div>
+                            {bottomRowStatusCards.map((card) => {
+                                return (
+                                    <OrderStatusStatCard
+                                        key={card.key}
+                                        title={card.title}
+                                        value={formatNumber(stats[card.key])}
+                                        icon={card.icon}
+                                        className="md:col-span-4"
+                                        onDetailsClick={() =>
+                                            setSelectedStatus(card.key)
+                                        }
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 </section>
 
