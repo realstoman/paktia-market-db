@@ -218,23 +218,24 @@ export default function OrdersPage({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
-                    <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
+                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] p-4 shadow-none dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#16373b_0%,#102f33_45%,#0d2225_100%)]">
+                    <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
+                    <Card className="gap-3 overflow-hidden border-white/80 bg-[linear-gradient(135deg,#f1f7f6_0%,#e6f0ef_55%,#ffffff_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-[linear-gradient(135deg,#173a3f_0%,#102f33_52%,#0f2528_100%)]">
                         <CardHeader className="pb-0">
-                            <CardTitle className="text-xl">
+                            <CardTitle className="text-xl text-[#102F33] dark:text-white">
                                 Baba Restaurant
                             </CardTitle>
-                            <CardDescription className="text-sm">
+                            <CardDescription className="text-sm text-[#35565a] dark:text-neutral-300">
                                 {isAllTime
                                     ? 'All time records for orders'
                                     : `Order statistics for ${todayDate}`}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-1">
-                            <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+                            <p className="text-2xl font-semibold text-[#102F33] dark:text-white">
                                 {formatNumber(orders.length)}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-[#4c6a6e] dark:text-neutral-300">
                                 {isAllTime
                                     ? `All time since ${restaurantStartedDate ?? '-'}`
                                     : 'Total orders today'}
@@ -273,7 +274,8 @@ export default function OrdersPage({
                             );
                         })}
                     </div>
-                </div>
+                    </div>
+                </section>
 
                 <div className="rounded-lg border border-neutral-200 bg-white p-6 text-gray-900 shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <OrdersClient
