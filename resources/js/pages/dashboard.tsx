@@ -299,8 +299,8 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex h-full w-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border border-neutral-200/50 bg-white py-4 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                        <div className="flex flex-row items-start justify-between pb-2">
+                    <Card className="col-span-2 flex w-full min-w-0 flex-col self-start overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-0 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                        <div className="flex flex-row items-start justify-between pb-8">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -445,7 +445,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     </Card>
 
                     <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-10 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
