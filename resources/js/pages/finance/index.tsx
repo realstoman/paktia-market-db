@@ -22,10 +22,10 @@ import { Head, router } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
+    Banknote,
     BookOpenText,
     Building2,
     ChartNoAxesCombined,
-    CircleDollarSign,
     Coins,
     CreditCard,
     Package,
@@ -283,14 +283,14 @@ export default function FinancePage({
                             <div className="space-y-2">
                                 <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
                                     Financial control center for revenue,
-                                    payroll, expenses, stock value, and cash.
+                                    payroll, expenses, inventory, and cash.
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                    This dashboard is now the main page of the
-                                    finance section. It is designed around the
-                                    accounting foundation: chart of accounts,
-                                    ledger postings, payroll, advances, cash
-                                    movements, and inventory valuation.
+                                    This is the finance dashboard which is
+                                    designed around the accounting foundation:
+                                    chart of accounts, ledger postings, payroll,
+                                    advances, cash movements, and inventory
+                                    valuation.
                                 </p>
                             </div>
                         </div>
@@ -522,7 +522,7 @@ export default function FinancePage({
                         title="Sales"
                         value={formatAfn(dashboard.summary.sales)}
                         subtitle="Completed order revenue in selected period"
-                        icon={<CircleDollarSign className="h-5 w-5" />}
+                        icon={<Banknote className="h-5 w-5" />}
                     />
                     <SummaryCard
                         title="Expenses"
