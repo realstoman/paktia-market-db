@@ -24,7 +24,15 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { BranchTable, Order } from '@/types';
-import { Edit3, Eye, MoreHorizontal, Plus, Printer, Save, X } from 'lucide-react';
+import {
+    Edit3,
+    Eye,
+    MoreHorizontal,
+    Plus,
+    Printer,
+    Save,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const ORDER_STATUSES = [
@@ -37,8 +45,8 @@ const ORDER_STATUSES = [
 
 const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'crypto', label: 'Crypto' },
+    { value: 'card', label: 'Bank Transfer' },
+    { value: 'crypto', label: 'Credit Card' },
 ];
 
 interface OrderRowActionsProps {
@@ -139,7 +147,9 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         onClick={() => {
                             setStatus(order.status ?? 'pending');
-                            setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
+                            setPaymentMethod(
+                                order.payments?.[0]?.method ?? 'cash',
+                            );
                             setIsStatusOpen(true);
                         }}
                     >
@@ -149,7 +159,10 @@ export function OrderRowActions({
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <Dialog open={isAssignTableOpen} onOpenChange={setIsAssignTableOpen}>
+            <Dialog
+                open={isAssignTableOpen}
+                onOpenChange={setIsAssignTableOpen}
+            >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Assign Table Number</DialogTitle>
