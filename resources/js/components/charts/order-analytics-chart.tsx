@@ -73,7 +73,7 @@ export function OrderAnalyticsChart({
     );
 
     return (
-        <Card className="rounded-none border-none bg-white pt-0 shadow-none dark:bg-brand-bg-dark">
+        <Card className="flex h-full flex-1 flex-col rounded-none border-none bg-white pt-0 shadow-none dark:bg-brand-bg-dark">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
                 <div className="space-y-1">
                     <CardTitle className="text-lg font-semibold">
@@ -107,10 +107,10 @@ export function OrderAnalyticsChart({
                 </div>
             </CardHeader>
 
-            <CardContent className="pb-0">
+            <CardContent className="flex-1 pb-0">
                 <ChartContainer
                     config={chartConfig}
-                    className="h-[300px] w-full"
+                    className="h-full min-h-[300px] w-full"
                 >
                     <AreaChart
                         key={animationKey}

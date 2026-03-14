@@ -36,12 +36,12 @@ const chartConfig = {
 
 export function BarChartDefault() {
     return (
-        <Card className="border-none bg-white shadow-none dark:bg-brand-bg-dark">
+        <Card className="flex h-full flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
             <CardHeader>
                 <CardTitle>Restaurant Revenue</CardTitle>
                 <CardDescription>January - May 2026</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
                 <ChartContainer config={chartConfig}>
                     <BarChart accessibilityLayer data={chartData}>
                         <CartesianGrid vertical={false} />

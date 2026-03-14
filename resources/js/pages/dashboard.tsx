@@ -232,9 +232,9 @@ export default function Dashboard({ data }: DashboardProps) {
             <Head title="Dashboard" />
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {/* Statistics */}
-                <div className="grid auto-rows-min grid-cols-1 gap-3 md:grid-cols-4">
-                    <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-none dark:bg-neutral-900">
+                <div className="grid auto-rows-min items-stretch grid-cols-1 gap-3 md:grid-cols-4">
+                    <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
+                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-none dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -310,15 +310,15 @@ export default function Dashboard({ data }: DashboardProps) {
                                 </div>
                             </CardContent>
                         </Card>
-                        <div className="relative overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
+                        <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
                             <BarChartDefault />
                         </div>
                     </div>
                     {/* Order status overview */}
-                    <Card className="col-span-2 flex w-full min-w-0 flex-col self-start overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-0 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                    <Card className="col-span-2 flex h-full w-full min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-0 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-8">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
-                                <div className="space-y-1">
+                                <div className="space-y-3">
                                     <CardTitle className="text-lg font-semibold">
                                         Order Status Overview
                                     </CardTitle>
@@ -327,7 +327,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                         {formattedSelectedDate}
                                     </CardDescription>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-5 pt-4">
                                     <StatusCard
                                         title="Pending Orders"
                                         value={formatNumber(
@@ -374,7 +374,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     />
                                 </div>
                             </CardHeader>
-                            <div className="bottom-0 flex flex-1 flex-col items-end justify-between">
+                            <div className="bottom-0 flex flex-1 flex-col items-end justify-between gap-6">
                                 <div className="pt-2 pr-4 pb-4">
                                     <Field className="w-40">
                                         <InputGroup>
@@ -460,8 +460,8 @@ export default function Dashboard({ data }: DashboardProps) {
                         />
                     </Card>
 
-                    <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
+                    <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
+                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -472,7 +472,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </CardDescription>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4 pt-0">
+                            <CardContent className="space-y-5 pt-0">
                                 <StatusCard
                                     title="Total Items"
                                     value={formatNumber(
@@ -480,6 +480,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     )}
                                     color=""
                                     icon={<Package className="h-5 w-5" />}
+                                    description="All inventory records currently tracked across the system."
                                 />
                                 <StatusCard
                                     title="Usable Items"
@@ -488,6 +489,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     )}
                                     color=""
                                     icon={<Cherry className="h-4 w-4" />}
+                                    description="Items available for kitchen and branch operations."
                                 />
                                 <StatusCard
                                     title="Fixed Items"
@@ -496,6 +498,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     )}
                                     color=""
                                     icon={<TvMinimal className="h-4 w-4" />}
+                                    description="Equipment and fixed assets held in inventory."
                                 />
                                 <StatusCard
                                     title="Inventory Value"
@@ -504,19 +507,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                     )} ؋`}
                                     color=""
                                     icon={<TrendingUp className="h-4 w-4" />}
-                                />
-                                <StatusCard
-                                    title="Amount Owed Vendors"
-                                    value={`${formatPrice(
-                                        inventoryStats?.amountOwedToVendors ??
-                                            0,
-                                    )} ؋`}
-                                    color=""
-                                    icon={<TrendingDown className="h-4 w-4" />}
+                                    description="Current valuation based on quantity multiplied by unit price."
                                 />
                             </CardContent>
                         </Card>
-                        <div className="relative overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
+                        <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
                             <PieChartDonutText
                                 total={inventoryStats?.totalItems ?? 0}
                                 totalFixedItems={
