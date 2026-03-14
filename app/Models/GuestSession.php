@@ -31,4 +31,9 @@ class GuestSession extends Model
                     ->orWhere('expires_at', '>', now());
             });
     }
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
 }
