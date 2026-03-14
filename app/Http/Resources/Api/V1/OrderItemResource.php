@@ -9,6 +9,13 @@ class OrderItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $price = (float) $this->price;
+        $quantity = (int) $this->quantity;
+        $computedLineTotal = $price * $quantity;
+        $storedLineTotal = $this->line_total !== null
+            ? (float) $this->line_total
+            : null;
+
         return [
             'id' => $this->id,
             'product_id' => $this->product_id,
@@ -19,9 +26,11 @@ class OrderItemResource extends JsonResource
             'product_size_name' => $this->product_size_name_snapshot ?? $this->productSize?->name,
             'kitchen_id' => $this->kitchen_id,
             'kitchen_name' => $this->kitchen?->name,
-            'quantity' => (int) $this->quantity,
-            'price' => (float) $this->price,
-            'line_total' => (float) ($this->line_total ?? ($this->price * $this->quantity)),
+            'quantity' => $quantity,
+            'price' => $price,
+            'line_total' => $storedLineTotal === null || ($storedLineTotal === 0.0 && $computedLineTotal > 0)
+                ? $computedLineTotal
+                : $storedLineTotal,
             'note' => $this->note,
         ];
     }
