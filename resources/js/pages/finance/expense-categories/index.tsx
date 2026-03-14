@@ -175,7 +175,7 @@ export default function ExpenseCategoriesPage({
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Slug</TableHead>
-                                    <TableHead>Mapped Account</TableHead>
+                                    <TableHead>Ledger Account</TableHead>
                                     <TableHead>Sort</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Used In Expenses</TableHead>
@@ -304,13 +304,13 @@ export default function ExpenseCategoriesPage({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Expense Account</Label>
+                                <Label>Ledger Account</Label>
                                 <SearchableDropdown
                                     value={form.expense_account_id}
                                     options={[
                                         {
                                             value: '',
-                                            label: 'No account mapping',
+                                            label: 'No ledger account',
                                         },
                                         ...accountOptions,
                                     ]}
@@ -320,9 +320,9 @@ export default function ExpenseCategoriesPage({
                                             expense_account_id: value,
                                         }))
                                     }
-                                    placeholder="Select expense account"
-                                    searchPlaceholder="Search finance account..."
-                                    emptyText="No expense account found."
+                                    placeholder="Select ledger account"
+                                    searchPlaceholder="Search ledger account..."
+                                    emptyText="No ledger account found."
                                 />
                             </div>
 
