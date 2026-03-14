@@ -212,6 +212,52 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         $dashboardNetProfit = ($dashboardGrossProfit ?? $dashboardSalesTotal) - $dashboardExpensesTotal;
         $dashboardCashPosition = $dashboardCashSales - $dashboardCashExpenses + $dashboardCashMovementsNet;
+        $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
+        $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
+
+        $monthlySales = Order::query()
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as bucket, COALESCE(SUM(total_amount), 0) as total')
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket');
+
+        $monthlyExpenses = Expense::query()
+            ->whereBetween('expense_date', [
+                $monthlyStartDate->toDateString(),
+                $monthlyEndDate->toDateString(),
+            ])
+            ->selectRaw('DATE_FORMAT(expense_date, "%Y-%m") as bucket, COALESCE(SUM(amount), 0) as total')
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket');
+
+        $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
+            ? DB::table('inventory_transactions')
+                ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
+                ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as bucket, COALESCE(SUM(total_cost), 0) as total')
+                ->groupBy('bucket')
+                ->pluck('total', 'bucket')
+            : collect();
+
+        $monthlyNetProfit = [];
+
+        foreach (range(0, 4) as $offset) {
+            $month = $monthlyStartDate->copy()->addMonths($offset);
+            $bucket = $month->format('Y-m');
+            $sales = (float) ($monthlySales[$bucket] ?? 0);
+            $expenses = (float) ($monthlyExpenses[$bucket] ?? 0);
+            $cogs = $monthlyCogs->isNotEmpty()
+                ? (float) ($monthlyCogs[$bucket] ?? 0)
+                : null;
+            $grossProfit = $cogs === null ? $sales : $sales - $cogs;
+
+            $monthlyNetProfit[] = [
+                'month' => $month->format('M'),
+                'label' => $month->format('F Y'),
+                'netProfit' => $grossProfit - $expenses,
+            ];
+        }
 
         return Inertia::render('dashboard', [
             'data' => [
@@ -234,6 +280,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'netProfit' => (float) $dashboardNetProfit,
                     'expenses' => (float) $dashboardExpensesTotal,
                     'cashPosition' => (float) $dashboardCashPosition,
+                    'monthlyNetProfit' => $monthlyNetProfit,
                     'notes' => [
                         'netProfit' => $dashboardGrossProfit === null
                             ? 'Net profit = sales - expenses until inventory cost postings are active.'

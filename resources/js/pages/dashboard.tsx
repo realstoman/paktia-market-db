@@ -155,6 +155,11 @@ interface DashboardProps {
             netProfit: number;
             expenses: number;
             cashPosition: number;
+            monthlyNetProfit: Array<{
+                month: string;
+                label: string;
+                netProfit: number;
+            }>;
             notes: {
                 netProfit: string;
                 expenses: string;
@@ -254,7 +259,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Net Profit
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="mt-1 flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
                                             {formatPrice(
                                                 financeStats?.netProfit ?? 0,
@@ -274,7 +279,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Expenses
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="mt-1 flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
                                             {formatPrice(
                                                 financeStats?.expenses ?? 0,
@@ -294,7 +299,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Cash Position
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="mt-1 flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
                                             {formatPrice(
                                                 financeStats?.cashPosition ??
@@ -311,7 +316,9 @@ export default function Dashboard({ data }: DashboardProps) {
                             </CardContent>
                         </Card>
                         <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
-                            <BarChartDefault />
+                            <BarChartDefault
+                                data={financeStats?.monthlyNetProfit ?? []}
+                            />
                         </div>
                     </div>
                     {/* Order status overview */}
