@@ -70,11 +70,9 @@ const RANGE_OPTIONS = [
 ] as const;
 
 const PAYMENT_METHODS = [
-    'Cash',
-    'Bank Transfer',
-    'Credit Card',
-    'Mobile Money',
-    'Other',
+    { value: 'cash', label: 'Cash' },
+    { value: 'card', label: 'Card' },
+    { value: 'crypto', label: 'Crypto' },
 ];
 
 const PIE_COLORS = [
@@ -405,10 +403,10 @@ export default function FinancePage({
                                         </SelectItem>
                                         {PAYMENT_METHODS.map((method) => (
                                             <SelectItem
-                                                key={method}
-                                                value={method}
+                                                key={method.value}
+                                                value={method.value}
                                             >
-                                                {method}
+                                                {method.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -657,7 +655,9 @@ export default function FinancePage({
                         <CardHeader>
                             <CardTitle>Payment Breakdown</CardTitle>
                             <CardDescription>
-                                Collected payment volume by method.
+                                Collected payment volume by recorded payment
+                                method. Orders without payment rows are shown as
+                                unassigned.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">

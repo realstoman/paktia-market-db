@@ -209,6 +209,7 @@ class FinanceController extends Controller
                 ->join('orders', 'orders.id', '=', 'payments.order_id')
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->select('payments.method')
                 ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
@@ -221,6 +222,20 @@ class FinanceController extends Controller
                 ])
                 ->values()
             : collect();
+
+        $unassignedPaymentAmount = Order::query()
+            ->where('orders.status', OrderStatus::COMPLETED->value)
+            ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->doesntHave('payments')
+            ->sum('paid_amount');
+
+        if ($unassignedPaymentAmount > 0) {
+            $paymentBreakdown->push([
+                'method' => 'Unassigned',
+                'amount' => (float) $unassignedPaymentAmount,
+            ]);
+        }
 
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')
