@@ -68,7 +68,13 @@ const RANGE_OPTIONS = [
     { value: 'custom', label: 'Custom' },
 ] as const;
 
-const PAYMENT_METHODS = ['cash', 'card', 'crypto'];
+const PAYMENT_METHODS = [
+    'Cash',
+    'Bank Transfer',
+    'Credit Card',
+    'Mobile Money',
+    'Other',
+];
 
 const PIE_COLORS = [
     '#14532d',
