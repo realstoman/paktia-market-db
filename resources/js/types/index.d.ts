@@ -144,6 +144,30 @@ export interface Permission {
     [key: string]: unknown;
 }
 
+export interface FinanceAccount {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+    status?: string;
+    [key: string]: unknown;
+}
+
+export interface ExpenseCategory {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    expense_account_id?: number | null;
+    expense_account?: FinanceAccount | null;
+    expenses_count?: number;
+    is_active?: boolean;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Branch {
     id: number;
     name: string;

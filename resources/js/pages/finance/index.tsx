@@ -19,7 +19,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -467,6 +467,11 @@ export default function FinancePage({
                         </div>
 
                         <div className="flex flex-wrap gap-3">
+                            <Button variant="outline" asChild>
+                                <Link href="/finance/expense-categories">
+                                    Manage Expense Categories
+                                </Link>
+                            </Button>
                             <Button
                                 onClick={() =>
                                     submitFilters({

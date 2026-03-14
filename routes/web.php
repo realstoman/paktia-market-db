@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
@@ -269,6 +270,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
     Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+    Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
+    Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
+    Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
+    Route::delete('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('finance.expense-categories.destroy');
 
     // Employees
     Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
