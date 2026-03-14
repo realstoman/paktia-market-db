@@ -58,8 +58,8 @@ const ORDER_STATUSES = [
 
 const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'crypto', label: 'Crypto' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
 ];
 
 const emptyItem = (): OrderItemDraft => ({

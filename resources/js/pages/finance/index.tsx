@@ -71,8 +71,8 @@ const RANGE_OPTIONS = [
 
 const PAYMENT_METHODS = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'crypto', label: 'Crypto' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
 ];
 
 const PIE_COLORS = [
