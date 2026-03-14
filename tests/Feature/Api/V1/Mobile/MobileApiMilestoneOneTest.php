@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\Branch;
+use App\Models\Cart;
 use App\Models\Client;
 use App\Models\Country;
 use App\Models\GuestSession;
 use App\Models\Kitchen;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
@@ -221,4 +223,131 @@ test('firebase sync merges guest cart into the client cart', function () {
 
     expect(Client::where('firebase_uid', 'merge-user-001')->exists())->toBeTrue();
     expect($guestSession->fresh()->merged_at)->not->toBeNull();
+});
+
+test('authenticated client can checkout a cart into a mobile order', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $client = Client::create([
+        'firebase_uid' => 'checkout-user-001',
+        'name' => 'Checkout User',
+        'email' => 'checkout@example.com',
+        'phone' => '+93700999888',
+        'is_active' => true,
+    ]);
+
+    $this->postJson('/api/v1/mobile/cart/items', [
+        'product_id' => $product->id,
+        'product_size_id' => $small->id,
+        'quantity' => 2,
+        'note' => 'Less spicy',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:checkout-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.totals.total', 1300);
+
+    $response = $this->postJson('/api/v1/mobile/checkout', [
+        'branch_id' => $branch->id,
+        'order_type' => 'takeaway',
+        'customer_note' => 'Please call my name',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:checkout-user-001',
+    ]))->assertCreated()
+        ->assertJsonPath('data.client_id', $client->id)
+        ->assertJsonPath('data.source', 'mobile_app')
+        ->assertJsonPath('data.order_type', 'takeaway')
+        ->assertJsonPath('data.customer_name', 'Checkout User')
+        ->assertJsonPath('data.customer_phone', '+93700999888')
+        ->assertJsonPath('data.customer_note', 'Please call my name')
+        ->assertJsonPath('data.items_count', 1)
+        ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.items.0.product_size_name', 'Small')
+        ->assertJsonPath('data.items.0.line_total', 1300)
+        ->assertJsonPath('data.items.0.note', 'Less spicy');
+
+    $orderId = $response->json('data.id');
+
+    expect(Order::whereKey($orderId)->where('client_id', $client->id)->where('source', 'mobile_app')->exists())->toBeTrue();
+    expect(Cart::where('client_id', $client->id)->where('status', 'checked_out')->exists())->toBeTrue();
+});
+
+test('authenticated client can view only their own order history', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $client = Client::create([
+        'firebase_uid' => 'history-user-001',
+        'name' => 'History User',
+        'email' => 'history@example.com',
+        'is_active' => true,
+    ]);
+
+    $otherClient = Client::create([
+        'firebase_uid' => 'history-user-002',
+        'name' => 'Other User',
+        'email' => 'other@example.com',
+        'is_active' => true,
+    ]);
+
+    $ownOrder = Order::create([
+        'branch_id' => $branch->id,
+        'client_id' => $client->id,
+        'order_type' => 'takeaway',
+        'source' => 'mobile_app',
+        'customer_name' => $client->name,
+        'base_currency' => 'AFN',
+        'total_amount' => 650,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'sub_total_amount' => 650,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'pending',
+    ]);
+
+    $ownOrder->items()->create([
+        'product_id' => $product->id,
+        'product_name_snapshot' => $product->name,
+        'product_size_id' => $small->id,
+        'product_size_name_snapshot' => $small->name,
+        'kitchen_id' => $product->kitchen_id,
+        'quantity' => 1,
+        'price' => 650,
+        'line_total' => 650,
+    ]);
+
+    Order::create([
+        'branch_id' => $branch->id,
+        'client_id' => $otherClient->id,
+        'order_type' => 'takeaway',
+        'source' => 'mobile_app',
+        'customer_name' => $otherClient->name,
+        'base_currency' => 'AFN',
+        'total_amount' => 650,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'sub_total_amount' => 650,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'pending',
+    ]);
+
+    $this->getJson('/api/v1/mobile/me/orders', mobileHeaders([
+        'Authorization' => 'Bearer stub:history-user-001',
+    ]))->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $ownOrder->id)
+        ->assertJsonPath('data.0.client_id', $client->id)
+        ->assertJsonPath('data.0.source', 'mobile_app');
+
+    $this->getJson("/api/v1/mobile/me/orders/{$ownOrder->id}", mobileHeaders([
+        'Authorization' => 'Bearer stub:history-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.id', $ownOrder->id)
+        ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.items.0.product_size_name', 'Small')
+        ->assertJsonPath('data.items.0.line_total', 650);
 });
