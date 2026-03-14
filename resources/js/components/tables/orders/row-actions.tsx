@@ -52,6 +52,7 @@ const PAYMENT_METHOD_OPTIONS = [
 interface OrderRowActionsProps {
     order: Order;
     branchTables: BranchTable[];
+    onEdit: (order: Order) => void;
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
@@ -66,6 +67,7 @@ interface OrderRowActionsProps {
 export function OrderRowActions({
     order,
     branchTables,
+    onEdit,
     onView,
     onAddItems,
     onAssignTable,
@@ -118,6 +120,10 @@ export function OrderRowActions({
                     <DropdownMenuItem onClick={() => onView(order)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(order)}>
+                        <Edit3 className="mr-2 h-4 w-4" />
+                        Edit Order
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onAddItems(order)}>
                         <Plus className="mr-2 h-4 w-4" />

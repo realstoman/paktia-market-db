@@ -97,9 +97,43 @@ class OrderService
             ]);
 
             $this->orderItemService->createManyForOrder($order, $data['items']);
+            $this->syncOrderAmounts($order, $total);
 
             $this->syncOrderPayment(
-                order: $order,
+                order: $order->fresh(),
+                paymentMethod: $data['payment_method'],
+            );
+        });
+    }
+
+    public function updateOrder(Order $order, array $data): void
+    {
+        $this->validateOrderConstraints($data);
+
+        DB::transaction(function () use ($order, $data) {
+            $total = $this->orderItemService->calculateTotal($data['items']);
+
+            $order->update([
+                'branch_id' => $data['branch_id'],
+                'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
+                    ? ($data['branch_table_id'] ?? null)
+                    : null,
+                'order_type' => $data['order_type'],
+                'customer_name' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['customer_name'] ?? ''))
+                    : null,
+                'customer_phone' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['customer_phone'] ?? ''))
+                    : null,
+                'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['delivery_address'] ?? ''))
+                    : null,
+            ]);
+
+            $this->orderItemService->replaceForOrder($order, $data['items']);
+            $this->syncOrderAmounts($order, $total);
+            $this->syncOrderPayment(
+                order: $order->fresh(),
                 paymentMethod: $data['payment_method'],
             );
         });
@@ -150,10 +184,17 @@ class OrderService
         DB::transaction(function () use ($order, $items) {
             $payload = $this->orderItemService->createManyForOrder($order, $items);
             $delta = $this->orderItemService->calculateTotalFromPayload($payload);
+            $subTotal = (float) ($order->sub_total_amount ?? $order->total_amount) + $delta;
 
-            $order->update([
-                'total_amount' => (int) $order->total_amount + $delta,
-            ]);
+            $this->syncOrderAmounts($order, $subTotal);
+
+            $paymentMethod = $order->payments()->orderBy('id')->value('method');
+            if ($paymentMethod) {
+                $this->syncOrderPayment(
+                    order: $order->fresh(),
+                    paymentMethod: $paymentMethod,
+                );
+            }
         });
     }
 
@@ -234,5 +275,21 @@ class OrderService
         }
 
         $order->payments()->create($payload);
+    }
+
+    private function syncOrderAmounts(Order $order, float|int $subTotal): void
+    {
+        $discount = (float) ($order->discount_amount ?? 0);
+        $tax = (float) ($order->tax_amount ?? 0);
+        $serviceCharge = (float) ($order->service_charge_amount ?? 0);
+        $total = max(0, $subTotal - $discount + $tax + $serviceCharge);
+
+        $order->update([
+            'sub_total_amount' => $subTotal,
+            'total_amount' => $total,
+            'paid_amount' => $total,
+            'change_amount' => 0,
+            'refund_amount' => 0,
+        ]);
     }
 }

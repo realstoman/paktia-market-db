@@ -30,6 +30,7 @@ const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
 };
 
 interface BuildOrderColumnsOptions {
+    onEdit: (order: Order) => void;
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
@@ -43,6 +44,7 @@ interface BuildOrderColumnsOptions {
 }
 
 export const buildColumns = ({
+    onEdit,
     onView,
     onAddItems,
     onAssignTable,
@@ -160,6 +162,7 @@ export const buildColumns = ({
             <OrderRowActions
                 order={row.original}
                 branchTables={branchTables}
+                onEdit={onEdit}
                 onView={onView}
                 onAddItems={onAddItems}
                 onAssignTable={onAssignTable}

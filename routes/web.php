@@ -239,7 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
     Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
     Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
-    Route::resource('orders', OrderController::class)->only(['index', 'store']);
+    Route::resource('orders', OrderController::class)->only(['index', 'store', 'update']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
     Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');

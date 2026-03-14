@@ -80,6 +80,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAddItemsOpen, setIsAddItemsOpen] = useState(false);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+    const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [branchId, setBranchId] = useState('');
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
@@ -105,6 +106,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [statusFilter, setStatusFilter] = useState('all');
 
     const resetCreateForm = () => {
+        setEditingOrder(null);
         setBranchId('');
         setBranchTableId('');
         setOrderType('dine_in');
@@ -254,40 +256,52 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
         setIsSubmitting(true);
 
-        router.post(
-            '/orders',
-            {
-                branch_id: Number(branchId),
-                order_type: orderType,
-                branch_table_id:
-                    orderType === 'dine_in' ? Number(branchTableId) : null,
-                payment_method: paymentMethod,
-                customer_name:
-                    orderType === 'delivery' ? customerName.trim() : null,
-                customer_phone:
-                    orderType === 'delivery' ? customerPhone.trim() : null,
-                delivery_address:
-                    orderType === 'delivery' ? deliveryAddress.trim() : null,
-                items: payloadItems,
+        const payload = {
+            branch_id: Number(branchId),
+            order_type: orderType,
+            branch_table_id:
+                orderType === 'dine_in' ? Number(branchTableId) : null,
+            payment_method: paymentMethod,
+            customer_name:
+                orderType === 'delivery' ? customerName.trim() : null,
+            customer_phone:
+                orderType === 'delivery' ? customerPhone.trim() : null,
+            delivery_address:
+                orderType === 'delivery' ? deliveryAddress.trim() : null,
+            items: payloadItems,
+        };
+
+        const url = editingOrder ? `/orders/${editingOrder.id}` : '/orders';
+        const options = {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(
+                    editingOrder
+                        ? 'Order updated successfully.'
+                        : 'Order created successfully.',
+                );
+                setIsCreateOpen(false);
+                resetCreateForm();
             },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Order created successfully.');
-                    setIsCreateOpen(false);
-                    resetCreateForm();
-                },
-                onError: (errors) => {
-                    setCreateErrors(errors);
-                    toast.error(
-                        Object.values(errors)[0] || 'Failed to create order.',
-                    );
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+            onError: (errors) => {
+                setCreateErrors(errors);
+                toast.error(
+                    Object.values(errors)[0] ||
+                        `Failed to ${editingOrder ? 'update' : 'create'} order.`,
+                );
             },
-        );
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        };
+
+        if (editingOrder) {
+            router.patch(url, payload, options);
+
+            return;
+        }
+
+        router.post(url, payload, options);
     };
 
     const handleStatusUpdate = (
@@ -328,6 +342,27 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setSelectedOrder(order);
         resetAddItemsForm();
         setIsAddItemsOpen(true);
+    };
+
+    const openEdit = (order: Order) => {
+        setEditingOrder(order);
+        setBranchId(String(order.branch_id));
+        setBranchTableId(order.branch_table_id ? String(order.branch_table_id) : '');
+        setOrderType(order.order_type);
+        setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
+        setCustomerName(order.customer_name ?? '');
+        setCustomerPhone(order.customer_phone ?? '');
+        setDeliveryAddress(order.delivery_address ?? '');
+        setItems(
+            (order.items ?? []).map((item) => ({
+                productId: String(item.product_id),
+                sizeId: item.product_size_id ? String(item.product_size_id) : '',
+                quantity: String(item.quantity),
+                price: String(item.price ?? ''),
+            })),
+        );
+        setCreateErrors({});
+        setIsCreateOpen(true);
     };
 
     const openReceiptPreview = (order: Order) => {
@@ -379,6 +414,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     };
 
     const tableColumns = buildColumns({
+        onEdit: openEdit,
         onView: openDetails,
         onAddItems: openAddItems,
         onUpdateStatus: handleStatusUpdate,
@@ -574,7 +610,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     title={`Orders: ${formatNumber(filteredData.length)}`}
                     description="Track and manage orders (DESC order by ID)"
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                <Button
+                    onClick={() => {
+                        resetCreateForm();
+                        setIsCreateOpen(true);
+                    }}
+                    className="gap-2"
+                >
                     <Plus className="h-4 w-4" />
                     Create Order
                 </Button>
@@ -608,11 +650,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ClipboardList className="mr-2 h-5 w-5" />
-                            Create Order
+                            {editingOrder
+                                ? `Edit Order #${editingOrder.id}`
+                                : 'Create Order'}
                         </DialogTitle>
                         <DialogDescription>
-                            Create a new order. Items are auto-routed to their
-                            product kitchen.
+                            {editingOrder
+                                ? 'Update order details, remove items, or change values.'
+                                : 'Create a new order. Items are auto-routed to their product kitchen.'}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -1118,7 +1163,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Order
+                            {editingOrder ? 'Update Order' : 'Create Order'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
