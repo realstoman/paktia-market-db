@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     Card,
     CardContent,
@@ -418,31 +419,20 @@ export default function FinancePage({
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Expense Category
                                 </p>
-                                <Select
-                                    value={category || '__all__'}
-                                    onValueChange={(value) =>
-                                        setCategory(
-                                            value === '__all__' ? '' : value,
-                                        )
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="All categories" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            All categories
-                                        </SelectItem>
-                                        {expenseCategories.map((expense) => (
-                                            <SelectItem
-                                                key={expense.value}
-                                                value={expense.value}
-                                            >
-                                                {expense.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <SearchableDropdown
+                                    value={category}
+                                    options={[
+                                        {
+                                            value: '',
+                                            label: 'All categories',
+                                        },
+                                        ...expenseCategories,
+                                    ]}
+                                    onValueChange={setCategory}
+                                    placeholder="All categories"
+                                    searchPlaceholder="Search expense category..."
+                                    emptyText="No expense category found."
+                                />
                             </div>
 
                             <div className="space-y-2">
