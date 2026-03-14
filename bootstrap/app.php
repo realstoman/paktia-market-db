@@ -1,7 +1,13 @@
 <?php
 
+use App\Http\Middleware\AuthenticateFirebaseUser;
+use App\Http\Middleware\EnsureAppAuthenticated;
+use App\Http\Middleware\EnsureCartActor;
+use App\Http\Middleware\EnsureClientAuthenticated;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResolveFirebaseUser;
+use App\Http\Middleware\ResolveGuestSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        $middleware->alias([
+            'app.auth' => EnsureAppAuthenticated::class,
+            'resolve.guest' => ResolveGuestSession::class,
+            'resolve.firebase' => ResolveFirebaseUser::class,
+            'firebase.auth' => AuthenticateFirebaseUser::class,
+            'cart.actor' => EnsureCartActor::class,
+            'client.auth' => EnsureClientAuthenticated::class,
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,

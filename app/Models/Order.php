@@ -12,11 +12,13 @@ class Order extends Model
         'branch_id',
         'branch_table_id',
         'user_id',
+        'client_id',
         'order_type',
         'source',
         'customer_name',
         'customer_phone',
         'delivery_address',
+        'customer_note',
         'base_currency',
         'exchange_rate',
         'sub_total_amount',
@@ -56,6 +58,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 
     public function branchTable()

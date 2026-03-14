@@ -104,6 +104,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [userFilter, setUserFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [sourceFilter, setSourceFilter] = useState('all');
 
     const resetCreateForm = () => {
         setEditingOrder(null);
@@ -315,7 +316,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 status,
                 payment_method:
                     status === 'completed'
-                        ? nextPaymentMethod ?? order.payments?.[0]?.method ?? 'cash'
+                        ? (nextPaymentMethod ??
+                          order.payments?.[0]?.method ??
+                          'cash')
                         : null,
             },
             {
@@ -347,7 +350,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const openEdit = (order: Order) => {
         setEditingOrder(order);
         setBranchId(String(order.branch_id));
-        setBranchTableId(order.branch_table_id ? String(order.branch_table_id) : '');
+        setBranchTableId(
+            order.branch_table_id ? String(order.branch_table_id) : '',
+        );
         setOrderType(order.order_type);
         setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
         setCustomerName(order.customer_name ?? '');
@@ -356,7 +361,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setItems(
             (order.items ?? []).map((item) => ({
                 productId: String(item.product_id),
-                sizeId: item.product_size_id ? String(item.product_size_id) : '',
+                sizeId: item.product_size_id
+                    ? String(item.product_size_id)
+                    : '',
                 quantity: String(item.quantity),
                 price: String(item.price ?? ''),
             })),
@@ -502,6 +509,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 return false;
             }
 
+            if (
+                sourceFilter !== 'all' &&
+                (order.source ?? 'pos') !== sourceFilter
+            ) {
+                return false;
+            }
+
             if (kitchenFilter !== 'all') {
                 const hasKitchen = (order.items ?? []).some(
                     (item) => String(item.kitchen_id ?? '') === kitchenFilter,
@@ -513,7 +527,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
             return true;
         });
-    }, [branchFilter, data, kitchenFilter, statusFilter, userFilter]);
+    }, [
+        branchFilter,
+        data,
+        kitchenFilter,
+        sourceFilter,
+        statusFilter,
+        userFilter,
+    ]);
 
     const branchFilterOptions = useMemo(
         () => [
@@ -562,6 +583,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         [],
     );
 
+    const sourceFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: 'All Sources' },
+            { value: 'pos', label: 'POS' },
+            { value: 'mobile_app', label: 'Mobile' },
+        ],
+        [],
+    );
+
     const tableToolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
@@ -600,6 +630,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 emptyText="No statuses found."
                 className="w-[170px]"
             />
+            <SearchableDropdown
+                value={sourceFilter}
+                options={sourceFilterOptions}
+                onValueChange={setSourceFilter}
+                placeholder="Source"
+                searchPlaceholder="Search sources..."
+                emptyText="No sources found."
+                className="w-[170px]"
+            />
         </div>
     );
 
@@ -628,6 +667,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'branch.name',
                     'branch_table.table_number',
                     'user.name',
+                    'client.name',
+                    'customer_name',
+                    'customer_phone',
+                    'source',
                     'status',
                 ]}
                 columns={tableColumns}
@@ -740,9 +783,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError
-                                message={createErrors.payment_method}
-                            />
+                            <InputError message={createErrors.payment_method} />
                         </div>
                         {orderType === 'dine_in' ? (
                             <div className="grid gap-2 sm:col-span-2">
@@ -791,9 +832,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     <Input
                                         value={customerPhone}
                                         onChange={(event) =>
-                                            setCustomerPhone(
-                                                event.target.value,
-                                            )
+                                            setCustomerPhone(event.target.value)
                                         }
                                     />
                                     <InputError
@@ -1048,7 +1087,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     <Label>Size</Label>
                                                     <Select
                                                         value={item.sizeId}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleSizeChange(
                                                                 setItems,
                                                                 items,
@@ -1061,16 +1102,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             <SelectValue placeholder="Select size" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sizes.map((size) => (
-                                                                <SelectItem
-                                                                    key={size.id}
-                                                                    value={String(
-                                                                        size.id,
-                                                                    )}
-                                                                >
-                                                                    {size.name}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {sizes.map(
+                                                                (size) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            size.id
+                                                                        }
+                                                                        value={String(
+                                                                            size.id,
+                                                                        )}
+                                                                    >
+                                                                        {
+                                                                            size.name
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -1187,7 +1234,27 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     </DialogHeader>
                     {selectedOrder ? (
                         <div className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-5">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Badge
+                                    className={
+                                        (selectedOrder.source ?? 'pos') ===
+                                        'mobile_app'
+                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+                                            : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
+                                    }
+                                >
+                                    {(selectedOrder.source ?? 'pos') ===
+                                    'mobile_app'
+                                        ? 'Mobile'
+                                        : 'POS'}
+                                </Badge>
+                                {selectedOrder.client?.name ? (
+                                    <Badge variant="secondary">
+                                        Client: {selectedOrder.client.name}
+                                    </Badge>
+                                ) : null}
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-6">
                                 <div>
                                     <p className="text-xs text-muted-foreground">
                                         Branch
@@ -1217,6 +1284,16 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
+                                        Client
+                                    </p>
+                                    <p className="font-medium">
+                                        {selectedOrder.client?.name ??
+                                            selectedOrder.customer_name ??
+                                            '-'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
                                         Total
                                     </p>
                                     <p className="font-medium">
@@ -1236,6 +1313,39 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     </p>
                                 </div>
                             </div>
+
+                            {(selectedOrder.client?.email ||
+                                selectedOrder.client?.phone ||
+                                selectedOrder.customer_note) && (
+                                <div className="grid gap-4 rounded-md border border-neutral-200/70 p-4 sm:grid-cols-3 dark:border-neutral-800">
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Client Email
+                                        </p>
+                                        <p className="font-medium">
+                                            {selectedOrder.client?.email ?? '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Client Phone
+                                        </p>
+                                        <p className="font-medium">
+                                            {selectedOrder.client?.phone ??
+                                                selectedOrder.customer_phone ??
+                                                '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Customer Note
+                                        </p>
+                                        <p className="font-medium">
+                                            {selectedOrder.customer_note ?? '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex justify-end">
                                 <Button
@@ -1268,8 +1378,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             Product
                                                         </p>
                                                         <p className="font-medium">
-                                                            {item.product
-                                                                ?.name ?? '-'}
+                                                            {item.product_name ??
+                                                                item.product_name_snapshot ??
+                                                                item.product
+                                                                    ?.name ??
+                                                                '-'}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -1290,8 +1403,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             Size
                                                         </p>
                                                         <p className="font-medium">
-                                                            {item.product_size
-                                                                ?.name ?? '-'}
+                                                            {item.product_size_name ??
+                                                                item.product_size_name_snapshot ??
+                                                                item
+                                                                    .product_size
+                                                                    ?.name ??
+                                                                '-'}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -1329,7 +1446,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     Product
                                                 </p>
                                                 <p className="font-medium">
-                                                    {item.product?.name ?? '-'}
+                                                    {item.product_name ??
+                                                        item.product_name_snapshot ??
+                                                        item.product?.name ??
+                                                        '-'}
                                                 </p>
                                             </div>
                                             <div>
@@ -1348,7 +1468,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     Size
                                                 </p>
                                                 <p className="font-medium">
-                                                    {item.product_size?.name ??
+                                                    {item.product_size_name ??
+                                                        item.product_size_name_snapshot ??
+                                                        item.product_size
+                                                            ?.name ??
                                                         '-'}
                                                 </p>
                                             </div>

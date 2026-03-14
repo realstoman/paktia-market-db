@@ -42,4 +42,9 @@ class Product extends Model
             ->withTimestamps()
             ->orderBy('product_sizes.id');
     }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

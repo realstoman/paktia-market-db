@@ -19,3 +19,7 @@ Route::get('products/types/{type}', [ProductController::class, 'showType'])->nam
 Route::get('products/types/{type}/products', [ProductController::class, 'productsByType'])->name('products.types.products');
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+
+Route::prefix('mobile')
+    ->name('mobile.')
+    ->group(base_path('routes/api/v1/mobile.php'));
