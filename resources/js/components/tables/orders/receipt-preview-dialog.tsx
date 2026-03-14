@@ -86,7 +86,7 @@ export function ReceiptPreviewDialog({
                 const lineTotal = qty * price;
                 return `
                     <tr>
-                        <td>${escapeHtml(item.product?.name ?? '-')}</td>
+                        <td>${escapeHtml(item.product_name ?? item.product_name_snapshot ?? item.product?.name ?? '-')}</td>
                         <td style="text-align:center">${qty}</td>
                         <td style="text-align:right">${escapeHtml(formatAfn(price))}</td>
                         <td style="text-align:right">${escapeHtml(formatAfn(lineTotal))}</td>
@@ -308,7 +308,9 @@ export function ReceiptPreviewDialog({
                                                     className="grid grid-cols-[1fr_auto_auto] gap-2"
                                                 >
                                                     <p className="truncate">
-                                                        {item.product?.name ??
+                                                        {item.product_name ??
+                                                            item.product_name_snapshot ??
+                                                            item.product?.name ??
                                                             '-'}
                                                     </p>
                                                     <p>x{qty}</p>
