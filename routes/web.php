@@ -218,26 +218,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $monthlySales = Order::query()
             ->where('status', 'completed')
             ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as bucket, COALESCE(SUM(total_amount), 0) as total')
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket');
+            ->get(['created_at', 'total_amount'])
+            ->groupBy(fn (Order $order) => $order->created_at->format('Y-m'))
+            ->map(fn ($orders) => (float) $orders->sum('total_amount'));
 
         $monthlyExpenses = Expense::query()
             ->whereBetween('expense_date', [
                 $monthlyStartDate->toDateString(),
                 $monthlyEndDate->toDateString(),
             ])
-            ->selectRaw('DATE_FORMAT(expense_date, "%Y-%m") as bucket, COALESCE(SUM(amount), 0) as total')
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket');
+            ->get(['expense_date', 'amount'])
+            ->groupBy(fn (Expense $expense) => Carbon::parse($expense->expense_date)->format('Y-m'))
+            ->map(fn ($expenses) => (float) $expenses->sum('amount'));
 
         $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? DB::table('inventory_transactions')
                 ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
                 ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
-                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as bucket, COALESCE(SUM(total_cost), 0) as total')
-                ->groupBy('bucket')
-                ->pluck('total', 'bucket')
+                ->get(['created_at', 'total_cost'])
+                ->groupBy(fn ($transaction) => Carbon::parse($transaction->created_at)->format('Y-m'))
+                ->map(fn ($transactions) => (float) $transactions->sum('total_cost'))
             : collect();
 
         $monthlyNetProfit = [];
