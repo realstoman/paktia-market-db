@@ -145,6 +145,10 @@ interface FinanceDashboardData {
 interface FinancePageProps {
     branches: Branch[];
     filters: FinanceFilters;
+    expenseCategories: Array<{
+        value: string;
+        label: string;
+    }>;
     dashboard: FinanceDashboardData;
 }
 
@@ -234,6 +238,7 @@ function SummaryCard({
 export default function FinancePage({
     branches,
     filters,
+    expenseCategories,
     dashboard,
 }: FinancePageProps) {
     const [range, setRange] = React.useState(filters.range);
@@ -255,24 +260,6 @@ export default function FinancePage({
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
-
-    const expenseCategories = React.useMemo(
-        () =>
-            Array.from(
-                new Set(
-                    dashboard.topExpenseCategories.map((item) =>
-                        JSON.stringify({
-                            value: item.value,
-                            category: item.category,
-                        }),
-                    ),
-                ),
-            ).map(
-                (item) =>
-                    JSON.parse(item) as { value: string; category: string },
-            ),
-        [dashboard.topExpenseCategories],
-    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -451,7 +438,7 @@ export default function FinancePage({
                                                 key={expense.value}
                                                 value={expense.value}
                                             >
-                                                {expense.category}
+                                                {expense.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
