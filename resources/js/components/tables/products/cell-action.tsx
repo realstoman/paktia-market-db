@@ -42,6 +42,7 @@ import {
     Product,
     ProductCategory,
     ProductImage,
+    ProductSize,
     ProductType,
 } from '@/types';
 import { router } from '@inertiajs/react';
@@ -69,10 +70,24 @@ interface CellActionProps {
     categories: ProductCategory[];
     types: ProductType[];
     kitchens: Kitchen[];
+    sizes: ProductSize[];
 }
 
 const MAX_IMAGES = 10;
 const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
+const normalizePriceInput = (value?: number | string | null) => {
+    if (value === undefined || value === null || value === '') {
+        return '';
+    }
+
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) {
+        return String(value);
+    }
+
+    return String(Math.trunc(numeric));
+};
+
 const resolveImageUrl = (image: ProductImage) => {
     const urlCandidate = image.url ?? image.path ?? '';
     if (!urlCandidate) return '';
@@ -99,6 +114,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     categories,
     types,
     kitchens,
+    sizes,
 }) => {
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -114,9 +130,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [type, setType] = useState(data.type ?? types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState(
-        data.base_price !== undefined && data.base_price !== null
-            ? String(data.base_price)
-            : '',
+        normalizePriceInput(data.base_price),
     );
     const [description, setDescription] = useState(data.description ?? '');
     const [pashtoDescription, setPashtoDescription] = useState(
@@ -124,6 +138,14 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [dariDescription, setDariDescription] = useState(
         data.dari_description ?? '',
+    );
+    const [sizePrices, setSizePrices] = useState<Record<number, string>>(
+        Object.fromEntries(
+            (data.sizes ?? []).map((size) => [
+                size.id,
+                normalizePriceInput(size.pivot?.price),
+            ]),
+        ),
     );
     const [isActive, setIsActive] = useState(!!data.is_active);
     const [existingImages, setExistingImages] = useState<ProductImage[]>(
@@ -160,14 +182,18 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
         setKitchenId(data.kitchen_id ? String(data.kitchen_id) : '');
         setType(data.type ?? types[0]?.name ?? 'food');
-        setBasePrice(
-            data.base_price !== undefined && data.base_price !== null
-                ? String(data.base_price)
-                : '',
-        );
+        setBasePrice(normalizePriceInput(data.base_price));
         setDescription(data.description ?? '');
         setPashtoDescription(data.pashto_description ?? '');
         setDariDescription(data.dari_description ?? '');
+        setSizePrices(
+            Object.fromEntries(
+                (data.sizes ?? []).map((size) => [
+                    size.id,
+                    normalizePriceInput(size.pivot?.price),
+                ]),
+            ),
+        );
         setIsActive(!!data.is_active);
         setExistingImages(data.images ?? []);
         setRemoveImageIds([]);
@@ -215,6 +241,13 @@ export const CellAction: React.FC<CellActionProps> = ({
         });
     };
 
+    const handleSizePriceChange = (sizeId: number, value: string) => {
+        setSizePrices((prev) => ({
+            ...prev,
+            [sizeId]: value,
+        }));
+    };
+
     const handleEditSubmit = () => {
         if (
             !name.trim() ||
@@ -242,6 +275,20 @@ export const CellAction: React.FC<CellActionProps> = ({
         formData.append('pashto_description', pashtoDescription.trim());
         formData.append('dari_description', dariDescription.trim());
         formData.append('is_active', isActive ? '1' : '0');
+        formData.append('sync_size_prices', '1');
+
+        Object.entries(sizePrices)
+            .filter(([, price]) => price !== '' && !Number.isNaN(Number(price)))
+            .forEach(([sizeId, price], index) => {
+                formData.append(
+                    `size_prices[${index}][product_size_id]`,
+                    String(Number(sizeId)),
+                );
+                formData.append(
+                    `size_prices[${index}][price]`,
+                    String(Number(price)),
+                );
+            });
 
         removeImageIds.forEach((id, index) => {
             formData.append(`remove_image_ids[${index}]`, String(id));
@@ -589,6 +636,34 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             />
                             <InputError message={editErrors.base_price} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Size Pricing (Optional, AFN)</Label>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                {sizes.map((size) => (
+                                    <div
+                                        key={size.id}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <span className="w-28 text-sm text-muted-foreground">
+                                            {size.name}
+                                        </span>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            placeholder="Use base price"
+                                            value={sizePrices[size.id] ?? ''}
+                                            onChange={(event) =>
+                                                handleSizePriceChange(
+                                                    size.id,
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label htmlFor={`product-description-${data.id}`}>

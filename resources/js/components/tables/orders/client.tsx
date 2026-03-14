@@ -842,6 +842,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             item.productId,
                                         );
                                         const sizes = product?.sizes ?? [];
+                                        const hasSizes = sizes.length > 0;
                                         const kitchenName =
                                             getItemKitchenName(item);
 
@@ -888,44 +889,46 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
-                                                <div className="grid gap-2">
-                                                    <Label>Size</Label>
-                                                    <Select
-                                                        value={item.sizeId}
-                                                        onValueChange={(
-                                                            value,
-                                                        ) =>
-                                                            handleSizeChange(
-                                                                setItems,
-                                                                items,
-                                                                index,
+                                                {hasSizes ? (
+                                                    <div className="grid gap-2">
+                                                        <Label>Size</Label>
+                                                        <Select
+                                                            value={item.sizeId}
+                                                            onValueChange={(
                                                                 value,
-                                                            )
-                                                        }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Optional" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {sizes.map(
-                                                                (size) => (
-                                                                    <SelectItem
-                                                                        key={
-                                                                            size.id
-                                                                        }
-                                                                        value={String(
-                                                                            size.id,
-                                                                        )}
-                                                                    >
-                                                                        {
-                                                                            size.name
-                                                                        }
-                                                                    </SelectItem>
-                                                                ),
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                                            ) =>
+                                                                handleSizeChange(
+                                                                    setItems,
+                                                                    items,
+                                                                    index,
+                                                                    value,
+                                                                )
+                                                            }
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select size" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {sizes.map(
+                                                                    (size) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                size.id
+                                                                            }
+                                                                            value={String(
+                                                                                size.id,
+                                                                            )}
+                                                                        >
+                                                                            {
+                                                                                size.name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                ) : null}
                                                 <div className="grid gap-2">
                                                     <Label>Qty</Label>
                                                     <Input
@@ -997,6 +1000,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         item.productId,
                                     );
                                     const sizes = product?.sizes ?? [];
+                                    const hasSizes = sizes.length > 0;
                                     const kitchenName =
                                         getItemKitchenName(item);
 
@@ -1039,36 +1043,38 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            <div className="grid gap-2">
-                                                <Label>Size</Label>
-                                                <Select
-                                                    value={item.sizeId}
-                                                    onValueChange={(value) =>
-                                                        handleSizeChange(
-                                                            setItems,
-                                                            items,
-                                                            index,
-                                                            value,
-                                                        )
-                                                    }
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Optional" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {sizes.map((size) => (
-                                                            <SelectItem
-                                                                key={size.id}
-                                                                value={String(
-                                                                    size.id,
-                                                                )}
-                                                            >
-                                                                {size.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
+                                            {hasSizes ? (
+                                                <div className="grid gap-2">
+                                                    <Label>Size</Label>
+                                                    <Select
+                                                        value={item.sizeId}
+                                                        onValueChange={(value) =>
+                                                            handleSizeChange(
+                                                                setItems,
+                                                                items,
+                                                                index,
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select size" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {sizes.map((size) => (
+                                                                <SelectItem
+                                                                    key={size.id}
+                                                                    value={String(
+                                                                        size.id,
+                                                                    )}
+                                                                >
+                                                                    {size.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            ) : null}
                                             <div className="grid gap-2">
                                                 <Label>Qty</Label>
                                                 <Input
@@ -1396,6 +1402,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             {addItems.map((item, index) => {
                                 const product = getProductById(item.productId);
                                 const sizes = product?.sizes ?? [];
+                                const hasSizes = sizes.length > 0;
                                 const kitchenName = getItemKitchenName(item);
 
                                 return (
@@ -1433,36 +1440,38 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="grid gap-2">
-                                            <Label>Size</Label>
-                                            <Select
-                                                value={item.sizeId}
-                                                onValueChange={(value) =>
-                                                    handleSizeChange(
-                                                        setAddItems,
-                                                        addItems,
-                                                        index,
-                                                        value,
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Optional" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sizes.map((size) => (
-                                                        <SelectItem
-                                                            key={size.id}
-                                                            value={String(
-                                                                size.id,
-                                                            )}
-                                                        >
-                                                            {size.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                                        {hasSizes ? (
+                                            <div className="grid gap-2">
+                                                <Label>Size</Label>
+                                                <Select
+                                                    value={item.sizeId}
+                                                    onValueChange={(value) =>
+                                                        handleSizeChange(
+                                                            setAddItems,
+                                                            addItems,
+                                                            index,
+                                                            value,
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select size" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {sizes.map((size) => (
+                                                            <SelectItem
+                                                                key={size.id}
+                                                                value={String(
+                                                                    size.id,
+                                                                )}
+                                                            >
+                                                                {size.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        ) : null}
                                         <div className="grid gap-2">
                                             <Label>Qty</Label>
                                             <Input
