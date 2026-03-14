@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureCartActor;
 use App\Http\Middleware\EnsureClientAuthenticated;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResolveFirebaseUser;
 use App\Http\Middleware\ResolveGuestSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'app.auth' => EnsureAppAuthenticated::class,
             'resolve.guest' => ResolveGuestSession::class,
+            'resolve.firebase' => ResolveFirebaseUser::class,
             'firebase.auth' => AuthenticateFirebaseUser::class,
             'cart.actor' => EnsureCartActor::class,
             'client.auth' => EnsureClientAuthenticated::class,
