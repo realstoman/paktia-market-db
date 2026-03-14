@@ -46,20 +46,25 @@ class OrderItemService
 
         return collect($items)->map(function (array $item) use ($productsById) {
             $product = $productsById->get($item['product_id']);
+            $productSize = $product?->sizes->firstWhere('id', $item['product_size_id'] ?? null);
 
             return [
                 'product_id' => $item['product_id'],
+                'product_name_snapshot' => $product?->name,
                 'product_size_id' => $item['product_size_id'] ?? null,
+                'product_size_name_snapshot' => $productSize?->name,
                 'kitchen_id' => $product?->kitchen_id,
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
+                'line_total' => $item['price'] * $item['quantity'],
+                'note' => $item['note'] ?? null,
             ];
         })->all();
     }
 
     private function getProductsById(array $items): Collection
     {
-        return Product::whereIn(
+        return Product::with('sizes')->whereIn(
             'id',
             collect($items)->pluck('product_id')->all(),
         )->get()->keyBy('id');
