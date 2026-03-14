@@ -1,7 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Kitchen, Product, ProductCategory, ProductType } from '@/types';
+import {
+    Kitchen,
+    Product,
+    ProductCategory,
+    ProductSize,
+    ProductType,
+} from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Image as ImageIcon } from 'lucide-react';
@@ -42,6 +48,7 @@ export const buildColumns = (
     categories: ProductCategory[],
     types: ProductType[],
     kitchens: Kitchen[],
+    sizes: ProductSize[],
 ): ColumnDef<Product>[] => {
     const categoryById = new Map(
         categories.map((category) => [category.id, category]),
@@ -208,6 +215,7 @@ export const buildColumns = (
                     categories={categories}
                     types={types}
                     kitchens={kitchens}
+                    sizes={sizes}
                 />
             ),
         },

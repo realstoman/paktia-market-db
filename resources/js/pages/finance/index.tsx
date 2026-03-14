@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     Card,
     CardContent,
@@ -18,7 +19,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -68,7 +69,11 @@ const RANGE_OPTIONS = [
     { value: 'custom', label: 'Custom' },
 ] as const;
 
-const PAYMENT_METHODS = ['cash', 'card', 'crypto'];
+const PAYMENT_METHODS = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+];
 
 const PIE_COLORS = [
     '#14532d',
@@ -139,6 +144,10 @@ interface FinanceDashboardData {
 interface FinancePageProps {
     branches: Branch[];
     filters: FinanceFilters;
+    expenseCategories: Array<{
+        value: string;
+        label: string;
+    }>;
     dashboard: FinanceDashboardData;
 }
 
@@ -228,6 +237,7 @@ function SummaryCard({
 export default function FinancePage({
     branches,
     filters,
+    expenseCategories,
     dashboard,
 }: FinancePageProps) {
     const [range, setRange] = React.useState(filters.range);
@@ -249,24 +259,6 @@ export default function FinancePage({
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
-
-    const expenseCategories = React.useMemo(
-        () =>
-            Array.from(
-                new Set(
-                    dashboard.topExpenseCategories.map((item) =>
-                        JSON.stringify({
-                            value: item.value,
-                            category: item.category,
-                        }),
-                    ),
-                ),
-            ).map(
-                (item) =>
-                    JSON.parse(item) as { value: string; category: string },
-            ),
-        [dashboard.topExpenseCategories],
-    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -411,10 +403,10 @@ export default function FinancePage({
                                         </SelectItem>
                                         {PAYMENT_METHODS.map((method) => (
                                             <SelectItem
-                                                key={method}
-                                                value={method}
+                                                key={method.value}
+                                                value={method.value}
                                             >
-                                                {method}
+                                                {method.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -425,31 +417,20 @@ export default function FinancePage({
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     Expense Category
                                 </p>
-                                <Select
-                                    value={category || '__all__'}
-                                    onValueChange={(value) =>
-                                        setCategory(
-                                            value === '__all__' ? '' : value,
-                                        )
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="All categories" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            All categories
-                                        </SelectItem>
-                                        {expenseCategories.map((expense) => (
-                                            <SelectItem
-                                                key={expense.value}
-                                                value={expense.value}
-                                            >
-                                                {expense.category}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <SearchableDropdown
+                                    value={category}
+                                    options={[
+                                        {
+                                            value: '',
+                                            label: 'All categories',
+                                        },
+                                        ...expenseCategories,
+                                    ]}
+                                    onValueChange={setCategory}
+                                    placeholder="All categories"
+                                    searchPlaceholder="Search expense category..."
+                                    emptyText="No expense category found."
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -484,6 +465,11 @@ export default function FinancePage({
                         </div>
 
                         <div className="flex flex-wrap gap-3">
+                            <Button variant="outline" asChild>
+                                <Link href="/finance/expense-categories">
+                                    Manage Expense Categories
+                                </Link>
+                            </Button>
                             <Button
                                 onClick={() =>
                                     submitFilters({
@@ -669,7 +655,9 @@ export default function FinancePage({
                         <CardHeader>
                             <CardTitle>Payment Breakdown</CardTitle>
                             <CardDescription>
-                                Collected payment volume by method.
+                                Collected payment volume by recorded payment
+                                method. Orders without payment rows are shown as
+                                unassigned.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">

@@ -11,6 +11,7 @@ class Expense extends Model
         'vendor_id',
         'title',
         'expense_type',
+        'expense_category_id',
         'account_id',
         'paid_from_account_id',
         'amount',
@@ -39,5 +40,10 @@ class Expense extends Model
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function expenseCategory()
+    {
+        return $this->belongsTo(ExpenseCategory::class);
     }
 }

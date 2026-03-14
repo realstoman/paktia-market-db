@@ -107,7 +107,7 @@ export function PieChartDonutText({
     const totalItems = typeof total === 'number' && total >= 0 ? total : 0;
 
     return (
-        <Card className="flex flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
+        <Card className="flex h-full flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
             <CardHeader className="items-center pb-0">
                 <CardTitle>Inventory Status Overview</CardTitle>
                 <CardDescription>Restaurant items</CardDescription>

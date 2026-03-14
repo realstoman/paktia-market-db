@@ -144,6 +144,30 @@ export interface Permission {
     [key: string]: unknown;
 }
 
+export interface FinanceAccount {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+    status?: string;
+    [key: string]: unknown;
+}
+
+export interface ExpenseCategory {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    expense_account_id?: number | null;
+    expense_account?: FinanceAccount | null;
+    expenses_count?: number;
+    is_active?: boolean;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Branch {
     id: number;
     name: string;
@@ -471,6 +495,21 @@ export interface OrderItem {
     [key: string]: unknown;
 }
 
+export interface Payment {
+    id: number;
+    order_id?: number;
+    currency?: string;
+    amount?: number | string;
+    exchange_rate?: number | string | null;
+    method?: string;
+    payment_date?: string | null;
+    status?: string;
+    reference_number?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Order {
     id: number;
     branch_id: number;
@@ -480,6 +519,7 @@ export interface Order {
     branch?: Branch | null;
     branch_table?: BranchTable | null;
     items?: OrderItem[];
+    payments?: Payment[];
     items_count?: number;
     order_type: string;
     customer_name?: string | null;

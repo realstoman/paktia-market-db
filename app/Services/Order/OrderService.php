@@ -2,6 +2,7 @@
 
 namespace App\Services\Order;
 
+use App\Enums\PaymentMethod;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Branch;
@@ -22,6 +23,7 @@ class OrderService
             'branch',
             'branchTable',
             'user',
+            'payments',
             'items.product',
             'items.productSize',
             'items.kitchen',
@@ -81,23 +83,86 @@ class OrderService
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'sub_total_amount' => $total,
+                'discount_amount' => 0,
+                'tax_amount' => 0,
+                'service_charge_amount' => 0,
                 'base_currency' => 'AFN',
                 'exchange_rate' => null,
                 'total_amount' => $total,
                 'paid_amount' => $total,
                 'change_amount' => 0,
+                'refund_amount' => 0,
                 'status' => OrderStatus::PENDING->value,
             ]);
 
             $this->orderItemService->createManyForOrder($order, $data['items']);
+            $this->syncOrderAmounts($order, $total);
+
+            $this->syncOrderPayment(
+                order: $order->fresh(),
+                paymentMethod: $data['payment_method'],
+            );
         });
     }
 
-    public function updateStatus(Order $order, string $status): void
+    public function updateOrder(Order $order, array $data): void
     {
-        $order->update([
-            'status' => $status,
-        ]);
+        $this->validateOrderConstraints($data);
+
+        DB::transaction(function () use ($order, $data) {
+            $total = $this->orderItemService->calculateTotal($data['items']);
+
+            $order->update([
+                'branch_id' => $data['branch_id'],
+                'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
+                    ? ($data['branch_table_id'] ?? null)
+                    : null,
+                'order_type' => $data['order_type'],
+                'customer_name' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['customer_name'] ?? ''))
+                    : null,
+                'customer_phone' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['customer_phone'] ?? ''))
+                    : null,
+                'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
+                    ? trim((string) ($data['delivery_address'] ?? ''))
+                    : null,
+            ]);
+
+            $this->orderItemService->replaceForOrder($order, $data['items']);
+            $this->syncOrderAmounts($order, $total);
+            $this->syncOrderPayment(
+                order: $order->fresh(),
+                paymentMethod: $data['payment_method'],
+            );
+        });
+    }
+
+    public function updateStatus(
+        Order $order,
+        string $status,
+        ?string $paymentMethod = null,
+    ): void
+    {
+        DB::transaction(function () use ($order, $status, $paymentMethod) {
+            $order->update([
+                'status' => $status,
+                'completed_at' => $status === OrderStatus::COMPLETED->value
+                    ? now()
+                    : null,
+                'cancelled_at' => $status === OrderStatus::CANCELLED->value
+                    ? now()
+                    : null,
+            ]);
+
+            if ($status === OrderStatus::COMPLETED->value) {
+                $this->syncOrderPayment(
+                    order: $order->fresh(),
+                    paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
+                );
+            }
+        });
     }
 
     public function updateTable(Order $order, int $branchTableId): void
@@ -119,10 +184,17 @@ class OrderService
         DB::transaction(function () use ($order, $items) {
             $payload = $this->orderItemService->createManyForOrder($order, $items);
             $delta = $this->orderItemService->calculateTotalFromPayload($payload);
+            $subTotal = (float) ($order->sub_total_amount ?? $order->total_amount) + $delta;
 
-            $order->update([
-                'total_amount' => (int) $order->total_amount + $delta,
-            ]);
+            $this->syncOrderAmounts($order, $subTotal);
+
+            $paymentMethod = $order->payments()->orderBy('id')->value('method');
+            if ($paymentMethod) {
+                $this->syncOrderPayment(
+                    order: $order->fresh(),
+                    paymentMethod: $paymentMethod,
+                );
+            }
         });
     }
 
@@ -180,5 +252,44 @@ class OrderService
                 $errorKey => $errorMessage,
             ]);
         }
+    }
+
+    private function syncOrderPayment(Order $order, string $paymentMethod): void
+    {
+        $payment = $order->payments()->orderBy('id')->first();
+
+        $payload = [
+            'currency' => $order->base_currency ?? 'AFN',
+            'amount' => $order->paid_amount,
+            'exchange_rate' => $order->exchange_rate,
+            'method' => $paymentMethod,
+            'payment_date' => now(),
+            'status' => 'paid',
+            'received_by' => $order->user_id,
+        ];
+
+        if ($payment) {
+            $payment->update($payload);
+
+            return;
+        }
+
+        $order->payments()->create($payload);
+    }
+
+    private function syncOrderAmounts(Order $order, float|int $subTotal): void
+    {
+        $discount = (float) ($order->discount_amount ?? 0);
+        $tax = (float) ($order->tax_amount ?? 0);
+        $serviceCharge = (float) ($order->service_charge_amount ?? 0);
+        $total = max(0, $subTotal - $discount + $tax + $serviceCharge);
+
+        $order->update([
+            'sub_total_amount' => $subTotal,
+            'total_amount' => $total,
+            'paid_amount' => $total,
+            'change_amount' => 0,
+            'refund_amount' => 0,
+        ]);
     }
 }

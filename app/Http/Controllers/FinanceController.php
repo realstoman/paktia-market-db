@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\OrderStatus;
 use App\Models\Branch;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Order;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -23,7 +24,7 @@ class FinanceController extends Controller
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
             'payment_method' => ['nullable', 'string', 'max:50'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'exists:expense_categories,id'],
         ]);
 
         [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
@@ -37,7 +38,7 @@ class FinanceController extends Controller
 
         $expensesTotal = Expense::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($category, fn ($query) => $query->where('expense_type', $category))
+            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
             ->whereBetween('expense_date', [
                 $startDate->toDateString(),
                 $endDate->toDateString(),
@@ -128,7 +129,7 @@ class FinanceController extends Controller
 
         $expenseTrend = Expense::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($category, fn ($query) => $query->where('expense_type', $category))
+            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
             ->whereBetween('expense_date', [
                 $startDate->toDateString(),
                 $endDate->toDateString(),
@@ -170,21 +171,35 @@ class FinanceController extends Controller
             ])
             ->values();
 
+        $expenseCategoryOptions = ExpenseCategory::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (ExpenseCategory $expenseCategory) => [
+                'value' => (string) $expenseCategory->id,
+                'label' => $expenseCategory->name,
+            ])
+            ->values();
+
         $topExpenseCategories = Expense::query()
+            ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($category, fn ($query) => $query->where('expenses.expense_category_id', $category))
             ->whereBetween('expense_date', [
                 $startDate->toDateString(),
                 $endDate->toDateString(),
             ])
-            ->select('expense_type')
+            ->selectRaw('COALESCE(expense_categories.name, expenses.expense_type, "Uncategorized") as category_name')
+            ->selectRaw('COALESCE(expense_categories.slug, expenses.expense_type, "uncategorized") as category_slug')
             ->selectRaw('COALESCE(SUM(amount), 0) as total')
-            ->groupBy('expense_type')
+            ->groupBy('category_name', 'category_slug')
             ->orderByDesc('total')
             ->limit(6)
             ->get()
             ->map(fn ($row) => [
-                'value' => (string) $row->expense_type,
-                'category' => str($row->expense_type)->replace('_', ' ')->title()->toString(),
+                'value' => (string) $row->category_slug,
+                'category' => (string) $row->category_name,
                 'amount' => (float) $row->total,
             ])
             ->values();
@@ -194,6 +209,7 @@ class FinanceController extends Controller
                 ->join('orders', 'orders.id', '=', 'payments.order_id')
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->select('payments.method')
                 ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
@@ -206,6 +222,20 @@ class FinanceController extends Controller
                 ])
                 ->values()
             : collect();
+
+        $unassignedPaymentAmount = Order::query()
+            ->where('orders.status', OrderStatus::COMPLETED->value)
+            ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->doesntHave('payments')
+            ->sum('paid_amount');
+
+        if ($unassignedPaymentAmount > 0) {
+            $paymentBreakdown->push([
+                'method' => 'Unassigned',
+                'amount' => (float) $unassignedPaymentAmount,
+            ]);
+        }
 
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')
@@ -270,6 +300,7 @@ class FinanceController extends Controller
                 'category' => $category,
             ],
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'expenseCategories' => $expenseCategoryOptions->values(),
             'dashboard' => [
                 'summary' => [
                     'sales' => (float) $salesTotal,

@@ -112,6 +112,7 @@ class ProductController extends Controller
             'type' => 'required|string|max:50',
             'base_price' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'sync_size_prices' => 'nullable|boolean',
             'size_prices' => 'sometimes|array',
             'size_prices.*.product_size_id' => 'required|exists:product_sizes,id',
             'size_prices.*.price' => 'required|integer|min:0',
@@ -159,9 +160,9 @@ class ProductController extends Controller
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
-            if (array_key_exists('size_prices', $validated)) {
+            if ($request->boolean('sync_size_prices')) {
                 $syncData = [];
-                foreach ($validated['size_prices'] as $sizePrice) {
+                foreach (($validated['size_prices'] ?? []) as $sizePrice) {
                     $syncData[$sizePrice['product_size_id']] = [
                         'price' => $sizePrice['price'],
                     ];

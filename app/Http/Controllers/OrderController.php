@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Order;
@@ -33,6 +34,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'order_type' => ['required', Rule::in(OrderType::values())],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'branch_table_id' => 'nullable|exists:branch_tables,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
@@ -50,13 +52,41 @@ class OrderController extends Controller
             ->with('success', 'Order created successfully.');
     }
 
+    public function update(Request $request, OrderService $service, Order $order)
+    {
+        $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'order_type' => ['required', Rule::in(OrderType::values())],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'branch_table_id' => 'nullable|exists:branch_tables,id',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:50',
+            'delivery_address' => 'nullable|string|max:2000',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_size_id' => 'nullable|exists:product_sizes,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|integer|min:0',
+        ]);
+
+        $service->updateOrder($order, $validated);
+
+        return redirect()->route('orders.index')
+            ->with('success', 'Order updated successfully.');
+    }
+
     public function updateStatus(Request $request, OrderService $service, Order $order)
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(OrderStatus::values())],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
         ]);
 
-        $service->updateStatus($order, $validated['status']);
+        $service->updateStatus(
+            $order,
+            $validated['status'],
+            $validated['payment_method'] ?? null,
+        );
 
         return redirect()->route('orders.index')
             ->with('success', 'Order status updated successfully.');

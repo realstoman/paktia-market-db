@@ -8,6 +8,16 @@ use Illuminate\Support\Collection;
 
 class OrderItemService
 {
+    public function replaceForOrder(Order $order, array $items): array
+    {
+        $payload = $this->buildPayload($items);
+
+        $order->items()->delete();
+        $order->items()->createMany($payload);
+
+        return $payload;
+    }
+
     public function createManyForOrder(Order $order, array $items): array
     {
         $payload = $this->buildPayload($items);

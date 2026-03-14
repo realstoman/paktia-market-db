@@ -6,6 +6,7 @@ use App\Models\Banner;
 use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
+use App\Models\ExpenseCategory;
 use App\Models\Kitchen;
 use App\Models\KitchenCategory;
 use App\Models\KitchenType;
@@ -69,6 +70,13 @@ class HandleInertiaRequests extends Middleware
                     : [],
                 'vendors' => Schema::hasTable('vendors')
                     ? Vendor::orderBy('name')->get()
+                    : [],
+                'expenseCategories' => Schema::hasTable('expense_categories')
+                    ? ExpenseCategory::query()
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('name')
+                        ->get(['id', 'name', 'slug'])
                     : [],
                 'banners' => Schema::hasTable('banners')
                     ? Banner::query()

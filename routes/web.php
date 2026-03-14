@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -21,6 +23,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 /*
@@ -168,6 +171,94 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
+        $dashboardSalesTotal = (float) Order::query()
+            ->where('status', 'completed')
+            ->sum('total_amount');
+
+        $dashboardExpensesTotal = (float) Expense::query()->sum('amount');
+
+        $dashboardCashSales = Schema::hasTable('payments')
+            ? (float) DB::table('payments')
+                ->join('orders', 'orders.id', '=', 'payments.order_id')
+                ->where('orders.status', 'completed')
+                ->where('payments.method', 'cash')
+                ->sum('payments.amount')
+            : 0.0;
+
+        $dashboardCashExpenses = Schema::hasColumn('expenses', 'payment_method')
+            ? (float) DB::table('expenses')
+                ->where('payment_method', 'cash')
+                ->sum('amount')
+            : 0.0;
+
+        $dashboardCashMovementsNet = Schema::hasTable('cash_movements')
+            ? (float) DB::table('cash_movements')
+                ->where('approval_status', 'approved')
+                ->selectRaw(
+                    "COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total"
+                )
+                ->value('total')
+            : 0.0;
+
+        $dashboardWeightedCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
+            ? (float) DB::table('inventory_transactions')
+                ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
+                ->sum('total_cost')
+            : null;
+
+        $dashboardGrossProfit = $dashboardWeightedCogs === null
+            ? null
+            : $dashboardSalesTotal - $dashboardWeightedCogs;
+
+        $dashboardNetProfit = ($dashboardGrossProfit ?? $dashboardSalesTotal) - $dashboardExpensesTotal;
+        $dashboardCashPosition = $dashboardCashSales - $dashboardCashExpenses + $dashboardCashMovementsNet;
+        $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
+        $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
+
+        $monthlySales = Order::query()
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+            ->get(['created_at', 'total_amount'])
+            ->groupBy(fn (Order $order) => $order->created_at->format('Y-m'))
+            ->map(fn ($orders) => (float) $orders->sum('total_amount'));
+
+        $monthlyExpenses = Expense::query()
+            ->whereBetween('expense_date', [
+                $monthlyStartDate->toDateString(),
+                $monthlyEndDate->toDateString(),
+            ])
+            ->get(['expense_date', 'amount'])
+            ->groupBy(fn (Expense $expense) => Carbon::parse($expense->expense_date)->format('Y-m'))
+            ->map(fn ($expenses) => (float) $expenses->sum('amount'));
+
+        $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
+            ? DB::table('inventory_transactions')
+                ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
+                ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+                ->get(['created_at', 'total_cost'])
+                ->groupBy(fn ($transaction) => Carbon::parse($transaction->created_at)->format('Y-m'))
+                ->map(fn ($transactions) => (float) $transactions->sum('total_cost'))
+            : collect();
+
+        $monthlyNetProfit = [];
+
+        foreach (range(0, 4) as $offset) {
+            $month = $monthlyStartDate->copy()->addMonths($offset);
+            $bucket = $month->format('Y-m');
+            $sales = (float) ($monthlySales[$bucket] ?? 0);
+            $expenses = (float) ($monthlyExpenses[$bucket] ?? 0);
+            $cogs = $monthlyCogs->isNotEmpty()
+                ? (float) ($monthlyCogs[$bucket] ?? 0)
+                : null;
+            $grossProfit = $cogs === null ? $sales : $sales - $cogs;
+
+            $monthlyNetProfit[] = [
+                'month' => $month->format('M'),
+                'label' => $month->format('F Y'),
+                'netProfit' => $grossProfit - $expenses,
+            ];
+        }
+
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $orderStats,
@@ -184,6 +275,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'inventoryValue' => round($inventoryValue, 2),
                     'amountOwedToVendors' => round($amountOwedToVendors, 2),
                     'pie' => $inventoryPie,
+                ],
+                'finance' => [
+                    'netProfit' => (float) $dashboardNetProfit,
+                    'expenses' => (float) $dashboardExpensesTotal,
+                    'cashPosition' => (float) $dashboardCashPosition,
+                    'monthlyNetProfit' => $monthlyNetProfit,
+                    'notes' => [
+                        'netProfit' => $dashboardGrossProfit === null
+                            ? 'Net profit = sales - expenses until inventory cost postings are active.'
+                            : 'Net profit = gross profit - expenses, using posted inventory cost movements.',
+                        'expenses' => 'Expenses = sum of all recorded expense amounts.',
+                        'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
+                    ],
                 ],
             ],
         ]);
@@ -238,7 +342,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
     Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
     Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
-    Route::resource('orders', OrderController::class)->only(['index', 'store']);
+    Route::resource('orders', OrderController::class)->only(['index', 'store', 'update']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
     Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
@@ -269,6 +373,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
     Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+    Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
+    Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
+    Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
+    Route::delete('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('finance.expense-categories.destroy');
 
     // Employees
     Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');

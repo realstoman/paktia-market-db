@@ -16,21 +16,21 @@ export const formatNumber = (value: number | string) => {
 };
 
 /**
- * Format price / cost with 2 decimal places
- * Example: 234567 -> 234,567.00
+ * Format price / cost with no decimal places
+ * Example: 234567 -> 234,567
  */
 export const formatPrice = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
 
     return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(Number(value));
 };
 
 /**
- * Format price with currency symbol
- * Example: 234567 -> $234,567.00
+ * Format price with currency symbol and no decimal places
+ * Example: 234567 -> $234,567
  */
 export const formatCurrency = (
     value: number | string,
@@ -41,8 +41,8 @@ export const formatCurrency = (
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(Number(value));
 };
 

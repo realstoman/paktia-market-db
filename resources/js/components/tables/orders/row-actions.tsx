@@ -24,7 +24,15 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { BranchTable, Order } from '@/types';
-import { Edit3, Eye, MoreHorizontal, Plus, Printer, Save, X } from 'lucide-react';
+import {
+    Edit3,
+    Eye,
+    MoreHorizontal,
+    Plus,
+    Printer,
+    Save,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const ORDER_STATUSES = [
@@ -35,19 +43,31 @@ const ORDER_STATUSES = [
     'cancelled',
 ];
 
+const PAYMENT_METHOD_OPTIONS = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+];
+
 interface OrderRowActionsProps {
     order: Order;
     branchTables: BranchTable[];
+    onEdit: (order: Order) => void;
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
-    onUpdateStatus: (order: Order, status: string) => void;
+    onUpdateStatus: (
+        order: Order,
+        status: string,
+        paymentMethod?: string,
+    ) => void;
     onPrint: (order: Order) => void;
 }
 
 export function OrderRowActions({
     order,
     branchTables,
+    onEdit,
     onView,
     onAddItems,
     onAssignTable,
@@ -60,6 +80,9 @@ export function OrderRowActions({
         order.branch_table_id ? String(order.branch_table_id) : '',
     );
     const [status, setStatus] = useState(order.status ?? 'pending');
+    const [paymentMethod, setPaymentMethod] = useState(
+        order.payments?.[0]?.method ?? 'cash',
+    );
     const [error, setError] = useState('');
     const canPrintReceipt = (order.status ?? 'pending') === 'completed';
 
@@ -98,6 +121,10 @@ export function OrderRowActions({
                         <Eye className="mr-2 h-4 w-4" />
                         Details
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(order)}>
+                        <Edit3 className="mr-2 h-4 w-4" />
+                        Edit Order
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onAddItems(order)}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Item
@@ -126,6 +153,9 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         onClick={() => {
                             setStatus(order.status ?? 'pending');
+                            setPaymentMethod(
+                                order.payments?.[0]?.method ?? 'cash',
+                            );
                             setIsStatusOpen(true);
                         }}
                     >
@@ -135,7 +165,10 @@ export function OrderRowActions({
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <Dialog open={isAssignTableOpen} onOpenChange={setIsAssignTableOpen}>
+            <Dialog
+                open={isAssignTableOpen}
+                onOpenChange={setIsAssignTableOpen}
+            >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Assign Table Number</DialogTitle>
@@ -212,6 +245,30 @@ export function OrderRowActions({
                         </Select>
                     </div>
 
+                    {status === 'completed' ? (
+                        <div className="grid gap-2">
+                            <Label>Payment Method</Label>
+                            <Select
+                                value={paymentMethod}
+                                onValueChange={setPaymentMethod}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {PAYMENT_METHOD_OPTIONS.map((option) => (
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ) : null}
+
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -222,7 +279,13 @@ export function OrderRowActions({
                         </Button>
                         <Button
                             onClick={() => {
-                                onUpdateStatus(order, status);
+                                onUpdateStatus(
+                                    order,
+                                    status,
+                                    status === 'completed'
+                                        ? paymentMethod
+                                        : undefined,
+                                );
                                 setIsStatusOpen(false);
                             }}
                         >
