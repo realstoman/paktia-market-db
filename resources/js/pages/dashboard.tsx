@@ -151,6 +151,16 @@ interface DashboardProps {
                 value: number;
             }>;
         };
+        finance: {
+            netProfit: number;
+            expenses: number;
+            cashPosition: number;
+            notes: {
+                netProfit: string;
+                expenses: string;
+                cashPosition: string;
+            };
+        };
     };
 }
 
@@ -193,6 +203,7 @@ export default function Dashboard({ data }: DashboardProps) {
     const recentOrders = data?.recentOrders ?? [];
     const topOrderedDishes = data?.topOrderedDishes ?? [];
     const inventoryStats = data?.inventory;
+    const financeStats = data?.finance;
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -223,14 +234,15 @@ export default function Dashboard({ data }: DashboardProps) {
                 {/* Statistics */}
                 <div className="grid auto-rows-min grid-cols-1 gap-3 md:grid-cols-4">
                     <div className="col-span-1 flex w-full min-w-0 flex-col gap-2">
-                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
+                        <Card className="relative overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-none dark:bg-neutral-900">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
                                         Profit & Expenses
                                     </CardTitle>
                                     <CardDescription className="text-sm">
-                                        Restaurant profit and expense
+                                        All-time finance snapshot. Use the
+                                        Finance section for period filters.
                                     </CardDescription>
                                 </div>
                             </CardHeader>
@@ -239,20 +251,21 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
-                                            Profit
+                                            Net Profit
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(12475365)}
+                                            {formatPrice(
+                                                financeStats?.netProfit ?? 0,
+                                            )}
                                         </p>
                                         <span>؋</span>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <p className="text-sm font-normal text-accent-foreground/50">
-                                            Jan 2026
-                                        </p>
-                                    </div>
+                                    <p className="text-sm font-normal text-accent-foreground/50">
+                                        {financeStats?.notes.netProfit ??
+                                            'Net profit = gross profit - expenses.'}
+                                    </p>
                                 </div>
                                 <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
                                     <div className="flex items-center gap-2">
@@ -261,36 +274,39 @@ export default function Dashboard({ data }: DashboardProps) {
                                             Expenses
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(7321270)}
+                                            {formatPrice(
+                                                financeStats?.expenses ?? 0,
+                                            )}
                                         </p>
                                         <span>؋</span>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <p className="text-sm font-normal text-accent-foreground/50">
-                                            Jan 2026
-                                        </p>
-                                    </div>
+                                    <p className="text-sm font-normal text-accent-foreground/50">
+                                        {financeStats?.notes.expenses ??
+                                            'Expenses = sum of all recorded expense amounts.'}
+                                    </p>
                                 </div>
                                 <div className="space-y-2 pb-4">
                                     <div className="flex items-center gap-2">
-                                        <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
+                                        <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
                                         <p className="text-base font-medium text-accent-foreground/80">
-                                            Orders
+                                            Cash Position
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(10321270)}
+                                            {formatPrice(
+                                                financeStats?.cashPosition ??
+                                                    0,
+                                            )}
                                         </p>
                                         <span>؋</span>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <p className="text-sm font-normal text-accent-foreground/50">
-                                            Jan 2026
-                                        </p>
-                                    </div>
+                                    <p className="text-sm font-normal text-accent-foreground/50">
+                                        {financeStats?.notes.cashPosition ??
+                                            'Cash position = cash sales - cash expenses + approved cash movements.'}
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>

@@ -15,6 +15,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -22,6 +23,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 /*
@@ -169,6 +171,48 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
+        $dashboardSalesTotal = (float) Order::query()
+            ->where('status', 'completed')
+            ->sum('total_amount');
+
+        $dashboardExpensesTotal = (float) Expense::query()->sum('amount');
+
+        $dashboardCashSales = Schema::hasTable('payments')
+            ? (float) DB::table('payments')
+                ->join('orders', 'orders.id', '=', 'payments.order_id')
+                ->where('orders.status', 'completed')
+                ->where('payments.method', 'cash')
+                ->sum('payments.amount')
+            : 0.0;
+
+        $dashboardCashExpenses = Schema::hasColumn('expenses', 'payment_method')
+            ? (float) DB::table('expenses')
+                ->where('payment_method', 'cash')
+                ->sum('amount')
+            : 0.0;
+
+        $dashboardCashMovementsNet = Schema::hasTable('cash_movements')
+            ? (float) DB::table('cash_movements')
+                ->where('approval_status', 'approved')
+                ->selectRaw(
+                    "COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total"
+                )
+                ->value('total')
+            : 0.0;
+
+        $dashboardWeightedCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
+            ? (float) DB::table('inventory_transactions')
+                ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
+                ->sum('total_cost')
+            : null;
+
+        $dashboardGrossProfit = $dashboardWeightedCogs === null
+            ? null
+            : $dashboardSalesTotal - $dashboardWeightedCogs;
+
+        $dashboardNetProfit = ($dashboardGrossProfit ?? $dashboardSalesTotal) - $dashboardExpensesTotal;
+        $dashboardCashPosition = $dashboardCashSales - $dashboardCashExpenses + $dashboardCashMovementsNet;
+
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $orderStats,
@@ -185,6 +229,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'inventoryValue' => round($inventoryValue, 2),
                     'amountOwedToVendors' => round($amountOwedToVendors, 2),
                     'pie' => $inventoryPie,
+                ],
+                'finance' => [
+                    'netProfit' => (float) $dashboardNetProfit,
+                    'expenses' => (float) $dashboardExpensesTotal,
+                    'cashPosition' => (float) $dashboardCashPosition,
+                    'notes' => [
+                        'netProfit' => $dashboardGrossProfit === null
+                            ? 'Net profit = sales - expenses until inventory cost postings are active.'
+                            : 'Net profit = gross profit - expenses, using posted inventory cost movements.',
+                        'expenses' => 'Expenses = sum of all recorded expense amounts.',
+                        'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
+                    ],
                 ],
             ],
         ]);
