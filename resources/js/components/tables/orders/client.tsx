@@ -56,6 +56,12 @@ const ORDER_STATUSES = [
     'cancelled',
 ];
 
+const PAYMENT_METHOD_OPTIONS = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'card', label: 'Card' },
+    { value: 'crypto', label: 'Crypto' },
+];
+
 const emptyItem = (): OrderItemDraft => ({
     productId: '',
     sizeId: '',
@@ -77,6 +83,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [branchId, setBranchId] = useState('');
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -101,6 +108,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setBranchId('');
         setBranchTableId('');
         setOrderType('dine_in');
+        setPaymentMethod('cash');
         setCustomerName('');
         setCustomerPhone('');
         setDeliveryAddress('');
@@ -253,6 +261,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 order_type: orderType,
                 branch_table_id:
                     orderType === 'dine_in' ? Number(branchTableId) : null,
+                payment_method: paymentMethod,
                 customer_name:
                     orderType === 'delivery' ? customerName.trim() : null,
                 customer_phone:
@@ -281,10 +290,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         );
     };
 
-    const handleStatusUpdate = (order: Order, status: string) => {
+    const handleStatusUpdate = (
+        order: Order,
+        status: string,
+        nextPaymentMethod?: string,
+    ) => {
         router.patch(
             `/orders/${order.id}/status`,
-            { status },
+            {
+                status,
+                payment_method:
+                    status === 'completed'
+                        ? nextPaymentMethod ?? order.payments?.[0]?.method ?? 'cash'
+                        : null,
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -655,6 +674,30 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={createErrors.order_type} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Payment Method</Label>
+                            <Select
+                                value={paymentMethod}
+                                onValueChange={setPaymentMethod}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {PAYMENT_METHOD_OPTIONS.map((option) => (
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                message={createErrors.payment_method}
+                            />
                         </div>
                         {orderType === 'dine_in' ? (
                             <div className="grid gap-2 sm:col-span-2">

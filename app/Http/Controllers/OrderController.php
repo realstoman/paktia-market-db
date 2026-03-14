@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Order;
@@ -33,6 +34,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'order_type' => ['required', Rule::in(OrderType::values())],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'branch_table_id' => 'nullable|exists:branch_tables,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
@@ -54,9 +56,14 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(OrderStatus::values())],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
         ]);
 
-        $service->updateStatus($order, $validated['status']);
+        $service->updateStatus(
+            $order,
+            $validated['status'],
+            $validated['payment_method'] ?? null,
+        );
 
         return redirect()->route('orders.index')
             ->with('success', 'Order status updated successfully.');

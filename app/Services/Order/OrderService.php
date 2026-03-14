@@ -2,6 +2,7 @@
 
 namespace App\Services\Order;
 
+use App\Enums\PaymentMethod;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Branch;
@@ -22,6 +23,7 @@ class OrderService
             'branch',
             'branchTable',
             'user',
+            'payments',
             'items.product',
             'items.productSize',
             'items.kitchen',
@@ -81,23 +83,52 @@ class OrderService
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'sub_total_amount' => $total,
+                'discount_amount' => 0,
+                'tax_amount' => 0,
+                'service_charge_amount' => 0,
                 'base_currency' => 'AFN',
                 'exchange_rate' => null,
                 'total_amount' => $total,
                 'paid_amount' => $total,
                 'change_amount' => 0,
+                'refund_amount' => 0,
                 'status' => OrderStatus::PENDING->value,
             ]);
 
             $this->orderItemService->createManyForOrder($order, $data['items']);
+
+            $this->syncOrderPayment(
+                order: $order,
+                paymentMethod: $data['payment_method'],
+            );
         });
     }
 
-    public function updateStatus(Order $order, string $status): void
+    public function updateStatus(
+        Order $order,
+        string $status,
+        ?string $paymentMethod = null,
+    ): void
     {
-        $order->update([
-            'status' => $status,
-        ]);
+        DB::transaction(function () use ($order, $status, $paymentMethod) {
+            $order->update([
+                'status' => $status,
+                'completed_at' => $status === OrderStatus::COMPLETED->value
+                    ? now()
+                    : null,
+                'cancelled_at' => $status === OrderStatus::CANCELLED->value
+                    ? now()
+                    : null,
+            ]);
+
+            if ($status === OrderStatus::COMPLETED->value) {
+                $this->syncOrderPayment(
+                    order: $order->fresh(),
+                    paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
+                );
+            }
+        });
     }
 
     public function updateTable(Order $order, int $branchTableId): void
@@ -180,5 +211,28 @@ class OrderService
                 $errorKey => $errorMessage,
             ]);
         }
+    }
+
+    private function syncOrderPayment(Order $order, string $paymentMethod): void
+    {
+        $payment = $order->payments()->orderBy('id')->first();
+
+        $payload = [
+            'currency' => $order->base_currency ?? 'AFN',
+            'amount' => $order->paid_amount,
+            'exchange_rate' => $order->exchange_rate,
+            'method' => $paymentMethod,
+            'payment_date' => now(),
+            'status' => 'paid',
+            'received_by' => $order->user_id,
+        ];
+
+        if ($payment) {
+            $payment->update($payload);
+
+            return;
+        }
+
+        $order->payments()->create($payload);
     }
 }

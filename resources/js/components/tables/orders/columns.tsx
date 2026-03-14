@@ -33,7 +33,11 @@ interface BuildOrderColumnsOptions {
     onView: (order: Order) => void;
     onAddItems: (order: Order) => void;
     onAssignTable: (order: Order, branchTableId: number) => void;
-    onUpdateStatus: (order: Order, status: string) => void;
+    onUpdateStatus: (
+        order: Order,
+        status: string,
+        paymentMethod?: string,
+    ) => void;
     onPrint: (order: Order) => void;
     branchTables: BranchTable[];
 }
