@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Client;
 use App\Services\Mobile\FirebaseAuthService;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
@@ -23,6 +24,13 @@ class AuthenticateFirebaseUser
         }
 
         $request->attributes->set('firebaseUser', $firebaseUser);
+        $client = Client::query()
+            ->where('firebase_uid', $firebaseUser['uid'])
+            ->first();
+
+        if ($client) {
+            $request->attributes->set('client', $client);
+        }
 
         return $next($request);
     }

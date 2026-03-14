@@ -105,7 +105,7 @@ class CartService
         $this->assertItemBelongsToCart($cart, $cartItem);
 
         $product = $cartItem->product()->with('sizes')->firstOrFail();
-        $resolvedSize = $cartItem->productSize;
+        $resolvedSize = $this->resolveProductSize($product, $cartItem->product_size_id);
         $unitPrice = $this->resolveUnitPrice($product, $resolvedSize);
 
         $cartItem->update([
@@ -138,6 +138,11 @@ class CartService
         $clientCart = $this->getOrCreateForClient($client);
 
         if (! $guestCart) {
+            $guestSession->update([
+                'merged_at' => now(),
+                'is_active' => false,
+            ]);
+
             return $this->refreshTotals($clientCart);
         }
 

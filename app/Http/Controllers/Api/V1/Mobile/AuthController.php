@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1\Mobile;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\Mobile\CartResource;
 use App\Services\Mobile\ClientSyncService;
+use App\Services\Mobile\CartService;
 use App\Services\Mobile\FirebaseAuthService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +17,7 @@ class AuthController extends Controller
         Request $request,
         FirebaseAuthService $firebaseAuthService,
         ClientSyncService $clientSyncService,
+        CartService $cartService,
     ): JsonResponse {
         $payload = $request->validate([
             'provider' => 'nullable|string|max:50',
@@ -33,6 +36,12 @@ class AuthController extends Controller
         }
 
         $client = $clientSyncService->sync($firebaseUser, $payload);
+        $request->attributes->set('client', $client);
+
+        $guestSession = $request->attributes->get('guestSession');
+        $cart = $guestSession
+            ? $cartService->mergeGuestCartIntoClientCart($guestSession, $client)
+            : $cartService->refreshTotals($cartService->getOrCreateForClient($client));
 
         return response()->json([
             'data' => [
@@ -45,10 +54,12 @@ class AuthController extends Controller
                     'provider' => $client->provider,
                     'avatar_url' => $client->avatar_url,
                 ],
+                'cart' => CartResource::make($cart),
                 'guest_session' => [
-                    'id' => $request->attributes->get('guestSession')?->id,
-                    'token' => $request->attributes->get('guestSession')?->token,
-                    'merge_pending' => $request->attributes->has('guestSession'),
+                    'id' => $guestSession?->id,
+                    'token' => $guestSession?->token,
+                    'merge_pending' => false,
+                    'merged_at' => $guestSession?->fresh()?->merged_at?->toIso8601String(),
                 ],
             ],
         ]);

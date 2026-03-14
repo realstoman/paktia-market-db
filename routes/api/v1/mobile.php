@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Mobile\AuthController;
+use App\Http\Controllers\Api\V1\Mobile\CartController;
 use App\Http\Controllers\Api\V1\Mobile\GuestSessionController;
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +22,11 @@ Route::middleware('app.auth')->group(function (): void {
     Route::post('auth/firebase/sync', [AuthController::class, 'firebaseSync'])
         ->middleware('resolve.guest')
         ->name('auth.firebase.sync');
+
+    Route::middleware(['resolve.guest', 'resolve.firebase', 'cart.actor'])->group(function (): void {
+        Route::get('cart', [CartController::class, 'show'])->name('cart.show');
+        Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
+        Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem'])->name('cart.items.update');
+        Route::delete('cart/items/{cartItem}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+    });
 });

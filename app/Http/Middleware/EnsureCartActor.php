@@ -10,9 +10,9 @@ class EnsureCartActor
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->attributes->has('guestSession') && ! $request->attributes->has('firebaseUser')) {
+        if (! $request->attributes->has('guestSession') && ! $request->attributes->has('client')) {
             return response()->json([
-                'message' => 'A guest session or authenticated user is required.',
+                'message' => 'A guest session or authenticated client is required.',
             ], 401);
         }
 
