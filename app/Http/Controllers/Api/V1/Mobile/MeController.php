@@ -46,4 +46,21 @@ class MeController extends Controller
             $mobileOrderService->getForClient($client, $order)
         );
     }
+
+    public function orderStatus(Request $request, Order $order, MobileOrderService $mobileOrderService): JsonResponse
+    {
+        $client = $request->attributes->get('client');
+        $order = $mobileOrderService->getForClient($client, $order);
+
+        return response()->json([
+            'data' => [
+                'id' => $order->id,
+                'status' => $order->status?->value ?? $order->status,
+                'source' => $order->source,
+                'updated_at' => $order->updated_at?->toIso8601String(),
+                'completed_at' => $order->completed_at?->toIso8601String(),
+                'cancelled_at' => $order->cancelled_at?->toIso8601String(),
+            ],
+        ]);
+    }
 }

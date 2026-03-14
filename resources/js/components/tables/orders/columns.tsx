@@ -93,6 +93,47 @@ export const buildColumns = ({
         header: 'Created By',
     },
     {
+        id: 'source',
+        accessorFn: (row) => row.source ?? 'pos',
+        header: 'Source',
+        cell: ({ row }) => {
+            const source = row.original.source ?? 'pos';
+            const isMobile = source === 'mobile_app';
+
+            return (
+                <Badge
+                    className={
+                        isMobile
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+                            : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
+                    }
+                >
+                    {isMobile ? 'Mobile' : 'POS'}
+                </Badge>
+            );
+        },
+    },
+    {
+        id: 'customer',
+        accessorFn: (row) =>
+            row.client?.name ?? row.customer_name ?? row.customer_phone ?? '-',
+        header: 'Customer',
+        cell: ({ row }) => {
+            const order = row.original;
+            const name = order.client?.name ?? order.customer_name ?? '-';
+            const phone = order.client?.phone ?? order.customer_phone ?? null;
+
+            return (
+                <div className="space-y-0.5">
+                    <p className="text-sm font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {phone ?? 'No phone'}
+                    </p>
+                </div>
+            );
+        },
+    },
+    {
         id: 'kitchens',
         header: 'Kitchens',
         cell: ({ row }) => {

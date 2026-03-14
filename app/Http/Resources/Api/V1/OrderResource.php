@@ -32,6 +32,8 @@ class OrderResource extends JsonResource
             'total_amount' => (float) $this->total_amount,
             'paid_amount' => (float) $this->paid_amount,
             'change_amount' => (float) $this->change_amount,
+            'completed_at' => $this->completed_at?->toIso8601String(),
+            'cancelled_at' => $this->cancelled_at?->toIso8601String(),
             'items_count' => $this->items_count ?? $this->items?->count() ?? 0,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'created_at' => $this->created_at?->toIso8601String(),

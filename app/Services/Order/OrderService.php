@@ -23,6 +23,7 @@ class OrderService
             'branch',
             'branchTable',
             'user',
+            'client',
             'payments',
             'items.product',
             'items.productSize',

@@ -36,6 +36,7 @@ Route::middleware('app.auth')->group(function (): void {
         Route::get('me', [MeController::class, 'show'])->name('me.show');
         Route::get('me/orders', [MeController::class, 'orders'])->name('me.orders.index');
         Route::get('me/orders/{order}', [MeController::class, 'showOrder'])->name('me.orders.show');
+        Route::get('me/orders/{order}/status', [MeController::class, 'orderStatus'])->name('me.orders.status');
         Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     });
 });
