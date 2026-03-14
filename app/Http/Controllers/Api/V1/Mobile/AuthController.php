@@ -46,8 +46,9 @@ class AuthController extends Controller
                     'avatar_url' => $client->avatar_url,
                 ],
                 'guest_session' => [
-                    'token' => $request->header('X-Guest-Token'),
-                    'merge_pending' => $request->filledHeader('X-Guest-Token'),
+                    'id' => $request->attributes->get('guestSession')?->id,
+                    'token' => $request->attributes->get('guestSession')?->token,
+                    'merge_pending' => $request->attributes->has('guestSession'),
                 ],
             ],
         ]);

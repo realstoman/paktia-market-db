@@ -19,6 +19,6 @@ return [
     ],
 
     'firebase' => [
-        'stub_mode' => (bool) env('MOBILE_FIREBASE_STUB_MODE', app()->environment(['local', 'testing'])),
+        'stub_mode' => (bool) env('MOBILE_FIREBASE_STUB_MODE', false),
     ],
 ];
