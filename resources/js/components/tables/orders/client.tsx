@@ -316,7 +316,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 status,
                 payment_method:
                     status === 'completed'
-                        ? nextPaymentMethod ?? order.payments?.[0]?.method ?? 'cash'
+                        ? (nextPaymentMethod ??
+                          order.payments?.[0]?.method ??
+                          'cash')
                         : null,
             },
             {
@@ -348,7 +350,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const openEdit = (order: Order) => {
         setEditingOrder(order);
         setBranchId(String(order.branch_id));
-        setBranchTableId(order.branch_table_id ? String(order.branch_table_id) : '');
+        setBranchTableId(
+            order.branch_table_id ? String(order.branch_table_id) : '',
+        );
         setOrderType(order.order_type);
         setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
         setCustomerName(order.customer_name ?? '');
@@ -357,7 +361,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setItems(
             (order.items ?? []).map((item) => ({
                 productId: String(item.product_id),
-                sizeId: item.product_size_id ? String(item.product_size_id) : '',
+                sizeId: item.product_size_id
+                    ? String(item.product_size_id)
+                    : '',
                 quantity: String(item.quantity),
                 price: String(item.price ?? ''),
             })),
@@ -521,7 +527,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
             return true;
         });
-    }, [branchFilter, data, kitchenFilter, sourceFilter, statusFilter, userFilter]);
+    }, [
+        branchFilter,
+        data,
+        kitchenFilter,
+        sourceFilter,
+        statusFilter,
+        userFilter,
+    ]);
 
     const branchFilterOptions = useMemo(
         () => [
@@ -770,9 +783,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError
-                                message={createErrors.payment_method}
-                            />
+                            <InputError message={createErrors.payment_method} />
                         </div>
                         {orderType === 'dine_in' ? (
                             <div className="grid gap-2 sm:col-span-2">
@@ -821,9 +832,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     <Input
                                         value={customerPhone}
                                         onChange={(event) =>
-                                            setCustomerPhone(
-                                                event.target.value,
-                                            )
+                                            setCustomerPhone(event.target.value)
                                         }
                                     />
                                     <InputError
@@ -1078,7 +1087,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     <Label>Size</Label>
                                                     <Select
                                                         value={item.sizeId}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleSizeChange(
                                                                 setItems,
                                                                 items,
@@ -1091,16 +1102,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             <SelectValue placeholder="Select size" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sizes.map((size) => (
-                                                                <SelectItem
-                                                                    key={size.id}
-                                                                    value={String(
-                                                                        size.id,
-                                                                    )}
-                                                                >
-                                                                    {size.name}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {sizes.map(
+                                                                (size) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            size.id
+                                                                        }
+                                                                        value={String(
+                                                                            size.id,
+                                                                        )}
+                                                                    >
+                                                                        {
+                                                                            size.name
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -1237,7 +1254,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     </Badge>
                                 ) : null}
                             </div>
-                            <div className="grid gap-4 sm:grid-cols-5">
+                            <div className="grid gap-4 sm:grid-cols-6">
                                 <div>
                                     <p className="text-xs text-muted-foreground">
                                         Branch
@@ -1363,7 +1380,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         <p className="font-medium">
                                                             {item.product_name ??
                                                                 item.product_name_snapshot ??
-                                                                item.product?.name ??
+                                                                item.product
+                                                                    ?.name ??
                                                                 '-'}
                                                         </p>
                                                     </div>
@@ -1387,7 +1405,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         <p className="font-medium">
                                                             {item.product_size_name ??
                                                                 item.product_size_name_snapshot ??
-                                                                item.product_size?.name ??
+                                                                item
+                                                                    .product_size
+                                                                    ?.name ??
                                                                 '-'}
                                                         </p>
                                                     </div>
@@ -1450,7 +1470,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 <p className="font-medium">
                                                     {item.product_size_name ??
                                                         item.product_size_name_snapshot ??
-                                                        item.product_size?.name ??
+                                                        item.product_size
+                                                            ?.name ??
                                                         '-'}
                                                 </p>
                                             </div>

@@ -350,4 +350,15 @@ test('authenticated client can view only their own order history', function () {
         ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza')
         ->assertJsonPath('data.items.0.product_size_name', 'Small')
         ->assertJsonPath('data.items.0.line_total', 650);
+
+    $ownOrder->update([
+        'status' => 'ready',
+    ]);
+
+    $this->getJson("/api/v1/mobile/me/orders/{$ownOrder->id}/status", mobileHeaders([
+        'Authorization' => 'Bearer stub:history-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.id', $ownOrder->id)
+        ->assertJsonPath('data.status', 'ready')
+        ->assertJsonPath('data.source', 'mobile_app');
 });

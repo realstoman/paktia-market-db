@@ -310,7 +310,8 @@ export function ReceiptPreviewDialog({
                                                     <p className="truncate">
                                                         {item.product_name ??
                                                             item.product_name_snapshot ??
-                                                            item.product?.name ??
+                                                            item.product
+                                                                ?.name ??
                                                             '-'}
                                                     </p>
                                                     <p>x{qty}</p>
