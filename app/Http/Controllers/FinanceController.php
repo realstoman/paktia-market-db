@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ExpenseCategory;
 use App\Enums\OrderStatus;
 use App\Models\Branch;
 use App\Models\Expense;
@@ -170,6 +171,30 @@ class FinanceController extends Controller
             ])
             ->values();
 
+        $expenseCategoryOptions = collect(ExpenseCategory::cases())
+            ->map(fn (ExpenseCategory $expenseCategory) => [
+                'value' => $expenseCategory->value,
+                'label' => $expenseCategory->label(),
+            ]);
+
+        $dbExpenseCategories = Expense::query()
+            ->select('expense_type')
+            ->whereNotNull('expense_type')
+            ->distinct()
+            ->pluck('expense_type')
+            ->filter();
+
+        foreach ($dbExpenseCategories as $dbCategory) {
+            if ($expenseCategoryOptions->contains(fn ($option) => $option['value'] === $dbCategory)) {
+                continue;
+            }
+
+            $expenseCategoryOptions->push([
+                'value' => (string) $dbCategory,
+                'label' => str((string) $dbCategory)->replace('_', ' ')->title()->toString(),
+            ]);
+        }
+
         $topExpenseCategories = Expense::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->whereBetween('expense_date', [
@@ -270,6 +295,7 @@ class FinanceController extends Controller
                 'category' => $category,
             ],
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'expenseCategories' => $expenseCategoryOptions->values(),
             'dashboard' => [
                 'summary' => [
                     'sales' => (float) $salesTotal,
