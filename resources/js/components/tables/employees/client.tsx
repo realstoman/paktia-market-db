@@ -1347,7 +1347,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                               )
                                             : setSalary(event.target.value)
                                     }
-                                    placeholder="0.00"
+                                    placeholder="0"
                                 />
                                 <InputError
                                     message={
