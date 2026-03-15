@@ -466,6 +466,11 @@ export default function FinancePage({
 
                         <div className="flex flex-wrap gap-3">
                             <Button variant="outline" asChild>
+                                <Link href="/finance/expenses">
+                                    Manage Expenses
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
                                 <Link href="/finance/expense-categories">
                                     Manage Expense Categories
                                 </Link>
