@@ -3,6 +3,39 @@ import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 
+function formatExpenseDate(value?: string) {
+    if (!value) {
+        return '-';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return parsed.toISOString().slice(0, 10);
+}
+
+function formatExpenseTime(value?: string) {
+    if (!value) {
+        return '';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return '';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(parsed);
+}
+
 function badgeTone(status?: string) {
     if (status === 'approved') {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
@@ -28,6 +61,21 @@ export function buildColumns({
         {
             accessorKey: 'expense_date',
             header: 'Date',
+            cell: ({ row }) => {
+                const dateText = formatExpenseDate(row.original.expense_date);
+                const timeText = formatExpenseTime(row.original.created_at);
+
+                return (
+                    <div>
+                        <p className="font-medium">{dateText}</p>
+                        {timeText ? (
+                            <p className="text-xs text-muted-foreground">
+                                {timeText}
+                            </p>
+                        ) : null}
+                    </div>
+                );
+            },
         },
         {
             id: 'title',
