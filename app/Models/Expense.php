@@ -46,4 +46,24 @@ class Expense extends Model
     {
         return $this->belongsTo(ExpenseCategory::class);
     }
+
+    public function account()
+    {
+        return $this->belongsTo(FinanceAccount::class, 'account_id');
+    }
+
+    public function paidFromAccount()
+    {
+        return $this->belongsTo(FinanceAccount::class, 'paid_from_account_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 }

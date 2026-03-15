@@ -168,6 +168,35 @@ export interface ExpenseCategory {
     [key: string]: unknown;
 }
 
+export interface Expense {
+    id: number;
+    branch_id: number;
+    vendor_id?: number | null;
+    title: string;
+    expense_type?: string | null;
+    expense_category_id?: number | null;
+    expense_category?: ExpenseCategory | null;
+    account_id?: number | null;
+    account?: FinanceAccount | null;
+    paid_from_account_id?: number | null;
+    paid_from_account?: FinanceAccount | null;
+    branch?: Branch | null;
+    vendor?: Vendor | null;
+    amount: number | string;
+    payment_method?: string | null;
+    description?: string | null;
+    expense_date?: string;
+    approval_status?: string;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    approved_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Branch {
     id: number;
     name: string;

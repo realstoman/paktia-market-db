@@ -201,6 +201,14 @@ function statusTone(status: string) {
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
 }
 
+function moduleHref(name: string): string | null {
+    if (name === 'Expenses') {
+        return '/finance/expenses';
+    }
+
+    return null;
+}
+
 function SummaryCard({
     title,
     value,
@@ -465,11 +473,6 @@ export default function FinancePage({
                         </div>
 
                         <div className="flex flex-wrap gap-3">
-                            <Button variant="outline" asChild>
-                                <Link href="/finance/expense-categories">
-                                    Manage Expense Categories
-                                </Link>
-                            </Button>
                             <Button
                                 onClick={() =>
                                     submitFilters({
@@ -891,7 +894,8 @@ export default function FinancePage({
                         <CardHeader>
                             <CardTitle>Finance Modules</CardTitle>
                             <CardDescription>
-                                Core modules planned from your architecture.
+                                Open finance areas from here so the dashboard
+                                filters stay focused on analytics.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-3 md:grid-cols-2">
@@ -915,6 +919,25 @@ export default function FinancePage({
                                             {module.status}
                                         </span>
                                     </div>
+                                    {moduleHref(module.name) ? (
+                                        <div className="mt-4">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={
+                                                        moduleHref(
+                                                            module.name,
+                                                        ) as string
+                                                    }
+                                                >
+                                                    Open {module.name}
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    ) : null}
                                 </div>
                             ))}
                         </CardContent>
