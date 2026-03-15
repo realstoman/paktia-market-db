@@ -1,10 +1,10 @@
 'use client';
 
+import Heading from '@/components/shared/heading';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Card,
-    CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
@@ -18,13 +18,28 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, Expense, ExpenseCategory, FinanceAccount, Vendor } from '@/types';
-import { formatAfn } from '@/utils/format';
+import {
+    Branch,
+    BreadcrumbItem,
+    Expense,
+    ExpenseCategory,
+    FinanceAccount,
+    Vendor,
+} from '@/types';
+import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
+import { ColumnDef } from '@tanstack/react-table';
 import { CheckCheck, Pencil, Plus, ReceiptText } from 'lucide-react';
 import React from 'react';
 
@@ -88,6 +103,7 @@ function badgeTone(status?: string) {
     if (status === 'approved') {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
     }
+
     if (status === 'submitted') {
         return 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200';
     }
@@ -103,11 +119,20 @@ export default function ExpensesPage({
     financeAccounts,
 }: ExpensesPageProps) {
     const [isOpen, setIsOpen] = React.useState(false);
-    const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
+    const [editingExpense, setEditingExpense] = React.useState<Expense | null>(
+        null,
+    );
     const [form, setForm] = React.useState<ExpenseFormState>(emptyForm);
+    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [categoryFilter, setCategoryFilter] = React.useState('all');
+    const [statusFilter, setStatusFilter] = React.useState('all');
 
     const branchOptions = React.useMemo(
-        () => branches.map((branch) => ({ value: String(branch.id), label: branch.name })),
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
         [branches],
     );
     const categoryOptions = React.useMemo(
@@ -119,7 +144,11 @@ export default function ExpensesPage({
         [expenseCategories],
     );
     const vendorOptions = React.useMemo(
-        () => vendors.map((vendor) => ({ value: String(vendor.id), label: vendor.name })),
+        () =>
+            vendors.map((vendor) => ({
+                value: String(vendor.id),
+                label: vendor.name,
+            })),
         [vendors],
     );
     const accountOptions = React.useMemo(
@@ -212,115 +241,226 @@ export default function ExpensesPage({
         );
     };
 
+    const filteredExpenses = React.useMemo(() => {
+        return expenses.filter((expense) => {
+            if (
+                branchFilter !== 'all' &&
+                String(expense.branch_id) !== branchFilter
+            ) {
+                return false;
+            }
+
+            if (
+                categoryFilter !== 'all' &&
+                String(expense.expense_category_id ?? '') !== categoryFilter
+            ) {
+                return false;
+            }
+
+            if (
+                statusFilter !== 'all' &&
+                (expense.approval_status ?? 'draft') !== statusFilter
+            ) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [branchFilter, categoryFilter, expenses, statusFilter]);
+
+    const columns: ColumnDef<Expense>[] = [
+        {
+            accessorKey: 'expense_date',
+            header: 'Date',
+        },
+        {
+            id: 'title',
+            accessorKey: 'title',
+            header: 'Title',
+            cell: ({ row }) => (
+                <div>
+                    <p className="font-medium">{row.original.title}</p>
+                    {row.original.description ? (
+                        <p className="text-xs text-muted-foreground">
+                            {row.original.description}
+                        </p>
+                    ) : null}
+                </div>
+            ),
+        },
+        {
+            id: 'branch.name',
+            accessorFn: (row) => row.branch?.name ?? '-',
+            header: 'Branch',
+        },
+        {
+            id: 'expense_category.name',
+            accessorFn: (row) =>
+                row.expense_category?.name ?? row.expense_type ?? '-',
+            header: 'Category',
+        },
+        {
+            accessorKey: 'payment_method',
+            header: 'Payment Method',
+            cell: ({ row }) =>
+                row.original.payment_method
+                    ? row.original.payment_method.replace('_', ' ')
+                    : '-',
+        },
+        {
+            accessorKey: 'amount',
+            header: 'Amount',
+            cell: ({ row }) => formatAfn(row.original.amount),
+        },
+        {
+            accessorKey: 'approval_status',
+            header: 'Status',
+            cell: ({ row }) => (
+                <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeTone(
+                        row.original.approval_status,
+                    )}`}
+                >
+                    {row.original.approval_status ?? 'draft'}
+                </span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => (
+                <div className="flex justify-end gap-2">
+                    {row.original.approval_status !== 'approved' ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => approve(row.original)}
+                        >
+                            <CheckCheck className="h-4 w-4" />
+                        </Button>
+                    ) : null}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEdit(row.original)}
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
+    const toolbar = (
+        <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
+            <SearchableDropdown
+                value={branchFilter}
+                options={[
+                    { value: 'all', label: 'All Branches' },
+                    ...branchOptions,
+                ]}
+                onValueChange={setBranchFilter}
+                placeholder="Branch"
+                searchPlaceholder="Search branches..."
+                emptyText="No branches found."
+                className="w-[180px] bg-white dark:bg-neutral-900"
+            />
+            <SearchableDropdown
+                value={categoryFilter}
+                options={[
+                    { value: 'all', label: 'All Categories' },
+                    ...categoryOptions,
+                ]}
+                onValueChange={setCategoryFilter}
+                placeholder="Category"
+                searchPlaceholder="Search categories..."
+                emptyText="No categories found."
+                className="w-[200px] bg-white dark:bg-neutral-900"
+            />
+            <SearchableDropdown
+                value={statusFilter}
+                options={[
+                    { value: 'all', label: 'All Statuses' },
+                    ...APPROVAL_OPTIONS,
+                ]}
+                onValueChange={setStatusFilter}
+                placeholder="Status"
+                searchPlaceholder="Search statuses..."
+                emptyText="No statuses found."
+                className="w-[170px] bg-white dark:bg-neutral-900"
+            />
+        </div>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Expenses" />
 
             <div className="space-y-4 pt-3 pb-8">
+                <div className="flex items-start justify-between">
+                    <Heading
+                        title={`Expenses: ${formatNumber(filteredExpenses.length)}`}
+                        description="Create, review, approve, and manage operating expenses."
+                    />
+                    <div className="flex gap-3">
+                        <Button variant="outline" asChild>
+                            <Link
+                                href="/finance"
+                                className="bg-white dark:bg-neutral-900"
+                            >
+                                Back to Finance
+                            </Link>
+                        </Button>
+                        <Button onClick={openCreate} className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            New Expense
+                        </Button>
+                    </div>
+                </div>
+
+                <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
+
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="space-y-1">
-                            <CardTitle className="flex items-center gap-2">
-                                <ReceiptText className="h-5 w-5" />
-                                Expenses
-                            </CardTitle>
-                            <CardDescription>
-                                Create and manage daily expenses like internet,
-                                electricity, rent, fuel, and other operating costs.
-                            </CardDescription>
-                        </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" asChild>
-                                <Link href="/finance">Back to Finance</Link>
-                            </Button>
-                            <Button onClick={openCreate}>
-                                <Plus className="h-4 w-4" />
-                                New Expense
-                            </Button>
-                        </div>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <ReceiptText className="h-5 w-5" />
+                            Expense Register
+                        </CardTitle>
+                        <CardDescription>
+                            Same table system as the other management sections,
+                            with search, filters, and pagination.
+                        </CardDescription>
                     </CardHeader>
                 </Card>
 
-                <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Branch</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Payment Method</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {expenses.map((expense) => (
-                                    <TableRow key={expense.id}>
-                                        <TableCell>{expense.expense_date}</TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <p className="font-medium">{expense.title}</p>
-                                                {expense.description ? (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {expense.description}
-                                                    </p>
-                                                ) : null}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{expense.branch?.name ?? '-'}</TableCell>
-                                        <TableCell>
-                                            {expense.expense_category?.name ?? expense.expense_type ?? '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {expense.payment_method
-                                                ? expense.payment_method.replace('_', ' ')
-                                                : '-'}
-                                        </TableCell>
-                                        <TableCell>{formatAfn(expense.amount)}</TableCell>
-                                        <TableCell>
-                                            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeTone(expense.approval_status)}`}>
-                                                {expense.approval_status ?? 'draft'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                {expense.approval_status !== 'approved' ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => approve(expense)}
-                                                    >
-                                                        <CheckCheck className="h-4 w-4" />
-                                                    </Button>
-                                                ) : null}
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => openEdit(expense)}
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                <div className="rounded-lg bg-white p-6 dark:bg-neutral-900">
+                    <DataTable
+                        columns={columns}
+                        data={filteredExpenses}
+                        searchKey={[
+                            'title',
+                            'branch.name',
+                            'expense_category.name',
+                            'payment_method',
+                            'approval_status',
+                        ]}
+                        searchPlaceholder="Search expenses by title, branch, category, or status..."
+                        toolbar={toolbar}
+                    />
+                </div>
 
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogContent className="sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle>
-                                {editingExpense ? 'Edit Expense' : 'Create Expense'}
+                                {editingExpense
+                                    ? 'Edit Expense'
+                                    : 'Create Expense'}
                             </DialogTitle>
                             <DialogDescription>
                                 Record a finance expense with branch, category,
-                                payment method, amount, and optional approval status.
+                                payment method, amount, and optional approval
+                                status.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -331,7 +471,10 @@ export default function ExpensesPage({
                                     value={form.branch_id}
                                     options={branchOptions}
                                     onValueChange={(value) =>
-                                        setForm((current) => ({ ...current, branch_id: value }))
+                                        setForm((current) => ({
+                                            ...current,
+                                            branch_id: value,
+                                        }))
                                     }
                                     placeholder="Select branch"
                                     searchPlaceholder="Search branches..."
@@ -398,7 +541,10 @@ export default function ExpensesPage({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {PAYMENT_METHOD_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -429,7 +575,10 @@ export default function ExpensesPage({
                                         ...vendorOptions,
                                     ]}
                                     onValueChange={(value) =>
-                                        setForm((current) => ({ ...current, vendor_id: value }))
+                                        setForm((current) => ({
+                                            ...current,
+                                            vendor_id: value,
+                                        }))
                                     }
                                     placeholder="Select vendor"
                                     searchPlaceholder="Search vendors..."
@@ -442,11 +591,17 @@ export default function ExpensesPage({
                                 <SearchableDropdown
                                     value={form.account_id}
                                     options={[
-                                        { value: '', label: 'Use category default' },
+                                        {
+                                            value: '',
+                                            label: 'Use category default',
+                                        },
                                         ...accountOptions,
                                     ]}
                                     onValueChange={(value) =>
-                                        setForm((current) => ({ ...current, account_id: value }))
+                                        setForm((current) => ({
+                                            ...current,
+                                            account_id: value,
+                                        }))
                                     }
                                     placeholder="Select ledger account"
                                     searchPlaceholder="Search ledger accounts..."
@@ -459,7 +614,10 @@ export default function ExpensesPage({
                                 <SearchableDropdown
                                     value={form.paid_from_account_id}
                                     options={[
-                                        { value: '', label: 'Not specified' },
+                                        {
+                                            value: '',
+                                            label: 'Not specified',
+                                        },
                                         ...accountOptions,
                                     ]}
                                     onValueChange={(value) =>
@@ -504,7 +662,10 @@ export default function ExpensesPage({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {APPROVAL_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
                                                 {option.label}
                                             </SelectItem>
                                         ))}
@@ -513,11 +674,16 @@ export default function ExpensesPage({
                             </div>
 
                             <div className="flex justify-end gap-3 md:col-span-2">
-                                <Button variant="outline" onClick={() => setIsOpen(false)}>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsOpen(false)}
+                                >
                                     Cancel
                                 </Button>
                                 <Button onClick={submit}>
-                                    {editingExpense ? 'Update Expense' : 'Create Expense'}
+                                    {editingExpense
+                                        ? 'Update Expense'
+                                        : 'Create Expense'}
                                 </Button>
                             </div>
                         </div>
