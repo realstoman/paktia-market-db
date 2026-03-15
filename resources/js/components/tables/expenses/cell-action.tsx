@@ -1,8 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Expense } from '@/types';
-import { CheckCheck, Pencil } from 'lucide-react';
+import { CheckCheck, MoreHorizontal, Pencil } from 'lucide-react';
 
 interface CellActionProps {
     data: Expense;
@@ -16,20 +23,26 @@ export function CellAction({
     onApprove,
 }: CellActionProps) {
     return (
-        <div className="flex justify-end gap-2">
-            {data.approval_status !== 'approved' ? (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onApprove(data)}
-                >
-                    <CheckCheck className="h-4 w-4" />
+        <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
                 </Button>
-            ) : null}
-
-            <Button variant="outline" size="sm" onClick={() => onEdit(data)}>
-                <Pencil className="h-4 w-4" />
-            </Button>
-        </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onEdit(data)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                </DropdownMenuItem>
+                {data.approval_status !== 'approved' ? (
+                    <DropdownMenuItem onClick={() => onApprove(data)}>
+                        <CheckCheck className="mr-2 h-4 w-4" />
+                        Approve
+                    </DropdownMenuItem>
+                ) : null}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
