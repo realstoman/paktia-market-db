@@ -206,10 +206,6 @@ function moduleHref(name: string): string | null {
         return '/finance/expenses';
     }
 
-    if (name === 'Expense Categories') {
-        return '/finance/expense-categories';
-    }
-
     return null;
 }
 

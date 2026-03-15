@@ -317,6 +317,14 @@ export function ExpenseClient({
                             Back to Finance
                         </Link>
                     </Button>
+                    <Button variant="outline" asChild>
+                        <Link
+                            href="/finance/expense-categories"
+                            className="bg-white dark:bg-neutral-900"
+                        >
+                            Expense Categories
+                        </Link>
+                    </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
                         New Expense
