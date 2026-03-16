@@ -381,6 +381,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('finance/expenses', [ExpenseController::class, 'store'])->name('finance.expenses.store');
     Route::put('finance/expenses/{expense}', [ExpenseController::class, 'update'])->name('finance.expenses.update');
     Route::post('finance/expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('finance.expenses.approve');
+    Route::post('finance/expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('finance.expenses.reject');
     Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
     Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
     Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
@@ -388,6 +389,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
     Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
     Route::post('finance/cash-bank/{cashMovement}/approve', [CashBankController::class, 'approve'])->name('finance.cash-bank.approve');
+    Route::post('finance/cash-bank/{cashMovement}/reject', [CashBankController::class, 'reject'])->name('finance.cash-bank.reject');
     Route::get('finance/cash-movement-types', [CashMovementTypeController::class, 'index'])->name('finance.cash-movement-types.index');
     Route::post('finance/cash-movement-types', [CashMovementTypeController::class, 'store'])->name('finance.cash-movement-types.store');
     Route::put('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'update'])->name('finance.cash-movement-types.update');

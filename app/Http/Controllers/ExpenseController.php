@@ -67,6 +67,7 @@ class ExpenseController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizePaymentMethodInput($request);
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? 'draft';
@@ -95,6 +96,7 @@ class ExpenseController extends Controller
 
     public function update(Request $request, Expense $expense)
     {
+        $this->normalizePaymentMethodInput($request);
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? $expense->approval_status ?? 'draft';
@@ -132,6 +134,18 @@ class ExpenseController extends Controller
             ->with('success', 'Expense approved successfully.');
     }
 
+    public function reject(Request $request, Expense $expense)
+    {
+        $expense->update([
+            'approval_status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return redirect()->route('finance.expenses.index')
+            ->with('success', 'Expense was sent back to draft.');
+    }
+
     protected function validateExpense(Request $request): array
     {
         return $request->validate([
@@ -147,5 +161,23 @@ class ExpenseController extends Controller
             'expense_date' => ['required', 'date_format:Y-m-d'],
             'approval_status' => ['nullable', 'in:draft,submitted,approved'],
         ]);
+    }
+
+    protected function normalizePaymentMethodInput(Request $request): void
+    {
+        $raw = strtolower(trim((string) $request->input('payment_method', '')));
+
+        $normalized = match ($raw) {
+            'card', 'creditcard', 'credit card' => PaymentMethod::CREDIT_CARD->value,
+            'bank', 'bank transfer', 'bank-transfer' => PaymentMethod::BANK_TRANSFER->value,
+            'crypto' => PaymentMethod::OTHER->value,
+            default => $raw,
+        };
+
+        if ($normalized !== '') {
+            $request->merge([
+                'payment_method' => $normalized,
+            ]);
+        }
     }
 }

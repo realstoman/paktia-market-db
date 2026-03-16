@@ -120,6 +120,18 @@ class CashBankController extends Controller
             ->with('success', 'Cash movement approved successfully.');
     }
 
+    public function reject(Request $request, CashMovement $cashMovement)
+    {
+        $cashMovement->update([
+            'approval_status' => 'draft',
+            'approved_by' => null,
+        ]);
+
+        return redirect()
+            ->route('finance.cash-bank.index')
+            ->with('success', 'Cash movement was sent back to draft.');
+    }
+
     protected function createTransferPair(Request $request, array $validated, string $approvalStatus): void
     {
         if (empty($validated['counterparty_account_id'])) {
