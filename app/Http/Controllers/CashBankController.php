@@ -77,7 +77,7 @@ class CashBankController extends Controller
 
         $approvalStatus = $validated['approval_status'] ?? 'approved';
 
-        DB::transaction(function () use ($request, $validated, $approvalStatus) {
+        DB::transaction(function () use ($request, $validated, $approvalStatus, $movementType) {
             if ((bool) $movementType?->requires_counterparty) {
                 $this->createTransferPair($request, $validated, $approvalStatus);
                 return;
