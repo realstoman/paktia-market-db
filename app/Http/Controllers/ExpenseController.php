@@ -16,6 +16,20 @@ class ExpenseController extends Controller
 {
     public function index()
     {
+        $paidFromAccounts = FinanceAccount::query()
+            ->where('status', 'active')
+            ->where('is_postable', true)
+            ->where('type', 'asset')
+            ->where(function ($query) {
+                $query->whereIn('code', ['1100', '1200', '1500'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%cash%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%bank%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%petty%']);
+            })
+            ->orderBy('code')
+            ->orderBy('name')
+            ->get(['id', 'code', 'name', 'type']);
+
         return Inertia::render('finance/expenses/index', [
             'expenses' => Expense::query()
                 ->with([
@@ -47,13 +61,7 @@ class ExpenseController extends Controller
                 ->orderBy('code')
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'type']),
-            'paidFromAccounts' => FinanceAccount::query()
-                ->where('status', 'active')
-                ->where('is_postable', true)
-                ->where('type', 'asset')
-                ->orderBy('code')
-                ->orderBy('name')
-                ->get(['id', 'code', 'name', 'type']),
+            'paidFromAccounts' => $paidFromAccounts,
         ]);
     }
 
