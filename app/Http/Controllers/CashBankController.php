@@ -59,7 +59,17 @@ class CashBankController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'account_id' => ['required', 'exists:finance_accounts,id'],
-            'counterparty_account_id' => ['nullable', 'exists:finance_accounts,id'],
+            'counterparty_account_id' => [
+                'nullable',
+                'exists:finance_accounts,id',
+                Rule::requiredIf(function () use ($request) {
+                    return in_array(
+                        $request->input('movement_type'),
+                        ['transfer', 'petty_cash_topup'],
+                        true
+                    );
+                }),
+            ],
             'approval_status' => ['nullable', Rule::in(['draft', 'submitted', 'approved'])],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
