@@ -207,6 +207,32 @@ export interface Expense {
     [key: string]: unknown;
 }
 
+export interface CashMovement {
+    id: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    movement_type: string;
+    direction: 'in' | 'out';
+    movement_date: string;
+    amount: number | string;
+    payment_method: string;
+    account_id?: number | null;
+    account?: FinanceAccount | null;
+    counterparty_account_id?: number | null;
+    counterparty_account?: FinanceAccount | null;
+    reference_type?: string | null;
+    reference_id?: number | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    approval_status?: string;
+    description?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Branch {
     id: number;
     name: string;
