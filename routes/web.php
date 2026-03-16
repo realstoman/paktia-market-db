@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -383,6 +384,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
     Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
     Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
+    Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
+    Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
+    Route::post('finance/cash-bank/{cashMovement}/approve', [CashBankController::class, 'approve'])->name('finance.cash-bank.approve');
     Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
     Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
     Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
