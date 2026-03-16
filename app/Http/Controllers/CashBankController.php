@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\CashMovement;
+use App\Models\CashMovementType;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,26 +35,25 @@ class CashBankController extends Controller
                 ->get(['id', 'name']),
             'sourceAccounts' => $sourceAccounts,
             'targetAccounts' => $sourceAccounts,
+            'movementTypes' => CashMovementType::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug', 'default_direction', 'requires_counterparty']),
         ]);
     }
 
     public function store(Request $request)
     {
+        $movementType = CashMovementType::query()
+            ->where('slug', $request->input('movement_type'))
+            ->where('is_active', true)
+            ->first();
+
         $validated = $request->validate([
             'branch_id' => ['nullable', 'exists:branches,id'],
             'destination_branch_id' => ['nullable', 'exists:branches,id'],
-            'movement_type' => [
-                'required',
-                Rule::in([
-                    'owner_deposit',
-                    'owner_withdrawal',
-                    'transfer',
-                    'petty_cash_topup',
-                    'bank_deposit',
-                    'bank_withdrawal',
-                    'manual_adjustment',
-                ]),
-            ],
+            'movement_type' => ['required', 'exists:cash_movement_types,slug'],
             'direction' => ['nullable', Rule::in(['in', 'out'])],
             'movement_date' => ['required', 'date_format:Y-m-d'],
             'amount' => ['required', 'numeric', 'min:0.01'],
@@ -62,12 +62,8 @@ class CashBankController extends Controller
             'counterparty_account_id' => [
                 'nullable',
                 'exists:finance_accounts,id',
-                Rule::requiredIf(function () use ($request) {
-                    return in_array(
-                        $request->input('movement_type'),
-                        ['transfer', 'petty_cash_topup'],
-                        true
-                    );
+                Rule::requiredIf(function () use ($movementType) {
+                    return (bool) $movementType?->requires_counterparty;
                 }),
             ],
             'approval_status' => ['nullable', Rule::in(['draft', 'submitted', 'approved'])],
@@ -77,7 +73,7 @@ class CashBankController extends Controller
         $approvalStatus = $validated['approval_status'] ?? 'approved';
 
         DB::transaction(function () use ($request, $validated, $approvalStatus) {
-            if (in_array($validated['movement_type'], ['transfer', 'petty_cash_topup'], true)) {
+            if ((bool) $movementType?->requires_counterparty) {
                 $this->createTransferPair($request, $validated, $approvalStatus);
                 return;
             }
@@ -88,6 +84,7 @@ class CashBankController extends Controller
                 'direction' => $this->resolveDirection(
                     movementType: $validated['movement_type'],
                     requestedDirection: $validated['direction'] ?? null,
+                    defaultDirection: $movementType?->default_direction,
                 ),
                 'movement_date' => $validated['movement_date'],
                 'amount' => $validated['amount'],
@@ -165,12 +162,16 @@ class CashBankController extends Controller
         ]);
     }
 
-    protected function resolveDirection(string $movementType, ?string $requestedDirection): string
+    protected function resolveDirection(
+        string $movementType,
+        ?string $requestedDirection,
+        ?string $defaultDirection = null
+    ): string
     {
         return match ($movementType) {
             'owner_deposit', 'bank_withdrawal' => 'in',
             'owner_withdrawal', 'bank_deposit' => 'out',
-            default => $requestedDirection ?? 'in',
+            default => $defaultDirection ?? $requestedDirection ?? 'in',
         };
     }
 
