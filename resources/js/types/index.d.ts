@@ -233,6 +233,20 @@ export interface CashMovement {
     [key: string]: unknown;
 }
 
+export interface CashMovementType {
+    id: number;
+    name: string;
+    slug: string;
+    default_direction?: 'in' | 'out' | null;
+    requires_counterparty?: boolean;
+    is_active?: boolean;
+    sort_order?: number;
+    description?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Branch {
     id: number;
     name: string;

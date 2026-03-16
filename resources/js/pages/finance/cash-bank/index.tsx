@@ -1,6 +1,12 @@
 import { CashBankClient } from '@/components/tables/cash-bank/client';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, CashMovement, FinanceAccount } from '@/types';
+import {
+    Branch,
+    BreadcrumbItem,
+    CashMovement,
+    CashMovementType,
+    FinanceAccount,
+} from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -14,6 +20,7 @@ interface CashBankPageProps {
     branches: Branch[];
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
+    movementTypes: CashMovementType[];
 }
 
 export default function CashBankPage({
@@ -21,6 +28,7 @@ export default function CashBankPage({
     branches,
     sourceAccounts,
     targetAccounts,
+    movementTypes,
 }: CashBankPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -30,6 +38,7 @@ export default function CashBankPage({
                 branches={branches}
                 sourceAccounts={sourceAccounts}
                 targetAccounts={targetAccounts}
+                movementTypes={movementTypes}
             />
         </AppLayout>
     );

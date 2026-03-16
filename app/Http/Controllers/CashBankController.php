@@ -53,7 +53,12 @@ class CashBankController extends Controller
         $validated = $request->validate([
             'branch_id' => ['nullable', 'exists:branches,id'],
             'destination_branch_id' => ['nullable', 'exists:branches,id'],
-            'movement_type' => ['required', 'exists:cash_movement_types,slug'],
+            'movement_type' => [
+                'required',
+                Rule::exists('cash_movement_types', 'slug')->where(
+                    fn ($query) => $query->where('is_active', true)
+                ),
+            ],
             'direction' => ['nullable', Rule::in(['in', 'out'])],
             'movement_date' => ['required', 'date_format:Y-m-d'],
             'amount' => ['required', 'numeric', 'min:0.01'],

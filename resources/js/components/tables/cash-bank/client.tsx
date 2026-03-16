@@ -21,22 +21,17 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, CashMovement, FinanceAccount } from '@/types';
+import {
+    Branch,
+    CashMovement,
+    CashMovementType,
+    FinanceAccount,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeftRight, Plus } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
-
-const MOVEMENT_TYPES = [
-    { value: 'owner_deposit', label: 'Owner Deposit' },
-    { value: 'owner_withdrawal', label: 'Owner Withdrawal' },
-    { value: 'transfer', label: 'Transfer (Account to Account)' },
-    { value: 'petty_cash_topup', label: 'Petty Cash Top-up' },
-    { value: 'bank_deposit', label: 'Bank Deposit' },
-    { value: 'bank_withdrawal', label: 'Bank Withdrawal' },
-    { value: 'manual_adjustment', label: 'Manual Adjustment' },
-];
 
 const PAYMENT_METHODS = [
     { value: 'cash', label: 'Cash' },
@@ -84,6 +79,7 @@ interface CashBankClientProps {
     branches: Branch[];
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
+    movementTypes: CashMovementType[];
 }
 
 export function CashBankClient({
@@ -91,6 +87,7 @@ export function CashBankClient({
     branches,
     sourceAccounts,
     targetAccounts,
+    movementTypes,
 }: CashBankClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [form, setForm] = React.useState<CashMovementFormState>(emptyForm);
@@ -104,6 +101,14 @@ export function CashBankClient({
                 label: branch.name,
             })),
         [branches],
+    );
+    const movementTypeOptions = React.useMemo(
+        () =>
+            movementTypes.map((movementType) => ({
+                value: movementType.slug,
+                label: movementType.name,
+            })),
+        [movementTypes],
     );
 
     const sourceAccountOptions = React.useMemo(
@@ -145,9 +150,15 @@ export function CashBankClient({
     }, [branchFilter, movements, statusFilter]);
 
     const openCreate = React.useCallback(() => {
-        setForm(emptyForm);
+        const defaultMovementType = movementTypes[0];
+        setForm({
+            ...emptyForm,
+            movement_type: defaultMovementType?.slug ?? emptyForm.movement_type,
+            direction:
+                defaultMovementType?.default_direction ?? emptyForm.direction,
+        });
         setIsOpen(true);
-    }, []);
+    }, [movementTypes]);
 
     const submit = React.useCallback(() => {
         const payload = {
@@ -190,9 +201,15 @@ export function CashBankClient({
         [approve],
     );
 
-    const isTransfer =
-        form.movement_type === 'transfer' ||
-        form.movement_type === 'petty_cash_topup';
+    const selectedMovementType = React.useMemo(
+        () =>
+            movementTypes.find(
+                (movementType) => movementType.slug === form.movement_type,
+            ) ?? null,
+        [form.movement_type, movementTypes],
+    );
+
+    const isTransfer = Boolean(selectedMovementType?.requires_counterparty);
 
     const toolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
@@ -228,6 +245,14 @@ export function CashBankClient({
                     <Button variant="outline" asChild>
                         <Link href="/finance" className="bg-white dark:bg-neutral-900">
                             Back to Finance
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link
+                            href="/finance/cash-movement-types"
+                            className="bg-white dark:bg-neutral-900"
+                        >
+                            Movement Types
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
@@ -282,17 +307,24 @@ export function CashBankClient({
                             <Label>Movement Type</Label>
                             <SearchableDropdown
                                 value={form.movement_type}
-                                options={MOVEMENT_TYPES}
+                                options={movementTypeOptions}
                                 onValueChange={(value) =>
-                                    setForm((current) => ({
-                                        ...current,
-                                        movement_type: value,
-                                        direction:
-                                            value === 'owner_withdrawal' ||
-                                            value === 'bank_deposit'
-                                                ? 'out'
-                                                : 'in',
-                                    }))
+                                    setForm((current) => {
+                                        const selectedType = movementTypes.find(
+                                            (item) => item.slug === value,
+                                        );
+
+                                        return {
+                                            ...current,
+                                            movement_type: value,
+                                            direction:
+                                                selectedType?.default_direction ??
+                                                current.direction,
+                                            counterparty_account_id: selectedType?.requires_counterparty
+                                                ? current.counterparty_account_id
+                                                : '',
+                                        };
+                                    })
                                 }
                                 placeholder="Select movement type"
                                 searchPlaceholder="Search movement types..."
