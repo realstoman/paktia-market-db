@@ -9,6 +9,7 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -44,7 +45,7 @@ class ExpenseController extends Controller
                 ->orderByDesc('expense_date')
                 ->orderByDesc('id')
                 ->get(),
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'branches' => Branch::orderBy('name')->get(['id', 'name', 'address']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -83,6 +84,7 @@ class ExpenseController extends Controller
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'description' => $validated['description'] ?? null,
+            'attachments' => $this->resolveAttachments($request, null),
             'expense_date' => $validated['expense_date'],
             'approval_status' => $approvalStatus,
             'created_by' => $request->user()?->id,
@@ -112,6 +114,7 @@ class ExpenseController extends Controller
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'description' => $validated['description'] ?? null,
+            'attachments' => $this->resolveAttachments($request, $expense),
             'expense_date' => $validated['expense_date'],
             'approval_status' => $approvalStatus,
             'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
@@ -158,6 +161,7 @@ class ExpenseController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'expense_date' => ['required', 'date_format:Y-m-d'],
             'approval_status' => ['nullable', 'in:draft,submitted,approved'],
         ]);
@@ -179,5 +183,22 @@ class ExpenseController extends Controller
                 'payment_method' => $normalized,
             ]);
         }
+    }
+
+    protected function resolveAttachments(Request $request, ?Expense $expense): ?array
+    {
+        $current = is_array($expense?->attachments) ? $expense->attachments : [];
+
+        if (! $request->hasFile('receipt')) {
+            return empty($current) ? null : $current;
+        }
+
+        if (! empty($current)) {
+            Storage::disk('public')->delete($current);
+        }
+
+        $path = $request->file('receipt')->store('finance/expenses/receipts', 'public');
+
+        return [$path];
     }
 }

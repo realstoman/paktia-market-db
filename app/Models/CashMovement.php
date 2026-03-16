@@ -22,6 +22,7 @@ class CashMovement extends Model
         'approved_by',
         'approval_status',
         'description',
+        'attachment_path',
     ];
 
     protected $casts = [

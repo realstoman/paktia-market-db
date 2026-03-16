@@ -195,6 +195,7 @@ export interface Expense {
     amount: number | string;
     payment_method?: string | null;
     description?: string | null;
+    attachments?: string[] | null;
     expense_date?: string;
     approval_status?: string;
     created_by?: number | null;
@@ -228,6 +229,7 @@ export interface CashMovement {
     approver?: User | null;
     approval_status?: string;
     description?: string | null;
+    attachment_path?: string | null;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
