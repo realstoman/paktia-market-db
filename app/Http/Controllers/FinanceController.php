@@ -239,6 +239,34 @@ class FinanceController extends Controller
             ]);
         }
 
+        $submittedJournals = Schema::hasTable('finance_journals')
+            ? DB::table('finance_journals')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedExpenses = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
+            ? DB::table('expenses')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedCashMovements = Schema::hasTable('cash_movements')
+            ? DB::table('cash_movements')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedPayrollRuns = Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_runs')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('status', 'submitted')
+                ->count()
+            : 0;
+
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')
                 ? DB::table('finance_accounts')->count()
@@ -249,9 +277,10 @@ class FinanceController extends Controller
             'draft_journals' => Schema::hasTable('finance_journals')
                 ? DB::table('finance_journals')->where('posting_status', 'draft')->count()
                 : 0,
-            'approval_queue' => Schema::hasTable('finance_journals')
-                ? DB::table('finance_journals')->where('approval_status', 'submitted')->count()
-                : 0,
+            'approval_queue' => $submittedJournals
+                + $submittedExpenses
+                + $submittedCashMovements
+                + $submittedPayrollRuns,
         ];
 
         $modules = collect([
