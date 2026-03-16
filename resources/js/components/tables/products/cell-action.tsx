@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -625,15 +626,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Label htmlFor={`product-price-${data.id}`}>
                                 Base Price (AFN)
                             </Label>
-                            <Input
+                            <NumericInput
                                 id={`product-price-${data.id}`}
-                                type="number"
                                 min="0"
-                                step="1"
                                 value={basePrice}
-                                onChange={(event) =>
-                                    setBasePrice(event.target.value)
-                                }
+                                onValueChange={setBasePrice}
                             />
                             <InputError message={editErrors.base_price} />
                         </div>
@@ -648,16 +645,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         <span className="w-28 text-sm text-muted-foreground">
                                             {size.name}
                                         </span>
-                                        <Input
-                                            type="number"
+                                        <NumericInput
                                             min="0"
-                                            step="1"
                                             placeholder="Use base price"
                                             value={sizePrices[size.id] ?? ''}
-                                            onChange={(event) =>
+                                            onValueChange={(value) =>
                                                 handleSizePriceChange(
                                                     size.id,
-                                                    event.target.value,
+                                                    value,
                                                 )
                                             }
                                         />

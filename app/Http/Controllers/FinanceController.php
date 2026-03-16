@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -12,6 +13,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FinanceController extends Controller
@@ -23,7 +25,7 @@ class FinanceController extends Controller
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
-            'payment_method' => ['nullable', 'string', 'max:50'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'category' => ['nullable', 'exists:expense_categories,id'],
         ]);
 
@@ -61,34 +63,35 @@ class FinanceController extends Controller
                 ->value('total')
             : 0.0;
 
-        $cashSales = Schema::hasTable('payments')
+        $cashSalesFromPayments = Schema::hasTable('payments')
             ? (float) DB::table('payments')
                 ->join('orders', 'orders.id', '=', 'payments.order_id')
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->where('payments.method', 'cash')
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->sum('payments.amount')
             : 0.0;
+
+        $cashSalesFromLegacyOrders = Schema::hasTable('orders')
+            ? (float) Order::query()
+                ->where('orders.status', OrderStatus::COMPLETED->value)
+                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->doesntHave('payments')
+                ->sum('paid_amount')
+            : 0.0;
+
+        $cashSales = $cashSalesFromPayments + $cashSalesFromLegacyOrders;
 
         $cashExpenses = Schema::hasColumn('expenses', 'payment_method')
             ? (float) DB::table('expenses')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->where('payment_method', 'cash')
-                ->whereBetween('expense_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
                 ->sum('amount')
             : 0.0;
 
         $cashMovementsNet = Schema::hasTable('cash_movements')
             ? (float) DB::table('cash_movements')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->whereBetween('movement_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
                 ->where('approval_status', 'approved')
                 ->selectRaw(
                     "COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total"
@@ -237,6 +240,34 @@ class FinanceController extends Controller
             ]);
         }
 
+        $submittedJournals = Schema::hasTable('finance_journals')
+            ? DB::table('finance_journals')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedExpenses = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
+            ? DB::table('expenses')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedCashMovements = Schema::hasTable('cash_movements')
+            ? DB::table('cash_movements')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'submitted')
+                ->count()
+            : 0;
+
+        $submittedPayrollRuns = Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_runs')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('status', 'submitted')
+                ->count()
+            : 0;
+
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')
                 ? DB::table('finance_accounts')->count()
@@ -247,9 +278,10 @@ class FinanceController extends Controller
             'draft_journals' => Schema::hasTable('finance_journals')
                 ? DB::table('finance_journals')->where('posting_status', 'draft')->count()
                 : 0,
-            'approval_queue' => Schema::hasTable('finance_journals')
-                ? DB::table('finance_journals')->where('approval_status', 'submitted')->count()
-                : 0,
+            'approval_queue' => $submittedJournals
+                + $submittedExpenses
+                + $submittedCashMovements
+                + $submittedPayrollRuns,
         ];
 
         $modules = collect([
@@ -322,7 +354,7 @@ class FinanceController extends Controller
                     'grossProfit' => $grossProfit === null
                         ? 'Gross profit will become exact after inventory valuation and COGS posting are active.'
                         : 'Gross profit is using posted inventory cost movements.',
-                    'cashPosition' => 'Cash position is based on recorded cash sales, cash expenses, and approved cash movements within the selected period.',
+                    'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
                 ],
             ],
         ]);

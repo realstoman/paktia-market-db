@@ -8,22 +8,16 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Expense } from '@/types';
-import { CheckCheck, MoreHorizontal, Pencil, Printer } from 'lucide-react';
+import { CashMovementType } from '@/types';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 
 interface CellActionProps {
-    data: Expense;
-    onEdit: (expense: Expense) => void;
-    onApprove: (expense: Expense) => void;
-    onPrint: (expense: Expense) => void;
+    data: CashMovementType;
+    onEdit: (movementType: CashMovementType) => void;
+    onDelete: (movementType: CashMovementType) => void;
 }
 
-export function CellAction({
-    data,
-    onEdit,
-    onApprove,
-    onPrint,
-}: CellActionProps) {
+export function CellAction({ data, onEdit, onDelete }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -38,16 +32,10 @@ export function CellAction({
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onPrint(data)}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print Voucher
+                <DropdownMenuItem onClick={() => onDelete(data)}>
+                    <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                    Delete
                 </DropdownMenuItem>
-                {data.approval_status !== 'approved' ? (
-                    <DropdownMenuItem onClick={() => onApprove(data)}>
-                        <CheckCheck className="mr-2 h-4 w-4" />
-                        Approve
-                    </DropdownMenuItem>
-                ) : null}
             </DropdownMenuContent>
         </DropdownMenu>
     );

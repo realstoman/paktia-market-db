@@ -73,6 +73,7 @@ const PAYMENT_METHODS = [
     { value: 'cash', label: 'Cash' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
     { value: 'credit_card', label: 'Credit Card' },
+    { value: 'other', label: 'Other' },
 ];
 
 const PIE_COLORS = [
@@ -202,8 +203,16 @@ function statusTone(status: string) {
 }
 
 function moduleHref(name: string): string | null {
+    if (name === 'Chart of Accounts') {
+        return '/finance/chart-of-accounts';
+    }
+
     if (name === 'Expenses') {
         return '/finance/expenses';
+    }
+
+    if (name === 'Cash & Bank') {
+        return '/finance/cash-bank';
     }
 
     return null;

@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +10,16 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
     Dialog,
     DialogContent,
@@ -28,6 +39,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
+import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
 import {
     Branch,
     Expense,
@@ -37,15 +50,15 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { Plus, ReceiptText } from 'lucide-react';
+import { FileText, Plus, ReceiptText, UploadCloud, X } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
 const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'crypto', label: 'Crypto' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
     { value: 'other', label: 'Other' },
 ];
 
@@ -88,7 +101,9 @@ interface ExpenseClientProps {
     branches: Branch[];
     expenseCategories: ExpenseCategory[];
     vendors: Vendor[];
-    financeAccounts: FinanceAccount[];
+    ledgerAccounts: FinanceAccount[];
+    paidFromAccounts: FinanceAccount[];
+    printExpenseId?: number | null;
 }
 
 export function ExpenseClient({
@@ -96,10 +111,21 @@ export function ExpenseClient({
     branches,
     expenseCategories,
     vendors,
-    financeAccounts,
+    ledgerAccounts,
+    paidFromAccounts,
+    printExpenseId = null,
 }: ExpenseClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingExpense, setEditingExpense] = React.useState<Expense | null>(
+        null,
+    );
+    const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
+    const [isPrintOpen, setIsPrintOpen] = React.useState(false);
+    const [printExpense, setPrintExpense] = React.useState<Expense | null>(null);
+    const [attachmentPath, setAttachmentPath] = React.useState<string | null>(
+        null,
+    );
+    const [approvalTarget, setApprovalTarget] = React.useState<Expense | null>(
         null,
     );
     const [form, setForm] = React.useState<ExpenseFormState>(emptyForm);
@@ -131,23 +157,33 @@ export function ExpenseClient({
             })),
         [vendors],
     );
-    const accountOptions = React.useMemo(
+    const ledgerAccountOptions = React.useMemo(
         () =>
-            financeAccounts.map((account) => ({
+            ledgerAccounts.map((account) => ({
                 value: String(account.id),
                 label: `${account.code} - ${account.name}`,
             })),
-        [financeAccounts],
+        [ledgerAccounts],
+    );
+    const paidFromAccountOptions = React.useMemo(
+        () =>
+            paidFromAccounts.map((account) => ({
+                value: String(account.id),
+                label: `${account.code} - ${account.name}`,
+            })),
+        [paidFromAccounts],
     );
 
     const openCreate = React.useCallback(() => {
         setEditingExpense(null);
         setForm(emptyForm);
+        setReceiptFile(null);
         setIsOpen(true);
     }, []);
 
     const openEdit = React.useCallback((expense: Expense) => {
         setEditingExpense(expense);
+        setReceiptFile(null);
         setForm({
             branch_id: String(expense.branch_id),
             vendor_id: expense.vendor_id ? String(expense.vendor_id) : '',
@@ -168,6 +204,20 @@ export function ExpenseClient({
         setIsOpen(true);
     }, []);
 
+    React.useEffect(() => {
+        if (!printExpenseId) {
+            return;
+        }
+
+        const target = expenses.find((expense) => expense.id === printExpenseId);
+        if (!target) {
+            return;
+        }
+
+        setPrintExpense(target);
+        setIsPrintOpen(true);
+    }, [expenses, printExpenseId]);
+
     const syncCategoryAccount = React.useCallback(
         (categoryId: string) => {
             const selectedCategory = expenseCategories.find(
@@ -186,7 +236,7 @@ export function ExpenseClient({
     );
 
     const submit = React.useCallback(() => {
-        const payload = {
+        const payload: Record<string, string | number | null | File> = {
             branch_id: Number(form.branch_id),
             vendor_id: form.vendor_id ? Number(form.vendor_id) : null,
             expense_category_id: Number(form.expense_category_id),
@@ -201,24 +251,68 @@ export function ExpenseClient({
             expense_date: form.expense_date,
             approval_status: form.approval_status,
         };
+        if (receiptFile) {
+            payload.receipt = receiptFile;
+        }
 
         if (editingExpense) {
+            const previousStatus = editingExpense.approval_status ?? 'draft';
+            const shouldPrintAfterUpdate =
+                previousStatus === 'draft' && form.approval_status === 'submitted';
+
             router.put(`/finance/expenses/${editingExpense.id}`, payload, {
                 preserveScroll: true,
-                onSuccess: () => setIsOpen(false),
+                forceFormData: Boolean(receiptFile),
+                onSuccess: () => {
+                    setIsOpen(false);
+                    setReceiptFile(null);
+                    if (!shouldPrintAfterUpdate) {
+                        setPrintExpense(null);
+                    }
+                },
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    if (typeof firstError === 'string' && firstError.length > 0) {
+                        toast.error(firstError);
+                        return;
+                    }
+
+                    toast.error('Failed to update expense.');
+                },
             });
             return;
         }
 
         router.post('/finance/expenses', payload, {
             preserveScroll: true,
-            onSuccess: () => setIsOpen(false),
+            forceFormData: Boolean(receiptFile),
+            onSuccess: () => {
+                setIsOpen(false);
+                setReceiptFile(null);
+            },
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                if (typeof firstError === 'string' && firstError.length > 0) {
+                    toast.error(firstError);
+                    return;
+                }
+
+                toast.error('Failed to create expense.');
+            },
         });
-    }, [editingExpense, form]);
+    }, [editingExpense, form, receiptFile]);
 
     const approve = React.useCallback((expense: Expense) => {
         router.post(
             `/finance/expenses/${expense.id}/approve`,
+            {},
+            { preserveScroll: true },
+        );
+    }, []);
+
+    const reject = React.useCallback((expense: Expense) => {
+        router.post(
+            `/finance/expenses/${expense.id}/reject`,
             {},
             { preserveScroll: true },
         );
@@ -255,9 +349,14 @@ export function ExpenseClient({
         () =>
             buildColumns({
                 onEdit: openEdit,
-                onApprove: approve,
+                onApprove: setApprovalTarget,
+                onViewAttachment: setAttachmentPath,
+                onPrint: (expense) => {
+                    setPrintExpense(expense);
+                    setIsPrintOpen(true);
+                },
             }),
-        [approve, openEdit],
+        [openEdit],
     );
 
     const toolbar = (
@@ -422,18 +521,16 @@ export function ExpenseClient({
 
                         <div className="grid gap-2">
                             <Label>Amount</Label>
-                            <Input
-                                type="number"
+                            <NumericInput
                                 min="0"
-                                step="0.01"
                                 value={form.amount}
-                                onChange={(event) =>
+                                onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        amount: event.target.value,
+                                        amount: value,
                                     }))
                                 }
-                                placeholder="0.00"
+                                placeholder="0"
                             />
                         </div>
 
@@ -496,35 +593,35 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Ledger Account</Label>
+                            <Label>Expense Ledger Account</Label>
                             <SearchableDropdown
                                 value={form.account_id}
-                                options={accountOptions}
+                                options={ledgerAccountOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         account_id: value,
                                     }))
                                 }
-                                placeholder="Select ledger account"
-                                searchPlaceholder="Search ledger accounts..."
+                                placeholder="Select expense ledger account"
+                                searchPlaceholder="Search expense ledger accounts..."
                                 emptyText="No account found."
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Paid From Account</Label>
+                            <Label>Payment Source Account</Label>
                             <SearchableDropdown
                                 value={form.paid_from_account_id}
-                                options={accountOptions}
+                                options={paidFromAccountOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         paid_from_account_id: value,
                                     }))
                                 }
-                                placeholder="Select paid from account"
-                                searchPlaceholder="Search finance accounts..."
+                                placeholder="Select payment source account"
+                                searchPlaceholder="Search payment source accounts..."
                                 emptyText="No account found."
                             />
                         </div>
@@ -570,6 +667,55 @@ export function ExpenseClient({
                                 rows={4}
                             />
                         </div>
+
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Bill / Receipt Attachment</Label>
+                            <label
+                                htmlFor="expense-receipt"
+                                className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
+                            >
+                                <input
+                                    id="expense-receipt"
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    className="hidden"
+                                    onChange={(event) =>
+                                        setReceiptFile(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-md bg-white p-2 shadow-sm dark:bg-neutral-800">
+                                        <UploadCloud className="h-4 w-4 text-slate-700 dark:text-slate-200" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            {receiptFile
+                                                ? receiptFile.name
+                                                : editingExpense?.attachments?.[0]
+                                                  ? 'Replace current receipt'
+                                                  : 'Upload receipt (JPG, PNG, PDF)'}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            Click to browse files (max 5MB)
+                                        </p>
+                                    </div>
+                                    {receiptFile ? (
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                setReceiptFile(null);
+                                            }}
+                                            className="rounded-md p-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:bg-neutral-700 dark:hover:text-slate-100"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    ) : (
+                                        <FileText className="h-4 w-4 text-slate-400" />
+                                    )}
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-2">
@@ -585,6 +731,77 @@ export function ExpenseClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={approvalTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setApprovalTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Review Expense Submission</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Confirm whether you want to approve this expense or send it back to draft for correction.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    reject(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Reject
+                        </AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    approve(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <ExpenseVoucherPrintDialog
+                open={isPrintOpen}
+                onOpenChange={(open) => {
+                    setIsPrintOpen(open);
+                    if (!open) {
+                        setPrintExpense(null);
+                    }
+                }}
+                expense={printExpense}
+                branch={
+                    printExpense
+                        ? branches.find((branch) => branch.id === printExpense.branch_id) ??
+                          null
+                        : null
+                }
+            />
+
+            <AttachmentViewDialog
+                open={attachmentPath !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setAttachmentPath(null);
+                    }
+                }}
+                path={attachmentPath}
+                title="Expense Attachment"
+            />
         </div>
     );
 }

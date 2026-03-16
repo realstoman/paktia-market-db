@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -609,27 +610,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Quantity</Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={editQuantity}
-                                    onChange={(event) =>
-                                        setEditQuantity(event.target.value)
-                                    }
+                                    onValueChange={setEditQuantity}
                                 />
                                 <InputError message={editErrors.quantity} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Single Price {editCurrencySymbol}</Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={editUnitPrice}
-                                    onChange={(event) =>
-                                        setEditUnitPrice(event.target.value)
-                                    }
+                                    onValueChange={setEditUnitPrice}
                                 />
                                 <InputError message={editErrors.unit_price} />
                             </div>
@@ -645,14 +638,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Paid Amount {editCurrencySymbol}</Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={editPaidAmount}
-                                    onChange={(event) =>
-                                        setEditPaidAmount(event.target.value)
-                                    }
+                                    onValueChange={setEditPaidAmount}
                                 />
                                 <InputError message={editErrors.paid_amount} />
                             </div>
@@ -1066,15 +1055,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Label htmlFor={`restock-qty-${data.id}`}>
                                 Quantity to add ({data.unit ?? 'unit'})
                             </Label>
-                            <Input
+                            <NumericInput
                                 id={`restock-qty-${data.id}`}
-                                type="number"
-                                min="0.01"
-                                step="0.01"
+                                min="1"
                                 value={restockQty}
-                                onChange={(event) =>
-                                    setRestockQty(event.target.value)
-                                }
+                                onValueChange={setRestockQty}
                             />
                             <InputError message={errors.quantity} />
                         </div>
@@ -1128,17 +1113,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <Label htmlFor={`restock-price-${data.id}`}>
                                         New Single Price {restockCurrencySymbol}
                                     </Label>
-                                    <Input
+                                    <NumericInput
                                         id={`restock-price-${data.id}`}
-                                        type="number"
                                         min="0"
-                                        step="0.01"
                                         value={restockUnitPrice}
-                                        onChange={(event) =>
-                                            setRestockUnitPrice(
-                                                event.target.value,
-                                            )
-                                        }
+                                        onValueChange={setRestockUnitPrice}
                                     />
                                     <InputError message={errors.unit_price} />
                                 </div>

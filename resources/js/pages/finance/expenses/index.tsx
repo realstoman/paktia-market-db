@@ -21,7 +21,9 @@ interface ExpensesPageProps {
     branches: Branch[];
     expenseCategories: ExpenseCategory[];
     vendors: Vendor[];
-    financeAccounts: FinanceAccount[];
+    ledgerAccounts: FinanceAccount[];
+    paidFromAccounts: FinanceAccount[];
+    printExpenseId?: number | null;
 }
 
 export default function ExpensesPage({
@@ -29,7 +31,9 @@ export default function ExpensesPage({
     branches,
     expenseCategories,
     vendors,
-    financeAccounts,
+    ledgerAccounts,
+    paidFromAccounts,
+    printExpenseId,
 }: ExpensesPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -39,7 +43,9 @@ export default function ExpensesPage({
                 branches={branches}
                 expenseCategories={expenseCategories}
                 vendors={vendors}
-                financeAccounts={financeAccounts}
+                ledgerAccounts={ledgerAccounts}
+                paidFromAccounts={paidFromAccounts}
+                printExpenseId={printExpenseId ?? null}
             />
         </AppLayout>
     );

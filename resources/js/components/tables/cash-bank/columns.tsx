@@ -1,9 +1,9 @@
-import { Expense } from '@/types';
+import { CashMovement } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 
-function formatExpenseDate(value?: string) {
+function formatMovementDate(value?: string) {
     if (!value) {
         return '-';
     }
@@ -20,7 +20,7 @@ function formatExpenseDate(value?: string) {
     return parsed.toISOString().slice(0, 10);
 }
 
-function formatExpenseTime(value?: string) {
+function formatMovementTime(value?: string) {
     if (!value) {
         return '';
     }
@@ -36,7 +36,13 @@ function formatExpenseTime(value?: string) {
     }).format(parsed);
 }
 
-function badgeTone(status?: string) {
+function movementTypeLabel(value: string) {
+    return value
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function tone(status?: string) {
     if (status === 'approved') {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
     }
@@ -49,10 +55,10 @@ function badgeTone(status?: string) {
 }
 
 interface BuildColumnsProps {
-    onEdit: (expense: Expense) => void;
-    onApprove: (expense: Expense) => void;
+    onEdit: (movement: CashMovement) => void;
+    onApprove: (movement: CashMovement) => void;
     onViewAttachment: (path: string) => void;
-    onPrint: (expense: Expense) => void;
+    onPrint: (movement: CashMovement) => void;
 }
 
 export function buildColumns({
@@ -60,14 +66,14 @@ export function buildColumns({
     onApprove,
     onViewAttachment,
     onPrint,
-}: BuildColumnsProps): ColumnDef<Expense>[] {
+}: BuildColumnsProps): ColumnDef<CashMovement>[] {
     return [
         {
-            accessorKey: 'expense_date',
+            accessorKey: 'movement_date',
             header: 'Date',
             cell: ({ row }) => {
-                const dateText = formatExpenseDate(row.original.expense_date);
-                const timeText = formatExpenseTime(row.original.created_at);
+                const dateText = formatMovementDate(row.original.movement_date);
+                const timeText = formatMovementTime(row.original.created_at);
 
                 return (
                     <div>
@@ -82,38 +88,42 @@ export function buildColumns({
             },
         },
         {
-            id: 'title',
-            accessorKey: 'title',
-            header: 'Title',
-            cell: ({ row }) => (
-                <div>
-                    <p className="font-medium">{row.original.title}</p>
-                    {row.original.description ? (
-                        <p className="text-xs text-muted-foreground">
-                            {row.original.description}
-                        </p>
-                    ) : null}
-                </div>
-            ),
+            accessorKey: 'movement_type',
+            header: 'Movement',
+            cell: ({ row }) => movementTypeLabel(row.original.movement_type),
         },
         {
             id: 'branch.name',
-            accessorFn: (row) => row.branch?.name ?? '-',
+            accessorFn: (row) => row.branch?.name ?? 'All Branches',
             header: 'Branch',
         },
         {
-            id: 'expense_category.name',
+            id: 'account.name',
             accessorFn: (row) =>
-                row.expense_category?.name ?? row.expense_type ?? '-',
-            header: 'Category',
+                row.account ? `${row.account.code} - ${row.account.name}` : '-',
+            header: 'Account',
+        },
+        {
+            id: 'counterparty_account.name',
+            accessorFn: (row) =>
+                row.counterparty_account
+                    ? `${row.counterparty_account.code} - ${row.counterparty_account.name}`
+                    : '-',
+            header: 'Counterparty',
+        },
+        {
+            accessorKey: 'direction',
+            header: 'Direction',
+            cell: ({ row }) =>
+                row.original.direction === 'in' ? 'Inflow' : 'Outflow',
         },
         {
             accessorKey: 'payment_method',
             header: 'Payment Method',
             cell: ({ row }) =>
                 row.original.payment_method
-                    ? row.original.payment_method.replaceAll('_', ' ')
-                    : '-',
+                    .replaceAll('_', ' ')
+                    .replace(/\b\w/g, (char) => char.toUpperCase()),
         },
         {
             accessorKey: 'amount',
@@ -124,7 +134,7 @@ export function buildColumns({
             id: 'attachment',
             header: 'Attachment',
             cell: ({ row }) => {
-                const attachmentPath = row.original.attachments?.[0];
+                const attachmentPath = row.original.attachment_path;
 
                 if (!attachmentPath) {
                     return <span className="text-muted-foreground">-</span>;
@@ -146,7 +156,7 @@ export function buildColumns({
             header: 'Status',
             cell: ({ row }) => (
                 <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeTone(
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone(
                         row.original.approval_status,
                     )}`}
                 >

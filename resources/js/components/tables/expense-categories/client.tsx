@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -306,15 +307,14 @@ export function ExpenseCategoryClient({
                             <Label htmlFor="expense-category-sort-order">
                                 Sort Order
                             </Label>
-                            <Input
+                            <NumericInput
                                 id="expense-category-sort-order"
-                                type="number"
                                 min="0"
                                 value={form.sort_order}
-                                onChange={(event) =>
+                                onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        sort_order: event.target.value,
+                                        sort_order: value,
                                     }))
                                 }
                             />

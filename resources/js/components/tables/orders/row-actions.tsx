@@ -47,6 +47,7 @@ const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
     { value: 'credit_card', label: 'Credit Card' },
+    { value: 'other', label: 'Other' },
 ];
 
 interface OrderRowActionsProps {

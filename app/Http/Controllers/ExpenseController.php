@@ -2,18 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ExpenseController extends Controller
 {
     public function index()
     {
+        $paidFromAccounts = FinanceAccount::query()
+            ->where('status', 'active')
+            ->where('is_postable', true)
+            ->where('type', 'asset')
+            ->where(function ($query) {
+                $query->whereIn('code', ['1100', '1200', '1500'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%cash%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%bank%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%petty%']);
+            })
+            ->orderBy('code')
+            ->orderBy('name')
+            ->get(['id', 'code', 'name', 'type']);
+
         return Inertia::render('finance/expenses/index', [
             'expenses' => Expense::query()
                 ->with([
@@ -28,7 +45,7 @@ class ExpenseController extends Controller
                 ->orderByDesc('expense_date')
                 ->orderByDesc('id')
                 ->get(),
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'branches' => Branch::orderBy('name')->get(['id', 'name', 'address']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -38,21 +55,26 @@ class ExpenseController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name']),
-            'financeAccounts' => FinanceAccount::query()
+            'ledgerAccounts' => FinanceAccount::query()
                 ->where('status', 'active')
+                ->where('is_postable', true)
+                ->whereIn('type', ['expense', 'cogs'])
                 ->orderBy('code')
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'type']),
+            'paidFromAccounts' => $paidFromAccounts,
+            'printExpenseId' => session('print_expense_id'),
         ]);
     }
 
     public function store(Request $request)
     {
+        $this->normalizePaymentMethodInput($request);
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? 'draft';
 
-        Expense::create([
+        $expense = Expense::create([
             'branch_id' => $validated['branch_id'],
             'vendor_id' => $validated['vendor_id'] ?? null,
             'title' => $validated['title'],
@@ -63,6 +85,7 @@ class ExpenseController extends Controller
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'description' => $validated['description'] ?? null,
+            'attachments' => $this->resolveAttachments($request, null),
             'expense_date' => $validated['expense_date'],
             'approval_status' => $approvalStatus,
             'created_by' => $request->user()?->id,
@@ -70,15 +93,24 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        return redirect()->route('finance.expenses.index')
+        $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense created successfully.');
+
+        if ($approvalStatus === 'submitted') {
+            $redirect->with('print_expense_id', $expense->id);
+        }
+
+        return $redirect;
     }
 
     public function update(Request $request, Expense $expense)
     {
+        $this->normalizePaymentMethodInput($request);
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? $expense->approval_status ?? 'draft';
+
+        $previousStatus = $expense->approval_status ?? 'draft';
 
         $expense->update([
             'branch_id' => $validated['branch_id'],
@@ -91,14 +123,24 @@ class ExpenseController extends Controller
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'description' => $validated['description'] ?? null,
+            'attachments' => $this->resolveAttachments($request, $expense),
             'expense_date' => $validated['expense_date'],
             'approval_status' => $approvalStatus,
             'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        return redirect()->route('finance.expenses.index')
+        $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense updated successfully.');
+
+        if (
+            $approvalStatus === 'submitted'
+            && in_array($previousStatus, ['draft', null], true)
+        ) {
+            $redirect->with('print_expense_id', $expense->id);
+        }
+
+        return $redirect;
     }
 
     public function approve(Request $request, Expense $expense)
@@ -113,6 +155,18 @@ class ExpenseController extends Controller
             ->with('success', 'Expense approved successfully.');
     }
 
+    public function reject(Request $request, Expense $expense)
+    {
+        $expense->update([
+            'approval_status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return redirect()->route('finance.expenses.index')
+            ->with('success', 'Expense was sent back to draft.');
+    }
+
     protected function validateExpense(Request $request): array
     {
         return $request->validate([
@@ -123,10 +177,46 @@ class ExpenseController extends Controller
             'paid_from_account_id' => ['nullable', 'exists:finance_accounts,id'],
             'title' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'payment_method' => ['required', 'string', 'max:50'],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'expense_date' => ['required', 'date_format:Y-m-d'],
             'approval_status' => ['nullable', 'in:draft,submitted,approved'],
         ]);
+    }
+
+    protected function normalizePaymentMethodInput(Request $request): void
+    {
+        $raw = strtolower(trim((string) $request->input('payment_method', '')));
+
+        $normalized = match ($raw) {
+            'card', 'creditcard', 'credit card' => PaymentMethod::CREDIT_CARD->value,
+            'bank', 'bank transfer', 'bank-transfer' => PaymentMethod::BANK_TRANSFER->value,
+            'crypto' => PaymentMethod::OTHER->value,
+            default => $raw,
+        };
+
+        if ($normalized !== '') {
+            $request->merge([
+                'payment_method' => $normalized,
+            ]);
+        }
+    }
+
+    protected function resolveAttachments(Request $request, ?Expense $expense): ?array
+    {
+        $current = is_array($expense?->attachments) ? $expense->attachments : [];
+
+        if (! $request->hasFile('receipt')) {
+            return empty($current) ? null : $current;
+        }
+
+        if (! empty($current)) {
+            Storage::disk('public')->delete($current);
+        }
+
+        $path = $request->file('receipt')->store('finance/expenses/receipts', 'public');
+
+        return [$path];
     }
 }

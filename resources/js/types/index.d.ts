@@ -149,7 +149,17 @@ export interface FinanceAccount {
     code: string;
     name: string;
     type: string;
+    parent_id?: number | null;
+    parent?: Pick<FinanceAccount, 'id' | 'code' | 'name'> | null;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    currency_code?: string | null;
+    is_postable?: boolean;
+    is_system?: boolean;
     status?: string;
+    description?: string | null;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 
@@ -185,6 +195,7 @@ export interface Expense {
     amount: number | string;
     payment_method?: string | null;
     description?: string | null;
+    attachments?: string[] | null;
     expense_date?: string;
     approval_status?: string;
     created_by?: number | null;
@@ -192,6 +203,47 @@ export interface Expense {
     approved_by?: number | null;
     approver?: User | null;
     approved_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface CashMovement {
+    id: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    movement_type: string;
+    direction: 'in' | 'out';
+    movement_date: string;
+    amount: number | string;
+    payment_method: string;
+    account_id?: number | null;
+    account?: FinanceAccount | null;
+    counterparty_account_id?: number | null;
+    counterparty_account?: FinanceAccount | null;
+    reference_type?: string | null;
+    reference_id?: number | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    approval_status?: string;
+    description?: string | null;
+    attachment_path?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface CashMovementType {
+    id: number;
+    name: string;
+    slug: string;
+    default_direction?: 'in' | 'out' | null;
+    requires_counterparty?: boolean;
+    is_active?: boolean;
+    sort_order?: number;
+    description?: string | null;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
