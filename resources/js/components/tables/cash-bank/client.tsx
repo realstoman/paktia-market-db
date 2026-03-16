@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { MovementVoucherPrintDialog } from '@/components/tables/cash-bank/movement-voucher-print-dialog';
 import {
     Branch,
     CashMovement,
@@ -39,7 +40,7 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { ArrowLeftRight, Plus } from 'lucide-react';
+import { ArrowLeftRight, FileText, Plus, UploadCloud, X } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
 
@@ -80,7 +81,7 @@ const emptyForm: CashMovementFormState = {
     payment_method: 'cash',
     account_id: '',
     counterparty_account_id: '',
-    approval_status: 'approved',
+    approval_status: 'draft',
     description: '',
 };
 
@@ -90,6 +91,7 @@ interface CashBankClientProps {
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
     movementTypes: CashMovementType[];
+    printMovementId?: number | null;
 }
 
 export function CashBankClient({
@@ -98,10 +100,16 @@ export function CashBankClient({
     sourceAccounts,
     targetAccounts,
     movementTypes,
+    printMovementId = null,
 }: CashBankClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [approvalTarget, setApprovalTarget] =
         React.useState<CashMovement | null>(null);
+    const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
+    const [isPrintOpen, setIsPrintOpen] = React.useState(false);
+    const [printMovement, setPrintMovement] = React.useState<CashMovement | null>(
+        null,
+    );
     const [form, setForm] = React.useState<CashMovementFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
@@ -169,11 +177,26 @@ export function CashBankClient({
             direction:
                 defaultMovementType?.default_direction ?? emptyForm.direction,
         });
+        setReceiptFile(null);
         setIsOpen(true);
     }, [movementTypes]);
 
+    React.useEffect(() => {
+        if (!printMovementId) {
+            return;
+        }
+
+        const target = movements.find((movement) => movement.id === printMovementId);
+        if (!target) {
+            return;
+        }
+
+        setPrintMovement(target);
+        setIsPrintOpen(true);
+    }, [movements, printMovementId]);
+
     const submit = React.useCallback(() => {
-        const payload = {
+        const payload: Record<string, string | number | null | File> = {
             branch_id: form.branch_id ? Number(form.branch_id) : null,
             destination_branch_id: form.destination_branch_id
                 ? Number(form.destination_branch_id)
@@ -190,12 +213,19 @@ export function CashBankClient({
             approval_status: form.approval_status,
             description: form.description || null,
         };
+        if (receiptFile) {
+            payload.receipt = receiptFile;
+        }
 
         router.post('/finance/cash-bank', payload, {
             preserveScroll: true,
-            onSuccess: () => setIsOpen(false),
+            forceFormData: Boolean(receiptFile),
+            onSuccess: () => {
+                setIsOpen(false);
+                setReceiptFile(null);
+            },
         });
-    }, [form]);
+    }, [form, receiptFile]);
 
     const approve = React.useCallback((movement: CashMovement) => {
         router.post(
@@ -523,6 +553,53 @@ export function CashBankClient({
                                 rows={4}
                             />
                         </div>
+
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Bill / Receipt Attachment</Label>
+                            <label
+                                htmlFor="movement-receipt"
+                                className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
+                            >
+                                <input
+                                    id="movement-receipt"
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    className="hidden"
+                                    onChange={(event) =>
+                                        setReceiptFile(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-md bg-white p-2 shadow-sm dark:bg-neutral-800">
+                                        <UploadCloud className="h-4 w-4 text-slate-700 dark:text-slate-200" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            {receiptFile
+                                                ? receiptFile.name
+                                                : 'Upload receipt (JPG, PNG, PDF)'}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            Click to browse files (max 5MB)
+                                        </p>
+                                    </div>
+                                    {receiptFile ? (
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                setReceiptFile(null);
+                                            }}
+                                            className="rounded-md p-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:bg-neutral-700 dark:hover:text-slate-100"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    ) : (
+                                        <FileText className="h-4 w-4 text-slate-400" />
+                                    )}
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-2">
@@ -576,6 +653,31 @@ export function CashBankClient({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <MovementVoucherPrintDialog
+                open={isPrintOpen}
+                onOpenChange={(open) => {
+                    setIsPrintOpen(open);
+                    if (!open) {
+                        setPrintMovement(null);
+                    }
+                }}
+                movement={printMovement}
+                branch={
+                    printMovement
+                        ? branches.find((branch) => branch.id === printMovement.branch_id) ??
+                          null
+                        : null
+                }
+                movementType={
+                    printMovement
+                        ? movementTypes.find(
+                              (movementType) =>
+                                  movementType.slug === printMovement.movement_type,
+                          ) ?? null
+                        : null
+                }
+            />
         </div>
     );
 }

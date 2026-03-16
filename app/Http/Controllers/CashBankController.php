@@ -32,7 +32,7 @@ class CashBankController extends Controller
                 ->get(),
             'branches' => Branch::query()
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'address']),
             'sourceAccounts' => $sourceAccounts,
             'targetAccounts' => $sourceAccounts,
             'movementTypes' => CashMovementType::query()
@@ -40,6 +40,7 @@ class CashBankController extends Controller
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'default_direction', 'requires_counterparty']),
+            'printMovementId' => session('print_movement_id'),
         ]);
     }
 
@@ -73,17 +74,28 @@ class CashBankController extends Controller
             ],
             'approval_status' => ['nullable', Rule::in(['draft', 'submitted', 'approved'])],
             'description' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
 
-        $approvalStatus = $validated['approval_status'] ?? 'approved';
+        $approvalStatus = $validated['approval_status'] ?? 'draft';
+        $attachmentPath = $request->hasFile('receipt')
+            ? $request->file('receipt')->store('finance/cash-bank/receipts', 'public')
+            : null;
 
-        DB::transaction(function () use ($request, $validated, $approvalStatus, $movementType) {
+        $createdMovement = null;
+
+        DB::transaction(function () use ($request, $validated, $approvalStatus, $movementType, $attachmentPath, &$createdMovement) {
             if ((bool) $movementType?->requires_counterparty) {
-                $this->createTransferPair($request, $validated, $approvalStatus);
+                $createdMovement = $this->createTransferPair(
+                    $request,
+                    $validated,
+                    $approvalStatus,
+                    $attachmentPath
+                );
                 return;
             }
 
-            CashMovement::create([
+            $createdMovement = CashMovement::create([
                 'branch_id' => $validated['branch_id'] ?? null,
                 'movement_type' => $validated['movement_type'],
                 'direction' => $this->resolveDirection(
@@ -100,12 +112,22 @@ class CashBankController extends Controller
                 'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
                 'approval_status' => $approvalStatus,
                 'description' => $validated['description'] ?? null,
+                'attachment_path' => $attachmentPath,
             ]);
         });
 
-        return redirect()
+        $redirect = redirect()
             ->route('finance.cash-bank.index')
             ->with('success', 'Cash movement recorded successfully.');
+
+        if (
+            $approvalStatus === 'submitted'
+            && $createdMovement instanceof CashMovement
+        ) {
+            $redirect->with('print_movement_id', $createdMovement->id);
+        }
+
+        return $redirect;
     }
 
     public function approve(Request $request, CashMovement $cashMovement)
@@ -132,7 +154,12 @@ class CashBankController extends Controller
             ->with('success', 'Cash movement was sent back to draft.');
     }
 
-    protected function createTransferPair(Request $request, array $validated, string $approvalStatus): void
+    protected function createTransferPair(
+        Request $request,
+        array $validated,
+        string $approvalStatus,
+        ?string $attachmentPath = null
+    ): CashMovement
     {
         if (empty($validated['counterparty_account_id'])) {
             abort(422, 'Target account is required for transfer.');
@@ -154,6 +181,7 @@ class CashBankController extends Controller
             'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
             'approval_status' => $approvalStatus,
             'description' => $validated['description'] ?? null,
+            'attachment_path' => $attachmentPath,
         ]);
 
         $incoming = CashMovement::create([
@@ -171,12 +199,15 @@ class CashBankController extends Controller
             'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
             'approval_status' => $approvalStatus,
             'description' => $validated['description'] ?? null,
+            'attachment_path' => $attachmentPath,
         ]);
 
         $outgoing->update([
             'reference_type' => 'cash_transfer',
             'reference_id' => $incoming->id,
         ]);
+
+        return $outgoing;
     }
 
     protected function resolveDirection(

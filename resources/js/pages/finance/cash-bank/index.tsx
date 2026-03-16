@@ -21,6 +21,7 @@ interface CashBankPageProps {
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
     movementTypes: CashMovementType[];
+    printMovementId?: number | null;
 }
 
 export default function CashBankPage({
@@ -29,6 +30,7 @@ export default function CashBankPage({
     sourceAccounts,
     targetAccounts,
     movementTypes,
+    printMovementId,
 }: CashBankPageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -39,6 +41,7 @@ export default function CashBankPage({
                 sourceAccounts={sourceAccounts}
                 targetAccounts={targetAccounts}
                 movementTypes={movementTypes}
+                printMovementId={printMovementId ?? null}
             />
         </AppLayout>
     );

@@ -63,6 +63,7 @@ class ExpenseController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'type']),
             'paidFromAccounts' => $paidFromAccounts,
+            'printExpenseId' => session('print_expense_id'),
         ]);
     }
 
@@ -73,7 +74,7 @@ class ExpenseController extends Controller
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? 'draft';
 
-        Expense::create([
+        $expense = Expense::create([
             'branch_id' => $validated['branch_id'],
             'vendor_id' => $validated['vendor_id'] ?? null,
             'title' => $validated['title'],
@@ -92,8 +93,14 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        return redirect()->route('finance.expenses.index')
+        $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense created successfully.');
+
+        if ($approvalStatus === 'submitted') {
+            $redirect->with('print_expense_id', $expense->id);
+        }
+
+        return $redirect;
     }
 
     public function update(Request $request, Expense $expense)
@@ -102,6 +109,8 @@ class ExpenseController extends Controller
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
         $approvalStatus = $validated['approval_status'] ?? $expense->approval_status ?? 'draft';
+
+        $previousStatus = $expense->approval_status ?? 'draft';
 
         $expense->update([
             'branch_id' => $validated['branch_id'],
@@ -121,8 +130,17 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        return redirect()->route('finance.expenses.index')
+        $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense updated successfully.');
+
+        if (
+            $approvalStatus === 'submitted'
+            && in_array($previousStatus, ['draft', null], true)
+        ) {
+            $redirect->with('print_expense_id', $expense->id);
+        }
+
+        return $redirect;
     }
 
     public function approve(Request $request, Expense $expense)
