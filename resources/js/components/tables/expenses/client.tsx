@@ -10,6 +10,16 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -39,6 +49,7 @@ import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { Plus, ReceiptText } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -101,6 +112,9 @@ export function ExpenseClient({
 }: ExpenseClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingExpense, setEditingExpense] = React.useState<Expense | null>(
+        null,
+    );
+    const [approvalTarget, setApprovalTarget] = React.useState<Expense | null>(
         null,
     );
     const [form, setForm] = React.useState<ExpenseFormState>(emptyForm);
@@ -215,6 +229,15 @@ export function ExpenseClient({
             router.put(`/finance/expenses/${editingExpense.id}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => setIsOpen(false),
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    if (typeof firstError === 'string' && firstError.length > 0) {
+                        toast.error(firstError);
+                        return;
+                    }
+
+                    toast.error('Failed to update expense.');
+                },
             });
             return;
         }
@@ -222,12 +245,29 @@ export function ExpenseClient({
         router.post('/finance/expenses', payload, {
             preserveScroll: true,
             onSuccess: () => setIsOpen(false),
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                if (typeof firstError === 'string' && firstError.length > 0) {
+                    toast.error(firstError);
+                    return;
+                }
+
+                toast.error('Failed to create expense.');
+            },
         });
     }, [editingExpense, form]);
 
     const approve = React.useCallback((expense: Expense) => {
         router.post(
             `/finance/expenses/${expense.id}/approve`,
+            {},
+            { preserveScroll: true },
+        );
+    }, []);
+
+    const reject = React.useCallback((expense: Expense) => {
+        router.post(
+            `/finance/expenses/${expense.id}/reject`,
             {},
             { preserveScroll: true },
         );
@@ -264,9 +304,9 @@ export function ExpenseClient({
         () =>
             buildColumns({
                 onEdit: openEdit,
-                onApprove: approve,
+                onApprove: setApprovalTarget,
             }),
-        [approve, openEdit],
+        [openEdit],
     );
 
     const toolbar = (
@@ -594,6 +634,49 @@ export function ExpenseClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={approvalTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setApprovalTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Review Expense Submission</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Confirm whether you want to approve this expense or send it back to draft for correction.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    reject(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Reject
+                        </AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    approve(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

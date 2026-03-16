@@ -10,6 +10,16 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -90,6 +100,8 @@ export function CashBankClient({
     movementTypes,
 }: CashBankClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [approvalTarget, setApprovalTarget] =
+        React.useState<CashMovement | null>(null);
     const [form, setForm] = React.useState<CashMovementFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
@@ -193,12 +205,20 @@ export function CashBankClient({
         );
     }, []);
 
+    const reject = React.useCallback((movement: CashMovement) => {
+        router.post(
+            `/finance/cash-bank/${movement.id}/reject`,
+            {},
+            { preserveScroll: true },
+        );
+    }, []);
+
     const columns = React.useMemo(
         () =>
             buildColumns({
-                onApprove: approve,
+                onApprove: setApprovalTarget,
             }),
-        [approve],
+        [],
     );
 
     const selectedMovementType = React.useMemo(
@@ -513,6 +533,49 @@ export function CashBankClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={approvalTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setApprovalTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Review Cash Movement</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Confirm whether you want to approve this movement or send it back to draft for correction.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    reject(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Reject
+                        </AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    approve(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
