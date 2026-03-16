@@ -328,6 +328,10 @@ export function CashBankClient({
                 onEdit: openEdit,
                 onApprove: setApprovalTarget,
                 onViewAttachment: setAttachmentPath,
+                onPrint: (movement) => {
+                    setPrintMovement(movement);
+                    setIsPrintOpen(true);
+                },
             }),
         [openEdit],
     );

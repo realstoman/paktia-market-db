@@ -351,6 +351,10 @@ export function ExpenseClient({
                 onEdit: openEdit,
                 onApprove: setApprovalTarget,
                 onViewAttachment: setAttachmentPath,
+                onPrint: (expense) => {
+                    setPrintExpense(expense);
+                    setIsPrintOpen(true);
+                },
             }),
         [openEdit],
     );

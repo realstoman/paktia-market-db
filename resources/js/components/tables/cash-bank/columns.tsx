@@ -58,12 +58,14 @@ interface BuildColumnsProps {
     onEdit: (movement: CashMovement) => void;
     onApprove: (movement: CashMovement) => void;
     onViewAttachment: (path: string) => void;
+    onPrint: (movement: CashMovement) => void;
 }
 
 export function buildColumns({
     onEdit,
     onApprove,
     onViewAttachment,
+    onPrint,
 }: BuildColumnsProps): ColumnDef<CashMovement>[] {
     return [
         {
@@ -170,6 +172,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onApprove={onApprove}
+                    onPrint={onPrint}
                 />
             ),
         },

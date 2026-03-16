@@ -9,15 +9,21 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CashMovement } from '@/types';
-import { CheckCheck, MoreHorizontal, Pencil } from 'lucide-react';
+import { CheckCheck, MoreHorizontal, Pencil, Printer } from 'lucide-react';
 
 interface CellActionProps {
     data: CashMovement;
     onEdit: (movement: CashMovement) => void;
     onApprove: (movement: CashMovement) => void;
+    onPrint: (movement: CashMovement) => void;
 }
 
-export function CellAction({ data, onEdit, onApprove }: CellActionProps) {
+export function CellAction({
+    data,
+    onEdit,
+    onApprove,
+    onPrint,
+}: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -34,6 +40,10 @@ export function CellAction({ data, onEdit, onApprove }: CellActionProps) {
                         Edit
                     </DropdownMenuItem>
                 ) : null}
+                <DropdownMenuItem onClick={() => onPrint(data)}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Voucher
+                </DropdownMenuItem>
                 {data.approval_status !== 'approved' ? (
                     <DropdownMenuItem onClick={() => onApprove(data)}>
                         <CheckCheck className="mr-2 h-4 w-4" />

@@ -52,12 +52,14 @@ interface BuildColumnsProps {
     onEdit: (expense: Expense) => void;
     onApprove: (expense: Expense) => void;
     onViewAttachment: (path: string) => void;
+    onPrint: (expense: Expense) => void;
 }
 
 export function buildColumns({
     onEdit,
     onApprove,
     onViewAttachment,
+    onPrint,
 }: BuildColumnsProps): ColumnDef<Expense>[] {
     return [
         {
@@ -160,6 +162,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onApprove={onApprove}
+                    onPrint={onPrint}
                 />
             ),
         },
