@@ -149,7 +149,17 @@ export interface FinanceAccount {
     code: string;
     name: string;
     type: string;
+    parent_id?: number | null;
+    parent?: Pick<FinanceAccount, 'id' | 'code' | 'name'> | null;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    currency_code?: string | null;
+    is_postable?: boolean;
+    is_system?: boolean;
     status?: string;
+    description?: string | null;
+    created_at?: string;
+    updated_at?: string;
     [key: string]: unknown;
 }
 
