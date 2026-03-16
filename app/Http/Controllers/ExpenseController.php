@@ -38,8 +38,17 @@ class ExpenseController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name']),
-            'financeAccounts' => FinanceAccount::query()
+            'ledgerAccounts' => FinanceAccount::query()
                 ->where('status', 'active')
+                ->where('is_postable', true)
+                ->whereIn('type', ['expense', 'cogs'])
+                ->orderBy('code')
+                ->orderBy('name')
+                ->get(['id', 'code', 'name', 'type']),
+            'paidFromAccounts' => FinanceAccount::query()
+                ->where('status', 'active')
+                ->where('is_postable', true)
+                ->where('type', 'asset')
                 ->orderBy('code')
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'type']),

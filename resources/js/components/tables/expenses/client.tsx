@@ -88,7 +88,8 @@ interface ExpenseClientProps {
     branches: Branch[];
     expenseCategories: ExpenseCategory[];
     vendors: Vendor[];
-    financeAccounts: FinanceAccount[];
+    ledgerAccounts: FinanceAccount[];
+    paidFromAccounts: FinanceAccount[];
 }
 
 export function ExpenseClient({
@@ -96,7 +97,8 @@ export function ExpenseClient({
     branches,
     expenseCategories,
     vendors,
-    financeAccounts,
+    ledgerAccounts,
+    paidFromAccounts,
 }: ExpenseClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingExpense, setEditingExpense] = React.useState<Expense | null>(
@@ -131,13 +133,21 @@ export function ExpenseClient({
             })),
         [vendors],
     );
-    const accountOptions = React.useMemo(
+    const ledgerAccountOptions = React.useMemo(
         () =>
-            financeAccounts.map((account) => ({
+            ledgerAccounts.map((account) => ({
                 value: String(account.id),
                 label: `${account.code} - ${account.name}`,
             })),
-        [financeAccounts],
+        [ledgerAccounts],
+    );
+    const paidFromAccountOptions = React.useMemo(
+        () =>
+            paidFromAccounts.map((account) => ({
+                value: String(account.id),
+                label: `${account.code} - ${account.name}`,
+            })),
+        [paidFromAccounts],
     );
 
     const openCreate = React.useCallback(() => {
@@ -499,7 +509,7 @@ export function ExpenseClient({
                             <Label>Ledger Account</Label>
                             <SearchableDropdown
                                 value={form.account_id}
-                                options={accountOptions}
+                                options={ledgerAccountOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
@@ -516,15 +526,15 @@ export function ExpenseClient({
                             <Label>Paid From Account</Label>
                             <SearchableDropdown
                                 value={form.paid_from_account_id}
-                                options={accountOptions}
+                                options={paidFromAccountOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         paid_from_account_id: value,
                                     }))
                                 }
-                                placeholder="Select paid from account"
-                                searchPlaceholder="Search finance accounts..."
+                                placeholder="Select source account"
+                                searchPlaceholder="Search source accounts..."
                                 emptyText="No account found."
                             />
                         </div>
