@@ -165,14 +165,6 @@ class CashBankController extends Controller
                 ]);
         }
 
-        if ($cashMovement->reference_type === 'cash_transfer') {
-            return redirect()
-                ->route('finance.cash-bank.index')
-                ->withErrors([
-                    'movement' => 'Transfer-linked movement cannot be edited directly.',
-                ]);
-        }
-
         $movementType = CashMovementType::query()
             ->where('slug', $request->input('movement_type'))
             ->where('is_active', true)
@@ -206,26 +198,99 @@ class CashBankController extends Controller
 
         $previousStatus = $cashMovement->approval_status ?? 'draft';
         $approvalStatus = $validated['approval_status'] ?? $previousStatus;
-        $attachmentPath = $this->resolveAttachmentPath($request, $cashMovement);
+        $printMovementId = $cashMovement->id;
 
-        $cashMovement->update([
-            'branch_id' => $validated['branch_id'] ?? null,
-            'movement_type' => $validated['movement_type'],
-            'direction' => $this->resolveDirection(
-                movementType: $validated['movement_type'],
-                requestedDirection: $validated['direction'] ?? null,
-                defaultDirection: $movementType?->default_direction,
-            ),
-            'movement_date' => $validated['movement_date'],
-            'amount' => $validated['amount'],
-            'payment_method' => $validated['payment_method'],
-            'account_id' => $validated['account_id'],
-            'counterparty_account_id' => $validated['counterparty_account_id'] ?? null,
-            'approval_status' => $approvalStatus,
-            'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
-            'description' => $validated['description'] ?? null,
-            'attachment_path' => $attachmentPath,
-        ]);
+        DB::transaction(function () use (
+            $request,
+            $cashMovement,
+            $validated,
+            $movementType,
+            $approvalStatus,
+            &$printMovementId
+        ) {
+            if ($cashMovement->reference_type === 'cash_transfer') {
+                if (! (bool) $movementType?->requires_counterparty) {
+                    abort(422, 'Transfer movement type cannot be changed to a non-transfer type.');
+                }
+
+                $pairedMovement = CashMovement::query()->find($cashMovement->reference_id);
+                if (! $pairedMovement) {
+                    abort(422, 'Linked transfer movement is missing.');
+                }
+
+                $outgoing = $cashMovement->direction === 'out' ? $cashMovement : $pairedMovement;
+                $incoming = $cashMovement->direction === 'out' ? $pairedMovement : $cashMovement;
+
+                if (
+                    ($outgoing->approval_status ?? 'draft') === 'approved'
+                    || ($incoming->approval_status ?? 'draft') === 'approved'
+                ) {
+                    abort(422, 'Approved transfer movement cannot be edited.');
+                }
+
+                $attachmentPath = $this->resolveTransferAttachmentPath(
+                    $request,
+                    $outgoing,
+                    $incoming
+                );
+                $sourceBranchId = $validated['branch_id'] ?? $outgoing->branch_id;
+                $destinationBranchId = $validated['destination_branch_id'] ?? $incoming->branch_id ?? $sourceBranchId;
+
+                $outgoing->update([
+                    'branch_id' => $sourceBranchId,
+                    'movement_type' => $validated['movement_type'],
+                    'direction' => 'out',
+                    'movement_date' => $validated['movement_date'],
+                    'amount' => $validated['amount'],
+                    'payment_method' => $validated['payment_method'],
+                    'account_id' => $validated['account_id'],
+                    'counterparty_account_id' => $validated['counterparty_account_id'],
+                    'approval_status' => $approvalStatus,
+                    'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
+                    'description' => $validated['description'] ?? null,
+                    'attachment_path' => $attachmentPath,
+                ]);
+
+                $incoming->update([
+                    'branch_id' => $destinationBranchId,
+                    'movement_type' => $validated['movement_type'],
+                    'direction' => 'in',
+                    'movement_date' => $validated['movement_date'],
+                    'amount' => $validated['amount'],
+                    'payment_method' => $validated['payment_method'],
+                    'account_id' => $validated['counterparty_account_id'],
+                    'counterparty_account_id' => $validated['account_id'],
+                    'approval_status' => $approvalStatus,
+                    'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
+                    'description' => $validated['description'] ?? null,
+                    'attachment_path' => $attachmentPath,
+                ]);
+
+                $printMovementId = $outgoing->id;
+                return;
+            }
+
+            $attachmentPath = $this->resolveAttachmentPath($request, $cashMovement);
+
+            $cashMovement->update([
+                'branch_id' => $validated['branch_id'] ?? null,
+                'movement_type' => $validated['movement_type'],
+                'direction' => $this->resolveDirection(
+                    movementType: $validated['movement_type'],
+                    requestedDirection: $validated['direction'] ?? null,
+                    defaultDirection: $movementType?->default_direction,
+                ),
+                'movement_date' => $validated['movement_date'],
+                'amount' => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'account_id' => $validated['account_id'],
+                'counterparty_account_id' => $validated['counterparty_account_id'] ?? null,
+                'approval_status' => $approvalStatus,
+                'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
+                'description' => $validated['description'] ?? null,
+                'attachment_path' => $attachmentPath,
+            ]);
+        });
 
         $redirect = redirect()
             ->route('finance.cash-bank.index')
@@ -235,7 +300,7 @@ class CashBankController extends Controller
             $approvalStatus === 'submitted'
             && in_array($previousStatus, ['draft', null], true)
         ) {
-            $redirect->with('print_movement_id', $cashMovement->id);
+            $redirect->with('print_movement_id', $printMovementId);
         }
 
         return $redirect;
@@ -335,6 +400,28 @@ class CashBankController extends Controller
 
         if ($cashMovement->attachment_path) {
             Storage::disk('public')->delete($cashMovement->attachment_path);
+        }
+
+        return $request->file('receipt')->store('finance/cash-bank/receipts', 'public');
+    }
+
+    protected function resolveTransferAttachmentPath(
+        Request $request,
+        CashMovement $outgoing,
+        CashMovement $incoming
+    ): ?string {
+        if (! $request->hasFile('receipt')) {
+            return $outgoing->attachment_path
+                ?? $incoming->attachment_path;
+        }
+
+        $paths = array_values(array_filter([
+            $outgoing->attachment_path,
+            $incoming->attachment_path,
+        ]));
+
+        if (! empty($paths)) {
+            Storage::disk('public')->delete($paths);
         }
 
         return $request->file('receipt')->store('finance/cash-bank/receipts', 'public');

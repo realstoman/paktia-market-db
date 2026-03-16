@@ -190,25 +190,49 @@ export function CashBankClient({
     }, [movementTypes]);
 
     const openEdit = React.useCallback((movement: CashMovement) => {
+        const pairedMovement =
+            movement.reference_type === 'cash_transfer' && movement.reference_id
+                ? movements.find((item) => item.id === movement.reference_id) ?? null
+                : null;
+
+        const sourceMovement =
+            movement.reference_type === 'cash_transfer'
+                ? movement.direction === 'out'
+                    ? movement
+                    : pairedMovement ?? movement
+                : movement;
+        const destinationMovement =
+            movement.reference_type === 'cash_transfer'
+                ? movement.direction === 'out'
+                    ? pairedMovement
+                    : movement
+                : null;
+
         setEditingMovement(movement);
         setReceiptFile(null);
         setForm({
-            branch_id: movement.branch_id ? String(movement.branch_id) : '',
-            destination_branch_id: '',
-            movement_type: movement.movement_type,
-            direction: movement.direction ?? 'in',
-            movement_date: movement.movement_date,
-            amount: String(movement.amount),
-            payment_method: movement.payment_method ?? 'cash',
-            account_id: movement.account_id ? String(movement.account_id) : '',
-            counterparty_account_id: movement.counterparty_account_id
-                ? String(movement.counterparty_account_id)
+            branch_id: sourceMovement.branch_id
+                ? String(sourceMovement.branch_id)
                 : '',
-            approval_status: movement.approval_status ?? 'draft',
-            description: movement.description ?? '',
+            destination_branch_id: destinationMovement?.branch_id
+                ? String(destinationMovement.branch_id)
+                : '',
+            movement_type: sourceMovement.movement_type,
+            direction: sourceMovement.direction ?? 'in',
+            movement_date: sourceMovement.movement_date,
+            amount: String(sourceMovement.amount),
+            payment_method: sourceMovement.payment_method ?? 'cash',
+            account_id: sourceMovement.account_id
+                ? String(sourceMovement.account_id)
+                : '',
+            counterparty_account_id: sourceMovement.counterparty_account_id
+                ? String(sourceMovement.counterparty_account_id)
+                : '',
+            approval_status: sourceMovement.approval_status ?? 'draft',
+            description: sourceMovement.description ?? '',
         });
         setIsOpen(true);
-    }, []);
+    }, [movements]);
 
     React.useEffect(() => {
         if (!printMovementId) {
