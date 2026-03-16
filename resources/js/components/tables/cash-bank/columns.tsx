@@ -3,6 +3,39 @@ import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 
+function formatMovementDate(value?: string) {
+    if (!value) {
+        return '-';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return parsed.toISOString().slice(0, 10);
+}
+
+function formatMovementTime(value?: string) {
+    if (!value) {
+        return '';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return '';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(parsed);
+}
+
 function movementTypeLabel(value: string) {
     return value
         .replaceAll('_', ' ')
@@ -30,6 +63,21 @@ export function buildColumns({ onApprove }: BuildColumnsProps): ColumnDef<CashMo
         {
             accessorKey: 'movement_date',
             header: 'Date',
+            cell: ({ row }) => {
+                const dateText = formatMovementDate(row.original.movement_date);
+                const timeText = formatMovementTime(row.original.created_at);
+
+                return (
+                    <div>
+                        <p className="font-medium">{dateText}</p>
+                        {timeText ? (
+                            <p className="text-xs text-muted-foreground">
+                                {timeText}
+                            </p>
+                        ) : null}
+                    </div>
+                );
+            },
         },
         {
             accessorKey: 'movement_type',
