@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -904,22 +905,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         ? 'Contract Amount'
                                         : 'Salary'}
                                 </Label>
-                                <Input
+                                <NumericInput
                                     id={`edit-salary-${data.id}`}
-                                    type="number"
                                     min="0"
-                                    step="0.01"
                                     value={
                                         editIsContractBased
                                             ? editContractAmount
                                             : editSalary
                                     }
-                                    onChange={(event) =>
+                                    onValueChange={(value) =>
                                         editIsContractBased
-                                            ? setEditContractAmount(
-                                                  event.target.value,
-                                              )
-                                            : setEditSalary(event.target.value)
+                                            ? setEditContractAmount(value)
+                                            : setEditSalary(value)
                                     }
                                 />
                                 <InputError

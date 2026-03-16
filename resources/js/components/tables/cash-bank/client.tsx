@@ -2,6 +2,7 @@
 
 import Heading from '@/components/shared/heading';
 import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -586,18 +587,16 @@ export function CashBankClient({
 
                         <div className="grid gap-2">
                             <Label>Amount</Label>
-                            <Input
-                                type="number"
+                            <NumericInput
                                 min="0"
-                                step="0.01"
                                 value={form.amount}
-                                onChange={(event) =>
+                                onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        amount: event.target.value,
+                                        amount: value,
                                     }))
                                 }
-                                placeholder="0.00"
+                                placeholder="0"
                             />
                         </div>
 

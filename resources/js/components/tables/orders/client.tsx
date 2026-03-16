@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -971,37 +972,36 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 ) : null}
                                                 <div className="grid gap-2">
                                                     <Label>Qty</Label>
-                                                    <Input
-                                                        type="number"
+                                                    <NumericInput
                                                         min="1"
                                                         value={item.quantity}
-                                                        onChange={(event) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleItemChange(
                                                                 setItems,
                                                                 items,
                                                                 index,
                                                                 'quantity',
-                                                                event.target
-                                                                    .value,
+                                                                value,
                                                             )
                                                         }
                                                     />
                                                 </div>
                                                 <div className="grid gap-2">
                                                     <Label>Price</Label>
-                                                    <Input
-                                                        type="number"
+                                                    <NumericInput
                                                         min="0"
-                                                        step="1"
                                                         value={item.price}
-                                                        onChange={(event) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             handleItemChange(
                                                                 setItems,
                                                                 items,
                                                                 index,
                                                                 'price',
-                                                                event.target
-                                                                    .value,
+                                                                value,
                                                             )
                                                         }
                                                     />
@@ -1125,35 +1125,32 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             ) : null}
                                             <div className="grid gap-2">
                                                 <Label>Qty</Label>
-                                                <Input
-                                                    type="number"
+                                                <NumericInput
                                                     min="1"
                                                     value={item.quantity}
-                                                    onChange={(event) =>
+                                                    onValueChange={(value) =>
                                                         handleItemChange(
                                                             setItems,
                                                             items,
                                                             index,
                                                             'quantity',
-                                                            event.target.value,
+                                                            value,
                                                         )
                                                     }
                                                 />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label>Price</Label>
-                                                <Input
-                                                    type="number"
+                                                <NumericInput
                                                     min="0"
-                                                    step="1"
                                                     value={item.price}
-                                                    onChange={(event) =>
+                                                    onValueChange={(value) =>
                                                         handleItemChange(
                                                             setItems,
                                                             items,
                                                             index,
                                                             'price',
-                                                            event.target.value,
+                                                            value,
                                                         )
                                                     }
                                                 />
@@ -1598,35 +1595,32 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         ) : null}
                                         <div className="grid gap-2">
                                             <Label>Qty</Label>
-                                            <Input
-                                                type="number"
+                                            <NumericInput
                                                 min="1"
                                                 value={item.quantity}
-                                                onChange={(event) =>
+                                                onValueChange={(value) =>
                                                     handleItemChange(
                                                         setAddItems,
                                                         addItems,
                                                         index,
                                                         'quantity',
-                                                        event.target.value,
+                                                        value,
                                                     )
                                                 }
                                             />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label>Price</Label>
-                                            <Input
-                                                type="number"
+                                            <NumericInput
                                                 min="0"
-                                                step="1"
                                                 value={item.price}
-                                                onChange={(event) =>
+                                                onValueChange={(value) =>
                                                     handleItemChange(
                                                         setAddItems,
                                                         addItems,
                                                         index,
                                                         'price',
-                                                        event.target.value,
+                                                        value,
                                                     )
                                                 }
                                             />

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { NumericInput } from '@/components/shared/numeric-input';
 import {
     Dialog,
     DialogContent,
@@ -6,7 +7,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
@@ -201,14 +201,10 @@ export function ReceiptPreviewDialog({
                                 <label className="text-sm font-medium">
                                     Discount (AFN)
                                 </label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="1"
                                     value={discount}
-                                    onChange={(event) =>
-                                        setDiscount(event.target.value)
-                                    }
+                                    onValueChange={setDiscount}
                                 />
                             </div>
 

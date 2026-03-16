@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -1330,22 +1331,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         ? 'Contract Amount'
                                         : 'Salary'}
                                 </Label>
-                                <Input
+                                <NumericInput
                                     id="employee-salary"
-                                    type="number"
                                     min="0"
-                                    step="0.01"
                                     value={
                                         isContractBased
                                             ? contractAmount
                                             : salary
                                     }
-                                    onChange={(event) =>
+                                    onValueChange={(value) =>
                                         isContractBased
-                                            ? setContractAmount(
-                                                  event.target.value,
-                                              )
-                                            : setSalary(event.target.value)
+                                            ? setContractAmount(value)
+                                            : setSalary(value)
                                     }
                                     placeholder="0"
                                 />

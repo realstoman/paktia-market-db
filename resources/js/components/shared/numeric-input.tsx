@@ -13,6 +13,20 @@ interface NumericInputProps
 const sanitizeNumeric = (value: string): string =>
     value.replace(/[^\d]/g, '');
 
+const normalizeValue = (value: string | number): string => {
+    const raw = String(value ?? '').replaceAll(',', '').trim();
+    if (!raw) {
+        return '';
+    }
+
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+        return String(Math.trunc(parsed));
+    }
+
+    return sanitizeNumeric(raw);
+};
+
 const formatWithCommas = (value: string): string => {
     if (!value) {
         return '';
@@ -33,9 +47,7 @@ export function NumericInput({
     onValueChange,
     ...props
 }: NumericInputProps) {
-    const normalizedValue =
-        typeof value === 'number' ? String(Math.trunc(value)) : value;
-    const displayValue = formatWithCommas(sanitizeNumeric(normalizedValue));
+    const displayValue = formatWithCommas(normalizeValue(value));
 
     return (
         <Input

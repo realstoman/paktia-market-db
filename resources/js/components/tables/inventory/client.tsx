@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1829,14 +1830,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Initial Quantity</Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={quantity}
-                                    onChange={(event) =>
-                                        setQuantity(event.target.value)
-                                    }
+                                    onValueChange={setQuantity}
                                 />
                                 <InputError message={errors.quantity} />
                             </div>
@@ -1844,14 +1841,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     Single Price {selectedCurrencySymbol || ''}
                                 </Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={unitPrice}
-                                    onChange={(event) =>
-                                        setUnitPrice(event.target.value)
-                                    }
+                                    onValueChange={setUnitPrice}
                                 />
                                 <InputError message={errors.unit_price} />
                             </div>
@@ -1870,14 +1863,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     Paid Amount {selectedCurrencySymbol || ''}
                                 </Label>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
-                                    step="0.01"
                                     value={paidAmount}
-                                    onChange={(event) =>
-                                        setPaidAmount(event.target.value)
-                                    }
+                                    onValueChange={setPaidAmount}
                                 />
                                 <InputError message={errors.paid_amount} />
                             </div>
@@ -2130,17 +2119,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 </div>
                                                 <div className="grid gap-2">
                                                     <Label>Quantity Used</Label>
-                                                    <Input
-                                                        type="number"
-                                                        min="0.01"
-                                                        step="0.01"
+                                                    <NumericInput
+                                                        min="1"
                                                         value={row.quantityUsed}
-                                                        onChange={(event) =>
+                                                        onValueChange={(value) =>
                                                             updateUsageItemField(
                                                                 row.id,
                                                                 'quantityUsed',
-                                                                event.target
-                                                                    .value,
+                                                                value,
                                                             )
                                                         }
                                                     />

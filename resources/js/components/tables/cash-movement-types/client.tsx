@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -288,14 +289,13 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
 
                         <div className="grid gap-2">
                             <Label>Sort Order</Label>
-                            <Input
-                                type="number"
+                            <NumericInput
                                 min="0"
                                 value={form.sort_order}
-                                onChange={(event) =>
+                                onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        sort_order: event.target.value,
+                                        sort_order: value,
                                     }))
                                 }
                             />

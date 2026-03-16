@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -1110,15 +1111,10 @@ export function ToolsLauncher() {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Sort Order</Label>
-                                    <Input
-                                        type="number"
+                                    <NumericInput
                                         min="0"
                                         value={bannerSortOrder}
-                                        onChange={(event) =>
-                                            setBannerSortOrder(
-                                                event.target.value,
-                                            )
-                                        }
+                                        onValueChange={setBannerSortOrder}
                                     />
                                     <InputError message={errors.sort_order} />
                                 </div>
