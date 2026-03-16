@@ -67,12 +67,6 @@ class ChartOfAccountController extends Controller
     {
         $validated = $this->validateAccount($request, $financeAccount, true);
 
-        if ($financeAccount->is_system) {
-            return redirect()
-                ->route('finance.chart-of-accounts.index')
-                ->with('error', 'System accounts cannot be edited.');
-        }
-
         $financeAccount->update([
             'code' => strtoupper($validated['code'] ?? $financeAccount->code),
             'name' => $validated['name'],
