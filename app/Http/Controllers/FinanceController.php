@@ -63,34 +63,35 @@ class FinanceController extends Controller
                 ->value('total')
             : 0.0;
 
-        $cashSales = Schema::hasTable('payments')
+        $cashSalesFromPayments = Schema::hasTable('payments')
             ? (float) DB::table('payments')
                 ->join('orders', 'orders.id', '=', 'payments.order_id')
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->where('payments.method', 'cash')
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->sum('payments.amount')
             : 0.0;
+
+        $cashSalesFromLegacyOrders = Schema::hasTable('orders')
+            ? (float) Order::query()
+                ->where('orders.status', OrderStatus::COMPLETED->value)
+                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->doesntHave('payments')
+                ->sum('paid_amount')
+            : 0.0;
+
+        $cashSales = $cashSalesFromPayments + $cashSalesFromLegacyOrders;
 
         $cashExpenses = Schema::hasColumn('expenses', 'payment_method')
             ? (float) DB::table('expenses')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->where('payment_method', 'cash')
-                ->whereBetween('expense_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
                 ->sum('amount')
             : 0.0;
 
         $cashMovementsNet = Schema::hasTable('cash_movements')
             ? (float) DB::table('cash_movements')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->whereBetween('movement_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
                 ->where('approval_status', 'approved')
                 ->selectRaw(
                     "COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total"
@@ -353,7 +354,7 @@ class FinanceController extends Controller
                     'grossProfit' => $grossProfit === null
                         ? 'Gross profit will become exact after inventory valuation and COGS posting are active.'
                         : 'Gross profit is using posted inventory cost movements.',
-                    'cashPosition' => 'Cash position is based on recorded cash sales, cash expenses, and approved cash movements within the selected period.',
+                    'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
                 ],
             ],
         ]);
