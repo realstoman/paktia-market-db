@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -12,6 +13,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FinanceController extends Controller
@@ -23,7 +25,7 @@ class FinanceController extends Controller
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
-            'payment_method' => ['nullable', 'string', 'max:50'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'category' => ['nullable', 'exists:expense_categories,id'],
         ]);
 

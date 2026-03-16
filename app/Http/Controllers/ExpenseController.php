@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ExpenseController extends Controller
@@ -132,7 +134,7 @@ class ExpenseController extends Controller
             'paid_from_account_id' => ['nullable', 'exists:finance_accounts,id'],
             'title' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'payment_method' => ['required', 'string', 'max:50'],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'description' => ['nullable', 'string', 'max:1000'],
             'expense_date' => ['required', 'date_format:Y-m-d'],
             'approval_status' => ['nullable', 'in:draft,submitted,approved'],

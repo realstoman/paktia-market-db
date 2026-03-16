@@ -43,9 +43,8 @@ import { buildColumns } from './columns';
 
 const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'crypto', label: 'Crypto' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
     { value: 'other', label: 'Other' },
 ];
 
@@ -506,7 +505,7 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Ledger Account</Label>
+                            <Label>Expense Ledger Account</Label>
                             <SearchableDropdown
                                 value={form.account_id}
                                 options={ledgerAccountOptions}
@@ -516,14 +515,14 @@ export function ExpenseClient({
                                         account_id: value,
                                     }))
                                 }
-                                placeholder="Select ledger account"
-                                searchPlaceholder="Search ledger accounts..."
+                                placeholder="Select expense ledger account"
+                                searchPlaceholder="Search expense ledger accounts..."
                                 emptyText="No account found."
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Paid From Account</Label>
+                            <Label>Payment Source Account</Label>
                             <SearchableDropdown
                                 value={form.paid_from_account_id}
                                 options={paidFromAccountOptions}
@@ -533,8 +532,8 @@ export function ExpenseClient({
                                         paid_from_account_id: value,
                                     }))
                                 }
-                                placeholder="Select source account"
-                                searchPlaceholder="Search source accounts..."
+                                placeholder="Select payment source account"
+                                searchPlaceholder="Search payment source accounts..."
                                 emptyText="No account found."
                             />
                         </div>

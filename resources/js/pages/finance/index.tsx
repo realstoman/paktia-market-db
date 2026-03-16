@@ -73,6 +73,7 @@ const PAYMENT_METHODS = [
     { value: 'cash', label: 'Cash' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
     { value: 'credit_card', label: 'Credit Card' },
+    { value: 'other', label: 'Other' },
 ];
 
 const PIE_COLORS = [
