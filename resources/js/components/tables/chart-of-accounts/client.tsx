@@ -305,7 +305,9 @@ export function ChartOfAccountsClient({
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="account-code">Code</Label>
+                            <Label htmlFor="account-code">
+                                Code (optional)
+                            </Label>
                             <Input
                                 id="account-code"
                                 value={form.code}
@@ -315,7 +317,7 @@ export function ChartOfAccountsClient({
                                         code: event.target.value,
                                     }))
                                 }
-                                placeholder="5001"
+                                placeholder="Leave empty to auto-generate"
                             />
                         </div>
 

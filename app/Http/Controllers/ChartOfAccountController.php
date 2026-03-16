@@ -35,9 +35,12 @@ class ChartOfAccountController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateAccount($request);
+        $resolvedCode = !empty($validated['code'])
+            ? strtoupper($validated['code'])
+            : $this->generateNextCode($validated['type']);
 
         FinanceAccount::create([
-            'code' => strtoupper($validated['code']),
+            'code' => $resolvedCode,
             'name' => $validated['name'],
             'type' => $validated['type'],
             'parent_id' => $validated['parent_id'] ?? null,
@@ -57,7 +60,7 @@ class ChartOfAccountController extends Controller
 
     public function update(Request $request, FinanceAccount $financeAccount)
     {
-        $validated = $this->validateAccount($request, $financeAccount);
+        $validated = $this->validateAccount($request, $financeAccount, true);
 
         if ($financeAccount->is_system) {
             return redirect()
@@ -66,7 +69,7 @@ class ChartOfAccountController extends Controller
         }
 
         $financeAccount->update([
-            'code' => strtoupper($validated['code']),
+            'code' => strtoupper($validated['code'] ?? $financeAccount->code),
             'name' => $validated['name'],
             'type' => $validated['type'],
             'parent_id' => $validated['parent_id'] ?? null,
@@ -109,15 +112,22 @@ class ChartOfAccountController extends Controller
 
     protected function validateAccount(
         Request $request,
-        ?FinanceAccount $financeAccount = null
+        ?FinanceAccount $financeAccount = null,
+        bool $isUpdate = false
     ): array {
+        $codeRules = [
+            'nullable',
+            'string',
+            'max:30',
+            Rule::unique('finance_accounts', 'code')->ignore($financeAccount?->id),
+        ];
+
+        if ($isUpdate) {
+            array_unshift($codeRules, 'required');
+        }
+
         return $request->validate([
-            'code' => [
-                'required',
-                'string',
-                'max:30',
-                Rule::unique('finance_accounts', 'code')->ignore($financeAccount?->id),
-            ],
+            'code' => $codeRules,
             'name' => ['required', 'string', 'max:255'],
             'type' => [
                 'required',
@@ -134,6 +144,33 @@ class ChartOfAccountController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+    }
+
+    protected function generateNextCode(string $type): string
+    {
+        $startByType = [
+            'asset' => 1000,
+            'liability' => 2000,
+            'equity' => 3000,
+            'revenue' => 4000,
+            'cogs' => 5000,
+            'expense' => 6000,
+        ];
+
+        $start = $startByType[$type] ?? 9000;
+        $end = $start + 999;
+
+        $currentMax = (int) FinanceAccount::query()
+            ->where('type', $type)
+            ->whereRaw('code REGEXP "^[0-9]+$"')
+            ->whereBetween(DB::raw('CAST(code AS UNSIGNED)'), [$start, $end])
+            ->max(DB::raw('CAST(code AS UNSIGNED)'));
+
+        if ($currentMax > 0) {
+            return (string) ($currentMax + 10);
+        }
+
+        return (string) $start;
     }
 
     protected function hasDependencies(FinanceAccount $account): bool
