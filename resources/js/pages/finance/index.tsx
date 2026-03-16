@@ -211,6 +211,10 @@ function moduleHref(name: string): string | null {
         return '/finance/expenses';
     }
 
+    if (name === 'Cash & Bank') {
+        return '/finance/cash-bank';
+    }
+
     return null;
 }
 
