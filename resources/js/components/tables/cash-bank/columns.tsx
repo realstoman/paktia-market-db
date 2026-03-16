@@ -55,10 +55,16 @@ function tone(status?: string) {
 }
 
 interface BuildColumnsProps {
+    onEdit: (movement: CashMovement) => void;
     onApprove: (movement: CashMovement) => void;
+    onViewAttachment: (path: string) => void;
 }
 
-export function buildColumns({ onApprove }: BuildColumnsProps): ColumnDef<CashMovement>[] {
+export function buildColumns({
+    onEdit,
+    onApprove,
+    onViewAttachment,
+}: BuildColumnsProps): ColumnDef<CashMovement>[] {
     return [
         {
             accessorKey: 'movement_date',
@@ -123,6 +129,27 @@ export function buildColumns({ onApprove }: BuildColumnsProps): ColumnDef<CashMo
             cell: ({ row }) => formatAfn(row.original.amount),
         },
         {
+            id: 'attachment',
+            header: 'Attachment',
+            cell: ({ row }) => {
+                const attachmentPath = row.original.attachment_path;
+
+                if (!attachmentPath) {
+                    return <span className="text-muted-foreground">-</span>;
+                }
+
+                return (
+                    <button
+                        type="button"
+                        onClick={() => onViewAttachment(attachmentPath)}
+                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                        View
+                    </button>
+                );
+            },
+        },
+        {
             accessorKey: 'approval_status',
             header: 'Status',
             cell: ({ row }) => (
@@ -139,7 +166,11 @@ export function buildColumns({ onApprove }: BuildColumnsProps): ColumnDef<CashMo
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => (
-                <CellAction data={row.original} onApprove={onApprove} />
+                <CellAction
+                    data={row.original}
+                    onEdit={onEdit}
+                    onApprove={onApprove}
+                />
             ),
         },
     ];

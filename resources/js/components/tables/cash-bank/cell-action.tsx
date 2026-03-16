@@ -9,14 +9,15 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CashMovement } from '@/types';
-import { CheckCheck, MoreHorizontal } from 'lucide-react';
+import { CheckCheck, MoreHorizontal, Pencil } from 'lucide-react';
 
 interface CellActionProps {
     data: CashMovement;
+    onEdit: (movement: CashMovement) => void;
     onApprove: (movement: CashMovement) => void;
 }
 
-export function CellAction({ data, onApprove }: CellActionProps) {
+export function CellAction({ data, onEdit, onApprove }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -27,6 +28,12 @@ export function CellAction({ data, onApprove }: CellActionProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                {data.approval_status !== 'approved' ? (
+                    <DropdownMenuItem onClick={() => onEdit(data)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </DropdownMenuItem>
+                ) : null}
                 {data.approval_status !== 'approved' ? (
                     <DropdownMenuItem onClick={() => onApprove(data)}>
                         <CheckCheck className="mr-2 h-4 w-4" />

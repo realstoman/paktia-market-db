@@ -388,6 +388,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
     Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
     Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
+    Route::put('finance/cash-bank/{cashMovement}', [CashBankController::class, 'update'])->name('finance.cash-bank.update');
     Route::post('finance/cash-bank/{cashMovement}/approve', [CashBankController::class, 'approve'])->name('finance.cash-bank.approve');
     Route::post('finance/cash-bank/{cashMovement}/reject', [CashBankController::class, 'reject'])->name('finance.cash-bank.reject');
     Route::get('finance/cash-movement-types', [CashMovementTypeController::class, 'index'])->name('finance.cash-movement-types.index');

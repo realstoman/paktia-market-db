@@ -51,11 +51,13 @@ function badgeTone(status?: string) {
 interface BuildColumnsProps {
     onEdit: (expense: Expense) => void;
     onApprove: (expense: Expense) => void;
+    onViewAttachment: (path: string) => void;
 }
 
 export function buildColumns({
     onEdit,
     onApprove,
+    onViewAttachment,
 }: BuildColumnsProps): ColumnDef<Expense>[] {
     return [
         {
@@ -115,6 +117,27 @@ export function buildColumns({
             accessorKey: 'amount',
             header: 'Amount',
             cell: ({ row }) => formatAfn(row.original.amount),
+        },
+        {
+            id: 'attachment',
+            header: 'Attachment',
+            cell: ({ row }) => {
+                const attachmentPath = row.original.attachments?.[0];
+
+                if (!attachmentPath) {
+                    return <span className="text-muted-foreground">-</span>;
+                }
+
+                return (
+                    <button
+                        type="button"
+                        onClick={() => onViewAttachment(attachmentPath)}
+                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                        View
+                    </button>
+                );
+            },
         },
         {
             accessorKey: 'approval_status',

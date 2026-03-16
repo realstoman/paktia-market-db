@@ -9,6 +9,7 @@ use App\Models\CashMovementType;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -154,6 +155,92 @@ class CashBankController extends Controller
             ->with('success', 'Cash movement was sent back to draft.');
     }
 
+    public function update(Request $request, CashMovement $cashMovement)
+    {
+        if (($cashMovement->approval_status ?? 'draft') === 'approved') {
+            return redirect()
+                ->route('finance.cash-bank.index')
+                ->withErrors([
+                    'movement' => 'Approved movement cannot be edited.',
+                ]);
+        }
+
+        if ($cashMovement->reference_type === 'cash_transfer') {
+            return redirect()
+                ->route('finance.cash-bank.index')
+                ->withErrors([
+                    'movement' => 'Transfer-linked movement cannot be edited directly.',
+                ]);
+        }
+
+        $movementType = CashMovementType::query()
+            ->where('slug', $request->input('movement_type'))
+            ->where('is_active', true)
+            ->first();
+
+        $validated = $request->validate([
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'destination_branch_id' => ['nullable', 'exists:branches,id'],
+            'movement_type' => [
+                'required',
+                Rule::exists('cash_movement_types', 'slug')->where(
+                    fn ($query) => $query->where('is_active', true)
+                ),
+            ],
+            'direction' => ['nullable', Rule::in(['in', 'out'])],
+            'movement_date' => ['required', 'date_format:Y-m-d'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'account_id' => ['required', 'exists:finance_accounts,id'],
+            'counterparty_account_id' => [
+                'nullable',
+                'exists:finance_accounts,id',
+                Rule::requiredIf(function () use ($movementType) {
+                    return (bool) $movementType?->requires_counterparty;
+                }),
+            ],
+            'approval_status' => ['nullable', Rule::in(['draft', 'submitted', 'approved'])],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
+
+        $previousStatus = $cashMovement->approval_status ?? 'draft';
+        $approvalStatus = $validated['approval_status'] ?? $previousStatus;
+        $attachmentPath = $this->resolveAttachmentPath($request, $cashMovement);
+
+        $cashMovement->update([
+            'branch_id' => $validated['branch_id'] ?? null,
+            'movement_type' => $validated['movement_type'],
+            'direction' => $this->resolveDirection(
+                movementType: $validated['movement_type'],
+                requestedDirection: $validated['direction'] ?? null,
+                defaultDirection: $movementType?->default_direction,
+            ),
+            'movement_date' => $validated['movement_date'],
+            'amount' => $validated['amount'],
+            'payment_method' => $validated['payment_method'],
+            'account_id' => $validated['account_id'],
+            'counterparty_account_id' => $validated['counterparty_account_id'] ?? null,
+            'approval_status' => $approvalStatus,
+            'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
+            'description' => $validated['description'] ?? null,
+            'attachment_path' => $attachmentPath,
+        ]);
+
+        $redirect = redirect()
+            ->route('finance.cash-bank.index')
+            ->with('success', 'Cash movement updated successfully.');
+
+        if (
+            $approvalStatus === 'submitted'
+            && in_array($previousStatus, ['draft', null], true)
+        ) {
+            $redirect->with('print_movement_id', $cashMovement->id);
+        }
+
+        return $redirect;
+    }
+
     protected function createTransferPair(
         Request $request,
         array $validated,
@@ -238,5 +325,18 @@ class CashBankController extends Controller
             ->orderBy('code')
             ->orderBy('name')
             ->get(['id', 'code', 'name', 'type']);
+    }
+
+    protected function resolveAttachmentPath(Request $request, CashMovement $cashMovement): ?string
+    {
+        if (! $request->hasFile('receipt')) {
+            return $cashMovement->attachment_path;
+        }
+
+        if ($cashMovement->attachment_path) {
+            Storage::disk('public')->delete($cashMovement->attachment_path);
+        }
+
+        return $request->file('receipt')->store('finance/cash-bank/receipts', 'public');
     }
 }

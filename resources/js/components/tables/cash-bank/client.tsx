@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,7 @@ import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeftRight, FileText, Plus, UploadCloud, X } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 import { buildColumns } from './columns';
 
 const PAYMENT_METHODS = [
@@ -103,9 +105,14 @@ export function CashBankClient({
     printMovementId = null,
 }: CashBankClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [editingMovement, setEditingMovement] =
+        React.useState<CashMovement | null>(null);
     const [approvalTarget, setApprovalTarget] =
         React.useState<CashMovement | null>(null);
     const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
+    const [attachmentPath, setAttachmentPath] = React.useState<string | null>(
+        null,
+    );
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [printMovement, setPrintMovement] = React.useState<CashMovement | null>(
         null,
@@ -170,6 +177,7 @@ export function CashBankClient({
     }, [branchFilter, movements, statusFilter]);
 
     const openCreate = React.useCallback(() => {
+        setEditingMovement(null);
         const defaultMovementType = movementTypes[0];
         setForm({
             ...emptyForm,
@@ -180,6 +188,27 @@ export function CashBankClient({
         setReceiptFile(null);
         setIsOpen(true);
     }, [movementTypes]);
+
+    const openEdit = React.useCallback((movement: CashMovement) => {
+        setEditingMovement(movement);
+        setReceiptFile(null);
+        setForm({
+            branch_id: movement.branch_id ? String(movement.branch_id) : '',
+            destination_branch_id: '',
+            movement_type: movement.movement_type,
+            direction: movement.direction ?? 'in',
+            movement_date: movement.movement_date,
+            amount: String(movement.amount),
+            payment_method: movement.payment_method ?? 'cash',
+            account_id: movement.account_id ? String(movement.account_id) : '',
+            counterparty_account_id: movement.counterparty_account_id
+                ? String(movement.counterparty_account_id)
+                : '',
+            approval_status: movement.approval_status ?? 'draft',
+            description: movement.description ?? '',
+        });
+        setIsOpen(true);
+    }, []);
 
     React.useEffect(() => {
         if (!printMovementId) {
@@ -217,6 +246,30 @@ export function CashBankClient({
             payload.receipt = receiptFile;
         }
 
+        const onError = (errors: Record<string, string>) => {
+            const firstError = Object.values(errors)[0];
+            if (typeof firstError === 'string' && firstError.length > 0) {
+                toast.error(firstError);
+                return;
+            }
+
+            toast.error('Failed to save cash movement.');
+        };
+
+        if (editingMovement) {
+            router.put(`/finance/cash-bank/${editingMovement.id}`, payload, {
+                preserveScroll: true,
+                forceFormData: Boolean(receiptFile),
+                onSuccess: () => {
+                    setIsOpen(false);
+                    setReceiptFile(null);
+                    setEditingMovement(null);
+                },
+                onError,
+            });
+            return;
+        }
+
         router.post('/finance/cash-bank', payload, {
             preserveScroll: true,
             forceFormData: Boolean(receiptFile),
@@ -224,8 +277,9 @@ export function CashBankClient({
                 setIsOpen(false);
                 setReceiptFile(null);
             },
+            onError,
         });
-    }, [form, receiptFile]);
+    }, [editingMovement, form, receiptFile]);
 
     const approve = React.useCallback((movement: CashMovement) => {
         router.post(
@@ -246,9 +300,11 @@ export function CashBankClient({
     const columns = React.useMemo(
         () =>
             buildColumns({
+                onEdit: openEdit,
                 onApprove: setApprovalTarget,
+                onViewAttachment: setAttachmentPath,
             }),
-        [],
+        [openEdit],
     );
 
     const selectedMovementType = React.useMemo(
@@ -343,10 +399,23 @@ export function CashBankClient({
                 />
             </div>
 
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <Dialog
+                open={isOpen}
+                onOpenChange={(open) => {
+                    setIsOpen(open);
+                    if (!open) {
+                        setEditingMovement(null);
+                        setReceiptFile(null);
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Create Cash Movement</DialogTitle>
+                        <DialogTitle>
+                            {editingMovement
+                                ? 'Edit Cash Movement'
+                                : 'Create Cash Movement'}
+                        </DialogTitle>
                         <DialogDescription>
                             Use this to add owner funding and transfer amounts between cash, bank, and petty cash accounts.
                         </DialogDescription>
@@ -577,7 +646,9 @@ export function CashBankClient({
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                             {receiptFile
                                                 ? receiptFile.name
-                                                : 'Upload receipt (JPG, PNG, PDF)'}
+                                                : editingMovement?.attachment_path
+                                                  ? 'Replace current receipt'
+                                                  : 'Upload receipt (JPG, PNG, PDF)'}
                                         </p>
                                         <p className="text-xs text-slate-500">
                                             Click to browse files (max 5MB)
@@ -606,7 +677,9 @@ export function CashBankClient({
                         <Button variant="outline" onClick={() => setIsOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={submit}>Save Movement</Button>
+                        <Button onClick={submit}>
+                            {editingMovement ? 'Update Movement' : 'Save Movement'}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -677,6 +750,17 @@ export function CashBankClient({
                           ) ?? null
                         : null
                 }
+            />
+
+            <AttachmentViewDialog
+                open={attachmentPath !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setAttachmentPath(null);
+                    }
+                }}
+                path={attachmentPath}
+                title="Cash / Bank Attachment"
             />
         </div>
     );

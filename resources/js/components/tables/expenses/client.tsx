@@ -38,6 +38,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
 import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
 import {
     Branch,
@@ -120,6 +121,9 @@ export function ExpenseClient({
     const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [printExpense, setPrintExpense] = React.useState<Expense | null>(null);
+    const [attachmentPath, setAttachmentPath] = React.useState<string | null>(
+        null,
+    );
     const [approvalTarget, setApprovalTarget] = React.useState<Expense | null>(
         null,
     );
@@ -345,6 +349,7 @@ export function ExpenseClient({
             buildColumns({
                 onEdit: openEdit,
                 onApprove: setApprovalTarget,
+                onViewAttachment: setAttachmentPath,
             }),
         [openEdit],
     );
@@ -782,6 +787,17 @@ export function ExpenseClient({
                           null
                         : null
                 }
+            />
+
+            <AttachmentViewDialog
+                open={attachmentPath !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setAttachmentPath(null);
+                    }
+                }}
+                path={attachmentPath}
+                title="Expense Attachment"
             />
         </div>
     );
