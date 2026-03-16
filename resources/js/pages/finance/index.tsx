@@ -202,6 +202,10 @@ function statusTone(status: string) {
 }
 
 function moduleHref(name: string): string | null {
+    if (name === 'Chart of Accounts') {
+        return '/finance/chart-of-accounts';
+    }
+
     if (name === 'Expenses') {
         return '/finance/expenses';
     }
