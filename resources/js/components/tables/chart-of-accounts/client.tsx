@@ -108,6 +108,40 @@ export function ChartOfAccountsClient({
         [parentAccounts],
     );
 
+    const generateCodeForType = React.useCallback(
+        (type: string) => {
+            const startByType: Record<string, number> = {
+                asset: 1000,
+                liability: 2000,
+                equity: 3000,
+                revenue: 4000,
+                cogs: 5000,
+                expense: 6000,
+            };
+
+            const start = startByType[type] ?? 9000;
+            const end = start + 999;
+
+            const numericCodes = accounts
+                .filter((account) => {
+                    if (editingAccount && account.id === editingAccount.id) {
+                        return false;
+                    }
+
+                    return account.type === type && /^\d+$/.test(account.code);
+                })
+                .map((account) => Number(account.code))
+                .filter((code) => code >= start && code <= end);
+
+            if (numericCodes.length === 0) {
+                return String(start);
+            }
+
+            return String(Math.max(...numericCodes) + 10);
+        },
+        [accounts, editingAccount],
+    );
+
     const openCreate = React.useCallback(() => {
         setEditingAccount(null);
         setForm(emptyForm);
@@ -308,17 +342,33 @@ export function ChartOfAccountsClient({
                             <Label htmlFor="account-code">
                                 Code (optional)
                             </Label>
-                            <Input
-                                id="account-code"
-                                value={form.code}
-                                onChange={(event) =>
-                                    setForm((current) => ({
-                                        ...current,
-                                        code: event.target.value,
-                                    }))
-                                }
-                                placeholder="Leave empty to auto-generate"
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    id="account-code"
+                                    value={form.code}
+                                    onChange={(event) =>
+                                        setForm((current) => ({
+                                            ...current,
+                                            code: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="Leave empty to auto-generate"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() =>
+                                        setForm((current) => ({
+                                            ...current,
+                                            code: generateCodeForType(
+                                                current.type,
+                                            ),
+                                        }))
+                                    }
+                                >
+                                    Generate Code
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="grid gap-2">
