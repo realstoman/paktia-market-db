@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, FinanceAccount } from '@/types';
+import { Branch, Currency, FinanceAccount } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { BookOpenText, Plus } from 'lucide-react';
@@ -42,11 +42,6 @@ const STATUS_OPTIONS = [
     { value: 'inactive', label: 'Inactive' },
 ];
 
-const CURRENCY_OPTIONS = [
-    { value: 'AFN', label: 'AFN' },
-    { value: 'USD', label: 'USD' },
-];
-
 interface FinanceAccountFormState {
     code: string;
     name: string;
@@ -65,7 +60,7 @@ const emptyForm: FinanceAccountFormState = {
     type: 'expense',
     parent_id: '',
     branch_id: '',
-    currency_code: 'AFN',
+    currency_code: '',
     is_postable: true,
     status: 'active',
     description: '',
@@ -75,12 +70,14 @@ interface ChartOfAccountsClientProps {
     accounts: FinanceAccount[];
     parentAccounts: FinanceAccount[];
     branches: Branch[];
+    currencies: Currency[];
 }
 
 export function ChartOfAccountsClient({
     accounts,
     parentAccounts,
     branches,
+    currencies,
 }: ChartOfAccountsClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingAccount, setEditingAccount] =
@@ -106,6 +103,25 @@ export function ChartOfAccountsClient({
                 label: `${account.code} - ${account.name}`,
             })),
         [parentAccounts],
+    );
+
+    const currencyOptions = React.useMemo(
+        () => [
+            { value: '', label: 'No Currency' },
+            ...currencies.map((currency) => ({
+                value: currency.code,
+                label: `${currency.code} - ${currency.name} (${currency.symbol})`,
+            })),
+        ],
+        [currencies],
+    );
+
+    const defaultCurrencyCode = React.useMemo(
+        () =>
+            currencies.find((currency) => currency.code === 'AFN')?.code ??
+            currencies[0]?.code ??
+            '',
+        [currencies],
     );
 
     const generateCodeForType = React.useCallback(
@@ -144,9 +160,12 @@ export function ChartOfAccountsClient({
 
     const openCreate = React.useCallback(() => {
         setEditingAccount(null);
-        setForm(emptyForm);
+        setForm({
+            ...emptyForm,
+            currency_code: defaultCurrencyCode,
+        });
         setIsOpen(true);
-    }, []);
+    }, [defaultCurrencyCode]);
 
     const openEdit = React.useCallback((account: FinanceAccount) => {
         setEditingAccount(account);
@@ -156,7 +175,7 @@ export function ChartOfAccountsClient({
             type: account.type,
             parent_id: account.parent_id ? String(account.parent_id) : '',
             branch_id: account.branch_id ? String(account.branch_id) : '',
-            currency_code: account.currency_code ?? 'AFN',
+            currency_code: account.currency_code ?? '',
             is_postable: Boolean(account.is_postable),
             status: account.status ?? 'active',
             description: account.description ?? '',
@@ -441,7 +460,7 @@ export function ChartOfAccountsClient({
                             <Label>Currency</Label>
                             <SearchableDropdown
                                 value={form.currency_code}
-                                options={CURRENCY_OPTIONS}
+                                options={currencyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Currency;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,10 @@ class ChartOfAccountController extends Controller
                 ->orderBy('code')
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'type']),
+            'currencies' => Currency::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'code', 'symbol']),
         ]);
     }
 
@@ -139,7 +144,7 @@ class ChartOfAccountController extends Controller
                 Rule::notIn([$financeAccount?->id]),
             ],
             'branch_id' => ['nullable', 'exists:branches,id'],
-            'currency_code' => ['nullable', 'string', 'size:3'],
+            'currency_code' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'is_postable' => ['boolean'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'description' => ['nullable', 'string', 'max:1000'],
