@@ -409,6 +409,7 @@ class FinanceController extends Controller
                 'paymentBreakdown' => $paymentBreakdown,
                 'ledgerStats' => $ledgerStats,
                 'generalLedger' => $generalLedger,
+                'generalLedgerPreview' => $generalLedger->take(5)->values(),
                 'modules' => $modules,
                 'notes' => [
                     'grossProfit' => $grossProfit === null
@@ -417,6 +418,53 @@ class FinanceController extends Controller
                     'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
                 ],
             ],
+        ]);
+    }
+
+    public function generalLedger(Request $request)
+    {
+        $validated = $request->validate([
+            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'category' => ['nullable', 'exists:expense_categories,id'],
+        ]);
+
+        [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
+
+        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $paymentMethod = $validated['payment_method'] ?? null;
+        $category = $validated['category'] ?? null;
+
+        return Inertia::render('finance/general-ledger/index', [
+            'filters' => [
+                'range' => $range,
+                'startDate' => $startDate->toDateString(),
+                'endDate' => $endDate->toDateString(),
+                'branchId' => $branchId,
+                'paymentMethod' => $paymentMethod,
+                'category' => $category,
+            ],
+            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'expenseCategories' => ExpenseCategory::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (ExpenseCategory $expenseCategory) => [
+                    'value' => (string) $expenseCategory->id,
+                    'label' => $expenseCategory->name,
+                ])
+                ->values(),
+            'entries' => $this->buildGeneralLedger(
+                startDate: $startDate,
+                endDate: $endDate,
+                branchId: $branchId,
+                paymentMethod: $paymentMethod,
+                category: $category,
+            ),
         ]);
     }
 
