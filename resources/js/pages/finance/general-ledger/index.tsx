@@ -13,6 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -126,6 +127,36 @@ function submitFilters(filters: {
     });
 }
 
+function buildPageNumbers(currentPage: number, lastPage: number) {
+    if (lastPage <= 7) {
+        return Array.from({ length: lastPage }, (_, index) => index + 1);
+    }
+
+    const pages = new Set<number>([1, lastPage]);
+
+    for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
+        if (page > 1 && page < lastPage) {
+            pages.add(page);
+        }
+    }
+
+    if (currentPage <= 3) {
+        pages.add(2);
+        pages.add(3);
+        pages.add(4);
+    }
+
+    if (currentPage >= lastPage - 2) {
+        pages.add(lastPage - 1);
+        pages.add(lastPage - 2);
+        pages.add(lastPage - 3);
+    }
+
+    return [...pages]
+        .filter((page) => page >= 1 && page <= lastPage)
+        .sort((left, right) => left - right);
+}
+
 export default function GeneralLedgerPage({
     branches,
     filters,
@@ -152,6 +183,11 @@ export default function GeneralLedgerPage({
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
+
+    const visiblePages = React.useMemo(
+        () => buildPageNumbers(pagination.currentPage, pagination.lastPage),
+        [pagination.currentPage, pagination.lastPage],
+    );
 
     const goToPage = (page: number) => {
         const params: Record<string, string> = {
@@ -421,16 +457,45 @@ export default function GeneralLedgerPage({
                                         size="sm"
                                         disabled={pagination.currentPage <= 1}
                                         onClick={() => goToPage(pagination.currentPage - 1)}
+                                        aria-label="Previous page"
                                     >
-                                        Previous
+                                        <ChevronLeft className="h-4 w-4" />
                                     </Button>
+                                    {visiblePages.map((page, index) => {
+                                        const previousPage = visiblePages[index - 1];
+                                        const showGap =
+                                            previousPage !== undefined &&
+                                            page - previousPage > 1;
+
+                                        return (
+                                            <React.Fragment key={page}>
+                                                {showGap ? (
+                                                    <span className="px-1 text-sm text-neutral-400">
+                                                        ...
+                                                    </span>
+                                                ) : null}
+                                                <Button
+                                                    variant={
+                                                        page === pagination.currentPage
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
+                                                    size="sm"
+                                                    onClick={() => goToPage(page)}
+                                                >
+                                                    {page}
+                                                </Button>
+                                            </React.Fragment>
+                                        );
+                                    })}
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         disabled={!pagination.hasMorePages}
                                         onClick={() => goToPage(pagination.currentPage + 1)}
+                                        aria-label="Next page"
                                     >
-                                        Next
+                                        <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
