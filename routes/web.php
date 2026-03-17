@@ -378,6 +378,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
     Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
+    Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
     Route::get('finance/expenses', [ExpenseController::class, 'index'])->name('finance.expenses.index');
     Route::post('finance/expenses', [ExpenseController::class, 'store'])->name('finance.expenses.store');
     Route::put('finance/expenses/{expense}', [ExpenseController::class, 'update'])->name('finance.expenses.update');
