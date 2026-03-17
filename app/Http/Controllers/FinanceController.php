@@ -614,7 +614,7 @@ class FinanceController extends Controller
             })
             ->values();
 
-        $perPage = 20;
+        $perPage = 5;
         $currentPage = max(1, (int) ($validated['page'] ?? 1));
         $paginatedMovements = new LengthAwarePaginator(
             $movementEntries->slice(($currentPage - 1) * $perPage, $perPage)->values(),
