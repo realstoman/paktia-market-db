@@ -15,6 +15,7 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
@@ -380,6 +381,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
     Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
     Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
+    Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
+    Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
+    Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
+    Route::post('finance/payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('finance.payroll.mark-paid');
     Route::get('finance/employee-advances', [EmployeeAdvanceController::class, 'index'])->name('finance.employee-advances.index');
     Route::post('finance/employee-advances', [EmployeeAdvanceController::class, 'store'])->name('finance.employee-advances.store');
     Route::put('finance/employee-advances/{employeeAdvance}', [EmployeeAdvanceController::class, 'update'])->name('finance.employee-advances.update');
