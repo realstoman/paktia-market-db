@@ -65,6 +65,15 @@ interface GeneralLedgerPageProps {
         label: string;
     }>;
     entries: LedgerEntry[];
+    pagination: {
+        currentPage: number;
+        lastPage: number;
+        perPage: number;
+        total: number;
+        from: number | null;
+        to: number | null;
+        hasMorePages: boolean;
+    };
 }
 
 function ledgerStatusTone(status: string) {
@@ -122,6 +131,7 @@ export default function GeneralLedgerPage({
     filters,
     expenseCategories,
     entries,
+    pagination,
 }: GeneralLedgerPageProps) {
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
@@ -142,6 +152,38 @@ export default function GeneralLedgerPage({
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
+
+    const goToPage = (page: number) => {
+        const params: Record<string, string> = {
+            range,
+            page: String(page),
+        };
+
+        if (range === 'custom') {
+            params.start_date = startDate;
+            params.end_date = endDate;
+        }
+
+        if (branchId) {
+            params.branch_id = branchId;
+        }
+
+        if (paymentMethod) {
+            params.payment_method = paymentMethod;
+        }
+
+        if (category) {
+            params.category = category;
+        }
+
+        React.startTransition(() => {
+            router.get('/finance/general-ledger', params, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -306,6 +348,9 @@ export default function GeneralLedgerPage({
                         <CardTitle>Ledger Entries</CardTitle>
                         <CardDescription>
                             Full operational finance stream for the selected filters.
+                            {pagination.total > 0
+                                ? ` Showing ${pagination.from} to ${pagination.to} of ${pagination.total} entries.`
+                                : ''}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -364,6 +409,32 @@ export default function GeneralLedgerPage({
                                 No ledger entries were found for the selected filters.
                             </div>
                         )}
+
+                        {pagination.lastPage > 1 ? (
+                            <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                    Page {pagination.currentPage} of {pagination.lastPage}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={pagination.currentPage <= 1}
+                                        onClick={() => goToPage(pagination.currentPage - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={!pagination.hasMorePages}
+                                        onClick={() => goToPage(pagination.currentPage + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : null}
                     </CardContent>
                 </Card>
             </div>

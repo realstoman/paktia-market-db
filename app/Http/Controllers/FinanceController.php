@@ -12,6 +12,7 @@ use App\Models\FinanceAccount;
 use App\Models\Order;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -430,6 +431,7 @@ class FinanceController extends Controller
             'branch_id' => ['nullable', 'exists:branches,id'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'category' => ['nullable', 'exists:expense_categories,id'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
@@ -437,6 +439,28 @@ class FinanceController extends Controller
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
+
+        $allEntries = $this->buildGeneralLedger(
+            startDate: $startDate,
+            endDate: $endDate,
+            branchId: $branchId,
+            paymentMethod: $paymentMethod,
+            category: $category,
+            limit: null,
+        );
+
+        $perPage = 20;
+        $currentPage = max(1, (int) ($validated['page'] ?? 1));
+        $paginatedEntries = new LengthAwarePaginator(
+            $allEntries->slice(($currentPage - 1) * $perPage, $perPage)->values(),
+            $allEntries->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => route('finance.general-ledger.index'),
+                'query' => request()->except('page'),
+            ],
+        );
 
         return Inertia::render('finance/general-ledger/index', [
             'filters' => [
@@ -458,13 +482,16 @@ class FinanceController extends Controller
                     'label' => $expenseCategory->name,
                 ])
                 ->values(),
-            'entries' => $this->buildGeneralLedger(
-                startDate: $startDate,
-                endDate: $endDate,
-                branchId: $branchId,
-                paymentMethod: $paymentMethod,
-                category: $category,
-            ),
+            'entries' => $paginatedEntries->items(),
+            'pagination' => [
+                'currentPage' => $paginatedEntries->currentPage(),
+                'lastPage' => $paginatedEntries->lastPage(),
+                'perPage' => $paginatedEntries->perPage(),
+                'total' => $paginatedEntries->total(),
+                'from' => $paginatedEntries->firstItem(),
+                'to' => $paginatedEntries->lastItem(),
+                'hasMorePages' => $paginatedEntries->hasMorePages(),
+            ],
         ]);
     }
 
@@ -507,6 +534,7 @@ class FinanceController extends Controller
         ?int $branchId,
         ?string $paymentMethod,
         ?string $category,
+        ?int $limit = 12,
     ) {
         $entries = collect();
 
@@ -519,7 +547,7 @@ class FinanceController extends Controller
             ->where('status', OrderStatus::COMPLETED->value)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderByDesc('created_at')
-            ->limit(8)
+            ->when($limit, fn ($query) => $query->limit($limit))
             ->get()
             ->map(fn (Order $order) => [
                 'date' => optional($order->created_at)?->toDateTimeString(),
@@ -543,7 +571,7 @@ class FinanceController extends Controller
             ])
             ->orderByDesc('expense_date')
             ->orderByDesc('id')
-            ->limit(8)
+            ->when($limit, fn ($query) => $query->limit($limit))
             ->get()
             ->map(fn (Expense $expense) => [
                 'date' => optional($expense->expense_date)?->toDateString(),
@@ -569,7 +597,7 @@ class FinanceController extends Controller
             ])
             ->orderByDesc('movement_date')
             ->orderByDesc('id')
-            ->limit(8)
+            ->when($limit, fn ($query) => $query->limit($limit))
             ->get()
             ->map(fn (CashMovement $movement) => [
                 'date' => optional($movement->movement_date)?->toDateString(),
@@ -596,7 +624,7 @@ class FinanceController extends Controller
                 ])
                 ->orderByDesc('finance_journals.journal_date')
                 ->orderByDesc('finance_journal_lines.id')
-                ->limit(12)
+                ->when($limit, fn ($query) => $query->limit($limit))
                 ->get([
                     'finance_journals.id as journal_id',
                     'finance_journals.journal_date',
@@ -630,8 +658,11 @@ class FinanceController extends Controller
             ->concat($expenseEntries)
             ->concat($cashEntries)
             ->sortByDesc('date')
-            ->take(12)
             ->values();
+
+        if ($limit) {
+            return $entries->take($limit)->values();
+        }
 
         return $entries;
     }
