@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
+use App\Enums\PermissionEnum;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -17,6 +19,8 @@ class PayrollController extends Controller
 {
     public function index()
     {
+        Gate::authorize(PermissionEnum::PAYROLL_VIEW->value);
+
         $runs = PayrollRun::query()
             ->with([
                 'branch:id,name',
@@ -127,11 +131,16 @@ class PayrollController extends Controller
             'branches' => Branch::query()->orderBy('name')->get(['id', 'name']),
             'employees' => $activeEmployees,
             'summary' => $summary,
+            'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
+            'canApprove' => Gate::allows(PermissionEnum::PAYROLL_APPROVE->value),
+            'canPay' => Gate::allows(PermissionEnum::PAYROLL_PAY->value),
         ]);
     }
 
     public function store(Request $request)
     {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
         $validated = $request->validate([
             'branch_id' => ['nullable', 'exists:branches,id'],
             'period_start' => ['required', 'date_format:Y-m-d'],
@@ -199,6 +208,7 @@ class PayrollController extends Controller
                 /** @var Employee $employee */
                 $employee = $row['employee'];
                 $grossSalary = (float) $row['base_salary'];
+                $salaryType = ! empty($employee->salary) ? 'fixed_salary' : 'contract_payment';
                 $outstandingAdvance = (float) EmployeeAdvance::query()
                     ->where('employee_id', $employee->id)
                     ->where('status', 'approved')
@@ -211,7 +221,7 @@ class PayrollController extends Controller
                 PayrollRunItem::create([
                     'payroll_run_id' => $run->id,
                     'employee_id' => $employee->id,
-                    'salary_type' => 'fixed_salary',
+                    'salary_type' => $salaryType,
                     'gross_salary' => $grossSalary,
                     'bonuses' => 0,
                     'deductions' => 0,
@@ -232,6 +242,8 @@ class PayrollController extends Controller
 
     public function approve(Request $request, PayrollRun $payrollRun)
     {
+        Gate::authorize(PermissionEnum::PAYROLL_APPROVE->value);
+
         if ($payrollRun->status === 'paid') {
             return redirect()
                 ->route('finance.payroll.index')
@@ -249,8 +261,31 @@ class PayrollController extends Controller
             ->with('success', 'Payroll run approved successfully.');
     }
 
+    public function reject(PayrollRun $payrollRun)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_APPROVE->value);
+
+        if ($payrollRun->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['payroll' => 'A paid payroll run cannot be sent back to draft.']);
+        }
+
+        $payrollRun->update([
+            'status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Payroll run moved back to draft.');
+    }
+
     public function markPaid(PayrollRun $payrollRun)
     {
+        Gate::authorize(PermissionEnum::PAYROLL_PAY->value);
+
         if ($payrollRun->status !== 'approved') {
             return redirect()
                 ->route('finance.payroll.index')

@@ -384,6 +384,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
     Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
     Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
+    Route::post('finance/payroll/{payrollRun}/reject', [PayrollController::class, 'reject'])->name('finance.payroll.reject');
     Route::post('finance/payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('finance.payroll.mark-paid');
     Route::get('finance/employee-advances', [EmployeeAdvanceController::class, 'index'])->name('finance.employee-advances.index');
     Route::post('finance/employee-advances', [EmployeeAdvanceController::class, 'store'])->name('finance.employee-advances.store');

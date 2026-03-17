@@ -192,6 +192,35 @@ export interface PayrollRun {
     [key: string]: unknown;
 }
 
+export interface EmployeeContractPaymentSchedule {
+    id: number;
+    employee_contract_id: number;
+    due_date: string;
+    title?: string | null;
+    percentage?: number | string | null;
+    amount: number | string;
+    status: string;
+    payment_method?: string | null;
+    paid_at?: string | null;
+    notes?: string | null;
+    [key: string]: unknown;
+}
+
+export interface EmployeeContract {
+    id: number;
+    employee_id: number;
+    branch_id?: number | null;
+    contract_amount: number | string;
+    start_date: string;
+    end_date?: string | null;
+    payment_plan_type: string;
+    installment_count?: number | null;
+    status: string;
+    notes?: string | null;
+    schedules?: EmployeeContractPaymentSchedule[];
+    [key: string]: unknown;
+}
+
 export interface Role {
     id: number;
     name: string;

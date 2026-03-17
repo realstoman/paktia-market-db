@@ -70,4 +70,9 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeAdvance::class);
     }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(EmployeeContract::class);
+    }
 }
