@@ -7,16 +7,15 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, CashMovement, CashMovementType } from '@/types';
+import { Branch, EmployeeAdvance } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
-interface MovementVoucherPrintDialogProps {
+interface AdvanceVoucherPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    movement: CashMovement | null;
+    advance: EmployeeAdvance | null;
     branch: Branch | null;
-    movementType: CashMovementType | null;
 }
 
 const formatDateTime = (value?: string | null) => {
@@ -53,15 +52,26 @@ const escapeHtml = (value: string) =>
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
 
-export function MovementVoucherPrintDialog({
+function employeeName(advance: EmployeeAdvance) {
+    return (
+        advance.employee?.full_name ||
+        `${advance.employee?.first_name ?? ''} ${advance.employee?.last_name ?? ''}`.trim() ||
+        `Employee #${advance.employee_id}`
+    );
+}
+
+function repaymentMethodLabel(value?: string | null) {
+    return value ? value.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase()) : '-';
+}
+
+export function AdvanceVoucherPrintDialog({
     open,
     onOpenChange,
-    movement,
+    advance,
     branch,
-    movementType,
-}: MovementVoucherPrintDialogProps) {
+}: AdvanceVoucherPrintDialogProps) {
     const printVoucher = () => {
-        if (!movement) {
+        if (!advance) {
             return;
         }
 
@@ -70,18 +80,19 @@ export function MovementVoucherPrintDialog({
             return;
         }
 
-        const voucherNo = `CSH-${movement.id}`;
-        const amount = formatAfn(Number(movement.amount ?? 0));
-        const createdAt = formatDateTime(movement.created_at);
-        const movementDate = formatDateOnly(movement.movement_date);
-        const direction = movement.direction === 'in' ? 'Inflow' : 'Outflow';
-        const paymentMethod = (movement.payment_method ?? 'other')
-            .replaceAll('_', ' ')
-            .replace(/\b\w/g, (char) => char.toUpperCase());
+        const voucherNo = `ADV-${advance.id}`;
+        const amount = formatAfn(Number(advance.amount ?? 0));
+        const deducted = formatAfn(Number(advance.deducted_amount ?? 0));
+        const remaining = formatAfn(Number(advance.remaining_balance ?? 0));
+        const createdAt = formatDateTime(advance.created_at);
+        const advanceDate = formatDateOnly(advance.advance_date);
+        const employee = employeeName(advance);
+        const repaymentMethod = repaymentMethodLabel(advance.repayment_method);
+
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>${escapeHtml(voucherNo)} - Cash/Bank Voucher</title>
+                    <title>${escapeHtml(voucherNo)} - Employee Advance Voucher</title>
                     <style>
                         @page { size: A4 portrait; margin: 14mm; }
                         body { margin: 0; color: #0f172a; font-family: "Segoe UI", Tahoma, sans-serif; background: #ffffff; }
@@ -110,7 +121,7 @@ export function MovementVoucherPrintDialog({
                         .note-box { margin-top: 20px; background: linear-gradient(180deg, #fafafa, #f8fafc); border-radius: 12px; padding: 16px 18px; }
                         .note-title { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
                         .note-text { margin: 0; font-size: 13px; line-height: 1.7; color: #334155; }
-                        .summary { margin-top: 24px; width: 290px; margin-left: auto; }
+                        .summary { margin-top: 24px; width: 320px; margin-left: auto; }
                         .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #dbe4ee; font-size: 14px; }
                         .summary-row.total { font-size: 18px; font-weight: 700; border-bottom: 2px solid #0f172a; padding-top: 16px; }
                         .signatures { margin-top: 72px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
@@ -127,7 +138,7 @@ export function MovementVoucherPrintDialog({
                             <div class="header-left">
                                 <p class="header-label">Voucher</p>
                                 <p class="header-value"><strong>No:</strong> ${escapeHtml(voucherNo)}</p>
-                                <p class="header-value"><strong>Date:</strong> ${escapeHtml(movementDate)}</p>
+                                <p class="header-value"><strong>Date:</strong> ${escapeHtml(advanceDate)}</p>
                             </div>
                             <div class="brand">
                                 <img src="${window.location.origin}/brand/logo.png" alt="Baba Restaurant Logo" />
@@ -136,31 +147,29 @@ export function MovementVoucherPrintDialog({
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
-                                <p class="header-value"><strong>Cash / Bank Voucher</strong></p>
+                                <p class="header-value"><strong>Employee Advance Voucher</strong></p>
                                 <p class="header-value"><strong>Created:</strong> ${escapeHtml(createdAt)}</p>
                             </div>
                         </div>
                         <div class="content">
                             <div class="grid">
-                                <div class="box"><span class="label">Movement Date</span><span class="value">${escapeHtml(movementDate)}</span></div>
-                                <div class="box"><span class="label">Movement Type</span><span class="value">${escapeHtml(movementType?.name ?? movement.movement_type)}</span></div>
-                                <div class="box"><span class="label">Direction</span><span class="value">${escapeHtml(direction)}</span></div>
+                                <div class="box"><span class="label">Employee</span><span class="value">${escapeHtml(employee)}</span></div>
+                                <div class="box"><span class="label">Advance Date</span><span class="value">${escapeHtml(advanceDate)}</span></div>
+                                <div class="box"><span class="label">Repayment Method</span><span class="value">${escapeHtml(repaymentMethod)}</span></div>
                             </div>
                             <div class="table-wrap">
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th>Source Account</th>
-                                            <th>Counterparty</th>
-                                            <th>Payment Method</th>
+                                            <th>Description</th>
+                                            <th>Branch</th>
                                             <th class="right">Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>${escapeHtml(movement.account ? `${movement.account.code} - ${movement.account.name}` : '-')}</td>
-                                            <td>${escapeHtml(movement.counterparty_account ? `${movement.counterparty_account.code} - ${movement.counterparty_account.name}` : '-')}</td>
-                                            <td>${escapeHtml(paymentMethod)}</td>
+                                            <td>${escapeHtml(advance.reason ?? 'Employee advance / takeout')}</td>
+                                            <td>${escapeHtml(branch?.name ?? 'All Branches')}</td>
                                             <td class="right">${escapeHtml(amount)}</td>
                                         </tr>
                                     </tbody>
@@ -168,11 +177,12 @@ export function MovementVoucherPrintDialog({
                             </div>
                             <div class="note-box">
                                 <p class="note-title">Notes</p>
-                                <p class="note-text">${escapeHtml(movement.description ?? '-')}</p>
+                                <p class="note-text">${escapeHtml(advance.reason ?? '-')}</p>
                             </div>
                             <div class="summary">
-                                <div class="summary-row"><span>Subtotal</span><span>${escapeHtml(amount)}</span></div>
-                                <div class="summary-row total"><span>Total</span><span>${escapeHtml(amount)}</span></div>
+                                <div class="summary-row"><span>Advance Amount</span><span>${escapeHtml(amount)}</span></div>
+                                <div class="summary-row"><span>Deducted</span><span>${escapeHtml(deducted)}</span></div>
+                                <div class="summary-row total"><span>Remaining Balance</span><span>${escapeHtml(remaining)}</span></div>
                             </div>
                             <div class="signatures">
                                 <div class="signature"><div class="signature-line">Prepared By</div></div>
@@ -182,7 +192,7 @@ export function MovementVoucherPrintDialog({
                         </div>
                         <div class="footer">
                             <div class="footer-note">
-                                Generated from the finance module for internal review, signature workflow, and restaurant cash and bank records.
+                                Generated from the finance module for internal review, signature workflow, and employee advance records.
                             </div>
                             <div class="footer-stamp">Baba Finance Copy</div>
                         </div>
@@ -205,19 +215,19 @@ export function MovementVoucherPrintDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Cash / Bank Voucher Print
+                        Employee Advance Voucher Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review this voucher, then print it for manager signature.
+                        Review this advance voucher, then print it for manager review and signature.
                     </DialogDescription>
                 </DialogHeader>
 
-                {movement ? (
+                {advance ? (
                     <div className="space-y-4">
                         <div className="flex justify-end">
                             <Button onClick={printVoucher} className="gap-2">
                                 <Printer className="h-4 w-4" />
-                                Print Movement Voucher
+                                Print Advance Voucher
                             </Button>
                         </div>
                         <ScrollArea className="h-[560px] rounded-lg border bg-slate-50 p-4">
@@ -227,9 +237,9 @@ export function MovementVoucherPrintDialog({
                                         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                             Voucher
                                         </p>
-                                        <p className="mt-2 font-medium">No: CSH-{movement.id}</p>
+                                        <p className="mt-2 font-medium">No: ADV-{advance.id}</p>
                                         <p className="text-muted-foreground">
-                                            Date: {formatDateOnly(movement.movement_date)}
+                                            Date: {formatDateOnly(advance.advance_date)}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -249,90 +259,99 @@ export function MovementVoucherPrintDialog({
                                         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                             Document
                                         </p>
-                                        <p className="mt-2 font-medium">Cash / Bank Voucher</p>
+                                        <p className="mt-2 font-medium">Employee Advance Voucher</p>
                                         <p className="text-muted-foreground">
-                                            Created: {formatDateTime(movement.created_at)}
+                                            Created: {formatDateTime(advance.created_at)}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Movement Date</p>
-                                        <p className="font-medium">{formatDateOnly(movement.movement_date)}</p>
+                                        <p className="text-xs text-muted-foreground">Employee</p>
+                                        <p className="font-medium">{employeeName(advance)}</p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Movement Type</p>
-                                        <p className="font-medium">{movementType?.name ?? movement.movement_type}</p>
+                                        <p className="text-xs text-muted-foreground">Advance Date</p>
+                                        <p className="font-medium">{formatDateOnly(advance.advance_date)}</p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Direction</p>
-                                        <p className="font-medium capitalize">{movement.direction}</p>
+                                        <p className="text-xs text-muted-foreground">Repayment Method</p>
+                                        <p className="font-medium">{repaymentMethodLabel(advance.repayment_method)}</p>
                                     </div>
                                 </div>
 
-                                <div className="mt-6 border-y-2">
-                                    <div className="grid grid-cols-12 border-b px-3 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                        <div className="col-span-4">Source Account</div>
-                                        <div className="col-span-3">Counterparty</div>
-                                        <div className="col-span-2">Method</div>
-                                        <div className="col-span-3 text-right">Amount</div>
-                                    </div>
-                                    <div className="grid grid-cols-12 px-3 py-4 text-sm">
-                                        <div className="col-span-4">
-                                            {movement.account
-                                                ? `${movement.account.code} - ${movement.account.name}`
-                                                : '-'}
-                                        </div>
-                                        <div className="col-span-3">
-                                            {movement.counterparty_account
-                                                ? `${movement.counterparty_account.code} - ${movement.counterparty_account.name}`
-                                                : '-'}
-                                        </div>
-                                        <div className="col-span-2">
-                                            {(movement.payment_method ?? 'other').replaceAll('_', ' ')}
-                                        </div>
-                                        <div className="col-span-3 text-right font-semibold">
-                                            {formatAfn(Number(movement.amount ?? 0))}
-                                        </div>
-                                    </div>
+                                <div className="mt-6 overflow-hidden border-y-2">
+                                    <table className="min-w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                    Description
+                                                </th>
+                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                    Branch
+                                                </th>
+                                                <th className="px-2 py-3 text-right text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                    Amount
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td className="px-2 py-4">
+                                                    {advance.reason ?? 'Employee advance / takeout'}
+                                                </td>
+                                                <td className="px-2 py-4">
+                                                    {branch?.name ?? 'All Branches'}
+                                                </td>
+                                                <td className="px-2 py-4 text-right">
+                                                    {formatAfn(advance.amount)}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
 
-                                <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm">
-                                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                                <div className="mt-5 rounded-xl bg-slate-50 p-4">
+                                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
                                         Notes
                                     </p>
-                                    <p className="mt-2 leading-7">
-                                        {movement.description ?? '-'}
+                                    <p className="mt-2 text-sm text-slate-700">
+                                        {advance.reason ?? '-'}
                                     </p>
                                 </div>
 
-                                <div className="mt-6 ml-auto w-full max-w-xs">
-                                    <div className="flex items-center justify-between border-b py-3 text-sm">
-                                        <span>Subtotal</span>
-                                        <span>{formatAfn(Number(movement.amount ?? 0))}</span>
+                                <div className="mt-6 ml-auto w-full max-w-sm space-y-3">
+                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
+                                        <span>Advance Amount</span>
+                                        <span>{formatAfn(advance.amount)}</span>
                                     </div>
-                                    <div className="flex items-center justify-between border-b-2 border-black py-4 text-base font-semibold">
-                                        <span>Total</span>
-                                        <span className="font-semibold">
-                                            {formatAfn(Number(movement.amount ?? 0))}
-                                        </span>
+                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
+                                        <span>Deducted</span>
+                                        <span>{formatAfn(advance.deducted_amount ?? 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3 text-lg font-semibold">
+                                        <span>Remaining Balance</span>
+                                        <span>{formatAfn(advance.remaining_balance ?? 0)}</span>
                                     </div>
                                 </div>
 
-                                <div className="mt-20 grid grid-cols-3 gap-8 text-center text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                                    <div className="border-t pt-3">Prepared By</div>
-                                    <div className="border-t pt-3">Finance Manager</div>
-                                    <div className="border-t pt-3">Approved By</div>
-                                </div>
-
-                                <div className="mt-12 flex items-end justify-between border-t pt-6 text-xs text-muted-foreground">
-                                    <p className="max-w-xl leading-6">
-                                        Generated from the finance module for internal review, signature workflow, and restaurant cash and bank records.
-                                    </p>
-                                    <p className="uppercase tracking-[0.16em]">
-                                        Baba Finance Copy
-                                    </p>
+                                <div className="mt-18 grid gap-6 pt-12 md:grid-cols-3">
+                                    <div className="text-center">
+                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                            Prepared By
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                            Finance Manager
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                            Approved By
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </ScrollArea>

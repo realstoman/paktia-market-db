@@ -59,6 +59,10 @@ enum PermissionEnum: string
     case PAYMENTS_CREATE = 'payments.create';
     case EXPENSES_VIEW = 'expenses.view';
     case EXPENSES_CREATE = 'expenses.create';
+    case PAYROLL_VIEW = 'payroll.view';
+    case PAYROLL_CREATE = 'payroll.create';
+    case PAYROLL_APPROVE = 'payroll.approve';
+    case PAYROLL_PAY = 'payroll.pay';
 
     // Admin
     case ROLES_MANAGE = 'roles.manage';

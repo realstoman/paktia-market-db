@@ -143,7 +143,7 @@ export function DataTable<TData, TValue>({
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         setGlobalFilter(event.target.value)
                     }
-                    className="h-10 w-full max-w-sm border border-neutral-200/60 dark:border-neutral-900/80"
+                    className="h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80"
                 />
                 {toolbar ? (
                     <div className="ml-auto">{toolbar}</div>

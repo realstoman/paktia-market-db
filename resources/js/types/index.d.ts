@@ -107,7 +107,7 @@ export interface Employee {
     description?: string | null;
     profile_picture?: string | null;
     attachments?: string[] | null;
-    branch?: string | null;
+    branch?: string | Branch | null;
     branch_id?: number | null;
     employment_type?: string | null;
     employment_type_id?: number | null;
@@ -124,6 +124,103 @@ export interface Employee {
     is_active?: boolean;
     created_at?: string;
     updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface EmployeeAdvance {
+    id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    advance_date: string;
+    amount: number | string;
+    deducted_amount?: number | string;
+    remaining_balance?: number | string;
+    repayment_method?: string | null;
+    status?: string;
+    reason?: string | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface PayrollRunItem {
+    id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    salary_type: string;
+    gross_salary: number;
+    bonuses: number;
+    deductions: number;
+    advances_deducted: number;
+    overtime_amount: number;
+    net_salary: number;
+    payment_method?: string | null;
+    payment_status: string;
+    payment_date?: string | null;
+    [key: string]: unknown;
+}
+
+export interface PayrollRun {
+    id: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    period_start: string;
+    period_end: string;
+    status: string;
+    notes?: string | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    approved_at?: string | null;
+    paid_at?: string | null;
+    created_at?: string | null;
+    items_count?: number;
+    gross_total?: number;
+    bonuses_total?: number;
+    deductions_total?: number;
+    advances_total?: number;
+    overtime_total?: number;
+    net_total?: number;
+    items?: PayrollRunItem[];
+    [key: string]: unknown;
+}
+
+export interface EmployeeContractPaymentSchedule {
+    id: number;
+    employee_contract_id: number;
+    contract?: EmployeeContract | null;
+    due_date: string;
+    title?: string | null;
+    percentage?: number | string | null;
+    amount: number | string;
+    status: string;
+    payment_method?: string | null;
+    paid_at?: string | null;
+    notes?: string | null;
+    [key: string]: unknown;
+}
+
+export interface EmployeeContract {
+    id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    contract_amount: number | string;
+    start_date: string;
+    end_date?: string | null;
+    payment_plan_type: string;
+    installment_count?: number | null;
+    status: string;
+    notes?: string | null;
+    schedules?: EmployeeContractPaymentSchedule[];
     [key: string]: unknown;
 }
 
