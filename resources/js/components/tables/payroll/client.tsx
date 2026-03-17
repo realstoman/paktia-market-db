@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
 import { buildColumns as buildScheduleColumns } from '@/components/tables/contract-payment-schedules/columns';
+import { ContractPaymentVoucherPrintDialog } from '@/components/tables/contract-payment-schedules/contract-payment-voucher-print-dialog';
 import { buildColumns as buildContractColumns } from '@/components/tables/contract-plans/columns';
 import { ContractSummaryPrintDialog } from '@/components/tables/contract-plans/contract-summary-print-dialog';
 
@@ -184,12 +185,18 @@ export function PayrollClient({
     const [editingSchedule, setEditingSchedule] = React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [printContract, setPrintContract] = React.useState<EmployeeContract | null>(null);
     const [isContractPrintOpen, setIsContractPrintOpen] = React.useState(false);
+    const [printSchedule, setPrintSchedule] = React.useState<EmployeeContractPaymentSchedule | null>(null);
+    const [isSchedulePrintOpen, setIsSchedulePrintOpen] = React.useState(false);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
     const [printItemId, setPrintItemId] = React.useState<number | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [approvalTarget, setApprovalTarget] = React.useState<PayrollRun | null>(null);
+    const [scheduleApprovalTarget, setScheduleApprovalTarget] = React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
+    const [contractEmployeeFilter, setContractEmployeeFilter] = React.useState('all');
+    const [contractBranchFilter, setContractBranchFilter] = React.useState('all');
+    const [contractStatusFilter, setContractStatusFilter] = React.useState('all');
     const [scheduleStatusFilter, setScheduleStatusFilter] = React.useState('all');
     const [form, setForm] = React.useState<PayrollFormState>(emptyForm);
     const [contractForm, setContractForm] = React.useState<ContractFormState>(emptyContractForm);
@@ -235,6 +242,30 @@ export function PayrollClient({
             return true;
         });
     }, [branchFilter, runs, statusFilter]);
+
+    const filteredContracts = React.useMemo(() => {
+        return contracts.filter((contract) => {
+            if (
+                contractEmployeeFilter !== 'all' &&
+                String(contract.employee_id) !== contractEmployeeFilter
+            ) {
+                return false;
+            }
+
+            if (
+                contractBranchFilter !== 'all' &&
+                String(contract.branch_id ?? '') !== contractBranchFilter
+            ) {
+                return false;
+            }
+
+            if (contractStatusFilter !== 'all' && contract.status !== contractStatusFilter) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [contractBranchFilter, contractEmployeeFilter, contractStatusFilter, contracts]);
 
     const flattenedSchedules = React.useMemo(() => {
         return contracts.flatMap((contract) =>
@@ -300,6 +331,11 @@ export function PayrollClient({
     const openContractPrint = React.useCallback((contract: EmployeeContract) => {
         setPrintContract(contract);
         setIsContractPrintOpen(true);
+    }, []);
+
+    const openSchedulePrint = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        setPrintSchedule(schedule);
+        setIsSchedulePrintOpen(true);
     }, []);
 
     const openScheduleCreate = React.useCallback(() => {
@@ -446,6 +482,18 @@ export function PayrollClient({
         });
     }, []);
 
+    const approveSchedule = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        router.post(`/finance/payroll/contract-schedules/${schedule.id}/approve`, {}, {
+            preserveScroll: true,
+        });
+    }, []);
+
+    const rejectSchedule = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        router.post(`/finance/payroll/contract-schedules/${schedule.id}/reject`, {}, {
+            preserveScroll: true,
+        });
+    }, []);
+
     const markPaid = React.useCallback((run: PayrollRun) => {
         router.post(`/finance/payroll/${run.id}/mark-paid`, {}, {
             preserveScroll: true,
@@ -481,8 +529,11 @@ export function PayrollClient({
             buildScheduleColumns({
                 onEdit: openScheduleEdit,
                 onDelete: deleteSchedule,
+                onPrint: openSchedulePrint,
+                onReviewApproval: setScheduleApprovalTarget,
+                canApprove,
             }),
-        [deleteSchedule, openScheduleEdit],
+        [canApprove, deleteSchedule, openScheduleEdit, openSchedulePrint],
     );
 
     const contractColumns = React.useMemo(
@@ -540,6 +591,44 @@ export function PayrollClient({
                 searchPlaceholder="Search statuses..."
                 emptyText="No status found."
                 className="w-[210px] bg-white dark:bg-neutral-900"
+            />
+        </div>
+    );
+
+    const contractToolbar = (
+        <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
+            <SearchableDropdown
+                value={contractEmployeeFilter}
+                options={[{ value: 'all', label: 'All Employees' }, ...employeeOptions]}
+                onValueChange={setContractEmployeeFilter}
+                placeholder="Employee"
+                searchPlaceholder="Search employees..."
+                emptyText="No employee found."
+                className="w-[220px] bg-white dark:bg-neutral-900"
+            />
+            <SearchableDropdown
+                value={contractBranchFilter}
+                options={[{ value: 'all', label: 'All Branches' }, ...branchOptions]}
+                onValueChange={setContractBranchFilter}
+                placeholder="Branch"
+                searchPlaceholder="Search branches..."
+                emptyText="No branch found."
+                className="w-[180px] bg-white dark:bg-neutral-900"
+            />
+            <SearchableDropdown
+                value={contractStatusFilter}
+                options={[
+                    { value: 'all', label: 'All Statuses' },
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'submitted', label: 'Submitted' },
+                    { value: 'approved', label: 'Approved' },
+                    { value: 'active', label: 'Active' },
+                ]}
+                onValueChange={setContractStatusFilter}
+                placeholder="Status"
+                searchPlaceholder="Search statuses..."
+                emptyText="No status found."
+                className="w-[180px] bg-white dark:bg-neutral-900"
             />
         </div>
     );
@@ -687,9 +776,10 @@ export function PayrollClient({
                     <div className="rounded-lg bg-white p-6 dark:bg-neutral-900">
                         <DataTable
                             columns={contractColumns}
-                            data={contracts}
+                            data={filteredContracts}
                             searchKey={['employee_name', 'period', 'payment_plan_type', 'status']}
                             searchPlaceholder="Search contract plans by employee, period, plan type, or status..."
+                            toolbar={contractToolbar}
                         />
                     </div>
 
@@ -848,6 +938,12 @@ export function PayrollClient({
                             {!canPay ? (
                                 <div className="rounded-2xl border border-dashed border-sky-300 bg-sky-50 px-4 py-4 text-sm text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-200">
                                     Payment actions are hidden. Only users with payroll payment permission can mark payroll runs as paid.
+                                </div>
+                            ) : null}
+
+                            {!canApprove ? (
+                                <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+                                    Contract schedule approval actions are hidden. Only users with payroll approval permission can approve or reject schedule payouts.
                                 </div>
                             ) : null}
                         </CardContent>
@@ -1212,6 +1308,49 @@ export function PayrollClient({
                 </AlertDialogContent>
             </AlertDialog>
 
+            <AlertDialog
+                open={scheduleApprovalTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setScheduleApprovalTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Review Contract Schedule</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Confirm whether you want to approve this contract payment schedule or send it back to draft for correction.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setScheduleApprovalTarget(null)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (scheduleApprovalTarget) {
+                                    rejectSchedule(scheduleApprovalTarget);
+                                }
+                                setScheduleApprovalTarget(null);
+                            }}
+                        >
+                            Reject
+                        </AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (scheduleApprovalTarget) {
+                                    approveSchedule(scheduleApprovalTarget);
+                                }
+                                setScheduleApprovalTarget(null);
+                            }}
+                        >
+                            Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <PayrollVoucherPrintDialog
                 open={isPrintOpen}
                 onOpenChange={setIsPrintOpen}
@@ -1231,6 +1370,20 @@ export function PayrollClient({
                 branch={
                     printContract
                         ? branches.find((branch) => branch.id === printContract.branch_id) ?? null
+                        : null
+                }
+            />
+
+            <ContractPaymentVoucherPrintDialog
+                open={isSchedulePrintOpen}
+                onOpenChange={setIsSchedulePrintOpen}
+                schedule={printSchedule}
+                branch={
+                    printSchedule
+                        ? branches.find(
+                              (branch) =>
+                                  branch.id === (printSchedule.contract?.branch?.id ?? null),
+                          ) ?? null
                         : null
                 }
             />

@@ -567,6 +567,44 @@ class PayrollController extends Controller
             ->with('success', 'Contract payment plan deleted successfully.');
     }
 
+    public function approveSchedule(EmployeeContractPaymentSchedule $schedule)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_APPROVE->value);
+
+        if ($schedule->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['schedule' => 'A paid contract schedule cannot be approved again.']);
+        }
+
+        $schedule->update([
+            'status' => 'approved',
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment schedule approved successfully.');
+    }
+
+    public function rejectSchedule(EmployeeContractPaymentSchedule $schedule)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_APPROVE->value);
+
+        if ($schedule->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['schedule' => 'A paid contract schedule cannot be moved back to draft.']);
+        }
+
+        $schedule->update([
+            'status' => 'draft',
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment schedule moved back to draft.');
+    }
+
     public function storeSchedule(Request $request)
     {
         Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);

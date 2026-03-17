@@ -18,11 +18,17 @@ function statusTone(status?: string) {
 interface BuildColumnsProps {
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
+    onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
+    onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
+    canApprove: boolean;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
+    onPrint,
+    onReviewApproval,
+    canApprove,
 }: BuildColumnsProps): ColumnDef<EmployeeContractPaymentSchedule>[] {
     return [
         {
@@ -98,6 +104,9 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onPrint={onPrint}
+                    onReviewApproval={onReviewApproval}
+                    canApprove={canApprove}
                 />
             ),
         },

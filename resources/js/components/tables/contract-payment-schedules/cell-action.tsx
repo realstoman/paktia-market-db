@@ -9,15 +9,25 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmployeeContractPaymentSchedule } from '@/types';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { BadgeCheck, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 
 interface CellActionProps {
     data: EmployeeContractPaymentSchedule;
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
+    onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
+    onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
+    canApprove: boolean;
 }
 
-export function CellAction({ data, onEdit, onDelete }: CellActionProps) {
+export function CellAction({
+    data,
+    onEdit,
+    onDelete,
+    onPrint,
+    onReviewApproval,
+    canApprove,
+}: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -32,6 +42,16 @@ export function CellAction({ data, onEdit, onDelete }: CellActionProps) {
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onPrint(data)}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Print Voucher
+                </DropdownMenuItem>
+                {canApprove && data.status !== 'approved' && data.status !== 'paid' ? (
+                    <DropdownMenuItem onClick={() => onReviewApproval(data)}>
+                        <BadgeCheck className="mr-2 h-4 w-4" />
+                        Review Approval
+                    </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem onClick={() => onDelete(data)}>
                     <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                     Delete

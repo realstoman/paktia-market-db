@@ -387,6 +387,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('finance/payroll/contracts/{contract}', [PayrollController::class, 'updateContract'])->name('finance.payroll.contracts.update');
     Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
     Route::post('finance/payroll/contract-schedules', [PayrollController::class, 'storeSchedule'])->name('finance.payroll.contract-schedules.store');
+    Route::post('finance/payroll/contract-schedules/{schedule}/approve', [PayrollController::class, 'approveSchedule'])->name('finance.payroll.contract-schedules.approve');
+    Route::post('finance/payroll/contract-schedules/{schedule}/reject', [PayrollController::class, 'rejectSchedule'])->name('finance.payroll.contract-schedules.reject');
     Route::put('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'updateSchedule'])->name('finance.payroll.contract-schedules.update');
     Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
     Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
