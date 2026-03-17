@@ -1,7 +1,6 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
-import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { BadgeDollarSign, Banknote, CalendarRange, CreditCard, Plus, Users } from 'lucide-react';
+import { BadgeDollarSign, Banknote, CalendarRange, Plus, Users } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
