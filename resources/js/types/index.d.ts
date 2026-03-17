@@ -149,6 +149,49 @@ export interface EmployeeAdvance {
     [key: string]: unknown;
 }
 
+export interface PayrollRunItem {
+    id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    salary_type: string;
+    gross_salary: number;
+    bonuses: number;
+    deductions: number;
+    advances_deducted: number;
+    overtime_amount: number;
+    net_salary: number;
+    payment_method?: string | null;
+    payment_status: string;
+    payment_date?: string | null;
+    [key: string]: unknown;
+}
+
+export interface PayrollRun {
+    id: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    period_start: string;
+    period_end: string;
+    status: string;
+    notes?: string | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    approved_at?: string | null;
+    paid_at?: string | null;
+    created_at?: string | null;
+    items_count?: number;
+    gross_total?: number;
+    bonuses_total?: number;
+    deductions_total?: number;
+    advances_total?: number;
+    overtime_total?: number;
+    net_total?: number;
+    items?: PayrollRunItem[];
+    [key: string]: unknown;
+}
+
 export interface Role {
     id: number;
     name: string;
