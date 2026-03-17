@@ -272,6 +272,13 @@ class FinanceController extends Controller
                 ->count()
             : 0;
 
+        $submittedEmployeeAdvances = Schema::hasTable('employee_advances')
+            ? DB::table('employee_advances')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('status', 'submitted')
+                ->count()
+            : 0;
+
         $approvedJournalCount = Schema::hasTable('finance_journals')
             ? DB::table('finance_journals')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -314,6 +321,13 @@ class FinanceController extends Controller
                 ->count()
             : 0;
 
+        $draftEmployeeAdvancesCount = Schema::hasTable('employee_advances')
+            ? DB::table('employee_advances')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('status', 'draft')
+                ->count()
+            : 0;
+
         $completedSalesCount = Order::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->where('status', OrderStatus::COMPLETED->value)
@@ -330,11 +344,13 @@ class FinanceController extends Controller
                 + $completedSalesCount,
             'draft_journals' => $draftJournalCount
                 + $draftExpensesCount
-                + $draftCashMovementsCount,
+                + $draftCashMovementsCount
+                + $draftEmployeeAdvancesCount,
             'approval_queue' => $submittedJournals
                 + $submittedExpenses
                 + $submittedCashMovements
-                + $submittedPayrollRuns,
+                + $submittedPayrollRuns
+                + $submittedEmployeeAdvances,
         ];
 
         $generalLedger = $this->buildGeneralLedger(
