@@ -17,14 +17,18 @@ function statusTone(status?: string) {
 
 interface BuildColumnsProps {
     onView: (run: PayrollRun) => void;
-    onApprove: (run: PayrollRun) => void;
+    onReviewApproval: (run: PayrollRun) => void;
     onMarkPaid: (run: PayrollRun) => void;
+    canApprove: boolean;
+    canPay: boolean;
 }
 
 export function buildColumns({
     onView,
-    onApprove,
+    onReviewApproval,
     onMarkPaid,
+    canApprove,
+    canPay,
 }: BuildColumnsProps): ColumnDef<PayrollRun>[] {
     return [
         {
@@ -89,8 +93,10 @@ export function buildColumns({
                 <CellAction
                     data={row.original}
                     onView={onView}
-                    onApprove={onApprove}
+                    onReviewApproval={onReviewApproval}
                     onMarkPaid={onMarkPaid}
+                    canApprove={canApprove}
+                    canPay={canPay}
                 />
             ),
         },

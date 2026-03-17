@@ -9,20 +9,24 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PayrollRun } from '@/types';
-import { BadgeCheck, CreditCard, Eye, MoreHorizontal } from 'lucide-react';
+import { BadgeCheck, CreditCard, Eye, MoreHorizontal, RotateCcw } from 'lucide-react';
 
 interface CellActionProps {
     data: PayrollRun;
     onView: (run: PayrollRun) => void;
-    onApprove: (run: PayrollRun) => void;
+    onReviewApproval: (run: PayrollRun) => void;
     onMarkPaid: (run: PayrollRun) => void;
+    canApprove: boolean;
+    canPay: boolean;
 }
 
 export function CellAction({
     data,
     onView,
-    onApprove,
+    onReviewApproval,
     onMarkPaid,
+    canApprove,
+    canPay,
 }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
@@ -38,13 +42,19 @@ export function CellAction({
                     <Eye className="mr-2 h-4 w-4" />
                     View Run
                 </DropdownMenuItem>
-                {data.status !== 'approved' && data.status !== 'paid' ? (
-                    <DropdownMenuItem onClick={() => onApprove(data)}>
+                {canApprove && data.status !== 'approved' && data.status !== 'paid' ? (
+                    <DropdownMenuItem onClick={() => onReviewApproval(data)}>
                         <BadgeCheck className="mr-2 h-4 w-4" />
-                        Approve
+                        Review Approval
                     </DropdownMenuItem>
                 ) : null}
-                {data.status === 'approved' ? (
+                {canApprove && data.status === 'submitted' ? (
+                    <DropdownMenuItem onClick={() => onReviewApproval(data)}>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Approve / Reject
+                    </DropdownMenuItem>
+                ) : null}
+                {canPay && data.status === 'approved' ? (
                     <DropdownMenuItem onClick={() => onMarkPaid(data)}>
                         <CreditCard className="mr-2 h-4 w-4" />
                         Mark Paid

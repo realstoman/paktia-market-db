@@ -11,6 +11,14 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -24,12 +32,13 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { BadgeDollarSign, Banknote, CalendarRange, Plus, Printer, Users } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
+import { SharedData } from '@/types';
 
 const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -72,6 +81,9 @@ interface PayrollClientProps {
     runs: PayrollRun[];
     branches: Branch[];
     employees: Employee[];
+    canCreate: boolean;
+    canApprove: boolean;
+    canPay: boolean;
     summary: {
         activeEmployees: number;
         draftRuns: number;
@@ -106,13 +118,18 @@ export function PayrollClient({
     runs,
     branches,
     employees,
+    canCreate,
+    canApprove,
+    canPay,
     summary,
 }: PayrollClientProps) {
+    const { auth } = usePage<SharedData>().props;
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(runs[0] ?? null);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
     const [printItemId, setPrintItemId] = React.useState<number | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
+    const [approvalTarget, setApprovalTarget] = React.useState<PayrollRun | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
     const [form, setForm] = React.useState<PayrollFormState>(emptyForm);
@@ -203,6 +220,12 @@ export function PayrollClient({
         });
     }, []);
 
+    const reject = React.useCallback((run: PayrollRun) => {
+        router.post(`/finance/payroll/${run.id}/reject`, {}, {
+            preserveScroll: true,
+        });
+    }, []);
+
     const markPaid = React.useCallback((run: PayrollRun) => {
         router.post(`/finance/payroll/${run.id}/mark-paid`, {}, {
             preserveScroll: true,
@@ -213,10 +236,12 @@ export function PayrollClient({
         () =>
             buildColumns({
                 onView: setSelectedRun,
-                onApprove: approve,
+                onReviewApproval: setApprovalTarget,
                 onMarkPaid: markPaid,
+                canApprove,
+                canPay,
             }),
-        [approve, markPaid],
+        [canApprove, canPay, markPaid],
     );
 
     const selectedPrintItem = React.useMemo(
@@ -261,10 +286,12 @@ export function PayrollClient({
                             Back to Finance
                         </Link>
                     </Button>
-                    <Button onClick={openCreate} className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Generate Payroll
-                    </Button>
+                    {canCreate ? (
+                        <Button onClick={openCreate} className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Generate Payroll
+                        </Button>
+                    ) : null}
                 </div>
             </div>
 
@@ -408,15 +435,15 @@ export function PayrollClient({
                                             <Printer className="h-4 w-4" />
                                             Print Vouchers
                                         </Button>
-                                        {selectedRun.status !== 'approved' && selectedRun.status !== 'paid' ? (
+                                        {canApprove && selectedRun.status !== 'approved' && selectedRun.status !== 'paid' ? (
                                             <Button
-                                                onClick={() => approve(selectedRun)}
+                                                onClick={() => setApprovalTarget(selectedRun)}
                                                 className="gap-2"
                                             >
-                                                Approve Run
+                                                Review Approval
                                             </Button>
                                         ) : null}
-                                        {selectedRun.status === 'approved' ? (
+                                        {canPay && selectedRun.status === 'approved' ? (
                                             <Button
                                                 onClick={() => markPaid(selectedRun)}
                                                 className="gap-2"
@@ -578,6 +605,49 @@ export function PayrollClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={approvalTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setApprovalTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Review Payroll Run</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Review the printed vouchers first, then either approve this payroll run or send it back to draft for correction.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    reject(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Reject
+                        </AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (approvalTarget) {
+                                    approve(approvalTarget);
+                                }
+                                setApprovalTarget(null);
+                            }}
+                        >
+                            Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <PayrollVoucherPrintDialog
                 open={isPrintOpen}
