@@ -9,6 +9,7 @@ use App\Models\CashMovement;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
+use App\Models\InventoryItem;
 use App\Models\Order;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -491,6 +492,160 @@ class FinanceController extends Controller
                 'from' => $paginatedEntries->firstItem(),
                 'to' => $paginatedEntries->lastItem(),
                 'hasMorePages' => $paginatedEntries->hasMorePages(),
+            ],
+        ]);
+    }
+
+    public function inventoryValuation(Request $request)
+    {
+        $validated = $request->validate([
+            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
+        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+
+        $valuationItems = InventoryItem::query()
+            ->with(['branch:id,name', 'vendor:id,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->orderByDesc(DB::raw('quantity * unit_price'))
+            ->orderBy('name')
+            ->get()
+            ->map(function (InventoryItem $item) {
+                $latestWeightedAverageCost = DB::table('inventory_transactions')
+                    ->where('inventory_item_id', $item->id)
+                    ->whereNotNull('weighted_average_cost_after')
+                    ->orderByDesc('created_at')
+                    ->value('weighted_average_cost_after');
+
+                $averageCost = $latestWeightedAverageCost !== null
+                    ? (float) $latestWeightedAverageCost
+                    : (float) ($item->unit_price ?? 0);
+
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'branch' => $item->branch?->name ?? 'Unassigned',
+                    'vendor' => $item->vendor?->name ?? '-',
+                    'quantity' => (float) $item->quantity,
+                    'unit' => $item->unit ?? 'unit',
+                    'averageCost' => $averageCost,
+                    'stockValue' => (float) $item->quantity * $averageCost,
+                    'currencySymbol' => $item->currency_symbol ?? '؋',
+                ];
+            })
+            ->values();
+
+        $transactionBaseQuery = DB::table('inventory_transactions')
+            ->join('inventory_items', 'inventory_items.id', '=', 'inventory_transactions.inventory_item_id')
+            ->leftJoin('branches', 'branches.id', '=', 'inventory_items.branch_id')
+            ->when($branchId, fn ($query) => $query->where('inventory_items.branch_id', $branchId))
+            ->whereBetween('inventory_transactions.created_at', [$startDate, $endDate]);
+
+        $costExpression = 'COALESCE(inventory_transactions.total_cost, ABS(inventory_transactions.quantity) * inventory_items.unit_price)';
+
+        $summary = [
+            'inventoryValue' => (float) $valuationItems->sum('stockValue'),
+            'stockItems' => (int) $valuationItems->count(),
+            'stockQuantity' => (float) $valuationItems->sum('quantity'),
+            'cogs' => (float) (clone $transactionBaseQuery)
+                ->whereIn('inventory_transactions.action', ['usage_cycle', 'issue', 'consumed'])
+                ->selectRaw("COALESCE(SUM($costExpression), 0) as total")
+                ->value('total'),
+            'wastage' => (float) (clone $transactionBaseQuery)
+                ->where('inventory_transactions.action', 'wastage')
+                ->selectRaw("COALESCE(SUM($costExpression), 0) as total")
+                ->value('total'),
+            'adjustmentIn' => (float) (clone $transactionBaseQuery)
+                ->where('inventory_transactions.action', 'adjustment')
+                ->where('inventory_transactions.quantity', '>', 0)
+                ->selectRaw("COALESCE(SUM($costExpression), 0) as total")
+                ->value('total'),
+            'adjustmentOut' => (float) (clone $transactionBaseQuery)
+                ->where('inventory_transactions.action', 'adjustment')
+                ->where('inventory_transactions.quantity', '<', 0)
+                ->selectRaw("COALESCE(SUM($costExpression), 0) as total")
+                ->value('total'),
+        ];
+
+        $movementEntries = (clone $transactionBaseQuery)
+            ->select([
+                'inventory_transactions.id',
+                'inventory_transactions.action',
+                'inventory_transactions.quantity',
+                'inventory_transactions.unit_cost',
+                'inventory_transactions.total_cost',
+                'inventory_transactions.weighted_average_cost_after',
+                'inventory_transactions.note',
+                'inventory_transactions.created_at',
+                'inventory_items.name as item_name',
+                'inventory_items.unit as item_unit',
+                'inventory_items.unit_price as fallback_unit_price',
+                'branches.name as branch_name',
+            ])
+            ->orderByDesc('inventory_transactions.created_at')
+            ->get()
+            ->map(function ($row) {
+                $estimatedCost = $row->total_cost !== null
+                    ? (float) $row->total_cost
+                    : abs((float) $row->quantity) * (float) ($row->fallback_unit_price ?? 0);
+
+                return [
+                    'id' => (int) $row->id,
+                    'date' => (string) $row->created_at,
+                    'action' => str($row->action)->replace('_', ' ')->title()->toString(),
+                    'itemName' => (string) $row->item_name,
+                    'branch' => $row->branch_name ?? 'Unassigned',
+                    'quantity' => (float) $row->quantity,
+                    'unit' => $row->item_unit ?? 'unit',
+                    'unitCost' => $row->unit_cost !== null
+                        ? (float) $row->unit_cost
+                        : (float) ($row->fallback_unit_price ?? 0),
+                    'totalCost' => $estimatedCost,
+                    'weightedAverageCostAfter' => $row->weighted_average_cost_after !== null
+                        ? (float) $row->weighted_average_cost_after
+                        : null,
+                    'note' => $row->note,
+                ];
+            })
+            ->values();
+
+        $perPage = 20;
+        $currentPage = max(1, (int) ($validated['page'] ?? 1));
+        $paginatedMovements = new LengthAwarePaginator(
+            $movementEntries->slice(($currentPage - 1) * $perPage, $perPage)->values(),
+            $movementEntries->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => route('finance.inventory-valuation.index'),
+                'query' => request()->except('page'),
+            ],
+        );
+
+        return Inertia::render('finance/inventory-valuation/index', [
+            'filters' => [
+                'range' => $range,
+                'startDate' => $startDate->toDateString(),
+                'endDate' => $endDate->toDateString(),
+                'branchId' => $branchId,
+            ],
+            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'summary' => $summary,
+            'valuationItems' => $valuationItems->take(40)->values(),
+            'movementEntries' => $paginatedMovements->items(),
+            'pagination' => [
+                'currentPage' => $paginatedMovements->currentPage(),
+                'lastPage' => $paginatedMovements->lastPage(),
+                'perPage' => $paginatedMovements->perPage(),
+                'total' => $paginatedMovements->total(),
+                'from' => $paginatedMovements->firstItem(),
+                'to' => $paginatedMovements->lastItem(),
+                'hasMorePages' => $paginatedMovements->hasMorePages(),
             ],
         ]);
     }
