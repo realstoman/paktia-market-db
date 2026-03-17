@@ -195,6 +195,7 @@ export interface PayrollRun {
 export interface EmployeeContractPaymentSchedule {
     id: number;
     employee_contract_id: number;
+    contract?: EmployeeContract | null;
     due_date: string;
     title?: string | null;
     percentage?: number | string | null;
@@ -209,7 +210,9 @@ export interface EmployeeContractPaymentSchedule {
 export interface EmployeeContract {
     id: number;
     employee_id: number;
+    employee?: Employee | null;
     branch_id?: number | null;
+    branch?: Branch | null;
     contract_amount: number | string;
     start_date: string;
     end_date?: string | null;

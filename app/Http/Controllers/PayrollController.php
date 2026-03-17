@@ -7,13 +7,17 @@ use App\Enums\PermissionEnum;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
+use App\Models\EmployeeContract;
+use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
@@ -126,8 +130,66 @@ class PayrollController extends Controller
             'outstandingAdvances' => (float) $outstandingAdvances,
         ];
 
+        $contracts = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
+            ? EmployeeContract::query()
+                ->with([
+                    'employee:id,first_name,last_name,branch_id',
+                    'branch:id,name',
+                    'schedules',
+                ])
+                ->orderByDesc('id')
+                ->get()
+                ->map(function (EmployeeContract $contract) {
+                    return [
+                        'id' => $contract->id,
+                        'employee_id' => $contract->employee_id,
+                        'employee' => $contract->employee ? [
+                            'id' => $contract->employee->id,
+                            'first_name' => $contract->employee->first_name,
+                            'last_name' => $contract->employee->last_name,
+                            'branch_id' => $contract->employee->branch_id,
+                        ] : null,
+                        'branch_id' => $contract->branch_id,
+                        'branch' => $contract->branch ? [
+                            'id' => $contract->branch->id,
+                            'name' => $contract->branch->name,
+                        ] : null,
+                        'contract_amount' => (float) $contract->contract_amount,
+                        'start_date' => optional($contract->start_date)->toDateString(),
+                        'end_date' => optional($contract->end_date)->toDateString(),
+                        'payment_plan_type' => $contract->payment_plan_type,
+                        'installment_count' => $contract->installment_count,
+                        'status' => $contract->status,
+                        'notes' => $contract->notes,
+                        'schedules' => $contract->schedules->map(function (EmployeeContractPaymentSchedule $schedule) use ($contract) {
+                            return [
+                                'id' => $schedule->id,
+                                'employee_contract_id' => $schedule->employee_contract_id,
+                                'contract' => [
+                                    'id' => $contract->id,
+                                    'employee_id' => $contract->employee_id,
+                                    'contract_amount' => (float) $contract->contract_amount,
+                                    'payment_plan_type' => $contract->payment_plan_type,
+                                    'status' => $contract->status,
+                                ],
+                                'due_date' => optional($schedule->due_date)->toDateString(),
+                                'title' => $schedule->title,
+                                'percentage' => $schedule->percentage !== null ? (float) $schedule->percentage : null,
+                                'amount' => (float) $schedule->amount,
+                                'status' => $schedule->status,
+                                'payment_method' => $schedule->payment_method,
+                                'paid_at' => optional($schedule->paid_at)->toISOString(),
+                                'notes' => $schedule->notes,
+                            ];
+                        })->values(),
+                    ];
+                })
+                ->values()
+            : collect();
+
         return Inertia::render('finance/payroll/index', [
             'runs' => $runs,
+            'contracts' => $contracts,
             'branches' => Branch::query()->orderBy('name')->get(['id', 'name']),
             'employees' => $activeEmployees,
             'summary' => $summary,
@@ -207,8 +269,28 @@ class PayrollController extends Controller
             foreach ($payableEmployees as $row) {
                 /** @var Employee $employee */
                 $employee = $row['employee'];
-                $grossSalary = (float) $row['base_salary'];
                 $salaryType = ! empty($employee->salary) ? 'fixed_salary' : 'contract_payment';
+                $grossSalary = $salaryType === 'fixed_salary'
+                    ? (float) $row['base_salary']
+                    : (Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
+                        ? (float) EmployeeContractPaymentSchedule::query()
+                            ->whereHas('contract', function ($query) use ($employee, $branchId) {
+                                $query->where('employee_id', $employee->id)
+                                    ->when($branchId, fn ($contractQuery) => $contractQuery->where('branch_id', $branchId))
+                                    ->whereIn('status', ['submitted', 'approved', 'active']);
+                            })
+                            ->whereBetween('due_date', [
+                                $validated['period_start'],
+                                $validated['period_end'],
+                            ])
+                            ->whereIn('status', ['submitted', 'approved'])
+                            ->sum('amount')
+                        : 0.0);
+
+                if ($grossSalary <= 0) {
+                    continue;
+                }
+
                 $outstandingAdvance = (float) EmployeeAdvance::query()
                     ->where('employee_id', $employee->id)
                     ->where('status', 'approved')
@@ -344,6 +426,152 @@ class PayrollController extends Controller
         return redirect()
             ->route('finance.payroll.index')
             ->with('success', 'Payroll run marked as paid.');
+    }
+
+    public function storeContract(Request $request)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        $validated = $request->validate([
+            'employee_id' => ['required', 'exists:employees,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'contract_amount' => ['required', 'numeric', 'min:1'],
+            'start_date' => ['required', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'payment_plan_type' => ['required', 'in:equal_installments,custom_schedule,manual_milestones'],
+            'installment_count' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'in:draft,submitted,approved,active'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $contract = EmployeeContract::create([
+                'employee_id' => $validated['employee_id'],
+                'branch_id' => $validated['branch_id'] ?? null,
+                'contract_amount' => $validated['contract_amount'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'] ?? null,
+                'payment_plan_type' => $validated['payment_plan_type'],
+                'installment_count' => $validated['installment_count'] ?? null,
+                'status' => $validated['status'] ?? 'draft',
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            if (
+                $contract->payment_plan_type === 'equal_installments'
+                && $contract->installment_count
+                && $contract->installment_count > 0
+            ) {
+                $baseAmount = round((float) $contract->contract_amount / $contract->installment_count, 2);
+                $remaining = (float) $contract->contract_amount;
+                $startDate = Carbon::parse($contract->start_date);
+
+                for ($index = 0; $index < $contract->installment_count; $index++) {
+                    $amount = $index === ($contract->installment_count - 1)
+                        ? $remaining
+                        : $baseAmount;
+                    $remaining -= $amount;
+
+                    EmployeeContractPaymentSchedule::create([
+                        'employee_contract_id' => $contract->id,
+                        'due_date' => $startDate->copy()->addMonths($index)->toDateString(),
+                        'title' => 'Installment '.($index + 1),
+                        'percentage' => round(100 / $contract->installment_count, 2),
+                        'amount' => $amount,
+                        'status' => in_array($contract->status, ['approved', 'active'], true) ? 'approved' : 'draft',
+                        'payment_method' => PaymentMethod::BANK_TRANSFER->value,
+                        'notes' => null,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment plan created successfully.');
+    }
+
+    public function storeSchedule(Request $request)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        $validated = $request->validate([
+            'employee_contract_id' => ['required', 'exists:employee_contracts,id'],
+            'due_date' => ['required', 'date_format:Y-m-d'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'status' => ['nullable', 'in:draft,submitted,approved,paid'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        EmployeeContractPaymentSchedule::create([
+            'employee_contract_id' => $validated['employee_contract_id'],
+            'due_date' => $validated['due_date'],
+            'title' => $validated['title'] ?? null,
+            'percentage' => $validated['percentage'] ?? null,
+            'amount' => $validated['amount'],
+            'status' => $validated['status'] ?? 'draft',
+            'payment_method' => $validated['payment_method'] ?? PaymentMethod::BANK_TRANSFER->value,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment schedule created successfully.');
+    }
+
+    public function updateSchedule(Request $request, EmployeeContractPaymentSchedule $schedule)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        if ($schedule->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['schedule' => 'A paid contract schedule cannot be edited.']);
+        }
+
+        $validated = $request->validate([
+            'due_date' => ['required', 'date_format:Y-m-d'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'status' => ['nullable', 'in:draft,submitted,approved,paid'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $schedule->update([
+            'due_date' => $validated['due_date'],
+            'title' => $validated['title'] ?? null,
+            'percentage' => $validated['percentage'] ?? null,
+            'amount' => $validated['amount'],
+            'status' => $validated['status'] ?? $schedule->status,
+            'payment_method' => $validated['payment_method'] ?? $schedule->payment_method,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment schedule updated successfully.');
+    }
+
+    public function destroySchedule(EmployeeContractPaymentSchedule $schedule)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        if ($schedule->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['schedule' => 'A paid contract schedule cannot be deleted.']);
+        }
+
+        $schedule->delete();
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment schedule deleted successfully.');
     }
 
     protected function resolveBaseSalary(Employee $employee): float

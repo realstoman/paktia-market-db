@@ -1,6 +1,6 @@
 import { PayrollClient } from '@/components/tables/payroll/client';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, Employee, PayrollRun } from '@/types';
+import { Branch, BreadcrumbItem, Employee, EmployeeContract, PayrollRun } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -11,6 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface PayrollPageProps {
     runs: PayrollRun[];
+    contracts: EmployeeContract[];
     branches: Branch[];
     employees: Employee[];
     canCreate: boolean;
@@ -28,6 +29,7 @@ interface PayrollPageProps {
 
 export default function PayrollPage({
     runs,
+    contracts,
     branches,
     employees,
     canCreate,
@@ -40,6 +42,7 @@ export default function PayrollPage({
             <Head title="Payroll" />
             <PayrollClient
                 runs={runs}
+                contracts={contracts}
                 branches={branches}
                 employees={employees}
                 canCreate={canCreate}

@@ -383,6 +383,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
     Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
     Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
+    Route::post('finance/payroll/contracts', [PayrollController::class, 'storeContract'])->name('finance.payroll.contracts.store');
+    Route::post('finance/payroll/contract-schedules', [PayrollController::class, 'storeSchedule'])->name('finance.payroll.contract-schedules.store');
+    Route::put('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'updateSchedule'])->name('finance.payroll.contract-schedules.update');
+    Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
     Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
     Route::post('finance/payroll/{payrollRun}/reject', [PayrollController::class, 'reject'])->name('finance.payroll.reject');
     Route::post('finance/payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('finance.payroll.mark-paid');

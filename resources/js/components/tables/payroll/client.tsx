@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,7 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Employee, PayrollRun } from '@/types';
+import { Branch, Employee, EmployeeContract, EmployeeContractPaymentSchedule, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { BadgeDollarSign, Banknote, CalendarRange, Plus, Printer, Users } from 'lucide-react';
@@ -40,6 +41,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
+import { buildColumns as buildScheduleColumns } from '@/components/tables/contract-payment-schedules/columns';
 
 const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -69,6 +71,29 @@ interface PayrollFormState {
     notes: string;
 }
 
+interface ContractFormState {
+    employee_id: string;
+    branch_id: string;
+    contract_amount: string;
+    start_date: string;
+    end_date: string;
+    payment_plan_type: string;
+    installment_count: string;
+    status: string;
+    notes: string;
+}
+
+interface ScheduleFormState {
+    employee_contract_id: string;
+    due_date: string;
+    title: string;
+    percentage: string;
+    amount: string;
+    status: string;
+    payment_method: string;
+    notes: string;
+}
+
 const emptyForm: PayrollFormState = {
     branch_id: '',
     period_start: new Date().toISOString().slice(0, 10),
@@ -78,8 +103,32 @@ const emptyForm: PayrollFormState = {
     notes: '',
 };
 
+const emptyContractForm: ContractFormState = {
+    employee_id: '',
+    branch_id: '',
+    contract_amount: '',
+    start_date: new Date().toISOString().slice(0, 10),
+    end_date: '',
+    payment_plan_type: 'equal_installments',
+    installment_count: '6',
+    status: 'draft',
+    notes: '',
+};
+
+const emptyScheduleForm: ScheduleFormState = {
+    employee_contract_id: '',
+    due_date: new Date().toISOString().slice(0, 10),
+    title: '',
+    percentage: '',
+    amount: '',
+    status: 'draft',
+    payment_method: 'bank_transfer',
+    notes: '',
+};
+
 interface PayrollClientProps {
     runs: PayrollRun[];
+    contracts: EmployeeContract[];
     branches: Branch[];
     employees: Employee[];
     canCreate: boolean;
@@ -117,6 +166,7 @@ function statusTone(status?: string) {
 
 export function PayrollClient({
     runs,
+    contracts,
     branches,
     employees,
     canCreate,
@@ -126,13 +176,19 @@ export function PayrollClient({
 }: PayrollClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(runs[0] ?? null);
+    const [isContractOpen, setIsContractOpen] = React.useState(false);
+    const [isScheduleOpen, setIsScheduleOpen] = React.useState(false);
+    const [editingSchedule, setEditingSchedule] = React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
     const [printItemId, setPrintItemId] = React.useState<number | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [approvalTarget, setApprovalTarget] = React.useState<PayrollRun | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
+    const [scheduleStatusFilter, setScheduleStatusFilter] = React.useState('all');
     const [form, setForm] = React.useState<PayrollFormState>(emptyForm);
+    const [contractForm, setContractForm] = React.useState<ContractFormState>(emptyContractForm);
+    const [scheduleForm, setScheduleForm] = React.useState<ScheduleFormState>(emptyScheduleForm);
 
     const branchOptions = React.useMemo(
         () =>
@@ -141,6 +197,24 @@ export function PayrollClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    const employeeOptions = React.useMemo(
+        () =>
+            employees.map((employee) => ({
+                value: String(employee.id),
+                label: employeeName(employee),
+            })),
+        [employees],
+    );
+
+    const contractOptions = React.useMemo(
+        () =>
+            contracts.map((contract) => ({
+                value: String(contract.id),
+                label: `${employeeName(contract.employee ?? null)} - ${contract.payment_plan_type.replaceAll('_', ' ')}`,
+            })),
+        [contracts],
     );
 
     const filteredRuns = React.useMemo(() => {
@@ -157,6 +231,30 @@ export function PayrollClient({
         });
     }, [branchFilter, runs, statusFilter]);
 
+    const flattenedSchedules = React.useMemo(() => {
+        return contracts.flatMap((contract) =>
+            (contract.schedules ?? []).map((schedule) => ({
+                ...schedule,
+                contract: {
+                    ...schedule.contract,
+                    employee: contract.employee ?? null,
+                    branch: contract.branch ?? null,
+                    payment_plan_type: contract.payment_plan_type,
+                },
+            })),
+        );
+    }, [contracts]);
+
+    const filteredSchedules = React.useMemo(() => {
+        return flattenedSchedules.filter((schedule) => {
+            if (scheduleStatusFilter !== 'all' && schedule.status !== scheduleStatusFilter) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [flattenedSchedules, scheduleStatusFilter]);
+
     React.useEffect(() => {
         if (!selectedRun && filteredRuns[0]) {
             setSelectedRun(filteredRuns[0]);
@@ -170,6 +268,32 @@ export function PayrollClient({
     const openCreate = React.useCallback(() => {
         setForm(emptyForm);
         setIsOpen(true);
+    }, []);
+
+    const openContractCreate = React.useCallback(() => {
+        setContractForm(emptyContractForm);
+        setIsContractOpen(true);
+    }, []);
+
+    const openScheduleCreate = React.useCallback(() => {
+        setEditingSchedule(null);
+        setScheduleForm(emptyScheduleForm);
+        setIsScheduleOpen(true);
+    }, []);
+
+    const openScheduleEdit = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        setEditingSchedule(schedule);
+        setScheduleForm({
+            employee_contract_id: String(schedule.employee_contract_id),
+            due_date: schedule.due_date,
+            title: schedule.title ?? '',
+            percentage: schedule.percentage != null ? String(schedule.percentage) : '',
+            amount: String(schedule.amount),
+            status: schedule.status,
+            payment_method: schedule.payment_method ?? 'bank_transfer',
+            notes: schedule.notes ?? '',
+        });
+        setIsScheduleOpen(true);
     }, []);
 
     const openItemPrint = React.useCallback((run: PayrollRun, itemId: number) => {
@@ -214,6 +338,61 @@ export function PayrollClient({
         });
     }, [form]);
 
+    const submitContract = React.useCallback(() => {
+        router.post('/finance/payroll/contracts', {
+            employee_id: Number(contractForm.employee_id),
+            branch_id: contractForm.branch_id ? Number(contractForm.branch_id) : null,
+            contract_amount: Number(contractForm.contract_amount),
+            start_date: contractForm.start_date,
+            end_date: contractForm.end_date || null,
+            payment_plan_type: contractForm.payment_plan_type,
+            installment_count: contractForm.installment_count ? Number(contractForm.installment_count) : null,
+            status: contractForm.status,
+            notes: contractForm.notes || null,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => setIsContractOpen(false),
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                toast.error(typeof firstError === 'string' ? firstError : 'Failed to create contract plan.');
+            },
+        });
+    }, [contractForm]);
+
+    const submitSchedule = React.useCallback(() => {
+        const payload = {
+            employee_contract_id: Number(scheduleForm.employee_contract_id),
+            due_date: scheduleForm.due_date,
+            title: scheduleForm.title || null,
+            percentage: scheduleForm.percentage ? Number(scheduleForm.percentage) : null,
+            amount: Number(scheduleForm.amount),
+            status: scheduleForm.status,
+            payment_method: scheduleForm.payment_method,
+            notes: scheduleForm.notes || null,
+        };
+
+        if (editingSchedule) {
+            router.put(`/finance/payroll/contract-schedules/${editingSchedule.id}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => setIsScheduleOpen(false),
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    toast.error(typeof firstError === 'string' ? firstError : 'Failed to update schedule.');
+                },
+            });
+            return;
+        }
+
+        router.post('/finance/payroll/contract-schedules', payload, {
+            preserveScroll: true,
+            onSuccess: () => setIsScheduleOpen(false),
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                toast.error(typeof firstError === 'string' ? firstError : 'Failed to create schedule.');
+            },
+        });
+    }, [editingSchedule, scheduleForm]);
+
     const approve = React.useCallback((run: PayrollRun) => {
         router.post(`/finance/payroll/${run.id}/approve`, {}, {
             preserveScroll: true,
@@ -232,6 +411,12 @@ export function PayrollClient({
         });
     }, []);
 
+    const deleteSchedule = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        router.delete(`/finance/payroll/contract-schedules/${schedule.id}`, {
+            preserveScroll: true,
+        });
+    }, []);
+
     const columns = React.useMemo(
         () =>
             buildColumns({
@@ -242,6 +427,15 @@ export function PayrollClient({
                 canPay,
             }),
         [canApprove, canPay, markPaid],
+    );
+
+    const scheduleColumns = React.useMemo(
+        () =>
+            buildScheduleColumns({
+                onEdit: openScheduleEdit,
+                onDelete: deleteSchedule,
+            }),
+        [deleteSchedule, openScheduleEdit],
     );
 
     const selectedPrintItem = React.useMemo(
@@ -269,6 +463,26 @@ export function PayrollClient({
                 searchPlaceholder="Search statuses..."
                 emptyText="No status found."
                 className="w-[190px] bg-white dark:bg-neutral-900"
+            />
+        </div>
+    );
+
+    const scheduleToolbar = (
+        <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
+            <SearchableDropdown
+                value={scheduleStatusFilter}
+                options={[
+                    { value: 'all', label: 'All Statuses' },
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'submitted', label: 'Submitted' },
+                    { value: 'approved', label: 'Approved' },
+                    { value: 'paid', label: 'Paid' },
+                ]}
+                onValueChange={setScheduleStatusFilter}
+                placeholder="Schedule Status"
+                searchPlaceholder="Search statuses..."
+                emptyText="No status found."
+                className="w-[210px] bg-white dark:bg-neutral-900"
             />
         </div>
     );
@@ -394,6 +608,39 @@ export function PayrollClient({
                             toolbar={toolbar}
                         />
                     </div>
+
+                    <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+                        <CardHeader>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <CardTitle>Contract Payment Schedules</CardTitle>
+                                    <CardDescription>
+                                        Manage contract payment plans and due schedule items that payroll will pull instead of raw contract amounts.
+                                    </CardDescription>
+                                </div>
+                                {canCreate ? (
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={openScheduleCreate}>
+                                            New Schedule
+                                        </Button>
+                                        <Button onClick={openContractCreate}>
+                                            New Contract Plan
+                                        </Button>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <div className="rounded-lg bg-white p-6 dark:bg-neutral-900">
+                        <DataTable
+                            columns={scheduleColumns}
+                            data={filteredSchedules}
+                            searchKey={['employee_name', 'title', 'due_date', 'status']}
+                            searchPlaceholder="Search schedules by employee, title, due date, or status..."
+                            toolbar={scheduleToolbar}
+                        />
+                    </div>
                 </div>
 
                 <div className="space-y-4">
@@ -510,6 +757,18 @@ export function PayrollClient({
                                     No payroll run selected yet.
                                 </div>
                             )}
+
+                            {!canApprove ? (
+                                <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
+                                    Approval actions are hidden. Only users with payroll approval permission can approve or reject payroll runs after vouchers are reviewed.
+                                </div>
+                            ) : null}
+
+                            {!canPay ? (
+                                <div className="rounded-2xl border border-dashed border-sky-300 bg-sky-50 px-4 py-4 text-sm text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-200">
+                                    Payment actions are hidden. Only users with payroll payment permission can mark payroll runs as paid.
+                                </div>
+                            ) : null}
                         </CardContent>
                     </Card>
                 </div>
@@ -601,6 +860,225 @@ export function PayrollClient({
                         </Button>
                         <Button onClick={submit}>
                             Generate Run
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isContractOpen} onOpenChange={setIsContractOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Create Contract Payment Plan</DialogTitle>
+                        <DialogDescription>
+                            Set the contract amount and payment plan. Equal installments can auto-generate schedule rows for each due period.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-2 md:grid-cols-2">
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Employee</Label>
+                            <SearchableDropdown
+                                value={contractForm.employee_id}
+                                options={employeeOptions}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, employee_id: value }))}
+                                placeholder="Select employee"
+                                searchPlaceholder="Search employees..."
+                                emptyText="No employee found."
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Branch</Label>
+                            <SearchableDropdown
+                                value={contractForm.branch_id}
+                                options={branchOptions}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, branch_id: value }))}
+                                placeholder="Select branch"
+                                searchPlaceholder="Search branches..."
+                                emptyText="No branch found."
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Contract Amount</Label>
+                            <NumericInput
+                                value={contractForm.contract_amount}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, contract_amount: value }))}
+                                placeholder="0"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Start Date</Label>
+                            <Input
+                                type="date"
+                                value={contractForm.start_date}
+                                onChange={(event) => setContractForm((current) => ({ ...current, start_date: event.target.value }))}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>End Date</Label>
+                            <Input
+                                type="date"
+                                value={contractForm.end_date}
+                                onChange={(event) => setContractForm((current) => ({ ...current, end_date: event.target.value }))}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Payment Plan Type</Label>
+                            <SearchableDropdown
+                                value={contractForm.payment_plan_type}
+                                options={[
+                                    { value: 'equal_installments', label: 'Equal Installments' },
+                                    { value: 'custom_schedule', label: 'Custom Schedule' },
+                                    { value: 'manual_milestones', label: 'Manual Milestones' },
+                                ]}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, payment_plan_type: value }))}
+                                placeholder="Plan type"
+                                searchPlaceholder="Search plan types..."
+                                emptyText="No plan type found."
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Installment Count</Label>
+                            <NumericInput
+                                value={contractForm.installment_count}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, installment_count: value }))}
+                                placeholder="6"
+                            />
+                        </div>
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Status</Label>
+                            <SearchableDropdown
+                                value={contractForm.status}
+                                options={[
+                                    { value: 'draft', label: 'Draft' },
+                                    { value: 'submitted', label: 'Submitted' },
+                                    { value: 'approved', label: 'Approved' },
+                                    { value: 'active', label: 'Active' },
+                                ]}
+                                onValueChange={(value) => setContractForm((current) => ({ ...current, status: value }))}
+                                placeholder="Status"
+                                searchPlaceholder="Search statuses..."
+                                emptyText="No status found."
+                            />
+                        </div>
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Notes</Label>
+                            <Textarea
+                                value={contractForm.notes}
+                                onChange={(event) => setContractForm((current) => ({ ...current, notes: event.target.value }))}
+                                rows={4}
+                                placeholder="Contract payment notes, milestone details, or payout instructions."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsContractOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={submitContract}>Create Plan</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingSchedule ? 'Edit Contract Schedule' : 'Create Contract Schedule'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Create or update a due payment schedule item. Payroll will pull due submitted or approved schedules for contract employees.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-2 md:grid-cols-2">
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Contract Plan</Label>
+                            <SearchableDropdown
+                                value={scheduleForm.employee_contract_id}
+                                options={contractOptions}
+                                onValueChange={(value) => setScheduleForm((current) => ({ ...current, employee_contract_id: value }))}
+                                placeholder="Select contract plan"
+                                searchPlaceholder="Search plans..."
+                                emptyText="No plan found."
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Due Date</Label>
+                            <Input
+                                type="date"
+                                value={scheduleForm.due_date}
+                                onChange={(event) => setScheduleForm((current) => ({ ...current, due_date: event.target.value }))}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Title</Label>
+                            <Input
+                                value={scheduleForm.title}
+                                onChange={(event) => setScheduleForm((current) => ({ ...current, title: event.target.value }))}
+                                placeholder="Installment 1 or Mobilization Payment"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Percentage</Label>
+                            <NumericInput
+                                value={scheduleForm.percentage}
+                                onValueChange={(value) => setScheduleForm((current) => ({ ...current, percentage: value }))}
+                                placeholder="20"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Amount</Label>
+                            <NumericInput
+                                value={scheduleForm.amount}
+                                onValueChange={(value) => setScheduleForm((current) => ({ ...current, amount: value }))}
+                                placeholder="0"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Status</Label>
+                            <SearchableDropdown
+                                value={scheduleForm.status}
+                                options={[
+                                    { value: 'draft', label: 'Draft' },
+                                    { value: 'submitted', label: 'Submitted' },
+                                    { value: 'approved', label: 'Approved' },
+                                    { value: 'paid', label: 'Paid' },
+                                ]}
+                                onValueChange={(value) => setScheduleForm((current) => ({ ...current, status: value }))}
+                                placeholder="Status"
+                                searchPlaceholder="Search statuses..."
+                                emptyText="No status found."
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Payment Method</Label>
+                            <SearchableDropdown
+                                value={scheduleForm.payment_method}
+                                options={PAYMENT_METHOD_OPTIONS}
+                                onValueChange={(value) => setScheduleForm((current) => ({ ...current, payment_method: value }))}
+                                placeholder="Payment method"
+                                searchPlaceholder="Search methods..."
+                                emptyText="No method found."
+                            />
+                        </div>
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Notes</Label>
+                            <Textarea
+                                value={scheduleForm.notes}
+                                onChange={(event) => setScheduleForm((current) => ({ ...current, notes: event.target.value }))}
+                                rows={4}
+                                placeholder="Optional schedule note or milestone detail."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsScheduleOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={submitSchedule}>
+                            {editingSchedule ? 'Update Schedule' : 'Create Schedule'}
                         </Button>
                     </div>
                 </DialogContent>
