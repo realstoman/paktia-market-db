@@ -13,6 +13,9 @@ interface PayrollPageProps {
     runs: PayrollRun[];
     branches: Branch[];
     employees: Employee[];
+    canCreate: boolean;
+    canApprove: boolean;
+    canPay: boolean;
     summary: {
         activeEmployees: number;
         draftRuns: number;
@@ -27,6 +30,9 @@ export default function PayrollPage({
     runs,
     branches,
     employees,
+    canCreate,
+    canApprove,
+    canPay,
     summary,
 }: PayrollPageProps) {
     return (
@@ -36,6 +42,9 @@ export default function PayrollPage({
                 runs={runs}
                 branches={branches}
                 employees={employees}
+                canCreate={canCreate}
+                canApprove={canApprove}
+                canPay={canPay}
                 summary={summary}
             />
         </AppLayout>

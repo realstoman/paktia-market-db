@@ -42,7 +42,7 @@ export function CellAction({
                     <Eye className="mr-2 h-4 w-4" />
                     View Run
                 </DropdownMenuItem>
-                {canApprove && data.status !== 'approved' && data.status !== 'paid' ? (
+                {canApprove && data.status === 'draft' ? (
                     <DropdownMenuItem onClick={() => onReviewApproval(data)}>
                         <BadgeCheck className="mr-2 h-4 w-4" />
                         Review Approval

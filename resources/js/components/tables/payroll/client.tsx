@@ -19,6 +19,8 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -32,13 +34,12 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { BadgeDollarSign, Banknote, CalendarRange, Plus, Printer, Users } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
-import { SharedData } from '@/types';
 
 const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -123,7 +124,6 @@ export function PayrollClient({
     canPay,
     summary,
 }: PayrollClientProps) {
-    const { auth } = usePage<SharedData>().props;
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(runs[0] ?? null);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
