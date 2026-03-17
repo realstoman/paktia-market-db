@@ -42,6 +42,8 @@ import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
 import { buildColumns as buildScheduleColumns } from '@/components/tables/contract-payment-schedules/columns';
+import { buildColumns as buildContractColumns } from '@/components/tables/contract-plans/columns';
+import { ContractSummaryPrintDialog } from '@/components/tables/contract-plans/contract-summary-print-dialog';
 
 const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -178,7 +180,10 @@ export function PayrollClient({
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(runs[0] ?? null);
     const [isContractOpen, setIsContractOpen] = React.useState(false);
     const [isScheduleOpen, setIsScheduleOpen] = React.useState(false);
+    const [editingContract, setEditingContract] = React.useState<EmployeeContract | null>(null);
     const [editingSchedule, setEditingSchedule] = React.useState<EmployeeContractPaymentSchedule | null>(null);
+    const [printContract, setPrintContract] = React.useState<EmployeeContract | null>(null);
+    const [isContractPrintOpen, setIsContractPrintOpen] = React.useState(false);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
     const [printItemId, setPrintItemId] = React.useState<number | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
@@ -271,8 +276,30 @@ export function PayrollClient({
     }, []);
 
     const openContractCreate = React.useCallback(() => {
+        setEditingContract(null);
         setContractForm(emptyContractForm);
         setIsContractOpen(true);
+    }, []);
+
+    const openContractEdit = React.useCallback((contract: EmployeeContract) => {
+        setEditingContract(contract);
+        setContractForm({
+            employee_id: String(contract.employee_id),
+            branch_id: contract.branch_id ? String(contract.branch_id) : '',
+            contract_amount: String(contract.contract_amount),
+            start_date: contract.start_date,
+            end_date: contract.end_date ?? '',
+            payment_plan_type: contract.payment_plan_type,
+            installment_count: contract.installment_count ? String(contract.installment_count) : '',
+            status: contract.status,
+            notes: contract.notes ?? '',
+        });
+        setIsContractOpen(true);
+    }, []);
+
+    const openContractPrint = React.useCallback((contract: EmployeeContract) => {
+        setPrintContract(contract);
+        setIsContractPrintOpen(true);
     }, []);
 
     const openScheduleCreate = React.useCallback(() => {
@@ -339,7 +366,7 @@ export function PayrollClient({
     }, [form]);
 
     const submitContract = React.useCallback(() => {
-        router.post('/finance/payroll/contracts', {
+        const payload = {
             employee_id: Number(contractForm.employee_id),
             branch_id: contractForm.branch_id ? Number(contractForm.branch_id) : null,
             contract_amount: Number(contractForm.contract_amount),
@@ -349,7 +376,21 @@ export function PayrollClient({
             installment_count: contractForm.installment_count ? Number(contractForm.installment_count) : null,
             status: contractForm.status,
             notes: contractForm.notes || null,
-        }, {
+        };
+
+        if (editingContract) {
+            router.put(`/finance/payroll/contracts/${editingContract.id}`, payload, {
+                preserveScroll: true,
+                onSuccess: () => setIsContractOpen(false),
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    toast.error(typeof firstError === 'string' ? firstError : 'Failed to update contract plan.');
+                },
+            });
+            return;
+        }
+
+        router.post('/finance/payroll/contracts', payload, {
             preserveScroll: true,
             onSuccess: () => setIsContractOpen(false),
             onError: (errors) => {
@@ -357,7 +398,7 @@ export function PayrollClient({
                 toast.error(typeof firstError === 'string' ? firstError : 'Failed to create contract plan.');
             },
         });
-    }, [contractForm]);
+    }, [contractForm, editingContract]);
 
     const submitSchedule = React.useCallback(() => {
         const payload = {
@@ -417,6 +458,12 @@ export function PayrollClient({
         });
     }, []);
 
+    const deleteContract = React.useCallback((contract: EmployeeContract) => {
+        router.delete(`/finance/payroll/contracts/${contract.id}`, {
+            preserveScroll: true,
+        });
+    }, []);
+
     const columns = React.useMemo(
         () =>
             buildColumns({
@@ -436,6 +483,16 @@ export function PayrollClient({
                 onDelete: deleteSchedule,
             }),
         [deleteSchedule, openScheduleEdit],
+    );
+
+    const contractColumns = React.useMemo(
+        () =>
+            buildContractColumns({
+                onEdit: openContractEdit,
+                onDelete: deleteContract,
+                onPrint: openContractPrint,
+            }),
+        [deleteContract, openContractEdit, openContractPrint],
     );
 
     const selectedPrintItem = React.useMemo(
@@ -613,6 +670,33 @@ export function PayrollClient({
                         <CardHeader>
                             <div className="flex items-center justify-between gap-4">
                                 <div>
+                                    <CardTitle>Contract Plans</CardTitle>
+                                    <CardDescription>
+                                        Manage employee contract payment plans and print contract summary vouchers.
+                                    </CardDescription>
+                                </div>
+                                {canCreate ? (
+                                    <Button onClick={openContractCreate}>
+                                        New Contract Plan
+                                    </Button>
+                                ) : null}
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <div className="rounded-lg bg-white p-6 dark:bg-neutral-900">
+                        <DataTable
+                            columns={contractColumns}
+                            data={contracts}
+                            searchKey={['employee_name', 'period', 'payment_plan_type', 'status']}
+                            searchPlaceholder="Search contract plans by employee, period, plan type, or status..."
+                        />
+                    </div>
+
+                    <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+                        <CardHeader>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
                                     <CardTitle>Contract Payment Schedules</CardTitle>
                                     <CardDescription>
                                         Manage contract payment plans and due schedule items that payroll will pull instead of raw contract amounts.
@@ -622,9 +706,6 @@ export function PayrollClient({
                                     <div className="flex gap-2">
                                         <Button variant="outline" onClick={openScheduleCreate}>
                                             New Schedule
-                                        </Button>
-                                        <Button onClick={openContractCreate}>
-                                            New Contract Plan
                                         </Button>
                                     </div>
                                 ) : null}
@@ -868,7 +949,9 @@ export function PayrollClient({
             <Dialog open={isContractOpen} onOpenChange={setIsContractOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Create Contract Payment Plan</DialogTitle>
+                        <DialogTitle>
+                            {editingContract ? 'Edit Contract Payment Plan' : 'Create Contract Payment Plan'}
+                        </DialogTitle>
                         <DialogDescription>
                             Set the contract amount and payment plan. Equal installments can auto-generate schedule rows for each due period.
                         </DialogDescription>
@@ -975,7 +1058,9 @@ export function PayrollClient({
                         <Button variant="outline" onClick={() => setIsContractOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={submitContract}>Create Plan</Button>
+                        <Button onClick={submitContract}>
+                            {editingContract ? 'Update Plan' : 'Create Plan'}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -1135,6 +1220,17 @@ export function PayrollClient({
                 branch={
                     printRun
                         ? branches.find((branch) => branch.id === printRun.branch_id) ?? null
+                        : null
+                }
+            />
+
+            <ContractSummaryPrintDialog
+                open={isContractPrintOpen}
+                onOpenChange={setIsContractPrintOpen}
+                contract={printContract}
+                branch={
+                    printContract
+                        ? branches.find((branch) => branch.id === printContract.branch_id) ?? null
                         : null
                 }
             />

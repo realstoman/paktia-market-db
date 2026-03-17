@@ -190,7 +190,7 @@ class PayrollController extends Controller
         return Inertia::render('finance/payroll/index', [
             'runs' => $runs,
             'contracts' => $contracts,
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name']),
+            'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
             'employees' => $activeEmployees,
             'summary' => $summary,
             'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
@@ -411,6 +411,26 @@ class PayrollController extends Controller
                     }
                 }
 
+                if ($item->salary_type === 'contract_payment' && Schema::hasTable('employee_contract_payment_schedules')) {
+                    EmployeeContractPaymentSchedule::query()
+                        ->whereHas('contract', function ($query) use ($item, $payrollRun) {
+                            $query->where('employee_id', $item->employee_id)
+                                ->when(
+                                    $payrollRun->branch_id,
+                                    fn ($contractQuery) => $contractQuery->where('branch_id', $payrollRun->branch_id),
+                                );
+                        })
+                        ->whereBetween('due_date', [
+                            $payrollRun->period_start->toDateString(),
+                            $payrollRun->period_end->toDateString(),
+                        ])
+                        ->whereIn('status', ['submitted', 'approved'])
+                        ->update([
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                        ]);
+                }
+
                 $item->update([
                     'payment_status' => 'paid',
                     'payment_date' => now()->toDateString(),
@@ -489,6 +509,62 @@ class PayrollController extends Controller
         return redirect()
             ->route('finance.payroll.index')
             ->with('success', 'Contract payment plan created successfully.');
+    }
+
+    public function updateContract(Request $request, EmployeeContract $contract)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        if (($contract->schedules()->where('status', 'paid')->count()) > 0) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['contract' => 'A contract plan with paid schedules cannot be edited.']);
+        }
+
+        $validated = $request->validate([
+            'employee_id' => ['required', 'exists:employees,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'contract_amount' => ['required', 'numeric', 'min:1'],
+            'start_date' => ['required', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'payment_plan_type' => ['required', 'in:equal_installments,custom_schedule,manual_milestones'],
+            'installment_count' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'in:draft,submitted,approved,active'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $contract->update([
+            'employee_id' => $validated['employee_id'],
+            'branch_id' => $validated['branch_id'] ?? null,
+            'contract_amount' => $validated['contract_amount'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'] ?? null,
+            'payment_plan_type' => $validated['payment_plan_type'],
+            'installment_count' => $validated['installment_count'] ?? null,
+            'status' => $validated['status'] ?? $contract->status,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment plan updated successfully.');
+    }
+
+    public function destroyContract(EmployeeContract $contract)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        if (($contract->schedules()->where('status', 'paid')->count()) > 0) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['contract' => 'A contract plan with paid schedules cannot be deleted.']);
+        }
+
+        $contract->delete();
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Contract payment plan deleted successfully.');
     }
 
     public function storeSchedule(Request $request)
