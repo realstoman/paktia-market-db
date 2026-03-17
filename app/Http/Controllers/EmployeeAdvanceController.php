@@ -16,7 +16,6 @@ class EmployeeAdvanceController extends Controller
             'branch_id' => ['nullable', 'exists:branches,id'],
             'employee_id' => ['nullable', 'exists:employees,id'],
             'status' => ['nullable', 'in:draft,submitted,approved'],
-            'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
@@ -37,8 +36,7 @@ class EmployeeAdvanceController extends Controller
         $advances = (clone $baseQuery)
             ->orderByDesc('advance_date')
             ->orderByDesc('id')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
         $summaryQuery = EmployeeAdvance::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -57,16 +55,7 @@ class EmployeeAdvanceController extends Controller
                 'submittedCount' => (int) (clone $summaryQuery)->where('status', 'submitted')->count(),
                 'approvedCount' => (int) (clone $summaryQuery)->where('status', 'approved')->count(),
             ],
-            'advances' => $advances->items(),
-            'pagination' => [
-                'currentPage' => $advances->currentPage(),
-                'lastPage' => $advances->lastPage(),
-                'perPage' => $advances->perPage(),
-                'total' => $advances->total(),
-                'from' => $advances->firstItem(),
-                'to' => $advances->lastItem(),
-                'hasMorePages' => $advances->hasMorePages(),
-            ],
+            'advances' => $advances,
             'branches' => Branch::query()->orderBy('name')->get(['id', 'name']),
             'employees' => Employee::query()
                 ->with('branch:id,name')
