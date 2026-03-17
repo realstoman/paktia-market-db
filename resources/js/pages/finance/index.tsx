@@ -142,6 +142,17 @@ interface FinanceDashboardData {
         credit: number;
         status: string;
     }>;
+    generalLedgerPreview: Array<{
+        date: string;
+        reference: string;
+        type: string;
+        branch: string;
+        account: string;
+        description: string;
+        debit: number;
+        credit: number;
+        status: string;
+    }>;
     modules: Array<{
         name: string;
         description: string;
@@ -216,6 +227,10 @@ function statusTone(status: string) {
 function moduleHref(name: string): string | null {
     if (name === 'Chart of Accounts') {
         return '/finance/chart-of-accounts';
+    }
+
+    if (name === 'General Ledger') {
+        return '/finance/general-ledger';
     }
 
     if (name === 'Expenses') {
@@ -992,15 +1007,22 @@ export default function FinancePage({
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader>
-                        <CardTitle>General Ledger</CardTitle>
-                        <CardDescription>
-                            A live feed of financial entries from sales,
-                            expenses, cash movements, and any posted journal
-                            lines.
-                        </CardDescription>
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <CardTitle>General Ledger Preview</CardTitle>
+                                <CardDescription>
+                                    A recent snapshot of financial entries. Open the full ledger from Finance Modules.
+                                </CardDescription>
+                            </div>
+                            <Button variant="outline" asChild>
+                                <Link href="/finance/general-ledger">
+                                    Open General Ledger
+                                </Link>
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        {dashboard.generalLedger.length > 0 ? (
+                        {dashboard.generalLedgerPreview.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-sm">
                                     <thead>
@@ -1017,7 +1039,7 @@ export default function FinancePage({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {dashboard.generalLedger.map((entry) => (
+                                        {dashboard.generalLedgerPreview.map((entry) => (
                                             <tr
                                                 key={`${entry.reference}-${entry.date}-${entry.account}`}
                                                 className="border-b border-neutral-100 dark:border-neutral-800/70"
@@ -1066,10 +1088,7 @@ export default function FinancePage({
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No ledger entries were found for the selected
-                                filters. Once you have completed sales,
-                                expenses, or cash activity in this period, they
-                                will appear here.
+                                No recent ledger entries were found for the selected filters.
                             </div>
                         )}
                     </CardContent>
