@@ -233,6 +233,10 @@ function moduleHref(name: string): string | null {
         return '/finance/general-ledger';
     }
 
+    if (name === 'Inventory Valuation') {
+        return '/finance/inventory-valuation';
+    }
+
     if (name === 'Expenses') {
         return '/finance/expenses';
     }
