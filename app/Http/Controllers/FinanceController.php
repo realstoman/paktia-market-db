@@ -449,7 +449,7 @@ class FinanceController extends Controller
             limit: null,
         );
 
-        $perPage = 20;
+        $perPage = 10;
         $currentPage = max(1, (int) ($validated['page'] ?? 1));
         $paginatedEntries = new LengthAwarePaginator(
             $allEntries->slice(($currentPage - 1) * $perPage, $perPage)->values(),
