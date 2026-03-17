@@ -25,10 +25,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { BadgeDollarSign, Banknote, CalendarRange, Plus, Users } from 'lucide-react';
+import { BadgeDollarSign, Banknote, CalendarRange, Plus, Printer, Users } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
+import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
 
 const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -109,6 +110,9 @@ export function PayrollClient({
 }: PayrollClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(runs[0] ?? null);
+    const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
+    const [printItemId, setPrintItemId] = React.useState<number | null>(null);
+    const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
     const [form, setForm] = React.useState<PayrollFormState>(emptyForm);
@@ -150,6 +154,26 @@ export function PayrollClient({
         setForm(emptyForm);
         setIsOpen(true);
     }, []);
+
+    const openItemPrint = React.useCallback((run: PayrollRun, itemId: number) => {
+        setPrintRun(run);
+        setPrintItemId(itemId);
+        setIsPrintOpen(true);
+    }, []);
+
+    const printAllVouchers = React.useCallback((run: PayrollRun) => {
+        if (!run.items?.length) {
+            toast.error('No payroll items found for this run.');
+            return;
+        }
+
+        const [firstItem, ...restItems] = run.items;
+        openItemPrint(run, firstItem.id);
+
+        if (restItems.length > 0) {
+            toast.message(`Opened the first voucher. You can print the remaining ${restItems.length} employee vouchers from the list below.`);
+        }
+    }, [openItemPrint]);
 
     const submit = React.useCallback(() => {
         router.post('/finance/payroll', {
@@ -193,6 +217,12 @@ export function PayrollClient({
                 onMarkPaid: markPaid,
             }),
         [approve, markPaid],
+    );
+
+    const selectedPrintItem = React.useMemo(
+        () =>
+            printRun?.items?.find((item) => item.id === printItemId) ?? null,
+        [printItemId, printRun],
     );
 
     const toolbar = (
@@ -369,6 +399,33 @@ export function PayrollClient({
                                         </div>
                                     </div>
 
+                                    <div className="flex flex-wrap justify-end gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="gap-2"
+                                            onClick={() => printAllVouchers(selectedRun)}
+                                        >
+                                            <Printer className="h-4 w-4" />
+                                            Print Vouchers
+                                        </Button>
+                                        {selectedRun.status !== 'approved' && selectedRun.status !== 'paid' ? (
+                                            <Button
+                                                onClick={() => approve(selectedRun)}
+                                                className="gap-2"
+                                            >
+                                                Approve Run
+                                            </Button>
+                                        ) : null}
+                                        {selectedRun.status === 'approved' ? (
+                                            <Button
+                                                onClick={() => markPaid(selectedRun)}
+                                                className="gap-2"
+                                            >
+                                                Mark Paid
+                                            </Button>
+                                        ) : null}
+                                    </div>
+
                                     <div className="max-h-[520px] space-y-3 overflow-y-auto pr-1">
                                         {(selectedRun.items ?? []).map((item) => (
                                             <div
@@ -405,6 +462,17 @@ export function PayrollClient({
                                                         <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Payment Date</p>
                                                         <p className="mt-1 font-semibold">{item.payment_date ?? '-'}</p>
                                                     </div>
+                                                </div>
+                                                <div className="mt-4 flex justify-end">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                        onClick={() => openItemPrint(selectedRun, item.id)}
+                                                    >
+                                                        <Printer className="h-4 w-4" />
+                                                        Print Voucher
+                                                    </Button>
                                                 </div>
                                             </div>
                                         ))}
@@ -510,6 +578,18 @@ export function PayrollClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <PayrollVoucherPrintDialog
+                open={isPrintOpen}
+                onOpenChange={setIsPrintOpen}
+                run={printRun}
+                item={selectedPrintItem}
+                branch={
+                    printRun
+                        ? branches.find((branch) => branch.id === printRun.branch_id) ?? null
+                        : null
+                }
+            />
         </div>
     );
 }
