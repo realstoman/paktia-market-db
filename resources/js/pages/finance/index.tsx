@@ -997,7 +997,9 @@ export default function FinancePage({
                                             {module.status}
                                         </span>
                                     </div>
-                                    {module.stats && module.stats.length > 0 ? (
+                                    {module.name !== 'Employee Advances' &&
+                                    module.stats &&
+                                    module.stats.length > 0 ? (
                                         <div className="mt-4 grid gap-2 sm:grid-cols-3">
                                             {module.stats.map((stat) => (
                                                 <div
