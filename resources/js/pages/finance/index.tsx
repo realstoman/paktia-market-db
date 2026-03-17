@@ -27,8 +27,10 @@ import {
     BookOpenText,
     Building2,
     ChartNoAxesCombined,
+    Check,
     Coins,
     CreditCard,
+    ExternalLink,
     Package,
     ReceiptText,
     Users,
@@ -984,7 +986,7 @@ export default function FinancePage({
                             {dashboard.modules.map((module) => (
                                 <div
                                     key={module.name}
-                                    className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800"
+                                    className="flex min-h-[172px] flex-col rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800"
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="space-y-2">
@@ -995,11 +997,17 @@ export default function FinancePage({
                                                 {module.description}
                                             </p>
                                         </div>
-                                        <span
-                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(module.status)}`}
-                                        >
-                                            {module.status}
-                                        </span>
+                                        {module.status === 'Ready' ? (
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
+                                                <Check className="h-4 w-4" />
+                                            </span>
+                                        ) : (
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(module.status)}`}
+                                            >
+                                                {module.status}
+                                            </span>
+                                        )}
                                     </div>
                                     {module.name !== 'Employee Advances' &&
                                     module.stats &&
@@ -1024,20 +1032,20 @@ export default function FinancePage({
                                         </div>
                                     ) : null}
                                     {moduleHref(module.name) ? (
-                                        <div className="mt-4">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                asChild
-                                            >
+                                        <div className="mt-auto flex justify-end pt-4">
+                                            <Button variant="ghost" size="sm" asChild>
                                                 <Link
                                                     href={
                                                         moduleHref(
                                                             module.name,
                                                         ) as string
                                                     }
+                                                    className="gap-2 text-neutral-600 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-50"
                                                 >
-                                                    Open {module.name}
+                                                    Open
+                                                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                                                        <ExternalLink className="h-4 w-4" />
+                                                    </span>
                                                 </Link>
                                             </Button>
                                         </div>
