@@ -56,13 +56,14 @@ class EmployeeAdvanceController extends Controller
                 'approvedCount' => (int) (clone $summaryQuery)->where('status', 'approved')->count(),
             ],
             'advances' => $advances,
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name']),
+            'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
             'employees' => Employee::query()
                 ->with('branch:id,name')
                 ->where('is_active', true)
                 ->orderBy('first_name')
                 ->orderBy('last_name')
                 ->get(['id', 'first_name', 'last_name', 'branch_id']),
+            'printAdvanceId' => session('print_advance_id'),
         ]);
     }
 
@@ -71,7 +72,7 @@ class EmployeeAdvanceController extends Controller
         $validated = $this->validateAdvance($request);
         $status = $validated['status'] ?? 'draft';
 
-        EmployeeAdvance::create([
+        $advance = EmployeeAdvance::create([
             'employee_id' => $validated['employee_id'],
             'branch_id' => $validated['branch_id'] ?? null,
             'advance_date' => $validated['advance_date'],
@@ -85,9 +86,15 @@ class EmployeeAdvanceController extends Controller
             'created_by' => $request->user()?->id,
         ]);
 
-        return redirect()
+        $redirect = redirect()
             ->route('finance.employee-advances.index')
             ->with('success', 'Employee advance created successfully.');
+
+        if ($status === 'submitted') {
+            $redirect->with('print_advance_id', $advance->id);
+        }
+
+        return $redirect;
     }
 
     public function update(Request $request, EmployeeAdvance $employeeAdvance)
@@ -100,6 +107,7 @@ class EmployeeAdvanceController extends Controller
 
         $validated = $this->validateAdvance($request);
         $status = $validated['status'] ?? $employeeAdvance->status ?? 'draft';
+        $previousStatus = $employeeAdvance->status ?? 'draft';
 
         $employeeAdvance->update([
             'employee_id' => $validated['employee_id'],
@@ -116,9 +124,15 @@ class EmployeeAdvanceController extends Controller
             'approved_by' => $status === 'approved' ? $request->user()?->id : null,
         ]);
 
-        return redirect()
+        $redirect = redirect()
             ->route('finance.employee-advances.index')
             ->with('success', 'Employee advance updated successfully.');
+
+        if ($status === 'submitted' && in_array($previousStatus, ['draft', null], true)) {
+            $redirect->with('print_advance_id', $employeeAdvance->id);
+        }
+
+        return $redirect;
     }
 
     public function approve(Request $request, EmployeeAdvance $employeeAdvance)

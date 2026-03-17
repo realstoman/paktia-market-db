@@ -9,13 +9,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmployeeAdvance } from '@/types';
-import { CheckCircle2, MoreHorizontal, RotateCcw, Pencil } from 'lucide-react';
+import { CheckCircle2, MoreHorizontal, RotateCcw, Pencil, Printer } from 'lucide-react';
 
 interface CellActionProps {
     data: EmployeeAdvance;
     onEdit: (advance: EmployeeAdvance) => void;
     onApprove: (advance: EmployeeAdvance) => void;
     onReject: (advance: EmployeeAdvance) => void;
+    onPrint: (advance: EmployeeAdvance) => void;
 }
 
 export function CellAction({
@@ -23,6 +24,7 @@ export function CellAction({
     onEdit,
     onApprove,
     onReject,
+    onPrint,
 }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
@@ -40,6 +42,10 @@ export function CellAction({
                         Edit
                     </DropdownMenuItem>
                 ) : null}
+                <DropdownMenuItem onClick={() => onPrint(data)}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Voucher
+                </DropdownMenuItem>
                 {data.status !== 'approved' ? (
                     <DropdownMenuItem onClick={() => onApprove(data)}>
                         <CheckCircle2 className="mr-2 h-4 w-4" />

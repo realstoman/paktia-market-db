@@ -27,12 +27,14 @@ interface BuildColumnsProps {
     onEdit: (advance: EmployeeAdvance) => void;
     onApprove: (advance: EmployeeAdvance) => void;
     onReject: (advance: EmployeeAdvance) => void;
+    onPrint: (advance: EmployeeAdvance) => void;
 }
 
 export function buildColumns({
     onEdit,
     onApprove,
     onReject,
+    onPrint,
 }: BuildColumnsProps): ColumnDef<EmployeeAdvance>[] {
     return [
         {
@@ -128,6 +130,7 @@ export function buildColumns({
                     onEdit={onEdit}
                     onApprove={onApprove}
                     onReject={onReject}
+                    onPrint={onPrint}
                 />
             ),
         },

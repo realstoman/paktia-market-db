@@ -28,6 +28,7 @@ import { Link, router } from '@inertiajs/react';
 import { HandCoins, Plus } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
+import { AdvanceVoucherPrintDialog } from './advance-voucher-print-dialog';
 import { buildColumns } from './columns';
 
 const STATUS_OPTIONS = [
@@ -66,6 +67,7 @@ interface EmployeeAdvanceClientProps {
     advances: EmployeeAdvance[];
     branches: Branch[];
     employees: Employee[];
+    printAdvanceId?: number | null;
     summary: {
         totalAmount: number;
         outstandingBalance: number;
@@ -86,10 +88,13 @@ export function EmployeeAdvanceClient({
     advances,
     branches,
     employees,
+    printAdvanceId = null,
     summary,
 }: EmployeeAdvanceClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingAdvance, setEditingAdvance] = React.useState<EmployeeAdvance | null>(null);
+    const [isPrintOpen, setIsPrintOpen] = React.useState(false);
+    const [printAdvance, setPrintAdvance] = React.useState<EmployeeAdvance | null>(null);
     const [form, setForm] = React.useState<AdvanceFormState>(emptyForm);
     const [employeeFilter, setEmployeeFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
@@ -123,6 +128,11 @@ export function EmployeeAdvanceClient({
         setEditingAdvance(null);
         setForm(emptyForm);
         setIsOpen(true);
+    }, []);
+
+    const openPrint = React.useCallback((advance: EmployeeAdvance) => {
+        setPrintAdvance(advance);
+        setIsPrintOpen(true);
     }, []);
 
     const openEdit = React.useCallback((advance: EmployeeAdvance) => {
@@ -177,6 +187,20 @@ export function EmployeeAdvanceClient({
         });
     }, [editingAdvance, form]);
 
+    React.useEffect(() => {
+        if (!printAdvanceId) {
+            return;
+        }
+
+        const target = advances.find((advance) => advance.id === printAdvanceId);
+        if (!target) {
+            return;
+        }
+
+        setPrintAdvance(target);
+        setIsPrintOpen(true);
+    }, [advances, printAdvanceId]);
+
     const approve = React.useCallback((advance: EmployeeAdvance) => {
         router.post(`/finance/employee-advances/${advance.id}/approve`, {}, {
             preserveScroll: true,
@@ -217,8 +241,9 @@ export function EmployeeAdvanceClient({
                 onEdit: openEdit,
                 onApprove: approve,
                 onReject: reject,
+                onPrint: openPrint,
             }),
-        [approve, openEdit, reject],
+        [approve, openEdit, openPrint, reject],
     );
 
     const toolbar = (
@@ -471,6 +496,17 @@ export function EmployeeAdvanceClient({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AdvanceVoucherPrintDialog
+                open={isPrintOpen}
+                onOpenChange={setIsPrintOpen}
+                advance={printAdvance}
+                branch={
+                    printAdvance
+                        ? branches.find((branch) => branch.id === printAdvance.branch_id) ?? null
+                        : null
+                }
+            />
         </div>
     );
 }

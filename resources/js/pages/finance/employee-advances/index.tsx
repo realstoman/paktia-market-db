@@ -10,6 +10,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface EmployeeAdvancePageProps {
+    printAdvanceId?: number | null;
     summary: {
         totalAmount: number;
         outstandingBalance: number;
@@ -26,6 +27,7 @@ export default function EmployeeAdvancesPage({
     advances,
     branches,
     employees,
+    printAdvanceId,
 }: EmployeeAdvancePageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -34,6 +36,7 @@ export default function EmployeeAdvancesPage({
                 advances={advances}
                 branches={branches}
                 employees={employees}
+                printAdvanceId={printAdvanceId ?? null}
                 summary={summary}
             />
         </AppLayout>
