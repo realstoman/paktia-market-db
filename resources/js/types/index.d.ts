@@ -127,6 +127,28 @@ export interface Employee {
     [key: string]: unknown;
 }
 
+export interface EmployeeAdvance {
+    id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    advance_date: string;
+    amount: number | string;
+    deducted_amount?: number | string;
+    remaining_balance?: number | string;
+    repayment_method?: string | null;
+    status?: string;
+    reason?: string | null;
+    created_by?: number | null;
+    creator?: User | null;
+    approved_by?: number | null;
+    approver?: User | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Role {
     id: number;
     name: string;

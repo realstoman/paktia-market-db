@@ -237,6 +237,10 @@ function moduleHref(name: string): string | null {
         return '/finance/inventory-valuation';
     }
 
+    if (name === 'Employee Advances') {
+        return '/finance/employee-advances';
+    }
+
     if (name === 'Expenses') {
         return '/finance/expenses';
     }
