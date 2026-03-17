@@ -614,7 +614,7 @@ export default function FinancePage({
                     <SummaryCard
                         title="Unpaid Salaries"
                         value={formatAfn(dashboard.summary.unpaidSalaries)}
-                        subtitle="Outstanding payroll liabilities"
+                        subtitle="Current month salary and scheduled contract liabilities"
                         icon={<Users className="h-5 w-5" />}
                     />
                     <SummaryCard
