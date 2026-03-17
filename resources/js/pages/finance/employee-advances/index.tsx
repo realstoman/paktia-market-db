@@ -136,7 +136,10 @@ function statusTone(status?: string) {
 
 function employeeLabel(employee: Employee) {
     const name = employee.full_name || `${employee.first_name} ${employee.last_name}`.trim();
-    return employee.branch ? `${name} - ${employee.branch}` : name;
+    const branchName =
+        typeof employee.branch === 'string' ? employee.branch : employee.branch?.name;
+
+    return branchName ? `${name} - ${branchName}` : name;
 }
 
 export default function EmployeeAdvancesPage({
@@ -175,6 +178,17 @@ export default function EmployeeAdvancesPage({
                 value: String(employee.id),
                 label: employeeLabel(employee),
             })),
+        [employees],
+    );
+
+    const employeesById = React.useMemo(
+        () =>
+            new Map(
+                employees.map((employee) => [
+                    String(employee.id),
+                    employee,
+                ]),
+            ),
         [employees],
     );
 
@@ -571,9 +585,20 @@ export default function EmployeeAdvancesPage({
                             <SearchableDropdown
                                 value={form.employee_id}
                                 options={employeeOptions}
-                                onValueChange={(value) =>
-                                    setForm((current) => ({ ...current, employee_id: value }))
-                                }
+                                onValueChange={(value) => {
+                                    const selectedEmployee = employeesById.get(value);
+                                    const selectedBranchId =
+                                        selectedEmployee?.branch_id != null
+                                            ? String(selectedEmployee.branch_id)
+                                            : '';
+
+                                    setForm((current) => ({
+                                        ...current,
+                                        employee_id: value,
+                                        branch_id:
+                                            current.branch_id || selectedBranchId,
+                                    }));
+                                }}
                                 placeholder="Select employee"
                                 searchPlaceholder="Search employees..."
                                 emptyText="No employee found."
