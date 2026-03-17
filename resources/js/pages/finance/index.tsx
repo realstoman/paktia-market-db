@@ -157,6 +157,11 @@ interface FinanceDashboardData {
         name: string;
         description: string;
         status: string;
+        stats?: Array<{
+            label: string;
+            value: number;
+            format: 'currency' | 'number';
+        }>;
     }>;
     notes: {
         grossProfit: string;
@@ -250,6 +255,10 @@ function moduleHref(name: string): string | null {
     }
 
     return null;
+}
+
+function formatModuleStat(value: number, format: 'currency' | 'number') {
+    return format === 'currency' ? formatAfn(value) : formatNumber(value);
 }
 
 function ledgerStatusTone(status: string) {
@@ -988,6 +997,26 @@ export default function FinancePage({
                                             {module.status}
                                         </span>
                                     </div>
+                                    {module.stats && module.stats.length > 0 ? (
+                                        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                                            {module.stats.map((stat) => (
+                                                <div
+                                                    key={`${module.name}-${stat.label}`}
+                                                    className="rounded-2xl bg-neutral-50 px-3 py-2 dark:bg-neutral-800/80"
+                                                >
+                                                    <p className="text-[11px] tracking-[0.18em] text-neutral-500 uppercase">
+                                                        {stat.label}
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-semibold text-neutral-950 dark:text-neutral-50">
+                                                        {formatModuleStat(
+                                                            stat.value,
+                                                            stat.format,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                     {moduleHref(module.name) ? (
                                         <div className="mt-4">
                                             <Button

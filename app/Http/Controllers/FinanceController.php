@@ -370,6 +370,32 @@ class FinanceController extends Controller
                 'name' => 'Employee Advances',
                 'description' => 'Employee takeouts and automatic payroll deductions.',
                 'status' => Schema::hasTable('employee_advances') ? 'Ready' : 'Pending migration',
+                'stats' => Schema::hasTable('employee_advances')
+                    ? [
+                        [
+                            'label' => 'Total Advances',
+                            'value' => (float) DB::table('employee_advances')
+                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                                ->sum('amount'),
+                            'format' => 'currency',
+                        ],
+                        [
+                            'label' => 'Outstanding',
+                            'value' => (float) DB::table('employee_advances')
+                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                                ->sum('remaining_balance'),
+                            'format' => 'currency',
+                        ],
+                        [
+                            'label' => 'Submitted',
+                            'value' => (int) DB::table('employee_advances')
+                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                                ->where('status', 'submitted')
+                                ->count(),
+                            'format' => 'number',
+                        ],
+                    ]
+                    : [],
             ],
             [
                 'name' => 'Cash & Bank',

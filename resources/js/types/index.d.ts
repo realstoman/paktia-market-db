@@ -107,7 +107,7 @@ export interface Employee {
     description?: string | null;
     profile_picture?: string | null;
     attachments?: string[] | null;
-    branch?: string | null;
+    branch?: string | Branch | null;
     branch_id?: number | null;
     employment_type?: string | null;
     employment_type_id?: number | null;
