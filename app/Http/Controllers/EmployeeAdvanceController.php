@@ -37,7 +37,7 @@ class EmployeeAdvanceController extends Controller
         $advances = (clone $baseQuery)
             ->orderByDesc('advance_date')
             ->orderByDesc('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $summaryQuery = EmployeeAdvance::query()

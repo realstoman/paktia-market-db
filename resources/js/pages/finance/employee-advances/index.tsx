@@ -134,6 +134,14 @@ function statusTone(status?: string) {
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
 }
 
+function shortDate(value?: string | null) {
+    if (!value) {
+        return '-';
+    }
+
+    return value.includes('T') ? value.split('T')[0] : value;
+}
+
 function employeeLabel(employee: Employee) {
     const name = employee.full_name || `${employee.first_name} ${employee.last_name}`.trim();
     const branchName =
@@ -463,7 +471,7 @@ export default function EmployeeAdvancesPage({
                                                 {employeeName}
                                             </p>
                                             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                                {advance.branch?.name ?? 'All Branches'} | {advance.advance_date}
+                                                {advance.branch?.name ?? 'All Branches'} | {shortDate(advance.advance_date)}
                                             </p>
                                             {advance.reason ? (
                                                 <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
