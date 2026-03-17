@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Models\Branch;
+use App\Models\CashMovement;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\FinanceAccount;
 use App\Models\Order;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -268,21 +270,78 @@ class FinanceController extends Controller
                 ->count()
             : 0;
 
+        $approvedJournalCount = Schema::hasTable('finance_journals')
+            ? DB::table('finance_journals')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->whereIn('posting_status', ['posted', 'approved'])
+                ->count()
+            : 0;
+
+        $draftJournalCount = Schema::hasTable('finance_journals')
+            ? DB::table('finance_journals')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'draft')
+                ->count()
+            : 0;
+
+        $approvedExpensesCount = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
+            ? DB::table('expenses')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'approved')
+                ->count()
+            : 0;
+
+        $draftExpensesCount = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
+            ? DB::table('expenses')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'draft')
+                ->count()
+            : 0;
+
+        $approvedCashMovementsCount = Schema::hasTable('cash_movements')
+            ? DB::table('cash_movements')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'approved')
+                ->count()
+            : 0;
+
+        $draftCashMovementsCount = Schema::hasTable('cash_movements')
+            ? DB::table('cash_movements')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('approval_status', 'draft')
+                ->count()
+            : 0;
+
+        $completedSalesCount = Order::query()
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')
                 ? DB::table('finance_accounts')->count()
                 : 0,
-            'journals' => Schema::hasTable('finance_journals')
-                ? DB::table('finance_journals')->count()
-                : 0,
-            'draft_journals' => Schema::hasTable('finance_journals')
-                ? DB::table('finance_journals')->where('posting_status', 'draft')->count()
-                : 0,
+            'journals' => $approvedJournalCount
+                + $approvedExpensesCount
+                + $approvedCashMovementsCount
+                + $completedSalesCount,
+            'draft_journals' => $draftJournalCount
+                + $draftExpensesCount
+                + $draftCashMovementsCount,
             'approval_queue' => $submittedJournals
                 + $submittedExpenses
                 + $submittedCashMovements
                 + $submittedPayrollRuns,
         ];
+
+        $generalLedger = $this->buildGeneralLedger(
+            startDate: $startDate,
+            endDate: $endDate,
+            branchId: $branchId,
+            paymentMethod: $paymentMethod,
+            category: $category,
+        );
 
         $modules = collect([
             [
@@ -349,6 +408,7 @@ class FinanceController extends Controller
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => $paymentBreakdown,
                 'ledgerStats' => $ledgerStats,
+                'generalLedger' => $generalLedger,
                 'modules' => $modules,
                 'notes' => [
                     'grossProfit' => $grossProfit === null
@@ -391,5 +451,140 @@ class FinanceController extends Controller
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
             })
             ->whereBetween('created_at', [$startDate, $endDate]);
+    }
+
+    protected function buildGeneralLedger(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+        ?string $paymentMethod,
+        ?string $category,
+    ) {
+        $entries = collect();
+
+        $salesEntries = Order::query()
+            ->with(['branch:id,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($paymentMethod, function ($query, $method) {
+                $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
+            })
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderByDesc('created_at')
+            ->limit(8)
+            ->get()
+            ->map(fn (Order $order) => [
+                'date' => optional($order->created_at)?->toDateTimeString(),
+                'reference' => 'Order #'.$order->id,
+                'type' => 'Sale',
+                'branch' => $order->branch?->name ?? 'All Branches',
+                'account' => 'Food Sales',
+                'description' => 'Completed '.$order->order_type?->value.' order',
+                'debit' => 0.0,
+                'credit' => (float) $order->total_amount,
+                'status' => 'Posted',
+            ]);
+
+        $expenseEntries = Expense::query()
+            ->with(['branch:id,name', 'expenseCategory:id,name', 'account:id,code,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+            ->whereBetween('expense_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->orderByDesc('expense_date')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get()
+            ->map(fn (Expense $expense) => [
+                'date' => optional($expense->expense_date)?->toDateString(),
+                'reference' => 'Expense #'.$expense->id,
+                'type' => 'Expense',
+                'branch' => $expense->branch?->name ?? 'All Branches',
+                'account' => $expense->account?->name
+                    ?? $expense->expenseCategory?->name
+                    ?? 'Expense',
+                'description' => $expense->title,
+                'debit' => (float) $expense->amount,
+                'credit' => 0.0,
+                'status' => str($expense->approval_status ?? 'draft')->headline()->toString(),
+            ]);
+
+        $cashEntries = CashMovement::query()
+            ->with(['branch:id,name', 'account:id,code,name', 'counterpartyAccount:id,code,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($paymentMethod, fn ($query, $method) => $query->where('payment_method', $method))
+            ->whereBetween('movement_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->orderByDesc('movement_date')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get()
+            ->map(fn (CashMovement $movement) => [
+                'date' => optional($movement->movement_date)?->toDateString(),
+                'reference' => 'Movement #'.$movement->id,
+                'type' => 'Cash Movement',
+                'branch' => $movement->branch?->name ?? 'All Branches',
+                'account' => $movement->account?->name ?? 'Cash / Bank',
+                'description' => str($movement->movement_type)->replace('_', ' ')->title()->toString(),
+                'debit' => $movement->direction === 'in' ? (float) $movement->amount : 0.0,
+                'credit' => $movement->direction === 'out' ? (float) $movement->amount : 0.0,
+                'status' => str($movement->approval_status ?? 'draft')->headline()->toString(),
+            ]);
+
+        $journalEntries = collect();
+        if (Schema::hasTable('finance_journal_lines') && Schema::hasTable('finance_journals')) {
+            $journalEntries = DB::table('finance_journal_lines')
+                ->join('finance_journals', 'finance_journals.id', '=', 'finance_journal_lines.journal_id')
+                ->leftJoin('branches', 'branches.id', '=', 'finance_journal_lines.branch_id')
+                ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'finance_journal_lines.account_id')
+                ->when($branchId, fn ($query) => $query->where('finance_journal_lines.branch_id', $branchId))
+                ->whereBetween('finance_journals.journal_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ])
+                ->orderByDesc('finance_journals.journal_date')
+                ->orderByDesc('finance_journal_lines.id')
+                ->limit(12)
+                ->get([
+                    'finance_journals.id as journal_id',
+                    'finance_journals.journal_date',
+                    'finance_journals.reference_type',
+                    'finance_journals.reference_id',
+                    'finance_journals.approval_status',
+                    'finance_journals.posting_status',
+                    'branches.name as branch_name',
+                    'finance_accounts.name as account_name',
+                    'finance_journal_lines.debit',
+                    'finance_journal_lines.credit',
+                    'finance_journal_lines.memo',
+                ])
+                ->map(fn ($row) => [
+                    'date' => $row->journal_date,
+                    'reference' => 'Journal #'.$row->journal_id,
+                    'type' => 'Journal Line',
+                    'branch' => $row->branch_name ?? 'All Branches',
+                    'account' => $row->account_name ?? 'Ledger Account',
+                    'description' => $row->memo
+                        ?? trim(($row->reference_type ?? 'journal').' #'.($row->reference_id ?? $row->journal_id)),
+                    'debit' => (float) $row->debit,
+                    'credit' => (float) $row->credit,
+                    'status' => str($row->posting_status ?? $row->approval_status ?? 'draft')->headline()->toString(),
+                ]);
+        }
+
+        $entries = $entries
+            ->concat($journalEntries)
+            ->concat($salesEntries)
+            ->concat($expenseEntries)
+            ->concat($cashEntries)
+            ->sortByDesc('date')
+            ->take(12)
+            ->values();
+
+        return $entries;
     }
 }
