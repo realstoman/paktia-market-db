@@ -19,8 +19,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
@@ -94,7 +94,11 @@ interface ActiveReport {
     rows?: Array<Record<string, string | number>>;
     summary?: ReportSummaryItem[];
     statusBreakdown?: Array<{ label: string; value: number }>;
-    branchBreakdown?: Array<{ branch: string; orders: number; revenue: number }>;
+    branchBreakdown?: Array<{
+        branch: string;
+        orders: number;
+        revenue: number;
+    }>;
     topProducts?: Array<{ name: string; quantity: number }>;
     exportNotes?: string[];
     highlights?: string[];
@@ -156,7 +160,9 @@ export default function ReportsPage({
     const [range, setRange] = useState(filters.range);
     const [startDate, setStartDate] = useState(filters.startDate);
     const [endDate, setEndDate] = useState(filters.endDate);
-    const [branchId, setBranchId] = useState(filters.branchId?.toString() ?? '');
+    const [branchId, setBranchId] = useState(
+        filters.branchId?.toString() ?? '',
+    );
     const [module, setModule] = useState(filters.module);
 
     const branchOptions = [
@@ -211,14 +217,18 @@ export default function ReportsPage({
     };
 
     const exportCsv = () => {
-        if (!activeReport.isReady || !activeReport.columns || !activeReport.rows) {
+        if (
+            !activeReport.isReady ||
+            !activeReport.columns ||
+            !activeReport.rows
+        ) {
             return;
         }
 
         const headers = activeReport.columns.map((column) => column.label);
         const rows = activeReport.rows.map((row) =>
-            activeReport.columns!
-                .map(
+            activeReport
+                .columns!.map(
                     (column) =>
                         `"${String(row[column.key] ?? '').replaceAll('"', '""')}"`,
                 )
@@ -238,7 +248,11 @@ export default function ReportsPage({
     };
 
     const printReport = () => {
-        if (!activeReport.isReady || !activeReport.columns || !activeReport.rows) {
+        if (
+            !activeReport.isReady ||
+            !activeReport.columns ||
+            !activeReport.rows
+        ) {
             return;
         }
 
@@ -261,8 +275,11 @@ export default function ReportsPage({
             .map(
                 (row) => `
                     <tr>
-                        ${activeReport.columns!
-                            .map((column) => `<td>${String(row[column.key] ?? '-')}</td>`)
+                        ${activeReport
+                            .columns!.map(
+                                (column) =>
+                                    `<td>${String(row[column.key] ?? '-')}</td>`,
+                            )
                             .join('')}
                     </tr>
                 `,
@@ -316,7 +333,7 @@ export default function ReportsPage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Reports" />
             <div className="space-y-4 py-2">
-                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#eef7f3_0%,#fff7e8_48%,#ffffff_100%)] p-5 dark:border-neutral-800 dark:bg-none dark:bg-neutral-950">
+                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#eef7f3_0%,#fff7e8_48%,#ffffff_100%)] p-5 dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2 rounded-full border border-[#cfe2dc] bg-white/80 px-3 py-1 text-sm text-[#20464b]">
@@ -328,16 +345,21 @@ export default function ReportsPage({
                                     Dedicated Reports section
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-[#47676b] dark:text-neutral-300">
-                                    Yes, this should be a separate section. Reports are a cross-module workflow,
-                                    not just another action button inside Orders or Inventory. This hub gives us one
-                                    place for date filters, branch scope, export actions, and reusable report layouts.
+                                    Yes, this should be a separate section.
+                                    Reports are a cross-module workflow, not
+                                    just another action button inside Orders or
+                                    Inventory. This hub gives us one place for
+                                    date filters, branch scope, export actions,
+                                    and reusable report layouts.
                                 </p>
                             </div>
                         </div>
 
                         <Card className="border-white/80 bg-white/90 shadow-none dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base">Design rollout</CardTitle>
+                                <CardTitle className="text-base">
+                                    Design rollout
+                                </CardTitle>
                                 <CardDescription>
                                     Built to expand one report family at a time.
                                 </CardDescription>
@@ -345,11 +367,15 @@ export default function ReportsPage({
                             <CardContent className="space-y-3 text-sm text-muted-foreground">
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Live now</span>
-                                    <Badge variant="success">Orders report</Badge>
+                                    <Badge variant="success">
+                                        Orders report
+                                    </Badge>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Next recommended</span>
-                                    <span className="font-medium text-foreground">Inventory</span>
+                                    <span className="font-medium text-foreground">
+                                        Inventory
+                                    </span>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Exports</span>
@@ -364,9 +390,12 @@ export default function ReportsPage({
 
                 <Card className="shadow-none">
                     <CardHeader className="pb-4">
-                        <CardTitle className="text-lg">Report controls</CardTitle>
+                        <CardTitle className="text-lg">
+                            Report controls
+                        </CardTitle>
                         <CardDescription>
-                            Select the report family, period, and branch scope before generating output.
+                            Select the report family, period, and branch scope
+                            before generating output.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-3 lg:grid-cols-5">
@@ -391,14 +420,18 @@ export default function ReportsPage({
                         <Input
                             type="date"
                             value={startDate}
-                            onChange={(event) => setStartDate(event.target.value)}
+                            onChange={(event) =>
+                                setStartDate(event.target.value)
+                            }
                             disabled={range !== 'custom'}
                         />
                         <div className="flex gap-2">
                             <Input
                                 type="date"
                                 value={endDate}
-                                onChange={(event) => setEndDate(event.target.value)}
+                                onChange={(event) =>
+                                    setEndDate(event.target.value)
+                                }
                                 disabled={range !== 'custom'}
                             />
                             <Button className="shrink-0" onClick={applyFilters}>
@@ -435,7 +468,9 @@ export default function ReportsPage({
                                             catalogItem?.status ?? 'planned',
                                         )}
                                     >
-                                        {(catalogItem?.status ?? 'planned').toUpperCase()}
+                                        {(
+                                            catalogItem?.status ?? 'planned'
+                                        ).toUpperCase()}
                                     </Badge>
                                 </div>
                                 <p className="mt-4 text-2xl font-semibold text-[#102f33]">
@@ -522,7 +557,7 @@ export default function ReportsPage({
                                                     key={item.label}
                                                     className="rounded-2xl border bg-[#fcfdfd] p-4"
                                                 >
-                                                    <p className="text-xs uppercase tracking-[0.18em] text-[#708689]">
+                                                    <p className="text-xs tracking-[0.18em] text-[#708689] uppercase">
                                                         {item.label}
                                                     </p>
                                                     <p className="mt-2 text-2xl font-semibold text-[#102f33]">
@@ -540,63 +575,68 @@ export default function ReportsPage({
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    {(activeReport.columns ?? []).map(
-                                                        (column) => (
-                                                            <TableHead
-                                                                key={column.key}
-                                                            >
-                                                                {column.label}
-                                                            </TableHead>
-                                                        ),
-                                                    )}
+                                                    {(
+                                                        activeReport.columns ??
+                                                        []
+                                                    ).map((column) => (
+                                                        <TableHead
+                                                            key={column.key}
+                                                        >
+                                                            {column.label}
+                                                        </TableHead>
+                                                    ))}
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {(activeReport.rows ?? []).length >
-                                                0 ? (
-                                                    (activeReport.rows ?? []).map(
-                                                        (row, index) => (
-                                                            <TableRow
-                                                                key={`${row.reference ?? index}`}
-                                                            >
-                                                                {(activeReport.columns ?? []).map(
-                                                                    (column) => (
-                                                                        <TableCell
-                                                                            key={
-                                                                                column.key
-                                                                            }
-                                                                        >
-                                                                            {column.key ===
-                                                                                'total' ||
-                                                                            column.key ===
-                                                                                'paid'
-                                                                                ? formatAfn(
-                                                                                      Number(
-                                                                                          row[
-                                                                                              column
-                                                                                                  .key
-                                                                                          ] ??
-                                                                                              0,
-                                                                                      ),
-                                                                                  )
-                                                                                : String(
-                                                                                      row[
-                                                                                          column
-                                                                                              .key
-                                                                                      ] ?? '-',
-                                                                                  )}
-                                                                        </TableCell>
-                                                                    ),
-                                                                )}
-                                                            </TableRow>
-                                                        ),
-                                                    )
+                                                {(activeReport.rows ?? [])
+                                                    .length > 0 ? (
+                                                    (
+                                                        activeReport.rows ?? []
+                                                    ).map((row, index) => (
+                                                        <TableRow
+                                                            key={`${row.reference ?? index}`}
+                                                        >
+                                                            {(
+                                                                activeReport.columns ??
+                                                                []
+                                                            ).map((column) => (
+                                                                <TableCell
+                                                                    key={
+                                                                        column.key
+                                                                    }
+                                                                >
+                                                                    {column.key ===
+                                                                        'total' ||
+                                                                    column.key ===
+                                                                        'paid'
+                                                                        ? formatAfn(
+                                                                              Number(
+                                                                                  row[
+                                                                                      column
+                                                                                          .key
+                                                                                  ] ??
+                                                                                      0,
+                                                                              ),
+                                                                          )
+                                                                        : String(
+                                                                              row[
+                                                                                  column
+                                                                                      .key
+                                                                              ] ??
+                                                                                  '-',
+                                                                          )}
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                    ))
                                                 ) : (
                                                     <TableRow>
                                                         <TableCell
                                                             colSpan={
-                                                                (activeReport.columns ??
-                                                                    []).length || 1
+                                                                (
+                                                                    activeReport.columns ??
+                                                                    []
+                                                                ).length || 1
                                                             }
                                                             className="py-10 text-center text-muted-foreground"
                                                         >
@@ -656,7 +696,9 @@ export default function ReportsPage({
                                                         {item.label}
                                                     </span>
                                                     <span className="font-semibold">
-                                                        {formatNumber(item.value)}
+                                                        {formatNumber(
+                                                            item.value,
+                                                        )}
                                                     </span>
                                                 </div>
                                             </div>
@@ -695,7 +737,9 @@ export default function ReportsPage({
                                                         {item.branch}
                                                     </span>
                                                     <span className="text-sm text-muted-foreground">
-                                                        {formatNumber(item.orders)}{' '}
+                                                        {formatNumber(
+                                                            item.orders,
+                                                        )}{' '}
                                                         orders
                                                     </span>
                                                 </div>
