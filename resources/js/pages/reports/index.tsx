@@ -145,7 +145,7 @@ function buildParams(filters: {
     return params;
 }
 
-function statusVariant(status: 'live' | 'planned') {
+function statusVariant(status: 'live' | 'planned'): 'success' | 'outline' {
     return status === 'live' ? 'success' : 'outline';
 }
 
