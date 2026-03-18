@@ -66,11 +66,6 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
     },
     {
-        title: 'Reports',
-        href: '/reports',
-        icon: ScrollText,
-    },
-    {
         title: 'Branches',
         href: '/branches',
         icon: Building2,
@@ -87,6 +82,11 @@ const mainNavItems: NavItem[] = [
         href: '/roles',
         icon: ShieldCheck,
         can: 'role.view',
+    },
+    {
+        title: 'Reports',
+        href: '/reports',
+        icon: ScrollText,
     },
 ];
 

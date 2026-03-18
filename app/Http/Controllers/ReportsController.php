@@ -331,7 +331,7 @@ class ReportsController extends Controller
             ->all();
 
         $topProductsQuery = OrderItem::query()
-            ->selectRaw('COALESCE(products.name, order_items.product_name_snapshot, order_items.product_name, \'Unknown\') as product_name')
+            ->selectRaw('COALESCE(products.name, order_items.product_name_snapshot, \'Unknown\') as product_name')
             ->selectRaw('SUM(order_items.quantity) as total_quantity')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->leftJoin('products', 'products.id', '=', 'order_items.product_id')
@@ -343,7 +343,7 @@ class ReportsController extends Controller
         }
 
         $topProducts = $topProductsQuery
-            ->groupBy('products.name', 'order_items.product_name_snapshot', 'order_items.product_name')
+            ->groupBy('products.name', 'order_items.product_name_snapshot')
             ->orderByDesc('total_quantity')
             ->limit(5)
             ->get()
