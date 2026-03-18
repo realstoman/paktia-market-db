@@ -77,9 +77,14 @@ class PayrollController extends Controller
                     'overtime_total' => $overtime,
                     'net_total' => $net,
                     'items' => $run->items->map(function (PayrollRunItem $item) {
+                        $employeeName = $item->employee
+                            ? trim(($item->employee->first_name ?? '').' '.($item->employee->last_name ?? ''))
+                            : null;
+
                         return [
                             'id' => $item->id,
                             'employee_id' => $item->employee_id,
+                            'employee_name' => $employeeName ?: 'Employee #'.$item->employee_id,
                             'employee' => $item->employee ? [
                                 'id' => $item->employee->id,
                                 'first_name' => $item->employee->first_name,

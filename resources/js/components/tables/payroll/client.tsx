@@ -177,6 +177,19 @@ function employeeName(employee?: Employee | null) {
     );
 }
 
+function payrollItemEmployeeName(item: { employee_name?: string; employee?: Employee | null; employee_id: number }) {
+    if (item.employee_name && item.employee_name.trim().length > 0) {
+        return item.employee_name;
+    }
+
+    const relatedName = employeeName(item.employee ?? null);
+    if (relatedName !== '-') {
+        return relatedName;
+    }
+
+    return `Employee #${item.employee_id}`;
+}
+
 function statusTone(status?: string) {
     if (status === 'paid' || status === 'approved') {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
@@ -1155,9 +1168,8 @@ export function PayrollClient({
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
                                                             <p className="font-medium">
-                                                                {employeeName(
-                                                                    item.employee ??
-                                                                        null,
+                                                                {payrollItemEmployeeName(
+                                                                    item,
                                                                 )}
                                                             </p>
                                                             <p className="mt-1 text-xs text-neutral-500">

@@ -152,6 +152,7 @@ export interface EmployeeAdvance {
 export interface PayrollRunItem {
     id: number;
     employee_id: number;
+    employee_name?: string;
     employee?: Employee | null;
     salary_type: string;
     gross_salary: number;
