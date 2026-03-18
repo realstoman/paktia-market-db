@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -76,9 +77,14 @@ class PayrollController extends Controller
                     'overtime_total' => $overtime,
                     'net_total' => $net,
                     'items' => $run->items->map(function (PayrollRunItem $item) {
+                        $employeeName = $item->employee
+                            ? trim(($item->employee->first_name ?? '').' '.($item->employee->last_name ?? ''))
+                            : null;
+
                         return [
                             'id' => $item->id,
                             'employee_id' => $item->employee_id,
+                            'employee_name' => $employeeName ?: 'Employee #'.$item->employee_id,
                             'employee' => $item->employee ? [
                                 'id' => $item->employee->id,
                                 'first_name' => $item->employee->first_name,
@@ -140,6 +146,9 @@ class PayrollController extends Controller
                 ->orderByDesc('id')
                 ->get()
                 ->map(function (EmployeeContract $contract) {
+                    $scheduledTotal = (float) $contract->schedules->sum('amount');
+                    $paidTotal = (float) $contract->schedules->where('status', 'paid')->sum('amount');
+
                     return [
                         'id' => $contract->id,
                         'employee_id' => $contract->employee_id,
@@ -161,6 +170,9 @@ class PayrollController extends Controller
                         'installment_count' => $contract->installment_count,
                         'status' => $contract->status,
                         'notes' => $contract->notes,
+                        'scheduled_total' => $scheduledTotal,
+                        'paid_total' => $paidTotal,
+                        'unpaid_total' => max(0, $scheduledTotal - $paidTotal),
                         'schedules' => $contract->schedules->map(function (EmployeeContractPaymentSchedule $schedule) use ($contract) {
                             return [
                                 'id' => $schedule->id,
@@ -178,6 +190,7 @@ class PayrollController extends Controller
                                 'amount' => (float) $schedule->amount,
                                 'status' => $schedule->status,
                                 'payment_method' => $schedule->payment_method,
+                                'attachment_path' => $schedule->attachment_path,
                                 'paid_at' => optional($schedule->paid_at)->toISOString(),
                                 'notes' => $schedule->notes,
                             ];
@@ -460,11 +473,32 @@ class PayrollController extends Controller
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'payment_plan_type' => ['required', 'in:equal_installments,custom_schedule,manual_milestones'],
             'installment_count' => ['nullable', 'integer', 'min:1'],
+            'milestone_percentages' => ['nullable', 'array', 'min:1'],
+            'milestone_percentages.*' => ['numeric', 'gt:0', 'lte:100'],
             'status' => ['nullable', 'in:draft,submitted,approved,active'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $milestonePercentages = collect($validated['milestone_percentages'] ?? [])
+            ->map(fn ($value) => round((float) $value, 2))
+            ->filter(fn (float $value) => $value > 0)
+            ->values();
+
+        if (
+            in_array($validated['payment_plan_type'], ['custom_schedule', 'manual_milestones'], true)
+            && $milestonePercentages->isNotEmpty()
+            && round($milestonePercentages->sum(), 2) !== 100.0
+        ) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['contract' => 'Milestone percentages must add up to 100.']);
+        }
+
+        DB::transaction(function () use ($milestonePercentages, $validated) {
+            $derivedInstallmentCount = $milestonePercentages->isNotEmpty()
+                ? $milestonePercentages->count()
+                : null;
+
             $contract = EmployeeContract::create([
                 'employee_id' => $validated['employee_id'],
                 'branch_id' => $validated['branch_id'] ?? null,
@@ -472,7 +506,7 @@ class PayrollController extends Controller
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'] ?? null,
                 'payment_plan_type' => $validated['payment_plan_type'],
-                'installment_count' => $validated['installment_count'] ?? null,
+                'installment_count' => $validated['installment_count'] ?? $derivedInstallmentCount,
                 'status' => $validated['status'] ?? 'draft',
                 'notes' => $validated['notes'] ?? null,
             ]);
@@ -497,6 +531,31 @@ class PayrollController extends Controller
                         'due_date' => $startDate->copy()->addMonths($index)->toDateString(),
                         'title' => 'Installment '.($index + 1),
                         'percentage' => round(100 / $contract->installment_count, 2),
+                        'amount' => $amount,
+                        'status' => in_array($contract->status, ['approved', 'active'], true) ? 'approved' : 'draft',
+                        'payment_method' => PaymentMethod::BANK_TRANSFER->value,
+                        'notes' => null,
+                    ]);
+                }
+            } elseif (
+                in_array($contract->payment_plan_type, ['custom_schedule', 'manual_milestones'], true)
+                && $milestonePercentages->isNotEmpty()
+            ) {
+                $remaining = (float) $contract->contract_amount;
+                $startDate = Carbon::parse($contract->start_date);
+                $count = $milestonePercentages->count();
+
+                foreach ($milestonePercentages as $index => $percentage) {
+                    $amount = $index === ($count - 1)
+                        ? $remaining
+                        : round(((float) $contract->contract_amount * $percentage) / 100, 2);
+                    $remaining -= $amount;
+
+                    EmployeeContractPaymentSchedule::create([
+                        'employee_contract_id' => $contract->id,
+                        'due_date' => $startDate->copy()->addMonths($index)->toDateString(),
+                        'title' => 'Milestone '.($index + 1),
+                        'percentage' => $percentage,
                         'amount' => $amount,
                         'status' => in_array($contract->status, ['approved', 'active'], true) ? 'approved' : 'draft',
                         'payment_method' => PaymentMethod::BANK_TRANSFER->value,
@@ -560,6 +619,11 @@ class PayrollController extends Controller
                 ->withErrors(['contract' => 'A contract plan with paid schedules cannot be deleted.']);
         }
 
+        $contract->schedules
+            ->pluck('attachment_path')
+            ->filter()
+            ->each(fn (string $path) => Storage::disk('public')->delete($path));
+
         $contract->delete();
 
         return redirect()
@@ -617,8 +681,13 @@ class PayrollController extends Controller
             'amount' => ['required', 'numeric', 'min:1'],
             'status' => ['nullable', 'in:draft,submitted,approved,paid'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        $attachmentPath = $request->hasFile('receipt')
+            ? $request->file('receipt')->store('contract-schedule-attachments', 'public')
+            : null;
 
         EmployeeContractPaymentSchedule::create([
             'employee_contract_id' => $validated['employee_contract_id'],
@@ -628,6 +697,7 @@ class PayrollController extends Controller
             'amount' => $validated['amount'],
             'status' => $validated['status'] ?? 'draft',
             'payment_method' => $validated['payment_method'] ?? PaymentMethod::BANK_TRANSFER->value,
+            'attachment_path' => $attachmentPath,
             'notes' => $validated['notes'] ?? null,
         ]);
 
@@ -647,22 +717,35 @@ class PayrollController extends Controller
         }
 
         $validated = $request->validate([
+            'employee_contract_id' => ['required', 'exists:employee_contracts,id'],
             'due_date' => ['required', 'date_format:Y-m-d'],
             'title' => ['nullable', 'string', 'max:255'],
             'percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'amount' => ['required', 'numeric', 'min:1'],
             'status' => ['nullable', 'in:draft,submitted,approved,paid'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $attachmentPath = $schedule->attachment_path;
+        if ($request->hasFile('receipt')) {
+            if ($attachmentPath) {
+                Storage::disk('public')->delete($attachmentPath);
+            }
+
+            $attachmentPath = $request->file('receipt')->store('contract-schedule-attachments', 'public');
+        }
+
         $schedule->update([
+            'employee_contract_id' => $validated['employee_contract_id'],
             'due_date' => $validated['due_date'],
             'title' => $validated['title'] ?? null,
             'percentage' => $validated['percentage'] ?? null,
             'amount' => $validated['amount'],
             'status' => $validated['status'] ?? $schedule->status,
             'payment_method' => $validated['payment_method'] ?? $schedule->payment_method,
+            'attachment_path' => $attachmentPath,
             'notes' => $validated['notes'] ?? null,
         ]);
 
@@ -679,6 +762,10 @@ class PayrollController extends Controller
             return redirect()
                 ->route('finance.payroll.index')
                 ->withErrors(['schedule' => 'A paid contract schedule cannot be deleted.']);
+        }
+
+        if ($schedule->attachment_path) {
+            Storage::disk('public')->delete($schedule->attachment_path);
         }
 
         $schedule->delete();

@@ -1,12 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import countries from '@/routes/countries';
@@ -42,7 +37,9 @@ export default function CountryShow({ country }: CountryShowProps) {
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="space-y-6 p-6 text-gray-900">
                     <div>
-                        <h2 className="text-xl font-semibold">Country Profile</h2>
+                        <h2 className="text-xl font-semibold">
+                            Country Profile
+                        </h2>
                         <p className="text-sm text-muted-foreground">
                             Country details and related entities.
                         </p>

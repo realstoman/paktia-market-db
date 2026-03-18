@@ -34,12 +34,12 @@ import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
     BriefcaseBusiness,
+    Clock3,
     FileText,
     ImagePlus,
     Pencil,
     Plus,
     Shapes,
-    Clock3,
     Trash2,
     UserRound,
     X,
@@ -950,9 +950,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                     placeholder="Optional"
                                 />
-                                <InputError
-                                    message={shiftErrors.description}
-                                />
+                                <InputError message={shiftErrors.description} />
                             </div>
                             <div className="flex items-center gap-2 sm:col-span-2">
                                 <Button
@@ -1308,7 +1306,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>Shift</Label>
-                                <Select value={shiftId} onValueChange={setShiftId}>
+                                <Select
+                                    value={shiftId}
+                                    onValueChange={setShiftId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select shift" />
                                     </SelectTrigger>

@@ -19,6 +19,7 @@ interface BuildColumnsProps {
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
     onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
+    onViewAttachment: (schedule: EmployeeContractPaymentSchedule) => void;
     onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
     canApprove: boolean;
 }
@@ -27,6 +28,7 @@ export function buildColumns({
     onEdit,
     onDelete,
     onPrint,
+    onViewAttachment,
     onReviewApproval,
     canApprove,
 }: BuildColumnsProps): ColumnDef<EmployeeContractPaymentSchedule>[] {
@@ -62,9 +64,14 @@ export function buildColumns({
             header: 'Title',
             cell: ({ row }) => (
                 <div>
-                    <p className="font-medium">{row.original.title ?? 'Contract Schedule'}</p>
+                    <p className="font-medium">
+                        {row.original.title ?? 'Contract Schedule'}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                        {row.original.contract?.payment_plan_type?.replaceAll('_', ' ') ?? '-'}
+                        {row.original.contract?.payment_plan_type?.replaceAll(
+                            '_',
+                            ' ',
+                        ) ?? '-'}
                     </p>
                 </div>
             ),
@@ -74,13 +81,34 @@ export function buildColumns({
             accessorFn: (row) => Number(row.percentage ?? 0),
             header: '%',
             cell: ({ row }) =>
-                row.original.percentage != null ? `${row.original.percentage}%` : '-',
+                row.original.percentage != null
+                    ? `${row.original.percentage}%`
+                    : '-',
         },
         {
             id: 'amount',
             accessorFn: (row) => Number(row.amount ?? 0),
             header: 'Amount',
             cell: ({ row }) => formatAfn(row.original.amount),
+        },
+        {
+            id: 'attachment',
+            accessorFn: (row) => row.attachment_path ?? '',
+            header: 'Attachment',
+            cell: ({ row }) =>
+                row.original.attachment_path ? (
+                    <button
+                        type="button"
+                        onClick={() => onViewAttachment(row.original)}
+                        className="text-sm font-medium text-sky-700 hover:underline dark:text-sky-300"
+                    >
+                        View
+                    </button>
+                ) : (
+                    <span className="text-sm text-muted-foreground">
+                        No file
+                    </span>
+                ),
         },
         {
             id: 'status',

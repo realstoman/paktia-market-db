@@ -9,7 +9,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PayrollRun } from '@/types';
-import { BadgeCheck, CreditCard, Eye, MoreHorizontal, RotateCcw } from 'lucide-react';
+import {
+    BadgeCheck,
+    CreditCard,
+    Eye,
+    MoreHorizontal,
+    RotateCcw,
+} from 'lucide-react';
 
 interface CellActionProps {
     data: PayrollRun;

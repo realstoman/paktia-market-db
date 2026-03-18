@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -32,7 +33,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -280,10 +280,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         payload.append('pashto_name', categoryPashtoName.trim());
         payload.append('dari_name', categoryDariName.trim());
         payload.append('description', categoryDescription.trim());
-        payload.append(
-            'pashto_description',
-            categoryPashtoDescription.trim(),
-        );
+        payload.append('pashto_description', categoryPashtoDescription.trim());
         payload.append('dari_description', categoryDariDescription.trim());
 
         if (categoryImage) {
@@ -390,10 +387,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         payload.append('pashto_name', typePashtoName.trim());
         payload.append('dari_name', typeDariName.trim());
         payload.append('description', typeDescription.trim());
-        payload.append(
-            'pashto_description',
-            typePashtoDescription.trim(),
-        );
+        payload.append('pashto_description', typePashtoDescription.trim());
         payload.append('dari_description', typeDariDescription.trim());
 
         if (typeImage) {
@@ -1095,7 +1089,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <ScrollArea className="min-h-0 h-[28vh] rounded-md border">
+                        <ScrollArea className="h-[28vh] min-h-0 rounded-md border">
                             <div className="space-y-2 p-2">
                                 {categories.map((category) => (
                                     <div
@@ -1127,7 +1121,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                     </p>
                                                 ) : null}
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {category.description || '-'}
+                                                    {category.description ||
+                                                        '-'}
                                                 </p>
                                             </div>
                                         </div>
@@ -1142,16 +1137,18 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                setCategoryToDelete(category)
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    setCategoryToDelete(
+                                                        category,
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -1274,7 +1271,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <ScrollArea className="min-h-0 h-[28vh] rounded-md border">
+                        <ScrollArea className="h-[28vh] min-h-0 rounded-md border">
                             <div className="space-y-2 p-2">
                                 {types.map((productType) => (
                                     <div
@@ -1285,7 +1282,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             <div className="h-10 w-16 overflow-hidden rounded border bg-neutral-100 dark:bg-neutral-900">
                                                 {productType.image_url ? (
                                                     <img
-                                                        src={productType.image_url}
+                                                        src={
+                                                            productType.image_url
+                                                        }
                                                         alt={productType.name}
                                                         className="h-full w-full object-cover"
                                                     />
@@ -1297,7 +1296,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                 </p>
                                                 {productType.pashto_name ? (
                                                     <p className="truncate text-xs text-muted-foreground">
-                                                        {productType.pashto_name}
+                                                        {
+                                                            productType.pashto_name
+                                                        }
                                                     </p>
                                                 ) : null}
                                                 {productType.dari_name ? (
@@ -1306,7 +1307,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                                     </p>
                                                 ) : null}
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {productType.description || '-'}
+                                                    {productType.description ||
+                                                        '-'}
                                                 </p>
                                             </div>
                                         </div>
@@ -1321,16 +1323,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() =>
-                                                setTypeToDelete(productType)
-                                            }
-                                        >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
-                                        </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    setTypeToDelete(productType)
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}

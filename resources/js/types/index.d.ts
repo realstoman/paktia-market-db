@@ -28,6 +28,7 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    notifications?: AppNotification[];
     tools?: {
         countries: Country[];
         provinces: Province[];
@@ -42,6 +43,24 @@ export interface SharedData {
     };
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface AppNotification {
+    id: string;
+    category:
+        | 'orders'
+        | 'payments'
+        | 'salary'
+        | 'employees'
+        | 'users'
+        | 'system';
+    title: string;
+    description: string;
+    createdAt?: string | null;
+    meta?: string | null;
+    href?: string | null;
+    unread?: boolean;
+    priority: 'high' | 'medium' | 'low';
 }
 
 export interface User {
@@ -152,6 +171,7 @@ export interface EmployeeAdvance {
 export interface PayrollRunItem {
     id: number;
     employee_id: number;
+    employee_name?: string;
     employee?: Employee | null;
     salary_type: string;
     gross_salary: number;
@@ -202,6 +222,7 @@ export interface EmployeeContractPaymentSchedule {
     amount: number | string;
     status: string;
     payment_method?: string | null;
+    attachment_path?: string | null;
     paid_at?: string | null;
     notes?: string | null;
     [key: string]: unknown;
@@ -220,6 +241,9 @@ export interface EmployeeContract {
     installment_count?: number | null;
     status: string;
     notes?: string | null;
+    scheduled_total?: number;
+    paid_total?: number;
+    unpaid_total?: number;
     schedules?: EmployeeContractPaymentSchedule[];
     [key: string]: unknown;
 }

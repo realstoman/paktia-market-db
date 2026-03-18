@@ -10,6 +10,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -25,7 +26,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -166,10 +166,10 @@ export const CellAction: React.FC<CellActionProps> = ({
             `/kitchens/${data.id}`,
             {
                 name: name.trim(),
-                kitchen_type_id: kitchenTypeId
-                    !== NO_KITCHEN_TYPE
-                    ? Number(kitchenTypeId)
-                    : null,
+                kitchen_type_id:
+                    kitchenTypeId !== NO_KITCHEN_TYPE
+                        ? Number(kitchenTypeId)
+                        : null,
                 cuisines: selectedCuisineIds,
                 kitchen_categories: selectedKitchenCategoryIds,
             },
@@ -374,8 +374,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     {cuisine.name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {cuisine.description ||
-                                                        '—'}
+                                                    {cuisine.description || '—'}
                                                 </p>
                                             </div>
                                         </label>

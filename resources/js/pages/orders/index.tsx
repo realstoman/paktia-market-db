@@ -218,24 +218,24 @@ export default function OrdersPage({
                     </div>
                 </div>
 
-                <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] p-4 shadow-none dark:border-neutral-800 dark:bg-none dark:bg-black">
+                <section>
                     <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
-                        <Card className="gap-3 overflow-hidden border-white/80 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
+                        <Card className="gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-0">
-                                <CardTitle className="text-xl text-[#102F33] dark:text-white">
+                                <CardTitle className="text-xl text-neutral-900 dark:text-white">
                                     Baba Restaurant
                                 </CardTitle>
-                                <CardDescription className="text-sm text-[#35565a] dark:text-neutral-300">
+                                <CardDescription className="text-sm text-neutral-600 dark:text-neutral-300">
                                     {isAllTime
                                         ? 'All time records for orders'
                                         : `Order statistics for ${todayDate}`}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-1">
-                                <p className="text-2xl font-semibold text-[#102F33] dark:text-white">
+                                <p className="text-2xl font-semibold text-neutral-950 dark:text-white">
                                     {formatNumber(orders.length)}
                                 </p>
-                                <p className="text-xs text-[#4c6a6e] dark:text-neutral-300">
+                                <p className="text-xs text-neutral-600 dark:text-neutral-300">
                                     {isAllTime
                                         ? `All time since ${restaurantStartedDate ?? '-'}`
                                         : 'Total orders today'}

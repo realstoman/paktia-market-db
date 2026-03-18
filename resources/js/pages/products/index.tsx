@@ -1,7 +1,7 @@
 'use client';
 
+import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { ProductsClient } from '@/components/tables/products/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import {
     BreadcrumbItem,
@@ -106,56 +106,46 @@ export default function ProductsPage({
             <Head title="Products" />
             <div className="space-y-4 pt-3 pb-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
-                                Total Products
-                            </CardTitle>
-                            <Layers3 className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(totalProducts)}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <SummaryMetricCard
+                        title="Total Products"
+                        value={formatNumber(totalProducts)}
+                        description="All products currently available in the system."
+                        icon={Layers3}
+                        variant="green"
+                        className="md:col-span-4"
+                    />
 
                     {productsByType.map((typeSummary) => {
                         const TypeIcon = getTypeIcon(typeSummary.name);
 
                         return (
-                            <Card
+                            <SummaryMetricCard
                                 key={typeSummary.name}
-                                className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900"
-                            >
-                                <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                    <CardTitle className="text-sm capitalize">
-                                        {typeSummary.name}
-                                    </CardTitle>
-                                    <TypeIcon className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-semibold tracking-tight">
-                                        {formatNumber(typeSummary.count)}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                title={typeSummary.name
+                                    .split(' ')
+                                    .map(
+                                        (part) =>
+                                            part.charAt(0).toUpperCase() +
+                                            part.slice(1),
+                                    )
+                                    .join(' ')}
+                                value={formatNumber(typeSummary.count)}
+                                description="Products mapped to this product type."
+                                icon={TypeIcon}
+                                variant="green"
+                                className="md:col-span-4"
+                            />
                         );
                     })}
 
-                    <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-sm">
-                                Total Categories
-                            </CardTitle>
-                            <Tags className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold tracking-tight">
-                                {formatNumber(categories.length)}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <SummaryMetricCard
+                        title="Total Categories"
+                        value={formatNumber(categories.length)}
+                        description="Categories available for organizing products."
+                        icon={Tags}
+                        variant="green"
+                        className="md:col-span-4"
+                    />
                 </div>
 
                 <div className="rounded-lg bg-white p-6 text-gray-900 dark:bg-brand-bg-dark">

@@ -166,7 +166,8 @@ export function ContractPaymentVoucherPrintDialog({
                         Contract Payment Voucher Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review and print this individual contract payment schedule voucher.
+                        Review and print this individual contract payment
+                        schedule voucher.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -182,30 +183,57 @@ export function ContractPaymentVoucherPrintDialog({
                             <div className="mx-auto max-w-4xl bg-white p-8">
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Schedule</p>
-                                        <p className="mt-2 font-medium">No: SCH-{schedule.id}</p>
-                                        <p className="text-muted-foreground">Due Date: {schedule.due_date}</p>
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+                                            Schedule
+                                        </p>
+                                        <p className="mt-2 font-medium">
+                                            No: SCH-{schedule.id}
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                            Due Date: {schedule.due_date}
+                                        </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
-                                        <img src="/brand/logo.png" alt="Baba Restaurant Logo" className="mx-auto mb-3 h-16 w-16 object-contain" />
-                                        <p className="text-2xl font-semibold tracking-wide">Baba Restaurant</p>
+                                        <img
+                                            src="/brand/logo.png"
+                                            alt="Baba Restaurant Logo"
+                                            className="mx-auto mb-3 h-16 w-16 object-contain"
+                                        />
+                                        <p className="text-2xl font-semibold tracking-wide">
+                                            Baba Restaurant
+                                        </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} • {branch?.address ?? 'Address not set'}
+                                            {branch?.name ?? 'Main Branch'} •{' '}
+                                            {branch?.address ??
+                                                'Address not set'}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Employee</p>
-                                        <p className="font-medium">{employeeName(schedule)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Employee
+                                        </p>
+                                        <p className="font-medium">
+                                            {employeeName(schedule)}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Title</p>
-                                        <p className="font-medium">{schedule.title ?? 'Contract payment schedule'}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Title
+                                        </p>
+                                        <p className="font-medium">
+                                            {schedule.title ??
+                                                'Contract payment schedule'}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Amount</p>
-                                        <p className="font-medium">{formatAfn(schedule.amount)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Amount
+                                        </p>
+                                        <p className="font-medium">
+                                            {formatAfn(schedule.amount)}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

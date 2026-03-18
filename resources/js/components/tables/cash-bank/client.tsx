@@ -1,16 +1,10 @@
 'use client';
 
-import Heading from '@/components/shared/heading';
 import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
+import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { MovementVoucherPrintDialog } from '@/components/tables/cash-bank/movement-voucher-print-dialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,6 +15,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -33,7 +34,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { MovementVoucherPrintDialog } from '@/components/tables/cash-bank/movement-voucher-print-dialog';
 import {
     Branch,
     CashMovement,
@@ -115,9 +115,8 @@ export function CashBankClient({
         null,
     );
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
-    const [printMovement, setPrintMovement] = React.useState<CashMovement | null>(
-        null,
-    );
+    const [printMovement, setPrintMovement] =
+        React.useState<CashMovement | null>(null);
     const [form, setForm] = React.useState<CashMovementFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
@@ -190,57 +189,65 @@ export function CashBankClient({
         setIsOpen(true);
     }, [movementTypes]);
 
-    const openEdit = React.useCallback((movement: CashMovement) => {
-        const pairedMovement =
-            movement.reference_type === 'cash_transfer' && movement.reference_id
-                ? movements.find((item) => item.id === movement.reference_id) ?? null
-                : null;
+    const openEdit = React.useCallback(
+        (movement: CashMovement) => {
+            const pairedMovement =
+                movement.reference_type === 'cash_transfer' &&
+                movement.reference_id
+                    ? (movements.find(
+                          (item) => item.id === movement.reference_id,
+                      ) ?? null)
+                    : null;
 
-        const sourceMovement =
-            movement.reference_type === 'cash_transfer'
-                ? movement.direction === 'out'
-                    ? movement
-                    : pairedMovement ?? movement
-                : movement;
-        const destinationMovement =
-            movement.reference_type === 'cash_transfer'
-                ? movement.direction === 'out'
-                    ? pairedMovement
-                    : movement
-                : null;
+            const sourceMovement =
+                movement.reference_type === 'cash_transfer'
+                    ? movement.direction === 'out'
+                        ? movement
+                        : (pairedMovement ?? movement)
+                    : movement;
+            const destinationMovement =
+                movement.reference_type === 'cash_transfer'
+                    ? movement.direction === 'out'
+                        ? pairedMovement
+                        : movement
+                    : null;
 
-        setEditingMovement(movement);
-        setReceiptFile(null);
-        setForm({
-            branch_id: sourceMovement.branch_id
-                ? String(sourceMovement.branch_id)
-                : '',
-            destination_branch_id: destinationMovement?.branch_id
-                ? String(destinationMovement.branch_id)
-                : '',
-            movement_type: sourceMovement.movement_type,
-            direction: sourceMovement.direction ?? 'in',
-            movement_date: sourceMovement.movement_date,
-            amount: String(sourceMovement.amount),
-            payment_method: sourceMovement.payment_method ?? 'cash',
-            account_id: sourceMovement.account_id
-                ? String(sourceMovement.account_id)
-                : '',
-            counterparty_account_id: sourceMovement.counterparty_account_id
-                ? String(sourceMovement.counterparty_account_id)
-                : '',
-            approval_status: sourceMovement.approval_status ?? 'draft',
-            description: sourceMovement.description ?? '',
-        });
-        setIsOpen(true);
-    }, [movements]);
+            setEditingMovement(movement);
+            setReceiptFile(null);
+            setForm({
+                branch_id: sourceMovement.branch_id
+                    ? String(sourceMovement.branch_id)
+                    : '',
+                destination_branch_id: destinationMovement?.branch_id
+                    ? String(destinationMovement.branch_id)
+                    : '',
+                movement_type: sourceMovement.movement_type,
+                direction: sourceMovement.direction ?? 'in',
+                movement_date: sourceMovement.movement_date,
+                amount: String(sourceMovement.amount),
+                payment_method: sourceMovement.payment_method ?? 'cash',
+                account_id: sourceMovement.account_id
+                    ? String(sourceMovement.account_id)
+                    : '',
+                counterparty_account_id: sourceMovement.counterparty_account_id
+                    ? String(sourceMovement.counterparty_account_id)
+                    : '',
+                approval_status: sourceMovement.approval_status ?? 'draft',
+                description: sourceMovement.description ?? '',
+            });
+            setIsOpen(true);
+        },
+        [movements],
+    );
 
     React.useEffect(() => {
         if (!printMovementId) {
             return;
         }
 
-        const target = movements.find((movement) => movement.id === printMovementId);
+        const target = movements.find(
+            (movement) => movement.id === printMovementId,
+        );
         if (!target) {
             return;
         }
@@ -350,7 +357,10 @@ export function CashBankClient({
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
                 value={statusFilter}
-                options={[{ value: 'all', label: 'All Statuses' }, ...APPROVAL_OPTIONS]}
+                options={[
+                    { value: 'all', label: 'All Statuses' },
+                    ...APPROVAL_OPTIONS,
+                ]}
                 onValueChange={setStatusFilter}
                 placeholder="Status"
                 searchPlaceholder="Search statuses..."
@@ -359,7 +369,10 @@ export function CashBankClient({
             />
             <SearchableDropdown
                 value={branchFilter}
-                options={[{ value: 'all', label: 'All Branches' }, ...branchOptions]}
+                options={[
+                    { value: 'all', label: 'All Branches' },
+                    ...branchOptions,
+                ]}
                 onValueChange={setBranchFilter}
                 placeholder="Branch"
                 searchPlaceholder="Search branches..."
@@ -378,7 +391,10 @@ export function CashBankClient({
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
-                        <Link href="/finance" className="bg-white dark:bg-neutral-900">
+                        <Link
+                            href="/finance"
+                            className="bg-white dark:bg-neutral-900"
+                        >
                             Back to Finance
                         </Link>
                     </Button>
@@ -406,7 +422,8 @@ export function CashBankClient({
                         Cash & Bank Register
                     </CardTitle>
                     <CardDescription>
-                        Add cash in hand funding, bank funding, and transfers to petty cash or other branches.
+                        Add cash in hand funding, bank funding, and transfers to
+                        petty cash or other branches.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -446,7 +463,8 @@ export function CashBankClient({
                                 : 'Create Cash Movement'}
                         </DialogTitle>
                         <DialogDescription>
-                            Use this to add owner funding and transfer amounts between cash, bank, and petty cash accounts.
+                            Use this to add owner funding and transfer amounts
+                            between cash, bank, and petty cash accounts.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -468,9 +486,10 @@ export function CashBankClient({
                                             direction:
                                                 selectedType?.default_direction ??
                                                 current.direction,
-                                            counterparty_account_id: selectedType?.requires_counterparty
-                                                ? current.counterparty_account_id
-                                                : '',
+                                            counterparty_account_id:
+                                                selectedType?.requires_counterparty
+                                                    ? current.counterparty_account_id
+                                                    : '',
                                         };
                                     })
                                 }
@@ -662,7 +681,9 @@ export function CashBankClient({
                                     accept=".jpg,.jpeg,.png,.pdf"
                                     className="hidden"
                                     onChange={(event) =>
-                                        setReceiptFile(event.target.files?.[0] ?? null)
+                                        setReceiptFile(
+                                            event.target.files?.[0] ?? null,
+                                        )
                                     }
                                 />
                                 <div className="flex items-center gap-3">
@@ -701,11 +722,16 @@ export function CashBankClient({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={submit}>
-                            {editingMovement ? 'Update Movement' : 'Save Movement'}
+                            {editingMovement
+                                ? 'Update Movement'
+                                : 'Save Movement'}
                         </Button>
                     </div>
                 </DialogContent>
@@ -721,13 +747,18 @@ export function CashBankClient({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Review Cash Movement</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Review Cash Movement
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm whether you want to approve this movement or send it back to draft for correction.
+                            Confirm whether you want to approve this movement or
+                            send it back to draft for correction.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                        <AlertDialogCancel
+                            onClick={() => setApprovalTarget(null)}
+                        >
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -765,16 +796,18 @@ export function CashBankClient({
                 movement={printMovement}
                 branch={
                     printMovement
-                        ? branches.find((branch) => branch.id === printMovement.branch_id) ??
-                          null
+                        ? (branches.find(
+                              (branch) => branch.id === printMovement.branch_id,
+                          ) ?? null)
                         : null
                 }
                 movementType={
                     printMovement
-                        ? movementTypes.find(
+                        ? (movementTypes.find(
                               (movementType) =>
-                                  movementType.slug === printMovement.movement_type,
-                          ) ?? null
+                                  movementType.slug ===
+                                  printMovement.movement_type,
+                          ) ?? null)
                         : null
                 }
             />

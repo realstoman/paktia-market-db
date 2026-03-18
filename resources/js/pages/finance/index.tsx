@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -268,7 +268,10 @@ function formatModuleStat(value: number, format: 'currency' | 'number') {
 }
 
 function ledgerStatusTone(status: string) {
-    if (status.toLowerCase() === 'posted' || status.toLowerCase() === 'approved') {
+    if (
+        status.toLowerCase() === 'posted' ||
+        status.toLowerCase() === 'approved'
+    ) {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
     }
 
@@ -965,11 +968,11 @@ export default function FinancePage({
 
                             <div className="rounded-2xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
                                 These numbers now reflect real operational
-                                finance activity. When automatic journal
-                                posting is fully enabled, this same area will
-                                transition from operational entries to strict
-                                accounting journals without changing the
-                                workflow for your team.
+                                finance activity. When automatic journal posting
+                                is fully enabled, this same area will transition
+                                from operational entries to strict accounting
+                                journals without changing the workflow for your
+                                team.
                             </div>
                         </CardContent>
                     </Card>
@@ -1033,7 +1036,11 @@ export default function FinancePage({
                                     ) : null}
                                     {moduleHref(module.name) ? (
                                         <div className="mt-auto flex justify-end pt-4">
-                                            <Button variant="ghost" size="sm" asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                asChild
+                                            >
                                                 <Link
                                                     href={
                                                         moduleHref(
@@ -1062,7 +1069,8 @@ export default function FinancePage({
                             <div>
                                 <CardTitle>General Ledger Preview</CardTitle>
                                 <CardDescription>
-                                    A recent snapshot of financial entries. Open the full ledger from Finance Modules.
+                                    A recent snapshot of financial entries. Open
+                                    the full ledger from Finance Modules.
                                 </CardDescription>
                             </div>
                             <Button variant="outline" asChild>
@@ -1079,67 +1087,88 @@ export default function FinancePage({
                                     <thead>
                                         <tr className="border-b border-neutral-200 text-left text-xs tracking-[0.18em] text-neutral-500 uppercase dark:border-neutral-800">
                                             <th className="px-3 py-3">Date</th>
-                                            <th className="px-3 py-3">Reference</th>
+                                            <th className="px-3 py-3">
+                                                Reference
+                                            </th>
                                             <th className="px-3 py-3">Type</th>
-                                            <th className="px-3 py-3">Branch</th>
-                                            <th className="px-3 py-3">Account</th>
-                                            <th className="px-3 py-3">Description</th>
-                                            <th className="px-3 py-3 text-right">Debit</th>
-                                            <th className="px-3 py-3 text-right">Credit</th>
-                                            <th className="px-3 py-3 text-right">Status</th>
+                                            <th className="px-3 py-3">
+                                                Branch
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                Account
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                Description
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Debit
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Credit
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Status
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {dashboard.generalLedgerPreview.map((entry) => (
-                                            <tr
-                                                key={`${entry.reference}-${entry.date}-${entry.account}`}
-                                                className="border-b border-neutral-100 dark:border-neutral-800/70"
-                                            >
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {entry.date}
-                                                </td>
-                                                <td className="px-3 py-3 whitespace-nowrap font-medium text-neutral-950 dark:text-neutral-50">
-                                                    {entry.reference}
-                                                </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {entry.type}
-                                                </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {entry.branch}
-                                                </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {entry.account}
-                                                </td>
-                                                <td className="px-3 py-3 text-neutral-600 dark:text-neutral-300">
-                                                    {entry.description}
-                                                </td>
-                                                <td className="px-3 py-3 text-right whitespace-nowrap">
-                                                    {entry.debit > 0
-                                                        ? formatAfn(entry.debit)
-                                                        : '-'}
-                                                </td>
-                                                <td className="px-3 py-3 text-right whitespace-nowrap">
-                                                    {entry.credit > 0
-                                                        ? formatAfn(entry.credit)
-                                                        : '-'}
-                                                </td>
-                                                <td className="px-3 py-3 text-right whitespace-nowrap">
-                                                    <span
-                                                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${ledgerStatusTone(
-                                                            entry.status,
-                                                        )}`}
-                                                    >
-                                                        {entry.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {dashboard.generalLedgerPreview.map(
+                                            (entry) => (
+                                                <tr
+                                                    key={`${entry.reference}-${entry.date}-${entry.account}`}
+                                                    className="border-b border-neutral-100 dark:border-neutral-800/70"
+                                                >
+                                                    <td className="px-3 py-3 whitespace-nowrap">
+                                                        {entry.date}
+                                                    </td>
+                                                    <td className="px-3 py-3 font-medium whitespace-nowrap text-neutral-950 dark:text-neutral-50">
+                                                        {entry.reference}
+                                                    </td>
+                                                    <td className="px-3 py-3 whitespace-nowrap">
+                                                        {entry.type}
+                                                    </td>
+                                                    <td className="px-3 py-3 whitespace-nowrap">
+                                                        {entry.branch}
+                                                    </td>
+                                                    <td className="px-3 py-3 whitespace-nowrap">
+                                                        {entry.account}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-neutral-600 dark:text-neutral-300">
+                                                        {entry.description}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                                                        {entry.debit > 0
+                                                            ? formatAfn(
+                                                                  entry.debit,
+                                                              )
+                                                            : '-'}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                                                        {entry.credit > 0
+                                                            ? formatAfn(
+                                                                  entry.credit,
+                                                              )
+                                                            : '-'}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                                                        <span
+                                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${ledgerStatusTone(
+                                                                entry.status,
+                                                            )}`}
+                                                        >
+                                                            {entry.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ),
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No recent ledger entries were found for the selected filters.
+                                No recent ledger entries were found for the
+                                selected filters.
                             </div>
                         )}
                     </CardContent>

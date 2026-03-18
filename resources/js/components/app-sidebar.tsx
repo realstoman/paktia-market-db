@@ -21,6 +21,7 @@ import {
     Globe,
     LayoutGrid,
     Package,
+    ScrollText,
     ShieldCheck,
     Smartphone,
     UserRound,
@@ -81,6 +82,11 @@ const mainNavItems: NavItem[] = [
         href: '/roles',
         icon: ShieldCheck,
         can: 'role.view',
+    },
+    {
+        title: 'Reports',
+        href: '/reports',
+        icon: ScrollText,
     },
 ];
 

@@ -7,7 +7,11 @@ import {
     CommandItem,
     CommandList,
 } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -55,7 +59,9 @@ export function SearchableDropdown({
                         className,
                     )}
                 >
-                    <span className="truncate">{selectedLabel ?? placeholder}</span>
+                    <span className="truncate">
+                        {selectedLabel ?? placeholder}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>

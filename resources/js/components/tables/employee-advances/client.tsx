@@ -77,9 +77,13 @@ interface EmployeeAdvanceClientProps {
 }
 
 function employeeLabel(employee: Employee) {
-    const name = employee.full_name || `${employee.first_name} ${employee.last_name}`.trim();
+    const name =
+        employee.full_name ||
+        `${employee.first_name} ${employee.last_name}`.trim();
     const branchName =
-        typeof employee.branch === 'string' ? employee.branch : employee.branch?.name;
+        typeof employee.branch === 'string'
+            ? employee.branch
+            : employee.branch?.name;
 
     return branchName ? `${name} - ${branchName}` : name;
 }
@@ -92,9 +96,11 @@ export function EmployeeAdvanceClient({
     summary,
 }: EmployeeAdvanceClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
-    const [editingAdvance, setEditingAdvance] = React.useState<EmployeeAdvance | null>(null);
+    const [editingAdvance, setEditingAdvance] =
+        React.useState<EmployeeAdvance | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
-    const [printAdvance, setPrintAdvance] = React.useState<EmployeeAdvance | null>(null);
+    const [printAdvance, setPrintAdvance] =
+        React.useState<EmployeeAdvance | null>(null);
     const [form, setForm] = React.useState<AdvanceFormState>(emptyForm);
     const [employeeFilter, setEmployeeFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
@@ -120,7 +126,10 @@ export function EmployeeAdvanceClient({
     );
 
     const employeesById = React.useMemo(
-        () => new Map(employees.map((employee) => [String(employee.id), employee])),
+        () =>
+            new Map(
+                employees.map((employee) => [String(employee.id), employee]),
+            ),
         [employees],
     );
 
@@ -172,11 +181,15 @@ export function EmployeeAdvanceClient({
         };
 
         if (editingAdvance) {
-            router.put(`/finance/employee-advances/${editingAdvance.id}`, payload, {
-                preserveScroll: true,
-                onSuccess: () => setIsOpen(false),
-                onError,
-            });
+            router.put(
+                `/finance/employee-advances/${editingAdvance.id}`,
+                payload,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => setIsOpen(false),
+                    onError,
+                },
+            );
             return;
         }
 
@@ -192,7 +205,9 @@ export function EmployeeAdvanceClient({
             return;
         }
 
-        const target = advances.find((advance) => advance.id === printAdvanceId);
+        const target = advances.find(
+            (advance) => advance.id === printAdvanceId,
+        );
         if (!target) {
             return;
         }
@@ -202,32 +217,52 @@ export function EmployeeAdvanceClient({
     }, [advances, printAdvanceId]);
 
     const approve = React.useCallback((advance: EmployeeAdvance) => {
-        router.post(`/finance/employee-advances/${advance.id}/approve`, {}, {
-            preserveScroll: true,
-        });
+        router.post(
+            `/finance/employee-advances/${advance.id}/approve`,
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
     }, []);
 
     const reject = React.useCallback((advance: EmployeeAdvance) => {
-        router.post(`/finance/employee-advances/${advance.id}/reject`, {}, {
-            preserveScroll: true,
-        });
+        router.post(
+            `/finance/employee-advances/${advance.id}/reject`,
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
     }, []);
 
     const filteredAdvances = React.useMemo(() => {
         return advances.filter((advance) => {
-            if (employeeFilter !== 'all' && String(advance.employee_id) !== employeeFilter) {
+            if (
+                employeeFilter !== 'all' &&
+                String(advance.employee_id) !== employeeFilter
+            ) {
                 return false;
             }
 
-            if (branchFilter !== 'all' && String(advance.branch_id ?? '') !== branchFilter) {
+            if (
+                branchFilter !== 'all' &&
+                String(advance.branch_id ?? '') !== branchFilter
+            ) {
                 return false;
             }
 
-            if (statusFilter !== 'all' && (advance.status ?? 'draft') !== statusFilter) {
+            if (
+                statusFilter !== 'all' &&
+                (advance.status ?? 'draft') !== statusFilter
+            ) {
                 return false;
             }
 
-            if (repaymentFilter !== 'all' && (advance.repayment_method ?? '') !== repaymentFilter) {
+            if (
+                repaymentFilter !== 'all' &&
+                (advance.repayment_method ?? '') !== repaymentFilter
+            ) {
                 return false;
             }
 
@@ -250,7 +285,10 @@ export function EmployeeAdvanceClient({
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
                 value={employeeFilter}
-                options={[{ value: 'all', label: 'All Employees' }, ...employeeOptions]}
+                options={[
+                    { value: 'all', label: 'All Employees' },
+                    ...employeeOptions,
+                ]}
                 onValueChange={setEmployeeFilter}
                 placeholder="Employee"
                 searchPlaceholder="Search employees..."
@@ -259,7 +297,10 @@ export function EmployeeAdvanceClient({
             />
             <SearchableDropdown
                 value={branchFilter}
-                options={[{ value: 'all', label: 'All Branches' }, ...branchOptions]}
+                options={[
+                    { value: 'all', label: 'All Branches' },
+                    ...branchOptions,
+                ]}
                 onValueChange={setBranchFilter}
                 placeholder="Branch"
                 searchPlaceholder="Search branches..."
@@ -268,7 +309,10 @@ export function EmployeeAdvanceClient({
             />
             <SearchableDropdown
                 value={statusFilter}
-                options={[{ value: 'all', label: 'All Statuses' }, ...STATUS_OPTIONS]}
+                options={[
+                    { value: 'all', label: 'All Statuses' },
+                    ...STATUS_OPTIONS,
+                ]}
                 onValueChange={setStatusFilter}
                 placeholder="Status"
                 searchPlaceholder="Search statuses..."
@@ -277,7 +321,10 @@ export function EmployeeAdvanceClient({
             />
             <SearchableDropdown
                 value={repaymentFilter}
-                options={[{ value: 'all', label: 'All Repayment Methods' }, ...REPAYMENT_METHODS]}
+                options={[
+                    { value: 'all', label: 'All Repayment Methods' },
+                    ...REPAYMENT_METHODS,
+                ]}
                 onValueChange={setRepaymentFilter}
                 placeholder="Repayment"
                 searchPlaceholder="Search repayment methods..."
@@ -296,7 +343,10 @@ export function EmployeeAdvanceClient({
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
-                        <Link href="/finance" className="bg-white dark:bg-neutral-900">
+                        <Link
+                            href="/finance"
+                            className="bg-white dark:bg-neutral-900"
+                        >
                             Back to Finance
                         </Link>
                     </Button>
@@ -319,19 +369,25 @@ export function EmployeeAdvanceClient({
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
                         <CardDescription>Outstanding Balance</CardDescription>
-                        <CardTitle>{formatAfn(summary.outstandingBalance)}</CardTitle>
+                        <CardTitle>
+                            {formatAfn(summary.outstandingBalance)}
+                        </CardTitle>
                     </CardHeader>
                 </Card>
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
                         <CardDescription>Submitted</CardDescription>
-                        <CardTitle>{formatNumber(summary.submittedCount)}</CardTitle>
+                        <CardTitle>
+                            {formatNumber(summary.submittedCount)}
+                        </CardTitle>
                     </CardHeader>
                 </Card>
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
                         <CardDescription>Approved</CardDescription>
-                        <CardTitle>{formatNumber(summary.approvedCount)}</CardTitle>
+                        <CardTitle>
+                            {formatNumber(summary.approvedCount)}
+                        </CardTitle>
                     </CardHeader>
                 </Card>
             </div>
@@ -343,7 +399,8 @@ export function EmployeeAdvanceClient({
                         Advance Records
                     </CardTitle>
                     <CardDescription>
-                        Recent employee advances with table search, filters, actions, and 10 rows per page.
+                        Recent employee advances with table search, filters,
+                        actions, and 10 rows per page.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -368,10 +425,13 @@ export function EmployeeAdvanceClient({
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingAdvance ? 'Edit Employee Advance' : 'Create Employee Advance'}
+                            {editingAdvance
+                                ? 'Edit Employee Advance'
+                                : 'Create Employee Advance'}
                         </DialogTitle>
                         <DialogDescription>
-                            Record an employee takeout and keep it ready for salary deduction or settlement later.
+                            Record an employee takeout and keep it ready for
+                            salary deduction or settlement later.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -382,7 +442,8 @@ export function EmployeeAdvanceClient({
                                 value={form.employee_id}
                                 options={employeeOptions}
                                 onValueChange={(value) => {
-                                    const selectedEmployee = employeesById.get(value);
+                                    const selectedEmployee =
+                                        employeesById.get(value);
                                     const selectedBranchId =
                                         selectedEmployee?.branch_id != null
                                             ? String(selectedEmployee.branch_id)
@@ -391,7 +452,9 @@ export function EmployeeAdvanceClient({
                                     setForm((current) => ({
                                         ...current,
                                         employee_id: value,
-                                        branch_id: current.branch_id || selectedBranchId,
+                                        branch_id:
+                                            current.branch_id ||
+                                            selectedBranchId,
                                     }));
                                 }}
                                 placeholder="Select employee"
@@ -406,7 +469,10 @@ export function EmployeeAdvanceClient({
                                 value={form.branch_id}
                                 options={branchOptions}
                                 onValueChange={(value) =>
-                                    setForm((current) => ({ ...current, branch_id: value }))
+                                    setForm((current) => ({
+                                        ...current,
+                                        branch_id: value,
+                                    }))
                                 }
                                 placeholder="Select branch"
                                 searchPlaceholder="Search branches..."
@@ -433,7 +499,10 @@ export function EmployeeAdvanceClient({
                             <NumericInput
                                 value={form.amount}
                                 onValueChange={(value) =>
-                                    setForm((current) => ({ ...current, amount: value }))
+                                    setForm((current) => ({
+                                        ...current,
+                                        amount: value,
+                                    }))
                                 }
                                 placeholder="0"
                             />
@@ -462,7 +531,10 @@ export function EmployeeAdvanceClient({
                                 value={form.status}
                                 options={STATUS_OPTIONS}
                                 onValueChange={(value) =>
-                                    setForm((current) => ({ ...current, status: value }))
+                                    setForm((current) => ({
+                                        ...current,
+                                        status: value,
+                                    }))
                                 }
                                 placeholder="Select status"
                                 searchPlaceholder="Search statuses..."
@@ -487,11 +559,16 @@ export function EmployeeAdvanceClient({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={submit}>
-                            {editingAdvance ? 'Update Advance' : 'Create Advance'}
+                            {editingAdvance
+                                ? 'Update Advance'
+                                : 'Create Advance'}
                         </Button>
                     </div>
                 </DialogContent>
@@ -503,7 +580,9 @@ export function EmployeeAdvanceClient({
                 advance={printAdvance}
                 branch={
                     printAdvance
-                        ? branches.find((branch) => branch.id === printAdvance.branch_id) ?? null
+                        ? (branches.find(
+                              (branch) => branch.id === printAdvance.branch_id,
+                          ) ?? null)
                         : null
                 }
             />

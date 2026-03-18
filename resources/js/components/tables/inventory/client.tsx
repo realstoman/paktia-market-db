@@ -2122,7 +2122,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     <NumericInput
                                                         min="1"
                                                         value={row.quantityUsed}
-                                                        onValueChange={(value) =>
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
                                                             updateUsageItemField(
                                                                 row.id,
                                                                 'quantityUsed',

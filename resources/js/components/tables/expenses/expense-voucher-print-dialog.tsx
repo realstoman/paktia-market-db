@@ -204,7 +204,8 @@ export function ExpenseVoucherPrintDialog({
                         Expense Voucher Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review this expense voucher, then print it for manager signature.
+                        Review this expense voucher, then print it for manager
+                        signature.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -220,12 +221,17 @@ export function ExpenseVoucherPrintDialog({
                             <div className="mx-auto max-w-4xl bg-white p-8">
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Voucher
                                         </p>
-                                        <p className="mt-2 font-medium">No: EXP-{expense.id}</p>
+                                        <p className="mt-2 font-medium">
+                                            No: EXP-{expense.id}
+                                        </p>
                                         <p className="text-muted-foreground">
-                                            Date: {formatDateOnly(expense.expense_date)}
+                                            Date:{' '}
+                                            {formatDateOnly(
+                                                expense.expense_date,
+                                            )}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -238,54 +244,87 @@ export function ExpenseVoucherPrintDialog({
                                             Baba Restaurant
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} • {branch?.address ?? 'Address not set'}
+                                            {branch?.name ?? 'Main Branch'} •{' '}
+                                            {branch?.address ??
+                                                'Address not set'}
                                         </p>
                                     </div>
                                     <div className="absolute top-0 right-0 text-right text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Document
                                         </p>
-                                        <p className="mt-2 font-medium">Expense Voucher</p>
+                                        <p className="mt-2 font-medium">
+                                            Expense Voucher
+                                        </p>
                                         <p className="text-muted-foreground">
-                                            Created: {formatDateTime(expense.created_at)}
+                                            Created:{' '}
+                                            {formatDateTime(expense.created_at)}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Expense Date</p>
-                                        <p className="font-medium">{formatDateOnly(expense.expense_date)}</p>
-                                    </div>
-                                    <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Category</p>
-                                        <p className="font-medium">{expense.expense_category?.name ?? '-'}</p>
-                                    </div>
-                                    <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Payment Method</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Expense Date
+                                        </p>
                                         <p className="font-medium">
-                                            {(expense.payment_method ?? 'other').replaceAll('_', ' ')}
+                                            {formatDateOnly(
+                                                expense.expense_date,
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-xl bg-slate-50 p-4">
+                                        <p className="text-xs text-muted-foreground">
+                                            Category
+                                        </p>
+                                        <p className="font-medium">
+                                            {expense.expense_category?.name ??
+                                                '-'}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-xl bg-slate-50 p-4">
+                                        <p className="text-xs text-muted-foreground">
+                                            Payment Method
+                                        </p>
+                                        <p className="font-medium">
+                                            {(
+                                                expense.payment_method ??
+                                                'other'
+                                            ).replaceAll('_', ' ')}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 border-y-2">
-                                    <div className="grid grid-cols-12 border-b px-3 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                        <div className="col-span-6">Description</div>
-                                        <div className="col-span-3">Vendor / Payee</div>
-                                        <div className="col-span-3 text-right">Amount</div>
+                                    <div className="grid grid-cols-12 border-b px-3 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                        <div className="col-span-6">
+                                            Description
+                                        </div>
+                                        <div className="col-span-3">
+                                            Vendor / Payee
+                                        </div>
+                                        <div className="col-span-3 text-right">
+                                            Amount
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-12 px-3 py-4 text-sm">
-                                        <div className="col-span-6">{expense.title}</div>
-                                        <div className="col-span-3">{expense.vendor?.name ?? '-'}</div>
+                                        <div className="col-span-6">
+                                            {expense.title}
+                                        </div>
+                                        <div className="col-span-3">
+                                            {expense.vendor?.name ?? '-'}
+                                        </div>
                                         <div className="col-span-3 text-right font-semibold">
-                                            {formatAfn(Number(expense.amount ?? 0))}
+                                            {formatAfn(
+                                                Number(expense.amount ?? 0),
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm">
-                                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                                    <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">
                                         Notes
                                     </p>
                                     <p className="mt-2 leading-7">
@@ -296,27 +335,41 @@ export function ExpenseVoucherPrintDialog({
                                 <div className="mt-6 ml-auto w-full max-w-xs">
                                     <div className="flex items-center justify-between border-b py-3 text-sm">
                                         <span>Subtotal</span>
-                                        <span>{formatAfn(Number(expense.amount ?? 0))}</span>
+                                        <span>
+                                            {formatAfn(
+                                                Number(expense.amount ?? 0),
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b-2 border-black py-4 text-base font-semibold">
                                         <span>Total</span>
                                         <span className="font-semibold">
-                                            {formatAfn(Number(expense.amount ?? 0))}
+                                            {formatAfn(
+                                                Number(expense.amount ?? 0),
+                                            )}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="mt-20 grid grid-cols-3 gap-8 text-center text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                                    <div className="border-t pt-3">Prepared By</div>
-                                    <div className="border-t pt-3">Finance Manager</div>
-                                    <div className="border-t pt-3">Approved By</div>
+                                <div className="mt-20 grid grid-cols-3 gap-8 text-center text-xs tracking-[0.14em] text-muted-foreground uppercase">
+                                    <div className="border-t pt-3">
+                                        Prepared By
+                                    </div>
+                                    <div className="border-t pt-3">
+                                        Finance Manager
+                                    </div>
+                                    <div className="border-t pt-3">
+                                        Approved By
+                                    </div>
                                 </div>
 
                                 <div className="mt-12 flex items-end justify-between border-t pt-6 text-xs text-muted-foreground">
                                     <p className="max-w-xl leading-6">
-                                        Generated from the finance module for internal review, signature workflow, and restaurant expense records.
+                                        Generated from the finance module for
+                                        internal review, signature workflow, and
+                                        restaurant expense records.
                                     </p>
-                                    <p className="uppercase tracking-[0.16em]">
+                                    <p className="tracking-[0.16em] uppercase">
                                         Baba Finance Copy
                                     </p>
                                 </div>

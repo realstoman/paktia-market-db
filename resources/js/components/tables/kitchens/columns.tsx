@@ -103,9 +103,7 @@ export const buildColumns = (
         id: 'products',
         header: 'Products',
         accessorFn: (row) =>
-            (row.products ?? [])
-                .map((product) => product.name)
-                .join(', '),
+            (row.products ?? []).map((product) => product.name).join(', '),
         cell: ({ row }) => {
             const kitchenProducts = row.original.products ?? [];
             if (kitchenProducts.length === 0) {

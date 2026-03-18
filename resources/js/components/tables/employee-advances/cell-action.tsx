@@ -9,7 +9,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmployeeAdvance } from '@/types';
-import { CheckCircle2, MoreHorizontal, RotateCcw, Pencil, Printer } from 'lucide-react';
+import {
+    CheckCircle2,
+    MoreHorizontal,
+    Pencil,
+    Printer,
+    RotateCcw,
+} from 'lucide-react';
 
 interface CellActionProps {
     data: EmployeeAdvance;

@@ -161,8 +161,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         () =>
             data.filter((branch) => {
                 const matchesCountry = selectedCountryFilter
-                    ? String(branch.country_id ?? '') ===
-                      selectedCountryFilter
+                    ? String(branch.country_id ?? '') === selectedCountryFilter
                     : true;
                 const matchesProvince = selectedProvinceFilter
                     ? String(branch.province_id ?? '') ===
@@ -469,7 +468,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isManageTablesOpen} onOpenChange={setIsManageTablesOpen}>
+            <Dialog
+                open={isManageTablesOpen}
+                onOpenChange={setIsManageTablesOpen}
+            >
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
@@ -507,7 +509,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             </div>
                         </div>
 
-                        <div className="grid gap-4 rounded-md border border-neutral-200 p-4 dark:border-neutral-800 sm:grid-cols-2">
+                        <div className="grid gap-4 rounded-md border border-neutral-200 p-4 sm:grid-cols-2 dark:border-neutral-800">
                             <div className="grid gap-2">
                                 <Label>Table Number</Label>
                                 <Input
@@ -538,9 +540,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                         setTableDescription(event.target.value)
                                     }
                                 />
-                                <InputError
-                                    message={tableErrors.description}
-                                />
+                                <InputError message={tableErrors.description} />
                             </div>
                             <div className="sm:col-span-2">
                                 <Button
@@ -590,9 +590,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                                         size="sm"
                                                         variant="outline"
                                                         onClick={() =>
-                                                            openEditTable(
-                                                                table,
-                                                            )
+                                                            openEditTable(table)
                                                         }
                                                     >
                                                         <Edit className="mr-2 h-4 w-4" />
@@ -643,7 +641,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                     setEditTableNumber(event.target.value)
                                 }
                             />
-                            <InputError message={editTableErrors.table_number} />
+                            <InputError
+                                message={editTableErrors.table_number}
+                            />
                         </div>
                         <div className="grid gap-2">
                             <Label>Title</Label>

@@ -18,6 +18,7 @@ class EmployeeContractPaymentSchedule extends Model
         'amount',
         'status',
         'payment_method',
+        'attachment_path',
         'paid_at',
         'notes',
     ];

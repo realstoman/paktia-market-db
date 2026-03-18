@@ -87,7 +87,31 @@ export function buildColumns({
             id: 'schedule_count',
             accessorFn: (row) => Number(row.schedules?.length ?? 0),
             header: 'Schedules',
-            cell: ({ row }) => formatNumber(row.original.schedules?.length ?? 0),
+            cell: ({ row }) =>
+                formatNumber(row.original.schedules?.length ?? 0),
+        },
+        {
+            id: 'payment_progress',
+            accessorFn: (row) =>
+                `${row.paid_total ?? 0}-${row.unpaid_total ?? 0}`,
+            header: 'Paid / Unpaid',
+            cell: ({ row }) => (
+                <div>
+                    <p className="text-xs text-muted-foreground">
+                        Scheduled{' '}
+                        {formatAfn(
+                            row.original.scheduled_total ??
+                                row.original.contract_amount,
+                        )}
+                    </p>
+                    <p className="font-medium text-emerald-700 dark:text-emerald-300">
+                        Paid {formatAfn(row.original.paid_total ?? 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        Unpaid {formatAfn(row.original.unpaid_total ?? 0)}
+                    </p>
+                </div>
+            ),
         },
         {
             id: 'status',
