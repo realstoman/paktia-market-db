@@ -304,7 +304,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         return User::query()
-            ->with('roles:id,name')
+            ->with(['roles:id,name', 'branch:id,name'])
             ->whereKeyNot($currentUser->getKey())
             ->latest()
             ->take(4)

@@ -7,7 +7,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { type AppNotification, type Role, type SharedData, type User } from '@/types';
+import {
+    type AppNotification,
+    type Role,
+    type SharedData,
+    type User,
+} from '@/types';
 import { usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -247,91 +252,94 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                     No notifications yet
                                 </p>
                                 <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
-                                    New orders, payments, salary activity, employees, and users will appear here.
+                                    New orders, payments, salary activity,
+                                    employees, and users will appear here.
                                 </p>
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 {notifications.map((notification) => {
-                                const config =
-                                    categoryConfig[notification.category];
-                                const CategoryIcon = config.icon;
+                                    const config =
+                                        categoryConfig[notification.category];
+                                    const CategoryIcon = config.icon;
 
-                                return (
-                                    <button
-                                        key={notification.id}
-                                        type="button"
-                                        className="group flex w-full items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900"
-                                    >
-                                        <div className="relative mt-0.5">
-                                            <div
-                                                className={cn(
-                                                    'flex h-11 w-11 items-center justify-center rounded-2xl ring-1',
-                                                    config.accent,
-                                                )}
-                                            >
-                                                <CategoryIcon className="h-5 w-5" />
-                                            </div>
-                                            {notification.unread && (
-                                                <span
+                                    return (
+                                        <button
+                                            key={notification.id}
+                                            type="button"
+                                            className="group flex w-full items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900"
+                                        >
+                                            <div className="relative mt-0.5">
+                                                <div
                                                     className={cn(
-                                                        'absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
-                                                        config.dot,
+                                                        'flex h-11 w-11 items-center justify-center rounded-2xl ring-1',
+                                                        config.accent,
                                                     )}
-                                                />
-                                            )}
-                                        </div>
+                                                >
+                                                    <CategoryIcon className="h-5 w-5" />
+                                                </div>
+                                                {notification.unread && (
+                                                    <span
+                                                        className={cn(
+                                                            'absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
+                                                            config.dot,
+                                                        )}
+                                                    />
+                                                )}
+                                            </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="space-y-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="text-sm font-semibold text-neutral-950 dark:text-white">
-                                                            {notification.title}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="space-y-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                                                {
+                                                                    notification.title
+                                                                }
+                                                            </p>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="rounded-full border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
+                                                            >
+                                                                {config.label}
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-5 text-neutral-600 dark:text-neutral-300">
+                                                            {
+                                                                notification.description
+                                                            }
                                                         </p>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className="rounded-full border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
-                                                        >
-                                                            {config.label}
-                                                        </Badge>
                                                     </div>
-                                                    <p className="line-clamp-2 text-sm leading-5 text-neutral-600 dark:text-neutral-300">
-                                                        {
-                                                            notification.description
-                                                        }
-                                                    </p>
+
+                                                    <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
+                                                        {notification.createdAt
+                                                            ? formatDistanceToNow(
+                                                                  new Date(
+                                                                      notification.createdAt,
+                                                                  ),
+                                                                  {
+                                                                      addSuffix: true,
+                                                                  },
+                                                              )
+                                                            : 'Recently'}
+                                                    </span>
                                                 </div>
 
-                                                <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
-                                                    {notification.createdAt
-                                                        ? formatDistanceToNow(
-                                                              new Date(
-                                                                  notification.createdAt,
-                                                              ),
-                                                              {
-                                                                  addSuffix: true,
-                                                              },
-                                                          )
-                                                        : 'Recently'}
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                                                {notification.meta ? (
-                                                    <span className="rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
-                                                        {notification.meta}
+                                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                                    {notification.meta ? (
+                                                        <span className="rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
+                                                            {notification.meta}
+                                                        </span>
+                                                    ) : null}
+                                                    <span className="text-neutral-500 dark:text-neutral-400">
+                                                        {getPriorityLabel(
+                                                            notification.priority,
+                                                        )}
                                                     </span>
-                                                ) : null}
-                                                <span className="text-neutral-500 dark:text-neutral-400">
-                                                    {getPriorityLabel(
-                                                        notification.priority,
-                                                    )}
-                                                </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                );
+                                        </button>
+                                    );
                                 })}
                             </div>
                         )}
