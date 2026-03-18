@@ -224,6 +224,10 @@ export function PayrollClient({
         React.useState<PayrollRun | null>(null);
     const [scheduleApprovalTarget, setScheduleApprovalTarget] =
         React.useState<EmployeeContractPaymentSchedule | null>(null);
+    const [deleteScheduleTarget, setDeleteScheduleTarget] =
+        React.useState<EmployeeContractPaymentSchedule | null>(null);
+    const [deleteContractTarget, setDeleteContractTarget] =
+        React.useState<EmployeeContract | null>(null);
     const [scheduleAttachmentTarget, setScheduleAttachmentTarget] =
         React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
@@ -706,7 +710,7 @@ export function PayrollClient({
         () =>
             buildScheduleColumns({
                 onEdit: openScheduleEdit,
-                onDelete: deleteSchedule,
+                onDelete: setDeleteScheduleTarget,
                 onPrint: openSchedulePrint,
                 onViewAttachment: openScheduleAttachment,
                 onReviewApproval: setScheduleApprovalTarget,
@@ -714,7 +718,6 @@ export function PayrollClient({
             }),
         [
             canApprove,
-            deleteSchedule,
             openScheduleAttachment,
             openScheduleEdit,
             openSchedulePrint,
@@ -725,10 +728,10 @@ export function PayrollClient({
         () =>
             buildContractColumns({
                 onEdit: openContractEdit,
-                onDelete: deleteContract,
+                onDelete: setDeleteContractTarget,
                 onPrint: openContractPrint,
             }),
-        [deleteContract, openContractEdit, openContractPrint],
+        [openContractEdit, openContractPrint],
     );
 
     const selectedPrintItem = React.useMemo(
@@ -1874,6 +1877,84 @@ export function PayrollClient({
                             }}
                         >
                             Approve
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={deleteContractTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteContractTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Delete Contract Plan
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove the contract plan and its unpaid
+                            schedule rows. Paid schedules are already protected
+                            and cannot be deleted through this action.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => setDeleteContractTarget(null)}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (deleteContractTarget) {
+                                    deleteContract(deleteContractTarget);
+                                }
+                                setDeleteContractTarget(null);
+                            }}
+                        >
+                            Delete Plan
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={deleteScheduleTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteScheduleTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Delete Contract Schedule
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will remove the selected schedule row and its
+                            uploaded attachment. Paid schedules are already
+                            protected and cannot be deleted.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => setDeleteScheduleTarget(null)}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (deleteScheduleTarget) {
+                                    deleteSchedule(deleteScheduleTarget);
+                                }
+                                setDeleteScheduleTarget(null);
+                            }}
+                        >
+                            Delete Schedule
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

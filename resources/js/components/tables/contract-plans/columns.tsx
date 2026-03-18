@@ -81,14 +81,7 @@ export function buildColumns({
             id: 'contract_amount',
             accessorFn: (row) => Number(row.contract_amount ?? 0),
             header: 'Contract Amount',
-            cell: ({ row }) => (
-                <div>
-                    <p className="font-medium">{formatAfn(row.original.contract_amount)}</p>
-                    <p className="text-xs text-muted-foreground">
-                        Scheduled {formatAfn(row.original.scheduled_total ?? row.original.contract_amount)}
-                    </p>
-                </div>
-            ),
+            cell: ({ row }) => formatAfn(row.original.contract_amount),
         },
         {
             id: 'schedule_count',
@@ -102,6 +95,9 @@ export function buildColumns({
             header: 'Paid / Unpaid',
             cell: ({ row }) => (
                 <div>
+                    <p className="text-xs text-muted-foreground">
+                        Scheduled {formatAfn(row.original.scheduled_total ?? row.original.contract_amount)}
+                    </p>
                     <p className="font-medium text-emerald-700 dark:text-emerald-300">
                         Paid {formatAfn(row.original.paid_total ?? 0)}
                     </p>
