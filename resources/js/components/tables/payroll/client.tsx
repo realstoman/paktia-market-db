@@ -704,17 +704,17 @@ export function PayrollClient({
                             This is where finance turns active employees, salary setup, and approved advances into a structured payroll run ready for approval and payout.
                         </p>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[540px] lg:grid-cols-3">
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
-                            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Active Staff</p>
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-neutral-500">Active Staff</p>
                             <p className="mt-2 text-2xl font-semibold">{formatNumber(summary.activeEmployees)}</p>
                         </div>
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
-                            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Unpaid Payroll</p>
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-neutral-500">Unpaid Payroll</p>
                             <p className="mt-2 text-2xl font-semibold">{formatAfn(summary.unpaidPayroll)}</p>
                         </div>
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
-                            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Advances To Deduct</p>
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-neutral-500">Advances To Deduct</p>
                             <p className="mt-2 text-2xl font-semibold">{formatAfn(summary.outstandingAdvances)}</p>
                         </div>
                     </div>
