@@ -1171,7 +1171,7 @@ export function PayrollClient({
                                     placeholder="20, 30, 50"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Optional. Enter comma-separated milestone percentages that add up to 100 and the schedule rows will be generated automatically by month from the start date.
+                                    Optional. Enter comma-separated milestone percentages that add up to 100 and the schedule rows will be generated automatically by month from the start date when the plan is created.
                                 </p>
                             </div>
                         ) : null}
@@ -1213,7 +1213,15 @@ export function PayrollClient({
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
+            <Dialog
+                open={isScheduleOpen}
+                onOpenChange={(open) => {
+                    setIsScheduleOpen(open);
+                    if (!open) {
+                        setScheduleReceiptFile(null);
+                    }
+                }}
+            >
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
@@ -1490,7 +1498,12 @@ export function PayrollClient({
 
             <AttachmentViewDialog
                 open={isScheduleAttachmentOpen}
-                onOpenChange={setIsScheduleAttachmentOpen}
+                onOpenChange={(open) => {
+                    setIsScheduleAttachmentOpen(open);
+                    if (!open) {
+                        setScheduleAttachmentTarget(null);
+                    }
+                }}
                 path={scheduleAttachmentTarget?.attachment_path ?? null}
                 title="Contract Schedule Attachment"
             />
