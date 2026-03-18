@@ -509,8 +509,8 @@ export default function ReportsPage({
                     })}
                 </section>
 
-                <section className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
-                    <Card className="shadow-none">
+                <section className="grid gap-4 xl:grid-cols-12">
+                    <Card className="min-w-0 shadow-none xl:col-span-8">
                         <CardHeader className="pb-3">
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
@@ -583,81 +583,89 @@ export default function ReportsPage({
                                         )}
                                     </div>
 
-                                    <div className="rounded-2xl border">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    {(
-                                                        activeReport.columns ??
-                                                        []
-                                                    ).map((column) => (
-                                                        <TableHead
-                                                            key={column.key}
-                                                        >
-                                                            {column.label}
-                                                        </TableHead>
-                                                    ))}
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {(activeReport.rows ?? [])
-                                                    .length > 0 ? (
-                                                    (
-                                                        activeReport.rows ?? []
-                                                    ).map((row, index) => (
-                                                        <TableRow
-                                                            key={`${row.reference ?? index}`}
-                                                        >
-                                                            {(
-                                                                activeReport.columns ??
-                                                                []
-                                                            ).map((column) => (
-                                                                <TableCell
-                                                                    key={
-                                                                        column.key
-                                                                    }
-                                                                >
-                                                                    {activeReport.currencyColumns?.includes(
-                                                                        column.key,
-                                                                    )
-                                                                        ? formatAfn(
-                                                                              Number(
-                                                                                  row[
-                                                                                      column
-                                                                                          .key
-                                                                                  ] ??
-                                                                                      0,
-                                                                              ),
-                                                                          )
-                                                                        : String(
-                                                                              row[
-                                                                                  column
-                                                                                      .key
-                                                                              ] ??
-                                                                                  '-',
-                                                                          )}
-                                                                </TableCell>
-                                                            ))}
-                                                        </TableRow>
-                                                    ))
-                                                ) : (
+                                    <div className="overflow-hidden rounded-2xl border">
+                                        <div className="max-h-[36rem] overflow-auto">
+                                            <Table className="min-w-[960px]">
+                                                <TableHeader>
                                                     <TableRow>
-                                                        <TableCell
-                                                            colSpan={
-                                                                (
+                                                        {(
+                                                            activeReport.columns ??
+                                                            []
+                                                        ).map((column) => (
+                                                            <TableHead
+                                                                key={column.key}
+                                                            >
+                                                                {column.label}
+                                                            </TableHead>
+                                                        ))}
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {(activeReport.rows ?? [])
+                                                        .length > 0 ? (
+                                                        (
+                                                            activeReport.rows ??
+                                                            []
+                                                        ).map((row, index) => (
+                                                            <TableRow
+                                                                key={`${row.reference ?? index}`}
+                                                            >
+                                                                {(
                                                                     activeReport.columns ??
                                                                     []
-                                                                ).length || 1
-                                                            }
-                                                            className="py-10 text-center text-muted-foreground"
-                                                        >
-                                                            No rows matched this
-                                                            date range.
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                                                                ).map(
+                                                                    (
+                                                                        column,
+                                                                    ) => (
+                                                                        <TableCell
+                                                                            key={
+                                                                                column.key
+                                                                            }
+                                                                        >
+                                                                            {activeReport.currencyColumns?.includes(
+                                                                                column.key,
+                                                                            )
+                                                                                ? formatAfn(
+                                                                                      Number(
+                                                                                          row[
+                                                                                              column
+                                                                                                  .key
+                                                                                          ] ??
+                                                                                              0,
+                                                                                      ),
+                                                                                  )
+                                                                                : String(
+                                                                                      row[
+                                                                                          column
+                                                                                              .key
+                                                                                      ] ??
+                                                                                          '-',
+                                                                                  )}
+                                                                        </TableCell>
+                                                                    ),
+                                                                )}
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell
+                                                                colSpan={
+                                                                    (
+                                                                        activeReport.columns ??
+                                                                        []
+                                                                    ).length ||
+                                                                    1
+                                                                }
+                                                                className="py-10 text-center text-muted-foreground"
+                                                            >
+                                                                No rows matched
+                                                                this date range.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </div>
                                 </>
                             ) : (
@@ -683,7 +691,7 @@ export default function ReportsPage({
                         </CardContent>
                     </Card>
 
-                    <div className="space-y-4">
+                    <div className="min-w-0 space-y-4 xl:col-span-4">
                         {activeReport.isReady
                             ? (activeReport.insights ?? []).map((section) => (
                                   <Card
