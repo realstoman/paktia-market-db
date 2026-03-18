@@ -28,6 +28,7 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    notifications?: AppNotification[];
     tools?: {
         countries: Country[];
         provinces: Province[];
@@ -42,6 +43,23 @@ export interface SharedData {
     };
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface AppNotification {
+    id: string;
+    category:
+        | 'orders'
+        | 'payments'
+        | 'salary'
+        | 'employees'
+        | 'users'
+        | 'system';
+    title: string;
+    description: string;
+    createdAt?: string | null;
+    meta?: string | null;
+    unread?: boolean;
+    priority: 'high' | 'medium' | 'low';
 }
 
 export interface User {

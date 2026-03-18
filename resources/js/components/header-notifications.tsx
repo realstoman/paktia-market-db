@@ -7,7 +7,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { type Role, type User } from '@/types';
+import { type AppNotification, type Role, type SharedData, type User } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
     Bell,
@@ -29,17 +30,6 @@ type NotificationCategory =
     | 'system';
 
 type NotificationPriority = 'high' | 'medium' | 'low';
-
-interface HeaderNotificationItem {
-    id: string;
-    category: NotificationCategory;
-    title: string;
-    description: string;
-    createdAt: string;
-    meta: string;
-    unread?: boolean;
-    priority: NotificationPriority;
-}
 
 interface HeaderNotificationsProps {
     user: User;
@@ -92,75 +82,6 @@ const categoryConfig = {
     }
 >;
 
-const sampleNotifications: HeaderNotificationItem[] = [
-    {
-        id: 'ord-2048',
-        category: 'orders',
-        title: 'New dine-in order received',
-        description:
-            'Table 8 submitted a fresh kitchen ticket with 6 items awaiting confirmation.',
-        createdAt: '2026-03-18T15:40:00+04:30',
-        meta: 'Order #2048',
-        unread: true,
-        priority: 'high',
-    },
-    {
-        id: 'pay-118',
-        category: 'payments',
-        title: 'Payment posted successfully',
-        description:
-            'A cash payment was recorded against the lunch service and matched to the order.',
-        createdAt: '2026-03-18T15:12:00+04:30',
-        meta: 'Cash desk A',
-        unread: true,
-        priority: 'medium',
-    },
-    {
-        id: 'sal-0318',
-        category: 'salary',
-        title: 'Salary batch is ready for review',
-        description:
-            'The March payroll draft for 24 employees is prepared and waiting for approval.',
-        createdAt: '2026-03-18T13:05:00+04:30',
-        meta: 'March payroll',
-        unread: true,
-        priority: 'high',
-    },
-    {
-        id: 'emp-090',
-        category: 'employees',
-        title: 'New employee profile created',
-        description:
-            'A kitchen assistant was added to the Kabul branch and needs onboarding follow-up.',
-        createdAt: '2026-03-18T10:20:00+04:30',
-        meta: 'Kabul branch',
-        unread: false,
-        priority: 'medium',
-    },
-    {
-        id: 'usr-077',
-        category: 'users',
-        title: 'New user account activated',
-        description:
-            'An operations user was granted dashboard access with branch-level permissions.',
-        createdAt: '2026-03-17T16:45:00+04:30',
-        meta: 'Role assignment complete',
-        unread: false,
-        priority: 'low',
-    },
-    {
-        id: 'sys-011',
-        category: 'system',
-        title: 'Finance sync completed',
-        description:
-            'Daily ledger posting finished without issues and the books are up to date.',
-        createdAt: '2026-03-17T09:30:00+04:30',
-        meta: 'Last sync today',
-        unread: false,
-        priority: 'low',
-    },
-];
-
 const roleCategoryAccess: Record<string, NotificationCategory[]> = {
     cashier: ['orders', 'payments'],
     admin: ['orders', 'payments', 'salary', 'employees', 'users', 'system'],
@@ -190,11 +111,14 @@ function getRoleNames(user: User): string[] {
         .filter(Boolean);
 }
 
-function getVisibleNotifications(user: User): HeaderNotificationItem[] {
+function getVisibleNotifications(
+    user: User,
+    notifications: AppNotification[],
+): AppNotification[] {
     const roles = getRoleNames(user);
 
     if (roles.length === 0) {
-        return sampleNotifications;
+        return notifications;
     }
 
     const allowedCategories = new Set<NotificationCategory>();
@@ -206,10 +130,10 @@ function getVisibleNotifications(user: User): HeaderNotificationItem[] {
     });
 
     if (allowedCategories.size === 0) {
-        return sampleNotifications;
+        return notifications;
     }
 
-    return sampleNotifications.filter((notification) =>
+    return notifications.filter((notification) =>
         allowedCategories.has(notification.category),
     );
 }
@@ -222,7 +146,11 @@ function getPriorityLabel(priority: NotificationPriority): string {
 }
 
 export function HeaderNotifications({ user }: HeaderNotificationsProps) {
-    const notifications = getVisibleNotifications(user);
+    const page = usePage<SharedData>();
+    const notifications = getVisibleNotifications(
+        user,
+        page.props.notifications ?? [],
+    );
     const unreadCount = notifications.filter(
         (notification) => notification.unread,
     ).length;
@@ -310,8 +238,21 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
 
                 <ScrollArea className="max-h-[420px]">
                     <div className="p-3">
-                        <div className="space-y-2">
-                            {notifications.map((notification) => {
+                        {notifications.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
+                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                                    <Bell className="h-5 w-5" />
+                                </div>
+                                <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                    No notifications yet
+                                </p>
+                                <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
+                                    New orders, payments, salary activity, employees, and users will appear here.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {notifications.map((notification) => {
                                 const config =
                                     categoryConfig[notification.category];
                                 const CategoryIcon = config.icon;
@@ -363,19 +304,25 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                                 </div>
 
                                                 <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
-                                                    {formatDistanceToNow(
-                                                        new Date(
-                                                            notification.createdAt,
-                                                        ),
-                                                        { addSuffix: true },
-                                                    )}
+                                                    {notification.createdAt
+                                                        ? formatDistanceToNow(
+                                                              new Date(
+                                                                  notification.createdAt,
+                                                              ),
+                                                              {
+                                                                  addSuffix: true,
+                                                              },
+                                                          )
+                                                        : 'Recently'}
                                                 </span>
                                             </div>
 
                                             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                                                <span className="rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
-                                                    {notification.meta}
-                                                </span>
+                                                {notification.meta ? (
+                                                    <span className="rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
+                                                        {notification.meta}
+                                                    </span>
+                                                ) : null}
                                                 <span className="text-neutral-500 dark:text-neutral-400">
                                                     {getPriorityLabel(
                                                         notification.priority,
@@ -385,8 +332,9 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                         </div>
                                     </button>
                                 );
-                            })}
-                        </div>
+                                })}
+                            </div>
+                        )}
                     </div>
                 </ScrollArea>
             </DropdownMenuContent>
