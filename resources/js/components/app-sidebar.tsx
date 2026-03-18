@@ -21,6 +21,7 @@ import {
     Globe,
     LayoutGrid,
     Package,
+    ScrollText,
     ShieldCheck,
     Smartphone,
     UserRound,
@@ -63,6 +64,11 @@ const mainNavItems: NavItem[] = [
         title: 'Finance',
         href: '/finance',
         icon: Wallet,
+    },
+    {
+        title: 'Reports',
+        href: '/reports',
+        icon: ScrollText,
     },
     {
         title: 'Branches',

@@ -17,6 +17,7 @@ use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
@@ -352,6 +353,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
     Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
+    Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
 
     // Inventory
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
