@@ -196,7 +196,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative h-10 w-10 rounded-2xl border border-transparent bg-white/70 text-neutral-700 shadow-sm shadow-black/5 transition hover:border-neutral-200 hover:bg-white hover:text-neutral-950 dark:bg-neutral-950/40 dark:text-neutral-200 dark:hover:border-neutral-800 dark:hover:bg-neutral-950"
+                    className="relative h-9 w-9 rounded-full border border-neutral-200/70 bg-neutral-100 text-neutral-700 transition-all duration-300 hover:bg-neutral-200/70 hover:text-neutral-950 dark:border-neutral-700/90 dark:bg-neutral-950 dark:text-neutral-200"
                 >
                     <Bell className="h-[18px] w-[18px]" />
                     {unreadCount > 0 && (
