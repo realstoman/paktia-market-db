@@ -546,7 +546,10 @@ export function PayrollClient({
                 payload,
                 {
                     preserveScroll: true,
-                    onSuccess: () => setIsContractOpen(false),
+                    onSuccess: () => {
+                        setIsContractOpen(false);
+                        toast.success('Contract plan updated successfully.');
+                    },
                     onError: (errors) => {
                         const firstError = Object.values(errors)[0];
                         toast.error(
@@ -562,7 +565,10 @@ export function PayrollClient({
 
         router.post('/finance/payroll/contracts', payload, {
             preserveScroll: true,
-            onSuccess: () => setIsContractOpen(false),
+            onSuccess: () => {
+                setIsContractOpen(false);
+                toast.success('Contract plan created successfully.');
+            },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
                 toast.error(
@@ -601,6 +607,7 @@ export function PayrollClient({
                     onSuccess: () => {
                         setIsScheduleOpen(false);
                         setScheduleReceiptFile(null);
+                        toast.success('Contract schedule updated successfully.');
                     },
                     onError: (errors) => {
                         const firstError = Object.values(errors)[0];
@@ -621,6 +628,7 @@ export function PayrollClient({
             onSuccess: () => {
                 setIsScheduleOpen(false);
                 setScheduleReceiptFile(null);
+                toast.success('Contract schedule created successfully.');
             },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
