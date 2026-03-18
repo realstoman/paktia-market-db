@@ -58,6 +58,7 @@ export interface AppNotification {
     description: string;
     createdAt?: string | null;
     meta?: string | null;
+    href?: string | null;
     unread?: boolean;
     priority: 'high' | 'medium' | 'low';
 }

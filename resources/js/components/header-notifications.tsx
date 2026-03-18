@@ -5,7 +5,6 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import {
     type AppNotification,
@@ -13,7 +12,7 @@ import {
     type SharedData,
     type User,
 } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
     Bell,
@@ -25,6 +24,7 @@ import {
     Sparkles,
     Users,
 } from 'lucide-react';
+import { useState } from 'react';
 
 type NotificationCategory =
     | 'orders'
@@ -150,12 +150,39 @@ function getPriorityLabel(priority: NotificationPriority): string {
     return 'Informational';
 }
 
+function getDefaultHref(category: NotificationCategory): string {
+    switch (category) {
+        case 'orders':
+            return '/orders';
+        case 'payments':
+            return '/finance/cash-bank';
+        case 'salary':
+            return '/finance/payroll';
+        case 'employees':
+            return '/employees';
+        case 'users':
+            return '/users';
+        case 'system':
+        default:
+            return '/dashboard';
+    }
+}
+
 export function HeaderNotifications({ user }: HeaderNotificationsProps) {
     const page = usePage<SharedData>();
+    const [selectedCategory, setSelectedCategory] = useState<
+        NotificationCategory | 'all'
+    >('all');
     const notifications = getVisibleNotifications(
         user,
         page.props.notifications ?? [],
     );
+    const displayedNotifications =
+        selectedCategory === 'all'
+            ? notifications
+            : notifications.filter(
+                  (notification) => notification.category === selectedCategory,
+              );
     const unreadCount = notifications.filter(
         (notification) => notification.unread,
     ).length;
@@ -212,19 +239,40 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                             variant="outline"
                             className="rounded-full border-neutral-300 bg-white/85 px-2.5 py-1 text-[11px] font-semibold text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
                         >
-                            {notifications.length} items
+                            {displayedNotifications.length} items
                         </Badge>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedCategory('all')}
+                            className={cn(
+                                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition',
+                                selectedCategory === 'all'
+                                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
+                                    : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
+                            )}
+                        >
+                            All
+                        </button>
                         {Array.from(visibleCategories).map((category) => {
                             const config = categoryConfig[category];
                             const CategoryIcon = config.icon;
 
                             return (
-                                <div
+                                <button
                                     key={category}
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-2.5 py-1 text-xs font-medium text-neutral-700 shadow-sm shadow-black/5 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200"
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedCategory(category)
+                                    }
+                                    className={cn(
+                                        'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition',
+                                        selectedCategory === category
+                                            ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
+                                            : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
+                                    )}
                                 >
                                     <span
                                         className={cn(
@@ -235,15 +283,15 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                         <CategoryIcon className="h-3.5 w-3.5" />
                                     </span>
                                     {config.label}
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
                 </div>
 
-                <ScrollArea className="max-h-[420px]">
-                    <div className="p-3">
-                        {notifications.length === 0 ? (
+                <div className="max-h-[420px] overflow-y-auto overscroll-contain p-3">
+                    {displayedNotifications.length === 0 ? (
+                        notifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
                                     <Bell className="h-5 w-5" />
@@ -257,94 +305,109 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-2">
-                                {notifications.map((notification) => {
-                                    const config =
-                                        categoryConfig[notification.category];
-                                    const CategoryIcon = config.icon;
-
-                                    return (
-                                        <button
-                                            key={notification.id}
-                                            type="button"
-                                            className="group flex w-full items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900"
-                                        >
-                                            <div className="relative mt-0.5">
-                                                <div
-                                                    className={cn(
-                                                        'flex h-11 w-11 items-center justify-center rounded-2xl ring-1',
-                                                        config.accent,
-                                                    )}
-                                                >
-                                                    <CategoryIcon className="h-5 w-5" />
-                                                </div>
-                                                {notification.unread && (
-                                                    <span
-                                                        className={cn(
-                                                            'absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
-                                                            config.dot,
-                                                        )}
-                                                    />
-                                                )}
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="space-y-1">
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <p className="text-sm font-semibold text-neutral-950 dark:text-white">
-                                                                {
-                                                                    notification.title
-                                                                }
-                                                            </p>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="rounded-full border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
-                                                            >
-                                                                {config.label}
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="line-clamp-2 text-sm leading-5 text-neutral-600 dark:text-neutral-300">
-                                                            {
-                                                                notification.description
-                                                            }
-                                                        </p>
-                                                    </div>
-
-                                                    <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
-                                                        {notification.createdAt
-                                                            ? formatDistanceToNow(
-                                                                  new Date(
-                                                                      notification.createdAt,
-                                                                  ),
-                                                                  {
-                                                                      addSuffix: true,
-                                                                  },
-                                                              )
-                                                            : 'Recently'}
-                                                    </span>
-                                                </div>
-
-                                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                                                    {notification.meta ? (
-                                                        <span className="rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
-                                                            {notification.meta}
-                                                        </span>
-                                                    ) : null}
-                                                    <span className="text-neutral-500 dark:text-neutral-400">
-                                                        {getPriorityLabel(
-                                                            notification.priority,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
+                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                                    <Bell className="h-5 w-5" />
+                                </div>
+                                <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                    No items in this category
+                                </p>
+                                <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
+                                    Choose another badge above to see more
+                                    recent updates.
+                                </p>
                             </div>
-                        )}
-                    </div>
-                </ScrollArea>
+                        )
+                    ) : (
+                        <div className="space-y-2">
+                            {displayedNotifications.map((notification) => {
+                                const config =
+                                    categoryConfig[notification.category];
+                                const CategoryIcon = config.icon;
+                                const href =
+                                    notification.href ??
+                                    getDefaultHref(notification.category);
+
+                                return (
+                                    <button
+                                        key={notification.id}
+                                        type="button"
+                                        onClick={() => router.visit(href)}
+                                        className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900"
+                                    >
+                                        <div className="relative mt-0.5">
+                                            <div
+                                                className={cn(
+                                                    'flex h-11 w-11 items-center justify-center rounded-2xl ring-1',
+                                                    config.accent,
+                                                )}
+                                            >
+                                                <CategoryIcon className="h-5 w-5" />
+                                            </div>
+                                            {notification.unread && (
+                                                <span
+                                                    className={cn(
+                                                        'absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
+                                                        config.dot,
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="space-y-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                                            {notification.title}
+                                                        </p>
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="pointer-events-none rounded-full border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
+                                                        >
+                                                            {config.label}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="line-clamp-2 text-sm leading-5 text-neutral-600 dark:text-neutral-300">
+                                                        {
+                                                            notification.description
+                                                        }
+                                                    </p>
+                                                </div>
+
+                                                <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
+                                                    {notification.createdAt
+                                                        ? formatDistanceToNow(
+                                                              new Date(
+                                                                  notification.createdAt,
+                                                              ),
+                                                              {
+                                                                  addSuffix: true,
+                                                              },
+                                                          )
+                                                        : 'Recently'}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                                {notification.meta ? (
+                                                    <span className="pointer-events-none rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
+                                                        {notification.meta}
+                                                    </span>
+                                                ) : null}
+                                                <span className="text-neutral-500 dark:text-neutral-400">
+                                                    {getPriorityLabel(
+                                                        notification.priority,
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     );
