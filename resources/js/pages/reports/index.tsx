@@ -379,13 +379,14 @@ export default function ReportsPage({
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Live now</span>
                                     <Badge variant="success">
-                                        Orders, Inventory, Finance, Products
+                                        Orders, Inventory, Finance, Products,
+                                        Employees, Branches, Users
                                     </Badge>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Next recommended</span>
                                     <span className="font-medium text-foreground">
-                                        Employees
+                                        Export upgrades
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">

@@ -141,7 +141,7 @@ class ReportsController extends Controller
                 'key' => 'employees',
                 'title' => 'Employees',
                 'description' => 'Headcount, payroll-facing trends, contract activity, and branch staffing.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
             [
                 'key' => 'finance',
@@ -153,13 +153,13 @@ class ReportsController extends Controller
                 'key' => 'branches',
                 'title' => 'Branches',
                 'description' => 'Branch activity, operational footprint, and regional comparisons.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
             [
                 'key' => 'users',
                 'title' => 'Users',
                 'description' => 'Access activity, onboarding, and branch-level user distribution.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
         ];
     }
@@ -269,6 +269,9 @@ class ReportsController extends Controller
             'inventory' => $this->buildInventoryReport($startDate, $endDate, $branchId),
             'finance' => $this->buildFinanceReport($startDate, $endDate, $branchId),
             'products' => $this->buildProductsReport($startDate, $endDate, $branchId),
+            'employees' => $this->buildEmployeesReport($startDate, $endDate, $branchId),
+            'branches' => $this->buildBranchesReport($startDate, $endDate, $branchId),
+            'users' => $this->buildUsersReport($startDate, $endDate, $branchId),
             default => $this->buildPlannedReport($module),
         };
     }
@@ -896,6 +899,395 @@ class ReportsController extends Controller
             'exportNotes' => [
                 'Sales metrics are scoped to the selected date period and optional branch.',
                 'Catalog counts remain based on the current product list so managers can compare live assortment against period sales.',
+            ],
+        ];
+    }
+
+    private function buildEmployeesReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $employees = Employee::query()
+            ->with([
+                'branch:id,name',
+                'employmentType:id,name',
+                'employeePosition:id,name',
+                'shift:id,name',
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->orderBy('first_name')
+            ->get();
+
+        $advances = \App\Models\EmployeeAdvance::query()
+            ->with(['employee:id,first_name,last_name', 'branch:id,name'])
+            ->whereBetween('advance_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $contracts = \App\Models\EmployeeContract::query()
+            ->with(['employee:id,first_name,last_name', 'branch:id,name'])
+            ->whereBetween('start_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $payrollItems = \App\Models\PayrollRunItem::query()
+            ->with(['employee:id,first_name,last_name', 'payrollRun.branch:id,name'])
+            ->whereHas('payrollRun', function (Builder $query) use ($startDate, $endDate, $branchId) {
+                $query->whereDate('period_start', '<=', $endDate->toDateString())
+                    ->whereDate('period_end', '>=', $startDate->toDateString())
+                    ->when($branchId, fn (Builder $inner) => $inner->where('branch_id', $branchId));
+            })
+            ->get();
+
+        $rows = $employees->map(function (Employee $employee) use ($advances, $contracts, $payrollItems) {
+            $employeeAdvances = $advances->where('employee_id', $employee->id);
+            $employeeContracts = $contracts->where('employee_id', $employee->id);
+            $employeePayrollItems = $payrollItems->where('employee_id', $employee->id);
+
+            return [
+                'employee' => trim($employee->first_name.' '.$employee->last_name),
+                'branch' => $employee->branch?->name ?? 'Unassigned',
+                'employmentType' => $employee->employmentType?->name ?? '-',
+                'position' => $employee->employeePosition?->name ?? '-',
+                'shift' => $employee->shift?->name ?? '-',
+                'status' => str($employee->status ?? ($employee->is_active ? 'active' : 'inactive'))
+                    ->replace('_', ' ')
+                    ->title()
+                    ->toString(),
+                'salary' => (float) ($employee->salary ?? 0),
+                'advances' => (float) $employeeAdvances->sum('amount'),
+                'contracts' => (float) $employeeContracts->sum('contract_amount'),
+                'payrollNet' => (float) $employeePayrollItems->sum('net_salary'),
+            ];
+        })->sortBy('employee')->values();
+
+        $branchStaffing = $rows
+            ->groupBy('branch')
+            ->map(fn ($group, $branch) => [
+                'label' => $branch,
+                'value' => number_format((float) $group->count(), 0).' employees',
+                'meta' => 'Payroll '.number_format((float) $group->sum('payrollNet'), 0),
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $employmentMix = $rows
+            ->groupBy('employmentType')
+            ->map(fn ($group, $type) => [
+                'label' => $type,
+                'value' => number_format((float) $group->count(), 0).' employees',
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $advanceExposure = $rows
+            ->sortByDesc('advances')
+            ->take(5)
+            ->map(fn ($row) => [
+                'label' => $row['employee'],
+                'value' => number_format((float) $row['advances'], 0),
+                'meta' => $row['branch'],
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'key' => 'employees',
+            'title' => 'Employees Report',
+            'description' => 'Headcount, compensation, advances, and contract activity across the workforce.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['salary', 'advances', 'contracts', 'payrollNet'],
+            'columns' => [
+                ['key' => 'employee', 'label' => 'Employee'],
+                ['key' => 'branch', 'label' => 'Branch'],
+                ['key' => 'employmentType', 'label' => 'Employment'],
+                ['key' => 'position', 'label' => 'Position'],
+                ['key' => 'shift', 'label' => 'Shift'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'salary', 'label' => 'Salary'],
+                ['key' => 'advances', 'label' => 'Advances'],
+                ['key' => 'contracts', 'label' => 'Contracts'],
+                ['key' => 'payrollNet', 'label' => 'Payroll Net'],
+            ],
+            'rows' => $rows->all(),
+            'summary' => [
+                ['label' => 'Employees', 'value' => (int) $rows->count(), 'format' => 'number'],
+                ['label' => 'Active Employees', 'value' => (int) $employees->where('is_active', true)->count(), 'format' => 'number'],
+                ['label' => 'Advances Total', 'value' => (float) $advances->sum('amount'), 'format' => 'currency'],
+                ['label' => 'Payroll Net', 'value' => (float) $payrollItems->sum('net_salary'), 'format' => 'currency'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Branch staffing',
+                    'description' => 'Headcount and payroll concentration by branch.',
+                    'items' => $branchStaffing,
+                ],
+                [
+                    'title' => 'Employment mix',
+                    'description' => 'How the workforce is distributed by employment type.',
+                    'items' => $employmentMix,
+                ],
+                [
+                    'title' => 'Advance exposure',
+                    'description' => 'Employees with the largest advance totals in the selected period.',
+                    'items' => $advanceExposure,
+                ],
+            ],
+            'exportNotes' => [
+                'Payroll Net is based on payroll items overlapping the selected date window.',
+                'Advance and contract amounts are scoped to records created within the same period.',
+            ],
+        ];
+    }
+
+    private function buildBranchesReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $branches = Branch::query()
+            ->when($branchId, fn (Builder $query) => $query->where('id', $branchId))
+            ->orderBy('name')
+            ->get();
+
+        $orders = Order::query()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $inventoryItems = InventoryItem::query()
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $employees = Employee::query()
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $users = User::query()
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $expenses = Expense::query()
+            ->whereBetween('expense_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $rows = $branches->map(function (Branch $branch) use ($orders, $inventoryItems, $employees, $users, $expenses) {
+            $branchOrders = $orders->where('branch_id', $branch->id);
+            $completedRevenue = (float) $branchOrders
+                ->where('status', 'completed')
+                ->sum('total_amount');
+
+            return [
+                'branch' => $branch->name,
+                'status' => $branch->is_active ? 'Active' : 'Inactive',
+                'orders' => (int) $branchOrders->count(),
+                'revenue' => $completedRevenue,
+                'inventoryItems' => (int) $inventoryItems->where('branch_id', $branch->id)->count(),
+                'employees' => (int) $employees->where('branch_id', $branch->id)->count(),
+                'users' => (int) $users->where('branch_id', $branch->id)->count(),
+                'expenses' => (float) $expenses->where('branch_id', $branch->id)->sum('amount'),
+                'address' => $branch->address ?: '-',
+            ];
+        })->sortByDesc('revenue')->values();
+
+        $revenueLeaders = $rows->take(5)->map(fn ($row) => [
+            'label' => $row['branch'],
+            'value' => number_format((float) $row['revenue'], 0),
+            'meta' => number_format((float) $row['orders'], 0).' orders',
+        ])->values()->all();
+
+        $staffCoverage = $rows->sortByDesc('employees')->take(5)->map(fn ($row) => [
+            'label' => $row['branch'],
+            'value' => number_format((float) $row['employees'], 0).' employees',
+            'meta' => number_format((float) $row['users'], 0).' users',
+        ])->values()->all();
+
+        $costPressure = $rows->sortByDesc('expenses')->take(5)->map(fn ($row) => [
+            'label' => $row['branch'],
+            'value' => number_format((float) $row['expenses'], 0),
+            'meta' => 'Revenue '.number_format((float) $row['revenue'], 0),
+        ])->values()->all();
+
+        return [
+            'key' => 'branches',
+            'title' => 'Branches Report',
+            'description' => 'Operational branch comparison across sales, staffing, inventory, and local cost load.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['revenue', 'expenses'],
+            'columns' => [
+                ['key' => 'branch', 'label' => 'Branch'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'orders', 'label' => 'Orders'],
+                ['key' => 'revenue', 'label' => 'Revenue'],
+                ['key' => 'inventoryItems', 'label' => 'Inventory'],
+                ['key' => 'employees', 'label' => 'Employees'],
+                ['key' => 'users', 'label' => 'Users'],
+                ['key' => 'expenses', 'label' => 'Expenses'],
+                ['key' => 'address', 'label' => 'Address'],
+            ],
+            'rows' => $rows->all(),
+            'summary' => [
+                ['label' => 'Branches', 'value' => (int) $rows->count(), 'format' => 'number'],
+                ['label' => 'Branch Revenue', 'value' => (float) $rows->sum('revenue'), 'format' => 'currency'],
+                ['label' => 'Branch Expenses', 'value' => (float) $rows->sum('expenses'), 'format' => 'currency'],
+                ['label' => 'Branch Orders', 'value' => (float) $rows->sum('orders'), 'format' => 'number'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Revenue leaders',
+                    'description' => 'Branches contributing the strongest completed sales.',
+                    'items' => $revenueLeaders,
+                ],
+                [
+                    'title' => 'Staff coverage',
+                    'description' => 'Operational staffing and assigned user coverage by branch.',
+                    'items' => $staffCoverage,
+                ],
+                [
+                    'title' => 'Cost pressure',
+                    'description' => 'Branches carrying the largest expense totals in the selected period.',
+                    'items' => $costPressure,
+                ],
+            ],
+            'exportNotes' => [
+                'Branch revenue uses completed orders in the selected period.',
+                'Inventory, employee, and user counts are live snapshots for the current branch setup.',
+            ],
+        ];
+    }
+
+    private function buildUsersReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $users = User::query()
+            ->with(['roles:id,name', 'branch:id,name', 'country:id,name', 'province:id,name'])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->orderBy('name')
+            ->get();
+
+        $newUsers = $users->filter(function (User $user) use ($startDate, $endDate) {
+            return $user->created_at !== null
+                && $user->created_at->between($startDate, $endDate);
+        });
+
+        $orders = Order::query()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $rows = $users->map(function (User $user) use ($orders) {
+            $userOrders = $orders->where('user_id', $user->id);
+
+            return [
+                'name' => $user->name,
+                'email' => $user->email,
+                'branch' => $user->branch?->name ?? 'Unassigned',
+                'roles' => $user->roles->pluck('name')->implode(', ') ?: '-',
+                'status' => $user->is_active ? 'Active' : 'Inactive',
+                'country' => $user->country?->name ?? '-',
+                'province' => $user->province?->name ?? '-',
+                'ordersHandled' => (int) $userOrders->count(),
+                'completedRevenue' => (float) $userOrders->where('status', 'completed')->sum('total_amount'),
+                'createdAt' => optional($user->created_at)->format('Y-m-d') ?? '-',
+            ];
+        })->sortBy('name')->values();
+
+        $roleMix = $users
+            ->flatMap(fn (User $user) => $user->roles->pluck('name'))
+            ->countBy()
+            ->map(fn ($count, $role) => [
+                'label' => $role,
+                'value' => number_format((float) $count, 0).' users',
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $branchDistribution = $rows
+            ->groupBy('branch')
+            ->map(fn ($group, $branch) => [
+                'label' => $branch,
+                'value' => number_format((float) $group->count(), 0).' users',
+                'meta' => number_format((float) $group->sum('ordersHandled'), 0).' orders',
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $topOperators = $rows
+            ->sortByDesc('ordersHandled')
+            ->take(5)
+            ->map(fn ($row) => [
+                'label' => $row['name'],
+                'value' => number_format((float) $row['ordersHandled'], 0).' orders',
+                'meta' => 'Revenue '.number_format((float) $row['completedRevenue'], 0),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'key' => 'users',
+            'title' => 'Users Report',
+            'description' => 'Access and operational user report across roles, branch assignment, and order activity.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['completedRevenue'],
+            'columns' => [
+                ['key' => 'name', 'label' => 'User'],
+                ['key' => 'email', 'label' => 'Email'],
+                ['key' => 'branch', 'label' => 'Branch'],
+                ['key' => 'roles', 'label' => 'Roles'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'country', 'label' => 'Country'],
+                ['key' => 'province', 'label' => 'Province'],
+                ['key' => 'ordersHandled', 'label' => 'Orders'],
+                ['key' => 'completedRevenue', 'label' => 'Revenue'],
+                ['key' => 'createdAt', 'label' => 'Created'],
+            ],
+            'rows' => $rows->all(),
+            'summary' => [
+                ['label' => 'Users', 'value' => (int) $users->count(), 'format' => 'number'],
+                ['label' => 'Active Users', 'value' => (int) $users->where('is_active', true)->count(), 'format' => 'number'],
+                ['label' => 'New Users', 'value' => (int) $newUsers->count(), 'format' => 'number'],
+                ['label' => 'Handled Revenue', 'value' => (float) $rows->sum('completedRevenue'), 'format' => 'currency'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Role mix',
+                    'description' => 'How user access is distributed across roles.',
+                    'items' => $roleMix,
+                ],
+                [
+                    'title' => 'Branch distribution',
+                    'description' => 'Assigned users and related order volume by branch.',
+                    'items' => $branchDistribution,
+                ],
+                [
+                    'title' => 'Top operators',
+                    'description' => 'Users handling the most order activity in the selected period.',
+                    'items' => $topOperators,
+                ],
+            ],
+            'exportNotes' => [
+                'Handled Revenue is attributed from completed orders linked to each user during the selected period.',
+                'Role and branch assignment data are current snapshots of user access configuration.',
             ],
         ];
     }
