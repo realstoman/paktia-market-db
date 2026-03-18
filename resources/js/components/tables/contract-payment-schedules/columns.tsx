@@ -19,6 +19,7 @@ interface BuildColumnsProps {
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
     onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
+    onViewAttachment: (schedule: EmployeeContractPaymentSchedule) => void;
     onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
     canApprove: boolean;
 }
@@ -27,6 +28,7 @@ export function buildColumns({
     onEdit,
     onDelete,
     onPrint,
+    onViewAttachment,
     onReviewApproval,
     canApprove,
 }: BuildColumnsProps): ColumnDef<EmployeeContractPaymentSchedule>[] {
@@ -81,6 +83,23 @@ export function buildColumns({
             accessorFn: (row) => Number(row.amount ?? 0),
             header: 'Amount',
             cell: ({ row }) => formatAfn(row.original.amount),
+        },
+        {
+            id: 'attachment',
+            accessorFn: (row) => row.attachment_path ?? '',
+            header: 'Attachment',
+            cell: ({ row }) =>
+                row.original.attachment_path ? (
+                    <button
+                        type="button"
+                        onClick={() => onViewAttachment(row.original)}
+                        className="text-sm font-medium text-sky-700 hover:underline dark:text-sky-300"
+                    >
+                        View
+                    </button>
+                ) : (
+                    <span className="text-sm text-muted-foreground">No file</span>
+                ),
         },
         {
             id: 'status',

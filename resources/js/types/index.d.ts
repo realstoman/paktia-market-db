@@ -202,6 +202,7 @@ export interface EmployeeContractPaymentSchedule {
     amount: number | string;
     status: string;
     payment_method?: string | null;
+    attachment_path?: string | null;
     paid_at?: string | null;
     notes?: string | null;
     [key: string]: unknown;
@@ -220,6 +221,9 @@ export interface EmployeeContract {
     installment_count?: number | null;
     status: string;
     notes?: string | null;
+    scheduled_total?: number;
+    paid_total?: number;
+    unpaid_total?: number;
     schedules?: EmployeeContractPaymentSchedule[];
     [key: string]: unknown;
 }

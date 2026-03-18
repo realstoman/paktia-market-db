@@ -9,13 +9,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmployeeContractPaymentSchedule } from '@/types';
-import { BadgeCheck, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { BadgeCheck, Eye, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 
 interface CellActionProps {
     data: EmployeeContractPaymentSchedule;
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
     onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
+    onViewAttachment: (schedule: EmployeeContractPaymentSchedule) => void;
     onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
     canApprove: boolean;
 }
@@ -25,6 +26,7 @@ export function CellAction({
     onEdit,
     onDelete,
     onPrint,
+    onViewAttachment,
     onReviewApproval,
     canApprove,
 }: CellActionProps) {
@@ -46,6 +48,12 @@ export function CellAction({
                     <FileText className="mr-2 h-4 w-4" />
                     Print Voucher
                 </DropdownMenuItem>
+                {data.attachment_path ? (
+                    <DropdownMenuItem onClick={() => onViewAttachment(data)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Attachment
+                    </DropdownMenuItem>
+                ) : null}
                 {canApprove && data.status !== 'approved' && data.status !== 'paid' ? (
                     <DropdownMenuItem onClick={() => onReviewApproval(data)}>
                         <BadgeCheck className="mr-2 h-4 w-4" />

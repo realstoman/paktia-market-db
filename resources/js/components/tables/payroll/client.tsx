@@ -1,5 +1,6 @@
 'use client';
 
+import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
@@ -36,7 +37,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Branch, Employee, EmployeeContract, EmployeeContractPaymentSchedule, PayrollRun } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { BadgeDollarSign, Banknote, CalendarRange, Plus, Printer, Users } from 'lucide-react';
+import { BadgeDollarSign, Banknote, CalendarRange, FileText, Plus, Printer, UploadCloud, Users, X } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -82,6 +83,7 @@ interface ContractFormState {
     end_date: string;
     payment_plan_type: string;
     installment_count: string;
+    milestone_percentages: string;
     status: string;
     notes: string;
 }
@@ -114,6 +116,7 @@ const emptyContractForm: ContractFormState = {
     end_date: '',
     payment_plan_type: 'equal_installments',
     installment_count: '6',
+    milestone_percentages: '',
     status: 'draft',
     notes: '',
 };
@@ -187,11 +190,13 @@ export function PayrollClient({
     const [isContractPrintOpen, setIsContractPrintOpen] = React.useState(false);
     const [printSchedule, setPrintSchedule] = React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [isSchedulePrintOpen, setIsSchedulePrintOpen] = React.useState(false);
+    const [isScheduleAttachmentOpen, setIsScheduleAttachmentOpen] = React.useState(false);
     const [printRun, setPrintRun] = React.useState<PayrollRun | null>(null);
     const [printItemId, setPrintItemId] = React.useState<number | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
     const [approvalTarget, setApprovalTarget] = React.useState<PayrollRun | null>(null);
     const [scheduleApprovalTarget, setScheduleApprovalTarget] = React.useState<EmployeeContractPaymentSchedule | null>(null);
+    const [scheduleAttachmentTarget, setScheduleAttachmentTarget] = React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
     const [contractEmployeeFilter, setContractEmployeeFilter] = React.useState('all');
@@ -201,6 +206,7 @@ export function PayrollClient({
     const [form, setForm] = React.useState<PayrollFormState>(emptyForm);
     const [contractForm, setContractForm] = React.useState<ContractFormState>(emptyContractForm);
     const [scheduleForm, setScheduleForm] = React.useState<ScheduleFormState>(emptyScheduleForm);
+    const [scheduleReceiptFile, setScheduleReceiptFile] = React.useState<File | null>(null);
 
     const branchOptions = React.useMemo(
         () =>
@@ -322,6 +328,7 @@ export function PayrollClient({
             end_date: contract.end_date ?? '',
             payment_plan_type: contract.payment_plan_type,
             installment_count: contract.installment_count ? String(contract.installment_count) : '',
+            milestone_percentages: '',
             status: contract.status,
             notes: contract.notes ?? '',
         });
@@ -338,9 +345,15 @@ export function PayrollClient({
         setIsSchedulePrintOpen(true);
     }, []);
 
+    const openScheduleAttachment = React.useCallback((schedule: EmployeeContractPaymentSchedule) => {
+        setScheduleAttachmentTarget(schedule);
+        setIsScheduleAttachmentOpen(true);
+    }, []);
+
     const openScheduleCreate = React.useCallback(() => {
         setEditingSchedule(null);
         setScheduleForm(emptyScheduleForm);
+        setScheduleReceiptFile(null);
         setIsScheduleOpen(true);
     }, []);
 
@@ -356,6 +369,7 @@ export function PayrollClient({
             payment_method: schedule.payment_method ?? 'bank_transfer',
             notes: schedule.notes ?? '',
         });
+        setScheduleReceiptFile(null);
         setIsScheduleOpen(true);
     }, []);
 
@@ -402,6 +416,13 @@ export function PayrollClient({
     }, [form]);
 
     const submitContract = React.useCallback(() => {
+        const milestonePercentages = contractForm.milestone_percentages
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value) && value > 0);
+
         const payload = {
             employee_id: Number(contractForm.employee_id),
             branch_id: contractForm.branch_id ? Number(contractForm.branch_id) : null,
@@ -410,6 +431,7 @@ export function PayrollClient({
             end_date: contractForm.end_date || null,
             payment_plan_type: contractForm.payment_plan_type,
             installment_count: contractForm.installment_count ? Number(contractForm.installment_count) : null,
+            milestone_percentages: milestonePercentages.length > 0 ? milestonePercentages : null,
             status: contractForm.status,
             notes: contractForm.notes || null,
         };
@@ -437,7 +459,7 @@ export function PayrollClient({
     }, [contractForm, editingContract]);
 
     const submitSchedule = React.useCallback(() => {
-        const payload = {
+        const payload: Record<string, string | number | null | File> = {
             employee_contract_id: Number(scheduleForm.employee_contract_id),
             due_date: scheduleForm.due_date,
             title: scheduleForm.title || null,
@@ -447,11 +469,18 @@ export function PayrollClient({
             payment_method: scheduleForm.payment_method,
             notes: scheduleForm.notes || null,
         };
+        if (scheduleReceiptFile) {
+            payload.receipt = scheduleReceiptFile;
+        }
 
         if (editingSchedule) {
             router.put(`/finance/payroll/contract-schedules/${editingSchedule.id}`, payload, {
                 preserveScroll: true,
-                onSuccess: () => setIsScheduleOpen(false),
+                forceFormData: Boolean(scheduleReceiptFile),
+                onSuccess: () => {
+                    setIsScheduleOpen(false);
+                    setScheduleReceiptFile(null);
+                },
                 onError: (errors) => {
                     const firstError = Object.values(errors)[0];
                     toast.error(typeof firstError === 'string' ? firstError : 'Failed to update schedule.');
@@ -462,13 +491,17 @@ export function PayrollClient({
 
         router.post('/finance/payroll/contract-schedules', payload, {
             preserveScroll: true,
-            onSuccess: () => setIsScheduleOpen(false),
+            forceFormData: Boolean(scheduleReceiptFile),
+            onSuccess: () => {
+                setIsScheduleOpen(false);
+                setScheduleReceiptFile(null);
+            },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
                 toast.error(typeof firstError === 'string' ? firstError : 'Failed to create schedule.');
             },
         });
-    }, [editingSchedule, scheduleForm]);
+    }, [editingSchedule, scheduleForm, scheduleReceiptFile]);
 
     const approve = React.useCallback((run: PayrollRun) => {
         router.post(`/finance/payroll/${run.id}/approve`, {}, {
@@ -530,10 +563,11 @@ export function PayrollClient({
                 onEdit: openScheduleEdit,
                 onDelete: deleteSchedule,
                 onPrint: openSchedulePrint,
+                onViewAttachment: openScheduleAttachment,
                 onReviewApproval: setScheduleApprovalTarget,
                 canApprove,
             }),
-        [canApprove, deleteSchedule, openScheduleEdit, openSchedulePrint],
+        [canApprove, deleteSchedule, openScheduleAttachment, openScheduleEdit, openSchedulePrint],
     );
 
     const contractColumns = React.useMemo(
@@ -1123,6 +1157,24 @@ export function PayrollClient({
                                 placeholder="6"
                             />
                         </div>
+                        {contractForm.payment_plan_type !== 'equal_installments' ? (
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label>Milestone Percentages</Label>
+                                <Input
+                                    value={contractForm.milestone_percentages}
+                                    onChange={(event) =>
+                                        setContractForm((current) => ({
+                                            ...current,
+                                            milestone_percentages: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="20, 30, 50"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Optional. Enter comma-separated milestone percentages that add up to 100 and the schedule rows will be generated automatically by month from the start date.
+                                </p>
+                            </div>
+                        ) : null}
                         <div className="grid gap-2 md:col-span-2">
                             <Label>Status</Label>
                             <SearchableDropdown
@@ -1251,6 +1303,54 @@ export function PayrollClient({
                                 rows={4}
                                 placeholder="Optional schedule note or milestone detail."
                             />
+                        </div>
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Supporting Attachment</Label>
+                            <label
+                                htmlFor="schedule-receipt"
+                                className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
+                            >
+                                <input
+                                    id="schedule-receipt"
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    className="hidden"
+                                    onChange={(event) =>
+                                        setScheduleReceiptFile(event.target.files?.[0] ?? null)
+                                    }
+                                />
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-md bg-white p-2 shadow-sm dark:bg-neutral-800">
+                                        <UploadCloud className="h-4 w-4 text-slate-700 dark:text-slate-200" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                            {scheduleReceiptFile
+                                                ? scheduleReceiptFile.name
+                                                : editingSchedule?.attachment_path
+                                                  ? 'Replace current attachment'
+                                                  : 'Upload supporting file (JPG, PNG, PDF)'}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            Milestone certificate, contract invoice, or signed approval note. Max 5MB.
+                                        </p>
+                                    </div>
+                                    {scheduleReceiptFile ? (
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                setScheduleReceiptFile(null);
+                                            }}
+                                            className="rounded-md p-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:bg-neutral-700 dark:hover:text-slate-100"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    ) : (
+                                        <FileText className="h-4 w-4 text-slate-400" />
+                                    )}
+                                </div>
+                            </label>
                         </div>
                     </div>
 
@@ -1386,6 +1486,13 @@ export function PayrollClient({
                           ) ?? null
                         : null
                 }
+            />
+
+            <AttachmentViewDialog
+                open={isScheduleAttachmentOpen}
+                onOpenChange={setIsScheduleAttachmentOpen}
+                path={scheduleAttachmentTarget?.attachment_path ?? null}
+                title="Contract Schedule Attachment"
             />
         </div>
     );
