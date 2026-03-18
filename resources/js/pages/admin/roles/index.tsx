@@ -41,18 +41,21 @@ export default function RolesPage({ roles, permissions }: RolesPageProps) {
                         value={formatNumber(roles.length)}
                         description="Role definitions available in the system."
                         icon={ShieldCheck}
+                        variant="rose"
                     />
                     <SummaryMetricCard
                         title="Permissions"
                         value={formatNumber(permissions.length)}
                         description="Permission entries available for assignment."
                         icon={LockKeyhole}
+                        variant="rose"
                     />
                     <SummaryMetricCard
                         title="Configured Roles"
                         value={formatNumber(rolesWithPermissions)}
                         description="Roles that already have permission mappings."
                         icon={UserRoundCog}
+                        variant="rose"
                     />
                     <SummaryMetricCard
                         title="Average Permissions"
@@ -73,6 +76,7 @@ export default function RolesPage({ roles, permissions }: RolesPageProps) {
                         }
                         description="Average permission count assigned per role."
                         icon={KeyRound}
+                        variant="rose"
                     />
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">

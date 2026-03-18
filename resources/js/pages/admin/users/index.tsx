@@ -49,24 +49,28 @@ export default function UsersPage({
                         value={formatNumber(users.length)}
                         description="All user accounts currently available."
                         icon={Users}
+                        variant="indigo"
                     />
                     <SummaryMetricCard
                         title="Active Users"
                         value={formatNumber(activeUsers)}
                         description="Users with active account access."
                         icon={ShieldCheck}
+                        variant="indigo"
                     />
                     <SummaryMetricCard
                         title="Blocked Users"
                         value={formatNumber(blockedUsers)}
                         description="Users currently blocked from access."
                         icon={Building2}
+                        variant="indigo"
                     />
                     <SummaryMetricCard
                         title="Countries"
                         value={formatNumber(countries.length)}
                         description="Countries available for user assignment."
                         icon={Globe2}
+                        variant="indigo"
                     />
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">

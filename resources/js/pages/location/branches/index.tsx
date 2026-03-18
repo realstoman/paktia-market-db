@@ -59,24 +59,28 @@ export default function BranchesPage({
                         value={formatNumber(branches.length)}
                         description="All branch records in the system."
                         icon={Building2}
+                        variant="teal"
                     />
                     <SummaryMetricCard
                         title="Active Branches"
                         value={formatNumber(activeBranches)}
                         description="Branches currently marked as active."
                         icon={MapPinned}
+                        variant="teal"
                     />
                     <SummaryMetricCard
                         title="Countries"
                         value={formatNumber(countries.length)}
                         description="Countries linked to branch operations."
                         icon={Globe2}
+                        variant="teal"
                     />
                     <SummaryMetricCard
                         title="Assigned Kitchens"
                         value={formatNumber(assignedKitchens)}
                         description="Kitchen assignments across all branches."
                         icon={ChefHat}
+                        variant="teal"
                     />
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">

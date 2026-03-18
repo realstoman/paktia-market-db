@@ -222,17 +222,19 @@ export default function InventoryPage({
                         value={formatAfn(stats.totalValue)}
                         description="Current value from quantity x single price."
                         icon={Banknote}
+                        variant="teal"
                         className="md:col-span-4 md:row-span-2"
                     />
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         <SummaryMetricCard
-                            title="Total Items"
-                            value={formatNumber(stats.totalItems)}
-                            description="Inventory records currently tracked."
-                            icon={Boxes}
-                            className="md:col-span-6"
-                        />
+                        title="Total Items"
+                        value={formatNumber(stats.totalItems)}
+                        description="Inventory records currently tracked."
+                        icon={Boxes}
+                        variant="teal"
+                        className="md:col-span-6"
+                    />
 
                         <Card className="gap-3 border-red-200 bg-red-50 py-4 shadow-none md:col-span-6 dark:border-red-900/50 dark:bg-red-950/20">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
@@ -262,28 +264,31 @@ export default function InventoryPage({
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         <SummaryMetricCard
-                            title="Total Fixed Items"
-                            value={formatNumber(stats.totalFixedItems)}
-                            description="Equipment and long-term stock items."
-                            icon={Warehouse}
-                            className="md:col-span-4"
-                        />
+                        title="Total Fixed Items"
+                        value={formatNumber(stats.totalFixedItems)}
+                        description="Equipment and long-term stock items."
+                        icon={Warehouse}
+                        variant="teal"
+                        className="md:col-span-4"
+                    />
 
                         <SummaryMetricCard
-                            title="Low Stock Items"
-                            value={formatNumber(stats.lowStockItems)}
-                            description={`Quantity ≤ ${LOW_STOCK_THRESHOLD}.`}
-                            icon={PackageMinus}
-                            className="md:col-span-4"
-                        />
+                        title="Low Stock Items"
+                        value={formatNumber(stats.lowStockItems)}
+                        description={`Quantity ≤ ${LOW_STOCK_THRESHOLD}.`}
+                        icon={PackageMinus}
+                        variant="teal"
+                        className="md:col-span-4"
+                    />
 
                         <SummaryMetricCard
-                            title="Out of Stock Items"
-                            value={formatNumber(stats.outOfStockItems)}
-                            description="Items that currently have zero quantity."
-                            icon={PackageX}
-                            className="md:col-span-4"
-                        />
+                        title="Out of Stock Items"
+                        value={formatNumber(stats.outOfStockItems)}
+                        description="Items that currently have zero quantity."
+                        icon={PackageX}
+                        variant="teal"
+                        className="md:col-span-4"
+                    />
                     </div>
                 </div>
 

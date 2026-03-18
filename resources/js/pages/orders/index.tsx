@@ -220,22 +220,22 @@ export default function OrdersPage({
 
                 <section>
                     <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
-                        <Card className="gap-3 overflow-hidden border-white/80 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
+                        <Card className="gap-3 overflow-hidden border-[#f3e1b3] bg-[linear-gradient(135deg,#fff8e8_0%,#f8e7bc_45%,#ffffff_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-0">
-                                <CardTitle className="text-xl text-[#102F33] dark:text-white">
+                                <CardTitle className="text-xl text-[#6b4b16] dark:text-white">
                                     Baba Restaurant
                                 </CardTitle>
-                                <CardDescription className="text-sm text-[#35565a] dark:text-neutral-300">
+                                <CardDescription className="text-sm text-[#8b6a2f] dark:text-neutral-300">
                                     {isAllTime
                                         ? 'All time records for orders'
                                         : `Order statistics for ${todayDate}`}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-1">
-                                <p className="text-2xl font-semibold text-[#102F33] dark:text-white">
+                                <p className="text-2xl font-semibold text-[#6b4b16] dark:text-white">
                                     {formatNumber(orders.length)}
                                 </p>
-                                <p className="text-xs text-[#4c6a6e] dark:text-neutral-300">
+                                <p className="text-xs text-[#8b6a2f] dark:text-neutral-300">
                                     {isAllTime
                                         ? `All time since ${restaurantStartedDate ?? '-'}`
                                         : 'Total orders today'}

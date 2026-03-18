@@ -111,6 +111,7 @@ export default function ProductsPage({
                         value={formatNumber(totalProducts)}
                         description="All products currently available in the system."
                         icon={Layers3}
+                        variant="green"
                         className="md:col-span-4"
                     />
 
@@ -131,6 +132,7 @@ export default function ProductsPage({
                                 value={formatNumber(typeSummary.count)}
                                 description="Products mapped to this product type."
                                 icon={TypeIcon}
+                                variant="green"
                                 className="md:col-span-4"
                             />
                         );
@@ -141,6 +143,7 @@ export default function ProductsPage({
                         value={formatNumber(categories.length)}
                         description="Categories available for organizing products."
                         icon={Tags}
+                        variant="green"
                         className="md:col-span-4"
                     />
                 </div>

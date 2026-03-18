@@ -117,6 +117,7 @@ export default function EmployeesPage({
                         value={formatNumber(statsEmployees.length)}
                         description="Employees visible for the selected branch scope."
                         icon={Users}
+                        variant="blue"
                         className="md:col-span-6"
                     />
 
@@ -125,6 +126,7 @@ export default function EmployeesPage({
                         value={formatNumber(contractEmployeesCount)}
                         description="Employees with contract-based employment terms."
                         icon={BriefcaseBusiness}
+                        variant="blue"
                         className="md:col-span-6"
                     />
                 </div>
