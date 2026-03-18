@@ -28,7 +28,7 @@ import {
     CalendarRange,
     ChevronRight,
     FileSpreadsheet,
-    Printer,
+    FileText,
     ScrollText,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -219,125 +219,22 @@ export default function ReportsPage({
         );
     };
 
-    const exportCsv = () => {
-        if (
-            !activeReport.isReady ||
-            !activeReport.columns ||
-            !activeReport.rows
-        ) {
+    const downloadExport = (format: 'pdf' | 'xlsx') => {
+        if (!activeReport.isReady || !activeReport.columns) {
             return;
         }
 
-        const headers = activeReport.columns.map((column) => column.label);
-        const rows = activeReport.rows.map((row) =>
-            activeReport
-                .columns!.map(
-                    (column) =>
-                        `"${String(row[column.key] ?? '').replaceAll('"', '""')}"`,
-                )
-                .join(','),
+        const params = new URLSearchParams(
+            buildParams({
+                range,
+                startDate,
+                endDate,
+                branchId,
+                module,
+            }),
         );
 
-        const csv = [headers.join(','), ...rows].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${activeReport.key}-report-${period.startDate}-to-${period.endDate}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-    };
-
-    const printReport = () => {
-        if (
-            !activeReport.isReady ||
-            !activeReport.columns ||
-            !activeReport.rows
-        ) {
-            return;
-        }
-
-        const summaryHtml = (activeReport.summary ?? [])
-            .map(
-                (item) => `
-                    <div class="metric">
-                        <div class="metric-label">${item.label}</div>
-                        <div class="metric-value">${formatMetric(item.value, item.format)}</div>
-                    </div>
-                `,
-            )
-            .join('');
-
-        const headerHtml = activeReport.columns
-            .map((column) => `<th>${column.label}</th>`)
-            .join('');
-
-        const rowsHtml = activeReport.rows
-            .map(
-                (row) => `
-                    <tr>
-                        ${activeReport
-                            .columns!.map(
-                                (column) =>
-                                    `<td>${
-                                        activeReport.currencyColumns?.includes(
-                                            column.key,
-                                        )
-                                            ? formatAfn(
-                                                  Number(row[column.key] ?? 0),
-                                              )
-                                            : String(row[column.key] ?? '-')
-                                    }</td>`,
-                            )
-                            .join('')}
-                    </tr>
-                `,
-            )
-            .join('');
-
-        const printWindow = window.open('', '_blank', 'width=1200,height=900');
-        if (!printWindow) {
-            return;
-        }
-
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>${activeReport.title}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 24px; color: #102f33; }
-                        h1 { margin: 0 0 8px; font-size: 26px; }
-                        p { margin: 0 0 18px; color: #4b5f63; }
-                        .meta { margin-bottom: 20px; font-size: 13px; color: #4b5f63; }
-                        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
-                        .metric { border: 1px solid #d7e3e2; border-radius: 12px; padding: 12px; }
-                        .metric-label { font-size: 12px; color: #5f7678; margin-bottom: 4px; }
-                        .metric-value { font-size: 18px; font-weight: 700; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                        th, td { border: 1px solid #d7e3e2; padding: 8px; text-align: left; }
-                        th { background: #eff6f6; }
-                    </style>
-                </head>
-                <body>
-                    <h1>${activeReport.title}</h1>
-                    <p>${activeReport.description}</p>
-                    <div class="meta">Reporting period: ${period.label}</div>
-                    <div class="metrics">${summaryHtml}</div>
-                    <table>
-                        <thead><tr>${headerHtml}</tr></thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                    <script>
-                        window.onload = function () {
-                            window.print();
-                        };
-                    </script>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
+        window.location.href = `/reports/export/${format}?${params.toString()}`;
     };
 
     return (
@@ -512,8 +409,8 @@ export default function ReportsPage({
                 <section className="grid gap-4 xl:grid-cols-12">
                     <Card className="min-w-0 shadow-none xl:col-span-8">
                         <CardHeader className="pb-3">
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                <div>
+                            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                                <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                         <CardTitle className="text-xl">
                                             {activeReport.title}
@@ -534,21 +431,25 @@ export default function ReportsPage({
                                 </div>
 
                                 {activeReport.isReady ? (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
                                         <Button
                                             variant="outline"
-                                            className="gap-2"
-                                            onClick={printReport}
+                                            className="gap-2 whitespace-nowrap"
+                                            onClick={() =>
+                                                downloadExport('pdf')
+                                            }
                                         >
-                                            <Printer className="h-4 w-4" />
-                                            Print / Save PDF
+                                            <FileText className="h-4 w-4" />
+                                            Download PDF
                                         </Button>
                                         <Button
-                                            className="gap-2"
-                                            onClick={exportCsv}
+                                            className="gap-2 whitespace-nowrap"
+                                            onClick={() =>
+                                                downloadExport('xlsx')
+                                            }
                                         >
                                             <FileSpreadsheet className="h-4 w-4" />
-                                            Excel CSV
+                                            Download Excel
                                         </Button>
                                     </div>
                                 ) : null}

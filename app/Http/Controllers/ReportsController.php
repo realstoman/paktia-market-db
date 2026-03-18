@@ -49,8 +49,7 @@ class ReportsController extends Controller
             'report' => $report,
             'period' => $data['period'],
             'filters' => $data['filters'],
-            'branchName' => collect($data['branches'])
-                ->firstWhere('id', $data['filters']['branchId'])['name'] ?? 'All Branches',
+            'branchName' => $this->resolveBranchName($data),
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download($this->exportFilename(
@@ -79,10 +78,7 @@ class ReportsController extends Controller
         $sheet->setCellValue("B{$row}", (string) ($data['period']['label'] ?? ''));
         $row++;
         $sheet->setCellValue("A{$row}", 'Branch scope');
-        $sheet->setCellValue(
-            "B{$row}",
-            collect($data['branches'])->firstWhere('id', $data['filters']['branchId'])['name'] ?? 'All Branches',
-        );
+        $sheet->setCellValue("B{$row}", $this->resolveBranchName($data));
         $row += 2;
 
         $summary = $report['summary'] ?? [];
@@ -209,6 +205,13 @@ class ReportsController extends Controller
             $endDate,
             $extension,
         );
+    }
+
+    private function resolveBranchName(array $data): string
+    {
+        $branch = collect($data['branches'])->firstWhere('id', $data['filters']['branchId']);
+
+        return is_array($branch) ? (string) ($branch['name'] ?? 'All Branches') : 'All Branches';
     }
 
     private function resolvePeriod(
