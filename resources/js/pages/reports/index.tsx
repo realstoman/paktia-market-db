@@ -564,9 +564,9 @@ export default function ReportsPage({
                                 <>
                                     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                                         {(activeReport.summary ?? []).map(
-                                            (item) => (
+                                            (item, index) => (
                                                 <div
-                                                    key={item.label}
+                                                    key={`${activeReport.key}-summary-${index}-${item.label}`}
                                                     className="rounded-2xl border bg-[#fcfdfd] p-4"
                                                 >
                                                     <p className="text-xs tracking-[0.18em] text-[#708689] uppercase">
@@ -676,9 +676,9 @@ export default function ReportsPage({
                                     </p>
                                     <div className="mt-4 space-y-2">
                                         {(activeReport.highlights ?? []).map(
-                                            (item) => (
+                                            (item, index) => (
                                                 <div
-                                                    key={item}
+                                                    key={`${activeReport.key}-highlight-${index}`}
                                                     className="rounded-2xl border bg-muted/20 px-4 py-3 text-sm"
                                                 >
                                                     {item}
@@ -693,50 +693,60 @@ export default function ReportsPage({
 
                     <div className="min-w-0 space-y-4 xl:col-span-4">
                         {activeReport.isReady
-                            ? (activeReport.insights ?? []).map((section) => (
-                                  <Card
-                                      className="shadow-none"
-                                      key={section.title}
-                                  >
-                                      <CardHeader className="pb-3">
-                                          <CardTitle className="text-base">
-                                              {section.title}
-                                          </CardTitle>
-                                          <CardDescription>
-                                              {section.description}
-                                          </CardDescription>
-                                      </CardHeader>
-                                      <CardContent className="space-y-3">
-                                          {section.items.length > 0 ? (
-                                              section.items.map((item) => (
-                                                  <div
-                                                      key={`${section.title}-${item.label}`}
-                                                      className="rounded-2xl border px-3 py-3"
-                                                  >
-                                                      <div className="flex items-center justify-between gap-3">
-                                                          <span className="font-medium">
-                                                              {item.label}
-                                                          </span>
-                                                          <span className="text-sm text-muted-foreground">
-                                                              {item.value}
-                                                          </span>
-                                                      </div>
-                                                      {item.meta ? (
-                                                          <p className="mt-1 text-sm text-[#2f5559]">
-                                                              {item.meta}
-                                                          </p>
-                                                      ) : null}
+                            ? (activeReport.insights ?? []).map(
+                                  (section, sectionIndex) => (
+                                      <Card
+                                          className="shadow-none"
+                                          key={`${activeReport.key}-insight-${sectionIndex}-${section.title}`}
+                                      >
+                                          <CardHeader className="pb-3">
+                                              <CardTitle className="text-base">
+                                                  {section.title}
+                                              </CardTitle>
+                                              <CardDescription>
+                                                  {section.description}
+                                              </CardDescription>
+                                          </CardHeader>
+                                          <CardContent className="space-y-3">
+                                              {section.items.length > 0 ? (
+                                                  section.items.map(
+                                                      (item, itemIndex) => (
+                                                          <div
+                                                              key={`${activeReport.key}-insight-item-${sectionIndex}-${itemIndex}-${item.label}`}
+                                                              className="rounded-2xl border px-3 py-3"
+                                                          >
+                                                              <div className="flex items-center justify-between gap-3">
+                                                                  <span className="font-medium">
+                                                                      {
+                                                                          item.label
+                                                                      }
+                                                                  </span>
+                                                                  <span className="text-sm text-muted-foreground">
+                                                                      {
+                                                                          item.value
+                                                                      }
+                                                                  </span>
+                                                              </div>
+                                                              {item.meta ? (
+                                                                  <p className="mt-1 text-sm text-[#2f5559]">
+                                                                      {
+                                                                          item.meta
+                                                                      }
+                                                                  </p>
+                                                              ) : null}
+                                                          </div>
+                                                      ),
+                                                  )
+                                              ) : (
+                                                  <div className="rounded-2xl border px-3 py-3 text-sm text-muted-foreground">
+                                                      No insight rows matched
+                                                      this report window.
                                                   </div>
-                                              ))
-                                          ) : (
-                                              <div className="rounded-2xl border px-3 py-3 text-sm text-muted-foreground">
-                                                  No insight rows matched this
-                                                  report window.
-                                              </div>
-                                          )}
-                                      </CardContent>
-                                  </Card>
-                              ))
+                                              )}
+                                          </CardContent>
+                                      </Card>
+                                  ),
+                              )
                             : null}
 
                         <Card className="shadow-none">
@@ -754,9 +764,9 @@ export default function ReportsPage({
                                     activeReport.exportNotes ??
                                     activeReport.highlights ??
                                     []
-                                ).map((note) => (
+                                ).map((note, index) => (
                                     <div
-                                        key={note}
+                                        key={`${activeReport.key}-note-${index}`}
                                         className="rounded-2xl border bg-muted/20 px-4 py-3 text-sm"
                                     >
                                         {note}
