@@ -354,6 +354,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
     Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
     Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('reports/export/pdf', [ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('reports/export/xlsx', [ReportsController::class, 'exportXlsx'])->name('reports.export.xlsx');
 
     // Inventory
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');

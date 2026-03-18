@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Branch;
 use App\Models\CashMovement;
 use App\Models\Employee;
@@ -16,6 +17,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
@@ -30,6 +34,117 @@ class ReportsController extends Controller
     ];
 
     public function index(Request $request)
+    {
+        return Inertia::render('reports/index', $this->buildReportPageData($request));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $data = $this->buildReportPageData($request);
+        $report = $data['activeReport'];
+
+        abort_unless(($report['isReady'] ?? false) === true, 404);
+
+        $pdf = Pdf::loadView('reports/pdf', [
+            'report' => $report,
+            'period' => $data['period'],
+            'filters' => $data['filters'],
+            'branchName' => collect($data['branches'])
+                ->firstWhere('id', $data['filters']['branchId'])['name'] ?? 'All Branches',
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download($this->exportFilename(
+            (string) $data['filters']['module'],
+            (string) $data['period']['startDate'],
+            (string) $data['period']['endDate'],
+            'pdf',
+        ));
+    }
+
+    public function exportXlsx(Request $request): StreamedResponse
+    {
+        $data = $this->buildReportPageData($request);
+        $report = $data['activeReport'];
+
+        abort_unless(($report['isReady'] ?? false) === true, 404);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle(substr((string) ($report['title'] ?? 'Report'), 0, 31));
+
+        $row = 1;
+        $sheet->setCellValue("A{$row}", (string) ($report['title'] ?? 'Report'));
+        $row++;
+        $sheet->setCellValue("A{$row}", 'Reporting period');
+        $sheet->setCellValue("B{$row}", (string) ($data['period']['label'] ?? ''));
+        $row++;
+        $sheet->setCellValue("A{$row}", 'Branch scope');
+        $sheet->setCellValue(
+            "B{$row}",
+            collect($data['branches'])->firstWhere('id', $data['filters']['branchId'])['name'] ?? 'All Branches',
+        );
+        $row += 2;
+
+        $summary = $report['summary'] ?? [];
+        if ($summary !== []) {
+            $sheet->setCellValue("A{$row}", 'Summary');
+            $row++;
+            $sheet->setCellValue("A{$row}", 'Metric');
+            $sheet->setCellValue("B{$row}", 'Value');
+            $row++;
+
+            foreach ($summary as $item) {
+                $sheet->setCellValue("A{$row}", (string) ($item['label'] ?? ''));
+                $sheet->setCellValue("B{$row}", (float) ($item['value'] ?? 0));
+                $row++;
+            }
+
+            $row++;
+        }
+
+        $columns = $report['columns'] ?? [];
+        $rows = $report['rows'] ?? [];
+        $currencyColumns = collect($report['currencyColumns'] ?? [])->map(fn ($column) => (string) $column)->all();
+
+        foreach ($columns as $columnIndex => $column) {
+            $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, (string) ($column['label'] ?? ''));
+        }
+        $row++;
+
+        foreach ($rows as $reportRow) {
+            foreach ($columns as $columnIndex => $column) {
+                $key = (string) ($column['key'] ?? '');
+                $value = $reportRow[$key] ?? '';
+                $cellValue = in_array($key, $currencyColumns, true)
+                    ? (float) $value
+                    : (string) $value;
+
+                $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, $cellValue);
+            }
+
+            $row++;
+        }
+
+        foreach (range(1, max(1, count($columns))) as $columnIndex) {
+            $sheet->getColumnDimensionByColumn($columnIndex)->setAutoSize(true);
+        }
+
+        $filename = $this->exportFilename(
+            (string) $data['filters']['module'],
+            (string) $data['period']['startDate'],
+            (string) $data['period']['endDate'],
+            'xlsx',
+        );
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    private function buildReportPageData(Request $request): array
     {
         $validated = $request->validate([
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,last_30_days,custom'],
@@ -49,10 +164,11 @@ class ReportsController extends Controller
         $selectedModule = $validated['module'] ?? 'orders';
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
 
-        return Inertia::render('reports/index', [
+        return [
             'branches' => Branch::query()
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name'])
+                ->toArray(),
             'filters' => [
                 'range' => $range,
                 'startDate' => $startDate->toDateString(),
@@ -77,7 +193,22 @@ class ReportsController extends Controller
                 'startDate' => $startDate->toDateString(),
                 'endDate' => $endDate->toDateString(),
             ],
-        ]);
+        ];
+    }
+
+    private function exportFilename(
+        string $module,
+        string $startDate,
+        string $endDate,
+        string $extension,
+    ): string {
+        return sprintf(
+            '%s-report-%s-to-%s.%s',
+            $module,
+            $startDate,
+            $endDate,
+            $extension,
+        );
     }
 
     private function resolvePeriod(
