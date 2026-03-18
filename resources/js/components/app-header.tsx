@@ -1,4 +1,5 @@
 import { Icon } from '@/components/icon';
+import { HeaderNotifications } from '@/components/header-notifications';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -226,6 +227,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
+                        <HeaderNotifications user={auth.user} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
