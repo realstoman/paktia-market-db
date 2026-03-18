@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\InventoryItem;
+use App\Models\InventoryTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -127,13 +129,13 @@ class ReportsController extends Controller
                 'key' => 'inventory',
                 'title' => 'Inventory',
                 'description' => 'Stock valuation, movement history, low-stock analysis, and vendor exposure.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
             [
                 'key' => 'products',
                 'title' => 'Products',
                 'description' => 'Catalog growth, pricing, top sellers, and kitchen/category coverage.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
             [
                 'key' => 'employees',
@@ -145,7 +147,7 @@ class ReportsController extends Controller
                 'key' => 'finance',
                 'title' => 'Finance',
                 'description' => 'Revenue, expenses, cash position, and operational profitability windows.',
-                'status' => 'planned',
+                'status' => 'live',
             ],
             [
                 'key' => 'branches',
@@ -262,10 +264,17 @@ class ReportsController extends Controller
         Carbon $endDate,
         ?int $branchId,
     ): array {
-        if ($module === 'orders') {
-            return $this->buildOrdersReport($startDate, $endDate, $branchId);
-        }
+        return match ($module) {
+            'orders' => $this->buildOrdersReport($startDate, $endDate, $branchId),
+            'inventory' => $this->buildInventoryReport($startDate, $endDate, $branchId),
+            'finance' => $this->buildFinanceReport($startDate, $endDate, $branchId),
+            'products' => $this->buildProductsReport($startDate, $endDate, $branchId),
+            default => $this->buildPlannedReport($module),
+        };
+    }
 
+    private function buildPlannedReport(string $module): array
+    {
         $catalog = collect($this->reportCatalog())->firstWhere('key', $module);
 
         return [
@@ -274,12 +283,12 @@ class ReportsController extends Controller
             'description' => $catalog['description'] ?? 'This report is being prepared for rollout.',
             'isReady' => false,
             'status' => $catalog['status'] ?? 'planned',
-            'highlights' => [
-                'This report family is designed, but not implemented yet.',
-                'It will reuse the same date range, branch scope, print, PDF, and Excel workflow.',
-                'Recommended next rollout order: Inventory, Finance, Products, Employees, Branches, Users.',
-            ],
-        ];
+                'highlights' => [
+                    'This report family is designed, but not implemented yet.',
+                    'It will reuse the same date range, branch scope, print, PDF, and Excel workflow.',
+                    'Recommended next rollout order: Employees, Branches, Users.',
+                ],
+            ];
     }
 
     private function buildOrdersReport(
@@ -360,6 +369,7 @@ class ReportsController extends Controller
             'description' => 'Live operational report for sales, fulfillment status, and branch performance.',
             'isReady' => true,
             'status' => 'live',
+            'currencyColumns' => ['total', 'paid'],
             'columns' => [
                 ['key' => 'reference', 'label' => 'Order'],
                 ['key' => 'date', 'label' => 'Date'],
@@ -408,17 +418,484 @@ class ReportsController extends Controller
                     'format' => 'number',
                 ],
             ],
-            'statusBreakdown' => collect($statusBuckets)->map(
-                fn ($count, $status) => [
-                    'label' => str_replace('_', ' ', ucfirst($status)),
-                    'value' => $count,
-                ]
-            )->values()->all(),
-            'branchBreakdown' => $branchBreakdown,
-            'topProducts' => $topProducts,
+            'insights' => [
+                [
+                    'title' => 'Status breakdown',
+                    'description' => 'Quick distribution for the selected report window.',
+                    'items' => collect($statusBuckets)->map(
+                        fn ($count, $status) => [
+                            'label' => str_replace('_', ' ', ucfirst($status)),
+                            'value' => (string) $count,
+                        ]
+                    )->values()->all(),
+                ],
+                [
+                    'title' => 'Branch performance',
+                    'description' => 'Highest-performing branches inside the selected window.',
+                    'items' => collect($branchBreakdown)->take(5)->map(
+                        fn ($row) => [
+                            'label' => $row['branch'],
+                            'value' => number_format((float) $row['orders'], 0).' orders',
+                            'meta' => 'Revenue '.number_format((float) $row['revenue'], 0),
+                        ]
+                    )->values()->all(),
+                ],
+                [
+                    'title' => 'Top products',
+                    'description' => 'Best-selling items in the selected period.',
+                    'items' => collect($topProducts)->map(
+                        fn ($row) => [
+                            'label' => $row['name'],
+                            'value' => number_format((float) $row['quantity'], 0).' qty',
+                        ]
+                    )->values()->all(),
+                ],
+            ],
             'exportNotes' => [
                 'Use Print for paper output or Save as PDF from the browser print dialog.',
                 'Excel export is delivered as CSV so managers can open it directly in Excel.',
+            ],
+        ];
+    }
+
+    private function buildInventoryReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $transactionsQuery = InventoryTransaction::query()
+            ->with([
+                'inventoryItem.branch:id,name',
+                'inventoryItem.vendor:id,name',
+                'inventoryItem.categoryReference:id,name',
+                'inventoryItem.typeReference:id,name',
+            ])
+            ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($branchId !== null) {
+            $transactionsQuery->whereHas(
+                'inventoryItem',
+                fn (Builder $query) => $query->where('branch_id', $branchId),
+            );
+        }
+
+        $transactions = $transactionsQuery
+            ->orderByDesc('created_at')
+            ->get();
+
+        $inventoryItemsQuery = InventoryItem::query()->with(['branch:id,name']);
+        $this->applyBranchScope($inventoryItemsQuery, $branchId);
+        $inventoryItems = $inventoryItemsQuery->get();
+
+        $stockValue = (float) $inventoryItems->sum(
+            fn (InventoryItem $item) => (float) $item->quantity * (float) ($item->unit_price ?? 0),
+        );
+        $lowStockCount = (int) $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity > 0 && (float) $item->quantity <= 10)
+            ->count();
+        $outOfStockCount = (int) $inventoryItems
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity <= 0)
+            ->count();
+        $incomingQuantity = (float) $transactions
+            ->filter(fn (InventoryTransaction $transaction) => (float) $transaction->quantity > 0)
+            ->sum('quantity');
+        $outgoingQuantity = abs((float) $transactions
+            ->filter(fn (InventoryTransaction $transaction) => (float) $transaction->quantity < 0)
+            ->sum('quantity'));
+
+        $actionBreakdown = $transactions
+            ->groupBy('action')
+            ->map(fn ($group, $action) => [
+                'label' => str($action)->replace('_', ' ')->title()->toString(),
+                'value' => number_format((float) $group->count(), 0).' moves',
+                'meta' => number_format(abs((float) $group->sum('quantity')), 0).' qty',
+            ])
+            ->values()
+            ->all();
+
+        $branchMovement = $transactions
+            ->groupBy(fn (InventoryTransaction $transaction) => $transaction->inventoryItem?->branch?->name ?? 'Unassigned')
+            ->map(fn ($group, $branch) => [
+                'label' => $branch,
+                'value' => number_format((float) $group->count(), 0).' moves',
+                'meta' => number_format(abs((float) $group->sum('quantity')), 0).' qty',
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $topMovedItems = $transactions
+            ->groupBy(fn (InventoryTransaction $transaction) => $transaction->inventoryItem?->name ?? 'Unknown')
+            ->map(fn ($group, $item) => [
+                'label' => $item,
+                'value' => number_format(abs((float) $group->sum('quantity')), 0).' qty',
+                'meta' => number_format((float) $group->count(), 0).' records',
+            ])
+            ->sortByDesc(fn ($row) => (float) str_replace(',', '', explode(' ', $row['value'])[0]))
+            ->take(5)
+            ->values()
+            ->all();
+
+        return [
+            'key' => 'inventory',
+            'title' => 'Inventory Report',
+            'description' => 'Movement-driven report for stock activity, branch exposure, and current inventory value.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['unitCost', 'totalCost'],
+            'columns' => [
+                ['key' => 'date', 'label' => 'Date'],
+                ['key' => 'item', 'label' => 'Item'],
+                ['key' => 'branch', 'label' => 'Branch'],
+                ['key' => 'category', 'label' => 'Category'],
+                ['key' => 'action', 'label' => 'Action'],
+                ['key' => 'quantity', 'label' => 'Quantity'],
+                ['key' => 'unitCost', 'label' => 'Unit Cost'],
+                ['key' => 'totalCost', 'label' => 'Total Cost'],
+                ['key' => 'vendor', 'label' => 'Vendor'],
+                ['key' => 'note', 'label' => 'Note'],
+            ],
+            'rows' => $transactions->map(fn (InventoryTransaction $transaction) => [
+                'date' => optional($transaction->created_at)->format('Y-m-d H:i') ?? '-',
+                'item' => $transaction->inventoryItem?->name ?? 'Unknown',
+                'branch' => $transaction->inventoryItem?->branch?->name ?? 'Unassigned',
+                'category' => $transaction->inventoryItem?->categoryReference?->name ?? '-',
+                'action' => str($transaction->action)->replace('_', ' ')->title()->toString(),
+                'quantity' => number_format((float) $transaction->quantity, 2),
+                'unitCost' => (float) ($transaction->unit_cost ?? $transaction->inventoryItem?->unit_price ?? 0),
+                'totalCost' => (float) ($transaction->total_cost ?? ((float) $transaction->quantity * (float) ($transaction->unit_cost ?? $transaction->inventoryItem?->unit_price ?? 0))),
+                'vendor' => $transaction->inventoryItem?->vendor?->name ?? '-',
+                'note' => $transaction->note ?? '-',
+            ])->values()->all(),
+            'summary' => [
+                ['label' => 'Movement Records', 'value' => (int) $transactions->count(), 'format' => 'number'],
+                ['label' => 'Current Stock Value', 'value' => $stockValue, 'format' => 'currency'],
+                ['label' => 'Incoming Quantity', 'value' => $incomingQuantity, 'format' => 'number'],
+                ['label' => 'Outgoing Quantity', 'value' => $outgoingQuantity, 'format' => 'number'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Stock health',
+                    'description' => 'Current stock posture in the selected branch scope.',
+                    'items' => [
+                        ['label' => 'Tracked items', 'value' => number_format((float) $inventoryItems->count(), 0)],
+                        ['label' => 'Low stock items', 'value' => number_format((float) $lowStockCount, 0)],
+                        ['label' => 'Out of stock', 'value' => number_format((float) $outOfStockCount, 0)],
+                    ],
+                ],
+                [
+                    'title' => 'Action mix',
+                    'description' => 'Most common inventory activities during this period.',
+                    'items' => $actionBreakdown,
+                ],
+                [
+                    'title' => 'Branch movement',
+                    'description' => 'Where inventory activity is happening most.',
+                    'items' => $branchMovement,
+                ],
+                [
+                    'title' => 'Top moved items',
+                    'description' => 'Items with the highest absolute quantity movement.',
+                    'items' => $topMovedItems,
+                ],
+            ],
+            'exportNotes' => [
+                'This report uses transaction history inside the selected date period.',
+                'Current stock value remains a live snapshot so managers can compare movement with present inventory.',
+            ],
+        ];
+    }
+
+    private function buildFinanceReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $sales = Order::query()
+            ->with(['branch:id,name'])
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $expenses = Expense::query()
+            ->with(['branch:id,name', 'expenseCategory:id,name'])
+            ->whereBetween('expense_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $cashMovements = CashMovement::query()
+            ->with(['branch:id,name', 'account:id,name'])
+            ->where('approval_status', 'approved')
+            ->whereBetween('movement_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
+            ->get();
+
+        $salesTotal = (float) $sales->sum('total_amount');
+        $expensesTotal = (float) $expenses->sum('amount');
+        $cashMovementNet = (float) $cashMovements->sum(
+            fn (CashMovement $movement) => $movement->direction === 'in'
+                ? (float) $movement->amount
+                : -1 * (float) $movement->amount,
+        );
+
+        $rows = collect()
+            ->merge($sales->map(fn (Order $order) => [
+                'date' => optional($order->created_at)->format('Y-m-d'),
+                'branch' => $order->branch?->name ?? 'Unassigned',
+                'source' => 'Sale',
+                'reference' => '#'.$order->id,
+                'account' => 'Orders',
+                'direction' => 'In',
+                'amount' => (float) $order->total_amount,
+                'status' => 'Completed',
+            ]))
+            ->merge($expenses->map(fn (Expense $expense) => [
+                'date' => optional($expense->expense_date)->format('Y-m-d') ?? '-',
+                'branch' => $expense->branch?->name ?? 'Unassigned',
+                'source' => 'Expense',
+                'reference' => $expense->title ?? '#'.$expense->id,
+                'account' => $expense->expenseCategory?->name ?? ($expense->expense_type ?: '-'),
+                'direction' => 'Out',
+                'amount' => (float) $expense->amount,
+                'status' => (string) ($expense->approval_status ?? 'Recorded'),
+            ]))
+            ->merge($cashMovements->map(fn (CashMovement $movement) => [
+                'date' => optional($movement->movement_date)->format('Y-m-d') ?? '-',
+                'branch' => $movement->branch?->name ?? 'Unassigned',
+                'source' => 'Cash Movement',
+                'reference' => str($movement->movement_type)->replace('_', ' ')->title()->toString(),
+                'account' => $movement->account?->name ?? '-',
+                'direction' => $movement->direction === 'in' ? 'In' : 'Out',
+                'amount' => (float) $movement->amount,
+                'status' => 'Approved',
+            ]))
+            ->sortByDesc('date')
+            ->values();
+
+        $branchFinancials = $sales
+            ->groupBy(fn (Order $order) => $order->branch?->name ?? 'Unassigned')
+            ->map(fn ($group, $branch) => [
+                'sales' => (float) $group->sum('total_amount'),
+                'branch' => $branch,
+            ]);
+
+        foreach ($expenses->groupBy(fn (Expense $expense) => $expense->branch?->name ?? 'Unassigned') as $branch => $group) {
+            $existing = $branchFinancials[$branch] ?? ['sales' => 0.0, 'branch' => $branch];
+            $existing['expenses'] = (float) $group->sum('amount');
+            $branchFinancials[$branch] = $existing;
+        }
+
+        $branchFinancialItems = collect($branchFinancials)
+            ->map(function ($row) {
+                $expenses = (float) ($row['expenses'] ?? 0);
+
+                return [
+                    'label' => $row['branch'],
+                    'value' => 'Sales '.number_format((float) $row['sales'], 0),
+                    'meta' => 'Expenses '.number_format($expenses, 0),
+                ];
+            })
+            ->take(5)
+            ->values()
+            ->all();
+
+        $expenseCategories = $expenses
+            ->groupBy(fn (Expense $expense) => $expense->expenseCategory?->name ?? ($expense->expense_type ?: 'Uncategorized'))
+            ->map(fn ($group, $category) => [
+                'label' => $category,
+                'value' => number_format((float) $group->sum('amount'), 0),
+            ])
+            ->sortByDesc(fn ($row) => (float) str_replace(',', '', $row['value']))
+            ->take(5)
+            ->values()
+            ->all();
+
+        $cashDirections = [
+            [
+                'label' => 'Cash in',
+                'value' => number_format((float) $cashMovements->where('direction', 'in')->sum('amount'), 0),
+            ],
+            [
+                'label' => 'Cash out',
+                'value' => number_format((float) $cashMovements->where('direction', 'out')->sum('amount'), 0),
+            ],
+            [
+                'label' => 'Net cash movement',
+                'value' => number_format($cashMovementNet, 0),
+            ],
+        ];
+
+        return [
+            'key' => 'finance',
+            'title' => 'Finance Report',
+            'description' => 'Unified financial view across sales, expenses, and approved cash movement activity.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['amount'],
+            'columns' => [
+                ['key' => 'date', 'label' => 'Date'],
+                ['key' => 'branch', 'label' => 'Branch'],
+                ['key' => 'source', 'label' => 'Source'],
+                ['key' => 'reference', 'label' => 'Reference'],
+                ['key' => 'account', 'label' => 'Account'],
+                ['key' => 'direction', 'label' => 'Direction'],
+                ['key' => 'amount', 'label' => 'Amount'],
+                ['key' => 'status', 'label' => 'Status'],
+            ],
+            'rows' => $rows->all(),
+            'summary' => [
+                ['label' => 'Sales', 'value' => $salesTotal, 'format' => 'currency'],
+                ['label' => 'Expenses', 'value' => $expensesTotal, 'format' => 'currency'],
+                ['label' => 'Operating Net', 'value' => $salesTotal - $expensesTotal, 'format' => 'currency'],
+                ['label' => 'Cash Net', 'value' => $cashMovementNet, 'format' => 'currency'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Branch financials',
+                    'description' => 'Revenue and expense comparison by branch.',
+                    'items' => $branchFinancialItems,
+                ],
+                [
+                    'title' => 'Expense categories',
+                    'description' => 'Largest expense buckets inside the selected period.',
+                    'items' => $expenseCategories,
+                ],
+                [
+                    'title' => 'Cash direction',
+                    'description' => 'Approved cash movement direction during the same period.',
+                    'items' => $cashDirections,
+                ],
+            ],
+            'exportNotes' => [
+                'Finance rows combine completed sales, recorded expenses, and approved cash movements.',
+                'Operating Net compares sales and expenses, while Cash Net isolates approved cash movement direction.',
+            ],
+        ];
+    }
+
+    private function buildProductsReport(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+    ): array {
+        $products = Product::query()
+            ->with(['category:id,name', 'kitchen:id,name'])
+            ->orderBy('name')
+            ->get();
+
+        $salesByProduct = OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->where('orders.status', '!=', 'cancelled')
+            ->when($branchId, fn (Builder $query) => $query->where('orders.branch_id', $branchId))
+            ->selectRaw('order_items.product_id as product_id')
+            ->selectRaw('COALESCE(SUM(order_items.quantity), 0) as sold_quantity')
+            ->selectRaw('COALESCE(SUM(order_items.line_total), 0) as sales_total')
+            ->selectRaw('COUNT(DISTINCT orders.id) as orders_count')
+            ->groupBy('order_items.product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        $rows = $products->map(function (Product $product) use ($salesByProduct) {
+            $sales = $salesByProduct->get($product->id);
+
+            return [
+                'product' => $product->name,
+                'category' => $product->category?->name ?? '-',
+                'kitchen' => $product->kitchen?->name ?? '-',
+                'status' => $product->is_active ? 'Active' : 'Inactive',
+                'basePrice' => (float) ($product->base_price ?? 0),
+                'soldQty' => (int) ($sales->sold_quantity ?? 0),
+                'salesTotal' => (float) ($sales->sales_total ?? 0),
+                'orders' => (int) ($sales->orders_count ?? 0),
+                'type' => str($product->type)->replace('_', ' ')->title()->toString(),
+            ];
+        })->sortByDesc('soldQty')->values();
+
+        $categoryPerformance = $rows
+            ->groupBy('category')
+            ->map(fn ($group, $category) => [
+                'label' => $category,
+                'value' => number_format((float) $group->sum('soldQty'), 0).' qty',
+                'meta' => 'Sales '.number_format((float) $group->sum('salesTotal'), 0),
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $kitchenCoverage = $rows
+            ->groupBy('kitchen')
+            ->map(fn ($group, $kitchen) => [
+                'label' => $kitchen,
+                'value' => number_format((float) $group->count(), 0).' products',
+                'meta' => number_format((float) $group->sum('soldQty'), 0).' qty sold',
+            ])
+            ->take(5)
+            ->values()
+            ->all();
+
+        $topSellers = $rows
+            ->take(5)
+            ->map(fn ($row) => [
+                'label' => $row['product'],
+                'value' => number_format((float) $row['soldQty'], 0).' qty',
+                'meta' => 'Sales '.number_format((float) $row['salesTotal'], 0),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'key' => 'products',
+            'title' => 'Products Report',
+            'description' => 'Catalog and sales-performance report for products, categories, and kitchen alignment.',
+            'isReady' => true,
+            'status' => 'live',
+            'currencyColumns' => ['basePrice', 'salesTotal'],
+            'columns' => [
+                ['key' => 'product', 'label' => 'Product'],
+                ['key' => 'category', 'label' => 'Category'],
+                ['key' => 'kitchen', 'label' => 'Kitchen'],
+                ['key' => 'type', 'label' => 'Type'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'basePrice', 'label' => 'Base Price'],
+                ['key' => 'soldQty', 'label' => 'Sold Qty'],
+                ['key' => 'salesTotal', 'label' => 'Sales Total'],
+                ['key' => 'orders', 'label' => 'Orders'],
+            ],
+            'rows' => $rows->all(),
+            'summary' => [
+                ['label' => 'Catalog Products', 'value' => (int) $products->count(), 'format' => 'number'],
+                ['label' => 'Active Products', 'value' => (int) $products->where('is_active', true)->count(), 'format' => 'number'],
+                ['label' => 'Sold Quantity', 'value' => (float) $rows->sum('soldQty'), 'format' => 'number'],
+                ['label' => 'Sales Total', 'value' => (float) $rows->sum('salesTotal'), 'format' => 'currency'],
+            ],
+            'insights' => [
+                [
+                    'title' => 'Top sellers',
+                    'description' => 'Products with the strongest sales in the selected period.',
+                    'items' => $topSellers,
+                ],
+                [
+                    'title' => 'Category performance',
+                    'description' => 'Sales concentration by product category.',
+                    'items' => $categoryPerformance,
+                ],
+                [
+                    'title' => 'Kitchen coverage',
+                    'description' => 'How the catalog is distributed across kitchens.',
+                    'items' => $kitchenCoverage,
+                ],
+            ],
+            'exportNotes' => [
+                'Sales metrics are scoped to the selected date period and optional branch.',
+                'Catalog counts remain based on the current product list so managers can compare live assortment against period sales.',
             ],
         ];
     }

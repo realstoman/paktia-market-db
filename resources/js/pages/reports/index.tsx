@@ -91,15 +91,18 @@ interface ActiveReport {
     isReady: boolean;
     status: 'live' | 'planned';
     columns?: ReportColumn[];
+    currencyColumns?: string[];
     rows?: Array<Record<string, string | number>>;
     summary?: ReportSummaryItem[];
-    statusBreakdown?: Array<{ label: string; value: number }>;
-    branchBreakdown?: Array<{
-        branch: string;
-        orders: number;
-        revenue: number;
+    insights?: Array<{
+        title: string;
+        description: string;
+        items: Array<{
+            label: string;
+            value: string;
+            meta?: string;
+        }>;
     }>;
-    topProducts?: Array<{ name: string; quantity: number }>;
     exportNotes?: string[];
     highlights?: string[];
 }
@@ -278,7 +281,15 @@ export default function ReportsPage({
                         ${activeReport
                             .columns!.map(
                                 (column) =>
-                                    `<td>${String(row[column.key] ?? '-')}</td>`,
+                                    `<td>${
+                                        activeReport.currencyColumns?.includes(
+                                            column.key,
+                                        )
+                                            ? formatAfn(
+                                                  Number(row[column.key] ?? 0),
+                                              )
+                                            : String(row[column.key] ?? '-')
+                                    }</td>`,
                             )
                             .join('')}
                     </tr>
@@ -368,13 +379,13 @@ export default function ReportsPage({
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Live now</span>
                                     <Badge variant="success">
-                                        Orders report
+                                        Orders, Inventory, Finance, Products
                                     </Badge>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
                                     <span>Next recommended</span>
                                     <span className="font-medium text-foreground">
-                                        Inventory
+                                        Employees
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
@@ -605,10 +616,9 @@ export default function ReportsPage({
                                                                         column.key
                                                                     }
                                                                 >
-                                                                    {column.key ===
-                                                                        'total' ||
-                                                                    column.key ===
-                                                                        'paid'
+                                                                    {activeReport.currencyColumns?.includes(
+                                                                        column.key,
+                                                                    )
                                                                         ? formatAfn(
                                                                               Number(
                                                                                   row[
@@ -673,89 +683,52 @@ export default function ReportsPage({
                     </Card>
 
                     <div className="space-y-4">
-                        <Card className="shadow-none">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base">
-                                    Status breakdown
-                                </CardTitle>
-                                <CardDescription>
-                                    Quick distribution for the selected report
-                                    window.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {activeReport.isReady ? (
-                                    (activeReport.statusBreakdown ?? []).map(
-                                        (item) => (
-                                            <div
-                                                key={item.label}
-                                                className="rounded-2xl border px-3 py-3"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {item.label}
-                                                    </span>
-                                                    <span className="font-semibold">
-                                                        {formatNumber(
-                                                            item.value,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ),
-                                    )
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                        Summary widgets will appear here when
-                                        this report goes live.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="shadow-none">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base">
-                                    Branch performance
-                                </CardTitle>
-                                <CardDescription>
-                                    Highest-performing branches inside the
-                                    selected window.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {activeReport.isReady ? (
-                                    (activeReport.branchBreakdown ?? [])
-                                        .slice(0, 5)
-                                        .map((item) => (
-                                            <div
-                                                key={item.branch}
-                                                className="rounded-2xl border px-3 py-3"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-medium">
-                                                        {item.branch}
-                                                    </span>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {formatNumber(
-                                                            item.orders,
-                                                        )}{' '}
-                                                        orders
-                                                    </span>
-                                                </div>
-                                                <p className="mt-1 text-sm text-[#2f5559]">
-                                                    {formatAfn(item.revenue)}
-                                                </p>
-                                            </div>
-                                        ))
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                        Branch-level comparisons will appear
-                                        here.
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
+                        {activeReport.isReady
+                            ? (activeReport.insights ?? []).map((section) => (
+                                  <Card
+                                      className="shadow-none"
+                                      key={section.title}
+                                  >
+                                      <CardHeader className="pb-3">
+                                          <CardTitle className="text-base">
+                                              {section.title}
+                                          </CardTitle>
+                                          <CardDescription>
+                                              {section.description}
+                                          </CardDescription>
+                                      </CardHeader>
+                                      <CardContent className="space-y-3">
+                                          {section.items.length > 0 ? (
+                                              section.items.map((item) => (
+                                                  <div
+                                                      key={`${section.title}-${item.label}`}
+                                                      className="rounded-2xl border px-3 py-3"
+                                                  >
+                                                      <div className="flex items-center justify-between gap-3">
+                                                          <span className="font-medium">
+                                                              {item.label}
+                                                          </span>
+                                                          <span className="text-sm text-muted-foreground">
+                                                              {item.value}
+                                                          </span>
+                                                      </div>
+                                                      {item.meta ? (
+                                                          <p className="mt-1 text-sm text-[#2f5559]">
+                                                              {item.meta}
+                                                          </p>
+                                                      ) : null}
+                                                  </div>
+                                              ))
+                                          ) : (
+                                              <div className="rounded-2xl border px-3 py-3 text-sm text-muted-foreground">
+                                                  No insight rows matched this
+                                                  report window.
+                                              </div>
+                                          )}
+                                      </CardContent>
+                                  </Card>
+                              ))
+                            : null}
 
                         <Card className="shadow-none">
                             <CardHeader className="pb-3">
@@ -782,43 +755,6 @@ export default function ReportsPage({
                                 ))}
                             </CardContent>
                         </Card>
-
-                        {activeReport.isReady &&
-                        (activeReport.topProducts ?? []).length > 0 ? (
-                            <Card className="shadow-none">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-base">
-                                        Top products
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Best-selling items in the selected
-                                        period.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {(activeReport.topProducts ?? []).map(
-                                        (item) => (
-                                            <div
-                                                key={item.name}
-                                                className="rounded-2xl border px-3 py-3"
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <span className="font-medium">
-                                                        {item.name}
-                                                    </span>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {formatNumber(
-                                                            item.quantity,
-                                                        )}{' '}
-                                                        qty
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ),
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ) : null}
                     </div>
                 </section>
             </div>
