@@ -490,6 +490,10 @@ class PayrollController extends Controller
         }
 
         DB::transaction(function () use ($milestonePercentages, $validated) {
+            $derivedInstallmentCount = $milestonePercentages->isNotEmpty()
+                ? $milestonePercentages->count()
+                : null;
+
             $contract = EmployeeContract::create([
                 'employee_id' => $validated['employee_id'],
                 'branch_id' => $validated['branch_id'] ?? null,
@@ -497,7 +501,7 @@ class PayrollController extends Controller
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'] ?? null,
                 'payment_plan_type' => $validated['payment_plan_type'],
-                'installment_count' => $validated['installment_count'] ?? null,
+                'installment_count' => $validated['installment_count'] ?? $derivedInstallmentCount,
                 'status' => $validated['status'] ?? 'draft',
                 'notes' => $validated['notes'] ?? null,
             ]);
