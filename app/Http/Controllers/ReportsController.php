@@ -143,7 +143,7 @@ class ReportsController extends Controller
     private function buildReportPageData(Request $request): array
     {
         $validated = $request->validate([
-            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,last_30_days,custom'],
+            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,last_30_days,year_to_date,custom'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
@@ -229,6 +229,7 @@ class ReportsController extends Controller
             ],
             'this_week' => [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()],
             'last_30_days' => [$today->copy()->subDays(29)->startOfDay(), $today->copy()->endOfDay()],
+            'year_to_date' => [$today->copy()->startOfYear(), $today->copy()->endOfDay()],
             'custom' => $this->resolveCustomPeriod($startDate, $endDate),
             default => [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()],
         };
@@ -589,8 +590,8 @@ class ReportsController extends Controller
                 ],
             ],
             'exportNotes' => [
-                'Use Print for paper output or Save as PDF from the browser print dialog.',
-                'Excel export is delivered as CSV so managers can open it directly in Excel.',
+                'Download PDF for a server-rendered printable report package.',
+                'Download Excel for a native .xlsx workbook built from the current report view.',
             ],
         ];
     }
