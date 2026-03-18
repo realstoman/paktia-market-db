@@ -13,7 +13,14 @@ import AppLayout from '@/layouts/app-layout';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Package, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Package,
+    TrendingDown,
+    TrendingUp,
+    Wallet,
+} from 'lucide-react';
 import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -212,9 +219,10 @@ export default function InventoryValuationPage({
                                 Inventory Valuation
                             </h1>
                             <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                This page shows what the restaurant stock is worth, how much value
-                                moved into kitchen usage, what has been adjusted, and how inventory
-                                costs are affecting finance.
+                                This page shows what the restaurant stock is
+                                worth, how much value moved into kitchen usage,
+                                what has been adjusted, and how inventory costs
+                                are affecting finance.
                             </p>
                         </div>
 
@@ -236,7 +244,11 @@ export default function InventoryValuationPage({
                             {RANGE_OPTIONS.map((option) => (
                                 <Button
                                     key={option.value}
-                                    variant={range === option.value ? 'default' : 'outline'}
+                                    variant={
+                                        range === option.value
+                                            ? 'default'
+                                            : 'outline'
+                                    }
                                     size="sm"
                                     onClick={() => {
                                         setRange(option.value);
@@ -259,20 +271,28 @@ export default function InventoryValuationPage({
                             {range === 'custom' ? (
                                 <>
                                     <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Start Date</label>
+                                        <label className="text-sm font-medium">
+                                            Start Date
+                                        </label>
                                         <input
                                             type="date"
                                             value={startDate}
-                                            onChange={(event) => setStartDate(event.target.value)}
+                                            onChange={(event) =>
+                                                setStartDate(event.target.value)
+                                            }
                                             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <label className="text-sm font-medium">End Date</label>
+                                        <label className="text-sm font-medium">
+                                            End Date
+                                        </label>
                                         <input
                                             type="date"
                                             value={endDate}
-                                            onChange={(event) => setEndDate(event.target.value)}
+                                            onChange={(event) =>
+                                                setEndDate(event.target.value)
+                                            }
                                             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                                         />
                                     </div>
@@ -280,7 +300,9 @@ export default function InventoryValuationPage({
                             ) : null}
 
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Branch</label>
+                                <label className="text-sm font-medium">
+                                    Branch
+                                </label>
                                 <SearchableDropdown
                                     value={branchId || 'all'}
                                     options={[
@@ -291,7 +313,9 @@ export default function InventoryValuationPage({
                                         })),
                                     ]}
                                     onValueChange={(value) =>
-                                        setBranchId(value === 'all' ? '' : value)
+                                        setBranchId(
+                                            value === 'all' ? '' : value,
+                                        )
                                     }
                                     placeholder="Select branch"
                                     searchPlaceholder="Search branches..."
@@ -347,7 +371,8 @@ export default function InventoryValuationPage({
                                     {formatNumber(summary.stockQuantity)}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Across {formatNumber(summary.stockItems)} inventory items
+                                    Across {formatNumber(summary.stockItems)}{' '}
+                                    inventory items
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -366,7 +391,8 @@ export default function InventoryValuationPage({
                                     {formatAfn(summary.cogs)}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Estimated value moved into usage in this period
+                                    Estimated value moved into usage in this
+                                    period
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -382,10 +408,14 @@ export default function InventoryValuationPage({
                                     Adjustments Net
                                 </p>
                                 <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-                                    {formatAfn(summary.adjustmentIn - summary.adjustmentOut)}
+                                    {formatAfn(
+                                        summary.adjustmentIn -
+                                            summary.adjustmentOut,
+                                    )}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    In: {formatAfn(summary.adjustmentIn)} | Out: {formatAfn(summary.adjustmentOut)}
+                                    In: {formatAfn(summary.adjustmentIn)} | Out:{' '}
+                                    {formatAfn(summary.adjustmentOut)}
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -400,7 +430,8 @@ export default function InventoryValuationPage({
                         <CardHeader>
                             <CardTitle>Valuation by Item</CardTitle>
                             <CardDescription>
-                                Weighted or estimated average cost per inventory item and current stock value.
+                                Weighted or estimated average cost per inventory
+                                item and current stock value.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -408,34 +439,37 @@ export default function InventoryValuationPage({
                                 valuationItems.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="grid gap-3 rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800 md:grid-cols-[1.3fr_0.9fr_0.7fr_0.8fr]"
+                                        className="grid gap-3 rounded-2xl border border-neutral-200/80 p-4 md:grid-cols-[1.3fr_0.9fr_0.7fr_0.8fr] dark:border-neutral-800"
                                     >
                                         <div>
                                             <p className="font-medium text-neutral-950 dark:text-neutral-50">
                                                 {item.name}
                                             </p>
                                             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                                {item.branch} | Vendor: {item.vendor}
+                                                {item.branch} | Vendor:{' '}
+                                                {item.vendor}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                            <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                                 Quantity
                                             </p>
                                             <p className="mt-1 font-medium">
-                                                {formatNumber(item.quantity)} {item.unit}
+                                                {formatNumber(item.quantity)}{' '}
+                                                {item.unit}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                            <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                                 Avg Cost
                                             </p>
                                             <p className="mt-1 font-medium">
-                                                {item.currencySymbol} {formatPrice(item.averageCost)}
+                                                {item.currencySymbol}{' '}
+                                                {formatPrice(item.averageCost)}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                            <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                                 Stock Value
                                             </p>
                                             <p className="mt-1 font-semibold text-neutral-950 dark:text-neutral-50">
@@ -446,7 +480,8 @@ export default function InventoryValuationPage({
                                 ))
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                    No inventory valuation items were found for the selected branch.
+                                    No inventory valuation items were found for
+                                    the selected branch.
                                 </div>
                             )}
                         </CardContent>
@@ -456,43 +491,53 @@ export default function InventoryValuationPage({
                         <CardHeader>
                             <CardTitle>Cost Sections</CardTitle>
                             <CardDescription>
-                                Finance view of consumption, wastage, and adjustments in the selected period.
+                                Finance view of consumption, wastage, and
+                                adjustments in the selected period.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
-                                <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                     COGS / Usage
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
                                     {formatAfn(summary.cogs)}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    Based on `usage_cycle` and any future `issue` or `consumed` transactions.
+                                    Based on `usage_cycle` and any future
+                                    `issue` or `consumed` transactions.
                                 </p>
                             </div>
 
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
-                                <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                     Wastage / Spoilage
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
                                     {formatAfn(summary.wastage)}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    This stays zero until wastage transactions are added explicitly into the inventory flow.
+                                    This stays zero until wastage transactions
+                                    are added explicitly into the inventory
+                                    flow.
                                 </p>
                             </div>
 
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
-                                <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                     Adjustments
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
-                                    {formatAfn(summary.adjustmentIn - summary.adjustmentOut)}
+                                    {formatAfn(
+                                        summary.adjustmentIn -
+                                            summary.adjustmentOut,
+                                    )}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    Positive adjustments: {formatAfn(summary.adjustmentIn)} | Negative adjustments: {formatAfn(summary.adjustmentOut)}
+                                    Positive adjustments:{' '}
+                                    {formatAfn(summary.adjustmentIn)} | Negative
+                                    adjustments:{' '}
+                                    {formatAfn(summary.adjustmentOut)}
                                 </p>
                             </div>
                         </CardContent>
@@ -514,19 +559,23 @@ export default function InventoryValuationPage({
                             movementEntries.map((entry) => (
                                 <div
                                     key={entry.id}
-                                    className="grid gap-3 rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800 md:grid-cols-[0.9fr_0.9fr_1.3fr_0.8fr_0.8fr_1fr]"
+                                    className="grid gap-3 rounded-2xl border border-neutral-200/80 p-4 md:grid-cols-[0.9fr_0.9fr_1.3fr_0.8fr_0.8fr_1fr] dark:border-neutral-800"
                                 >
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                        <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                             Date
                                         </p>
-                                        <p className="mt-1 font-medium">{entry.date}</p>
+                                        <p className="mt-1 font-medium">
+                                            {entry.date}
+                                        </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                        <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                             Action
                                         </p>
-                                        <p className="mt-1 font-medium">{entry.action}</p>
+                                        <p className="mt-1 font-medium">
+                                            {entry.action}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="font-medium text-neutral-950 dark:text-neutral-50">
@@ -542,28 +591,33 @@ export default function InventoryValuationPage({
                                         ) : null}
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                        <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                             Quantity
                                         </p>
                                         <p className="mt-1 font-medium">
-                                            {formatNumber(entry.quantity)} {entry.unit}
+                                            {formatNumber(entry.quantity)}{' '}
+                                            {entry.unit}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                        <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                             Unit Cost
                                         </p>
                                         <p className="mt-1 font-medium">
                                             {formatAfn(entry.unitCost)}
                                         </p>
-                                        {entry.weightedAverageCostAfter !== null ? (
+                                        {entry.weightedAverageCostAfter !==
+                                        null ? (
                                             <p className="text-xs text-neutral-500">
-                                                WA after: {formatAfn(entry.weightedAverageCostAfter)}
+                                                WA after:{' '}
+                                                {formatAfn(
+                                                    entry.weightedAverageCostAfter,
+                                                )}
                                             </p>
                                         ) : null}
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
+                                        <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
                                             Total Cost
                                         </p>
                                         <p className="mt-1 font-semibold text-neutral-950 dark:text-neutral-50">
@@ -574,27 +628,32 @@ export default function InventoryValuationPage({
                             ))
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No inventory finance movements were found for the selected filters.
+                                No inventory finance movements were found for
+                                the selected filters.
                             </div>
                         )}
 
                         {pagination.lastPage > 1 ? (
                             <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Page {pagination.currentPage} of {pagination.lastPage}
+                                    Page {pagination.currentPage} of{' '}
+                                    {pagination.lastPage}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         disabled={pagination.currentPage <= 1}
-                                        onClick={() => goToPage(pagination.currentPage - 1)}
+                                        onClick={() =>
+                                            goToPage(pagination.currentPage - 1)
+                                        }
                                         aria-label="Previous page"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Button>
                                     {visiblePages.map((page, index) => {
-                                        const previousPage = visiblePages[index - 1];
+                                        const previousPage =
+                                            visiblePages[index - 1];
                                         const showGap =
                                             previousPage !== undefined &&
                                             page - previousPage > 1;
@@ -608,12 +667,15 @@ export default function InventoryValuationPage({
                                                 ) : null}
                                                 <Button
                                                     variant={
-                                                        page === pagination.currentPage
+                                                        page ===
+                                                        pagination.currentPage
                                                             ? 'default'
                                                             : 'outline'
                                                     }
                                                     size="sm"
-                                                    onClick={() => goToPage(page)}
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
                                                 >
                                                     {page}
                                                 </Button>
@@ -624,7 +686,9 @@ export default function InventoryValuationPage({
                                         variant="outline"
                                         size="sm"
                                         disabled={!pagination.hasMorePages}
-                                        onClick={() => goToPage(pagination.currentPage + 1)}
+                                        onClick={() =>
+                                            goToPage(pagination.currentPage + 1)
+                                        }
                                         aria-label="Next page"
                                     >
                                         <ChevronRight className="h-4 w-4" />

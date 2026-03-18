@@ -59,11 +59,12 @@ interface CashMovementTypeClientProps {
     movementTypes: CashMovementType[];
 }
 
-export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClientProps) {
+export function CashMovementTypeClient({
+    movementTypes,
+}: CashMovementTypeClientProps) {
     const [isOpen, setIsOpen] = React.useState(false);
-    const [editingType, setEditingType] = React.useState<CashMovementType | null>(
-        null,
-    );
+    const [editingType, setEditingType] =
+        React.useState<CashMovementType | null>(null);
     const [form, setForm] = React.useState<MovementTypeFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
 
@@ -99,10 +100,14 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
         };
 
         if (editingType) {
-            router.put(`/finance/cash-movement-types/${editingType.id}`, payload, {
-                preserveScroll: true,
-                onSuccess: () => setIsOpen(false),
-            });
+            router.put(
+                `/finance/cash-movement-types/${editingType.id}`,
+                payload,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => setIsOpen(false),
+                },
+            );
             return;
         }
 
@@ -165,7 +170,10 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
-                        <Link href="/finance/cash-bank" className="bg-white dark:bg-neutral-900">
+                        <Link
+                            href="/finance/cash-bank"
+                            className="bg-white dark:bg-neutral-900"
+                        >
                             Back to Cash & Bank
                         </Link>
                     </Button>
@@ -185,7 +193,8 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                         Cash Movement Types
                     </CardTitle>
                     <CardDescription>
-                        Data-table based management for available movement types, their default direction, and transfer behavior.
+                        Data-table based management for available movement
+                        types, their default direction, and transfer behavior.
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -194,7 +203,12 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                 <DataTable
                     columns={columns}
                     data={filteredMovementTypes}
-                    searchKey={['name', 'slug', 'default_direction', 'description']}
+                    searchKey={[
+                        'name',
+                        'slug',
+                        'default_direction',
+                        'description',
+                    ]}
                     searchPlaceholder="Search movement type, slug, direction, or description..."
                     toolbar={toolbar}
                 />
@@ -204,10 +218,13 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingType ? 'Edit Movement Type' : 'Create Movement Type'}
+                            {editingType
+                                ? 'Edit Movement Type'
+                                : 'Create Movement Type'}
                         </DialogTitle>
                         <DialogDescription>
-                            Configure name, slug, direction behavior, and whether this type needs a target account.
+                            Configure name, slug, direction behavior, and
+                            whether this type needs a target account.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -264,7 +281,8 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                                 onChange={(event) =>
                                     setForm((current) => ({
                                         ...current,
-                                        requires_counterparty: event.target.checked,
+                                        requires_counterparty:
+                                            event.target.checked,
                                     }))
                                 }
                                 className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
@@ -318,7 +336,10 @@ export function CashMovementTypeClient({ movementTypes }: CashMovementTypeClient
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={submit}>

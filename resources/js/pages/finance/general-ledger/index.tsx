@@ -78,7 +78,10 @@ interface GeneralLedgerPageProps {
 }
 
 function ledgerStatusTone(status: string) {
-    if (status.toLowerCase() === 'posted' || status.toLowerCase() === 'approved') {
+    if (
+        status.toLowerCase() === 'posted' ||
+        status.toLowerCase() === 'approved'
+    ) {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
     }
 
@@ -236,9 +239,11 @@ export default function GeneralLedgerPage({
                                 General Ledger
                             </h1>
                             <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                This is the full finance ledger page. It shows the growing stream
-                                of sales, expenses, cash movements, and posted journal lines in one place,
-                                so the dashboard can stay focused on summary analytics.
+                                This is the full finance ledger page. It shows
+                                the growing stream of sales, expenses, cash
+                                movements, and posted journal lines in one
+                                place, so the dashboard can stay focused on
+                                summary analytics.
                             </p>
                         </div>
 
@@ -252,7 +257,8 @@ export default function GeneralLedgerPage({
                     <CardHeader>
                         <CardTitle>Filters</CardTitle>
                         <CardDescription>
-                            Narrow the ledger by period, branch, payment method, and expense category.
+                            Narrow the ledger by period, branch, payment method,
+                            and expense category.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -260,7 +266,11 @@ export default function GeneralLedgerPage({
                             {RANGE_OPTIONS.map((option) => (
                                 <Button
                                     key={option.value}
-                                    variant={range === option.value ? 'default' : 'outline'}
+                                    variant={
+                                        range === option.value
+                                            ? 'default'
+                                            : 'outline'
+                                    }
                                     size="sm"
                                     onClick={() => {
                                         setRange(option.value);
@@ -285,20 +295,28 @@ export default function GeneralLedgerPage({
                             {range === 'custom' ? (
                                 <>
                                     <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Start Date</label>
+                                        <label className="text-sm font-medium">
+                                            Start Date
+                                        </label>
                                         <input
                                             type="date"
                                             value={startDate}
-                                            onChange={(event) => setStartDate(event.target.value)}
+                                            onChange={(event) =>
+                                                setStartDate(event.target.value)
+                                            }
                                             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <label className="text-sm font-medium">End Date</label>
+                                        <label className="text-sm font-medium">
+                                            End Date
+                                        </label>
                                         <input
                                             type="date"
                                             value={endDate}
-                                            onChange={(event) => setEndDate(event.target.value)}
+                                            onChange={(event) =>
+                                                setEndDate(event.target.value)
+                                            }
                                             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                                         />
                                     </div>
@@ -306,7 +324,9 @@ export default function GeneralLedgerPage({
                             ) : null}
 
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Branch</label>
+                                <label className="text-sm font-medium">
+                                    Branch
+                                </label>
                                 <SearchableDropdown
                                     value={branchId || 'all'}
                                     options={[
@@ -317,7 +337,9 @@ export default function GeneralLedgerPage({
                                         })),
                                     ]}
                                     onValueChange={(value) =>
-                                        setBranchId(value === 'all' ? '' : value)
+                                        setBranchId(
+                                            value === 'all' ? '' : value,
+                                        )
                                     }
                                     placeholder="Select branch"
                                     searchPlaceholder="Search branches..."
@@ -326,7 +348,9 @@ export default function GeneralLedgerPage({
                             </div>
 
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Payment Method</label>
+                                <label className="text-sm font-medium">
+                                    Payment Method
+                                </label>
                                 <SearchableDropdown
                                     value={paymentMethod || 'all'}
                                     options={[
@@ -334,7 +358,9 @@ export default function GeneralLedgerPage({
                                         ...PAYMENT_METHODS,
                                     ]}
                                     onValueChange={(value) =>
-                                        setPaymentMethod(value === 'all' ? '' : value)
+                                        setPaymentMethod(
+                                            value === 'all' ? '' : value,
+                                        )
                                     }
                                     placeholder="Select payment method"
                                     searchPlaceholder="Search payment methods..."
@@ -343,15 +369,22 @@ export default function GeneralLedgerPage({
                             </div>
 
                             <div className="grid gap-2">
-                                <label className="text-sm font-medium">Expense Category</label>
+                                <label className="text-sm font-medium">
+                                    Expense Category
+                                </label>
                                 <SearchableDropdown
                                     value={category || 'all'}
                                     options={[
-                                        { value: 'all', label: 'All Categories' },
+                                        {
+                                            value: 'all',
+                                            label: 'All Categories',
+                                        },
                                         ...expenseCategories,
                                     ]}
                                     onValueChange={(value) =>
-                                        setCategory(value === 'all' ? '' : value)
+                                        setCategory(
+                                            value === 'all' ? '' : value,
+                                        )
                                     }
                                     placeholder="Select category"
                                     searchPlaceholder="Search categories..."
@@ -383,7 +416,8 @@ export default function GeneralLedgerPage({
                     <CardHeader>
                         <CardTitle>Ledger Entries</CardTitle>
                         <CardDescription>
-                            Full operational finance stream for the selected filters.
+                            Full operational finance stream for the selected
+                            filters.
                             {pagination.total > 0
                                 ? ` Showing ${pagination.from} to ${pagination.to} of ${pagination.total} entries.`
                                 : ''}
@@ -396,14 +430,28 @@ export default function GeneralLedgerPage({
                                     <thead>
                                         <tr className="border-b border-neutral-200 text-left text-xs tracking-[0.18em] text-neutral-500 uppercase dark:border-neutral-800">
                                             <th className="px-3 py-3">Date</th>
-                                            <th className="px-3 py-3">Reference</th>
+                                            <th className="px-3 py-3">
+                                                Reference
+                                            </th>
                                             <th className="px-3 py-3">Type</th>
-                                            <th className="px-3 py-3">Branch</th>
-                                            <th className="px-3 py-3">Account</th>
-                                            <th className="px-3 py-3">Description</th>
-                                            <th className="px-3 py-3 text-right">Debit</th>
-                                            <th className="px-3 py-3 text-right">Credit</th>
-                                            <th className="px-3 py-3 text-right">Status</th>
+                                            <th className="px-3 py-3">
+                                                Branch
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                Account
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                Description
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Debit
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Credit
+                                            </th>
+                                            <th className="px-3 py-3 text-right">
+                                                Status
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -412,21 +460,35 @@ export default function GeneralLedgerPage({
                                                 key={`${entry.reference}-${entry.date}-${entry.account}`}
                                                 className="border-b border-neutral-100 dark:border-neutral-800/70"
                                             >
-                                                <td className="px-3 py-3 whitespace-nowrap">{entry.date}</td>
-                                                <td className="px-3 py-3 whitespace-nowrap font-medium text-neutral-950 dark:text-neutral-50">
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    {entry.date}
+                                                </td>
+                                                <td className="px-3 py-3 font-medium whitespace-nowrap text-neutral-950 dark:text-neutral-50">
                                                     {entry.reference}
                                                 </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">{entry.type}</td>
-                                                <td className="px-3 py-3 whitespace-nowrap">{entry.branch}</td>
-                                                <td className="px-3 py-3 whitespace-nowrap">{entry.account}</td>
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    {entry.type}
+                                                </td>
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    {entry.branch}
+                                                </td>
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    {entry.account}
+                                                </td>
                                                 <td className="px-3 py-3 text-neutral-600 dark:text-neutral-300">
                                                     {entry.description}
                                                 </td>
                                                 <td className="px-3 py-3 text-right whitespace-nowrap">
-                                                    {entry.debit > 0 ? formatAfn(entry.debit) : '-'}
+                                                    {entry.debit > 0
+                                                        ? formatAfn(entry.debit)
+                                                        : '-'}
                                                 </td>
                                                 <td className="px-3 py-3 text-right whitespace-nowrap">
-                                                    {entry.credit > 0 ? formatAfn(entry.credit) : '-'}
+                                                    {entry.credit > 0
+                                                        ? formatAfn(
+                                                              entry.credit,
+                                                          )
+                                                        : '-'}
                                                 </td>
                                                 <td className="px-3 py-3 text-right whitespace-nowrap">
                                                     <span
@@ -442,27 +504,32 @@ export default function GeneralLedgerPage({
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No ledger entries were found for the selected filters.
+                                No ledger entries were found for the selected
+                                filters.
                             </div>
                         )}
 
                         {pagination.lastPage > 1 ? (
                             <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Page {pagination.currentPage} of {pagination.lastPage}
+                                    Page {pagination.currentPage} of{' '}
+                                    {pagination.lastPage}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         disabled={pagination.currentPage <= 1}
-                                        onClick={() => goToPage(pagination.currentPage - 1)}
+                                        onClick={() =>
+                                            goToPage(pagination.currentPage - 1)
+                                        }
                                         aria-label="Previous page"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Button>
                                     {visiblePages.map((page, index) => {
-                                        const previousPage = visiblePages[index - 1];
+                                        const previousPage =
+                                            visiblePages[index - 1];
                                         const showGap =
                                             previousPage !== undefined &&
                                             page - previousPage > 1;
@@ -476,12 +543,15 @@ export default function GeneralLedgerPage({
                                                 ) : null}
                                                 <Button
                                                     variant={
-                                                        page === pagination.currentPage
+                                                        page ===
+                                                        pagination.currentPage
                                                             ? 'default'
                                                             : 'outline'
                                                     }
                                                     size="sm"
-                                                    onClick={() => goToPage(page)}
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
                                                 >
                                                     {page}
                                                 </Button>
@@ -492,7 +562,9 @@ export default function GeneralLedgerPage({
                                         variant="outline"
                                         size="sm"
                                         disabled={!pagination.hasMorePages}
-                                        onClick={() => goToPage(pagination.currentPage + 1)}
+                                        onClick={() =>
+                                            goToPage(pagination.currentPage + 1)
+                                        }
                                         aria-label="Next page"
                                     >
                                         <ChevronRight className="h-4 w-4" />

@@ -59,7 +59,8 @@ export const buildColumns = (
         header: 'Photo',
         cell: ({ row }) => {
             const photoUrl = publicStorageUrl(row.original.profile_picture);
-            const initials = `${row.original.first_name?.charAt(0) ?? ''}${row.original.last_name?.charAt(0) ?? ''}`.toUpperCase();
+            const initials =
+                `${row.original.first_name?.charAt(0) ?? ''}${row.original.last_name?.charAt(0) ?? ''}`.toUpperCase();
 
             return (
                 <div className="flex items-center">
@@ -158,7 +159,8 @@ export const buildColumns = (
         header: 'Status',
         cell: ({ row }) => {
             const active = row.original.is_active;
-            const status = row.original.status || (active ? 'active' : 'inactive');
+            const status =
+                row.original.status || (active ? 'active' : 'inactive');
             const label = status
                 .split('_')
                 .map((part) => part.charAt(0).toUpperCase() + part.slice(1))

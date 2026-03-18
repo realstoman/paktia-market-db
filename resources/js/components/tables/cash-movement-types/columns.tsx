@@ -50,7 +50,8 @@ export function buildColumns({
         {
             accessorKey: 'requires_counterparty',
             header: 'Needs Target',
-            cell: ({ row }) => (row.original.requires_counterparty ? 'Yes' : 'No'),
+            cell: ({ row }) =>
+                row.original.requires_counterparty ? 'Yes' : 'No',
         },
         {
             accessorKey: 'sort_order',

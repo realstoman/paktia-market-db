@@ -64,9 +64,14 @@ export function buildColumns({
             header: 'Title',
             cell: ({ row }) => (
                 <div>
-                    <p className="font-medium">{row.original.title ?? 'Contract Schedule'}</p>
+                    <p className="font-medium">
+                        {row.original.title ?? 'Contract Schedule'}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                        {row.original.contract?.payment_plan_type?.replaceAll('_', ' ') ?? '-'}
+                        {row.original.contract?.payment_plan_type?.replaceAll(
+                            '_',
+                            ' ',
+                        ) ?? '-'}
                     </p>
                 </div>
             ),
@@ -76,7 +81,9 @@ export function buildColumns({
             accessorFn: (row) => Number(row.percentage ?? 0),
             header: '%',
             cell: ({ row }) =>
-                row.original.percentage != null ? `${row.original.percentage}%` : '-',
+                row.original.percentage != null
+                    ? `${row.original.percentage}%`
+                    : '-',
         },
         {
             id: 'amount',
@@ -98,7 +105,9 @@ export function buildColumns({
                         View
                     </button>
                 ) : (
-                    <span className="text-sm text-muted-foreground">No file</span>
+                    <span className="text-sm text-muted-foreground">
+                        No file
+                    </span>
                 ),
         },
         {

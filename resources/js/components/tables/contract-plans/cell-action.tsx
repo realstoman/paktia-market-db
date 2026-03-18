@@ -18,7 +18,12 @@ interface CellActionProps {
     onPrint: (contract: EmployeeContract) => void;
 }
 
-export function CellAction({ data, onEdit, onDelete, onPrint }: CellActionProps) {
+export function CellAction({
+    data,
+    onEdit,
+    onDelete,
+    onPrint,
+}: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>

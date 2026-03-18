@@ -100,7 +100,12 @@ export function SummaryMetricCard({
                 </div>
             </CardHeader>
             <CardContent>
-                <p className={cn('text-2xl font-semibold tracking-tight', styles.value)}>
+                <p
+                    className={cn(
+                        'text-2xl font-semibold tracking-tight',
+                        styles.value,
+                    )}
+                >
                     {value}
                 </p>
                 {description ? (

@@ -197,10 +197,14 @@ export function ChartOfAccountsClient({
         };
 
         if (editingAccount) {
-            router.put(`/finance/chart-of-accounts/${editingAccount.id}`, payload, {
-                preserveScroll: true,
-                onSuccess: () => setIsOpen(false),
-            });
+            router.put(
+                `/finance/chart-of-accounts/${editingAccount.id}`,
+                payload,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => setIsOpen(false),
+                },
+            );
             return;
         }
 
@@ -299,7 +303,10 @@ export function ChartOfAccountsClient({
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
-                        <Link href="/finance" className="bg-white dark:bg-neutral-900">
+                        <Link
+                            href="/finance"
+                            className="bg-white dark:bg-neutral-900"
+                        >
                             Back to Finance
                         </Link>
                     </Button>
@@ -506,7 +513,9 @@ export function ChartOfAccountsClient({
                         </label>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label htmlFor="account-description">Description</Label>
+                            <Label htmlFor="account-description">
+                                Description
+                            </Label>
                             <Textarea
                                 id="account-description"
                                 value={form.description}
@@ -523,7 +532,10 @@ export function ChartOfAccountsClient({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={submit}>

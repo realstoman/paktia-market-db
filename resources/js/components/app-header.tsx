@@ -1,5 +1,5 @@
-import { Icon } from '@/components/icon';
 import { HeaderNotifications } from '@/components/header-notifications';
+import { Icon } from '@/components/icon';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

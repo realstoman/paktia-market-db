@@ -46,8 +46,8 @@ import {
     ProductSize,
     ProductType,
 } from '@/types';
-import { router } from '@inertiajs/react';
 import { formatAfn } from '@/utils/format';
+import { router } from '@inertiajs/react';
 import {
     Edit,
     Eye,
@@ -92,7 +92,10 @@ const normalizePriceInput = (value?: number | string | null) => {
 const resolveImageUrl = (image: ProductImage) => {
     const urlCandidate = image.url ?? image.path ?? '';
     if (!urlCandidate) return '';
-    if (urlCandidate.startsWith('http://') || urlCandidate.startsWith('https://')) {
+    if (
+        urlCandidate.startsWith('http://') ||
+        urlCandidate.startsWith('https://')
+    ) {
         return urlCandidate;
     }
     if (urlCandidate.startsWith('/storage/')) {
@@ -156,7 +159,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [newImages, setNewImages] = useState<PendingImage[]>([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const availableTypes = types.length > 0 ? types.map((item) => item.name) : FALLBACK_TYPES;
+    const availableTypes =
+        types.length > 0 ? types.map((item) => item.name) : FALLBACK_TYPES;
     const activeImages = data.images ?? [];
     const resolvedCategory =
         data.category?.name ??
@@ -403,7 +407,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <p className="text-xs text-muted-foreground">
                                     Category
                                 </p>
-                                <p className="font-medium">{resolvedCategory}</p>
+                                <p className="font-medium">
+                                    {resolvedCategory}
+                                </p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
@@ -415,7 +421,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <p className="text-xs text-muted-foreground">
                                     Type
                                 </p>
-                                <Badge variant="secondary" className="capitalize">
+                                <Badge
+                                    variant="secondary"
+                                    className="capitalize"
+                                >
                                     {data.type ?? '-'}
                                 </Badge>
                             </div>
@@ -431,7 +440,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <p className="text-xs text-muted-foreground">
                                     Status
                                 </p>
-                                <Badge variant={data.is_active ? 'default' : 'destructive'}>
+                                <Badge
+                                    variant={
+                                        data.is_active
+                                            ? 'default'
+                                            : 'destructive'
+                                    }
+                                >
                                     {data.is_active ? 'Active' : 'Inactive'}
                                 </Badge>
                             </div>
@@ -470,9 +485,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         </span>
                                     ) : (
                                         data.sizes?.map((size) => (
-                                            <Badge key={size.id} variant="outline">
+                                            <Badge
+                                                key={size.id}
+                                                variant="outline"
+                                            >
                                                 {size.name}:{' '}
-                                                {formatAfn(size.pivot?.price ?? data.base_price ?? 0)}
+                                                {formatAfn(
+                                                    size.pivot?.price ??
+                                                        data.base_price ??
+                                                        0,
+                                                )}
                                             </Badge>
                                         ))
                                     )}
@@ -528,291 +550,327 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`product-name-${data.id}`}>Name</Label>
-                            <Input
-                                id={`product-name-${data.id}`}
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`product-pashto-name-${data.id}`}>
-                                Pashto Name
-                            </Label>
-                            <Input
-                                id={`product-pashto-name-${data.id}`}
-                                value={pashtoName}
-                                onChange={(event) =>
-                                    setPashtoName(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.pashto_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`product-dari-name-${data.id}`}>
-                                Dari Name
-                            </Label>
-                            <Input
-                                id={`product-dari-name-${data.id}`}
-                                value={dariName}
-                                onChange={(event) =>
-                                    setDariName(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.dari_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Category</Label>
-                            <Select value={categoryId} onValueChange={setCategoryId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem
-                                            key={category.id}
-                                            value={String(category.id)}
-                                        >
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.product_category_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Kitchen</Label>
-                            <Select value={kitchenId} onValueChange={setKitchenId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select kitchen" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {kitchens.map((kitchen) => (
-                                        <SelectItem
-                                            key={kitchen.id}
-                                            value={String(kitchen.id)}
-                                        >
-                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.kitchen_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Type</Label>
-                            <Select value={type} onValueChange={setType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableTypes.map((productType) => (
-                                        <SelectItem
-                                            key={productType}
-                                            value={productType}
-                                        >
-                                            <span className="capitalize">
-                                                {productType}
-                                            </span>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`product-price-${data.id}`}>
-                                Base Price (AFN)
-                            </Label>
-                            <NumericInput
-                                id={`product-price-${data.id}`}
-                                min="0"
-                                value={basePrice}
-                                onValueChange={setBasePrice}
-                            />
-                            <InputError message={editErrors.base_price} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Size Pricing (Optional, AFN)</Label>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {sizes.map((size) => (
-                                    <div
-                                        key={size.id}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <span className="w-28 text-sm text-muted-foreground">
-                                            {size.name}
-                                        </span>
-                                        <NumericInput
-                                            min="0"
-                                            placeholder="Use base price"
-                                            value={sizePrices[size.id] ?? ''}
-                                            onValueChange={(value) =>
-                                                handleSizePriceChange(
-                                                    size.id,
-                                                    value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`product-description-${data.id}`}>
-                                Description
-                            </Label>
-                            <Textarea
-                                id={`product-description-${data.id}`}
-                                value={description}
-                                onChange={(event) =>
-                                    setDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.description} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label
-                                htmlFor={`product-pashto-description-${data.id}`}
-                            >
-                                Pashto Description
-                            </Label>
-                            <Textarea
-                                id={`product-pashto-description-${data.id}`}
-                                value={pashtoDescription}
-                                onChange={(event) =>
-                                    setPashtoDescription(event.target.value)
-                                }
-                            />
-                            <InputError
-                                message={editErrors.pashto_description}
-                            />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`product-dari-description-${data.id}`}>
-                                Dari Description
-                            </Label>
-                            <Textarea
-                                id={`product-dari-description-${data.id}`}
-                                value={dariDescription}
-                                onChange={(event) =>
-                                    setDariDescription(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.dari_description} />
-                        </div>
-
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>Existing Images</Label>
-                            <div className="flex flex-wrap gap-2 rounded-md border p-3">
-                                {existingImages.length === 0 ? (
-                                    <span className="text-sm text-muted-foreground">
-                                        No images
-                                    </span>
-                                ) : (
-                                    existingImages.map((image) => {
-                                        const marked = removeImageIds.includes(
-                                            image.id,
-                                        );
-
-                                        return (
-                                            <div
-                                                key={image.id}
-                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={resolveImageUrl(image)}
-                                                    alt="Product image"
-                                                    className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleRemoveExistingImage(
-                                                            image.id,
-                                                        )
-                                                    }
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                            <InputError message={editErrors.remove_image_ids} />
-                        </div>
-
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`product-images-new-${data.id}`}>
-                                Add New Images
-                            </Label>
-                            <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        Max {MAX_IMAGES} total images. Recommended size: 400x400 or 400x480.
-                                    </p>
-                                    <Label
-                                        htmlFor={`product-images-new-${data.id}`}
-                                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-                                    >
-                                        <ImagePlus className="h-4 w-4" />
-                                        Select Images
-                                    </Label>
-                                </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`product-name-${data.id}`}>
+                                    Name
+                                </Label>
                                 <Input
-                                    id={`product-images-new-${data.id}`}
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
+                                    id={`product-name-${data.id}`}
+                                    value={name}
                                     onChange={(event) =>
-                                        handleNewImageChange(event.target.files)
+                                        setName(event.target.value)
                                     }
-                                    className="hidden"
                                 />
-                                {newImages.length > 0 ? (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {newImages.map((image) => (
-                                            <div
-                                                key={image.id}
-                                                className="relative h-20 w-20 overflow-hidden rounded-md border"
-                                            >
-                                                <img
-                                                    src={image.preview}
-                                                    alt={image.file.name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-1 top-1 rounded bg-black/65 p-1 text-white"
-                                                    onClick={() =>
-                                                        removeNewImage(image.id)
-                                                    }
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : null}
+                                <InputError message={editErrors.name} />
                             </div>
-                            <InputError message={editErrors.images} />
-                        </div>
+                            <div className="grid gap-2">
+                                <Label
+                                    htmlFor={`product-pashto-name-${data.id}`}
+                                >
+                                    Pashto Name
+                                </Label>
+                                <Input
+                                    id={`product-pashto-name-${data.id}`}
+                                    value={pashtoName}
+                                    onChange={(event) =>
+                                        setPashtoName(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.pashto_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`product-dari-name-${data.id}`}>
+                                    Dari Name
+                                </Label>
+                                <Input
+                                    id={`product-dari-name-${data.id}`}
+                                    value={dariName}
+                                    onChange={(event) =>
+                                        setDariName(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.dari_name} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={categoryId}
+                                    onValueChange={setCategoryId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem
+                                                key={category.id}
+                                                value={String(category.id)}
+                                            >
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={editErrors.product_category_id}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Kitchen</Label>
+                                <Select
+                                    value={kitchenId}
+                                    onValueChange={setKitchenId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select kitchen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kitchens.map((kitchen) => (
+                                            <SelectItem
+                                                key={kitchen.id}
+                                                value={String(kitchen.id)}
+                                            >
+                                                {kitchen.name ??
+                                                    `Kitchen #${kitchen.id}`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.kitchen_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Type</Label>
+                                <Select value={type} onValueChange={setType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableTypes.map((productType) => (
+                                            <SelectItem
+                                                key={productType}
+                                                value={productType}
+                                            >
+                                                <span className="capitalize">
+                                                    {productType}
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`product-price-${data.id}`}>
+                                    Base Price (AFN)
+                                </Label>
+                                <NumericInput
+                                    id={`product-price-${data.id}`}
+                                    min="0"
+                                    value={basePrice}
+                                    onValueChange={setBasePrice}
+                                />
+                                <InputError message={editErrors.base_price} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Size Pricing (Optional, AFN)</Label>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {sizes.map((size) => (
+                                        <div
+                                            key={size.id}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <span className="w-28 text-sm text-muted-foreground">
+                                                {size.name}
+                                            </span>
+                                            <NumericInput
+                                                min="0"
+                                                placeholder="Use base price"
+                                                value={
+                                                    sizePrices[size.id] ?? ''
+                                                }
+                                                onValueChange={(value) =>
+                                                    handleSizePriceChange(
+                                                        size.id,
+                                                        value,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label
+                                    htmlFor={`product-description-${data.id}`}
+                                >
+                                    Description
+                                </Label>
+                                <Textarea
+                                    id={`product-description-${data.id}`}
+                                    value={description}
+                                    onChange={(event) =>
+                                        setDescription(event.target.value)
+                                    }
+                                />
+                                <InputError message={editErrors.description} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label
+                                    htmlFor={`product-pashto-description-${data.id}`}
+                                >
+                                    Pashto Description
+                                </Label>
+                                <Textarea
+                                    id={`product-pashto-description-${data.id}`}
+                                    value={pashtoDescription}
+                                    onChange={(event) =>
+                                        setPashtoDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={editErrors.pashto_description}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label
+                                    htmlFor={`product-dari-description-${data.id}`}
+                                >
+                                    Dari Description
+                                </Label>
+                                <Textarea
+                                    id={`product-dari-description-${data.id}`}
+                                    value={dariDescription}
+                                    onChange={(event) =>
+                                        setDariDescription(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={editErrors.dari_description}
+                                />
+                            </div>
 
-                        <div className="flex items-center gap-2 sm:col-span-2">
-                            <Checkbox
-                                checked={isActive}
-                                onCheckedChange={(checked) =>
-                                    setIsActive(!!checked)
-                                }
-                            />
-                            <span className="text-sm text-muted-foreground">
-                                Active product
-                            </span>
-                        </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>Existing Images</Label>
+                                <div className="flex flex-wrap gap-2 rounded-md border p-3">
+                                    {existingImages.length === 0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            No images
+                                        </span>
+                                    ) : (
+                                        existingImages.map((image) => {
+                                            const marked =
+                                                removeImageIds.includes(
+                                                    image.id,
+                                                );
+
+                                            return (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={resolveImageUrl(
+                                                            image,
+                                                        )}
+                                                        alt="Product image"
+                                                        className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleRemoveExistingImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                                <InputError
+                                    message={editErrors.remove_image_ids}
+                                />
+                            </div>
+
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label
+                                    htmlFor={`product-images-new-${data.id}`}
+                                >
+                                    Add New Images
+                                </Label>
+                                <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Max {MAX_IMAGES} total images.
+                                            Recommended size: 400x400 or
+                                            400x480.
+                                        </p>
+                                        <Label
+                                            htmlFor={`product-images-new-${data.id}`}
+                                            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+                                        >
+                                            <ImagePlus className="h-4 w-4" />
+                                            Select Images
+                                        </Label>
+                                    </div>
+                                    <Input
+                                        id={`product-images-new-${data.id}`}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(event) =>
+                                            handleNewImageChange(
+                                                event.target.files,
+                                            )
+                                        }
+                                        className="hidden"
+                                    />
+                                    {newImages.length > 0 ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {newImages.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                >
+                                                    <img
+                                                        src={image.preview}
+                                                        alt={image.file.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                        onClick={() =>
+                                                            removeNewImage(
+                                                                image.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                                <InputError message={editErrors.images} />
+                            </div>
+
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Checkbox
+                                    checked={isActive}
+                                    onCheckedChange={(checked) =>
+                                        setIsActive(!!checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Active product
+                                </span>
+                            </div>
                         </div>
                     </div>
 

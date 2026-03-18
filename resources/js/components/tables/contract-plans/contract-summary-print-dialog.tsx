@@ -61,7 +61,9 @@ export function ContractSummaryPrintDialog({
                         <td>${escapeHtml(schedule.title ?? 'Schedule')}</td>
                         <td>${escapeHtml(schedule.due_date ?? '-')}</td>
                         <td>${escapeHtml(
-                            schedule.percentage != null ? `${schedule.percentage}%` : '-',
+                            schedule.percentage != null
+                                ? `${schedule.percentage}%`
+                                : '-',
                         )}</td>
                         <td class="right">${escapeHtml(formatAfn(schedule.amount))}</td>
                         <td>${escapeHtml(schedule.status)}</td>
@@ -169,7 +171,8 @@ export function ContractSummaryPrintDialog({
                         Contract Plan Summary Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review and print the contract payment plan summary with all schedule rows.
+                        Review and print the contract payment plan summary with
+                        all schedule rows.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -185,57 +188,126 @@ export function ContractSummaryPrintDialog({
                             <div className="mx-auto max-w-4xl bg-white p-8">
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Plan</p>
-                                        <p className="mt-2 font-medium">No: CON-{contract.id}</p>
-                                        <p className="text-muted-foreground">Status: {contract.status}</p>
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+                                            Plan
+                                        </p>
+                                        <p className="mt-2 font-medium">
+                                            No: CON-{contract.id}
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                            Status: {contract.status}
+                                        </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
-                                        <img src="/brand/logo.png" alt="Baba Restaurant Logo" className="mx-auto mb-3 h-16 w-16 object-contain" />
-                                        <p className="text-2xl font-semibold tracking-wide">Baba Restaurant</p>
+                                        <img
+                                            src="/brand/logo.png"
+                                            alt="Baba Restaurant Logo"
+                                            className="mx-auto mb-3 h-16 w-16 object-contain"
+                                        />
+                                        <p className="text-2xl font-semibold tracking-wide">
+                                            Baba Restaurant
+                                        </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} • {branch?.address ?? 'Address not set'}
+                                            {branch?.name ?? 'Main Branch'} •{' '}
+                                            {branch?.address ??
+                                                'Address not set'}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Employee</p>
-                                        <p className="font-medium">{employeeName(contract)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Employee
+                                        </p>
+                                        <p className="font-medium">
+                                            {employeeName(contract)}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Plan Type</p>
-                                        <p className="font-medium">{contract.payment_plan_type.replaceAll('_', ' ')}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Plan Type
+                                        </p>
+                                        <p className="font-medium">
+                                            {contract.payment_plan_type.replaceAll(
+                                                '_',
+                                                ' ',
+                                            )}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Contract Amount</p>
-                                        <p className="font-medium">{formatAfn(contract.contract_amount)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Contract Amount
+                                        </p>
+                                        <p className="font-medium">
+                                            {formatAfn(
+                                                contract.contract_amount,
+                                            )}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="mt-6 overflow-hidden border-y-2">
                                     <table className="min-w-full text-sm">
                                         <thead>
                                             <tr className="border-b">
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">Schedule</th>
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">Due Date</th>
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">%</th>
-                                                <th className="px-2 py-3 text-right text-xs uppercase tracking-[0.08em] text-muted-foreground">Amount</th>
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">Status</th>
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                                    Schedule
+                                                </th>
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                                    Due Date
+                                                </th>
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                                    %
+                                                </th>
+                                                <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                                    Amount
+                                                </th>
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                                    Status
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(contract.schedules ?? []).length > 0 ? (
-                                                (contract.schedules ?? []).map((schedule) => (
-                                                    <tr key={schedule.id}>
-                                                        <td className="px-2 py-4">{schedule.title ?? 'Schedule'}</td>
-                                                        <td className="px-2 py-4">{schedule.due_date}</td>
-                                                        <td className="px-2 py-4">{schedule.percentage != null ? `${schedule.percentage}%` : '-'}</td>
-                                                        <td className="px-2 py-4 text-right">{formatAfn(schedule.amount)}</td>
-                                                        <td className="px-2 py-4">{schedule.status}</td>
-                                                    </tr>
-                                                ))
+                                            {(contract.schedules ?? []).length >
+                                            0 ? (
+                                                (contract.schedules ?? []).map(
+                                                    (schedule) => (
+                                                        <tr key={schedule.id}>
+                                                            <td className="px-2 py-4">
+                                                                {schedule.title ??
+                                                                    'Schedule'}
+                                                            </td>
+                                                            <td className="px-2 py-4">
+                                                                {
+                                                                    schedule.due_date
+                                                                }
+                                                            </td>
+                                                            <td className="px-2 py-4">
+                                                                {schedule.percentage !=
+                                                                null
+                                                                    ? `${schedule.percentage}%`
+                                                                    : '-'}
+                                                            </td>
+                                                            <td className="px-2 py-4 text-right">
+                                                                {formatAfn(
+                                                                    schedule.amount,
+                                                                )}
+                                                            </td>
+                                                            <td className="px-2 py-4">
+                                                                {
+                                                                    schedule.status
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )
                                             ) : (
                                                 <tr>
-                                                    <td className="px-2 py-4" colSpan={5}>No schedules added yet.</td>
+                                                    <td
+                                                        className="px-2 py-4"
+                                                        colSpan={5}
+                                                    >
+                                                        No schedules added yet.
+                                                    </td>
                                                 </tr>
                                             )}
                                         </tbody>

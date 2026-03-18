@@ -42,9 +42,7 @@ export default function LanguageDropdown({
                     {LANGUAGES.map((language) => (
                         <DropdownMenuItem
                             key={language.code}
-                            onClick={() =>
-                                handleSelectLanguage(language.label)
-                            }
+                            onClick={() => handleSelectLanguage(language.label)}
                         >
                             {language.label}
                         </DropdownMenuItem>

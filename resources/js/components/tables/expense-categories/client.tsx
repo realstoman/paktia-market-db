@@ -104,7 +104,8 @@ export function ExpenseCategoryClient({
         };
 
         if (editingCategory) {
-            router.put(`/finance/expense-categories/${editingCategory.id}`,
+            router.put(
+                `/finance/expense-categories/${editingCategory.id}`,
                 payload,
                 {
                     preserveScroll: true,
@@ -355,7 +356,10 @@ export function ExpenseCategoryClient({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsOpen(false)}
+                        >
                             Cancel
                         </Button>
                         <Button onClick={submit}>

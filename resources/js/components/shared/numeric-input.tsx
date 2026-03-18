@@ -10,11 +10,12 @@ interface NumericInputProps
     onValueChange: (value: string) => void;
 }
 
-const sanitizeNumeric = (value: string): string =>
-    value.replace(/[^\d]/g, '');
+const sanitizeNumeric = (value: string): string => value.replace(/[^\d]/g, '');
 
 const normalizeValue = (value: string | number): string => {
-    const raw = String(value ?? '').replaceAll(',', '').trim();
+    const raw = String(value ?? '')
+        .replaceAll(',', '')
+        .trim();
     if (!raw) {
         return '';
     }

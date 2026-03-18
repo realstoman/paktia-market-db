@@ -5,7 +5,7 @@ import { UsersClient } from '@/components/tables/users/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
-import { BreadcrumbItem, Branch, Country, Province, Role, User } from '@/types';
+import { Branch, BreadcrumbItem, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import { Building2, Globe2, ShieldCheck, Users } from 'lucide-react';
@@ -75,13 +75,13 @@ export default function UsersPage({
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                     <div className="p-6 text-gray-900">
-                    <UsersClient
-                        data={users}
-                        roles={roles}
-                        countries={countries}
-                        provinces={provinces}
-                        branches={branches}
-                    />
+                        <UsersClient
+                            data={users}
+                            roles={roles}
+                            countries={countries}
+                            provinces={provinces}
+                            branches={branches}
+                        />
                     </div>
                 </div>
             </div>

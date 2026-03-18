@@ -186,7 +186,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const resetEditForm = () => {
         setEditBranchId(String(data.branch_id));
         setEditName(data.name);
-        setEditTypeId(data.inventory_type_id ? String(data.inventory_type_id) : '');
+        setEditTypeId(
+            data.inventory_type_id ? String(data.inventory_type_id) : '',
+        );
         setEditQuantity(String(data.quantity ?? ''));
         setEditUnitPrice(String(data.unit_price ?? ''));
         setEditPaidAmount(String(data.paid_amount ?? '0'));

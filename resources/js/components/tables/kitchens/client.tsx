@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -20,8 +22,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Cuisine,
     Kitchen,
@@ -237,8 +237,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             onError: (errors) => {
                 setKitchenTypeErrors(errors);
                 toast.error(
-                    errors.kitchen_type ||
-                        'Failed to delete kitchen type.',
+                    errors.kitchen_type || 'Failed to delete kitchen type.',
                 );
             },
             onFinish: () => setIsSubmitting(false),
@@ -323,9 +322,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        toast.success(
-                            'Kitchen category updated successfully.',
-                        );
+                        toast.success('Kitchen category updated successfully.');
                         resetKitchenCategoryForm();
                     },
                     onError: (errors) => setKitchenCategoryErrors(errors),
@@ -373,8 +370,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () =>
-            buildColumns(kitchenTypes, cuisines, kitchenCategories, products),
+        () => buildColumns(kitchenTypes, cuisines, kitchenCategories, products),
         [kitchenTypes, cuisines, kitchenCategories, products],
     );
 
@@ -477,9 +473,9 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                     <SelectValue placeholder="Select kitchen type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                        <SelectItem value={NO_KITCHEN_TYPE}>
-                                            No Kitchen Type
-                                        </SelectItem>
+                                    <SelectItem value={NO_KITCHEN_TYPE}>
+                                        No Kitchen Type
+                                    </SelectItem>
                                     {kitchenTypes.map((kitchenType) => (
                                         <SelectItem
                                             key={kitchenType.id}
@@ -559,9 +555,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                 ))}
                             </div>
                         </ScrollArea>
-                        <InputError
-                            message={createErrors.kitchen_categories}
-                        />
+                        <InputError message={createErrors.kitchen_categories} />
                     </div>
 
                     <DialogFooter>
@@ -638,9 +632,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                     }
                                 />
                                 <InputError
-                                    message={
-                                        kitchenCategoryErrors.description
-                                    }
+                                    message={kitchenCategoryErrors.description}
                                 />
                             </div>
                             <div className="flex items-center gap-2 sm:col-span-2">
@@ -694,8 +686,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                                         entry.name,
                                                     );
                                                     setKitchenCategoryDescription(
-                                                        entry.description ??
-                                                            '',
+                                                        entry.description ?? '',
                                                     );
                                                     setKitchenCategoryErrors(
                                                         {},
@@ -740,8 +731,8 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             Kitchen Type Manager
                         </DialogTitle>
                         <DialogDescription>
-                            Manage kitchen station types such as Main, Grill,
-                            or Drinks.
+                            Manage kitchen station types such as Main, Grill, or
+                            Drinks.
                         </DialogDescription>
                     </DialogHeader>
 

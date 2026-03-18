@@ -81,7 +81,7 @@ export default function RolesPage({ roles, permissions }: RolesPageProps) {
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                     <div className="p-6 text-gray-900">
-                    <RolesClient data={roles} permissions={permissions} />
+                        <RolesClient data={roles} permissions={permissions} />
                     </div>
                 </div>
             </div>

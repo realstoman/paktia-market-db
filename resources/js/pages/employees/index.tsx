@@ -1,7 +1,7 @@
 'use client';
 
-import { EmployeeClient } from '@/components/tables/employees/client';
 import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
+import { EmployeeClient } from '@/components/tables/employees/client';
 import {
     Select,
     SelectContent,
@@ -52,8 +52,7 @@ export default function EmployeesPage({
     employeePositions,
     shifts,
 }: EmployeesPageProps) {
-    const [selectedBranchId, setSelectedBranchId] =
-        useState(BRANCH_FILTER_ALL);
+    const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
     const statsEmployees = useMemo(() => {
         if (selectedBranchId === BRANCH_FILTER_ALL) {
             return employees;

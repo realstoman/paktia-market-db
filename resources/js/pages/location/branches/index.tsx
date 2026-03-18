@@ -85,13 +85,13 @@ export default function BranchesPage({
                 </div>
                 <div className="rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                     <div className="p-6 text-gray-900">
-                    <BranchesClient
-                        data={branches}
-                        branchTables={branchTables}
-                        countries={countries}
-                        provinces={provinces}
-                        kitchens={kitchens}
-                    />
+                        <BranchesClient
+                            data={branches}
+                            branchTables={branchTables}
+                            countries={countries}
+                            provinces={provinces}
+                            kitchens={kitchens}
+                        />
                     </div>
                 </div>
             </div>

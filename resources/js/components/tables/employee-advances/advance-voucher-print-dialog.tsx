@@ -61,7 +61,11 @@ function employeeName(advance: EmployeeAdvance) {
 }
 
 function repaymentMethodLabel(value?: string | null) {
-    return value ? value.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase()) : '-';
+    return value
+        ? value
+              .replaceAll('_', ' ')
+              .replace(/\b\w/g, (char) => char.toUpperCase())
+        : '-';
 }
 
 export function AdvanceVoucherPrintDialog({
@@ -218,7 +222,8 @@ export function AdvanceVoucherPrintDialog({
                         Employee Advance Voucher Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review this advance voucher, then print it for manager review and signature.
+                        Review this advance voucher, then print it for manager
+                        review and signature.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -234,12 +239,17 @@ export function AdvanceVoucherPrintDialog({
                             <div className="mx-auto max-w-4xl bg-white p-8">
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Voucher
                                         </p>
-                                        <p className="mt-2 font-medium">No: ADV-{advance.id}</p>
+                                        <p className="mt-2 font-medium">
+                                            No: ADV-{advance.id}
+                                        </p>
                                         <p className="text-muted-foreground">
-                                            Date: {formatDateOnly(advance.advance_date)}
+                                            Date:{' '}
+                                            {formatDateOnly(
+                                                advance.advance_date,
+                                            )}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -252,32 +262,53 @@ export function AdvanceVoucherPrintDialog({
                                             Baba Restaurant
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} • {branch?.address ?? 'Address not set'}
+                                            {branch?.name ?? 'Main Branch'} •{' '}
+                                            {branch?.address ??
+                                                'Address not set'}
                                         </p>
                                     </div>
                                     <div className="absolute top-0 right-0 text-right text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Document
                                         </p>
-                                        <p className="mt-2 font-medium">Employee Advance Voucher</p>
+                                        <p className="mt-2 font-medium">
+                                            Employee Advance Voucher
+                                        </p>
                                         <p className="text-muted-foreground">
-                                            Created: {formatDateTime(advance.created_at)}
+                                            Created:{' '}
+                                            {formatDateTime(advance.created_at)}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Employee</p>
-                                        <p className="font-medium">{employeeName(advance)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Employee
+                                        </p>
+                                        <p className="font-medium">
+                                            {employeeName(advance)}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Advance Date</p>
-                                        <p className="font-medium">{formatDateOnly(advance.advance_date)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Advance Date
+                                        </p>
+                                        <p className="font-medium">
+                                            {formatDateOnly(
+                                                advance.advance_date,
+                                            )}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Repayment Method</p>
-                                        <p className="font-medium">{repaymentMethodLabel(advance.repayment_method)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Repayment Method
+                                        </p>
+                                        <p className="font-medium">
+                                            {repaymentMethodLabel(
+                                                advance.repayment_method,
+                                            )}
+                                        </p>
                                     </div>
                                 </div>
 
@@ -285,13 +316,13 @@ export function AdvanceVoucherPrintDialog({
                                     <table className="min-w-full text-sm">
                                         <thead>
                                             <tr className="border-b">
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Description
                                                 </th>
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Branch
                                                 </th>
-                                                <th className="px-2 py-3 text-right text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Amount
                                                 </th>
                                             </tr>
@@ -299,10 +330,12 @@ export function AdvanceVoucherPrintDialog({
                                         <tbody>
                                             <tr>
                                                 <td className="px-2 py-4">
-                                                    {advance.reason ?? 'Employee advance / takeout'}
+                                                    {advance.reason ??
+                                                        'Employee advance / takeout'}
                                                 </td>
                                                 <td className="px-2 py-4">
-                                                    {branch?.name ?? 'All Branches'}
+                                                    {branch?.name ??
+                                                        'All Branches'}
                                                 </td>
                                                 <td className="px-2 py-4 text-right">
                                                     {formatAfn(advance.amount)}
@@ -313,7 +346,7 @@ export function AdvanceVoucherPrintDialog({
                                 </div>
 
                                 <div className="mt-5 rounded-xl bg-slate-50 p-4">
-                                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                    <p className="text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                         Notes
                                     </p>
                                     <p className="mt-2 text-sm text-slate-700">
@@ -328,27 +361,35 @@ export function AdvanceVoucherPrintDialog({
                                     </div>
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
                                         <span>Deducted</span>
-                                        <span>{formatAfn(advance.deducted_amount ?? 0)}</span>
+                                        <span>
+                                            {formatAfn(
+                                                advance.deducted_amount ?? 0,
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3 text-lg font-semibold">
                                         <span>Remaining Balance</span>
-                                        <span>{formatAfn(advance.remaining_balance ?? 0)}</span>
+                                        <span>
+                                            {formatAfn(
+                                                advance.remaining_balance ?? 0,
+                                            )}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div className="mt-18 grid gap-6 pt-12 md:grid-cols-3">
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Prepared By
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Finance Manager
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Approved By
                                         </div>
                                     </div>

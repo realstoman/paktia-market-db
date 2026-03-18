@@ -1,15 +1,10 @@
 'use client';
 
+import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,6 +15,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -39,8 +41,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog';
-import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
 import {
     Branch,
     Expense,
@@ -121,7 +121,9 @@ export function ExpenseClient({
     );
     const [receiptFile, setReceiptFile] = React.useState<File | null>(null);
     const [isPrintOpen, setIsPrintOpen] = React.useState(false);
-    const [printExpense, setPrintExpense] = React.useState<Expense | null>(null);
+    const [printExpense, setPrintExpense] = React.useState<Expense | null>(
+        null,
+    );
     const [attachmentPath, setAttachmentPath] = React.useState<string | null>(
         null,
     );
@@ -209,7 +211,9 @@ export function ExpenseClient({
             return;
         }
 
-        const target = expenses.find((expense) => expense.id === printExpenseId);
+        const target = expenses.find(
+            (expense) => expense.id === printExpenseId,
+        );
         if (!target) {
             return;
         }
@@ -258,7 +262,8 @@ export function ExpenseClient({
         if (editingExpense) {
             const previousStatus = editingExpense.approval_status ?? 'draft';
             const shouldPrintAfterUpdate =
-                previousStatus === 'draft' && form.approval_status === 'submitted';
+                previousStatus === 'draft' &&
+                form.approval_status === 'submitted';
 
             router.put(`/finance/expenses/${editingExpense.id}`, payload, {
                 preserveScroll: true,
@@ -272,7 +277,10 @@ export function ExpenseClient({
                 },
                 onError: (errors) => {
                     const firstError = Object.values(errors)[0];
-                    if (typeof firstError === 'string' && firstError.length > 0) {
+                    if (
+                        typeof firstError === 'string' &&
+                        firstError.length > 0
+                    ) {
                         toast.error(firstError);
                         return;
                     }
@@ -680,7 +688,9 @@ export function ExpenseClient({
                                     accept=".jpg,.jpeg,.png,.pdf"
                                     className="hidden"
                                     onChange={(event) =>
-                                        setReceiptFile(event.target.files?.[0] ?? null)
+                                        setReceiptFile(
+                                            event.target.files?.[0] ?? null,
+                                        )
                                     }
                                 />
                                 <div className="flex items-center gap-3">
@@ -691,7 +701,8 @@ export function ExpenseClient({
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                             {receiptFile
                                                 ? receiptFile.name
-                                                : editingExpense?.attachments?.[0]
+                                                : editingExpense
+                                                        ?.attachments?.[0]
                                                   ? 'Replace current receipt'
                                                   : 'Upload receipt (JPG, PNG, PDF)'}
                                         </p>
@@ -726,7 +737,9 @@ export function ExpenseClient({
                             Cancel
                         </Button>
                         <Button onClick={submit}>
-                            {editingExpense ? 'Update Expense' : 'Create Expense'}
+                            {editingExpense
+                                ? 'Update Expense'
+                                : 'Create Expense'}
                         </Button>
                     </div>
                 </DialogContent>
@@ -742,13 +755,18 @@ export function ExpenseClient({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Review Expense Submission</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Review Expense Submission
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm whether you want to approve this expense or send it back to draft for correction.
+                            Confirm whether you want to approve this expense or
+                            send it back to draft for correction.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setApprovalTarget(null)}>
+                        <AlertDialogCancel
+                            onClick={() => setApprovalTarget(null)}
+                        >
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -786,8 +804,9 @@ export function ExpenseClient({
                 expense={printExpense}
                 branch={
                     printExpense
-                        ? branches.find((branch) => branch.id === printExpense.branch_id) ??
-                          null
+                        ? (branches.find(
+                              (branch) => branch.id === printExpense.branch_id,
+                          ) ?? null)
                         : null
                 }
             />

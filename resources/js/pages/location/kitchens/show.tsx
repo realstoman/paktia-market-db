@@ -1,12 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import kitchens from '@/routes/kitchens';
@@ -39,7 +34,9 @@ export default function KitchenShow({ kitchen }: KitchenShowProps) {
             <div className="space-y-4 rounded-lg bg-white p-8 dark:bg-brand-bg-dark">
                 <div className="space-y-6 p-6 text-gray-900">
                     <div>
-                        <h2 className="text-xl font-semibold">Kitchen Profile</h2>
+                        <h2 className="text-xl font-semibold">
+                            Kitchen Profile
+                        </h2>
                         <p className="text-sm text-muted-foreground">
                             Kitchen details and location.
                         </p>
@@ -58,7 +55,9 @@ export default function KitchenShow({ kitchen }: KitchenShowProps) {
                                     Kitchen Type
                                 </TableCell>
                                 <TableCell>
-                                    {kitchen.kitchen_type ?? kitchen.type ?? '—'}
+                                    {kitchen.kitchen_type ??
+                                        kitchen.type ??
+                                        '—'}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -91,8 +90,8 @@ export default function KitchenShow({ kitchen }: KitchenShowProps) {
                                     Kitchen Categories
                                 </TableCell>
                                 <TableCell>
-                                    {(kitchen.kitchen_categories ?? []).length ===
-                                    0 ? (
+                                    {(kitchen.kitchen_categories ?? [])
+                                        .length === 0 ? (
                                         <span className="text-sm text-muted-foreground">
                                             No kitchen categories assigned
                                         </span>

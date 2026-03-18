@@ -9,7 +9,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EmployeeContractPaymentSchedule } from '@/types';
-import { BadgeCheck, Eye, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+    BadgeCheck,
+    Eye,
+    FileText,
+    MoreHorizontal,
+    Pencil,
+    Trash2,
+} from 'lucide-react';
 
 interface CellActionProps {
     data: EmployeeContractPaymentSchedule;
@@ -54,7 +61,9 @@ export function CellAction({
                         View Attachment
                     </DropdownMenuItem>
                 ) : null}
-                {canApprove && data.status !== 'approved' && data.status !== 'paid' ? (
+                {canApprove &&
+                data.status !== 'approved' &&
+                data.status !== 'paid' ? (
                     <DropdownMenuItem onClick={() => onReviewApproval(data)}>
                         <BadgeCheck className="mr-2 h-4 w-4" />
                         Review Approval

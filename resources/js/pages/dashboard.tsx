@@ -237,9 +237,9 @@ export default function Dashboard({ data }: DashboardProps) {
             <Head title="Dashboard" />
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {/* Statistics */}
-                <div className="grid auto-rows-min items-stretch grid-cols-1 gap-3 md:grid-cols-4">
+                <div className="grid auto-rows-min grid-cols-1 items-stretch gap-3 md:grid-cols-4">
                     <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
-                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-none dark:bg-neutral-900">
+                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
                             <CardHeader>
                                 <div className="space-y-1">
                                     <CardTitle className="text-lg font-semibold">
@@ -302,8 +302,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="mt-1 flex items-center gap-2">
                                         <p className="text-xl font-semibold text-accent-foreground/80">
                                             {formatPrice(
-                                                financeStats?.cashPosition ??
-                                                    0,
+                                                financeStats?.cashPosition ?? 0,
                                             )}
                                         </p>
                                         <span>؋</span>

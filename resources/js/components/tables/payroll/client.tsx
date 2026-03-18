@@ -177,7 +177,11 @@ function employeeName(employee?: Employee | null) {
     );
 }
 
-function payrollItemEmployeeName(item: { employee_name?: string; employee?: Employee | null; employee_id: number }) {
+function payrollItemEmployeeName(item: {
+    employee_name?: string;
+    employee?: Employee | null;
+    employee_id: number;
+}) {
     if (item.employee_name && item.employee_name.trim().length > 0) {
         return item.employee_name;
     }
@@ -607,7 +611,9 @@ export function PayrollClient({
                     onSuccess: () => {
                         setIsScheduleOpen(false);
                         setScheduleReceiptFile(null);
-                        toast.success('Contract schedule updated successfully.');
+                        toast.success(
+                            'Contract schedule updated successfully.',
+                        );
                     },
                     onError: (errors) => {
                         const firstError = Object.values(errors)[0];

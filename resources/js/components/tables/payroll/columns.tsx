@@ -69,7 +69,9 @@ export function buildColumns({
             accessorFn: (row) => Number(row.net_total ?? 0),
             header: 'Net Payroll',
             cell: ({ row }) => (
-                <p className="font-semibold">{formatAfn(row.original.net_total ?? 0)}</p>
+                <p className="font-semibold">
+                    {formatAfn(row.original.net_total ?? 0)}
+                </p>
             ),
         },
         {

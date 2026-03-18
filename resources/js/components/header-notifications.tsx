@@ -241,8 +241,8 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                     <Bell className="h-[18px] w-[18px]" />
                     {unreadCount > 0 && (
                         <>
-                            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-neutral-950" />
-                            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white dark:bg-white dark:text-neutral-950">
+                            <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-neutral-950" />
+                            <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 py-0.5 text-[10px] leading-none font-semibold text-white dark:bg-white dark:text-neutral-950">
                                 {unreadCount > 9 ? '9+' : unreadCount}
                             </span>
                         </>
@@ -259,7 +259,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                 <div className="border-b border-neutral-200/80 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(16,185,129,0.08),rgba(15,23,42,0.02))] px-5 py-4 dark:border-neutral-800 dark:bg-[linear-gradient(135deg,rgba(245,158,11,0.14),rgba(16,185,129,0.10),rgba(15,23,42,0.4))]">
                     <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
-                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400">
+                            <p className="text-xs font-semibold tracking-[0.22em] text-neutral-500 uppercase dark:text-neutral-400">
                                 Notifications Center
                             </p>
                             <div className="flex items-center gap-2">
@@ -334,7 +334,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                             {notification.unread && (
                                                 <span
                                                     className={cn(
-                                                        'absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
+                                                        'absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
                                                         config.dot,
                                                     )}
                                                 />

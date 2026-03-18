@@ -49,11 +49,19 @@ function employeeName(item: PayrollRunItem) {
 }
 
 function salaryTypeLabel(value?: string | null) {
-    return value ? value.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase()) : '-';
+    return value
+        ? value
+              .replaceAll('_', ' ')
+              .replace(/\b\w/g, (char) => char.toUpperCase())
+        : '-';
 }
 
 function paymentMethodLabel(value?: string | null) {
-    return value ? value.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase()) : '-';
+    return value
+        ? value
+              .replaceAll('_', ' ')
+              .replace(/\b\w/g, (char) => char.toUpperCase())
+        : '-';
 }
 
 export function PayrollVoucherPrintDialog({
@@ -82,7 +90,10 @@ export function PayrollVoucherPrintDialog({
         const net = formatAfn(Number(item.net_salary ?? 0));
         const createdAt = formatDateTime(run.created_at);
         const period = `${run.period_start} to ${run.period_end}`;
-        const title = item.salary_type === 'contract_payment' ? 'Contract Payment Voucher' : 'Salary Payment Voucher';
+        const title =
+            item.salary_type === 'contract_payment'
+                ? 'Contract Payment Voucher'
+                : 'Salary Payment Voucher';
 
         printWindow.document.write(`
             <html>
@@ -213,7 +224,8 @@ export function PayrollVoucherPrintDialog({
                         Payroll Voucher Print
                     </DialogTitle>
                     <DialogDescription>
-                        Review this payroll voucher, then print it for manager review and salary payment approval.
+                        Review this payroll voucher, then print it for manager
+                        review and salary payment approval.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -229,12 +241,15 @@ export function PayrollVoucherPrintDialog({
                             <div className="mx-auto max-w-4xl bg-white p-8">
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Voucher
                                         </p>
-                                        <p className="mt-2 font-medium">No: PAY-{run.id}-{item.id}</p>
+                                        <p className="mt-2 font-medium">
+                                            No: PAY-{run.id}-{item.id}
+                                        </p>
                                         <p className="text-muted-foreground">
-                                            Period: {run.period_start} to {run.period_end}
+                                            Period: {run.period_start} to{' '}
+                                            {run.period_end}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -247,34 +262,54 @@ export function PayrollVoucherPrintDialog({
                                             Baba Restaurant
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} • {branch?.address ?? 'Address not set'}
+                                            {branch?.name ?? 'Main Branch'} •{' '}
+                                            {branch?.address ??
+                                                'Address not set'}
                                         </p>
                                     </div>
                                     <div className="absolute top-0 right-0 text-right text-sm">
-                                        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                        <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                                             Document
                                         </p>
                                         <p className="mt-2 font-medium">
-                                            {item.salary_type === 'contract_payment' ? 'Contract Payment Voucher' : 'Salary Payment Voucher'}
+                                            {item.salary_type ===
+                                            'contract_payment'
+                                                ? 'Contract Payment Voucher'
+                                                : 'Salary Payment Voucher'}
                                         </p>
                                         <p className="text-muted-foreground">
-                                            Created: {formatDateTime(run.created_at)}
+                                            Created:{' '}
+                                            {formatDateTime(run.created_at)}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Employee</p>
-                                        <p className="font-medium">{employeeName(item)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Employee
+                                        </p>
+                                        <p className="font-medium">
+                                            {employeeName(item)}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Salary Type</p>
-                                        <p className="font-medium">{salaryTypeLabel(item.salary_type)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Salary Type
+                                        </p>
+                                        <p className="font-medium">
+                                            {salaryTypeLabel(item.salary_type)}
+                                        </p>
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
-                                        <p className="text-xs text-muted-foreground">Payment Method</p>
-                                        <p className="font-medium">{paymentMethodLabel(item.payment_method)}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Payment Method
+                                        </p>
+                                        <p className="font-medium">
+                                            {paymentMethodLabel(
+                                                item.payment_method,
+                                            )}
+                                        </p>
                                     </div>
                                 </div>
 
@@ -282,13 +317,13 @@ export function PayrollVoucherPrintDialog({
                                     <table className="min-w-full text-sm">
                                         <thead>
                                             <tr className="border-b">
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Description
                                                 </th>
-                                                <th className="px-2 py-3 text-left text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Branch
                                                 </th>
-                                                <th className="px-2 py-3 text-right text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                                <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Amount
                                                 </th>
                                             </tr>
@@ -296,10 +331,16 @@ export function PayrollVoucherPrintDialog({
                                         <tbody>
                                             <tr>
                                                 <td className="px-2 py-4">
-                                                    {item.salary_type === 'contract_payment' ? 'Contract payment voucher' : 'Salary payment voucher'} for {run.period_start} to {run.period_end}
+                                                    {item.salary_type ===
+                                                    'contract_payment'
+                                                        ? 'Contract payment voucher'
+                                                        : 'Salary payment voucher'}{' '}
+                                                    for {run.period_start} to{' '}
+                                                    {run.period_end}
                                                 </td>
                                                 <td className="px-2 py-4">
-                                                    {branch?.name ?? 'All Branches'}
+                                                    {branch?.name ??
+                                                        'All Branches'}
                                                 </td>
                                                 <td className="px-2 py-4 text-right">
                                                     {formatAfn(item.net_salary)}
@@ -310,42 +351,51 @@ export function PayrollVoucherPrintDialog({
                                 </div>
 
                                 <div className="mt-5 rounded-xl bg-slate-50 p-4">
-                                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                    <p className="text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                         Notes
                                     </p>
                                     <p className="mt-2 text-sm text-slate-700">
-                                        Prepared for salary payment review before manager approval. Advance deductions are already reflected in the net payable amount.
+                                        Prepared for salary payment review
+                                        before manager approval. Advance
+                                        deductions are already reflected in the
+                                        net payable amount.
                                     </p>
                                 </div>
 
                                 <div className="mt-6 ml-auto w-full max-w-sm space-y-3">
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
                                         <span>Gross Pay</span>
-                                        <span>{formatAfn(item.gross_salary)}</span>
+                                        <span>
+                                            {formatAfn(item.gross_salary)}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
                                         <span>Advance Deduction</span>
-                                        <span>{formatAfn(item.advances_deducted)}</span>
+                                        <span>
+                                            {formatAfn(item.advances_deducted)}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3 text-lg font-semibold">
                                         <span>Net Payable</span>
-                                        <span>{formatAfn(item.net_salary)}</span>
+                                        <span>
+                                            {formatAfn(item.net_salary)}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div className="mt-18 grid gap-6 pt-12 md:grid-cols-3">
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Prepared By
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Finance Manager
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="border-t pt-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                                        <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                             Approved By
                                         </div>
                                     </div>

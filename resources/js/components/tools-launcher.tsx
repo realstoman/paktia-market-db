@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { KitchensClient } from '@/components/tables/kitchens/client';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -24,7 +25,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { KitchensClient } from '@/components/tables/kitchens/client';
 import {
     Banner,
     Country,
@@ -43,8 +43,8 @@ import {
     Building2,
     ChefHat,
     Coins,
-    ImagePlus,
     Globe,
+    ImagePlus,
     LayoutDashboard,
     Link2,
     Pencil,
@@ -138,9 +138,9 @@ export function ToolsLauncher() {
     const [bannerSortOrder, setBannerSortOrder] = useState('0');
     const [bannerIsActive, setBannerIsActive] = useState(true);
     const [bannerImage, setBannerImage] = useState<File | null>(null);
-    const [bannerImagePreview, setBannerImagePreview] = useState<
-        string | null
-    >(null);
+    const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(
+        null,
+    );
     const [provinceId, setProvinceId] = useState<number | null>(null);
     const [provinceName, setProvinceName] = useState('');
     const [provinceCountryId, setProvinceCountryId] = useState('');
@@ -488,7 +488,9 @@ export function ToolsLauncher() {
                                         onClick={() => setIsKitchensOpen(true)}
                                     >
                                         <ChefHat className="h-5 w-5" />
-                                        <span className="text-xs">Kitchens</span>
+                                        <span className="text-xs">
+                                            Kitchens
+                                        </span>
                                     </Button>
                                 </div>
                             </PopoverContent>
@@ -632,7 +634,8 @@ export function ToolsLauncher() {
                     <DialogHeader>
                         <DialogTitle>Manage Cities</DialogTitle>
                         <DialogDescription>
-                            Add, edit, or delete cities and assign them to a country.
+                            Add, edit, or delete cities and assign them to a
+                            country.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 sm:grid-cols-[320px_minmax(0,1fr)]">
@@ -703,15 +706,16 @@ export function ToolsLauncher() {
                                                 {province.name}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {typeof province.country === 'string'
+                                                {typeof province.country ===
+                                                'string'
                                                     ? province.country
-                                                    : province.country?.name ??
+                                                    : (province.country?.name ??
                                                       countries.find(
                                                           (country) =>
                                                               country.id ===
                                                               province.country_id,
                                                       )?.name ??
-                                                      '-'}
+                                                      '-')}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
@@ -1041,9 +1045,9 @@ export function ToolsLauncher() {
                     <DialogHeader>
                         <DialogTitle>Manage Banners</DialogTitle>
                         <DialogDescription>
-                            Home-screen slider banners for the mobile app.
-                            Use internal links for app routes and external links
-                            for websites or social pages.
+                            Home-screen slider banners for the mobile app. Use
+                            internal links for app routes and external links for
+                            websites or social pages.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -1181,9 +1185,7 @@ export function ToolsLauncher() {
                                     type="checkbox"
                                     checked={bannerIsActive}
                                     onChange={(event) =>
-                                        setBannerIsActive(
-                                            event.target.checked,
-                                        )
+                                        setBannerIsActive(event.target.checked)
                                     }
                                 />
                                 Active banner
@@ -1282,13 +1284,9 @@ export function ToolsLauncher() {
                                             setBannerTitle(banner.title);
                                             setBannerType(banner.banner_type);
                                             setBannerLink(banner.link ?? '');
-                                            setBannerLinkType(
-                                                banner.link_type,
-                                            );
+                                            setBannerLinkType(banner.link_type);
                                             setBannerSortOrder(
-                                                String(
-                                                    banner.sort_order ?? 0,
-                                                ),
+                                                String(banner.sort_order ?? 0),
                                             );
                                             setBannerIsActive(
                                                 banner.is_active ?? true,
@@ -1331,7 +1329,8 @@ export function ToolsLauncher() {
                     <DialogHeader>
                         <DialogTitle>Manage Kitchens</DialogTitle>
                         <DialogDescription>
-                            Manage kitchens with the same table columns and actions.
+                            Manage kitchens with the same table columns and
+                            actions.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="max-h-[75vh] overflow-auto pr-1">

@@ -66,7 +66,9 @@ export function buildColumns({
             header: 'Date',
             cell: ({ row }) => (
                 <div>
-                    <p className="font-medium">{shortDate(row.original.advance_date)}</p>
+                    <p className="font-medium">
+                        {shortDate(row.original.advance_date)}
+                    </p>
                 </div>
             ),
         },
