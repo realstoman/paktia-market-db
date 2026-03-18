@@ -1,6 +1,12 @@
 import { PayrollClient } from '@/components/tables/payroll/client';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem, Employee, EmployeeContract, PayrollRun } from '@/types';
+import {
+    Branch,
+    BreadcrumbItem,
+    Employee,
+    EmployeeContract,
+    PayrollRun,
+} from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
