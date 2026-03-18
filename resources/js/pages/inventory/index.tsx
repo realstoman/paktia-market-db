@@ -1,6 +1,7 @@
 'use client';
 
 import { InventoryClient } from '@/components/tables/inventory/client';
+import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
@@ -216,37 +217,22 @@ export default function InventoryPage({
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                    <Card className="gap-3 border-neutral-200 bg-white pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                            <CardTitle className="text-base">
-                                Total Inventory Value
-                            </CardTitle>
-                            <Banknote className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-semibold tracking-tight">
-                                {formatAfn(stats.totalValue)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                Current value from quantity x single price
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <SummaryMetricCard
+                        title="Total Inventory Value"
+                        value={formatAfn(stats.totalValue)}
+                        description="Current value from quantity x single price."
+                        icon={Banknote}
+                        className="md:col-span-4 md:row-span-2"
+                    />
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
-                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-6 dark:border-neutral-800 dark:bg-neutral-900">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">
-                                    Total Items
-                                </CardTitle>
-                                <Boxes className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(stats.totalItems)}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <SummaryMetricCard
+                            title="Total Items"
+                            value={formatNumber(stats.totalItems)}
+                            description="Inventory records currently tracked."
+                            icon={Boxes}
+                            className="md:col-span-6"
+                        />
 
                         <Card className="gap-3 border-red-200 bg-red-50 py-4 shadow-none md:col-span-6 dark:border-red-900/50 dark:bg-red-950/20">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
@@ -275,50 +261,29 @@ export default function InventoryPage({
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
-                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">
-                                    Total Fixed Items
-                                </CardTitle>
-                                <Warehouse className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(stats.totalFixedItems)}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <SummaryMetricCard
+                            title="Total Fixed Items"
+                            value={formatNumber(stats.totalFixedItems)}
+                            description="Equipment and long-term stock items."
+                            icon={Warehouse}
+                            className="md:col-span-4"
+                        />
 
-                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">
-                                    Low Stock Items
-                                </CardTitle>
-                                <PackageMinus className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(stats.lowStockItems)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Quantity ≤ {LOW_STOCK_THRESHOLD}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <SummaryMetricCard
+                            title="Low Stock Items"
+                            value={formatNumber(stats.lowStockItems)}
+                            description={`Quantity ≤ ${LOW_STOCK_THRESHOLD}.`}
+                            icon={PackageMinus}
+                            className="md:col-span-4"
+                        />
 
-                        <Card className="gap-3 border-neutral-200 bg-white py-4 shadow-none md:col-span-4 dark:border-neutral-800 dark:bg-neutral-900">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">
-                                    Out of Stock Items
-                                </CardTitle>
-                                <PackageX className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-semibold tracking-tight">
-                                    {formatNumber(stats.outOfStockItems)}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <SummaryMetricCard
+                            title="Out of Stock Items"
+                            value={formatNumber(stats.outOfStockItems)}
+                            description="Items that currently have zero quantity."
+                            icon={PackageX}
+                            className="md:col-span-4"
+                        />
                     </div>
                 </div>
 

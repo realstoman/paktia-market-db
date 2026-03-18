@@ -1,23 +1,22 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { ExternalLink, type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-interface OrderStatusStatCardProps {
+interface SummaryMetricCardProps {
     title: string;
-    value: string;
+    value: string | number;
+    description?: string;
     icon: LucideIcon;
-    onDetailsClick: () => void;
     className?: string;
 }
 
-export function OrderStatusStatCard({
+export function SummaryMetricCard({
     title,
     value,
+    description,
     icon: Icon,
-    onDetailsClick,
     className,
-}: OrderStatusStatCardProps) {
+}: SummaryMetricCardProps) {
     return (
         <Card
             className={cn(
@@ -33,19 +32,15 @@ export function OrderStatusStatCard({
                     <Icon className="h-4 w-4" />
                 </div>
             </CardHeader>
-            <CardContent className="flex items-end justify-between gap-3">
+            <CardContent>
                 <p className="text-2xl font-semibold tracking-tight text-[#102F33] dark:text-white">
                     {value}
                 </p>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 text-xs text-[#102F33] hover:bg-white hover:text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
-                    onClick={onDetailsClick}
-                >
-                    Details
-                    <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
+                {description ? (
+                    <p className="mt-1 text-xs text-[#5c7477] dark:text-neutral-400">
+                        {description}
+                    </p>
+                ) : null}
             </CardContent>
         </Card>
     );
