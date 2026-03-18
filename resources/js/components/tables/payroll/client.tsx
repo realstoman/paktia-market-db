@@ -797,7 +797,7 @@ export function PayrollClient({
                 placeholder="Employee"
                 searchPlaceholder="Search employees..."
                 emptyText="No employee found."
-                className="w-[220px] bg-white dark:bg-neutral-900"
+                className="w-[175px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={contractBranchFilter}
@@ -809,7 +809,7 @@ export function PayrollClient({
                 placeholder="Branch"
                 searchPlaceholder="Search branches..."
                 emptyText="No branch found."
-                className="w-[180px] bg-white dark:bg-neutral-900"
+                className="w-[155px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={contractStatusFilter}
@@ -824,7 +824,7 @@ export function PayrollClient({
                 placeholder="Status"
                 searchPlaceholder="Search statuses..."
                 emptyText="No status found."
-                className="w-[180px] bg-white dark:bg-neutral-900"
+                className="w-[145px] bg-white dark:bg-neutral-900"
             />
         </div>
     );
