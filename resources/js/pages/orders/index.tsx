@@ -220,7 +220,7 @@ export default function OrdersPage({
 
                 <section>
                     <div className="grid grid-cols-1 gap-3 pt-0 md:grid-cols-12">
-                        <Card className="gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
+                        <Card className="gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-0">
                                 <CardTitle className="text-xl text-neutral-900 dark:text-white">
                                     Baba Restaurant

@@ -10,7 +10,18 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
-import { Printer, ReceiptText } from 'lucide-react';
+import {
+    Facebook,
+    Globe,
+    Instagram,
+    Mail,
+    MapPin,
+    MessageCircle,
+    Phone,
+    Printer,
+    ReceiptText,
+    Youtube,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
@@ -21,11 +32,30 @@ interface ReceiptPreviewDialogProps {
 
 const RECEIPT_WIDTH_PX = 302;
 const RESTAURANT_CONTACT = {
-    address: 'Kabul, Afghanistan',
-    website: 'www.babarestaurant.af',
-    phone: '+93 700 000 000',
-    whatsapp: '+93 700 000 000',
+    address: 'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
+    website: 'www.babataste.com',
+    phones: ['+93 780 59 59 59', '+93 796 85 85 85'],
+    emails: ['info@babataste.com', 'reservations@babataste.com'],
+    socialHandle: 'Baba Restaurant',
 };
+
+const BRAND_COLORS = {
+    primary: '#102F33',
+    secondary: '#CC924B',
+    light: '#BCBEC0',
+    dark: '#414042',
+    white: '#FFFFFF',
+};
+
+const socialBadgesHtml = `
+    <div style="display:flex;justify-content:center;gap:6px;align-items:center;margin-top:8px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:10px;font-weight:700;">f</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">ig</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">tt</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">yt</span>
+        <span style="font-size:10px;color:${BRAND_COLORS.dark};font-weight:600;">/ ${RESTAURANT_CONTACT.socialHandle}</span>
+    </div>
+`;
 
 const escapeHtml = (value: string) =>
     value
@@ -110,22 +140,24 @@ export function ReceiptPreviewDialog({
                     <title>Order #${order.id} Receipt</title>
                     <style>
                         @page { size: 80mm auto; margin: 4mm; }
-                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-                        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: #111; }
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; }
+                        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
-                        .muted { color: #555; }
-                        hr { border: none; border-top: 1px dashed #999; margin: 8px 0; }
+                        .muted { color: ${BRAND_COLORS.dark}; opacity: 0.7; }
+                        hr { border: none; border-top: 1px dashed ${BRAND_COLORS.light}; margin: 8px 0; }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { font-size: 11px; padding: 3px 0; }
                         .totals p { display: flex; justify-content: space-between; margin: 3px 0; }
                         img { width: 34px; height: 34px; object-fit: contain; }
+                        .footer-row { display:flex; gap:6px; align-items:flex-start; margin:4px 0; }
+                        .footer-icon { width:14px; font-size:10px; color:${BRAND_COLORS.primary}; font-weight:700; }
                     </style>
                 </head>
                 <body>
                     <div class="receipt">
                         <div class="center">
                             <img src="${window.location.origin}/brand/logo.png" alt="Baba Restaurant Logo" />
-                            <h3 style="margin:6px 0 2px;">Baba Restaurant</h3>
+                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">Baba Restaurant</h3>
                             <p class="muted" style="margin:0;">Order Receipt</p>
                         </div>
                         <hr />
@@ -153,11 +185,13 @@ export function ReceiptPreviewDialog({
                         </div>
                         <hr />
                         <div class="muted" style="font-size:10px;">
-                            <p style="margin:2px 0;"><strong>Address:</strong> ${escapeHtml(RESTAURANT_CONTACT.address)}</p>
-                            <p style="margin:2px 0;"><strong>Website:</strong> ${escapeHtml(RESTAURANT_CONTACT.website)}</p>
-                            <p style="margin:2px 0;"><strong>Phone:</strong> ${escapeHtml(RESTAURANT_CONTACT.phone)}</p>
-                            <p style="margin:2px 0;"><strong>WhatsApp:</strong> ${escapeHtml(RESTAURANT_CONTACT.whatsapp)}</p>
+                            <div class="footer-row"><span class="footer-icon">⌂</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
+                            <div class="footer-row"><span class="footer-icon">☎</span><span>${escapeHtml(RESTAURANT_CONTACT.phones.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">✆</span><span>${escapeHtml(RESTAURANT_CONTACT.phones.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">✉</span><span>${escapeHtml(RESTAURANT_CONTACT.emails.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">⌘</span><span>${escapeHtml(RESTAURANT_CONTACT.website)}</span></div>
                         </div>
+                        ${socialBadgesHtml}
                     </div>
                     <script>
                         window.onload = function () {
@@ -332,31 +366,38 @@ export function ReceiptPreviewDialog({
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />
-                                    <div className="space-y-0.5 text-[10px] text-neutral-600">
-                                        <p>
-                                            <span className="font-medium">
-                                                Address:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.address}
+                                    <div className="space-y-1 text-[10px] text-neutral-600">
+                                        <p className="flex items-start gap-2">
+                                            <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>{RESTAURANT_CONTACT.address}</span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                Website:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.website}
+                                        <p className="flex items-center gap-2">
+                                            <Phone className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>{RESTAURANT_CONTACT.phones.join(' - ')}</span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                Phone:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.phone}
+                                        <p className="flex items-center gap-2">
+                                            <MessageCircle className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>{RESTAURANT_CONTACT.phones.join(' - ')}</span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                WhatsApp:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.whatsapp}
+                                        <p className="flex items-center gap-2">
+                                            <Mail className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>{RESTAURANT_CONTACT.emails.join(' - ')}</span>
                                         </p>
+                                        <p className="flex items-center gap-2">
+                                            <Globe className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>{RESTAURANT_CONTACT.website}</span>
+                                        </p>
+                                        <div className="flex items-center gap-1 pt-1 text-[#102F33]">
+                                            <Facebook className="h-3.5 w-3.5" />
+                                            <Instagram className="h-3.5 w-3.5" />
+                                            <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#102F33] text-[7px] font-bold text-white">
+                                                T
+                                            </div>
+                                            <Youtube className="h-3.5 w-3.5" />
+                                            <span className="pl-1 text-[10px] font-medium">
+                                                / {RESTAURANT_CONTACT.socialHandle}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </ScrollArea>

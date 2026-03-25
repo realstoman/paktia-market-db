@@ -30,46 +30,46 @@ const variantStyles: Record<
     }
 > = {
     green: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
     gold: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
     blue: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
     teal: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
     indigo: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
     rose: {
-        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] dark:border-neutral-800 dark:bg-neutral-900',
+        card: 'border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] dark:border-neutral-800 dark:bg-neutral-900',
         title: 'text-neutral-900 dark:text-neutral-100',
         value: 'text-neutral-950 dark:text-white',
         description: 'text-neutral-600 dark:text-neutral-400',
-        icon: 'border-white/70 bg-white/80 text-neutral-800 dark:border-white/10 dark:bg-white/10 dark:text-white',
+        icon: 'border-white/70 bg-white/85 text-[#102F33] dark:border-white/10 dark:bg-white/10 dark:text-white',
     },
 };
 
