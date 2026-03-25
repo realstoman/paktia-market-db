@@ -186,6 +186,7 @@ export function ReceiptPreviewDialog({
                         body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; }
                         .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
+                        .meta p { margin: 3px 0; line-height: 1.35; }
                         .muted { color: ${BRAND_COLORS.dark}; opacity: 0.7; }
                         hr { border: none; border-top: 1px dashed ${BRAND_COLORS.light}; margin: 8px 0; }
                         table { width: 100%; border-collapse: collapse; }
@@ -204,10 +205,12 @@ export function ReceiptPreviewDialog({
                             <p class="muted" style="margin:0;">Order Receipt</p>
                         </div>
                         <hr />
-                        <p><strong>Order:</strong> #${order.id}</p>
-                        <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
-                        <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
-                        ${deliveryDetails}
+                        <div class="meta">
+                            <p><strong>Order:</strong> #${order.id}</p>
+                            <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
+                            <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
+                            ${deliveryDetails}
+                        </div>
                         <hr />
                         <table>
                             <thead>
