@@ -91,7 +91,7 @@ class OrderService
                 'base_currency' => 'AFN',
                 'exchange_rate' => null,
                 'total_amount' => $total,
-                'paid_amount' => $total,
+                'paid_amount' => 0,
                 'change_amount' => 0,
                 'refund_amount' => 0,
                 'status' => OrderStatus::PENDING->value,
@@ -99,11 +99,6 @@ class OrderService
 
             $this->orderItemService->createManyForOrder($order, $data['items']);
             $this->syncOrderAmounts($order, $total);
-
-            $this->syncOrderPayment(
-                order: $order->fresh(),
-                paymentMethod: $data['payment_method'],
-            );
         });
     }
 
@@ -133,10 +128,6 @@ class OrderService
 
             $this->orderItemService->replaceForOrder($order, $data['items']);
             $this->syncOrderAmounts($order, $total);
-            $this->syncOrderPayment(
-                order: $order->fresh(),
-                paymentMethod: $data['payment_method'],
-            );
         });
     }
 
@@ -257,11 +248,16 @@ class OrderService
 
     private function syncOrderPayment(Order $order, string $paymentMethod): void
     {
+        $order->update([
+            'paid_amount' => $order->total_amount,
+            'change_amount' => 0,
+        ]);
+
         $payment = $order->payments()->orderBy('id')->first();
 
         $payload = [
             'currency' => $order->base_currency ?? 'AFN',
-            'amount' => $order->paid_amount,
+            'amount' => $order->total_amount,
             'exchange_rate' => $order->exchange_rate,
             'method' => $paymentMethod,
             'payment_date' => now(),
@@ -284,11 +280,12 @@ class OrderService
         $tax = (float) ($order->tax_amount ?? 0);
         $serviceCharge = (float) ($order->service_charge_amount ?? 0);
         $total = max(0, $subTotal - $discount + $tax + $serviceCharge);
+        $paidAmount = min($total, (float) $order->payments()->sum('amount'));
 
         $order->update([
             'sub_total_amount' => $subTotal,
             'total_amount' => $total,
-            'paid_amount' => $total,
+            'paid_amount' => $paidAmount,
             'change_amount' => 0,
             'refund_amount' => 0,
         ]);

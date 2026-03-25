@@ -23,6 +23,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Services\Operations\OperationsDashboardService;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
@@ -52,9 +53,13 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
-    Route::get('dashboard', function (Request $request) {
+    Route::get('dashboard', function (Request $request, OperationsDashboardService $operationsDashboardService) {
         $user = $request->user();
         abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
+
+        if ($user->hasAnyRole(['cashier', 'server', 'order-taker'])) {
+            return Inertia::render('operations/index', $operationsDashboardService->build($user));
+        }
 
         $canViewOrders = $user->can(PermissionEnum::ORDERS_VIEW->value);
         $canViewInventory = $user->can(PermissionEnum::INVENTORY_VIEW->value);
