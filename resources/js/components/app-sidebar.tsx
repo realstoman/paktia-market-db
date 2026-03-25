@@ -2,6 +2,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ToolsLauncher } from '@/components/tools-launcher';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Sidebar,
     SidebarContent,
@@ -107,6 +108,8 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { isSuperAdmin } = useAuthorization();
+
     return (
         <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader className="rounded-t-sm bg-white dark:bg-brand-bg-dark">
@@ -123,7 +126,7 @@ export function AppSidebar() {
 
             <SidebarContent className="bg-white dark:bg-brand-bg-dark">
                 <NavMain items={mainNavItems} />
-                <ToolsLauncher />
+                {isSuperAdmin ? <ToolsLauncher /> : null}
             </SidebarContent>
 
             <SidebarFooter className="bg-white dark:bg-brand-bg-dark">
