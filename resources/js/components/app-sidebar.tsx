@@ -35,6 +35,7 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        can: 'dashboard.view',
     },
     {
         title: 'Orders',
@@ -64,6 +65,7 @@ const mainNavItems: NavItem[] = [
         title: 'Finance',
         href: '/finance',
         icon: Wallet,
+        canAny: ['finance.view', 'payroll.view'],
     },
     {
         title: 'Branches',
@@ -87,6 +89,7 @@ const mainNavItems: NavItem[] = [
         title: 'Reports',
         href: '/reports',
         icon: ScrollText,
+        can: 'reports.view',
     },
 ];
 

@@ -5,18 +5,21 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAuthorization } from '@/lib/permissions';
 import { resolveUrl } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
-    const { auth } = page.props;
-    const permissions = auth.permissions || [];
+    const { can, canAny } = useAuthorization();
 
     const filteredItems = items.filter((item) => {
-        if (!item.can) return true;
-        return permissions.includes(item.can);
+        if (item.canAny?.length) {
+            return canAny(item.canAny);
+        }
+
+        return can(item.can);
     });
 
     return (

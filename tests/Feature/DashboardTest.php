@@ -1,5 +1,6 @@
 <?php
 
+use Database\Seeders\RolePermissionSeeder;
 use App\Models\Branch;
 use App\Models\Country;
 use App\Models\Province;
@@ -14,7 +15,10 @@ test('guests are redirected to the login page', function () {
 });
 
 test('authenticated users can visit the dashboard', function () {
+    $this->seed(RolePermissionSeeder::class);
+
     $user = User::factory()->create();
+    $user->assignRole('super-admin');
 
     $this->actingAs($user)
         ->get(route('dashboard'))
@@ -22,7 +26,10 @@ test('authenticated users can visit the dashboard', function () {
 });
 
 test('dashboard order status overview filters stats by selected date', function () {
+    $this->seed(RolePermissionSeeder::class);
+
     $user = User::factory()->create();
+    $user->assignRole('super-admin');
 
     Carbon::setTestNow('2026-02-26 10:00:00');
 

@@ -62,7 +62,9 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'roles' => $request->user()?->roles->pluck('name')->toArray() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name')->toArray() ?? [],
+                'is_super_admin' => $request->user()?->hasRole('super-admin') ?? false,
             ],
             'notifications' => fn () => $this->buildNotifications($request),
             'tools' => [

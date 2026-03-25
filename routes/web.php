@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PermissionEnum;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -52,6 +53,13 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', function (Request $request) {
+        $user = $request->user();
+        abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
+
+        $canViewOrders = $user->can(PermissionEnum::ORDERS_VIEW->value);
+        $canViewInventory = $user->can(PermissionEnum::INVENTORY_VIEW->value);
+        $canViewFinance = $user->can(PermissionEnum::FINANCE_VIEW->value);
+
         $validated = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
@@ -268,12 +276,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return Inertia::render('dashboard', [
             'data' => [
-                'orders' => $orderStats,
-                'orderAnalytics' => array_values($analyticsByDate),
-                'recentOrders' => $recentOrders,
-                'topOrderedDishes' => $topOrderedDishes,
+                'orders' => $canViewOrders ? $orderStats : null,
+                'orderAnalytics' => $canViewOrders ? array_values($analyticsByDate) : [],
+                'recentOrders' => $canViewOrders ? $recentOrders : [],
+                'topOrderedDishes' => $canViewOrders ? $topOrderedDishes : [],
                 'selectedDate' => $selectedDateString,
-                'inventory' => [
+                'inventory' => $canViewInventory ? [
                     'totalItems' => $totalInventoryItems,
                     'totalFixedItems' => $totalFixedItems,
                     'totalUsableItems' => $totalUsableItems,
@@ -282,8 +290,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'inventoryValue' => round($inventoryValue, 2),
                     'amountOwedToVendors' => round($amountOwedToVendors, 2),
                     'pie' => $inventoryPie,
-                ],
-                'finance' => [
+                ] : null,
+                'finance' => $canViewFinance ? [
                     'netProfit' => (float) $dashboardNetProfit,
                     'expenses' => (float) $dashboardExpensesTotal,
                     'cashPosition' => (float) $dashboardCashPosition,
@@ -295,136 +303,181 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         'expenses' => 'Expenses = sum of all recorded expense amounts.',
                         'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
                     ],
-                ],
+                ] : null,
             ],
         ]);
     })->name('dashboard');
 
     // Users
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::post('/users/{user}/block', [UserController::class, 'toggleBlock'])->name('users.block');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::middleware('role:super-admin')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/block', [UserController::class, 'toggleBlock'])->name('users.block');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     // Route::post('users/{user}/permissions', [UserPermissionController::class, 'store']);
     // Route::delete('users/{user}/permissions', [UserPermissionController::class, 'destroy']);
 
     // Roles & Permissions
-    Route::resource('roles', RoleController::class);
-    Route::get('permissions', [PermissionController::class, 'index']);
-    Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
+        Route::resource('roles', RoleController::class);
+        Route::get('permissions', [PermissionController::class, 'index']);
+        Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
 
     // Locations
-    Route::resource('countries', CountryController::class);
-    Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
-    Route::resource('provinces', ProvinceController::class);
-    Route::resource('branches', BranchController::class);
-    Route::post('branch-tables', [BranchTableController::class, 'store'])->name('branch-tables.store');
-    Route::put('branch-tables/{branchTable}', [BranchTableController::class, 'update'])->name('branch-tables.update');
-    Route::delete('branch-tables/{branchTable}', [BranchTableController::class, 'destroy'])->name('branch-tables.destroy');
-    Route::post('branches/{branch}/kitchens', [BranchController::class, 'syncKitchens'])->name('branches.kitchens');
-    Route::resource('kitchens', KitchenController::class);
-    Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
-    Route::post('kitchens/{kitchen}/products', [KitchenController::class, 'syncProducts'])->name('kitchens.products');
-    Route::post('kitchen-types', [KitchenController::class, 'storeKitchenType'])->name('kitchen-types.store');
-    Route::put('kitchen-types/{kitchenType}', [KitchenController::class, 'updateKitchenType'])->name('kitchen-types.update');
-    Route::delete('kitchen-types/{kitchenType}', [KitchenController::class, 'destroyKitchenType'])->name('kitchen-types.destroy');
-    Route::post('cuisines', [KitchenController::class, 'storeCuisine'])->name('cuisines.store');
-    Route::put('cuisines/{cuisine}', [KitchenController::class, 'updateCuisine'])->name('cuisines.update');
-    Route::delete('cuisines/{cuisine}', [KitchenController::class, 'destroyCuisine'])->name('cuisines.destroy');
-    Route::post('kitchen-categories', [KitchenController::class, 'storeKitchenCategory'])->name('kitchen-categories.store');
-    Route::put('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'updateKitchenCategory'])->name('kitchen-categories.update');
-    Route::delete('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'destroyKitchenCategory'])->name('kitchen-categories.destroy');
-    Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
+        Route::resource('countries', CountryController::class);
+        Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
+        Route::resource('provinces', ProvinceController::class);
+        Route::resource('branches', BranchController::class);
+        Route::post('branch-tables', [BranchTableController::class, 'store'])->name('branch-tables.store');
+        Route::put('branch-tables/{branchTable}', [BranchTableController::class, 'update'])->name('branch-tables.update');
+        Route::delete('branch-tables/{branchTable}', [BranchTableController::class, 'destroy'])->name('branch-tables.destroy');
+        Route::post('branches/{branch}/kitchens', [BranchController::class, 'syncKitchens'])->name('branches.kitchens');
+        Route::resource('kitchens', KitchenController::class);
+        Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
+        Route::post('kitchens/{kitchen}/products', [KitchenController::class, 'syncProducts'])->name('kitchens.products');
+        Route::post('kitchen-types', [KitchenController::class, 'storeKitchenType'])->name('kitchen-types.store');
+        Route::put('kitchen-types/{kitchenType}', [KitchenController::class, 'updateKitchenType'])->name('kitchen-types.update');
+        Route::delete('kitchen-types/{kitchenType}', [KitchenController::class, 'destroyKitchenType'])->name('kitchen-types.destroy');
+        Route::post('cuisines', [KitchenController::class, 'storeCuisine'])->name('cuisines.store');
+        Route::put('cuisines/{cuisine}', [KitchenController::class, 'updateCuisine'])->name('cuisines.update');
+        Route::delete('cuisines/{cuisine}', [KitchenController::class, 'destroyCuisine'])->name('cuisines.destroy');
+        Route::post('kitchen-categories', [KitchenController::class, 'storeKitchenCategory'])->name('kitchen-categories.store');
+        Route::put('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'updateKitchenCategory'])->name('kitchen-categories.update');
+        Route::delete('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'destroyKitchenCategory'])->name('kitchen-categories.destroy');
+        Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
+    });
 
     // Products & Orders
-    Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::post('products/categories', [ProductController::class, 'storeCategory'])->name('products.categories.store');
-    Route::put('products/categories/{category}', [ProductController::class, 'updateCategory'])->name('products.categories.update');
-    Route::delete('products/categories/{category}', [ProductController::class, 'destroyCategory'])->name('products.categories.destroy');
-    Route::post('products/types', [ProductController::class, 'storeType'])->name('products.types.store');
-    Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
-    Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
-    Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
-    Route::resource('orders', OrderController::class)->only(['index', 'store', 'update']);
-    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
-    Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
-    Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
-    Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
-    Route::get('reports/export/pdf', [ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
-    Route::get('reports/export/xlsx', [ReportsController::class, 'exportXlsx'])->name('reports.export.xlsx');
+    Route::middleware('can:'.PermissionEnum::PRODUCTS_VIEW->value)->group(function () {
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+    });
+    Route::middleware('can:'.PermissionEnum::PRODUCTS_CREATE->value)->group(function () {
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+        Route::post('products/categories', [ProductController::class, 'storeCategory'])->name('products.categories.store');
+        Route::post('products/types', [ProductController::class, 'storeType'])->name('products.types.store');
+    });
+    Route::middleware('can:'.PermissionEnum::PRODUCTS_UPDATE->value)->group(function () {
+        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::put('products/categories/{category}', [ProductController::class, 'updateCategory'])->name('products.categories.update');
+        Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
+    });
+    Route::middleware('can:'.PermissionEnum::PRODUCTS_DELETE->value)->group(function () {
+        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::delete('products/categories/{category}', [ProductController::class, 'destroyCategory'])->name('products.categories.destroy');
+        Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
+        Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
+    });
+    Route::middleware('can:'.PermissionEnum::ORDERS_VIEW->value)->group(function () {
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    });
+    Route::middleware('can:'.PermissionEnum::ORDERS_CREATE->value)->group(function () {
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    });
+    Route::middleware('can:'.PermissionEnum::ORDERS_UPDATE->value)->group(function () {
+        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
+        Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
+        Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
+    });
+    Route::middleware('can:'.PermissionEnum::REPORTS_VIEW->value)->group(function () {
+        Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
+    });
+    Route::middleware('can:'.PermissionEnum::REPORTS_EXPORT->value)->group(function () {
+        Route::get('reports/export/pdf', [ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+        Route::get('reports/export/xlsx', [ReportsController::class, 'exportXlsx'])->name('reports.export.xlsx');
+    });
 
     // Inventory
-    Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
-    Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
-    Route::delete('inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
-    Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
-    Route::post('inventory/usage-cycle', [InventoryController::class, 'storeUsageCycle'])->name('inventory.usage-cycle.store');
-    Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
-    Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
-    Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
-    Route::post('banners', [BannerController::class, 'store'])->name('banners.store');
-    Route::put('banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
-    Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
-    Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
-    Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
-    Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
-    Route::post('units', [InventoryController::class, 'storeUnit'])->name('units.store');
-    Route::put('units/{unit}', [InventoryController::class, 'updateUnit'])->name('units.update');
-    Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
-    Route::post('inventory-types', [InventoryController::class, 'storeInventoryType'])->name('inventory-types.store');
-    Route::put('inventory-types/{inventoryType}', [InventoryController::class, 'updateInventoryType'])->name('inventory-types.update');
-    Route::delete('inventory-types/{inventoryType}', [InventoryController::class, 'destroyInventoryType'])->name('inventory-types.destroy');
-    Route::post('inventory-categories', [InventoryController::class, 'storeInventoryCategory'])->name('inventory-categories.store');
-    Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
-    Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
-    Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
-    Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
-    Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
-    Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
-    Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
-    Route::post('finance/payroll/contracts', [PayrollController::class, 'storeContract'])->name('finance.payroll.contracts.store');
-    Route::put('finance/payroll/contracts/{contract}', [PayrollController::class, 'updateContract'])->name('finance.payroll.contracts.update');
-    Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
-    Route::post('finance/payroll/contract-schedules', [PayrollController::class, 'storeSchedule'])->name('finance.payroll.contract-schedules.store');
-    Route::post('finance/payroll/contract-schedules/{schedule}/approve', [PayrollController::class, 'approveSchedule'])->name('finance.payroll.contract-schedules.approve');
-    Route::post('finance/payroll/contract-schedules/{schedule}/reject', [PayrollController::class, 'rejectSchedule'])->name('finance.payroll.contract-schedules.reject');
-    Route::put('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'updateSchedule'])->name('finance.payroll.contract-schedules.update');
-    Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
-    Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
-    Route::post('finance/payroll/{payrollRun}/reject', [PayrollController::class, 'reject'])->name('finance.payroll.reject');
-    Route::post('finance/payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('finance.payroll.mark-paid');
-    Route::get('finance/employee-advances', [EmployeeAdvanceController::class, 'index'])->name('finance.employee-advances.index');
-    Route::post('finance/employee-advances', [EmployeeAdvanceController::class, 'store'])->name('finance.employee-advances.store');
-    Route::put('finance/employee-advances/{employeeAdvance}', [EmployeeAdvanceController::class, 'update'])->name('finance.employee-advances.update');
-    Route::post('finance/employee-advances/{employeeAdvance}/approve', [EmployeeAdvanceController::class, 'approve'])->name('finance.employee-advances.approve');
-    Route::post('finance/employee-advances/{employeeAdvance}/reject', [EmployeeAdvanceController::class, 'reject'])->name('finance.employee-advances.reject');
-    Route::get('finance/expenses', [ExpenseController::class, 'index'])->name('finance.expenses.index');
-    Route::post('finance/expenses', [ExpenseController::class, 'store'])->name('finance.expenses.store');
-    Route::put('finance/expenses/{expense}', [ExpenseController::class, 'update'])->name('finance.expenses.update');
-    Route::post('finance/expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('finance.expenses.approve');
-    Route::post('finance/expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('finance.expenses.reject');
-    Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
-    Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
-    Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
-    Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
-    Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
-    Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
-    Route::put('finance/cash-bank/{cashMovement}', [CashBankController::class, 'update'])->name('finance.cash-bank.update');
-    Route::post('finance/cash-bank/{cashMovement}/approve', [CashBankController::class, 'approve'])->name('finance.cash-bank.approve');
-    Route::post('finance/cash-bank/{cashMovement}/reject', [CashBankController::class, 'reject'])->name('finance.cash-bank.reject');
-    Route::get('finance/cash-movement-types', [CashMovementTypeController::class, 'index'])->name('finance.cash-movement-types.index');
-    Route::post('finance/cash-movement-types', [CashMovementTypeController::class, 'store'])->name('finance.cash-movement-types.store');
-    Route::put('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'update'])->name('finance.cash-movement-types.update');
-    Route::delete('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'destroy'])->name('finance.cash-movement-types.destroy');
-    Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
-    Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
-    Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
-    Route::delete('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('finance.expense-categories.destroy');
+    Route::middleware('can:'.PermissionEnum::INVENTORY_VIEW->value)->group(function () {
+        Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    });
+    Route::middleware('can:'.PermissionEnum::INVENTORY_ADJUST->value)->group(function () {
+        Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
+        Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
+        Route::delete('inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+        Route::post('inventory/usage-cycle', [InventoryController::class, 'storeUsageCycle'])->name('inventory.usage-cycle.store');
+        Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
+        Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
+        Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
+        Route::post('banners', [BannerController::class, 'store'])->name('banners.store');
+        Route::put('banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
+        Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
+        Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
+        Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
+        Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
+        Route::post('units', [InventoryController::class, 'storeUnit'])->name('units.store');
+        Route::put('units/{unit}', [InventoryController::class, 'updateUnit'])->name('units.update');
+        Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
+        Route::post('inventory-types', [InventoryController::class, 'storeInventoryType'])->name('inventory-types.store');
+        Route::put('inventory-types/{inventoryType}', [InventoryController::class, 'updateInventoryType'])->name('inventory-types.update');
+        Route::delete('inventory-types/{inventoryType}', [InventoryController::class, 'destroyInventoryType'])->name('inventory-types.destroy');
+        Route::post('inventory-categories', [InventoryController::class, 'storeInventoryCategory'])->name('inventory-categories.store');
+        Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
+        Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
+    });
+    Route::middleware('can:'.PermissionEnum::FINANCE_VIEW->value)->group(function () {
+        Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+        Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
+        Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
+    });
+    Route::middleware('can:'.PermissionEnum::PAYROLL_VIEW->value)->group(function () {
+        Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
+        Route::get('finance/employee-advances', [EmployeeAdvanceController::class, 'index'])->name('finance.employee-advances.index');
+    });
+    Route::middleware('can:'.PermissionEnum::PAYROLL_CREATE->value)->group(function () {
+        Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
+        Route::post('finance/payroll/contracts', [PayrollController::class, 'storeContract'])->name('finance.payroll.contracts.store');
+        Route::put('finance/payroll/contracts/{contract}', [PayrollController::class, 'updateContract'])->name('finance.payroll.contracts.update');
+        Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
+        Route::post('finance/payroll/contract-schedules', [PayrollController::class, 'storeSchedule'])->name('finance.payroll.contract-schedules.store');
+        Route::put('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'updateSchedule'])->name('finance.payroll.contract-schedules.update');
+        Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
+        Route::post('finance/employee-advances', [EmployeeAdvanceController::class, 'store'])->name('finance.employee-advances.store');
+        Route::put('finance/employee-advances/{employeeAdvance}', [EmployeeAdvanceController::class, 'update'])->name('finance.employee-advances.update');
+    });
+    Route::middleware('can:'.PermissionEnum::PAYROLL_APPROVE->value)->group(function () {
+        Route::post('finance/payroll/contract-schedules/{schedule}/approve', [PayrollController::class, 'approveSchedule'])->name('finance.payroll.contract-schedules.approve');
+        Route::post('finance/payroll/contract-schedules/{schedule}/reject', [PayrollController::class, 'rejectSchedule'])->name('finance.payroll.contract-schedules.reject');
+        Route::post('finance/payroll/{payrollRun}/approve', [PayrollController::class, 'approve'])->name('finance.payroll.approve');
+        Route::post('finance/payroll/{payrollRun}/reject', [PayrollController::class, 'reject'])->name('finance.payroll.reject');
+        Route::post('finance/employee-advances/{employeeAdvance}/approve', [EmployeeAdvanceController::class, 'approve'])->name('finance.employee-advances.approve');
+        Route::post('finance/employee-advances/{employeeAdvance}/reject', [EmployeeAdvanceController::class, 'reject'])->name('finance.employee-advances.reject');
+    });
+    Route::middleware('can:'.PermissionEnum::PAYROLL_PAY->value)->group(function () {
+        Route::post('finance/payroll/{payrollRun}/mark-paid', [PayrollController::class, 'markPaid'])->name('finance.payroll.mark-paid');
+    });
+    Route::middleware('can:'.PermissionEnum::EXPENSES_VIEW->value)->group(function () {
+        Route::get('finance/expenses', [ExpenseController::class, 'index'])->name('finance.expenses.index');
+    });
+    Route::middleware('can:'.PermissionEnum::EXPENSES_CREATE->value)->group(function () {
+        Route::post('finance/expenses', [ExpenseController::class, 'store'])->name('finance.expenses.store');
+        Route::put('finance/expenses/{expense}', [ExpenseController::class, 'update'])->name('finance.expenses.update');
+        Route::post('finance/expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('finance.expenses.approve');
+        Route::post('finance/expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('finance.expenses.reject');
+    });
+    Route::middleware('can:'.PermissionEnum::FINANCE_MANAGE->value)->group(function () {
+        Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
+        Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
+        Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
+        Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
+        Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
+        Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
+        Route::put('finance/cash-bank/{cashMovement}', [CashBankController::class, 'update'])->name('finance.cash-bank.update');
+        Route::post('finance/cash-bank/{cashMovement}/approve', [CashBankController::class, 'approve'])->name('finance.cash-bank.approve');
+        Route::post('finance/cash-bank/{cashMovement}/reject', [CashBankController::class, 'reject'])->name('finance.cash-bank.reject');
+        Route::get('finance/cash-movement-types', [CashMovementTypeController::class, 'index'])->name('finance.cash-movement-types.index');
+        Route::post('finance/cash-movement-types', [CashMovementTypeController::class, 'store'])->name('finance.cash-movement-types.store');
+        Route::put('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'update'])->name('finance.cash-movement-types.update');
+        Route::delete('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'destroy'])->name('finance.cash-movement-types.destroy');
+        Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
+        Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
+        Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
+        Route::delete('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('finance.expense-categories.destroy');
+    });
 
     // Employees
     Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
