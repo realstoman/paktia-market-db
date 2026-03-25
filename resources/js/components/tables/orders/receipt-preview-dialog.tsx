@@ -11,17 +11,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import {
-    Facebook,
+    IconBrandFacebook,
+    IconBrandInstagram,
+    IconBrandTiktok,
+    IconBrandYoutube,
+} from '@tabler/icons-react';
+import {
+    Printer,
+    ReceiptText,
+} from 'lucide-react';
+import {
     Globe,
-    Instagram,
     Mail,
     MapPin,
     MessageCircle,
     Phone,
-    Printer,
-    ReceiptText,
-    Youtube,
-} from 'lucide-react';
+} from 'react-feather';
 import { useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
@@ -32,7 +37,8 @@ interface ReceiptPreviewDialogProps {
 
 const RECEIPT_WIDTH_PX = 302;
 const RESTAURANT_CONTACT = {
-    address: 'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
+    address:
+        'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
     website: 'www.babataste.com',
     phones: ['+93 780 59 59 59', '+93 796 85 85 85'],
     emails: ['info@babataste.com', 'reservations@babataste.com'],
@@ -50,9 +56,9 @@ const BRAND_COLORS = {
 const socialBadgesHtml = `
     <div style="display:flex;justify-content:center;gap:6px;align-items:center;margin-top:8px;">
         <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:10px;font-weight:700;">f</span>
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">ig</span>
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">tt</span>
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:9px;font-weight:700;">yt</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:8px;font-weight:700;">ig</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:8px;font-weight:700;">tt</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:${BRAND_COLORS.primary};color:${BRAND_COLORS.white};font-size:8px;font-weight:700;">yt</span>
         <span style="font-size:10px;color:${BRAND_COLORS.dark};font-weight:600;">/ ${RESTAURANT_CONTACT.socialHandle}</span>
     </div>
 `;
@@ -369,33 +375,62 @@ export function ReceiptPreviewDialog({
                                     <div className="space-y-1 text-[10px] text-neutral-600">
                                         <p className="flex items-start gap-2">
                                             <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>{RESTAURANT_CONTACT.address}</span>
+                                            <span>
+                                                {RESTAURANT_CONTACT.address}
+                                            </span>
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <Phone className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>{RESTAURANT_CONTACT.phones.join(' - ')}</span>
+                                            <span>
+                                                {RESTAURANT_CONTACT.phones.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <MessageCircle className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>{RESTAURANT_CONTACT.phones.join(' - ')}</span>
+                                            <span>
+                                                {RESTAURANT_CONTACT.phones.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <Mail className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>{RESTAURANT_CONTACT.emails.join(' - ')}</span>
+                                            <span>
+                                                {RESTAURANT_CONTACT.emails.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <Globe className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>{RESTAURANT_CONTACT.website}</span>
+                                            <span>
+                                                {RESTAURANT_CONTACT.website}
+                                            </span>
                                         </p>
                                         <div className="flex items-center gap-1 pt-1 text-[#102F33]">
-                                            <Facebook className="h-3.5 w-3.5" />
-                                            <Instagram className="h-3.5 w-3.5" />
-                                            <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#102F33] text-[7px] font-bold text-white">
-                                                T
-                                            </div>
-                                            <Youtube className="h-3.5 w-3.5" />
+                                            <IconBrandFacebook
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandInstagram
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandTiktok
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandYoutube
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
                                             <span className="pl-1 text-[10px] font-medium">
-                                                / {RESTAURANT_CONTACT.socialHandle}
+                                                /{' '}
+                                                {
+                                                    RESTAURANT_CONTACT.socialHandle
+                                                }
                                             </span>
                                         </div>
                                     </div>
