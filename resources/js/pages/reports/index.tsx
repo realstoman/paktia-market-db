@@ -33,6 +33,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
@@ -427,6 +428,7 @@ export default function ReportsPage({
     activeReport,
     period,
 }: ReportsPageProps) {
+    const { can } = useAuthorization();
     const [range, setRange] = useState(filters.range);
     const [startDate, setStartDate] = useState(filters.startDate);
     const [endDate, setEndDate] = useState(filters.endDate);
@@ -444,6 +446,7 @@ export default function ReportsPage({
         'pdf' | 'xlsx' | null
     >(null);
     const deferredSearch = useDeferredValue(search);
+    const canExportReports = can('reports.export');
 
     useEffect(() => {
         try {
@@ -1003,7 +1006,7 @@ export default function ReportsPage({
                                     </CardDescription>
                                 </div>
 
-                                {activeReport.isReady ? (
+                                {activeReport.isReady && canExportReports ? (
                                     <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
                                         <Button
                                             variant="outline"

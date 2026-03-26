@@ -4,6 +4,9 @@ namespace App\Enums;
 
 enum PermissionEnum: string
 {
+    // Dashboard
+    case DASHBOARD_VIEW = 'dashboard.view';
+
     // Users
     case USER_VIEW = 'user.view';
     case USER_CREATE = 'user.create';
@@ -55,6 +58,8 @@ enum PermissionEnum: string
     case EMPLOYEES_UPDATE = 'employees.update';
 
     // Finance
+    case FINANCE_VIEW = 'finance.view';
+    case FINANCE_MANAGE = 'finance.manage';
     case PAYMENTS_VIEW = 'payments.view';
     case PAYMENTS_CREATE = 'payments.create';
     case EXPENSES_VIEW = 'expenses.view';
@@ -63,6 +68,10 @@ enum PermissionEnum: string
     case PAYROLL_CREATE = 'payroll.create';
     case PAYROLL_APPROVE = 'payroll.approve';
     case PAYROLL_PAY = 'payroll.pay';
+
+    // Reports
+    case REPORTS_VIEW = 'reports.view';
+    case REPORTS_EXPORT = 'reports.export';
 
     // Admin
     case ROLES_MANAGE = 'roles.manage';

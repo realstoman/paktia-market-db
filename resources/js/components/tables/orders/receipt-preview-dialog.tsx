@@ -10,6 +10,17 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
+import {
+    IconBrandFacebook,
+    IconBrandInstagram,
+    IconBrandTiktok,
+    IconBrandWhatsapp,
+    IconBrandYoutube,
+    IconMail,
+    IconMapPin,
+    IconPhone,
+    IconWorldWww,
+} from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -21,11 +32,73 @@ interface ReceiptPreviewDialogProps {
 
 const RECEIPT_WIDTH_PX = 302;
 const RESTAURANT_CONTACT = {
-    address: 'Kabul, Afghanistan',
-    website: 'www.babarestaurant.af',
-    phone: '+93 700 000 000',
-    whatsapp: '+93 700 000 000',
+    address:
+        'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
+    website: 'www.babataste.com',
+    whatsapp: ['+93 780 59 59 59'],
+    phones: ['+93 796 85 85 85', '+93 749 59 59 49'],
+    emails: ['info@babataste.com', 'reservations@babataste.com'],
+    socialHandle: 'Baba Restaurant',
 };
+
+const BRAND_COLORS = {
+    primary: '#102F33',
+    secondary: '#CC924B',
+    light: '#BCBEC0',
+    dark: '#414042',
+    white: '#FFFFFF',
+};
+
+const createPrintIcon = (path: string, strokeWidth = 1.8) =>
+    `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;"><path d="${path}" stroke="${BRAND_COLORS.primary}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const printIcons = {
+    mapPin: createPrintIcon(
+        'M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z',
+    ),
+    phone: createPrintIcon(
+        'M22 16.92V19.92C22.0001 20.1985 21.942 20.474 21.8295 20.7289C21.717 20.9837 21.5525 21.2121 21.346 21.3999C21.1395 21.5877 20.896 21.7307 20.631 21.8198C20.366 21.9089 20.0854 21.942 19.807 21.917C16.7198 21.5815 13.7541 20.5265 11.157 18.84C8.74088 17.3047 6.69283 15.2561 5.158 12.8399C3.46592 10.231 2.41017 7.25111 2.08099 4.14995C2.05589 3.87206 2.08886 3.59202 2.17778 3.32757C2.26669 3.06311 2.40959 2.82017 2.59712 2.61403C2.78465 2.40789 3.01272 2.24311 3.26719 2.1303C3.52165 2.0175 3.79686 1.95913 4.075 1.95895H7.075C7.56155 1.95416 8.03324 2.12253 8.40698 2.43454C8.78071 2.74654 9.0328 3.18234 9.118 3.66195C9.27629 4.60548 9.54055 5.52819 9.907 6.41295C10.0418 6.73627 10.0814 7.09144 10.0212 7.43682C9.96096 7.7822 9.80348 8.10307 9.567 8.36195L8.297 9.63195C9.72056 12.1347 11.7943 14.2084 14.297 15.632L15.567 14.362C15.8259 14.1255 16.1468 13.968 16.4921 13.9078C16.8375 13.8476 17.1927 13.8871 17.516 14.022C18.4008 14.3884 19.3235 14.6527 20.267 14.811C20.7518 14.8969 21.1918 15.1543 21.5045 15.5348C21.8173 15.9154 21.9827 16.3959 21.971 16.8899Z',
+    ),
+    whatsapp: createPrintIcon(
+        'M21 11.5C21.0012 13.0117 20.6041 14.497 19.848 15.806L21 20L16.694 18.87C15.3423 19.6117 13.8258 19.9998 12.2845 20C10.7433 20.0002 9.22675 19.6125 7.875 18.871C6.36353 18.0441 5.15596 16.7525 4.42513 15.1873C3.6943 13.6221 3.47877 11.8625 3.80895 10.1668C4.13913 8.47113 4.9984 6.92386 6.25964 5.75087C7.52088 4.57789 9.12618 3.83153 10.8424 3.61853C12.5586 3.40553 14.2988 3.73683 15.817 4.56589C17.3352 5.39495 18.5551 6.6808 19.306 8.243C20.057 9.8052 20.3021 11.5622 20.007 13.27 M8.5 8.75C8.5 8.75 9 11 11 12.5C12.5 13.625 13.75 13.75 13.75 13.75 M14.75 13.25L13.5 14.5 M9 8.5L7.75 9.75',
+        1.6,
+    ),
+    mail: createPrintIcon(
+        'M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z M22 6L12 13L2 6',
+    ),
+    globe: createPrintIcon(
+        'M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22M12 2C9.49872 4.73835 8.07725 8.29203 8 12C8.07725 15.708 9.49872 19.2616 12 22M2.5 9H21.5M2.5 15H21.5',
+        1.5,
+    ),
+};
+
+const createPrintBrandIcon = (content: string) =>
+    `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;color:${BRAND_COLORS.primary};">${content}</svg>`;
+
+const printBrandIcons = {
+    facebook: createPrintBrandIcon(
+        '<path d="M15 3H18V7H15C14.4477 7 14 7.44772 14 8V10H18L17.2 14H14V21H10V14H7V10H10V7.5C10 5.01472 12.0147 3 14.5 3H15Z" fill="currentColor"/>',
+    ),
+    instagram: createPrintBrandIcon(
+        '<rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.8" r="1.1" fill="currentColor"/>',
+    ),
+    tiktok: createPrintBrandIcon(
+        '<path d="M14 4C14.7 6.1 16.2 7.6 18.5 8V11C17.1 10.95 15.9 10.55 14.8 9.8V15.1C14.8 18.1 12.4 20.4 9.45 20.4C6.55 20.4 4.2 18.05 4.2 15.15C4.2 12.25 6.55 9.9 9.45 9.9C9.8 9.9 10.1 9.93 10.6 10.05V13.05C10.25 12.85 9.9 12.75 9.45 12.75C8.15 12.75 7.1 13.8 7.1 15.1C7.1 16.4 8.15 17.45 9.45 17.45C10.75 17.45 11.8 16.4 11.8 15.1V4H14Z" fill="currentColor"/>',
+    ),
+    youtube: createPrintBrandIcon(
+        '<path d="M21.2 8.4C21 7.6 20.4 7 19.6 6.8C18.1 6.4 12 6.4 12 6.4C12 6.4 5.9 6.4 4.4 6.8C3.6 7 3 7.6 2.8 8.4C2.4 9.9 2.4 12 2.4 12C2.4 12 2.4 14.1 2.8 15.6C3 16.4 3.6 17 4.4 17.2C5.9 17.6 12 17.6 12 17.6C12 17.6 18.1 17.6 19.6 17.2C20.4 17 21 16.4 21.2 15.6C21.6 14.1 21.6 12 21.6 12C21.6 12 21.6 9.9 21.2 8.4ZM10 14.6V9.4L14.8 12L10 14.6Z" fill="currentColor"/>',
+    ),
+};
+
+const socialBadgesHtml = `
+    <div style="display:flex;justify-content:center;gap:8px;align-items:center;margin-top:8px;">
+        ${printBrandIcons.facebook}
+        ${printBrandIcons.instagram}
+        ${printBrandIcons.tiktok}
+        ${printBrandIcons.youtube}
+        <span style="font-size:10px;color:${BRAND_COLORS.dark};font-weight:600;">/ ${RESTAURANT_CONTACT.socialHandle}</span>
+    </div>
+`;
 
 const escapeHtml = (value: string) =>
     value
@@ -110,29 +183,34 @@ export function ReceiptPreviewDialog({
                     <title>Order #${order.id} Receipt</title>
                     <style>
                         @page { size: 80mm auto; margin: 4mm; }
-                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-                        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: #111; }
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; }
+                        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
-                        .muted { color: #555; }
-                        hr { border: none; border-top: 1px dashed #999; margin: 8px 0; }
+                        .meta p { margin: 3px 0; line-height: 1.35; }
+                        .muted { color: ${BRAND_COLORS.dark}; opacity: 0.7; }
+                        hr { border: none; border-top: 1px dashed ${BRAND_COLORS.light}; margin: 8px 0; }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { font-size: 11px; padding: 3px 0; }
                         .totals p { display: flex; justify-content: space-between; margin: 3px 0; }
                         img { width: 34px; height: 34px; object-fit: contain; }
+                        .footer-row { display:flex; gap:6px; align-items:flex-start; margin:4px 0; }
+                        .footer-icon { width:14px; min-width:14px; height:14px; display:flex; align-items:center; justify-content:center; }
                     </style>
                 </head>
                 <body>
                     <div class="receipt">
                         <div class="center">
                             <img src="${window.location.origin}/brand/logo.png" alt="Baba Restaurant Logo" />
-                            <h3 style="margin:6px 0 2px;">Baba Restaurant</h3>
+                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">Baba Restaurant</h3>
                             <p class="muted" style="margin:0;">Order Receipt</p>
                         </div>
                         <hr />
-                        <p><strong>Order:</strong> #${order.id}</p>
-                        <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
-                        <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
-                        ${deliveryDetails}
+                        <div class="meta">
+                            <p><strong>Order:</strong> #${order.id}</p>
+                            <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
+                            <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
+                            ${deliveryDetails}
+                        </div>
                         <hr />
                         <table>
                             <thead>
@@ -153,11 +231,13 @@ export function ReceiptPreviewDialog({
                         </div>
                         <hr />
                         <div class="muted" style="font-size:10px;">
-                            <p style="margin:2px 0;"><strong>Address:</strong> ${escapeHtml(RESTAURANT_CONTACT.address)}</p>
-                            <p style="margin:2px 0;"><strong>Website:</strong> ${escapeHtml(RESTAURANT_CONTACT.website)}</p>
-                            <p style="margin:2px 0;"><strong>Phone:</strong> ${escapeHtml(RESTAURANT_CONTACT.phone)}</p>
-                            <p style="margin:2px 0;"><strong>WhatsApp:</strong> ${escapeHtml(RESTAURANT_CONTACT.whatsapp)}</p>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.phone}</span><span>${escapeHtml(RESTAURANT_CONTACT.phones.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.whatsapp}</span><span>${escapeHtml(RESTAURANT_CONTACT.whatsapp.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.mail}</span><span>${escapeHtml(RESTAURANT_CONTACT.emails.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.globe}</span><span>${escapeHtml(RESTAURANT_CONTACT.website)}</span></div>
                         </div>
+                        ${socialBadgesHtml}
                     </div>
                     <script>
                         window.onload = function () {
@@ -332,31 +412,67 @@ export function ReceiptPreviewDialog({
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />
-                                    <div className="space-y-0.5 text-[10px] text-neutral-600">
-                                        <p>
-                                            <span className="font-medium">
-                                                Address:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.address}
+                                    <div className="space-y-1 text-[10px] text-neutral-600">
+                                        <p className="flex items-start gap-2">
+                                            <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>
+                                                {RESTAURANT_CONTACT.address}
+                                            </span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                Website:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.website}
+                                        <p className="flex items-center gap-2">
+                                            <IconBrandWhatsapp className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>
+                                                {RESTAURANT_CONTACT.whatsapp.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                Phone:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.phone}
+                                        <p className="flex items-center gap-2">
+                                            <IconPhone className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>
+                                                {RESTAURANT_CONTACT.phones.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
-                                        <p>
-                                            <span className="font-medium">
-                                                WhatsApp:
-                                            </span>{' '}
-                                            {RESTAURANT_CONTACT.whatsapp}
+                                        <p className="flex items-center gap-2">
+                                            <IconMail className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>
+                                                {RESTAURANT_CONTACT.emails.join(
+                                                    ' - ',
+                                                )}
+                                            </span>
                                         </p>
+                                        <p className="flex items-center gap-2">
+                                            <IconWorldWww className="h-3 w-3 shrink-0 text-[#102F33]" />
+                                            <span>
+                                                {RESTAURANT_CONTACT.website}
+                                            </span>
+                                        </p>
+                                        <div className="flex items-center gap-1 pt-1 text-[#102F33]">
+                                            <IconBrandFacebook
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandInstagram
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandTiktok
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <IconBrandYoutube
+                                                className="h-3.5 w-3.5"
+                                                stroke={1.8}
+                                            />
+                                            <span className="pl-1 text-[10px] font-medium">
+                                                /{' '}
+                                                {
+                                                    RESTAURANT_CONTACT.socialHandle
+                                                }
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </ScrollArea>

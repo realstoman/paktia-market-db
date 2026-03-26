@@ -21,7 +21,7 @@ export function OrderStatusStatCard({
     return (
         <Card
             className={cn(
-                'gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] py-4 shadow-none dark:border-neutral-800 dark:bg-neutral-900',
+                'gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] py-4 shadow-none dark:border-neutral-800 dark:bg-neutral-900',
                 className,
             )}
         >

@@ -120,7 +120,7 @@ interface DashboardProps {
             ready: number;
             completed: number;
             cancelled: number;
-        };
+        } | null;
         orderAnalytics: Array<{
             date: string;
             day: string;
@@ -150,7 +150,7 @@ interface DashboardProps {
                 label: string;
                 value: number;
             }>;
-        };
+        } | null;
         finance: {
             netProfit: number;
             expenses: number;
@@ -165,7 +165,7 @@ interface DashboardProps {
                 expenses: string;
                 cashPosition: string;
             };
-        };
+        } | null;
     };
 }
 
@@ -209,6 +209,11 @@ export default function Dashboard({ data }: DashboardProps) {
     const topOrderedDishes = data?.topOrderedDishes ?? [];
     const inventoryStats = data?.inventory;
     const financeStats = data?.finance;
+    const canViewOrders = ordersStats !== null && ordersStats !== undefined;
+    const canViewInventory =
+        inventoryStats !== null && inventoryStats !== undefined;
+    const canViewFinance = financeStats !== null && financeStats !== undefined;
+    const hasAnySection = canViewOrders || canViewInventory || canViewFinance;
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -236,8 +241,11 @@ export default function Dashboard({ data }: DashboardProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
+                {hasAnySection ? (
+                    <>
                 {/* Statistics */}
                 <div className="grid auto-rows-min grid-cols-1 items-stretch gap-3 md:grid-cols-4">
+                    {canViewFinance ? (
                     <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
                         <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
                             <CardHeader>
@@ -320,7 +328,9 @@ export default function Dashboard({ data }: DashboardProps) {
                             />
                         </div>
                     </div>
+                    ) : null}
                     {/* Order status overview */}
+                    {canViewOrders ? (
                     <Card className="col-span-2 flex h-full w-full min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-0 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                         <div className="flex flex-row items-start justify-between pb-8">
                             <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
@@ -465,7 +475,9 @@ export default function Dashboard({ data }: DashboardProps) {
                             description="Past 7 days order status"
                         />
                     </Card>
+                    ) : null}
 
+                    {canViewInventory ? (
                     <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
                         <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
                             <CardHeader>
@@ -535,9 +547,11 @@ export default function Dashboard({ data }: DashboardProps) {
                             />
                         </div>
                     </div>
+                    ) : null}
                 </div>
 
                 {/* Recent orders and top foods */}
+                {canViewOrders ? (
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden pb-1 md:min-h-min">
                     <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
                         <div className="w-full min-w-0 lg:col-span-4">
@@ -696,6 +710,20 @@ export default function Dashboard({ data }: DashboardProps) {
                         </div>
                     </div>
                 </div>
+                ) : null}
+                    </>
+                ) : (
+                    <Card className="border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold">
+                                Dashboard access is ready
+                            </CardTitle>
+                            <CardDescription className="text-sm">
+                                This user does not have any dashboard widgets assigned yet. Add section permissions to the role to show operations, inventory, finance, or reporting views here.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                )}
             </div>
         </AppLayout>
     );

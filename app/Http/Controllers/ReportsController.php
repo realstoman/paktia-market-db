@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PermissionEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Branch;
 use App\Models\CashMovement;
@@ -40,6 +41,8 @@ class ReportsController extends Controller
 
     public function exportPdf(Request $request)
     {
+        abort_unless($request->user()?->can(PermissionEnum::REPORTS_EXPORT->value), 403);
+
         $data = $this->buildReportPageData($request);
         $report = $data['activeReport'];
 
@@ -62,6 +65,8 @@ class ReportsController extends Controller
 
     public function exportXlsx(Request $request): StreamedResponse
     {
+        abort_unless($request->user()?->can(PermissionEnum::REPORTS_EXPORT->value), 403);
+
         $data = $this->buildReportPageData($request);
         $report = $data['activeReport'];
 
@@ -142,6 +147,8 @@ class ReportsController extends Controller
 
     private function buildReportPageData(Request $request): array
     {
+        $availableModules = $this->availableModules($request);
+
         $validated = $request->validate([
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,last_30_days,year_to_date,custom'],
             'start_date' => ['nullable', 'date'],
@@ -157,7 +164,11 @@ class ReportsController extends Controller
             $validated['end_date'] ?? null,
         );
 
-        $selectedModule = $validated['module'] ?? 'orders';
+        $selectedModule = $validated['module'] ?? ($availableModules[0] ?? 'orders');
+        if (! in_array($selectedModule, $availableModules, true)) {
+            $selectedModule = $availableModules[0] ?? 'orders';
+        }
+
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
 
         return [
@@ -172,13 +183,14 @@ class ReportsController extends Controller
                 'branchId' => $branchId,
                 'module' => $selectedModule,
             ],
-            'reportCatalog' => $this->reportCatalog(),
-            'overview' => $this->buildOverview($startDate, $endDate, $branchId),
+            'reportCatalog' => $this->reportCatalog($availableModules),
+            'overview' => $this->buildOverview($startDate, $endDate, $branchId, $availableModules),
             'activeReport' => $this->buildActiveReport(
                 $selectedModule,
                 $startDate,
                 $endDate,
                 $branchId,
+                $availableModules,
             ),
             'period' => [
                 'label' => sprintf(
@@ -251,9 +263,9 @@ class ReportsController extends Controller
         return [$start, $end];
     }
 
-    private function reportCatalog(): array
+    private function reportCatalog(?array $availableModules = null): array
     {
-        return [
+        $catalog = [
             [
                 'key' => 'orders',
                 'title' => 'Orders',
@@ -297,9 +309,18 @@ class ReportsController extends Controller
                 'status' => 'live',
             ],
         ];
+
+        if ($availableModules === null) {
+            return $catalog;
+        }
+
+        return array_values(array_filter(
+            $catalog,
+            fn (array $item) => in_array($item['key'], $availableModules, true),
+        ));
     }
 
-    private function buildOverview(Carbon $startDate, Carbon $endDate, ?int $branchId): array
+    private function buildOverview(Carbon $startDate, Carbon $endDate, ?int $branchId, array $availableModules): array
     {
         $ordersQuery = Order::query()->whereBetween('created_at', [$startDate, $endDate]);
         $expensesQuery = Expense::query()->whereBetween('expense_date', [
@@ -325,7 +346,7 @@ class ReportsController extends Controller
 
         $expensesTotal = (float) (clone $expensesQuery)->sum('amount');
 
-        return [
+        $overview = [
             [
                 'key' => 'orders',
                 'title' => 'Orders',
@@ -391,6 +412,11 @@ class ReportsController extends Controller
                 'secondaryFormat' => 'number',
             ],
         ];
+
+        return array_values(array_filter(
+            $overview,
+            fn (array $item) => in_array($item['key'], $availableModules, true),
+        ));
     }
 
     private function buildActiveReport(
@@ -398,7 +424,12 @@ class ReportsController extends Controller
         Carbon $startDate,
         Carbon $endDate,
         ?int $branchId,
+        array $availableModules,
     ): array {
+        if (! in_array($module, $availableModules, true)) {
+            abort(403);
+        }
+
         return match ($module) {
             'orders' => $this->buildOrdersReport($startDate, $endDate, $branchId),
             'inventory' => $this->buildInventoryReport($startDate, $endDate, $branchId),
@@ -427,6 +458,28 @@ class ReportsController extends Controller
                     'Recommended next rollout order: Employees, Branches, Users.',
                 ],
             ];
+    }
+
+    private function availableModules(Request $request): array
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return [];
+        }
+
+        return array_values(array_filter(self::MODULES, function (string $module) use ($user) {
+            return match ($module) {
+                'orders' => $user->can(PermissionEnum::ORDERS_VIEW->value),
+                'inventory' => $user->can(PermissionEnum::INVENTORY_VIEW->value),
+                'products' => $user->can(PermissionEnum::PRODUCTS_VIEW->value),
+                'employees' => $user->can(PermissionEnum::EMPLOYEES_VIEW->value),
+                'finance' => $user->can(PermissionEnum::FINANCE_VIEW->value),
+                'branches' => $user->hasRole('super-admin'),
+                'users' => $user->hasRole('super-admin'),
+                default => false,
+            };
+        }));
     }
 
     private function buildOrdersReport(
