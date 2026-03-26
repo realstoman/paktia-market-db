@@ -383,6 +383,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::middleware('can:'.PermissionEnum::ORDERS_UPDATE->value)->group(function () {
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::patch('orders/{order}', [OrderController::class, 'update']);
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
         Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');

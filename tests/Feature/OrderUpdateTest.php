@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Province;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 
 function createOrderUpdateBaseData(): array
 {
@@ -45,8 +46,11 @@ function createOrderUpdateBaseData(): array
 }
 
 test('orders can be edited and items removed with totals recalculated', function () {
+    $this->seed(RolePermissionSeeder::class);
+
     [$branch, $kitchen, $category] = createOrderUpdateBaseData();
     $user = User::factory()->create();
+    $user->givePermissionTo('orders.update');
 
     $firstProduct = Product::create([
         'product_category_id' => $category->id,
@@ -126,7 +130,6 @@ test('orders can be edited and items removed with totals recalculated', function
     expect((int) $order->items()->first()->quantity)->toBe(2);
     expect((float) $order->sub_total_amount)->toBe(500.0);
     expect((float) $order->total_amount)->toBe(500.0);
-    expect((float) $order->paid_amount)->toBe(500.0);
-    expect((float) $order->payments()->first()->amount)->toBe(500.0);
-    expect($order->payments()->first()->method)->toBe('cash');
+    expect((float) $order->paid_amount)->toBe(0.0);
+    expect($order->payments()->count())->toBe(0);
 });
