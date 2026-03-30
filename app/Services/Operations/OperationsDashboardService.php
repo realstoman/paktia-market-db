@@ -18,20 +18,52 @@ class OperationsDashboardService
         $roleMode = $this->resolveRoleMode($user);
 
         $products = Product::query()
-            ->with(['category', 'sizes', 'images', 'kitchen'])
+            ->select([
+                'id',
+                'name',
+                'description',
+                'product_category_id',
+                'kitchen_id',
+                'base_price',
+                'is_active',
+            ])
+            ->with([
+                'category:id,name',
+                'sizes:id,name',
+                'images:id,product_id,path,sort_order',
+                'kitchen:id,name',
+            ])
             ->where('is_active', true)
             ->when($branchId, fn ($query) => $query->whereHas('kitchen.branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId)))
             ->orderBy('name')
             ->get();
 
         $openOrders = Order::query()
+            ->select([
+                'id',
+                'branch_id',
+                'branch_table_id',
+                'user_id',
+                'client_id',
+                'order_type',
+                'customer_name',
+                'customer_phone',
+                'delivery_address',
+                'sub_total_amount',
+                'total_amount',
+                'paid_amount',
+                'status',
+                'created_at',
+            ])
             ->with([
                 'branch:id,name',
                 'branchTable:id,branch_id,table_number,title,description,is_active',
                 'user:id,name',
-                'payments',
-                'items.product.images',
-                'items.productSize',
+                'payments:id,order_id,method,amount,currency,payment_date',
+                'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,product_name_snapshot',
+                'items.product:id,name,product_category_id',
+                'items.product.images:id,product_id,path,sort_order',
+                'items.productSize:id,name',
                 'items.kitchen:id,name',
             ])
             ->whereNotIn('status', [
@@ -42,17 +74,20 @@ class OperationsDashboardService
             ->latest()
             ->get();
 
+        $activeOrdersByTable = $openOrders
+            ->filter(fn (Order $order) => $order->branch_table_id !== null)
+            ->unique('branch_table_id')
+            ->keyBy('branch_table_id');
+
         $tables = BranchTable::query()
+            ->select(['id', 'branch_id', 'table_number', 'title', 'description', 'is_active'])
             ->where('is_active', true)
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->with('branch:id,name')
             ->orderBy('table_number')
             ->get()
-            ->map(function (BranchTable $table) use ($openOrders) {
-                $activeOrder = $openOrders
-                    ->where('branch_table_id', $table->id)
-                    ->sortByDesc('id')
-                    ->first();
+            ->map(function (BranchTable $table) use ($activeOrdersByTable) {
+                $activeOrder = $activeOrdersByTable->get($table->id);
 
                 $status = $activeOrder
                     ? (string) ($activeOrder->status?->value ?? $activeOrder->status ?? 'pending')

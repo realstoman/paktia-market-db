@@ -171,6 +171,26 @@ interface FinanceDashboardData {
     };
 }
 
+interface ProjectionHealth {
+    usesProjectionData: boolean;
+    status: 'healthy' | 'warning' | 'critical' | 'unavailable';
+    message: string;
+    latestProjectionAt?: string | null;
+    staleBranchCount: number;
+    criticalBranchCount: number;
+    warningBranchCount: number;
+    branches: Array<{
+        branchId: number;
+        branchName: string;
+        status: string;
+        message: string;
+        latestSourceAt?: string | null;
+        latestProjectionAt?: string | null;
+        latestMetricDate?: string | null;
+        lagMinutes?: number | null;
+    }>;
+}
+
 interface FinancePageProps {
     branches: Branch[];
     filters: FinanceFilters;
@@ -178,7 +198,24 @@ interface FinancePageProps {
         value: string;
         label: string;
     }>;
+    projectionHealth: ProjectionHealth;
     dashboard: FinanceDashboardData;
+}
+
+function projectionTone(status: ProjectionHealth['status']) {
+    if (status === 'healthy') {
+        return 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200';
+    }
+
+    if (status === 'warning') {
+        return 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200';
+    }
+
+    if (status === 'critical') {
+        return 'border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200';
+    }
+
+    return 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-200';
 }
 
 function submitFilters(filters: {
@@ -319,6 +356,7 @@ export default function FinancePage({
     branches,
     filters,
     expenseCategories,
+    projectionHealth,
     dashboard,
 }: FinancePageProps) {
     const [range, setRange] = React.useState(filters.range);
@@ -390,6 +428,40 @@ export default function FinancePage({
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    <div
+                        className={`mt-6 rounded-2xl border px-4 py-3 ${projectionTone(projectionHealth.status)}`}
+                    >
+                        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <p className="text-xs font-medium tracking-[0.22em] uppercase">
+                                    Projection Health
+                                </p>
+                                <p className="mt-1 text-sm">
+                                    {projectionHealth.usesProjectionData
+                                        ? projectionHealth.message
+                                        : 'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.'}
+                                </p>
+                            </div>
+                            <div className="text-sm">
+                                {projectionHealth.latestProjectionAt
+                                    ? `Last projected at ${new Date(projectionHealth.latestProjectionAt).toLocaleString()}`
+                                    : 'No projection timestamp recorded yet'}
+                            </div>
+                        </div>
+                        {projectionHealth.branches.length > 0 ? (
+                            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                                {projectionHealth.branches.map((branch) => (
+                                    <div
+                                        key={branch.branchId}
+                                        className="rounded-full border border-current/20 px-3 py-1"
+                                    >
+                                        {branch.branchName}: {branch.message}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
                 </section>
 

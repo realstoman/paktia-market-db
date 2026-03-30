@@ -5,6 +5,7 @@ use App\Models\Cuisine;
 use App\Models\Kitchen;
 use App\Models\KitchenCategory;
 use App\Models\KitchenType;
+use App\Services\Caching\CatalogCacheService;
 use App\Services\Location\KitchenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -106,7 +107,7 @@ class KitchenController extends Controller
             ->with('success', 'Kitchen deleted successfully.');
     }
 
-    public function syncProducts(Request $request, Kitchen $kitchen)
+    public function syncProducts(Request $request, Kitchen $kitchen, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'products' => ['array'],
@@ -127,6 +128,8 @@ class KitchenController extends Controller
                     ->update(['kitchen_id' => $kitchen->id, 'updated_at' => now()]);
             }
         });
+
+        $catalogCacheService->invalidateKitchen($kitchen);
 
         return redirect()->route('kitchens.index')
             ->with('success', 'Kitchen products updated successfully.');

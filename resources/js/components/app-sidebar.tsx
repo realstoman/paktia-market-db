@@ -16,6 +16,7 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
+    Activity,
     Boxes,
     Building2,
     CookingPot,
@@ -109,6 +110,16 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     const { isSuperAdmin } = useAuthorization();
+    const navigationItems = isSuperAdmin
+        ? [
+              ...mainNavItems,
+              {
+                  title: 'Runtime Health',
+                  href: '/operations/runtime-health',
+                  icon: Activity,
+              } satisfies NavItem,
+          ]
+        : mainNavItems;
 
     return (
         <Sidebar collapsible="icon" variant="floating">
@@ -116,7 +127,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboard()}>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -125,7 +136,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="bg-white dark:bg-brand-bg-dark">
-                <NavMain items={mainNavItems} />
+                <NavMain items={navigationItems} />
                 {isSuperAdmin ? <ToolsLauncher /> : null}
             </SidebarContent>
 

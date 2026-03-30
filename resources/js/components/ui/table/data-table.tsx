@@ -1,15 +1,25 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, {
+    useDeferredValue,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import {
     ColumnDef,
+    FilterFn,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
-    useReactTable,
-    FilterFn,
-    SortingState,
     getSortedRowModel,
+    SortingState,
+    useReactTable,
 } from '@tanstack/react-table';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Button } from '../button';
+import { Input } from '../input';
+import { ScrollArea, ScrollBar } from '../scroll-area';
+import { Skeleton } from '../skeleton';
 import {
     Table,
     TableBody,
@@ -18,10 +28,6 @@ import {
     TableHeader,
     TableRow,
 } from '../table';
-import { Input } from '../input';
-import { Button } from '../button';
-import { ScrollArea, ScrollBar } from '../scroll-area';
-import { ChevronLeft, ChevronRight, Loader2, MoreHorizontal } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -32,24 +38,50 @@ interface DataTableProps<TData, TValue> {
     toolbar?: React.ReactNode;
 }
 
-const nestedPropertyFilterFn: FilterFn<Record<string, unknown>> = (row, columnId, filterValue) => {
-    if (!filterValue) return true;
+const pathSegmentsCache = new Map<string, string[]>();
 
-    const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
-        return path.split('.').reduce((acc: Record<string, unknown> | unknown, part) => {
-            if (acc && typeof acc === 'object' && part in acc) {
-                return (acc as Record<string, unknown>)[part];
-            }
-            return null;
-        }, obj);
-    };
+function getPathSegments(path: string): string[] {
+    const cached = pathSegmentsCache.get(path);
 
-    const value = getNestedValue(row.original as Record<string, unknown>, columnId);
-    const safeValue = value ? String(value).toLowerCase() : '';
-    const safeFilterValue = filterValue ? String(filterValue).toLowerCase() : '';
+    if (cached) {
+        return cached;
+    }
 
-    return safeValue.includes(safeFilterValue);
-};
+    const segments = path.split('.');
+    pathSegmentsCache.set(path, segments);
+
+    return segments;
+}
+
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+    return getPathSegments(path).reduce((acc: Record<string, unknown> | unknown, part) => {
+        if (acc && typeof acc === 'object' && part in acc) {
+            return (acc as Record<string, unknown>)[part];
+        }
+
+        return null;
+    }, obj);
+}
+
+function TableRowsSkeleton({ columnCount }: { columnCount: number }) {
+    return Array.from({ length: 8 }).map((_, rowIndex) => (
+        <TableRow key={`skeleton-row-${rowIndex}`}>
+            {Array.from({ length: columnCount }).map((__, cellIndex) => (
+                <TableCell key={`skeleton-cell-${rowIndex}-${cellIndex}`}>
+                    <Skeleton
+                        className={
+                            cellIndex === 0
+                                ? 'h-4 w-32'
+                                : cellIndex === columnCount - 1
+                                  ? 'h-4 w-14'
+                                  : 'h-4 w-24'
+                        }
+                    />
+                </TableCell>
+            ))}
+        </TableRow>
+    ));
+}
 
 export function DataTable<TData, TValue>({
     columns,
@@ -59,49 +91,70 @@ export function DataTable<TData, TValue>({
     searchPlaceholder = 'Search...',
     toolbar,
 }: DataTableProps<TData, TValue>) {
+    const [searchInput, setSearchInput] = useState('');
     const [pagination, setPagination] = useState({
         pageIndex: 0,
         pageSize: 10,
     });
-
-    const [globalFilter, setGlobalFilter] = useState('');
     const [sorting, setSorting] = useState<SortingState>([]);
+    const deferredGlobalFilter = useDeferredValue(searchInput.trim().toLowerCase());
 
-    const columnsWithFilter = useMemo(() => {
-        return columns.map((column: ColumnDef<TData, TValue>) => {
-            if (searchKey.includes(column.id as string)) {
-                return {
-                    ...column,
-                    filterFn: nestedPropertyFilterFn as FilterFn<TData>,
-                };
+    const searchableKeys = useMemo(
+        () => (searchKey.length > 0 ? searchKey : columns.map((column) => String(column.id ?? ''))),
+        [columns, searchKey],
+    );
+
+    const globalFilterFn = useMemo<FilterFn<TData>>(
+        () => (row, _columnId, filterValue) => {
+            if (!filterValue) {
+                return true;
             }
-            return column;
-        });
-    }, [columns, searchKey]);
+
+            const original = row.original as Record<string, unknown>;
+            const normalizedFilter = String(filterValue);
+
+            return searchableKeys.some((key) => {
+                if (!key) {
+                    return false;
+                }
+
+                const value = getNestedValue(original, key);
+                return value !== null && String(value).toLowerCase().includes(normalizedFilter);
+            });
+        },
+        [searchableKeys],
+    );
+
+    useEffect(() => {
+        setPagination((current) =>
+            current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
+        );
+    }, [deferredGlobalFilter]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data,
-        columns: columnsWithFilter,
+        columns,
         state: {
             pagination,
-            globalFilter,
+            globalFilter: deferredGlobalFilter,
             sorting,
         },
         onSortingChange: setSorting,
-        onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        globalFilterFn: 'auto',
+        globalFilterFn,
     });
 
-    const currentPage = table.getState().pagination.pageIndex + 1;
+    const rows = table.getRowModel().rows;
+    const filteredRowCount = table.getFilteredRowModel().rows.length;
+    const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
+    const currentPage = pagination.pageIndex + 1;
     const pageCount = table.getPageCount();
-
-    const getPageNumbers = useCallback((): (number | string)[] => {
+    const pageNumbers = useMemo((): (number | string)[] => {
         const pages: (number | string)[] = [];
         const maxPagesToShow = 5;
 
@@ -131,6 +184,7 @@ export function DataTable<TData, TValue>({
                 );
             }
         }
+
         return pages;
     }, [currentPage, pageCount]);
 
@@ -139,9 +193,9 @@ export function DataTable<TData, TValue>({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <Input
                     placeholder={searchPlaceholder}
-                    value={globalFilter ?? ''}
+                    value={searchInput}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        setGlobalFilter(event.target.value)
+                        setSearchInput(event.target.value)
                     }
                     className="h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80"
                 />
@@ -171,21 +225,9 @@ export function DataTable<TData, TValue>({
 
                     <TableBody>
                         {isLoading ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center dark:text-neutral-100"
-                                >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                                        <span className="text-muted-foreground">
-                                            Loading...
-                                        </span>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ) : table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
+                            <TableRowsSkeleton columnCount={columns.length} />
+                        ) : rows.length ? (
+                            rows.map((row) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
@@ -217,8 +259,7 @@ export function DataTable<TData, TValue>({
 
             <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
-                    {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
+                    {selectedRowCount} of {filteredRowCount} row(s) selected.
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -232,7 +273,7 @@ export function DataTable<TData, TValue>({
                         <ChevronLeft className="h-[20px] w-[20px] dark:text-neutral-300" />
                     </Button>
 
-                    {getPageNumbers().map((page, idx) =>
+                    {pageNumbers.map((page, idx) =>
                         page === '...' ? (
                             <MoreHorizontal
                                 key={idx}

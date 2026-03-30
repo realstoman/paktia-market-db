@@ -427,6 +427,37 @@ If you are contributing, keep these in mind:
 - use existing table patterns for index screens
 - keep formatting and labels consistent with the current admin UI
 
+## Branch / Local Runtime Recommendations
+
+For a branch-local deployment where the in-store PC acts as the local server, prefer Redis-backed cache and queue settings so catalog cache, projections, and sync retries stay fast even during unstable WAN connectivity:
+
+```env
+POS_CACHE_STORE=redis
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+```
+
+If you want safer fallback behavior when Redis is temporarily unavailable, you can instead use:
+
+```env
+CACHE_STORE=failover
+QUEUE_CONNECTION=failover
+```
+
+The failover configuration is ordered to prefer Redis first, then fall back to database-backed drivers.
+
+Branch-local runtime health can be polled through the branch-sync endpoint:
+
+```bash
+curl -H "X-Branch-Token: <token>" \
+  https://your-domain.example/api/v1/branch-sync/runtime-health
+```
+
+Recommended branch-local credential abilities:
+
+- `health.read` for runtime health polling
+- `*` only for trusted internal branch-server credentials while sync scopes are still being split into narrower abilities
+
 ---
 
 If you need a more opinionated onboarding doc next, we can also add:

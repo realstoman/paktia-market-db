@@ -15,14 +15,31 @@ class OrderApiService
         $sortDirection = $filters['sort_direction'] ?? 'desc';
 
         $query = Order::query()
+            ->select([
+                'id',
+                'branch_id',
+                'branch_table_id',
+                'user_id',
+                'client_id',
+                'order_type',
+                'customer_name',
+                'customer_phone',
+                'delivery_address',
+                'total_amount',
+                'paid_amount',
+                'status',
+                'created_at',
+            ])
             ->with([
-                'branch',
-                'branchTable',
-                'user',
-                'client',
-                'items.product.category',
-                'items.productSize',
-                'items.kitchen',
+                'branch:id,name',
+                'branchTable:id,branch_id,table_number,title',
+                'user:id,name',
+                'client:id,first_name,last_name,phone',
+                'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,product_name_snapshot',
+                'items.product:id,name,product_category_id',
+                'items.product.category:id,name',
+                'items.productSize:id,name',
+                'items.kitchen:id,name',
             ])
             ->withCount('items');
 
@@ -82,10 +99,15 @@ class OrderApiService
                 $filters['q'] ?? null,
                 function (Builder $q, string $term): void {
                     $q->where(function (Builder $searchQuery) use ($term): void {
+                        $normalized = trim($term);
+
                         $searchQuery
-                            ->where('customer_name', 'like', "%{$term}%")
-                            ->orWhere('customer_phone', 'like', "%{$term}%")
-                            ->orWhere('id', 'like', "%{$term}%");
+                            ->where('customer_name', 'like', "%{$normalized}%")
+                            ->orWhere('customer_phone', 'like', "%{$normalized}%");
+
+                        if (ctype_digit($normalized)) {
+                            $searchQuery->orWhereKey((int) $normalized);
+                        }
                     });
                 }
             )

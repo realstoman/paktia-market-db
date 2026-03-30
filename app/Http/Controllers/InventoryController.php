@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Caching\CatalogCacheService;
 use App\Models\Branch;
 use App\Models\Currency;
 use App\Models\InventoryCategory;
@@ -18,6 +19,35 @@ use Inertia\Inertia;
 
 class InventoryController extends Controller
 {
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('inventory.index');
+    }
+
+    private function toolbarResponse(Request $request, string $message, string $fallbackRoute = 'inventory.index')
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        }
+
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer)->with('success', $message);
+        }
+
+        return redirect()->route($fallbackRoute)->with('success', $message);
+    }
+
     private const IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
 
     public function index()
@@ -363,7 +393,7 @@ class InventoryController extends Controller
             ->with('success', 'Inventory item deleted successfully.');
     }
 
-    public function storeVendor(Request $request)
+    public function storeVendor(Request $request, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -377,12 +407,12 @@ class InventoryController extends Controller
         ]);
 
         Vendor::create($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Vendor created successfully.');
+        return $this->toolbarResponse($request, 'Vendor created successfully.');
     }
 
-    public function updateVendor(Request $request, Vendor $vendor)
+    public function updateVendor(Request $request, Vendor $vendor, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -396,20 +426,20 @@ class InventoryController extends Controller
         ]);
 
         $vendor->update($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Vendor updated successfully.');
+        return $this->toolbarResponse($request, 'Vendor updated successfully.');
     }
 
-    public function destroyVendor(Vendor $vendor)
+    public function destroyVendor(Request $request, Vendor $vendor, CatalogCacheService $catalogCacheService)
     {
         $vendor->delete();
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Vendor deleted successfully.');
+        return $this->toolbarResponse($request, 'Vendor deleted successfully.');
     }
 
-    public function storeCurrency(Request $request)
+    public function storeCurrency(Request $request, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -421,12 +451,12 @@ class InventoryController extends Controller
         $validated['code'] = strtoupper($validated['code']);
 
         Currency::create($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Currency created successfully.');
+        return $this->toolbarResponse($request, 'Currency created successfully.');
     }
 
-    public function updateCurrency(Request $request, Currency $currency)
+    public function updateCurrency(Request $request, Currency $currency, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -438,17 +468,17 @@ class InventoryController extends Controller
         $validated['code'] = strtoupper($validated['code']);
 
         $currency->update($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Currency updated successfully.');
+        return $this->toolbarResponse($request, 'Currency updated successfully.');
     }
 
-    public function destroyCurrency(Currency $currency)
+    public function destroyCurrency(Request $request, Currency $currency, CatalogCacheService $catalogCacheService)
     {
         $currency->delete();
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Currency deleted successfully.');
+        return $this->toolbarResponse($request, 'Currency deleted successfully.');
     }
 
     public function storeUnit(Request $request)

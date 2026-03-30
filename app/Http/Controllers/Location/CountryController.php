@@ -4,12 +4,36 @@ namespace App\Http\Controllers\Location;
 
 use App\Http\Controllers\Controller;
 use App\Models\Country;
+use App\Services\Caching\CatalogCacheService;
 use App\Services\Location\CountryService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CountryController extends Controller
 {
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('countries.index');
+    }
+
+    private function toolbarResponse(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        }
+
+        return $this->redirectToToolbarOrigin($request)->with('success', $message);
+    }
+
     public function index(CountryService $service)
     {
         return Inertia::render('location/countries/index', [
@@ -24,7 +48,7 @@ class CountryController extends Controller
         ]);
     }
 
-    public function store(Request $request, CountryService $service)
+    public function store(Request $request, CountryService $service, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -34,12 +58,12 @@ class CountryController extends Controller
         ]);
 
         $service->create($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Country created successfully.');
+        return $this->toolbarResponse($request, 'Country created successfully.');
     }
 
-    public function update(Request $request, CountryService $service, Country $country)
+    public function update(Request $request, CountryService $service, Country $country, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -49,9 +73,9 @@ class CountryController extends Controller
         ]);
 
         $service->update($country, $validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Country updated successfully.');
+        return $this->toolbarResponse($request, 'Country updated successfully.');
     }
 
     public function disable(CountryService $service, Country $country)
@@ -66,11 +90,11 @@ class CountryController extends Controller
             ->with('success', $message);
     }
 
-    public function destroy(CountryService $service, Country $country)
+    public function destroy(Request $request, CountryService $service, Country $country, CatalogCacheService $catalogCacheService)
     {
         $service->delete($country);
+        $catalogCacheService->invalidateReferenceData();
 
-        return redirect()->back()
-            ->with('success', 'Country deleted successfully.');
+        return $this->toolbarResponse($request, 'Country deleted successfully.');
     }
 }

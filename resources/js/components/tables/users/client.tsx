@@ -24,7 +24,14 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Branch, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
-import { Plus, ShieldCheck, User as UserIcon, X } from 'lucide-react';
+import {
+    Eye,
+    EyeOff,
+    Plus,
+    ShieldCheck,
+    User as UserIcon,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
@@ -59,6 +66,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     const [branchId, setBranchId] = useState<string>('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [showPasswords, setShowPasswords] = useState(false);
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -73,6 +81,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         setBranchId('');
         setPassword('');
         setPasswordConfirmation('');
+        setShowPasswords(false);
         setCreateErrors({});
     };
 
@@ -391,28 +400,66 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="user-password">Password</Label>
-                            <Input
-                                id="user-password"
-                                type="password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="user-password"
+                                    type={showPasswords ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(event) =>
+                                        setPassword(event.target.value)
+                                    }
+                                    className="pr-10"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2"
+                                    onClick={() =>
+                                        setShowPasswords((current) => !current)
+                                    }
+                                >
+                                    {showPasswords ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
                             <InputError message={createErrors.password} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="user-password-confirm">
                                 Confirm password
                             </Label>
-                            <Input
-                                id="user-password-confirm"
-                                type="password"
-                                value={passwordConfirmation}
-                                onChange={(event) =>
-                                    setPasswordConfirmation(event.target.value)
-                                }
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="user-password-confirm"
+                                    type={showPasswords ? 'text' : 'password'}
+                                    value={passwordConfirmation}
+                                    onChange={(event) =>
+                                        setPasswordConfirmation(
+                                            event.target.value,
+                                        )
+                                    }
+                                    className="pr-10"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2"
+                                    onClick={() =>
+                                        setShowPasswords((current) => !current)
+                                    }
+                                >
+                                    {showPasswords ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
                             <InputError
                                 message={createErrors.password_confirmation}
                             />
