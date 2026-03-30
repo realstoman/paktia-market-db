@@ -4,6 +4,7 @@ use App\Http\Middleware\AuthenticateFirebaseUser;
 use App\Http\Middleware\EnsureAppAuthenticated;
 use App\Http\Middleware\EnsureCartActor;
 use App\Http\Middleware\EnsureClientAuthenticated;
+use App\Http\Middleware\EnsureIdempotentRequests;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveFirebaseUser;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'firebase.auth' => AuthenticateFirebaseUser::class,
             'cart.actor' => EnsureCartActor::class,
             'client.auth' => EnsureClientAuthenticated::class,
+            'idempotency' => EnsureIdempotentRequests::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,

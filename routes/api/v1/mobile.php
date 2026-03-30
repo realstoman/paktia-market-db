@@ -20,16 +20,24 @@ Route::middleware('app.auth')->group(function (): void {
         Route::get('{product}', [ProductController::class, 'show'])->name('show');
     });
 
-    Route::post('guest/session', [GuestSessionController::class, 'store'])->name('guest.session.store');
+    Route::post('guest/session', [GuestSessionController::class, 'store'])
+        ->middleware('idempotency')
+        ->name('guest.session.store');
     Route::post('auth/firebase/sync', [AuthController::class, 'firebaseSync'])
-        ->middleware('resolve.guest')
+        ->middleware(['resolve.guest', 'idempotency'])
         ->name('auth.firebase.sync');
 
     Route::middleware(['resolve.guest', 'resolve.firebase', 'cart.actor'])->group(function (): void {
         Route::get('cart', [CartController::class, 'show'])->name('cart.show');
-        Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
-        Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem'])->name('cart.items.update');
-        Route::delete('cart/items/{cartItem}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+        Route::post('cart/items', [CartController::class, 'storeItem'])
+            ->middleware('idempotency')
+            ->name('cart.items.store');
+        Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem'])
+            ->middleware('idempotency')
+            ->name('cart.items.update');
+        Route::delete('cart/items/{cartItem}', [CartController::class, 'destroyItem'])
+            ->middleware('idempotency')
+            ->name('cart.items.destroy');
     });
 
     Route::middleware(['firebase.auth', 'client.auth'])->group(function (): void {
@@ -37,6 +45,8 @@ Route::middleware('app.auth')->group(function (): void {
         Route::get('me/orders', [MeController::class, 'orders'])->name('me.orders.index');
         Route::get('me/orders/{order}', [MeController::class, 'showOrder'])->name('me.orders.show');
         Route::get('me/orders/{order}/status', [MeController::class, 'orderStatus'])->name('me.orders.status');
-        Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::post('checkout', [CheckoutController::class, 'store'])
+            ->middleware('idempotency')
+            ->name('checkout.store');
     });
 });
