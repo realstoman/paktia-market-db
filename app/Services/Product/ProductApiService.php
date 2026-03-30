@@ -8,6 +8,7 @@ use App\Models\ProductType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ProductApiService
 {
@@ -61,11 +62,16 @@ class ProductApiService
 
     public function types(): Collection
     {
+        $countsByType = Product::query()
+            ->select('type', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('type')
+            ->pluck('aggregate', 'type');
+
         return ProductType::query()
             ->orderBy('name')
             ->get()
-            ->map(function (ProductType $type) {
-                $type->setAttribute('products_count', Product::where('type', $type->name)->count());
+            ->map(function (ProductType $type) use ($countsByType) {
+                $type->setAttribute('products_count', (int) ($countsByType[$type->name] ?? 0));
 
                 return $type;
             });
@@ -73,7 +79,10 @@ class ProductApiService
 
     public function type(ProductType $type): ProductType
     {
-        $type->setAttribute('products_count', Product::where('type', $type->name)->count());
+        $type->setAttribute(
+            'products_count',
+            Product::query()->where('type', $type->name)->count(),
+        );
 
         return $type;
     }
