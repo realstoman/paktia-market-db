@@ -31,6 +31,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\Operations\OperationsDashboardService;
 use App\Services\Projection\BranchDailyMetricReader;
+use App\Services\Projection\ProjectionHealthService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Request $request,
         OperationsDashboardService $operationsDashboardService,
         BranchDailyMetricReader $branchDailyMetricReader,
+        ProjectionHealthService $projectionHealthService,
     ) {
         $user = $request->user();
         abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
@@ -307,6 +309,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'netProfit' => (float) $dashboardNetProfit,
                     'expenses' => (float) $dashboardExpensesTotal,
                     'cashPosition' => (float) $dashboardCashPosition,
+                    'projectionHealth' => $projectionHealthService->snapshot(true),
                     'monthlyNetProfit' => $monthlyNetProfit,
                     'notes' => [
                         'netProfit' => $dashboardGrossProfit === null

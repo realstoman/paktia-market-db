@@ -12,6 +12,7 @@ use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Services\Projection\BranchDailyMetricReader;
+use App\Services\Projection\ProjectionHealthService;
 use App\Services\Projection\ProjectionDispatchService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -27,6 +28,7 @@ class FinanceController extends Controller
     public function __construct(
         private readonly ProjectionDispatchService $projectionDispatchService,
         private readonly BranchDailyMetricReader $branchDailyMetricReader,
+        private readonly ProjectionHealthService $projectionHealthService,
     ) {}
 
     public function index(Request $request)
@@ -547,6 +549,7 @@ class FinanceController extends Controller
             ],
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'expenseCategories' => $expenseCategoryOptions->values(),
+            'projectionHealth' => $this->projectionHealthService->snapshot($canUseProjectedFinanceData),
             'dashboard' => [
                 'summary' => [
                     'sales' => (float) $salesTotal,
