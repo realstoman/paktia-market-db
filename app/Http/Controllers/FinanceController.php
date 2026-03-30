@@ -11,6 +11,8 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Services\Projection\BranchDailyMetricReader;
+use App\Services\Projection\ProjectionDispatchService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -22,6 +24,11 @@ use Inertia\Inertia;
 
 class FinanceController extends Controller
 {
+    public function __construct(
+        private readonly ProjectionDispatchService $projectionDispatchService,
+        private readonly BranchDailyMetricReader $branchDailyMetricReader,
+    ) {}
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -38,18 +45,23 @@ class FinanceController extends Controller
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
+        $canUseProjectedFinanceData = $paymentMethod === null && $category === null;
 
-        $salesTotal = $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
-            ->sum('total_amount');
+        $salesTotal = $canUseProjectedFinanceData
+            ? $this->branchDailyMetricReader->sumCompletedSales($startDate, $endDate, $branchId)
+            : (float) $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
+                ->sum('total_amount');
 
-        $expensesTotal = Expense::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
-            ->whereBetween('expense_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->sum('amount');
+        $expensesTotal = $canUseProjectedFinanceData
+            ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
+            : (float) Expense::query()
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+                ->whereBetween('expense_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ])
+                ->sum('amount');
 
         $inventoryValue = Schema::hasTable('inventory_items')
             ? (float) DB::table('inventory_items')
@@ -211,54 +223,69 @@ class FinanceController extends Controller
 
         $netProfit = ($grossProfit ?? (float) $salesTotal) - (float) $expensesTotal;
 
-        $salesTrend = $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
-            ->selectRaw('DATE(created_at) as bucket, COALESCE(SUM(total_amount), 0) as total')
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket');
+        if ($canUseProjectedFinanceData) {
+            $trend = $this->branchDailyMetricReader
+                ->trend($startDate, $endDate, $branchId)
+                ->map(fn (array $row) => [
+                    ...$row,
+                    'net' => $row['sales'] - $row['expenses'],
+                ])
+                ->values()
+                ->all();
 
-        $expenseTrend = Expense::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
-            ->whereBetween('expense_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->selectRaw('DATE(expense_date) as bucket, COALESCE(SUM(amount), 0) as total')
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket');
+            $branchRevenue = $this->branchDailyMetricReader
+                ->branchRevenue($startDate, $endDate, $branchId)
+                ->values();
+        } else {
+            $salesTrend = $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
+                ->selectRaw('DATE(created_at) as bucket, COALESCE(SUM(total_amount), 0) as total')
+                ->groupBy('bucket')
+                ->pluck('total', 'bucket');
 
-        $trend = [];
-        foreach (CarbonPeriod::create($startDate->copy()->startOfDay(), $endDate->copy()->startOfDay()) as $date) {
-            $bucket = $date->toDateString();
-            $sales = (float) ($salesTrend[$bucket] ?? 0);
-            $expenses = (float) ($expenseTrend[$bucket] ?? 0);
+            $expenseTrend = Expense::query()
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+                ->whereBetween('expense_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ])
+                ->selectRaw('DATE(expense_date) as bucket, COALESCE(SUM(amount), 0) as total')
+                ->groupBy('bucket')
+                ->pluck('total', 'bucket');
 
-            $trend[] = [
-                'date' => $bucket,
-                'label' => $date->format('M d'),
-                'sales' => $sales,
-                'expenses' => $expenses,
-                'net' => $sales - $expenses,
-            ];
+            $trend = [];
+            foreach (CarbonPeriod::create($startDate->copy()->startOfDay(), $endDate->copy()->startOfDay()) as $date) {
+                $bucket = $date->toDateString();
+                $sales = (float) ($salesTrend[$bucket] ?? 0);
+                $expenses = (float) ($expenseTrend[$bucket] ?? 0);
+
+                $trend[] = [
+                    'date' => $bucket,
+                    'label' => $date->format('M d'),
+                    'sales' => $sales,
+                    'expenses' => $expenses,
+                    'net' => $sales - $expenses,
+                ];
+            }
+
+            $branchRevenue = Order::query()
+                ->join('branches', 'branches.id', '=', 'orders.branch_id')
+                ->where('orders.status', OrderStatus::COMPLETED->value)
+                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->when($paymentMethod, function ($query, $method) {
+                    $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
+                })
+                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->selectRaw('branches.name as branch, COALESCE(SUM(orders.total_amount), 0) as revenue')
+                ->groupBy('branches.id', 'branches.name')
+                ->orderByDesc('revenue')
+                ->get()
+                ->map(fn ($row) => [
+                    'branch' => $row->branch,
+                    'revenue' => (float) $row->revenue,
+                ])
+                ->values();
         }
-
-        $branchRevenue = Order::query()
-            ->join('branches', 'branches.id', '=', 'orders.branch_id')
-            ->where('orders.status', OrderStatus::COMPLETED->value)
-            ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-            ->when($paymentMethod, function ($query, $method) {
-                $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
-            })
-            ->whereBetween('orders.created_at', [$startDate, $endDate])
-            ->selectRaw('branches.name as branch, COALESCE(SUM(orders.total_amount), 0) as revenue')
-            ->groupBy('branches.id', 'branches.name')
-            ->orderByDesc('revenue')
-            ->get()
-            ->map(fn ($row) => [
-                'branch' => $row->branch,
-                'revenue' => (float) $row->revenue,
-            ])
-            ->values();
 
         $expenseCategoryOptions = ExpenseCategory::query()
             ->where('is_active', true)
@@ -410,11 +437,13 @@ class FinanceController extends Controller
                 ->count()
             : 0;
 
-        $completedSalesCount = Order::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->where('status', OrderStatus::COMPLETED->value)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
+        $completedSalesCount = $canUseProjectedFinanceData
+            ? $this->branchDailyMetricReader->sumCompletedOrders($startDate, $endDate, $branchId)
+            : Order::query()
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('status', OrderStatus::COMPLETED->value)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
 
         $ledgerStats = [
             'accounts' => Schema::hasTable('finance_accounts')

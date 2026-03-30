@@ -24,11 +24,13 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
-use App\Services\Operations\OperationsDashboardService;
+use App\Models\BranchDailyMetric;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\Operations\OperationsDashboardService;
+use App\Services\Projection\BranchDailyMetricReader;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +59,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tools.reference-data');
 
     // Dashboard
-    Route::get('dashboard', function (Request $request, OperationsDashboardService $operationsDashboardService) {
+    Route::get('dashboard', function (
+        Request $request,
+        OperationsDashboardService $operationsDashboardService,
+        BranchDailyMetricReader $branchDailyMetricReader,
+    ) {
         $user = $request->user();
         abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
 
@@ -195,11 +201,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
-        $dashboardSalesTotal = (float) Order::query()
-            ->where('status', 'completed')
-            ->sum('total_amount');
+        $metricDateRange = BranchDailyMetric::query()
+            ->selectRaw('MIN(metric_date) as min_metric_date, MAX(metric_date) as max_metric_date')
+            ->first();
+        $projectedStartDate = $metricDateRange?->min_metric_date
+            ? Carbon::parse($metricDateRange->min_metric_date)->startOfDay()
+            : null;
+        $projectedEndDate = $metricDateRange?->max_metric_date
+            ? Carbon::parse($metricDateRange->max_metric_date)->endOfDay()
+            : null;
 
-        $dashboardExpensesTotal = (float) Expense::query()->sum('amount');
+        $dashboardSalesTotal = $projectedStartDate && $projectedEndDate
+            ? $branchDailyMetricReader->sumCompletedSales($projectedStartDate, $projectedEndDate)
+            : (float) Order::query()
+                ->where('status', 'completed')
+                ->sum('total_amount');
+
+        $dashboardExpensesTotal = $projectedStartDate && $projectedEndDate
+            ? $branchDailyMetricReader->sumExpenses($projectedStartDate, $projectedEndDate)
+            : (float) Expense::query()->sum('amount');
 
         $dashboardCashSales = Schema::hasTable('payments')
             ? (float) DB::table('payments')
@@ -239,22 +259,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
         $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
 
-        $monthlySales = Order::query()
-            ->where('status', 'completed')
-            ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
-            ->get(['created_at', 'total_amount'])
-            ->groupBy(fn (Order $order) => $order->created_at->format('Y-m'))
-            ->map(fn ($orders) => (float) $orders->sum('total_amount'));
-
-        $monthlyExpenses = Expense::query()
-            ->whereBetween('expense_date', [
-                $monthlyStartDate->toDateString(),
-                $monthlyEndDate->toDateString(),
-            ])
-            ->get(['expense_date', 'amount'])
-            ->groupBy(fn (Expense $expense) => Carbon::parse($expense->expense_date)->format('Y-m'))
-            ->map(fn ($expenses) => (float) $expenses->sum('amount'));
-
         $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? DB::table('inventory_transactions')
                 ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
@@ -264,24 +268,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->map(fn ($transactions) => (float) $transactions->sum('total_cost'))
             : collect();
 
-        $monthlyNetProfit = [];
-
-        foreach (range(0, 4) as $offset) {
-            $month = $monthlyStartDate->copy()->addMonths($offset);
-            $bucket = $month->format('Y-m');
-            $sales = (float) ($monthlySales[$bucket] ?? 0);
-            $expenses = (float) ($monthlyExpenses[$bucket] ?? 0);
+        $monthlyNetProfit = collect(
+            $branchDailyMetricReader->monthlyNetProfit($monthlyStartDate, $monthlyEndDate),
+        )->map(function (array $metric) use ($monthlyCogs) {
+            $bucket = Carbon::parse($metric['label'])->format('Y-m');
             $cogs = $monthlyCogs->isNotEmpty()
                 ? (float) ($monthlyCogs[$bucket] ?? 0)
                 : null;
-            $grossProfit = $cogs === null ? $sales : $sales - $cogs;
+            $grossProfit = $cogs === null
+                ? $metric['sales']
+                : $metric['sales'] - $cogs;
 
-            $monthlyNetProfit[] = [
-                'month' => $month->format('M'),
-                'label' => $month->format('F Y'),
-                'netProfit' => $grossProfit - $expenses,
+            return [
+                'month' => $metric['month'],
+                'label' => $metric['label'],
+                'netProfit' => $grossProfit - $metric['expenses'],
             ];
-        }
+        })->values()->all();
 
         return Inertia::render('dashboard', [
             'data' => [
