@@ -38,7 +38,7 @@ import {
     SharedData,
     Vendor,
 } from '@/types';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import {
     Building2,
     ChefHat,
@@ -54,47 +54,40 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+type ToolReferenceData = NonNullable<SharedData['tools']>;
+
+const emptyToolReferenceData = (): ToolReferenceData => ({
+    countries: [],
+    provinces: [],
+    currencies: [],
+    vendors: [],
+    banners: [],
+    kitchens: [],
+    products: [],
+    kitchenTypes: [],
+    cuisines: [],
+    kitchenCategories: [],
+});
+
 export function ToolsLauncher() {
-    const page = usePage<SharedData>();
-    const countries = useMemo(
-        () => page.props.tools?.countries ?? [],
-        [page.props.tools?.countries],
+    const [toolData, setToolData] = useState<ToolReferenceData>(
+        emptyToolReferenceData,
     );
-    const currencies = useMemo(
-        () => page.props.tools?.currencies ?? [],
-        [page.props.tools?.currencies],
-    );
-    const provinces = useMemo(
-        () => page.props.tools?.provinces ?? [],
-        [page.props.tools?.provinces],
-    );
-    const vendors = useMemo(
-        () => page.props.tools?.vendors ?? [],
-        [page.props.tools?.vendors],
-    );
-    const banners = useMemo(
-        () => page.props.tools?.banners ?? [],
-        [page.props.tools?.banners],
-    );
-    const kitchens = useMemo(
-        () => page.props.tools?.kitchens ?? [],
-        [page.props.tools?.kitchens],
-    );
-    const products = useMemo(
-        () => page.props.tools?.products ?? [],
-        [page.props.tools?.products],
-    );
-    const kitchenTypes = useMemo(
-        () => page.props.tools?.kitchenTypes ?? [],
-        [page.props.tools?.kitchenTypes],
-    );
-    const cuisines = useMemo(
-        () => page.props.tools?.cuisines ?? [],
-        [page.props.tools?.cuisines],
-    );
+    const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
+    const [isLoadingTools, setIsLoadingTools] = useState(false);
+    const [hasLoadedTools, setHasLoadedTools] = useState(false);
+    const countries = useMemo(() => toolData.countries ?? [], [toolData]);
+    const currencies = useMemo(() => toolData.currencies ?? [], [toolData]);
+    const provinces = useMemo(() => toolData.provinces ?? [], [toolData]);
+    const vendors = useMemo(() => toolData.vendors ?? [], [toolData]);
+    const banners = useMemo(() => toolData.banners ?? [], [toolData]);
+    const kitchens = useMemo(() => toolData.kitchens ?? [], [toolData]);
+    const products = useMemo(() => toolData.products ?? [], [toolData]);
+    const kitchenTypes = useMemo(() => toolData.kitchenTypes ?? [], [toolData]);
+    const cuisines = useMemo(() => toolData.cuisines ?? [], [toolData]);
     const kitchenCategories = useMemo(
-        () => page.props.tools?.kitchenCategories ?? [],
-        [page.props.tools?.kitchenCategories],
+        () => toolData.kitchenCategories ?? [],
+        [toolData],
     );
 
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
@@ -149,6 +142,44 @@ export function ToolsLauncher() {
     const currencyByCode = useMemo(() => {
         return new Map(currencies.map((entry) => [entry.code, entry]));
     }, [currencies]);
+
+    const fetchTools = async () => {
+        if (hasLoadedTools || isLoadingTools) {
+            return;
+        }
+
+        setIsLoadingTools(true);
+
+        try {
+            const response = await fetch('/tools/reference-data', {
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load tools (${response.status})`);
+            }
+
+            const payload = (await response.json()) as { data?: ToolReferenceData };
+            setToolData(payload.data ?? emptyToolReferenceData());
+            setHasLoadedTools(true);
+        } catch (error) {
+            console.error(error);
+            toast.error('Unable to load tools right now.');
+        } finally {
+            setIsLoadingTools(false);
+        }
+    };
+
+    const handleToolsMenuOpenChange = (open: boolean) => {
+        setIsToolsMenuOpen(open);
+
+        if (open) {
+            void fetchTools();
+        }
+    };
 
     const resetCountryForm = () => {
         setCountryId(null);
@@ -407,7 +438,10 @@ export function ToolsLauncher() {
                 <SidebarGroupLabel>Tools</SidebarGroupLabel>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <Popover>
+                        <Popover
+                            open={isToolsMenuOpen}
+                            onOpenChange={handleToolsMenuOpenChange}
+                        >
                             <PopoverTrigger asChild className="cursor-pointer">
                                 <SidebarMenuButton
                                     tooltip={{ children: 'Tools' }}
@@ -421,10 +455,16 @@ export function ToolsLauncher() {
                                 align="start"
                                 className="w-64 p-3"
                             >
+                                {isLoadingTools ? (
+                                    <div className="py-6 text-center text-sm text-muted-foreground">
+                                        Loading tools...
+                                    </div>
+                                ) : null}
                                 <div className="grid grid-cols-3 gap-2">
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => {
                                             resetCountryForm();
                                             setIsCountriesOpen(true);
@@ -438,6 +478,7 @@ export function ToolsLauncher() {
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => {
                                             resetProvinceForm();
                                             setProvinceFilterCountryId('');
@@ -450,6 +491,7 @@ export function ToolsLauncher() {
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => {
                                             resetCurrencyForm();
                                             setIsCurrenciesOpen(true);
@@ -463,6 +505,7 @@ export function ToolsLauncher() {
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => {
                                             resetVendorForm();
                                             setIsVendorsOpen(true);
@@ -474,6 +517,7 @@ export function ToolsLauncher() {
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => {
                                             resetBannerForm();
                                             setIsBannersOpen(true);
@@ -485,6 +529,7 @@ export function ToolsLauncher() {
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => setIsKitchensOpen(true)}
                                     >
                                         <ChefHat className="h-5 w-5" />
