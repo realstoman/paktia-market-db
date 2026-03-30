@@ -38,7 +38,6 @@ import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarIcon,
-    CookingPot,
     Dot,
     Flame,
     ShieldAlert,
@@ -229,51 +228,6 @@ function DashboardSurface({
     );
 }
 
-function MetricStrip({
-    label,
-    value,
-    hint,
-    compact = false,
-    className,
-}: {
-    label: string;
-    value: string;
-    hint?: string;
-    compact?: boolean;
-    className?: string;
-}) {
-    return (
-        <div
-            className={cn(
-                'rounded-xl bg-neutral-50/70 px-4 py-3.5 dark:bg-neutral-950/40',
-                compact ? 'min-h-[116px]' : 'min-h-[128px]',
-                className,
-            )}
-        >
-            <div className="flex h-full flex-col">
-                <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                    {label}
-                </p>
-                <div className="mt-4">
-                    <p className="text-[2.1rem] leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums">
-                        {value}
-                    </p>
-                </div>
-                {hint ? (
-                    <p
-                        className={cn(
-                            'mt-auto pt-3 text-xs leading-5 text-muted-foreground',
-                            compact && 'line-clamp-2',
-                        )}
-                    >
-                        {hint}
-                    </p>
-                ) : null}
-            </div>
-        </div>
-    );
-}
-
 function MetricInline({
     label,
     value,
@@ -298,6 +252,19 @@ function MetricInline({
             <div className="shrink-0 text-right text-[1.85rem] leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums">
                 {value}
             </div>
+        </div>
+    );
+}
+
+function StatusPill({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/80 px-3.5 py-3 dark:border-neutral-800 dark:bg-neutral-950/40">
+            <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                {label}
+            </p>
+            <p className="mt-2 text-2xl leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums">
+                {value}
+            </p>
         </div>
     );
 }
@@ -398,12 +365,78 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {hasAnySection ? (
                     <>
+                        {financeStats?.projectionHealth ? (
+                            <Card className="rounded-2xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                                <CardContent className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
+                                                    financeStats
+                                                        .projectionHealth
+                                                        .status,
+                                                )}`}
+                                            >
+                                                Projection{' '}
+                                                {
+                                                    financeStats
+                                                        .projectionHealth.status
+                                                }
+                                            </span>
+                                            <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase">
+                                                System health check
+                                            </span>
+                                        </div>
+                                        <p className="text-sm leading-6 text-foreground">
+                                            {
+                                                financeStats.projectionHealth
+                                                    .message
+                                            }
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
+                                        <StatusPill
+                                            label="Healthy"
+                                            value={formatNumber(
+                                                Math.max(
+                                                    0,
+                                                    financeStats
+                                                        .projectionHealth
+                                                        .branches.length -
+                                                        financeStats
+                                                            .projectionHealth
+                                                            .warningBranchCount -
+                                                        financeStats
+                                                            .projectionHealth
+                                                            .criticalBranchCount,
+                                                ),
+                                            )}
+                                        />
+                                        <StatusPill
+                                            label="Warning"
+                                            value={formatNumber(
+                                                financeStats.projectionHealth
+                                                    .warningBranchCount,
+                                            )}
+                                        />
+                                        <StatusPill
+                                            label="Critical"
+                                            value={formatNumber(
+                                                financeStats.projectionHealth
+                                                    .criticalBranchCount,
+                                            )}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
                         <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
                             {canViewFinance ? (
                                 <DashboardSurface
                                     title="Finance Snapshot"
                                     description="A clean read of profitability and cash health."
-                                    className="xl:col-span-4"
+                                    className="xl:col-span-3"
                                 >
                                     <div className="divide-y divide-neutral-200/70 dark:divide-neutral-800/80">
                                         <MetricInline
@@ -430,41 +463,14 @@ export default function Dashboard({ data }: DashboardProps) {
                                             }
                                         />
                                     </div>
-                                    {financeStats?.projectionHealth ? (
-                                        <div className="mt-4 rounded-xl border border-dashed border-neutral-200/80 bg-neutral-50/70 p-3 dark:border-neutral-800 dark:bg-neutral-950/50">
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
-                                                        financeStats
-                                                            .projectionHealth
-                                                            .status,
-                                                    )}`}
-                                                >
-                                                    Projection{' '}
-                                                    {
-                                                        financeStats
-                                                            .projectionHealth
-                                                            .status
-                                                    }
-                                                </span>
-                                            </div>
-                                            <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                                                {
-                                                    financeStats
-                                                        .projectionHealth
-                                                        .message
-                                                }
-                                            </p>
-                                        </div>
-                                    ) : null}
                                 </DashboardSurface>
                             ) : null}
 
                             {canViewOrders ? (
                                 <DashboardSurface
-                                    title="Orders Today"
+                                    title="Order Flow"
                                     description={`Operational view for ${formattedSelectedDate}.`}
-                                    className="xl:col-span-4"
+                                    className="xl:col-span-6"
                                     headerAction={
                                         <Field className="w-44">
                                             <InputGroup>
@@ -543,40 +549,24 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </Field>
                                     }
                                 >
-                                    <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-3">
-                                        {orderMetricTiles.map((item) => (
-                                            <MetricStrip
-                                                key={item.label}
-                                                label={item.label}
-                                                value={formatNumber(item.value)}
-                                                className="min-h-[108px]"
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-5">
+                                            {orderMetricTiles.map((item) => (
+                                                <StatusPill
+                                                    key={item.label}
+                                                    label={item.label}
+                                                    value={formatNumber(
+                                                        item.value,
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div className="rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
+                                            <OrderAnalyticsChart
+                                                data={orderAnalyticsData}
+                                                title="Order movement"
+                                                description="Past 7 days across pending, kitchen, and completion stages"
                                             />
-                                        ))}
-                                        <div className="min-h-[108px] rounded-xl bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] px-4 py-3.5 xl:col-span-1 dark:bg-neutral-950/40">
-                                            <div className="flex h-full flex-col">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                                                        Live pulse
-                                                    </p>
-                                                    <span className="rounded-full bg-primary/8 px-2 py-1 text-[10px] font-medium tracking-[0.14em] text-primary uppercase dark:bg-primary/12">
-                                                        Stable
-                                                    </span>
-                                                </div>
-                                                <div className="mt-4 space-y-2">
-                                                    <p className="max-w-[18ch] text-lg leading-7 font-medium tracking-tight text-foreground">
-                                                        Service rhythm is steady
-                                                        and healthy.
-                                                    </p>
-                                                    <p className="text-xs leading-5 text-muted-foreground">
-                                                        Volume and readiness are
-                                                        moving in sync across
-                                                        the floor.
-                                                    </p>
-                                                </div>
-                                                <div className="mt-auto pt-3 text-[11px] font-medium tracking-[0.16em] text-primary/80 uppercase">
-                                                    Live operations pulse
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </DashboardSurface>
@@ -586,45 +576,61 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <DashboardSurface
                                     title="Inventory Health"
                                     description="Inventory strength, exposure, and stock pressure."
-                                    className="xl:col-span-4"
+                                    className="xl:col-span-3"
                                 >
-                                    <div className="grid gap-3">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <MetricStrip
+                                    <div className="space-y-4">
+                                        <div className="rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
+                                            <PieChartDonutText
+                                                total={
+                                                    inventoryStats?.totalItems ??
+                                                    0
+                                                }
+                                                totalFixedItems={
+                                                    inventoryStats?.totalFixedItems ??
+                                                    0
+                                                }
+                                                totalUsableItems={
+                                                    inventoryStats?.totalUsableItems ??
+                                                    0
+                                                }
+                                                lowStockItems={
+                                                    inventoryStats?.lowStockItems ??
+                                                    0
+                                                }
+                                                outOfStockItems={
+                                                    inventoryStats?.outOfStockItems ??
+                                                    0
+                                                }
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2.5">
+                                            <StatusPill
                                                 label="Total Items"
                                                 value={formatNumber(
                                                     inventoryStats?.totalItems ??
                                                         0,
                                                 )}
-                                                compact
-                                                className="min-h-[108px]"
                                             />
-                                            <MetricStrip
+                                            <StatusPill
                                                 label="Inventory Value"
                                                 value={`${formatPrice(
                                                     inventoryStats?.inventoryValue ??
                                                         0,
                                                 )} ؋`}
-                                                compact
-                                                className="min-h-[108px]"
                                             />
-                                            <MetricStrip
+                                            <StatusPill
                                                 label="Usable"
                                                 value={formatNumber(
                                                     inventoryStats?.totalUsableItems ??
                                                         0,
                                                 )}
-                                                compact
-                                                className="min-h-[108px]"
                                             />
-                                            <MetricStrip
+                                            <StatusPill
                                                 label="Fixed"
                                                 value={formatNumber(
                                                     inventoryStats?.totalFixedItems ??
                                                         0,
                                                 )}
-                                                compact
-                                                className="min-h-[108px]"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
@@ -667,7 +673,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                 <DashboardSurface
                                     title="Net Profit Trend"
                                     description="Month-over-month performance at a glance."
-                                    className="xl:col-span-4"
+                                    className="xl:col-span-8"
                                 >
                                     <BarChartDefault
                                         data={
@@ -679,40 +685,45 @@ export default function Dashboard({ data }: DashboardProps) {
 
                             {canViewOrders ? (
                                 <DashboardSurface
-                                    title="Order Analytics"
-                                    description="Seven-day movement across pending, kitchen, and completion stages."
+                                    title="Top Ordered Dishes"
+                                    description="Most ordered dishes of all time."
                                     className="xl:col-span-4"
                                 >
-                                    <OrderAnalyticsChart
-                                        data={orderAnalyticsData}
-                                        title="Order Flow"
-                                        description="Past 7 days"
-                                    />
-                                </DashboardSurface>
-                            ) : null}
-
-                            {canViewInventory ? (
-                                <DashboardSurface
-                                    title="Inventory Distribution"
-                                    description="How stock is split across active, fixed, and risk categories."
-                                    className="xl:col-span-4"
-                                >
-                                    <PieChartDonutText
-                                        total={inventoryStats?.totalItems ?? 0}
-                                        totalFixedItems={
-                                            inventoryStats?.totalFixedItems ?? 0
-                                        }
-                                        totalUsableItems={
-                                            inventoryStats?.totalUsableItems ??
-                                            0
-                                        }
-                                        lowStockItems={
-                                            inventoryStats?.lowStockItems ?? 0
-                                        }
-                                        outOfStockItems={
-                                            inventoryStats?.outOfStockItems ?? 0
-                                        }
-                                    />
+                                    <div className="space-y-3.5">
+                                        {topOrderedDishes.map((item, index) => (
+                                            <div
+                                                key={`${item.product_name}-${index}`}
+                                                className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                                                        <Dot className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium tracking-tight">
+                                                            {item.product_name}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {item.category_name}{' '}
+                                                            •{' '}
+                                                            {formatNumber(
+                                                                item.total_quantity,
+                                                            )}{' '}
+                                                            orders
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
+                                                    #{index + 1}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {topOrderedDishes.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">
+                                                No order data available yet.
+                                            </p>
+                                        ) : null}
+                                    </div>
                                 </DashboardSurface>
                             ) : null}
                         </div>
@@ -720,67 +731,8 @@ export default function Dashboard({ data }: DashboardProps) {
                         {/* Recent orders and top foods */}
                         {canViewOrders ? (
                             <div className="relative flex-1 overflow-hidden pb-1">
-                                <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
-                                    <div className="w-full min-w-0 lg:col-span-4">
-                                        <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                                            <CardHeader>
-                                                <div className="space-y-1">
-                                                    <CardTitle className="text-lg font-semibold">
-                                                        Top Ordered Dishes
-                                                    </CardTitle>
-                                                    <CardDescription className="text-sm">
-                                                        Most ordered dishes of
-                                                        all time
-                                                    </CardDescription>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3.5">
-                                                {topOrderedDishes.map(
-                                                    (item, index) => (
-                                                        <div
-                                                            key={`${item.product_name}-${index}`}
-                                                            className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                                    <CookingPot className="h-4.5 w-4.5" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-sm font-medium tracking-tight">
-                                                                        {
-                                                                            item.product_name
-                                                                        }
-                                                                    </p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        {
-                                                                            item.category_name
-                                                                        }{' '}
-                                                                        •{' '}
-                                                                        {formatNumber(
-                                                                            item.total_quantity,
-                                                                        )}{' '}
-                                                                        orders
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                                <Dot className="h-4 w-4" />
-                                                                #{index + 1}
-                                                            </div>
-                                                        </div>
-                                                    ),
-                                                )}
-                                                {topOrderedDishes.length ===
-                                                0 ? (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        No order data available
-                                                        yet.
-                                                    </p>
-                                                ) : null}
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                    <div className="w-full min-w-0 lg:col-span-8">
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="w-full min-w-0">
                                         <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                             <CardHeader className="flex flex-row items-start justify-between">
                                                 <div className="space-y-1">
