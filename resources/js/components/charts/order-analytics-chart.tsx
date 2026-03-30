@@ -1,13 +1,6 @@
 'use client';
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
@@ -73,41 +66,29 @@ export function OrderAnalyticsChart({
     );
 
     return (
-        <Card className="flex h-full flex-1 flex-col rounded-none border-none bg-white pt-0 shadow-none dark:bg-brand-bg-dark">
-            <CardHeader className="flex flex-row items-start justify-between pb-2">
+        <div className="flex h-full flex-1 flex-col">
+            <div className="mb-3 flex flex-row items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">
+                    <h3 className="text-base font-semibold text-foreground">
                         {title}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
                         {description}
-                    </CardDescription>
+                    </p>
                 </div>
 
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-nowrap">
-                        <LegendItem
-                            label="Pending"
-                            color="var(--chart-neutral)"
-                        />
-                        <LegendItem
-                            label="Preparing"
-                            color="var(--chart-sky)"
-                        />
+                        <LegendItem label="Pending" color="var(--chart-neutral)" />
+                        <LegendItem label="Preparing" color="var(--chart-sky)" />
                         <LegendItem label="Ready" color="var(--chart-ready)" />
-                        <LegendItem
-                            label="Completed"
-                            color="var(--chart-green)"
-                        />
-                        <LegendItem
-                            label="Cancelled"
-                            color="var(--chart-red)"
-                        />
+                        <LegendItem label="Completed" color="var(--chart-green)" />
+                        <LegendItem label="Cancelled" color="var(--chart-red)" />
                     </div>
                 </div>
-            </CardHeader>
+            </div>
 
-            <CardContent className="flex-1 pb-0">
+            <div className="flex-1">
                 <ChartContainer
                     config={chartConfig}
                     className="h-full min-h-[300px] w-full"
@@ -310,7 +291,7 @@ export function OrderAnalyticsChart({
                         />
                     </AreaChart>
                 </ChartContainer>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

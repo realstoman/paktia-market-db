@@ -1,7 +1,6 @@
 import { BarChartDefault } from '@/components/charts/bar-chart-default';
 import { OrderAnalyticsChart } from '@/components/charts/order-analytics-chart';
 import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
-import StatusCard from '@/components/shared/StatusCard';
 import { Calendar } from '@/components/ui/calendar';
 import {
     Card,
@@ -30,7 +29,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { illustrations } from '@/config/brand';
+import { cn } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type Order } from '@/types';
@@ -39,11 +38,17 @@ import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarIcon,
-    ChefHat,
+    CircleDollarSign,
     Cherry,
+    Clock3,
     CookingPot,
-    Package,
+    CreditCard,
+    Dot,
+    Flame,
+    LayoutGrid,
+    LoaderCircle,
     PackageCheck,
+    ShieldAlert,
     TrendingDown,
     TrendingUp,
     TvMinimal,
@@ -198,6 +203,97 @@ interface DashboardProps {
     };
 }
 
+function DashboardSurface({
+    title,
+    description,
+    children,
+    className,
+    headerAction,
+}: {
+    title: string;
+    description?: string;
+    children: React.ReactNode;
+    className?: string;
+    headerAction?: React.ReactNode;
+}) {
+    return (
+        <Card
+            className={cn(
+                'rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900',
+                className,
+            )}
+        >
+            <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-neutral-200/60 pb-4 dark:border-neutral-800/80">
+                <div className="space-y-1">
+                    <CardTitle className="text-lg font-semibold">
+                        {title}
+                    </CardTitle>
+                    {description ? (
+                        <CardDescription className="text-sm">
+                            {description}
+                        </CardDescription>
+                    ) : null}
+                </div>
+                {headerAction}
+            </CardHeader>
+            <CardContent className="pt-5">{children}</CardContent>
+        </Card>
+    );
+}
+
+function MetricStrip({
+    label,
+    value,
+    hint,
+    icon: Icon,
+    tone = 'default',
+}: {
+    label: string;
+    value: string;
+    hint?: string;
+    icon: React.ElementType;
+    tone?: 'default' | 'success' | 'warning' | 'danger';
+}) {
+    const toneClasses = {
+        default:
+            'border-neutral-200/70 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-950/70 dark:text-neutral-200',
+        success:
+            'border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300',
+        warning:
+            'border-amber-200/70 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-300',
+        danger:
+            'border-red-200/70 bg-red-50 text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300',
+    } as const;
+
+    return (
+        <div className="rounded-xl border border-neutral-200/70 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        {label}
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                        {value}
+                    </p>
+                </div>
+                <div
+                    className={cn(
+                        'rounded-full border p-2',
+                        toneClasses[tone],
+                    )}
+                >
+                    <Icon className="h-4 w-4" />
+                </div>
+            </div>
+            {hint ? (
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    {hint}
+                </p>
+            ) : null}
+        </div>
+    );
+}
+
 export default function Dashboard({ data }: DashboardProps) {
     const selectedDateFromProps = React.useMemo(() => {
         if (!data?.selectedDate) {
@@ -243,6 +339,38 @@ export default function Dashboard({ data }: DashboardProps) {
         inventoryStats !== null && inventoryStats !== undefined;
     const canViewFinance = financeStats !== null && financeStats !== undefined;
     const hasAnySection = canViewOrders || canViewInventory || canViewFinance;
+    const orderMetricTiles = [
+        {
+            label: 'Pending',
+            value: ordersStats?.pending ?? 0,
+            icon: Clock3,
+            tone: 'default' as const,
+        },
+        {
+            label: 'Preparing',
+            value: ordersStats?.in_progress ?? 0,
+            icon: CookingPot,
+            tone: 'warning' as const,
+        },
+        {
+            label: 'Ready',
+            value: ordersStats?.ready ?? 0,
+            icon: PackageCheck,
+            tone: 'default' as const,
+        },
+        {
+            label: 'Completed',
+            value: ordersStats?.completed ?? 0,
+            icon: Utensils,
+            tone: 'success' as const,
+        },
+        {
+            label: 'Cancelled',
+            value: ordersStats?.cancelled ?? 0,
+            icon: X,
+            tone: 'danger' as const,
+        },
+    ];
 
     React.useEffect(() => {
         setDate(selectedDateFromProps);
@@ -272,338 +400,317 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {hasAnySection ? (
                     <>
-                {/* Statistics */}
-                <div className="grid auto-rows-min grid-cols-1 items-stretch gap-3 md:grid-cols-4">
-                    {canViewFinance ? (
-                    <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
-                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7fbfb_0%,#edf4f4_45%,#ffffff_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
-                            <CardHeader>
-                                <div className="space-y-1">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Profit & Expenses
-                                    </CardTitle>
-                                    <CardDescription className="text-sm">
-                                        All-time finance snapshot. Use the
-                                        Finance section for period filters.
-                                    </CardDescription>
-                                    {financeStats?.projectionHealth ? (
-                                        <div className="pt-2">
-                                            <span
-                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
-                                                    financeStats.projectionHealth.status,
-                                                )}`}
-                                            >
-                                                Projection{' '}
-                                                {financeStats.projectionHealth.status}
-                                            </span>
-                                            <p className="mt-2 text-xs text-accent-foreground/60">
-                                                {
-                                                    financeStats
-                                                        .projectionHealth
-                                                        .message
-                                                }
-                                            </p>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4 pt-0">
-                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
-                                    <div className="flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
-                                        <p className="text-base font-medium text-accent-foreground/80">
-                                            Net Profit
-                                        </p>
-                                    </div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(
+                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
+                            {canViewFinance ? (
+                                <DashboardSurface
+                                    title="Finance Snapshot"
+                                    description="A clean read of profitability and cash health."
+                                    className="xl:col-span-4"
+                                >
+                                    <div className="grid gap-3">
+                                        <MetricStrip
+                                            label="Net Profit"
+                                            value={`${formatPrice(
                                                 financeStats?.netProfit ?? 0,
-                                            )}
-                                        </p>
-                                        <span>؋</span>
-                                    </div>
-                                    <p className="text-sm font-normal text-accent-foreground/50">
-                                        {financeStats?.notes.netProfit ??
-                                            'Net profit = gross profit - expenses.'}
-                                    </p>
-                                </div>
-                                <div className="space-y-2 border-b border-b-accent-foreground/5 pb-4">
-                                    <div className="flex items-center gap-2">
-                                        <TrendingDown className="h-5 w-5 text-accent-foreground/80" />
-                                        <p className="text-base font-medium text-accent-foreground/80">
-                                            Expenses
-                                        </p>
-                                    </div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(
+                                            )} ؋`}
+                                            hint={financeStats?.notes.netProfit}
+                                            icon={CircleDollarSign}
+                                            tone="success"
+                                        />
+                                        <MetricStrip
+                                            label="Expenses"
+                                            value={`${formatPrice(
                                                 financeStats?.expenses ?? 0,
-                                            )}
-                                        </p>
-                                        <span>؋</span>
-                                    </div>
-                                    <p className="text-sm font-normal text-accent-foreground/50">
-                                        {financeStats?.notes.expenses ??
-                                            'Expenses = sum of all recorded expense amounts.'}
-                                    </p>
-                                </div>
-                                <div className="space-y-2 pb-4">
-                                    <div className="flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-accent-foreground/80" />
-                                        <p className="text-base font-medium text-accent-foreground/80">
-                                            Cash Position
-                                        </p>
-                                    </div>
-                                    <div className="mt-1 flex items-center gap-2">
-                                        <p className="text-xl font-semibold text-accent-foreground/80">
-                                            {formatPrice(
+                                            )} ؋`}
+                                            hint={financeStats?.notes.expenses}
+                                            icon={TrendingDown}
+                                            tone="warning"
+                                        />
+                                        <MetricStrip
+                                            label="Cash Position"
+                                            value={`${formatPrice(
                                                 financeStats?.cashPosition ?? 0,
-                                            )}
-                                        </p>
-                                        <span>؋</span>
-                                    </div>
-                                    <p className="text-sm font-normal text-accent-foreground/50">
-                                        {financeStats?.notes.cashPosition ??
-                                            'Cash position = cash sales - cash expenses + approved cash movements.'}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
-                            <BarChartDefault
-                                data={financeStats?.monthlyNetProfit ?? []}
-                            />
-                        </div>
-                    </div>
-                    ) : null}
-                    {/* Order status overview */}
-                    {canViewOrders ? (
-                    <Card className="col-span-2 flex h-full w-full min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200/50 bg-white pt-4 pb-0 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                        <div className="flex flex-row items-start justify-between pb-8">
-                            <CardHeader className="items-left flex flex-1 flex-col justify-between space-y-1 px-6">
-                                <div className="space-y-3">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Order Status Overview
-                                    </CardTitle>
-                                    <CardDescription className="text-sm">
-                                        Order statistics for{' '}
-                                        {formattedSelectedDate}
-                                    </CardDescription>
-                                </div>
-                                <div className="space-y-5 pt-4">
-                                    <StatusCard
-                                        title="Pending Orders"
-                                        value={formatNumber(
-                                            ordersStats?.pending ?? 0,
-                                        )}
-                                        color=""
-                                        icon={<ChefHat className="h-5 w-5" />}
-                                    />
-                                    <StatusCard
-                                        title="Preparing Orders"
-                                        value={formatNumber(
-                                            ordersStats?.in_progress ?? 0,
-                                        )}
-                                        color=""
-                                        icon={
-                                            <CookingPot className="h-4 w-4" />
-                                        }
-                                    />
-                                    <StatusCard
-                                        title="Ready Orders"
-                                        value={formatNumber(
-                                            ordersStats?.ready ?? 0,
-                                        )}
-                                        color=""
-                                        icon={
-                                            <PackageCheck className="h-4 w-4" />
-                                        }
-                                    />
-                                    <StatusCard
-                                        title="Completed Orders"
-                                        value={formatNumber(
-                                            ordersStats?.completed ?? 0,
-                                        )}
-                                        color=""
-                                        icon={<Utensils className="h-4 w-4" />}
-                                    />
-                                    <StatusCard
-                                        title="Cancelled Orders"
-                                        value={formatNumber(
-                                            ordersStats?.cancelled ?? 0,
-                                        )}
-                                        color=""
-                                        icon={<X className="h-4 w-4" />}
-                                    />
-                                </div>
-                            </CardHeader>
-                            <div className="bottom-0 flex flex-1 flex-col items-end justify-between gap-6">
-                                <div className="pt-2 pr-4 pb-4">
-                                    <Field className="w-40">
-                                        <InputGroup>
-                                            <InputGroupInput
-                                                id="date-required"
-                                                value={value}
-                                                readOnly
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'ArrowDown') {
-                                                        e.preventDefault();
-                                                        setOpen(true);
-                                                    }
-                                                }}
-                                            />
-                                            <InputGroupAddon align="inline-end">
-                                                <Popover
-                                                    open={open}
-                                                    onOpenChange={setOpen}
-                                                >
-                                                    <PopoverTrigger asChild>
-                                                        <InputGroupButton
-                                                            id="date-picker"
-                                                            variant="ghost"
-                                                            size="icon-xs"
-                                                            aria-label="Select date"
-                                                        >
-                                                            <CalendarIcon />
-                                                            <span className="sr-only">
-                                                                Select date
-                                                            </span>
-                                                        </InputGroupButton>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent
-                                                        className="w-auto overflow-hidden p-0"
-                                                        align="end"
-                                                        alignOffset={-8}
-                                                        sideOffset={10}
+                                            )} ؋`}
+                                            hint={
+                                                financeStats?.notes.cashPosition
+                                            }
+                                            icon={CreditCard}
+                                        />
+                                        {financeStats?.projectionHealth ? (
+                                            <div className="rounded-xl border border-dashed border-neutral-200/80 bg-neutral-50/70 p-3 dark:border-neutral-800 dark:bg-neutral-950/50">
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
+                                                            financeStats
+                                                                .projectionHealth
+                                                                .status,
+                                                        )}`}
                                                     >
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={date}
-                                                            month={month}
-                                                            onMonthChange={
-                                                                setMonth
-                                                            }
-                                                            onSelect={(
-                                                                date,
-                                                            ) => {
-                                                                if (!date) {
-                                                                    return;
+                                                        Projection{' '}
+                                                        {
+                                                            financeStats
+                                                                .projectionHealth
+                                                                .status
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                                                    {
+                                                        financeStats
+                                                            .projectionHealth
+                                                            .message
+                                                    }
+                                                </p>
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </DashboardSurface>
+                            ) : null}
+
+                            {canViewOrders ? (
+                                <DashboardSurface
+                                    title="Orders Today"
+                                    description={`Operational view for ${formattedSelectedDate}.`}
+                                    className="xl:col-span-4"
+                                    headerAction={
+                                        <Field className="w-44">
+                                            <InputGroup>
+                                                <InputGroupInput
+                                                    id="date-required"
+                                                    value={value}
+                                                    readOnly
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'ArrowDown') {
+                                                            e.preventDefault();
+                                                            setOpen(true);
+                                                        }
+                                                    }}
+                                                />
+                                                <InputGroupAddon align="inline-end">
+                                                    <Popover
+                                                        open={open}
+                                                        onOpenChange={setOpen}
+                                                    >
+                                                        <PopoverTrigger asChild>
+                                                            <InputGroupButton
+                                                                id="date-picker"
+                                                                variant="ghost"
+                                                                size="icon-xs"
+                                                                aria-label="Select date"
+                                                            >
+                                                                <CalendarIcon />
+                                                                <span className="sr-only">
+                                                                    Select date
+                                                                </span>
+                                                            </InputGroupButton>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent
+                                                            className="w-auto overflow-hidden p-0"
+                                                            align="end"
+                                                            alignOffset={-8}
+                                                            sideOffset={10}
+                                                        >
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={date}
+                                                                month={month}
+                                                                onMonthChange={
+                                                                    setMonth
                                                                 }
-
-                                                                setDate(date);
-                                                                setValue(
-                                                                    formatDate(
-                                                                        date,
-                                                                    ),
-                                                                );
-                                                                setOpen(false);
-                                                                applyDateFilter(
+                                                                onSelect={(
                                                                     date,
-                                                                );
-                                                            }}
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </InputGroupAddon>
-                                        </InputGroup>
-                                    </Field>
-                                </div>
-                                <img
-                                    src={`${illustrations.babaChef}`}
-                                    width="350"
-                                    height="180"
-                                    alt="Logo"
-                                />
-                            </div>
-                        </div>
-                        <OrderAnalyticsChart
-                            data={orderAnalyticsData}
-                            title="Order Analytics"
-                            description="Past 7 days order status"
-                        />
-                    </Card>
-                    ) : null}
+                                                                ) => {
+                                                                    if (!date) {
+                                                                        return;
+                                                                    }
 
-                    {canViewInventory ? (
-                    <div className="col-span-1 flex h-full w-full min-w-0 flex-col gap-2">
-                        <Card className="relative min-h-[470px] overflow-hidden rounded-xl border border-neutral-200/50 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] pt-4 pb-6 shadow-none dark:border-neutral-800/90 dark:bg-neutral-900 dark:bg-none">
-                            <CardHeader>
-                                <div className="space-y-1">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Inventory Overview
-                                    </CardTitle>
-                                    <CardDescription className="text-sm">
-                                        Track inventory status
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-5 pt-0">
-                                <StatusCard
-                                    title="Total Items"
-                                    value={formatNumber(
-                                        inventoryStats?.totalItems ?? 0,
-                                    )}
-                                    color=""
-                                    icon={<Package className="h-5 w-5" />}
-                                    description="All inventory records currently tracked across the system."
-                                />
-                                <StatusCard
-                                    title="Usable Items"
-                                    value={formatNumber(
-                                        inventoryStats?.totalUsableItems ?? 0,
-                                    )}
-                                    color=""
-                                    icon={<Cherry className="h-4 w-4" />}
-                                    description="Items available for kitchen and branch operations."
-                                />
-                                <StatusCard
-                                    title="Fixed Items"
-                                    value={formatNumber(
-                                        inventoryStats?.totalFixedItems ?? 0,
-                                    )}
-                                    color=""
-                                    icon={<TvMinimal className="h-4 w-4" />}
-                                    description="Equipment and fixed assets held in inventory."
-                                />
-                                <StatusCard
-                                    title="Inventory Value"
-                                    value={`${formatPrice(
-                                        inventoryStats?.inventoryValue ?? 0,
-                                    )} ؋`}
-                                    color=""
-                                    icon={<TrendingUp className="h-4 w-4" />}
-                                    description="Current valuation based on quantity multiplied by unit price."
-                                />
-                            </CardContent>
-                        </Card>
-                        <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-200/50 shadow-none dark:border-neutral-800/90">
-                            <PieChartDonutText
-                                total={inventoryStats?.totalItems ?? 0}
-                                totalFixedItems={
-                                    inventoryStats?.totalFixedItems ?? 0
-                                }
-                                totalUsableItems={
-                                    inventoryStats?.totalUsableItems ?? 0
-                                }
-                                lowStockItems={
-                                    inventoryStats?.lowStockItems ?? 0
-                                }
-                                outOfStockItems={
-                                    inventoryStats?.outOfStockItems ?? 0
-                                }
-                            />
+                                                                    setDate(
+                                                                        date,
+                                                                    );
+                                                                    setValue(
+                                                                        formatDate(
+                                                                            date,
+                                                                        ),
+                                                                    );
+                                                                    setOpen(
+                                                                        false,
+                                                                    );
+                                                                    applyDateFilter(
+                                                                        date,
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </InputGroupAddon>
+                                            </InputGroup>
+                                        </Field>
+                                    }
+                                >
+                                    <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+                                        {orderMetricTiles.map((item) => (
+                                            <MetricStrip
+                                                key={item.label}
+                                                label={item.label}
+                                                value={formatNumber(
+                                                    item.value,
+                                                )}
+                                                icon={item.icon}
+                                                tone={item.tone}
+                                            />
+                                        ))}
+                                        <div className="rounded-xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f7fbfb_70%,rgba(16,47,51,0.08)_100%)] p-3 dark:border-neutral-800 dark:bg-neutral-950/60 xl:col-span-1">
+                                            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                                                Live pulse
+                                            </p>
+                                            <div className="mt-3 flex items-center gap-2 text-sm text-foreground">
+                                                <LoaderCircle className="h-4 w-4 text-primary" />
+                                                Service rhythm is centered on
+                                                volume, readiness, and flow.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </DashboardSurface>
+                            ) : null}
+
+                            {canViewInventory ? (
+                                <DashboardSurface
+                                    title="Inventory Health"
+                                    description="Inventory strength, exposure, and stock pressure."
+                                    className="xl:col-span-4"
+                                >
+                                    <div className="grid gap-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <MetricStrip
+                                                label="Total Items"
+                                                value={formatNumber(
+                                                    inventoryStats?.totalItems ??
+                                                        0,
+                                                )}
+                                                icon={LayoutGrid}
+                                            />
+                                            <MetricStrip
+                                                label="Inventory Value"
+                                                value={`${formatPrice(
+                                                    inventoryStats?.inventoryValue ??
+                                                        0,
+                                                )} ؋`}
+                                                icon={TrendingUp}
+                                            />
+                                            <MetricStrip
+                                                label="Usable"
+                                                value={formatNumber(
+                                                    inventoryStats?.totalUsableItems ??
+                                                        0,
+                                                )}
+                                                icon={Cherry}
+                                                tone="success"
+                                            />
+                                            <MetricStrip
+                                                label="Fixed"
+                                                value={formatNumber(
+                                                    inventoryStats?.totalFixedItems ??
+                                                        0,
+                                                )}
+                                                icon={TvMinimal}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="rounded-xl border border-amber-200/70 bg-amber-50/90 p-3 dark:border-amber-900/70 dark:bg-amber-950/30">
+                                                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                                                    <Flame className="h-4 w-4" />
+                                                    <span className="text-sm font-medium">
+                                                        Low stock
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-2xl font-semibold text-foreground">
+                                                    {formatNumber(
+                                                        inventoryStats?.lowStockItems ??
+                                                            0,
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-xl border border-red-200/70 bg-red-50/90 p-3 dark:border-red-900/70 dark:bg-red-950/30">
+                                                <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                                                    <ShieldAlert className="h-4 w-4" />
+                                                    <span className="text-sm font-medium">
+                                                        Out of stock
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-2xl font-semibold text-foreground">
+                                                    {formatNumber(
+                                                        inventoryStats?.outOfStockItems ??
+                                                            0,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </DashboardSurface>
+                            ) : null}
                         </div>
-                    </div>
-                    ) : null}
-                </div>
+
+                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
+                            {canViewFinance ? (
+                                <DashboardSurface
+                                    title="Net Profit Trend"
+                                    description="Month-over-month performance at a glance."
+                                    className="xl:col-span-4"
+                                >
+                                    <BarChartDefault
+                                        data={
+                                            financeStats?.monthlyNetProfit ?? []
+                                        }
+                                    />
+                                </DashboardSurface>
+                            ) : null}
+
+                            {canViewOrders ? (
+                                <DashboardSurface
+                                    title="Order Analytics"
+                                    description="Seven-day movement across pending, kitchen, and completion stages."
+                                    className="xl:col-span-4"
+                                >
+                                    <OrderAnalyticsChart
+                                        data={orderAnalyticsData}
+                                        title="Order Flow"
+                                        description="Past 7 days"
+                                    />
+                                </DashboardSurface>
+                            ) : null}
+
+                            {canViewInventory ? (
+                                <DashboardSurface
+                                    title="Inventory Distribution"
+                                    description="How stock is split across active, fixed, and risk categories."
+                                    className="xl:col-span-4"
+                                >
+                                    <PieChartDonutText
+                                        total={inventoryStats?.totalItems ?? 0}
+                                        totalFixedItems={
+                                            inventoryStats?.totalFixedItems ?? 0
+                                        }
+                                        totalUsableItems={
+                                            inventoryStats?.totalUsableItems ??
+                                            0
+                                        }
+                                        lowStockItems={
+                                            inventoryStats?.lowStockItems ?? 0
+                                        }
+                                        outOfStockItems={
+                                            inventoryStats?.outOfStockItems ?? 0
+                                        }
+                                    />
+                                </DashboardSurface>
+                            ) : null}
+                        </div>
 
                 {/* Recent orders and top foods */}
                 {canViewOrders ? (
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden pb-1 md:min-h-min">
+                <div className="relative flex-1 overflow-hidden pb-1">
                     <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
                         <div className="w-full min-w-0 lg:col-span-4">
-                            <Card className="h-full w-full min-w-0 border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                            <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader>
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">
@@ -618,10 +725,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                     {topOrderedDishes.map((item, index) => (
                                         <div
                                             key={`${item.product_name}-${index}`}
-                                            className="flex items-center justify-between rounded-lg border border-neutral-200/60 px-3 py-2 dark:border-neutral-800"
+                                            className="flex items-center justify-between rounded-xl border border-neutral-200/60 bg-neutral-50/70 px-3 py-2.5 dark:border-neutral-800 dark:bg-neutral-950/60"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
                                                     <CookingPot className="h-4 w-4" />
                                                 </div>
                                                 <div>
@@ -637,9 +744,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs text-muted-foreground">
+                                            <div className="flex items-center text-xs text-muted-foreground">
+                                                <Dot className="h-4 w-4" />
                                                 #{index + 1}
-                                            </span>
+                                            </div>
                                         </div>
                                     ))}
                                     {topOrderedDishes.length === 0 ? (
@@ -651,7 +759,7 @@ export default function Dashboard({ data }: DashboardProps) {
                             </Card>
                         </div>
                         <div className="w-full min-w-0 lg:col-span-8">
-                            <Card className="h-full w-full min-w-0 border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                            <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardHeader className="flex flex-row items-start justify-between">
                                     <div className="space-y-1">
                                         <CardTitle className="text-lg font-semibold">

@@ -1,14 +1,6 @@
 'use client';
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
@@ -48,15 +40,17 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
             : null;
 
     return (
-        <Card className="flex h-full flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
-            <CardHeader>
-                <CardTitle>Restaurant Net Profit</CardTitle>
-                <CardDescription>Past 5 months</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <ChartContainer config={chartConfig}>
+        <div className="flex h-full flex-col">
+            <div className="mb-3">
+                <h3 className="text-base font-semibold text-foreground">
+                    Restaurant Net Profit
+                </h3>
+                <p className="text-sm text-muted-foreground">Past 5 months</p>
+            </div>
+            <div className="flex-1">
+                <ChartContainer config={chartConfig} className="h-full w-full">
                     <BarChart accessibilityLayer data={data}>
-                        <CartesianGrid vertical={false} />
+                        <CartesianGrid vertical={false} stroke="#e9edf3" />
                         <XAxis
                             dataKey="month"
                             tickLine={false}
@@ -82,9 +76,9 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                         />
                     </BarChart>
                 </ChartContainer>
-            </CardContent>
-            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
-                <div className="flex gap-2 leading-none font-medium">
+            </div>
+            <div className="mt-3 flex flex-col items-start gap-2 text-sm">
+                <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
                         ? 'No percentage comparison available'
                         : `${trendValue >= 0 ? 'Up' : 'Down'} by ${Math.abs(
@@ -95,7 +89,7 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                 <div className="leading-relaxed text-muted-foreground">
                     Showing net profit by month for the last 5 months
                 </div>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }
