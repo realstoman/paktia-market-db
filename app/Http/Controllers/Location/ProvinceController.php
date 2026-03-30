@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Location;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Province;
+use App\Services\Caching\CatalogCacheService;
 use Illuminate\Http\Request;
 
 class ProvinceController extends Controller
@@ -20,12 +21,24 @@ class ProvinceController extends Controller
         return redirect()->route('countries.index');
     }
 
+    private function toolbarResponse(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        }
+
+        return $this->redirectToToolbarOrigin($request)->with('success', $message);
+    }
+
     public function byCountry(Country $country)
     {
         return $country->provinces()->select('id', 'name')->get();
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
@@ -33,12 +46,12 @@ class ProvinceController extends Controller
         ]);
 
         Province::create($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Province created successfully.');
+        return $this->toolbarResponse($request, 'Province created successfully.');
     }
 
-    public function update(Request $request, Province $province)
+    public function update(Request $request, Province $province, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
@@ -46,16 +59,16 @@ class ProvinceController extends Controller
         ]);
 
         $province->update($validated);
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Province updated successfully.');
+        return $this->toolbarResponse($request, 'Province updated successfully.');
     }
 
-    public function destroy(Request $request, Province $province)
+    public function destroy(Request $request, Province $province, CatalogCacheService $catalogCacheService)
     {
         $province->delete();
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Province deleted successfully.');
+        return $this->toolbarResponse($request, 'Province deleted successfully.');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Banner;
+use App\Services\Caching\CatalogCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -22,7 +23,19 @@ class BannerController extends Controller
         return redirect()->route('inventory.index');
     }
 
-    public function store(Request $request)
+    private function toolbarResponse(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        }
+
+        return $this->redirectToToolbarOrigin($request)->with('success', $message);
+    }
+
+    public function store(Request $request, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -45,12 +58,12 @@ class BannerController extends Controller
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $validated['is_active'] ?? true,
         ]);
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Banner created successfully.');
+        return $this->toolbarResponse($request, 'Banner created successfully.');
     }
 
-    public function update(Request $request, Banner $banner)
+    public function update(Request $request, Banner $banner, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -81,20 +94,20 @@ class BannerController extends Controller
             'sort_order' => $validated['sort_order'] ?? 0,
             'is_active' => $validated['is_active'] ?? true,
         ]);
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Banner updated successfully.');
+        return $this->toolbarResponse($request, 'Banner updated successfully.');
     }
 
-    public function destroy(Request $request, Banner $banner)
+    public function destroy(Request $request, Banner $banner, CatalogCacheService $catalogCacheService)
     {
         if ($banner->image_path) {
             Storage::disk('public')->delete($banner->image_path);
         }
 
         $banner->delete();
+        $catalogCacheService->invalidateReferenceData();
 
-        return $this->redirectToToolbarOrigin($request)
-            ->with('success', 'Banner deleted successfully.');
+        return $this->toolbarResponse($request, 'Banner deleted successfully.');
     }
 }

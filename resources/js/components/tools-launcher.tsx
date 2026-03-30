@@ -48,7 +48,6 @@ import {
     SharedData,
     Vendor,
 } from '@/types';
-import { router } from '@inertiajs/react';
 import {
     Building2,
     ChefHat,
@@ -65,6 +64,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 type ToolReferenceData = NonNullable<SharedData['tools']>;
+type DeleteResourceType = 'country' | 'province' | 'currency' | 'vendor' | 'banner';
 
 const emptyToolReferenceData = (): ToolReferenceData => ({
     countries: [],
@@ -78,6 +78,14 @@ const emptyToolReferenceData = (): ToolReferenceData => ({
     cuisines: [],
     kitchenCategories: [],
 });
+
+function getCsrfToken() {
+    return (
+        document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') ?? ''
+    );
+}
 
 export function ToolsLauncher() {
     const [toolData, setToolData] = useState<ToolReferenceData>(
@@ -128,12 +136,16 @@ export function ToolsLauncher() {
     const [vendorPhone, setVendorPhone] = useState('');
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
-    const [vendorToDelete, setVendorToDelete] = useState<Vendor | null>(null);
+    const [deleteDialog, setDeleteDialog] = useState<{
+        type: DeleteResourceType;
+        id: number;
+        name: string;
+    } | null>(null);
 
     const handleDeleteVendor = (vendor: Vendor) => {
-        router.delete(`/vendors/${vendor.id}`, {
-            preserveScroll: true,
-            preserveState: true,
+        void deleteToolResource({
+            url: `/vendors/${vendor.id}`,
+            successMessage: 'Vendor deleted successfully.',
             onSuccess: () => {
                 setToolData((current) => ({
                     ...current,
@@ -146,12 +158,7 @@ export function ToolsLauncher() {
                     resetVendorForm();
                 }
 
-                setVendorToDelete(null);
-                void fetchTools(true);
-                toast.success('Vendor deleted successfully.');
-            },
-            onError: () => {
-                toast.error('Failed to delete vendor.');
+                setDeleteDialog(null);
             },
         });
     };
@@ -176,6 +183,142 @@ export function ToolsLauncher() {
     const [provinceCountryId, setProvinceCountryId] = useState('');
     const [provinceFilterCountryId, setProvinceFilterCountryId] = useState('');
 
+    const submitJsonRequest = async <TResponse,>({
+        url,
+        method = 'POST',
+        payload,
+        successMessage,
+        onSuccess,
+    }: {
+        url: string;
+        method?: 'POST' | 'PUT' | 'DELETE';
+        payload?: Record<string, unknown> | FormData;
+        successMessage: string;
+        onSuccess?: (data: TResponse | null) => void | Promise<void>;
+    }) => {
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        setErrors({});
+
+        try {
+            const isFormData = payload instanceof FormData;
+            const requestMethod =
+                method === 'POST' ? 'POST' : 'POST';
+            const normalizedPayload =
+                method === 'POST'
+                    ? payload
+                    : isFormData
+                      ? (() => {
+                            const formData = new FormData();
+                            formData.append('_method', method);
+
+                            payload.forEach((value, key) => {
+                                formData.append(key, value);
+                            });
+
+                            return formData;
+                        })()
+                      : {
+                            _method: method,
+                            ...(payload ?? {}),
+                        };
+            const normalizedIsFormData = normalizedPayload instanceof FormData;
+            const response = await fetch(url, {
+                method: requestMethod,
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    ...(normalizedIsFormData
+                        ? {}
+                        : { 'Content-Type': 'application/json' }),
+                },
+                cache: 'no-store',
+                body:
+                    normalizedPayload === undefined
+                        ? undefined
+                        : normalizedIsFormData
+                          ? normalizedPayload
+                          : JSON.stringify(normalizedPayload),
+            });
+
+            if (response.status === 422) {
+                const validationPayload = (await response.json()) as {
+                    errors?: Record<string, string>;
+                };
+                setErrors(validationPayload.errors ?? {});
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            const responseData = response.headers
+                .get('content-type')
+                ?.includes('application/json')
+                ? ((await response.json()) as TResponse)
+                : null;
+
+            await onSuccess?.(responseData);
+            await fetchTools(true);
+            toast.success(successMessage);
+        } catch (error) {
+            console.error(error);
+            toast.error('Unable to save changes right now.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const deleteToolResource = async ({
+        url,
+        successMessage,
+        onSuccess,
+    }: {
+        url: string;
+        successMessage: string;
+        onSuccess?: () => void | Promise<void>;
+    }) => {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Content-Type': 'application/json',
+                },
+                cache: 'no-store',
+                body: JSON.stringify({
+                    _method: 'DELETE',
+                }),
+            });
+
+            if (response.status === 422) {
+                const validationPayload = (await response.json()) as {
+                    errors?: Record<string, string>;
+                };
+                setErrors(validationPayload.errors ?? {});
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Delete failed with status ${response.status}`);
+            }
+
+            await onSuccess?.();
+            await fetchTools(true);
+            toast.success(successMessage);
+        } catch (error) {
+            console.error(error);
+            toast.error('Unable to delete this item right now.');
+        }
+    };
+
     const currencyByCode = useMemo(() => {
         return new Map(currencies.map((entry) => [entry.code, entry]));
     }, [currencies]);
@@ -193,6 +336,7 @@ export function ToolsLauncher() {
                     Accept: 'application/json',
                 },
                 credentials: 'same-origin',
+                cache: 'no-store',
             });
 
             if (!response.ok) {
@@ -215,6 +359,64 @@ export function ToolsLauncher() {
 
         if (open) {
             void fetchTools();
+        }
+    };
+
+    const handleConfirmDelete = () => {
+        if (!deleteDialog) return;
+
+        const { type, id } = deleteDialog;
+
+        switch (type) {
+            case 'country':
+                void deleteToolResource({
+                    url: `/countries/${id}`,
+                    successMessage: 'Country deleted successfully.',
+                    onSuccess: () => {
+                        if (countryId === id) resetCountryForm();
+                        setDeleteDialog(null);
+                    },
+                });
+                break;
+            case 'province':
+                void deleteToolResource({
+                    url: `/provinces/${id}`,
+                    successMessage: 'City deleted successfully.',
+                    onSuccess: () => {
+                        if (provinceId === id) resetProvinceForm();
+                        setDeleteDialog(null);
+                    },
+                });
+                break;
+            case 'currency':
+                void deleteToolResource({
+                    url: `/currencies/${id}`,
+                    successMessage: 'Currency deleted successfully.',
+                    onSuccess: () => {
+                        if (currencyId === id) resetCurrencyForm();
+                        setDeleteDialog(null);
+                    },
+                });
+                break;
+            case 'vendor': {
+                const vendor = vendors.find((item) => item.id === id);
+                if (vendor) {
+                    handleDeleteVendor(vendor);
+                } else {
+                    setDeleteDialog(null);
+                }
+                break;
+            }
+            case 'banner':
+                void deleteToolResource({
+                    url: `/banners/${id}`,
+                    successMessage: 'Banner deleted successfully.',
+                    onSuccess: () => {
+                        if (bannerId === id) resetBannerForm();
+                        setDeleteDialog(null);
+                    },
+                });
+                break;
         }
     };
 
@@ -301,7 +503,6 @@ export function ToolsLauncher() {
 
     const submitCountry = () => {
         if (!countryName.trim() || !countryCode.trim() || isSubmitting) return;
-        setIsSubmitting(true);
 
         const payload = {
             name: countryName.trim(),
@@ -310,53 +511,38 @@ export function ToolsLauncher() {
             currency_symbol: countryCurrencySymbol || null,
         };
 
-        router.post(
-            countryId ? `/countries/${countryId}` : '/countries',
-            countryId ? { _method: 'put', ...payload } : payload,
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(
-                        countryId
-                            ? 'Country updated successfully.'
-                            : 'Country created successfully.',
-                    );
-                    resetCountryForm();
-                    void fetchTools(true);
-                },
-                onError: (validationErrors) => setErrors(validationErrors),
-                onFinish: () => setIsSubmitting(false),
+        void submitJsonRequest({
+            url: countryId ? `/countries/${countryId}` : '/countries',
+            method: countryId ? 'PUT' : 'POST',
+            payload,
+            successMessage: countryId
+                ? 'Country updated successfully.'
+                : 'Country created successfully.',
+            onSuccess: () => {
+                resetCountryForm();
             },
-        );
+        });
     };
 
     const submitProvince = () => {
         if (!provinceName.trim() || !provinceCountryId || isSubmitting) return;
-        setIsSubmitting(true);
 
         const payload = {
             name: provinceName.trim(),
             country_id: Number(provinceCountryId),
         };
 
-        router.post(
-            provinceId ? `/provinces/${provinceId}` : '/provinces',
-            provinceId ? { _method: 'put', ...payload } : payload,
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(
-                        provinceId
-                            ? 'City updated successfully.'
-                            : 'City created successfully.',
-                    );
-                    resetProvinceForm();
-                    void fetchTools(true);
-                },
-                onError: (validationErrors) => setErrors(validationErrors),
-                onFinish: () => setIsSubmitting(false),
+        void submitJsonRequest({
+            url: provinceId ? `/provinces/${provinceId}` : '/provinces',
+            method: provinceId ? 'PUT' : 'POST',
+            payload,
+            successMessage: provinceId
+                ? 'City updated successfully.'
+                : 'City created successfully.',
+            onSuccess: () => {
+                resetProvinceForm();
             },
-        );
+        });
     };
 
     const submitCurrency = () => {
@@ -367,8 +553,6 @@ export function ToolsLauncher() {
             isSubmitting
         )
             return;
-        setIsSubmitting(true);
-
         const payload = {
             name: currencyName.trim(),
             code: currencyCode.trim().toUpperCase(),
@@ -376,29 +560,21 @@ export function ToolsLauncher() {
             is_active: true,
         };
 
-        router.post(
-            currencyId ? `/currencies/${currencyId}` : '/currencies',
-            currencyId ? { _method: 'put', ...payload } : payload,
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(
-                        currencyId
-                            ? 'Currency updated successfully.'
-                            : 'Currency created successfully.',
-                    );
-                    resetCurrencyForm();
-                    void fetchTools(true);
-                },
-                onError: (validationErrors) => setErrors(validationErrors),
-                onFinish: () => setIsSubmitting(false),
+        void submitJsonRequest({
+            url: currencyId ? `/currencies/${currencyId}` : '/currencies',
+            method: currencyId ? 'PUT' : 'POST',
+            payload,
+            successMessage: currencyId
+                ? 'Currency updated successfully.'
+                : 'Currency created successfully.',
+            onSuccess: () => {
+                resetCurrencyForm();
             },
-        );
+        });
     };
 
     const submitVendor = () => {
         if (!vendorName.trim() || isSubmitting) return;
-        setIsSubmitting(true);
 
         const payload = {
             name: vendorName.trim(),
@@ -411,24 +587,17 @@ export function ToolsLauncher() {
             is_active: true,
         };
 
-        router.post(
-            vendorId ? `/vendors/${vendorId}` : '/vendors',
-            vendorId ? { _method: 'put', ...payload } : payload,
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(
-                        vendorId
-                            ? 'Vendor updated successfully.'
-                            : 'Vendor created successfully.',
-                    );
-                    resetVendorForm();
-                    void fetchTools(true);
-                },
-                onError: (validationErrors) => setErrors(validationErrors),
-                onFinish: () => setIsSubmitting(false),
+        void submitJsonRequest({
+            url: vendorId ? `/vendors/${vendorId}` : '/vendors',
+            method: vendorId ? 'PUT' : 'POST',
+            payload,
+            successMessage: vendorId
+                ? 'Vendor updated successfully.'
+                : 'Vendor created successfully.',
+            onSuccess: () => {
+                resetVendorForm();
             },
-        );
+        });
     };
 
     const submitBanner = () => {
@@ -440,38 +609,31 @@ export function ToolsLauncher() {
             return;
         }
 
-        setIsSubmitting(true);
-
-        router.post(
-            bannerId ? `/banners/${bannerId}` : '/banners',
-            {
-                ...(bannerId ? { _method: 'put' } : {}),
-                title: bannerTitle.trim(),
-                banner_type: bannerType,
-                link: bannerLink.trim() || null,
-                link_type: bannerLinkType,
-                sort_order: bannerSortOrder.trim()
-                    ? Number(bannerSortOrder)
-                    : 0,
-                is_active: bannerIsActive,
-                image: bannerImage,
-            },
-            {
-                preserveScroll: true,
-                forceFormData: true,
-                onSuccess: () => {
-                    toast.success(
-                        bannerId
-                            ? 'Banner updated successfully.'
-                            : 'Banner created successfully.',
-                    );
-                    resetBannerForm();
-                    void fetchTools(true);
-                },
-                onError: (validationErrors) => setErrors(validationErrors),
-                onFinish: () => setIsSubmitting(false),
-            },
+        const payload = new FormData();
+        payload.append('title', bannerTitle.trim());
+        payload.append('banner_type', bannerType);
+        payload.append('link', bannerLink.trim() || '');
+        payload.append('link_type', bannerLinkType);
+        payload.append(
+            'sort_order',
+            bannerSortOrder.trim() ? String(Number(bannerSortOrder)) : '0',
         );
+        payload.append('is_active', bannerIsActive ? '1' : '0');
+        if (bannerImage) {
+            payload.append('image', bannerImage);
+        }
+
+        void submitJsonRequest({
+            url: bannerId ? `/banners/${bannerId}` : '/banners',
+            method: bannerId ? 'PUT' : 'POST',
+            payload,
+            successMessage: bannerId
+                ? 'Banner updated successfully.'
+                : 'Banner created successfully.',
+            onSuccess: () => {
+                resetBannerForm();
+            },
+        });
     };
 
     return (
@@ -702,27 +864,11 @@ export function ToolsLauncher() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
-                                            router.delete(
-                                                `/countries/${country.id}`,
-                                                {
-                                                    preserveScroll: true,
-                                                    preserveState: true,
-                                                    onSuccess: () => {
-                                                        toast.success(
-                                                            'Country deleted successfully.',
-                                                        );
-
-                                                        if (
-                                                            countryId ===
-                                                            country.id
-                                                        ) {
-                                                            resetCountryForm();
-                                                        }
-
-                                                        void fetchTools(true);
-                                                    },
-                                                },
-                                            )
+                                            setDeleteDialog({
+                                                type: 'country',
+                                                id: country.id,
+                                                name: country.name,
+                                            })
                                         }
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />
@@ -851,28 +997,11 @@ export function ToolsLauncher() {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() =>
-                                                    router.delete(
-                                                        `/provinces/${province.id}`,
-                                                        {
-                                                            preserveScroll: true,
-                                                            preserveState: true,
-                                                            onSuccess: () => {
-                                                                toast.success(
-                                                                    'City deleted successfully.',
-                                                                );
-                                                                if (
-                                                                    provinceId ===
-                                                                    province.id
-                                                                ) {
-                                                                    resetProvinceForm();
-                                                                }
-
-                                                                void fetchTools(
-                                                                    true,
-                                                                );
-                                                            },
-                                                        },
-                                                    )
+                                                    setDeleteDialog({
+                                                        type: 'province',
+                                                        id: province.id,
+                                                        name: province.name,
+                                                    })
                                                 }
                                             >
                                                 <Trash2 className="mr-1 h-3 w-3" />
@@ -986,27 +1115,11 @@ export function ToolsLauncher() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
-                                            router.delete(
-                                                `/currencies/${currency.id}`,
-                                                {
-                                                    preserveScroll: true,
-                                                    preserveState: true,
-                                                    onSuccess: () => {
-                                                        toast.success(
-                                                            'Currency deleted successfully.',
-                                                        );
-
-                                                        if (
-                                                            currencyId ===
-                                                            currency.id
-                                                        ) {
-                                                            resetCurrencyForm();
-                                                        }
-
-                                                        void fetchTools(true);
-                                                    },
-                                                },
-                                            )
+                                            setDeleteDialog({
+                                                type: 'currency',
+                                                id: currency.id,
+                                                name: currency.name,
+                                            })
                                         }
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />
@@ -1157,7 +1270,13 @@ export function ToolsLauncher() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => setVendorToDelete(vendor)}
+                                        onClick={() =>
+                                            setDeleteDialog({
+                                                type: 'vendor',
+                                                id: vendor.id,
+                                                name: vendor.name,
+                                            })
+                                        }
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />
                                         Delete
@@ -1170,33 +1289,38 @@ export function ToolsLauncher() {
             </Dialog>
 
             <AlertDialog
-                open={vendorToDelete !== null}
+                open={deleteDialog !== null}
                 onOpenChange={(open) => {
                     if (!open) {
-                        setVendorToDelete(null);
+                        setDeleteDialog(null);
                     }
                 }}
             >
                 <AlertDialogContent size="sm">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Vendor?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Delete{' '}
+                            {deleteDialog?.type === 'province'
+                                ? 'City'
+                                : deleteDialog?.type
+                                      ? deleteDialog.type.charAt(0).toUpperCase() +
+                                        deleteDialog.type.slice(1)
+                                      : 'Item'}
+                            ?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {vendorToDelete
-                                ? `This will permanently remove ${vendorToDelete.name} from the vendors list.`
-                                : 'This will permanently remove this vendor from the vendors list.'}
+                            {deleteDialog
+                                ? `This will permanently remove ${deleteDialog.name} from the ${deleteDialog.type === 'province' ? 'cities' : `${deleteDialog.type}s`} list.`
+                                : 'This action cannot be undone.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
-                            onClick={() => {
-                                if (vendorToDelete) {
-                                    handleDeleteVendor(vendorToDelete);
-                                }
-                            }}
+                            onClick={handleConfirmDelete}
                         >
-                            Delete Vendor
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1471,27 +1595,11 @@ export function ToolsLauncher() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
-                                            router.delete(
-                                                `/banners/${banner.id}`,
-                                                {
-                                                    preserveScroll: true,
-                                                    preserveState: true,
-                                                    onSuccess: () => {
-                                                        toast.success(
-                                                            'Banner deleted successfully.',
-                                                        );
-
-                                                        if (
-                                                            bannerId ===
-                                                            banner.id
-                                                        ) {
-                                                            resetBannerForm();
-                                                        }
-
-                                                        void fetchTools(true);
-                                                    },
-                                                },
-                                            )
+                                            setDeleteDialog({
+                                                type: 'banner',
+                                                id: banner.id,
+                                                name: banner.title,
+                                            })
                                         }
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />
