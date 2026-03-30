@@ -6,7 +6,6 @@ use App\Models\BranchSyncCredential;
 use App\Services\Projection\ProjectionHealthService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
