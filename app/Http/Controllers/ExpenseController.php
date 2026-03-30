@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
+use App\Services\Projection\ProjectionDispatchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,10 @@ use Inertia\Inertia;
 
 class ExpenseController extends Controller
 {
+    public function __construct(
+        private readonly ProjectionDispatchService $projectionDispatchService,
+    ) {}
+
     public function index()
     {
         $paidFromAccounts = FinanceAccount::query()
@@ -93,6 +98,11 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $expense->branch_id,
+            $expense->expense_date,
+        );
+
         $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense created successfully.');
 
@@ -111,6 +121,8 @@ class ExpenseController extends Controller
         $approvalStatus = $validated['approval_status'] ?? $expense->approval_status ?? 'draft';
 
         $previousStatus = $expense->approval_status ?? 'draft';
+        $previousBranchId = $expense->branch_id;
+        $previousExpenseDate = $expense->expense_date;
 
         $expense->update([
             'branch_id' => $validated['branch_id'],
@@ -129,6 +141,15 @@ class ExpenseController extends Controller
             'approved_by' => $approvalStatus === 'approved' ? $request->user()?->id : null,
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $previousBranchId,
+            $previousExpenseDate,
+        );
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $expense->branch_id,
+            $expense->expense_date,
+        );
 
         $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense updated successfully.');
@@ -151,6 +172,11 @@ class ExpenseController extends Controller
             'approved_at' => now(),
         ]);
 
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $expense->branch_id,
+            $expense->expense_date,
+        );
+
         return redirect()->route('finance.expenses.index')
             ->with('success', 'Expense approved successfully.');
     }
@@ -162,6 +188,11 @@ class ExpenseController extends Controller
             'approved_by' => null,
             'approved_at' => null,
         ]);
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $expense->branch_id,
+            $expense->expense_date,
+        );
 
         return redirect()->route('finance.expenses.index')
             ->with('success', 'Expense was sent back to draft.');

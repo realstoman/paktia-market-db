@@ -5,6 +5,7 @@ namespace App\Services\Product;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
+use App\Services\Caching\CatalogCacheService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class ProductApiService
 {
+    public function __construct(
+        private readonly CatalogCacheService $catalogCacheService,
+    ) {}
+
     public function paginate(array $filters): LengthAwarePaginator
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
@@ -38,10 +43,12 @@ class ProductApiService
 
     public function categories(): Collection
     {
-        return ProductCategory::query()
-            ->withCount('products')
-            ->orderBy('name')
-            ->get();
+        return $this->catalogCacheService->rememberProductCategories(
+            fn () => ProductCategory::query()
+                ->withCount('products')
+                ->orderBy('name')
+                ->get(),
+        );
     }
 
     public function category(ProductCategory $category): ProductCategory
@@ -62,19 +69,23 @@ class ProductApiService
 
     public function types(): Collection
     {
-        $countsByType = Product::query()
-            ->select('type', DB::raw('COUNT(*) as aggregate'))
-            ->groupBy('type')
-            ->pluck('aggregate', 'type');
+        return $this->catalogCacheService->rememberProductTypes(
+            function () {
+                $countsByType = Product::query()
+                    ->select('type', DB::raw('COUNT(*) as aggregate'))
+                    ->groupBy('type')
+                    ->pluck('aggregate', 'type');
 
-        return ProductType::query()
-            ->orderBy('name')
-            ->get()
-            ->map(function (ProductType $type) use ($countsByType) {
-                $type->setAttribute('products_count', (int) ($countsByType[$type->name] ?? 0));
+                return ProductType::query()
+                    ->orderBy('name')
+                    ->get()
+                    ->map(function (ProductType $type) use ($countsByType) {
+                        $type->setAttribute('products_count', (int) ($countsByType[$type->name] ?? 0));
 
-                return $type;
-            });
+                        return $type;
+                    });
+            },
+        );
     }
 
     public function type(ProductType $type): ProductType

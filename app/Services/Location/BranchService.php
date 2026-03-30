@@ -5,34 +5,48 @@ namespace App\Services\Location;
 use App\Models\Branch;
 use App\Models\BranchTable;
 use App\Models\Kitchen;
+use App\Services\Caching\CatalogCacheService;
 
 class BranchService
 {
+    public function __construct(
+        private readonly CatalogCacheService $catalogCacheService,
+    ) {}
+
     public function create(array $data): Branch
     {
-        return Branch::create($data);
+        $branch = Branch::create($data);
+        $this->catalogCacheService->invalidateBranch($branch);
+
+        return $branch;
     }
 
     public function update(Branch $branch, array $data): Branch
     {
         $branch->update($data);
+        $this->catalogCacheService->invalidateBranch($branch);
+
         return $branch;
     }
 
     public function toggleActive(Branch $branch): Branch
     {
         $branch->update(['is_active' => ! $branch->is_active]);
+        $this->catalogCacheService->invalidateBranch($branch);
+
         return $branch;
     }
 
     public function delete(Branch $branch): void
     {
         $branch->delete();
+        $this->catalogCacheService->invalidateReferenceData();
     }
 
     public function syncKitchens(Branch $branch, array $kitchenIds): void
     {
         $branch->kitchens()->sync($kitchenIds);
+        $this->catalogCacheService->invalidateBranch($branch->load('kitchens'));
     }
 
     public function getIndexData(): array

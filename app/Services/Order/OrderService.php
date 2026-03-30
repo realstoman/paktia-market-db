@@ -9,13 +9,17 @@ use App\Models\Branch;
 use App\Models\BranchTable;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\Projection\ProjectionDispatchService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private readonly OrderItemService $orderItemService) {}
+    public function __construct(
+        private readonly OrderItemService $orderItemService,
+        private readonly ProjectionDispatchService $projectionDispatchService,
+    ) {}
 
     public function getIndexData(?string $selectedDate, bool $isAllTime): array
     {
@@ -99,12 +103,18 @@ class OrderService
 
             $this->orderItemService->createManyForOrder($order, $data['items']);
             $this->syncOrderAmounts($order, $total);
+            $this->projectionDispatchService->queueBranchDailyMetric(
+                $order->branch_id,
+                $order->created_at,
+            );
         });
     }
 
     public function updateOrder(Order $order, array $data): void
     {
         $this->validateOrderConstraints($data);
+        $originalBranchId = $order->branch_id;
+        $originalCreatedAt = $order->created_at;
 
         DB::transaction(function () use ($order, $data) {
             $total = $this->orderItemService->calculateTotal($data['items']);
@@ -129,6 +139,15 @@ class OrderService
             $this->orderItemService->replaceForOrder($order, $data['items']);
             $this->syncOrderAmounts($order, $total);
         });
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $originalBranchId,
+            $originalCreatedAt,
+        );
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $order->branch_id,
+            $order->created_at,
+        );
     }
 
     public function updateStatus(
@@ -155,6 +174,11 @@ class OrderService
                 );
             }
         });
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $order->branch_id,
+            $order->created_at,
+        );
     }
 
     public function updateTable(Order $order, int $branchTableId): void
@@ -188,6 +212,11 @@ class OrderService
                 );
             }
         });
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $order->branch_id,
+            $order->created_at,
+        );
     }
 
     private function validateOrderConstraints(array $data): void

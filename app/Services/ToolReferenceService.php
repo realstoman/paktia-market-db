@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Caching\CatalogCacheService;
 use App\Models\Banner;
 use App\Models\Cuisine;
 use App\Models\Country;
@@ -13,18 +14,17 @@ use App\Models\KitchenType;
 use App\Models\Product;
 use App\Models\Province;
 use App\Models\Vendor;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 class ToolReferenceService
 {
-    private const CACHE_KEY = 'tool-reference-data.v1';
+    public function __construct(
+        private readonly CatalogCacheService $catalogCacheService,
+    ) {}
 
     public function all(): array
     {
-        return Cache::remember(
-            self::CACHE_KEY,
-            now()->addMinutes(5),
+        return $this->catalogCacheService->rememberToolReference(
             fn (): array => $this->build(),
         );
     }

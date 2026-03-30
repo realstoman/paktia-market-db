@@ -8,10 +8,15 @@ use App\Models\Kitchen;
 use App\Models\KitchenCategory;
 use App\Models\KitchenType;
 use App\Models\Product;
+use App\Services\Caching\CatalogCacheService;
 use Illuminate\Support\Facades\DB;
 
 class KitchenService
 {
+    public function __construct(
+        private readonly CatalogCacheService $catalogCacheService,
+    ) {}
+
     public function getIndexData(): array
     {
         $kitchens = Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines', 'kitchenCategories'])->get();
@@ -68,6 +73,7 @@ class KitchenService
             ]);
             $kitchen->cuisines()->sync($cuisineIds);
             $kitchen->kitchenCategories()->sync($kitchenCategoryIds);
+            $this->catalogCacheService->invalidateKitchen($kitchen);
 
             return $kitchen->load(['kitchenType', 'cuisines', 'kitchenCategories']);
         });
@@ -87,6 +93,7 @@ class KitchenService
             ]);
             $kitchen->cuisines()->sync($cuisineIds);
             $kitchen->kitchenCategories()->sync($kitchenCategoryIds);
+            $this->catalogCacheService->invalidateKitchen($kitchen);
 
             return $kitchen->load(['kitchenType', 'cuisines', 'kitchenCategories']);
         });
@@ -95,11 +102,14 @@ class KitchenService
     public function toggleActive(Kitchen $kitchen): Kitchen
     {
         $kitchen->update(['is_active' => ! $kitchen->is_active]);
+        $this->catalogCacheService->invalidateKitchen($kitchen);
+
         return $kitchen;
     }
 
     public function delete(Kitchen $kitchen): void
     {
         $kitchen->delete();
+        $this->catalogCacheService->invalidateReferenceData();
     }
 }
