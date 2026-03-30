@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('idempotency_requests', function (Blueprint $table) {
             $table->id();
-            $table->string('idempotency_key', 255);
-            $table->string('scope', 255);
+            $table->string('idempotency_key', 128);
+            $table->string('scope', 128);
             $table->string('method', 16);
-            $table->string('route', 255);
+            $table->string('route', 128);
             $table->string('fingerprint', 64);
             $table->unsignedSmallInteger('response_status')->nullable();
             $table->json('response_headers')->nullable();
