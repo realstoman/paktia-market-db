@@ -7,7 +7,7 @@ import {
     type ChartConfig,
 } from '@/components/ui/chart';
 import { formatPrice } from '@/utils/format';
-import { TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 export const description = 'Baba Bar Chart';
@@ -15,7 +15,7 @@ export const description = 'Baba Bar Chart';
 const chartConfig = {
     netProfit: {
         label: 'Net Profit',
-        color: 'var(--chart-1)',
+        color: '#102F33',
     },
 } satisfies ChartConfig;
 
@@ -38,6 +38,7 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
         latestMonth && previousMonth && previousMonth.netProfit !== 0
             ? (trendValue / Math.abs(previousMonth.netProfit)) * 100
             : null;
+    const trendIsPositive = trendValue >= 0;
 
     return (
         <div className="flex h-full flex-col">
@@ -50,7 +51,7 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
             <div className="flex-1">
                 <ChartContainer config={chartConfig} className="h-full w-full">
                     <BarChart accessibilityLayer data={data}>
-                        <CartesianGrid vertical={false} stroke="#e9edf3" />
+                        <CartesianGrid vertical={false} stroke="#edf1f5" />
                         <XAxis
                             dataKey="month"
                             tickLine={false}
@@ -72,7 +73,8 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                         <Bar
                             dataKey="netProfit"
                             fill="var(--chart-1)"
-                            radius={8}
+                            radius={[10, 10, 6, 6]}
+                            maxBarSize={40}
                         />
                     </BarChart>
                 </ChartContainer>
@@ -84,7 +86,13 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                         : `${trendValue >= 0 ? 'Up' : 'Down'} by ${Math.abs(
                               trendPercentage,
                           ).toFixed(1)}% from last month`}{' '}
-                    <TrendingUp className="h-4 w-4" />
+                    {trendPercentage === null ? (
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    ) : trendIsPositive ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                        <TrendingDown className="h-4 w-4 text-rose-600" />
+                    )}
                 </div>
                 <div className="leading-relaxed text-muted-foreground">
                     Showing net profit by month for the last 5 months

@@ -122,8 +122,9 @@ export function PieChartDonutText({
                             data={chartData}
                             dataKey="value"
                             nameKey="segment"
-                            innerRadius={60}
-                            strokeWidth={5}
+                            innerRadius={62}
+                            outerRadius={88}
+                            strokeWidth={4}
                         >
                             <Label
                                 content={({ viewBox }) => {
@@ -162,14 +163,14 @@ export function PieChartDonutText({
                     </PieChart>
                 </ChartContainer>
             </div>
-            <div className="mt-3 flex flex-col items-start gap-3 text-sm">
+            <div className="mt-3 flex flex-col items-start gap-2.5 text-sm">
                 <div className="flex items-start gap-2 leading-none font-medium text-foreground">
                     Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="leading-none text-muted-foreground">
-                    5-color breakdown: items, fixed, usable, low stock, and out
-                    of stock.
+                <div className="leading-relaxed text-muted-foreground">
+                    A quick breakdown of total items, fixed assets, usable
+                    stock, low stock, and out-of-stock items.
                 </div>
             </div>
         </div>
