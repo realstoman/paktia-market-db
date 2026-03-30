@@ -16,6 +16,7 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
@@ -58,6 +59,8 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tools/reference-data', ToolReferenceController::class)
         ->name('tools.reference-data');
+    Route::get('operations/runtime-health', OperationsRuntimeHealthController::class)
+        ->name('operations.runtime-health');
 
     // Dashboard
     Route::get('dashboard', function (

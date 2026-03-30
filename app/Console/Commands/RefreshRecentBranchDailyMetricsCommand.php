@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Operations\RuntimeHealthService;
 use App\Services\Projection\BranchDailyMetricBackfillService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -25,6 +26,7 @@ class RefreshRecentBranchDailyMetricsCommand extends Command
         $endDate = Carbon::now()->endOfDay();
 
         $count = $service->backfill($startDate, $endDate, $branchId, false);
+        RuntimeHealthService::markRecentRefreshSuccess();
 
         $this->info("Refreshed {$count} branch-day metric row(s) for the recent {$hours}-hour window.");
 
