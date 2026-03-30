@@ -25,9 +25,19 @@ interface BarChartDefaultProps {
         label: string;
         netProfit: number;
     }>;
+    title?: string;
+    description?: string;
+    footerNote?: string;
+    compact?: boolean;
 }
 
-export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
+export function BarChartDefault({
+    data = [],
+    title = 'Restaurant Net Profit',
+    description = 'Past 5 months',
+    footerNote = 'Showing net profit by month for the last 5 months',
+    compact = false,
+}: BarChartDefaultProps) {
     const latestMonth = data[data.length - 1];
     const previousMonth = data[data.length - 2];
     const trendValue =
@@ -42,14 +52,17 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="mb-3">
+            <div className={compact ? 'mb-2' : 'mb-3'}>
                 <h3 className="text-base font-semibold text-foreground">
-                    Restaurant Net Profit
+                    {title}
                 </h3>
-                <p className="text-sm text-muted-foreground">Past 5 months</p>
+                <p className="text-sm text-muted-foreground">{description}</p>
             </div>
             <div className="flex-1">
-                <ChartContainer config={chartConfig} className="h-full w-full">
+                <ChartContainer
+                    config={chartConfig}
+                    className={compact ? 'h-[180px] w-full' : 'h-full w-full'}
+                >
                     <BarChart accessibilityLayer data={data}>
                         <CartesianGrid vertical={false} stroke="#edf1f5" />
                         <XAxis
@@ -74,12 +87,12 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                             dataKey="netProfit"
                             fill="var(--chart-1)"
                             radius={[10, 10, 6, 6]}
-                            maxBarSize={40}
+                            maxBarSize={compact ? 30 : 40}
                         />
                     </BarChart>
                 </ChartContainer>
             </div>
-            <div className="mt-3 flex flex-col items-start gap-2 text-sm">
+            <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
                 <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
                         ? 'No percentage comparison available'
@@ -95,7 +108,7 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                     )}
                 </div>
                 <div className="leading-relaxed text-muted-foreground">
-                    Showing net profit by month for the last 5 months
+                    {footerNote}
                 </div>
             </div>
         </div>

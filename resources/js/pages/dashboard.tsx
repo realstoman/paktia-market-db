@@ -309,6 +309,10 @@ export default function Dashboard({ data }: DashboardProps) {
     const topOrderedDishes = data?.topOrderedDishes ?? [];
     const inventoryStats = data?.inventory;
     const financeStats = data?.finance;
+    const financeMiniTrend = React.useMemo(
+        () => (financeStats?.monthlyNetProfit ?? []).slice(-4),
+        [financeStats?.monthlyNetProfit],
+    );
     const canViewOrders = ordersStats !== null && ordersStats !== undefined;
     const canViewInventory =
         inventoryStats !== null && inventoryStats !== undefined;
@@ -461,6 +465,15 @@ export default function Dashboard({ data }: DashboardProps) {
                                             hint={
                                                 financeStats?.notes.cashPosition
                                             }
+                                        />
+                                    </div>
+                                    <div className="mt-4 rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
+                                        <BarChartDefault
+                                            data={financeMiniTrend}
+                                            title="Net Profit Trend"
+                                            description="Past 4 months"
+                                            footerNote="Compact monthly net profit view"
+                                            compact
                                         />
                                     </div>
                                 </DashboardSurface>
@@ -668,71 +681,61 @@ export default function Dashboard({ data }: DashboardProps) {
                             ) : null}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
-                            {canViewFinance ? (
-                                <DashboardSurface
-                                    title="Net Profit Trend"
-                                    description="Month-over-month performance at a glance."
-                                    className="xl:col-span-8"
-                                >
-                                    <BarChartDefault
-                                        data={
-                                            financeStats?.monthlyNetProfit ?? []
-                                        }
-                                    />
-                                </DashboardSurface>
-                            ) : null}
-
-                            {canViewOrders ? (
-                                <DashboardSurface
-                                    title="Top Ordered Dishes"
-                                    description="Most ordered dishes of all time."
-                                    className="xl:col-span-4"
-                                >
-                                    <div className="space-y-3.5">
-                                        {topOrderedDishes.map((item, index) => (
-                                            <div
-                                                key={`${item.product_name}-${index}`}
-                                                className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                        <Dot className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium tracking-tight">
-                                                            {item.product_name}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {item.category_name}{' '}
-                                                            •{' '}
-                                                            {formatNumber(
-                                                                item.total_quantity,
-                                                            )}{' '}
-                                                            orders
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                    #{index + 1}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {topOrderedDishes.length === 0 ? (
-                                            <p className="text-sm text-muted-foreground">
-                                                No order data available yet.
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                </DashboardSurface>
-                            ) : null}
-                        </div>
-
-                        {/* Recent orders and top foods */}
                         {canViewOrders ? (
                             <div className="relative flex-1 overflow-hidden pb-1">
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div className="w-full min-w-0">
+                                <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+                                    <div className="w-full min-w-0 lg:col-span-3">
+                                        <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
+                                            <CardHeader>
+                                                <div className="space-y-1">
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Top Ordered Dishes
+                                                    </CardTitle>
+                                                    <CardDescription className="text-sm">
+                                                        Most ordered dishes of
+                                                        all time
+                                                    </CardDescription>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="space-y-3.5">
+                                                {topOrderedDishes.map((item, index) => (
+                                                    <div
+                                                        key={`${item.product_name}-${index}`}
+                                                        className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                                                                <Dot className="h-5 w-5" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-medium tracking-tight">
+                                                                    {item.product_name}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {item.category_name}{' '}
+                                                                    •{' '}
+                                                                    {formatNumber(
+                                                                        item.total_quantity,
+                                                                    )}{' '}
+                                                                    orders
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
+                                                            #{index + 1}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {topOrderedDishes.length === 0 ? (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        No order data available
+                                                        yet.
+                                                    </p>
+                                                ) : null}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                    <div className="w-full min-w-0 lg:col-span-9">
                                         <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                             <CardHeader className="flex flex-row items-start justify-between">
                                                 <div className="space-y-1">
