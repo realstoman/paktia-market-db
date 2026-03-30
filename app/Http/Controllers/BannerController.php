@@ -11,6 +11,17 @@ class BannerController extends Controller
 {
     private const IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
 
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('inventory.index');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -35,7 +46,8 @@ class BannerController extends Controller
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
-        return back()->with('success', 'Banner created successfully.');
+        return $this->redirectToToolbarOrigin($request)
+            ->with('success', 'Banner created successfully.');
     }
 
     public function update(Request $request, Banner $banner)
@@ -70,10 +82,11 @@ class BannerController extends Controller
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
-        return back()->with('success', 'Banner updated successfully.');
+        return $this->redirectToToolbarOrigin($request)
+            ->with('success', 'Banner updated successfully.');
     }
 
-    public function destroy(Banner $banner)
+    public function destroy(Request $request, Banner $banner)
     {
         if ($banner->image_path) {
             Storage::disk('public')->delete($banner->image_path);
@@ -81,6 +94,7 @@ class BannerController extends Controller
 
         $banner->delete();
 
-        return back()->with('success', 'Banner deleted successfully.');
+        return $this->redirectToToolbarOrigin($request)
+            ->with('success', 'Banner deleted successfully.');
     }
 }

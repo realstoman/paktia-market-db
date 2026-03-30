@@ -18,6 +18,17 @@ use Inertia\Inertia;
 
 class InventoryController extends Controller
 {
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('inventory.index');
+    }
+
     private const IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
 
     public function index()
@@ -378,7 +389,7 @@ class InventoryController extends Controller
 
         Vendor::create($validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Vendor created successfully.');
     }
 
@@ -397,17 +408,15 @@ class InventoryController extends Controller
 
         $vendor->update($validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Vendor updated successfully.');
     }
 
-    public function destroyVendor(Vendor $vendor)
+    public function destroyVendor(Request $request, Vendor $vendor)
     {
         $vendor->delete();
 
-        $redirectTo = url()->previous() ?: route('inventory.index');
-
-        return redirect()->to($redirectTo)
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Vendor deleted successfully.');
     }
 
@@ -424,7 +433,7 @@ class InventoryController extends Controller
 
         Currency::create($validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Currency created successfully.');
     }
 
@@ -441,15 +450,15 @@ class InventoryController extends Controller
 
         $currency->update($validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Currency updated successfully.');
     }
 
-    public function destroyCurrency(Currency $currency)
+    public function destroyCurrency(Request $request, Currency $currency)
     {
         $currency->delete();
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Currency deleted successfully.');
     }
 

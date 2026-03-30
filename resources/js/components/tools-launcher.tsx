@@ -2,6 +2,16 @@ import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { KitchensClient } from '@/components/tables/kitchens/client';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -118,17 +128,30 @@ export function ToolsLauncher() {
     const [vendorPhone, setVendorPhone] = useState('');
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
+    const [vendorToDelete, setVendorToDelete] = useState<Vendor | null>(null);
 
     const handleDeleteVendor = (vendor: Vendor) => {
         router.delete(`/vendors/${vendor.id}`, {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
+                setToolData((current) => ({
+                    ...current,
+                    vendors: (current.vendors ?? []).filter(
+                        (entry) => entry.id !== vendor.id,
+                    ),
+                }));
+
                 if (vendorId === vendor.id) {
                     resetVendorForm();
                 }
 
+                setVendorToDelete(null);
+                void fetchTools(true);
                 toast.success('Vendor deleted successfully.');
+            },
+            onError: () => {
+                toast.error('Failed to delete vendor.');
             },
         });
     };
@@ -157,8 +180,8 @@ export function ToolsLauncher() {
         return new Map(currencies.map((entry) => [entry.code, entry]));
     }, [currencies]);
 
-    const fetchTools = async () => {
-        if (hasLoadedTools || isLoadingTools) {
+    const fetchTools = async (force = false) => {
+        if ((!force && hasLoadedTools) || isLoadingTools) {
             return;
         }
 
@@ -299,6 +322,7 @@ export function ToolsLauncher() {
                             : 'Country created successfully.',
                     );
                     resetCountryForm();
+                    void fetchTools(true);
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -327,6 +351,7 @@ export function ToolsLauncher() {
                             : 'City created successfully.',
                     );
                     resetProvinceForm();
+                    void fetchTools(true);
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -363,6 +388,7 @@ export function ToolsLauncher() {
                             : 'Currency created successfully.',
                     );
                     resetCurrencyForm();
+                    void fetchTools(true);
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -397,6 +423,7 @@ export function ToolsLauncher() {
                             : 'Vendor created successfully.',
                     );
                     resetVendorForm();
+                    void fetchTools(true);
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -439,6 +466,7 @@ export function ToolsLauncher() {
                             : 'Banner created successfully.',
                     );
                     resetBannerForm();
+                    void fetchTools(true);
                 },
                 onError: (validationErrors) => setErrors(validationErrors),
                 onFinish: () => setIsSubmitting(false),
@@ -670,12 +698,30 @@ export function ToolsLauncher() {
                                         Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
                                             router.delete(
                                                 `/countries/${country.id}`,
-                                                { preserveScroll: true },
+                                                {
+                                                    preserveScroll: true,
+                                                    preserveState: true,
+                                                    onSuccess: () => {
+                                                        toast.success(
+                                                            'Country deleted successfully.',
+                                                        );
+
+                                                        if (
+                                                            countryId ===
+                                                            country.id
+                                                        ) {
+                                                            resetCountryForm();
+                                                        }
+
+                                                        void fetchTools(true);
+                                                    },
+                                                },
                                             )
                                         }
                                     >
@@ -780,6 +826,7 @@ export function ToolsLauncher() {
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => {
@@ -800,6 +847,7 @@ export function ToolsLauncher() {
                                                 Edit
                                             </Button>
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() =>
@@ -807,6 +855,7 @@ export function ToolsLauncher() {
                                                         `/provinces/${province.id}`,
                                                         {
                                                             preserveScroll: true,
+                                                            preserveState: true,
                                                             onSuccess: () => {
                                                                 toast.success(
                                                                     'City deleted successfully.',
@@ -817,6 +866,10 @@ export function ToolsLauncher() {
                                                                 ) {
                                                                     resetProvinceForm();
                                                                 }
+
+                                                                void fetchTools(
+                                                                    true,
+                                                                );
                                                             },
                                                         },
                                                     )
@@ -914,6 +967,7 @@ export function ToolsLauncher() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
@@ -928,12 +982,30 @@ export function ToolsLauncher() {
                                         Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
                                             router.delete(
                                                 `/currencies/${currency.id}`,
-                                                { preserveScroll: true },
+                                                {
+                                                    preserveScroll: true,
+                                                    preserveState: true,
+                                                    onSuccess: () => {
+                                                        toast.success(
+                                                            'Currency deleted successfully.',
+                                                        );
+
+                                                        if (
+                                                            currencyId ===
+                                                            currency.id
+                                                        ) {
+                                                            resetCurrencyForm();
+                                                        }
+
+                                                        void fetchTools(true);
+                                                    },
+                                                },
                                             )
                                         }
                                     >
@@ -1057,6 +1129,7 @@ export function ToolsLauncher() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
@@ -1084,9 +1157,7 @@ export function ToolsLauncher() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        onClick={() =>
-                                            handleDeleteVendor(vendor)
-                                        }
+                                        onClick={() => setVendorToDelete(vendor)}
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />
                                         Delete
@@ -1097,6 +1168,39 @@ export function ToolsLauncher() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={vendorToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setVendorToDelete(null);
+                    }
+                }}
+            >
+                <AlertDialogContent size="sm">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Vendor?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {vendorToDelete
+                                ? `This will permanently remove ${vendorToDelete.name} from the vendors list.`
+                                : 'This will permanently remove this vendor from the vendors list.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                if (vendorToDelete) {
+                                    handleDeleteVendor(vendorToDelete);
+                                }
+                            }}
+                        >
+                            Delete Vendor
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <Dialog open={isBannersOpen} onOpenChange={setIsBannersOpen}>
                 <DialogContent className="sm:max-w-5xl">
@@ -1363,12 +1467,30 @@ export function ToolsLauncher() {
                                         Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
                                             router.delete(
                                                 `/banners/${banner.id}`,
-                                                { preserveScroll: true },
+                                                {
+                                                    preserveScroll: true,
+                                                    preserveState: true,
+                                                    onSuccess: () => {
+                                                        toast.success(
+                                                            'Banner deleted successfully.',
+                                                        );
+
+                                                        if (
+                                                            bannerId ===
+                                                            banner.id
+                                                        ) {
+                                                            resetBannerForm();
+                                                        }
+
+                                                        void fetchTools(true);
+                                                    },
+                                                },
                                             )
                                         }
                                     >

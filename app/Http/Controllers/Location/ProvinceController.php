@@ -9,6 +9,17 @@ use Illuminate\Http\Request;
 
 class ProvinceController extends Controller
 {
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('countries.index');
+    }
+
     public function byCountry(Country $country)
     {
         return $country->provinces()->select('id', 'name')->get();
@@ -23,7 +34,7 @@ class ProvinceController extends Controller
 
         Province::create($validated);
 
-        return redirect()->route('countries.index')
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Province created successfully.');
     }
 
@@ -36,15 +47,15 @@ class ProvinceController extends Controller
 
         $province->update($validated);
 
-        return redirect()->route('countries.index')
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Province updated successfully.');
     }
 
-    public function destroy(Province $province)
+    public function destroy(Request $request, Province $province)
     {
         $province->delete();
 
-        return redirect()->route('countries.index')
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Province deleted successfully.');
     }
 }

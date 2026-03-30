@@ -10,6 +10,17 @@ use Inertia\Inertia;
 
 class CountryController extends Controller
 {
+    private function redirectToToolbarOrigin(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+
+        if ($referer && ! str_contains($referer, '/tools/reference-data')) {
+            return redirect()->to($referer);
+        }
+
+        return redirect()->route('countries.index');
+    }
+
     public function index(CountryService $service)
     {
         return Inertia::render('location/countries/index', [
@@ -35,7 +46,7 @@ class CountryController extends Controller
 
         $service->create($validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Country created successfully.');
     }
 
@@ -50,7 +61,7 @@ class CountryController extends Controller
 
         $service->update($country, $validated);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Country updated successfully.');
     }
 
@@ -66,11 +77,11 @@ class CountryController extends Controller
             ->with('success', $message);
     }
 
-    public function destroy(CountryService $service, Country $country)
+    public function destroy(Request $request, CountryService $service, Country $country)
     {
         $service->delete($country);
 
-        return redirect()->back()
+        return $this->redirectToToolbarOrigin($request)
             ->with('success', 'Country deleted successfully.');
     }
 }
