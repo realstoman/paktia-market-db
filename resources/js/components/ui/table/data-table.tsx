@@ -15,10 +15,11 @@ import {
     SortingState,
     useReactTable,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, Loader2, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Button } from '../button';
 import { Input } from '../input';
 import { ScrollArea, ScrollBar } from '../scroll-area';
+import { Skeleton } from '../skeleton';
 import {
     Table,
     TableBody,
@@ -60,6 +61,26 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
 
         return null;
     }, obj);
+}
+
+function TableRowsSkeleton({ columnCount }: { columnCount: number }) {
+    return Array.from({ length: 8 }).map((_, rowIndex) => (
+        <TableRow key={`skeleton-row-${rowIndex}`}>
+            {Array.from({ length: columnCount }).map((__, cellIndex) => (
+                <TableCell key={`skeleton-cell-${rowIndex}-${cellIndex}`}>
+                    <Skeleton
+                        className={
+                            cellIndex === 0
+                                ? 'h-4 w-32'
+                                : cellIndex === columnCount - 1
+                                  ? 'h-4 w-14'
+                                  : 'h-4 w-24'
+                        }
+                    />
+                </TableCell>
+            ))}
+        </TableRow>
+    ));
 }
 
 export function DataTable<TData, TValue>({
@@ -204,19 +225,7 @@ export function DataTable<TData, TValue>({
 
                     <TableBody>
                         {isLoading ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center dark:text-neutral-100"
-                                >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                                        <span className="text-muted-foreground">
-                                            Loading...
-                                        </span>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            <TableRowsSkeleton columnCount={columns.length} />
                         ) : rows.length ? (
                             rows.map((row) => (
                                 <TableRow
