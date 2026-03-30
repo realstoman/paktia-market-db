@@ -19,6 +19,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\ToolReferenceController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
@@ -52,6 +53,9 @@ Route::get('/', function () {
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('tools/reference-data', ToolReferenceController::class)
+        ->name('tools.reference-data');
+
     // Dashboard
     Route::get('dashboard', function (Request $request, OperationsDashboardService $operationsDashboardService) {
         $user = $request->user();

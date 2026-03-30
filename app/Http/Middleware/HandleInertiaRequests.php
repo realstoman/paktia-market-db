@@ -2,19 +2,13 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Banner;
-use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\Employee;
 use App\Models\ExpenseCategory;
-use App\Models\Kitchen;
-use App\Models\KitchenCategory;
-use App\Models\KitchenType;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PayrollRun;
-use App\Models\Product;
 use App\Models\Province;
 use App\Models\User;
 use App\Models\Vendor;
@@ -67,76 +61,6 @@ class HandleInertiaRequests extends Middleware
                 'is_super_admin' => $request->user()?->hasRole('super-admin') ?? false,
             ],
             'notifications' => fn () => $this->buildNotifications($request),
-            'tools' => [
-                'countries' => Schema::hasTable('countries')
-                    ? Country::with('provinces')->orderBy('name')->get()
-                    : [],
-                'provinces' => Schema::hasTable('provinces')
-                    ? Province::with('country')->orderBy('name')->get()
-                    : [],
-                'currencies' => Schema::hasTable('currencies')
-                    ? Currency::orderBy('name')->get()
-                    : [],
-                'vendors' => Schema::hasTable('vendors')
-                    ? Vendor::orderBy('name')->get()
-                    : [],
-                'expenseCategories' => Schema::hasTable('expense_categories')
-                    ? ExpenseCategory::query()
-                        ->where('is_active', true)
-                        ->orderBy('sort_order')
-                        ->orderBy('name')
-                        ->get(['id', 'name', 'slug'])
-                    : [],
-                'banners' => Schema::hasTable('banners')
-                    ? Banner::query()
-                        ->orderBy('sort_order')
-                        ->orderByDesc('id')
-                        ->get()
-                    : [],
-                'kitchens' => Schema::hasTable('kitchens')
-                    ? Kitchen::with(['branches', 'products', 'kitchenType', 'cuisines', 'kitchenCategories'])
-                        ->orderBy('name')
-                        ->get()
-                        ->map(fn (Kitchen $kitchen) => [
-                            'id' => $kitchen->id,
-                            'name' => $kitchen->name,
-                            'type' => $kitchen->kitchenType?->name,
-                            'kitchen_type' => $kitchen->kitchenType?->name,
-                            'kitchen_type_id' => $kitchen->kitchen_type_id,
-                            'cuisines' => $kitchen->cuisines->map(fn (Cuisine $cuisine) => [
-                                'id' => $cuisine->id,
-                                'name' => $cuisine->name,
-                                'description' => $cuisine->description,
-                            ])->values(),
-                            'cuisines_label' => $kitchen->cuisines->pluck('name')->join(', '),
-                            'kitchen_categories' => $kitchen->kitchenCategories->map(fn (KitchenCategory $category) => [
-                                'id' => $category->id,
-                                'name' => $category->name,
-                                'description' => $category->description,
-                            ])->values(),
-                            'kitchen_categories_label' => $kitchen->kitchenCategories->pluck('name')->join(', '),
-                            'is_active' => $kitchen->is_active,
-                            'branch_id' => $kitchen->branch_id,
-                            'branches' => $kitchen->branches,
-                            'products' => $kitchen->products,
-                            'created_at' => $kitchen->created_at,
-                            'updated_at' => $kitchen->updated_at,
-                        ])
-                        ->values()
-                    : [],
-                'products' => Schema::hasTable('products')
-                    ? Product::orderBy('name')->get(['id', 'name', 'kitchen_id'])
-                    : [],
-                'kitchenTypes' => Schema::hasTable('kitchen_types')
-                    ? KitchenType::orderBy('name')->get(['id', 'name', 'description'])
-                    : [],
-                'cuisines' => Schema::hasTable('cuisines')
-                    ? Cuisine::orderBy('name')->get(['id', 'name', 'description'])
-                    : [],
-                'kitchenCategories' => Schema::hasTable('kitchen_categories')
-                    ? KitchenCategory::orderBy('name')->get(['id', 'name', 'description'])
-                    : [],
-            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
