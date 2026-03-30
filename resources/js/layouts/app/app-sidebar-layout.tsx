@@ -6,21 +6,37 @@ import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { PageLoadingSkeleton } from '@/components/shared/page-loading-skeleton';
 import { type BreadcrumbItem } from '@/types';
 import { router } from '@inertiajs/react';
-import { type PropsWithChildren, useEffect, useState } from 'react';
+import { type PropsWithChildren, useEffect, useRef, useState } from 'react';
 
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
 }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     const [isNavigating, setIsNavigating] = useState(false);
+    const navigationTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
-        const removeStart = router.on('start', () => setIsNavigating(true));
-        const removeFinish = router.on('finish', () => setIsNavigating(false));
-        const removeError = router.on('error', () => setIsNavigating(false));
-        const removeInvalid = router.on('invalid', () => setIsNavigating(false));
+        const clearNavigationState = () => {
+            if (navigationTimeoutRef.current !== null) {
+                window.clearTimeout(navigationTimeoutRef.current);
+                navigationTimeoutRef.current = null;
+            }
+
+            setIsNavigating(false);
+        };
+
+        const removeStart = router.on('start', () => {
+            clearNavigationState();
+            navigationTimeoutRef.current = window.setTimeout(() => {
+                setIsNavigating(true);
+            }, 180);
+        });
+        const removeFinish = router.on('finish', clearNavigationState);
+        const removeError = router.on('error', clearNavigationState);
+        const removeInvalid = router.on('invalid', clearNavigationState);
 
         return () => {
+            clearNavigationState();
             removeStart();
             removeFinish();
             removeError();
