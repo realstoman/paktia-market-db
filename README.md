@@ -446,6 +446,18 @@ QUEUE_CONNECTION=failover
 
 The failover configuration is ordered to prefer Redis first, then fall back to database-backed drivers.
 
+Branch-local runtime health can be polled through the branch-sync endpoint:
+
+```bash
+curl -H "X-Branch-Token: <token>" \
+  https://your-domain.example/api/v1/branch-sync/runtime-health
+```
+
+Recommended branch-local credential abilities:
+
+- `health.read` for runtime health polling
+- `*` only for trusted internal branch-server credentials while sync scopes are still being split into narrower abilities
+
 ---
 
 If you need a more opinionated onboarding doc next, we can also add:

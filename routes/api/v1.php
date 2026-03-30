@@ -23,3 +23,7 @@ Route::get('products/{product}', [ProductController::class, 'show'])->name('prod
 Route::prefix('mobile')
     ->name('mobile.')
     ->group(base_path('routes/api/v1/mobile.php'));
+
+Route::prefix('branch-sync')
+    ->name('branch-sync.')
+    ->group(base_path('routes/api/v1/branch-sync.php'));

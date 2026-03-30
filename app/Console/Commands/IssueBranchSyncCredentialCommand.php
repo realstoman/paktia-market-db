@@ -35,6 +35,7 @@ class IssueBranchSyncCredentialCommand extends Command
         $this->info("Credential issued for branch {$branch->name} (#{$branch->id}).");
         $this->line('Token: '.$issued['plain_text_token']);
         $this->line('Expires at: '.$expiresAt->toDateTimeString());
+        $this->line('Runtime health endpoint: '.url('/api/v1/branch-sync/runtime-health'));
 
         return self::SUCCESS;
     }
