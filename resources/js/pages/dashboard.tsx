@@ -117,6 +117,17 @@ function projectionBadgeClass(status?: string) {
     }
 }
 
+function attentionBadgeClass(level: 'critical' | 'warning' | 'info') {
+    switch (level) {
+        case 'critical':
+            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
+        case 'warning':
+            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
+        default:
+            return 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-200';
+    }
+}
+
 interface DashboardProps {
     data?: {
         orders: {
@@ -155,6 +166,14 @@ interface DashboardProps {
                 label: string;
                 value: number;
             }>;
+            lowStockQuickList: Array<{
+                id: number;
+                name: string;
+                quantity: number;
+                unit: string | null;
+                branch: string;
+                status: 'low' | 'out';
+            }>;
         } | null;
         finance: {
             netProfit: number;
@@ -181,12 +200,24 @@ interface DashboardProps {
                 label: string;
                 netProfit: number;
             }>;
+            branchPerformance: Array<{
+                branchId: number;
+                branchName: string;
+                revenue: number;
+                completedOrders: number;
+                netProfit: number;
+            }>;
             notes: {
                 netProfit: string;
                 expenses: string;
                 cashPosition: string;
             };
         } | null;
+        attentionItems: Array<{
+            title: string;
+            detail: string;
+            level: 'critical' | 'warning' | 'info';
+        }>;
     };
 }
 
@@ -309,6 +340,7 @@ export default function Dashboard({ data }: DashboardProps) {
     const topOrderedDishes = data?.topOrderedDishes ?? [];
     const inventoryStats = data?.inventory;
     const financeStats = data?.finance;
+    const attentionItems = data?.attentionItems ?? [];
     const financeMiniTrend = React.useMemo(
         () => (financeStats?.monthlyNetProfit ?? []).slice(-4),
         [financeStats?.monthlyNetProfit],
@@ -679,6 +711,177 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </div>
                                 </DashboardSurface>
                             ) : null}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
+                            <DashboardSurface
+                                title="Needs Attention"
+                                description="Operational signals that need a closer look."
+                                className="xl:col-span-4"
+                            >
+                                <div className="space-y-3">
+                                    {attentionItems.length > 0 ? (
+                                        attentionItems.map((item, index) => (
+                                            <div
+                                                key={`${item.title}-${index}`}
+                                                className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-medium text-foreground">
+                                                            {item.title}
+                                                        </p>
+                                                        <p className="text-xs leading-5 text-muted-foreground">
+                                                            {item.detail}
+                                                        </p>
+                                                    </div>
+                                                    <span
+                                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${attentionBadgeClass(
+                                                            item.level,
+                                                        )}`}
+                                                    >
+                                                        {item.level}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
+                                            Everything looks steady right now.
+                                            No urgent operational alerts.
+                                        </div>
+                                    )}
+                                </div>
+                            </DashboardSurface>
+
+                            <DashboardSurface
+                                title="Branch Performance"
+                                description="Top branch momentum over the last 30 days."
+                                className="xl:col-span-4"
+                            >
+                                <div className="space-y-3">
+                                    {financeStats?.branchPerformance?.length ? (
+                                        financeStats.branchPerformance.map(
+                                            (branch, index) => (
+                                                <div
+                                                    key={branch.branchId}
+                                                    className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-foreground">
+                                                                {branch.branchName}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Rank #{index + 1}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-lg font-semibold text-foreground">
+                                                                {formatPrice(
+                                                                    branch.revenue,
+                                                                )}{' '}
+                                                                ؋
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Revenue
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 grid grid-cols-2 gap-2">
+                                                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
+                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                                                                Orders
+                                                            </p>
+                                                            <p className="mt-1 text-base font-semibold text-foreground">
+                                                                {formatNumber(
+                                                                    branch.completedOrders,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
+                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                                                                Net Profit
+                                                            </p>
+                                                            <p className="mt-1 text-base font-semibold text-foreground">
+                                                                {formatPrice(
+                                                                    branch.netProfit,
+                                                                )}{' '}
+                                                                ؋
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        )
+                                    ) : (
+                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
+                                            Branch performance data will show
+                                            here as daily metrics accumulate.
+                                        </div>
+                                    )}
+                                </div>
+                            </DashboardSurface>
+
+                            <DashboardSurface
+                                title="Low Stock Quick List"
+                                description="Fast visibility into items closest to running out."
+                                className="xl:col-span-4"
+                            >
+                                <div className="space-y-3">
+                                    {inventoryStats?.lowStockQuickList?.length ? (
+                                        inventoryStats.lowStockQuickList.map(
+                                            (item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="space-y-1">
+                                                            <p className="text-sm font-medium text-foreground">
+                                                                {item.name}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {item.branch}
+                                                            </p>
+                                                        </div>
+                                                        <span
+                                                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                                item.status ===
+                                                                'out'
+                                                                    ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
+                                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
+                                                            }`}
+                                                        >
+                                                            {item.status ===
+                                                            'out'
+                                                                ? 'Out'
+                                                                : 'Low'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="mt-3 flex items-end justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                                                                Quantity
+                                                            </p>
+                                                            <p className="mt-1 text-lg font-semibold text-foreground">
+                                                                {formatNumber(
+                                                                    item.quantity,
+                                                                )}{' '}
+                                                                {item.unit ?? ''}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        )
+                                    ) : (
+                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
+                                            No low-stock items right now.
+                                        </div>
+                                    )}
+                                </div>
+                            </DashboardSurface>
                         </div>
 
                         {canViewOrders ? (

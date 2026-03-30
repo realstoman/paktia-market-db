@@ -206,6 +206,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
+        $lowStockQuickList = $inventoryItems
+            ->loadMissing('branch:id,name')
+            ->filter(fn (InventoryItem $item) => (float) $item->quantity <= 10)
+            ->sortBy(fn (InventoryItem $item) => (float) $item->quantity)
+            ->take(5)
+            ->values()
+            ->map(fn (InventoryItem $item) => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'quantity' => (float) $item->quantity,
+                'unit' => $item->unit,
+                'branch' => $item->branch?->name ?? 'Unassigned',
+                'status' => (float) $item->quantity <= 0 ? 'out' : 'low',
+            ])
+            ->all();
+
         $metricDateRange = BranchDailyMetric::query()
             ->selectRaw('MIN(metric_date) as min_metric_date, MAX(metric_date) as max_metric_date')
             ->first();
@@ -261,6 +277,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         $dashboardNetProfit = ($dashboardGrossProfit ?? $dashboardSalesTotal) - $dashboardExpensesTotal;
         $dashboardCashPosition = $dashboardCashSales - $dashboardCashExpenses + $dashboardCashMovementsNet;
+        $projectionHealth = $projectionHealthService->snapshot(true);
         $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
         $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
 
@@ -291,6 +308,84 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         })->values()->all();
 
+        $branchPerformanceStartDate = Carbon::today()->copy()->subDays(29)->startOfDay();
+        $branchPerformanceEndDate = Carbon::today()->copy()->endOfDay();
+
+        $branchPerformance = BranchDailyMetric::query()
+            ->join('branches', 'branches.id', '=', 'branch_daily_metrics.branch_id')
+            ->selectRaw('branches.id as branch_id')
+            ->selectRaw('branches.name as branch_name')
+            ->selectRaw('COALESCE(SUM(branch_daily_metrics.completed_sales_total), 0) as revenue')
+            ->selectRaw('COALESCE(SUM(branch_daily_metrics.completed_orders_total), 0) as completed_orders')
+            ->selectRaw('COALESCE(SUM(branch_daily_metrics.expenses_total), 0) as expenses')
+            ->whereBetween('branch_daily_metrics.metric_date', [
+                $branchPerformanceStartDate->toDateString(),
+                $branchPerformanceEndDate->toDateString(),
+            ])
+            ->groupBy('branches.id', 'branches.name')
+            ->orderByDesc('revenue')
+            ->limit(3)
+            ->get()
+            ->map(fn ($row) => [
+                'branchId' => (int) $row->branch_id,
+                'branchName' => $row->branch_name,
+                'revenue' => (float) $row->revenue,
+                'completedOrders' => (int) $row->completed_orders,
+                'netProfit' => (float) $row->revenue - (float) $row->expenses,
+            ])
+            ->values()
+            ->all();
+
+        $totalOrdersToday = array_sum($orderStats);
+        $cancelledRateToday = $totalOrdersToday > 0
+            ? round(($orderStats['cancelled'] / $totalOrdersToday) * 100, 1)
+            : 0.0;
+
+        $attentionItems = collect([
+            $projectionHealth['criticalBranchCount'] > 0
+                ? [
+                    'title' => 'Critical projection branches',
+                    'detail' => $projectionHealth['criticalBranchCount'].' branch projections need review.',
+                    'level' => 'critical',
+                ]
+                : null,
+            $projectionHealth['warningBranchCount'] > 0
+                ? [
+                    'title' => 'Projection warnings',
+                    'detail' => $projectionHealth['warningBranchCount'].' branches have stale or warning projections.',
+                    'level' => 'warning',
+                ]
+                : null,
+            $outOfStockItems > 0
+                ? [
+                    'title' => 'Out-of-stock inventory',
+                    'detail' => $outOfStockItems.' items are currently unavailable.',
+                    'level' => 'critical',
+                ]
+                : null,
+            $lowStockItems > 0
+                ? [
+                    'title' => 'Low-stock inventory',
+                    'detail' => $lowStockItems.' items are running below the stock threshold.',
+                    'level' => 'warning',
+                ]
+                : null,
+            $cancelledRateToday >= 10
+                ? [
+                    'title' => 'Cancellation rate elevated',
+                    'detail' => 'Cancelled orders are at '.$cancelledRateToday.'% today.',
+                    'level' => 'warning',
+                ]
+                : null,
+            $amountOwedToVendors > 0
+                ? [
+                    'title' => 'Vendor balances pending',
+                    'detail' => 'Outstanding vendor payables total '.number_format($amountOwedToVendors, 0).' AFN.',
+                    'level' => 'info',
+                ]
+                : null,
+        ])->filter()->take(4)->values()->all();
+
         return Inertia::render('dashboard', [
             'data' => [
                 'orders' => $canViewOrders ? $orderStats : null,
@@ -307,13 +402,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'inventoryValue' => round($inventoryValue, 2),
                     'amountOwedToVendors' => round($amountOwedToVendors, 2),
                     'pie' => $inventoryPie,
+                    'lowStockQuickList' => $lowStockQuickList,
                 ] : null,
                 'finance' => $canViewFinance ? [
                     'netProfit' => (float) $dashboardNetProfit,
                     'expenses' => (float) $dashboardExpensesTotal,
                     'cashPosition' => (float) $dashboardCashPosition,
-                    'projectionHealth' => $projectionHealthService->snapshot(true),
+                    'projectionHealth' => $projectionHealth,
                     'monthlyNetProfit' => $monthlyNetProfit,
+                    'branchPerformance' => $branchPerformance,
                     'notes' => [
                         'netProfit' => $dashboardGrossProfit === null
                             ? 'Net profit = sales - expenses until inventory cost postings are active.'
@@ -322,6 +419,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
                     ],
                 ] : null,
+                'attentionItems' => $attentionItems,
             ],
         ]);
     })->name('dashboard');
