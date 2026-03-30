@@ -1,0 +1,161 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Enums\OrderStatus;
+use App\Models\Branch;
+use App\Models\BranchDailyMetric;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+
+class BackfillBranchDailyMetricsCommand extends Command
+{
+    protected $signature = 'projection:backfill-branch-daily-metrics
+        {--start-date= : Inclusive start date (Y-m-d)}
+        {--end-date= : Inclusive end date (Y-m-d)}
+        {--branch-id= : Limit backfill to a single branch}
+        {--reset : Delete existing projected rows in the selected scope before rebuilding}';
+
+    protected $description = 'Backfill branch daily metric projections from historical orders and expenses.';
+
+    public function handle(): int
+    {
+        [$startDate, $endDate] = $this->resolveDateRange();
+        $branchId = $this->option('branch-id') !== null
+            ? (int) $this->option('branch-id')
+            : null;
+
+        if ($branchId !== null) {
+            Branch::query()->findOrFail($branchId);
+        }
+
+        if ($this->option('reset')) {
+            BranchDailyMetric::query()
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->whereBetween('metric_date', [$startDate->toDateString(), $endDate->toDateString()])
+                ->delete();
+        }
+
+        $metrics = collect();
+
+        $orderRows = DB::table('orders')
+            ->selectRaw('branch_id, DATE(created_at) as metric_date')
+            ->selectRaw('COUNT(*) as orders_total')
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed_orders_total", [OrderStatus::COMPLETED->value])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled_orders_total", [OrderStatus::CANCELLED->value])
+            ->selectRaw('COALESCE(SUM(total_amount), 0) as gross_sales_total')
+            ->selectRaw("COALESCE(SUM(CASE WHEN status = ? THEN total_amount ELSE 0 END), 0) as completed_sales_total", [OrderStatus::COMPLETED->value])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+            ->groupBy('branch_id', DB::raw('DATE(created_at)'))
+            ->get();
+
+        foreach ($orderRows as $row) {
+            $key = "{$row->branch_id}:{$row->metric_date}";
+
+            $metrics[$key] = [
+                'branch_id' => (int) $row->branch_id,
+                'metric_date' => (string) $row->metric_date,
+                'orders_total' => (int) $row->orders_total,
+                'completed_orders_total' => (int) $row->completed_orders_total,
+                'cancelled_orders_total' => (int) $row->cancelled_orders_total,
+                'gross_sales_total' => (float) $row->gross_sales_total,
+                'completed_sales_total' => (float) $row->completed_sales_total,
+                'expenses_total' => 0.0,
+                'last_projected_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        $expenseRows = DB::table('expenses')
+            ->selectRaw('branch_id, DATE(expense_date) as metric_date')
+            ->selectRaw('COALESCE(SUM(amount), 0) as expenses_total')
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->groupBy('branch_id', DB::raw('DATE(expense_date)'))
+            ->get();
+
+        foreach ($expenseRows as $row) {
+            $key = "{$row->branch_id}:{$row->metric_date}";
+            $existing = $metrics->get($key, [
+                'branch_id' => (int) $row->branch_id,
+                'metric_date' => (string) $row->metric_date,
+                'orders_total' => 0,
+                'completed_orders_total' => 0,
+                'cancelled_orders_total' => 0,
+                'gross_sales_total' => 0.0,
+                'completed_sales_total' => 0.0,
+                'expenses_total' => 0.0,
+                'last_projected_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $existing['expenses_total'] = (float) $row->expenses_total;
+            $existing['updated_at'] = now();
+            $existing['last_projected_at'] = now();
+
+            $metrics[$key] = $existing;
+        }
+
+        foreach ($metrics->chunk(500) as $chunk) {
+            BranchDailyMetric::query()->upsert(
+                $chunk->values()->all(),
+                ['branch_id', 'metric_date'],
+                [
+                    'orders_total',
+                    'completed_orders_total',
+                    'cancelled_orders_total',
+                    'gross_sales_total',
+                    'completed_sales_total',
+                    'expenses_total',
+                    'last_projected_at',
+                    'updated_at',
+                ],
+            );
+        }
+
+        $this->info(sprintf(
+            'Backfilled %d branch-day metric row(s) for %s to %s.',
+            $metrics->count(),
+            $startDate->toDateString(),
+            $endDate->toDateString(),
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function resolveDateRange(): array
+    {
+        $startDate = $this->option('start-date')
+            ? Carbon::parse((string) $this->option('start-date'))->startOfDay()
+            : $this->earliestKnownDate();
+
+        $endDate = $this->option('end-date')
+            ? Carbon::parse((string) $this->option('end-date'))->endOfDay()
+            : Carbon::now()->endOfDay();
+
+        if ($startDate->gt($endDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+
+        return [$startDate, $endDate];
+    }
+
+    private function earliestKnownDate(): Carbon
+    {
+        $orderDate = DB::table('orders')->min('created_at');
+        $expenseDate = DB::table('expenses')->min('expense_date');
+
+        $dates = collect([$orderDate, $expenseDate])
+            ->filter()
+            ->map(fn ($value) => Carbon::parse((string) $value));
+
+        return $dates->isNotEmpty()
+            ? $dates->sort()->first()->copy()->startOfDay()
+            : Carbon::today()->startOfDay();
+    }
+}

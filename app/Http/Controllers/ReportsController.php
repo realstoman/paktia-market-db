@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Projection\BranchDailyMetricReader;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -24,6 +25,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
+    public function __construct(
+        private readonly BranchDailyMetricReader $branchDailyMetricReader,
+    ) {}
+
     private const MODULES = [
         'orders',
         'inventory',
@@ -322,6 +327,11 @@ class ReportsController extends Controller
 
     private function buildOverview(Carbon $startDate, Carbon $endDate, ?int $branchId, array $availableModules): array
     {
+        $projectedRevenue = $this->branchDailyMetricReader
+            ->sumCompletedSales($startDate, $endDate, $branchId);
+        $projectedExpenses = $this->branchDailyMetricReader
+            ->sumExpenses($startDate, $endDate, $branchId);
+
         $ordersQuery = Order::query()->whereBetween('created_at', [$startDate, $endDate]);
         $expensesQuery = Expense::query()->whereBetween('expense_date', [
             $startDate->toDateString(),
@@ -340,11 +350,8 @@ class ReportsController extends Controller
         $inventoryValue = (clone $inventoryQuery)->get(['quantity', 'unit_price'])
             ->sum(fn (InventoryItem $item) => (float) $item->quantity * (float) ($item->unit_price ?? 0));
 
-        $completedRevenue = (float) (clone $ordersQuery)
-            ->where('status', 'completed')
-            ->sum('total_amount');
-
-        $expensesTotal = (float) (clone $expensesQuery)->sum('amount');
+        $completedRevenue = $projectedRevenue;
+        $expensesTotal = $projectedExpenses;
 
         $overview = [
             [
@@ -1248,11 +1255,6 @@ class ReportsController extends Controller
             ->orderBy('name')
             ->get();
 
-        $orders = Order::query()
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
-            ->get();
-
         $inventoryItems = InventoryItem::query()
             ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
             ->get();
@@ -1265,29 +1267,29 @@ class ReportsController extends Controller
             ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
             ->get();
 
-        $expenses = Expense::query()
-            ->whereBetween('expense_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->when($branchId, fn (Builder $query) => $query->where('branch_id', $branchId))
-            ->get();
+        $projectedBranchMetrics = $this->branchDailyMetricReader
+            ->branchRevenue($startDate, $endDate, $branchId)
+            ->keyBy('branch');
 
-        $rows = $branches->map(function (Branch $branch) use ($orders, $inventoryItems, $employees, $users, $expenses) {
-            $branchOrders = $orders->where('branch_id', $branch->id);
-            $completedRevenue = (float) $branchOrders
-                ->where('status', 'completed')
-                ->sum('total_amount');
+        $projectedExpenseTotals = \App\Models\BranchDailyMetric::query()
+            ->selectRaw('branch_id, COALESCE(SUM(expenses_total), 0) as expenses_total, COALESCE(SUM(orders_total), 0) as orders_total')
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->whereBetween('metric_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->groupBy('branch_id')
+            ->get()
+            ->keyBy('branch_id');
 
+        $rows = $branches->map(function (Branch $branch) use ($inventoryItems, $employees, $users, $projectedBranchMetrics, $projectedExpenseTotals) {
+            $projected = $projectedExpenseTotals->get($branch->id);
             return [
                 'branch' => $branch->name,
                 'status' => $branch->is_active ? 'Active' : 'Inactive',
-                'orders' => (int) $branchOrders->count(),
-                'revenue' => $completedRevenue,
+                'orders' => (int) ($projected->orders_total ?? 0),
+                'revenue' => (float) ($projectedBranchMetrics->get($branch->name)['revenue'] ?? 0),
                 'inventoryItems' => (int) $inventoryItems->where('branch_id', $branch->id)->count(),
                 'employees' => (int) $employees->where('branch_id', $branch->id)->count(),
                 'users' => (int) $users->where('branch_id', $branch->id)->count(),
-                'expenses' => (float) $expenses->where('branch_id', $branch->id)->sum('amount'),
+                'expenses' => (float) ($projected->expenses_total ?? 0),
                 'address' => $branch->address ?: '-',
             ];
         })->sortByDesc('revenue')->values();
