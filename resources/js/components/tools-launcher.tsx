@@ -119,6 +119,20 @@ export function ToolsLauncher() {
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorNotes, setVendorNotes] = useState('');
 
+    const handleDeleteVendor = (vendor: Vendor) => {
+        router.delete(`/vendors/${vendor.id}`, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                if (vendorId === vendor.id) {
+                    resetVendorForm();
+                }
+
+                toast.success('Vendor deleted successfully.');
+            },
+        });
+    };
+
     const [bannerId, setBannerId] = useState<number | null>(null);
     const [bannerTitle, setBannerTitle] = useState('');
     const [bannerType, setBannerType] = useState<
@@ -636,6 +650,7 @@ export function ToolsLauncher() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
@@ -1066,13 +1081,11 @@ export function ToolsLauncher() {
                                         Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() =>
-                                            router.delete(
-                                                `/vendors/${vendor.id}`,
-                                                { preserveScroll: true },
-                                            )
+                                            handleDeleteVendor(vendor)
                                         }
                                     >
                                         <Trash2 className="mr-1 h-3 w-3" />

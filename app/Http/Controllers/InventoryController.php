@@ -405,7 +405,9 @@ class InventoryController extends Controller
     {
         $vendor->delete();
 
-        return redirect()->back()
+        $redirectTo = url()->previous() ?: route('inventory.index');
+
+        return redirect()->to($redirectTo)
             ->with('success', 'Vendor deleted successfully.');
     }
 

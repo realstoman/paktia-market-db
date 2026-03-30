@@ -1,5 +1,5 @@
 export const brand = {
-    name: 'Baba Restaurant',
+    name: 'Baba Restaurant ERP',
     shortName: 'Baba',
     logo: '/brand/logo.svg',
     logoFull: '/brand/logo-full.svg',
