@@ -5,14 +5,6 @@ import * as React from 'react';
 import { Label, Pie, PieChart } from 'recharts';
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
@@ -107,12 +99,16 @@ export function PieChartDonutText({
     const totalItems = typeof total === 'number' && total >= 0 ? total : 0;
 
     return (
-        <Card className="flex h-full flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
-            <CardHeader className="items-center pb-0">
-                <CardTitle>Inventory Status Overview</CardTitle>
-                <CardDescription>Restaurant items</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 pb-0">
+        <div className="flex h-full flex-col">
+            <div className="mb-3 text-center">
+                <h3 className="text-base font-semibold text-foreground">
+                    Inventory Status Overview
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                    Restaurant items
+                </p>
+            </div>
+            <div className="flex-1">
                 <ChartContainer
                     config={chartConfig}
                     className="mx-auto aspect-square max-h-[225px]"
@@ -126,8 +122,9 @@ export function PieChartDonutText({
                             data={chartData}
                             dataKey="value"
                             nameKey="segment"
-                            innerRadius={60}
-                            strokeWidth={5}
+                            innerRadius={62}
+                            outerRadius={88}
+                            strokeWidth={4}
                         >
                             <Label
                                 content={({ viewBox }) => {
@@ -165,17 +162,17 @@ export function PieChartDonutText({
                         </Pie>
                     </PieChart>
                 </ChartContainer>
-            </CardContent>
-            <CardFooter className="flex-col items-start gap-3 pb-0 text-sm">
-                <div className="flex items-start gap-2 leading-none font-medium">
+            </div>
+            <div className="mt-3 flex flex-col items-start gap-2.5 text-sm">
+                <div className="flex items-start gap-2 leading-none font-medium text-foreground">
                     Inventory distribution overview{' '}
                     <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="leading-none text-muted-foreground">
-                    5-color breakdown: items, fixed, usable, low stock, and out
-                    of stock.
+                <div className="leading-relaxed text-muted-foreground">
+                    A quick breakdown of total items, fixed assets, usable
+                    stock, low stock, and out-of-stock items.
                 </div>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }

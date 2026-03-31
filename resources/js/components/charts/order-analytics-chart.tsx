@@ -1,13 +1,6 @@
 'use client';
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
@@ -20,33 +13,33 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 const chartConfig = {
     pending: {
         label: 'Pending',
-        color: 'var(--chart-neutral)',
+        color: '#64748b',
     },
     preparing: {
         label: 'Preparing',
-        color: 'var(--chart-sky)',
+        color: '#cc924b',
     },
     ready: {
         label: 'Ready',
-        color: 'var(--chart-ready)',
+        color: '#5b7c80',
     },
     completed: {
         label: 'Completed',
-        color: 'var(--chart-green)',
+        color: '#1f8f67',
     },
     cancelled: {
         label: 'Cancelled',
-        color: 'var(--chart-red)',
+        color: '#d06161',
     },
 } satisfies ChartConfig;
 
 const LegendItem = ({ label, color }: { label: string; color: string }) => (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
         <div
-            className="h-2 w-2 rounded-full"
+            className="h-2.5 w-2.5 rounded-full"
             style={{ backgroundColor: color }}
         />
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
     </div>
 );
 
@@ -73,41 +66,29 @@ export function OrderAnalyticsChart({
     );
 
     return (
-        <Card className="flex h-full flex-1 flex-col rounded-none border-none bg-white pt-0 shadow-none dark:bg-brand-bg-dark">
-            <CardHeader className="flex flex-row items-start justify-between pb-2">
+        <div className="flex h-full flex-1 flex-col">
+            <div className="mb-3 flex flex-row items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">
+                    <h3 className="text-base font-semibold text-foreground">
                         {title}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
                         {description}
-                    </CardDescription>
+                    </p>
                 </div>
 
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-nowrap">
-                        <LegendItem
-                            label="Pending"
-                            color="var(--chart-neutral)"
-                        />
-                        <LegendItem
-                            label="Preparing"
-                            color="var(--chart-sky)"
-                        />
+                        <LegendItem label="Pending" color="var(--chart-pending)" />
+                        <LegendItem label="Preparing" color="var(--chart-preparing)" />
                         <LegendItem label="Ready" color="var(--chart-ready)" />
-                        <LegendItem
-                            label="Completed"
-                            color="var(--chart-green)"
-                        />
-                        <LegendItem
-                            label="Cancelled"
-                            color="var(--chart-red)"
-                        />
+                        <LegendItem label="Completed" color="var(--chart-completed)" />
+                        <LegendItem label="Cancelled" color="var(--chart-cancelled)" />
                     </div>
                 </div>
-            </CardHeader>
+            </div>
 
-            <CardContent className="flex-1 pb-0">
+            <div className="flex-1">
                 <ChartContainer
                     config={chartConfig}
                     className="h-full min-h-[300px] w-full"
@@ -125,7 +106,7 @@ export function OrderAnalyticsChart({
                         <CartesianGrid
                             vertical={false}
                             strokeDasharray="3 3"
-                            stroke="#e9edf3"
+                            stroke="#edf1f5"
                         />
                         <defs>
                             <linearGradient
@@ -137,12 +118,12 @@ export function OrderAnalyticsChart({
                             >
                                 <stop
                                     offset="5%"
-                                    stopColor="var(--chart-neutral)"
+                                    stopColor="var(--chart-pending)"
                                     stopOpacity={0.42}
                                 />
                                 <stop
                                     offset="95%"
-                                    stopColor="var(--chart-neutral)"
+                                    stopColor="var(--chart-pending)"
                                     stopOpacity={0.02}
                                 />
                             </linearGradient>
@@ -155,12 +136,12 @@ export function OrderAnalyticsChart({
                             >
                                 <stop
                                     offset="5%"
-                                    stopColor="var(--chart-sky)"
+                                    stopColor="var(--chart-preparing)"
                                     stopOpacity={0.42}
                                 />
                                 <stop
                                     offset="95%"
-                                    stopColor="var(--chart-sky)"
+                                    stopColor="var(--chart-preparing)"
                                     stopOpacity={0.02}
                                 />
                             </linearGradient>
@@ -191,12 +172,12 @@ export function OrderAnalyticsChart({
                             >
                                 <stop
                                     offset="5%"
-                                    stopColor="var(--chart-green)"
+                                    stopColor="var(--chart-completed)"
                                     stopOpacity={0.42}
                                 />
                                 <stop
                                     offset="95%"
-                                    stopColor="var(--chart-green)"
+                                    stopColor="var(--chart-completed)"
                                     stopOpacity={0.02}
                                 />
                             </linearGradient>
@@ -209,12 +190,12 @@ export function OrderAnalyticsChart({
                             >
                                 <stop
                                     offset="5%"
-                                    stopColor="var(--chart-red)"
+                                    stopColor="var(--chart-cancelled)"
                                     stopOpacity={0.42}
                                 />
                                 <stop
                                     offset="95%"
-                                    stopColor="var(--chart-red)"
+                                    stopColor="var(--chart-cancelled)"
                                     stopOpacity={0.02}
                                 />
                             </linearGradient>
@@ -225,7 +206,7 @@ export function OrderAnalyticsChart({
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tick={{ fill: '#666', fontSize: 12 }}
+                            tick={{ fill: '#737373', fontSize: 12 }}
                             tickFormatter={(value) => value}
                         />
 
@@ -233,7 +214,7 @@ export function OrderAnalyticsChart({
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tick={{ fill: '#666', fontSize: 12 }}
+                            tick={{ fill: '#737373', fontSize: 12 }}
                             width={30}
                         />
 
@@ -258,9 +239,9 @@ export function OrderAnalyticsChart({
                         <Area
                             dataKey="pending"
                             type="monotone"
-                            stroke="var(--chart-neutral)"
+                            stroke="var(--chart-pending)"
                             fill="url(#fillPending)"
-                            strokeWidth={2}
+                            strokeWidth={1.75}
                             isAnimationActive
                             animationDuration={700}
                         />
@@ -269,9 +250,9 @@ export function OrderAnalyticsChart({
                         <Area
                             dataKey="preparing"
                             type="monotone"
-                            stroke="var(--chart-sky)"
+                            stroke="var(--chart-preparing)"
                             fill="url(#fillPreparing)"
-                            strokeWidth={2}
+                            strokeWidth={1.75}
                             isAnimationActive
                             animationDuration={700}
                         />
@@ -282,7 +263,7 @@ export function OrderAnalyticsChart({
                             type="monotone"
                             stroke="var(--chart-ready)"
                             fill="url(#fillReady)"
-                            strokeWidth={2}
+                            strokeWidth={1.75}
                             isAnimationActive
                             animationDuration={700}
                         />
@@ -291,9 +272,9 @@ export function OrderAnalyticsChart({
                         <Area
                             dataKey="completed"
                             type="monotone"
-                            stroke="var(--chart-green)"
+                            stroke="var(--chart-completed)"
                             fill="url(#fillCompleted)"
-                            strokeWidth={2}
+                            strokeWidth={1.75}
                             isAnimationActive
                             animationDuration={700}
                         />
@@ -302,15 +283,15 @@ export function OrderAnalyticsChart({
                         <Area
                             dataKey="cancelled"
                             type="monotone"
-                            stroke="var(--chart-red)"
+                            stroke="var(--chart-cancelled)"
                             fill="url(#fillCancelled)"
-                            strokeWidth={2}
+                            strokeWidth={1.75}
                             isAnimationActive
                             animationDuration={700}
                         />
                     </AreaChart>
                 </ChartContainer>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

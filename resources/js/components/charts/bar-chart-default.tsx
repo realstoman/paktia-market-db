@@ -1,21 +1,13 @@
 'use client';
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
     type ChartConfig,
 } from '@/components/ui/chart';
 import { formatPrice } from '@/utils/format';
-import { TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 export const description = 'Baba Bar Chart';
@@ -23,7 +15,7 @@ export const description = 'Baba Bar Chart';
 const chartConfig = {
     netProfit: {
         label: 'Net Profit',
-        color: 'var(--chart-1)',
+        color: '#102F33',
     },
 } satisfies ChartConfig;
 
@@ -33,9 +25,19 @@ interface BarChartDefaultProps {
         label: string;
         netProfit: number;
     }>;
+    title?: string;
+    description?: string;
+    footerNote?: string;
+    compact?: boolean;
 }
 
-export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
+export function BarChartDefault({
+    data = [],
+    title = 'Restaurant Net Profit',
+    description = 'Past 5 months',
+    footerNote = 'Showing net profit by month for the last 5 months',
+    compact = false,
+}: BarChartDefaultProps) {
     const latestMonth = data[data.length - 1];
     const previousMonth = data[data.length - 2];
     const trendValue =
@@ -46,17 +48,23 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
         latestMonth && previousMonth && previousMonth.netProfit !== 0
             ? (trendValue / Math.abs(previousMonth.netProfit)) * 100
             : null;
+    const trendIsPositive = trendValue >= 0;
 
     return (
-        <Card className="flex h-full flex-col border-none bg-white shadow-none dark:bg-brand-bg-dark">
-            <CardHeader>
-                <CardTitle>Restaurant Net Profit</CardTitle>
-                <CardDescription>Past 5 months</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <ChartContainer config={chartConfig}>
+        <div className="flex h-full flex-col">
+            <div className={compact ? 'mb-2' : 'mb-3'}>
+                <h3 className="text-base font-semibold text-foreground">
+                    {title}
+                </h3>
+                <p className="text-sm text-muted-foreground">{description}</p>
+            </div>
+            <div className="flex-1">
+                <ChartContainer
+                    config={chartConfig}
+                    className={compact ? 'h-[180px] w-full' : 'h-full w-full'}
+                >
                     <BarChart accessibilityLayer data={data}>
-                        <CartesianGrid vertical={false} />
+                        <CartesianGrid vertical={false} stroke="#edf1f5" />
                         <XAxis
                             dataKey="month"
                             tickLine={false}
@@ -78,24 +86,31 @@ export function BarChartDefault({ data = [] }: BarChartDefaultProps) {
                         <Bar
                             dataKey="netProfit"
                             fill="var(--chart-1)"
-                            radius={8}
+                            radius={[10, 10, 6, 6]}
+                            maxBarSize={compact ? 30 : 40}
                         />
                     </BarChart>
                 </ChartContainer>
-            </CardContent>
-            <CardFooter className="flex-col items-start gap-2 pb-4 text-sm">
-                <div className="flex gap-2 leading-none font-medium">
+            </div>
+            <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
+                <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
                         ? 'No percentage comparison available'
                         : `${trendValue >= 0 ? 'Up' : 'Down'} by ${Math.abs(
                               trendPercentage,
                           ).toFixed(1)}% from last month`}{' '}
-                    <TrendingUp className="h-4 w-4" />
+                    {trendPercentage === null ? (
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    ) : trendIsPositive ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                        <TrendingDown className="h-4 w-4 text-rose-600" />
+                    )}
                 </div>
                 <div className="leading-relaxed text-muted-foreground">
-                    Showing net profit by month for the last 5 months
+                    {footerNote}
                 </div>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }

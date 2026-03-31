@@ -48,7 +48,9 @@ export default function AppSidebarLayout({
         <AppShell variant="sidebar">
             <AppSidebar />
             <AppContent className="m-2 flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto rounded-xl">
-                <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                <div className="px-3 pt-2 md:px-4">
+                    <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                </div>
                 <div className="relative mt-3 flex min-h-0 flex-1 flex-col px-3 pb-3 md:px-4">
                     {children}
                     {isNavigating ? (
@@ -57,7 +59,9 @@ export default function AppSidebarLayout({
                         </div>
                     ) : null}
                 </div>
-                <AppSidebarFooter />
+                <div className="px-3 pb-3 md:px-4">
+                    <AppSidebarFooter />
+                </div>
             </AppContent>
         </AppShell>
     );

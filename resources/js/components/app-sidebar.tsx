@@ -123,7 +123,7 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="floating">
-            <SidebarHeader className="rounded-t-sm bg-white dark:bg-brand-bg-dark">
+            <SidebarHeader className="rounded-t-lg bg-white dark:bg-brand-bg-dark">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
@@ -140,7 +140,7 @@ export function AppSidebar() {
                 {isSuperAdmin ? <ToolsLauncher /> : null}
             </SidebarContent>
 
-            <SidebarFooter className="bg-white dark:bg-brand-bg-dark">
+            <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
