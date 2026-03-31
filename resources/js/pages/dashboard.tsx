@@ -287,9 +287,22 @@ function MetricInline({
     );
 }
 
-function StatusPill({ label, value }: { label: string; value: string }) {
+function StatusPill({
+    label,
+    value,
+    className,
+}: {
+    label: string;
+    value: string;
+    className?: string;
+}) {
     return (
-        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/80 px-3.5 py-3 dark:border-neutral-800 dark:bg-neutral-950/40">
+        <div
+            className={cn(
+                'rounded-xl border border-neutral-200/70 bg-neutral-50/80 px-3.5 py-3 dark:border-neutral-800 dark:bg-neutral-950/40',
+                className,
+            )}
+        >
             <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
                 {label}
             </p>
@@ -419,11 +432,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         .projectionHealth.status
                                                 }
                                             </span>
-                                            <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase">
+                                            <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase dark:text-neutral-400">
                                                 System health check
                                             </span>
                                         </div>
-                                        <p className="text-sm leading-6 text-foreground">
+                                        <p className="text-sm leading-6 text-foreground dark:text-neutral-200">
                                             {
                                                 financeStats.projectionHealth
                                                     .message
@@ -447,6 +460,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             .criticalBranchCount,
                                                 ),
                                             )}
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
                                         />
                                         <StatusPill
                                             label="Warning"
@@ -454,6 +468,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 financeStats.projectionHealth
                                                     .warningBranchCount,
                                             )}
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
                                         />
                                         <StatusPill
                                             label="Critical"
@@ -461,6 +476,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 financeStats.projectionHealth
                                                     .criticalBranchCount,
                                             )}
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
                                         />
                                     </div>
                                 </CardContent>
