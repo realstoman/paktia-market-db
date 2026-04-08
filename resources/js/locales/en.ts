@@ -1,0 +1,60 @@
+const en = {
+    common: {
+        save: 'Save',
+        saved: 'Saved',
+        settings: 'Settings',
+        profile: 'Profile',
+        password: 'Password',
+        appearance: 'Appearance',
+        language: 'Language',
+        twoFactorAuth: 'Two-Factor Auth',
+        logout: 'Log out',
+    },
+    language: {
+        switchLanguage: 'Switch language',
+        language: 'Language',
+        description: 'Choose the language used across the interface.',
+        updated: 'Language updated successfully.',
+    },
+    navigation: {
+        platform: 'Platform',
+        dashboard: 'Dashboard',
+        orders: 'Orders',
+        products: 'Products',
+        inventory: 'Inventory',
+        employees: 'Employees',
+        finance: 'Finance',
+        branches: 'Branches',
+        users: 'Users',
+        roles: 'Roles',
+        reports: 'Reports',
+        runtimeHealth: 'Runtime Health',
+        mobileApp: 'Mobile App',
+        website: 'Website',
+    },
+    settings: {
+        title: 'Settings',
+        description: 'Manage your profile and account settings',
+        appearanceTitle: 'Appearance settings',
+        appearanceDescription: "Update your account's appearance settings",
+        languageTitle: 'Language settings',
+        languageDescription: 'Choose the language used for your interface',
+        currentLanguage: 'Current language',
+        chooseLanguage: 'Choose a language',
+        languageHelp:
+            'English is the default language. Dari and Pashto use a right-to-left layout.',
+        openLanguageSettings: 'Open language settings',
+        saveLanguage: 'Save language',
+    },
+    userMenu: {
+        profile: 'Profile',
+        settings: 'Settings',
+        logout: 'Log out',
+    },
+    footer: {
+        allRightsReserved: 'All rights reserved.',
+        productOf: 'Product of',
+    },
+} as const;
+
+export default en;

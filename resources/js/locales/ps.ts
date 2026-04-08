@@ -1,0 +1,60 @@
+const ps = {
+    common: {
+        save: 'خوندي کول',
+        saved: 'خوندي شول',
+        settings: 'امستنې',
+        profile: 'پروفایل',
+        password: 'پټنوم',
+        appearance: 'بڼه',
+        language: 'ژبه',
+        twoFactorAuth: 'دوه پړاوه تصدیق',
+        logout: 'وتل',
+    },
+    language: {
+        switchLanguage: 'ژبه بدلول',
+        language: 'ژبه',
+        description: 'هغه ژبه وټاکئ چې په ټول انٹرفېس کې وکارول شي.',
+        updated: 'ژبه په بریالیتوب سره بدله شوه.',
+    },
+    navigation: {
+        platform: 'پلاتفورم',
+        dashboard: 'ډشبورډ',
+        orders: 'امرونه',
+        products: 'محصولات',
+        inventory: 'ذخیره',
+        employees: 'کارکوونکي',
+        finance: 'مالي',
+        branches: 'څانګې',
+        users: 'کارنان',
+        roles: 'رولونه',
+        reports: 'راپورونه',
+        runtimeHealth: 'د سیستم وضعیت',
+        mobileApp: 'موبایل اپ',
+        website: 'وېب‌سایټ',
+    },
+    settings: {
+        title: 'امستنې',
+        description: 'خپل پروفایل او د حساب امستنې سمبال کړئ',
+        appearanceTitle: 'د بڼې امستنې',
+        appearanceDescription: 'د خپل حساب د بڼې امستنې تازه کړئ',
+        languageTitle: 'د ژبې امستنې',
+        languageDescription: 'د خپل انٹرفېس ژبه وټاکئ',
+        currentLanguage: 'اوسنۍ ژبه',
+        chooseLanguage: 'یوه ژبه وټاکئ',
+        languageHelp:
+            'انګلیسي اصلي ژبه ده. دري او پښتو په ښي-نه-کيڼ ترتیب ښودل کېږي.',
+        openLanguageSettings: 'د ژبې امستنې پرانیزئ',
+        saveLanguage: 'ژبه خوندي کړئ',
+    },
+    userMenu: {
+        profile: 'پروفایل',
+        settings: 'امستنې',
+        logout: 'وتل',
+    },
+    footer: {
+        allRightsReserved: 'ټول حقونه خوندي دي.',
+        productOf: 'د',
+    },
+} as const;
+
+export default ps;

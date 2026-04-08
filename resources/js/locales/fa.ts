@@ -1,0 +1,60 @@
+const fa = {
+    common: {
+        save: 'ذخیره',
+        saved: 'ذخیره شد',
+        settings: 'تنظیمات',
+        profile: 'پروفایل',
+        password: 'رمز عبور',
+        appearance: 'نمای ظاهری',
+        language: 'زبان',
+        twoFactorAuth: 'احراز هویت دومرحله‌ای',
+        logout: 'خروج',
+    },
+    language: {
+        switchLanguage: 'تغییر زبان',
+        language: 'زبان',
+        description: 'زبانی را انتخاب کنید که در سراسر رابط کاربری استفاده شود.',
+        updated: 'زبان با موفقیت تغییر کرد.',
+    },
+    navigation: {
+        platform: 'پلتفرم',
+        dashboard: 'داشبورد',
+        orders: 'سفارش‌ها',
+        products: 'محصولات',
+        inventory: 'موجودی',
+        employees: 'کارمندان',
+        finance: 'مالی',
+        branches: 'شعبات',
+        users: 'کاربران',
+        roles: 'نقش‌ها',
+        reports: 'گزارش‌ها',
+        runtimeHealth: 'وضعیت سیستم',
+        mobileApp: 'اپلیکیشن موبایل',
+        website: 'وب‌سایت',
+    },
+    settings: {
+        title: 'تنظیمات',
+        description: 'پروفایل و تنظیمات حساب خود را مدیریت کنید',
+        appearanceTitle: 'تنظیمات ظاهر',
+        appearanceDescription: 'تنظیمات ظاهر حساب خود را به‌روزرسانی کنید',
+        languageTitle: 'تنظیمات زبان',
+        languageDescription: 'زبان رابط کاربری خود را انتخاب کنید',
+        currentLanguage: 'زبان فعلی',
+        chooseLanguage: 'یک زبان انتخاب کنید',
+        languageHelp:
+            'انگلیسی زبان پیش‌فرض است. دری و پشتو با چیدمان راست به چپ نمایش داده می‌شوند.',
+        openLanguageSettings: 'باز کردن تنظیمات زبان',
+        saveLanguage: 'ذخیره زبان',
+    },
+    userMenu: {
+        profile: 'پروفایل',
+        settings: 'تنظیمات',
+        logout: 'خروج',
+    },
+    footer: {
+        allRightsReserved: 'تمام حقوق محفوظ است.',
+        productOf: 'محصول',
+    },
+} as const;
+
+export default fa;
