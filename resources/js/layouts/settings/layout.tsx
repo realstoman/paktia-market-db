@@ -46,12 +46,13 @@ const sidebarNavItems = [
 ] as const;
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
+    const { isRtl, t } = useLocalization();
+
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
         return null;
     }
 
-    const { isRtl, t } = useLocalization();
     const currentPath = window.location.pathname;
     const translatedNavItems: NavItem[] = sidebarNavItems.map((item) => ({
         title: t(item.titleKey, item.fallbackTitle),
