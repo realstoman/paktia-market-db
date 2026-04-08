@@ -44,6 +44,8 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $supportedLocales = config('localization.supported', []);
+        $currentLocale = app()->getLocale();
 
         return [
             ...parent::share($request),
@@ -57,6 +59,21 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => fn () => $this->buildNotifications($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'localization' => [
+                'locale' => $currentLocale,
+                'direction' => data_get($supportedLocales, "{$currentLocale}.direction", 'ltr'),
+                'isRtl' => data_get($supportedLocales, "{$currentLocale}.direction", 'ltr') === 'rtl',
+                'languages' => collect($supportedLocales)
+                    ->map(fn (array $language, string $code) => [
+                        'code' => $code,
+                        'label' => $language['label'] ?? strtoupper($code),
+                        'nativeLabel' => $language['native_label'] ?? ($language['label'] ?? strtoupper($code)),
+                        'direction' => $language['direction'] ?? 'ltr',
+                        'isDefault' => (bool) ($language['is_default'] ?? false),
+                    ])
+                    ->values()
+                    ->all(),
+            ],
         ];
     }
 

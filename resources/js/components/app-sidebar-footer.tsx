@@ -1,6 +1,9 @@
 import { brand } from '@/config/brand';
+import { useLocalization } from '@/lib/localization';
 
 export function AppSidebarFooter() {
+    const { t } = useLocalization();
+
     return (
         <footer className="sticky bottom-0 z-10 mx-auto mt-4 w-full rounded-lg border border-neutral-100/90 bg-white px-6 py-3 text-xs text-muted-foreground md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
             <div className="mx-auto flex w-full items-center justify-between">
@@ -14,10 +17,10 @@ export function AppSidebarFooter() {
                     >
                         {brand.name}.
                     </a>{' '}
-                    All rights reserved.
+                    {t('footer.allRightsReserved', 'All rights reserved.')}
                 </span>
                 <div>
-                    Product of
+                    {t('footer.productOf', 'Product of')}
                     <a
                         href="https://github.com/realstoman"
                         className="pl-1 font-medium text-foreground hover:underline"

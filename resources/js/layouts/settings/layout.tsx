@@ -1,8 +1,10 @@
 import Heading from '@/components/shared/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useLocalization } from '@/lib/localization';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { show as showLanguage } from '@/routes/language';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
@@ -10,28 +12,38 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
-const sidebarNavItems: NavItem[] = [
+const sidebarNavItems = [
     {
-        title: 'Profile',
+        titleKey: 'common.profile',
+        fallbackTitle: 'Profile',
         href: edit(),
         icon: null,
     },
     {
-        title: 'Password',
+        titleKey: 'common.password',
+        fallbackTitle: 'Password',
         href: editPassword(),
         icon: null,
     },
     {
-        title: 'Two-Factor Auth',
+        titleKey: 'common.twoFactorAuth',
+        fallbackTitle: 'Two-Factor Auth',
         href: show(),
         icon: null,
     },
     {
-        title: 'Appearance',
+        titleKey: 'common.appearance',
+        fallbackTitle: 'Appearance',
         href: editAppearance(),
         icon: null,
     },
-];
+    {
+        titleKey: 'common.language',
+        fallbackTitle: 'Language',
+        href: showLanguage(),
+        icon: null,
+    },
+] as const;
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     // When server-side rendering, we only render the layout on the client...
@@ -39,25 +51,41 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         return null;
     }
 
+    const { isRtl, t } = useLocalization();
     const currentPath = window.location.pathname;
+    const translatedNavItems: NavItem[] = sidebarNavItems.map((item) => ({
+        title: t(item.titleKey, item.fallbackTitle),
+        href: item.href,
+        icon: item.icon,
+    }));
 
     return (
         <div className="h-full rounded-lg bg-white px-4 py-6 dark:bg-brand-bg-dark">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title={t('settings.title', 'Settings')}
+                description={t(
+                    'settings.description',
+                    'Manage your profile and account settings',
+                )}
             />
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
+            <div
+                className={cn('flex flex-col lg:space-x-12', {
+                    'lg:flex-row': !isRtl,
+                    'lg:flex-row-reverse': isRtl,
+                })}
+            >
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
-                        {sidebarNavItems.map((item, index) => (
+                        {translatedNavItems.map((item, index) => (
                             <Button
                                 key={`${resolveUrl(item.href)}-${index}`}
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
+                                className={cn('w-full', {
+                                    'justify-start': !isRtl,
+                                    'justify-end text-right': isRtl,
                                     'bg-muted': isSameUrl(
                                         currentPath,
                                         item.href,

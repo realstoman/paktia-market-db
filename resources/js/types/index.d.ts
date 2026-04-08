@@ -31,6 +31,18 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    localization: {
+        locale: 'en' | 'fa' | 'ps';
+        direction: 'ltr' | 'rtl';
+        isRtl: boolean;
+        languages: {
+            code: 'en' | 'fa' | 'ps';
+            label: string;
+            nativeLabel: string;
+            direction: 'ltr' | 'rtl';
+            isDefault: boolean;
+        }[];
+    };
     notifications?: AppNotification[];
     tools?: {
         countries: Country[];

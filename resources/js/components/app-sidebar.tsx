@@ -30,99 +30,133 @@ import {
     Users,
     Wallet,
 } from 'lucide-react';
+import { useLocalization } from '@/lib/localization';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const mainNavItems = [
     {
-        title: 'Dashboard',
+        titleKey: 'navigation.dashboard',
+        fallbackTitle: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
         can: 'dashboard.view',
     },
     {
-        title: 'Orders',
+        titleKey: 'navigation.orders',
+        fallbackTitle: 'Orders',
         href: '/orders',
         icon: CookingPot,
         can: 'orders.view',
     },
     {
-        title: 'Products',
+        titleKey: 'navigation.products',
+        fallbackTitle: 'Products',
         href: '/products',
         icon: Package,
         can: 'products.view',
     },
     {
-        title: 'Inventory',
+        titleKey: 'navigation.inventory',
+        fallbackTitle: 'Inventory',
         href: '/inventory',
         icon: Boxes,
         can: 'inventory.view',
     },
     {
-        title: 'Employees',
+        titleKey: 'navigation.employees',
+        fallbackTitle: 'Employees',
         href: '/employees',
         icon: UserRound,
         can: 'employees.view',
     },
     {
-        title: 'Finance',
+        titleKey: 'navigation.finance',
+        fallbackTitle: 'Finance',
         href: '/finance',
         icon: Wallet,
         canAny: ['finance.view', 'payroll.view'],
     },
     {
-        title: 'Branches',
+        titleKey: 'navigation.branches',
+        fallbackTitle: 'Branches',
         href: '/branches',
         icon: Building2,
         can: 'branch.view',
     },
     {
-        title: 'Users',
+        titleKey: 'navigation.users',
+        fallbackTitle: 'Users',
         href: '/users',
         icon: Users,
         can: 'user.view',
     },
     {
-        title: 'Roles',
+        titleKey: 'navigation.roles',
+        fallbackTitle: 'Roles',
         href: '/roles',
         icon: ShieldCheck,
         can: 'role.view',
     },
     {
-        title: 'Reports',
+        titleKey: 'navigation.reports',
+        fallbackTitle: 'Reports',
         href: '/reports',
         icon: ScrollText,
         can: 'reports.view',
     },
-];
+] as const;
 
-const footerNavItems: NavItem[] = [
+const footerNavItems = [
     {
-        title: 'Mobile App',
+        titleKey: 'navigation.mobileApp',
+        fallbackTitle: 'Mobile App',
         href: 'https://play.google.com/store/apps/details?id=com.babataste',
         icon: Smartphone,
     },
     {
-        title: 'Website',
+        titleKey: 'navigation.website',
+        fallbackTitle: 'Website',
         href: 'https://babataste.com',
         icon: Globe,
     },
-];
+] as const;
 
 export function AppSidebar() {
     const { isSuperAdmin } = useAuthorization();
-    const navigationItems = isSuperAdmin
-        ? [
-              ...mainNavItems,
-              {
-                  title: 'Runtime Health',
-                  href: '/operations/runtime-health',
-                  icon: Activity,
-              } satisfies NavItem,
-          ]
-        : mainNavItems;
+    const { isRtl, t } = useLocalization();
+    const navigationItems: NavItem[] = [
+        ...mainNavItems.map((item) => ({
+            title: t(item.titleKey, item.fallbackTitle),
+            href: item.href,
+            icon: item.icon,
+            can: item.can,
+            canAny: item.canAny,
+        })),
+        ...(isSuperAdmin
+            ? [
+                  {
+                      title: t(
+                          'navigation.runtimeHealth',
+                          'Runtime Health',
+                      ),
+                      href: '/operations/runtime-health',
+                      icon: Activity,
+                  } satisfies NavItem,
+              ]
+            : []),
+    ];
+    const translatedFooterNavItems: NavItem[] = footerNavItems.map((item) => ({
+        title: t(item.titleKey, item.fallbackTitle),
+        href: item.href,
+        icon: item.icon,
+    }));
 
     return (
-        <Sidebar collapsible="icon" variant="floating">
+        <Sidebar
+            collapsible="icon"
+            variant="floating"
+            side={isRtl ? 'right' : 'left'}
+        >
             <SidebarHeader className="rounded-t-lg bg-white dark:bg-brand-bg-dark">
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -141,7 +175,10 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
-                <NavFooter items={footerNavItems} className="mt-auto" />
+                <NavFooter
+                    items={translatedFooterNavItems}
+                    className="mt-auto"
+                />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
