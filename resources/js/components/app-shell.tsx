@@ -1,6 +1,7 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 interface AppShellProps {
     children: React.ReactNode;
@@ -8,7 +9,15 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, variant = 'header' }: AppShellProps) {
-    const isOpen = usePage<SharedData>().props.sidebarOpen;
+    const { sidebarOpen: isOpen, localization } = usePage<SharedData>().props;
+
+    useEffect(() => {
+        document.documentElement.lang = localization.locale;
+        document.documentElement.dir = localization.direction;
+        document.body.dir = localization.direction;
+        document.documentElement.classList.toggle('rtl', localization.isRtl);
+        document.body.classList.toggle('rtl', localization.isRtl);
+    }, [localization.direction, localization.isRtl, localization.locale]);
 
     if (variant === 'header') {
         return (

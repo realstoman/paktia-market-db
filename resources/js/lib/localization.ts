@@ -2,7 +2,9 @@ import translations, { type LocaleCode } from '@/locales';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 
-type TranslationTree = Record<string, string | TranslationTree>;
+interface TranslationTree {
+    [key: string]: string | TranslationTree;
+}
 
 function getNestedValue(
     source: TranslationTree,
@@ -27,8 +29,7 @@ function getNestedValue(
 export function useLocalization() {
     const { localization } = usePage<SharedData>().props;
     const locale = (localization?.locale ?? 'en') as LocaleCode;
-    const activeTranslations =
-        translations[locale] ?? translations.en;
+    const activeTranslations = translations[locale] ?? translations.en;
 
     const t = (key: string, fallback?: string): string => {
         const translated =

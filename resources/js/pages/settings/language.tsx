@@ -1,5 +1,4 @@
 import HeadingSmall from '@/components/shared/heading-small';
-import { Button } from '@/components/ui/button';
 import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -112,15 +111,6 @@ export default function LanguageSettings() {
                                 'English is the default language. Dari and Pashto use a right-to-left layout.',
                             )}
                         </p>
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => handleChangeLanguage(locale)}
-                            className="hidden"
-                        >
-                            {t('settings.saveLanguage', 'Save language')}
-                        </Button>
                     </div>
                 </div>
             </SettingsLayout>

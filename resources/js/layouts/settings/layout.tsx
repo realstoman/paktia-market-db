@@ -70,7 +70,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             />
 
             <div
-                className={cn('flex flex-col lg:space-x-12', {
+                className={cn('flex flex-col lg:gap-12', {
                     'lg:flex-row': !isRtl,
                     'lg:flex-row-reverse': isRtl,
                 })}

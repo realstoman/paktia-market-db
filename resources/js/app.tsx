@@ -1,6 +1,5 @@
 import '../css/app.css';
 
-import { DocumentLocaleSync } from '@/components/document-locale-sync';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
@@ -22,7 +21,6 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <DocumentLocaleSync />
                 <App {...props} />
                 <Toaster richColors closeButton />
             </StrictMode>,
