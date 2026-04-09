@@ -13,6 +13,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useLocalization } from '@/lib/localization';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -40,6 +41,7 @@ export function SearchableDropdown({
     emptyText = 'No results found.',
     className,
 }: SearchableDropdownProps) {
+    const { isRtl } = useLocalization();
     const [open, setOpen] = useState(false);
 
     const selectedLabel = useMemo(
@@ -56,13 +58,19 @@ export function SearchableDropdown({
                     aria-expanded={open}
                     className={cn(
                         'h-10 w-full justify-between border border-input px-3 font-normal',
+                        isRtl && 'flex-row-reverse text-right',
                         className,
                     )}
                 >
                     <span className="truncate">
                         {selectedLabel ?? placeholder}
                     </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown
+                        className={cn(
+                            'h-4 w-4 shrink-0 opacity-50',
+                            isRtl ? 'mr-2' : 'ml-2',
+                        )}
+                    />
                 </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -78,6 +86,10 @@ export function SearchableDropdown({
                                 <CommandItem
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
+                                    className={cn(
+                                        isRtl &&
+                                            'flex-row-reverse justify-end text-right',
+                                    )}
                                     onSelect={() => {
                                         onValueChange(option.value);
                                         setOpen(false);
@@ -85,7 +97,8 @@ export function SearchableDropdown({
                                 >
                                     <Check
                                         className={cn(
-                                            'mr-2 h-4 w-4',
+                                            'h-4 w-4',
+                                            isRtl ? 'ml-2' : 'mr-2',
                                             value === option.value
                                                 ? 'opacity-100'
                                                 : 'opacity-0',

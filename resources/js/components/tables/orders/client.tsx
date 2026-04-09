@@ -1353,7 +1353,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             ) : null}
                                             <div className="grid gap-2">
                                                 <Label>
-                                                    {t('orders.form.qty', 'Qty')}
+                                                    {t(
+                                                        'orders.form.qty',
+                                                        'Qty',
+                                                    )}
                                                 </Label>
                                                 <NumericInput
                                                     min="1"

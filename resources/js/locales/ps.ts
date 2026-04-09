@@ -12,6 +12,10 @@ const ps = {
         language: 'ژبه',
         twoFactorAuth: 'دوه پړاوه تصدیق',
         logout: 'وتل',
+        noResultsFound: 'هېڅ پایله ونه موندل شوه.',
+        rowsSelected: ':selected له :total قطارونو څخه ټاکل شوي دي.',
+        previousPage: 'مخکینۍ پاڼه',
+        nextPage: 'راتلونکې پاڼه',
     },
     language: {
         switchLanguage: 'ژبه بدلول',
@@ -159,6 +163,7 @@ const ps = {
         statisticsFor: 'د امرونو احصایه د',
         allTimeSince: 'ټول وخت له',
         totalOrdersToday: 'د نن ټولو امرونو شمېر',
+        afghanDateLabel: 'افغاني نېټه',
         details: 'جزئیات',
         statusOrders: 'امرونه',
         statusOrdersDescription: 'هغه امرونه چې اوس د',

@@ -12,6 +12,10 @@ const fa = {
         language: 'زبان',
         twoFactorAuth: 'احراز هویت دومرحله‌ای',
         logout: 'خروج',
+        noResultsFound: 'هیچ نتیجه‌ای یافت نشد.',
+        rowsSelected: ':selected از :total ردیف انتخاب شده است.',
+        previousPage: 'صفحه قبلی',
+        nextPage: 'صفحه بعدی',
     },
     language: {
         switchLanguage: 'تغییر زبان',
@@ -159,6 +163,7 @@ const fa = {
         statisticsFor: 'آمار سفارش‌ها برای',
         allTimeSince: 'تمام‌زمان از',
         totalOrdersToday: 'مجموع سفارش‌های امروز',
+        afghanDateLabel: 'تاریخ افغانی',
         details: 'جزئیات',
         statusOrders: 'سفارش‌ها',
         statusOrdersDescription: 'سفارش‌هایی که فعلاً در وضعیت',

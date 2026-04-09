@@ -109,6 +109,32 @@ export default function OrdersPage({
                 : null,
         [locale, restaurantStartDate],
     );
+    const afghanCalendarLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF-u-ca-persian';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF-u-ca-persian';
+        }
+
+        return 'en-US';
+    }, [locale]);
+    const selectedAfghanDate = useMemo(
+        () =>
+            dateFilter
+                ? new Date(`${dateFilter}T00:00:00`).toLocaleDateString(
+                      afghanCalendarLocale,
+                      {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                      },
+                  )
+                : '',
+        [afghanCalendarLocale, dateFilter],
+    );
 
     const stats = useMemo(() => {
         const initial = {
@@ -216,6 +242,16 @@ export default function OrdersPage({
                                 {t('orders.clear', 'Clear')}
                             </Button>
                         </div>
+                        {selectedAfghanDate && locale !== 'en' ? (
+                            <p
+                                className={`text-xs text-muted-foreground ${
+                                    isRtl ? 'text-right' : ''
+                                }`}
+                            >
+                                {t('orders.afghanDateLabel', 'Afghan date')}:{' '}
+                                {selectedAfghanDate}
+                            </p>
+                        ) : null}
                         <InputError message={dateError} />
                     </div>
                 </div>
@@ -341,11 +377,17 @@ export default function OrdersPage({
                                         className="rounded-md border border-neutral-200/70 p-3 dark:border-neutral-800"
                                     >
                                         <p className="font-medium">
-                                            {t('orders.detailsModal.titlePrefix', 'Order #')}
+                                            {t(
+                                                'orders.detailsModal.titlePrefix',
+                                                'Order #',
+                                            )}
                                             {order.id}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {t('orders.detailsModal.branch', 'Branch')}
+                                            {t(
+                                                'orders.detailsModal.branch',
+                                                'Branch',
+                                            )}
                                             :{' '}
                                             {order.branch?.name ??
                                                 t(
@@ -354,9 +396,11 @@ export default function OrdersPage({
                                                 )}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {t('orders.detailsModal.total', 'Total')}
-                                            :{' '}
-                                            {formatAfn(order.total_amount)}
+                                            {t(
+                                                'orders.detailsModal.total',
+                                                'Total',
+                                            )}
+                                            : {formatAfn(order.total_amount)}
                                         </p>
                                     </div>
                                 ))

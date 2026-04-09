@@ -12,6 +12,10 @@ const en = {
         language: 'Language',
         twoFactorAuth: 'Two-Factor Auth',
         logout: 'Log out',
+        noResultsFound: 'No results found.',
+        rowsSelected: ':selected of :total row(s) selected.',
+        previousPage: 'Previous page',
+        nextPage: 'Next page',
     },
     language: {
         switchLanguage: 'Switch language',
@@ -160,6 +164,7 @@ const en = {
         statisticsFor: 'Order statistics for',
         allTimeSince: 'All time since',
         totalOrdersToday: 'Total orders today',
+        afghanDateLabel: 'Afghan date',
         details: 'Details',
         statusOrders: 'Orders',
         statusOrdersDescription: 'Orders currently in',
