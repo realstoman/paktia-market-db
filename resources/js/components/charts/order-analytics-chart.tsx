@@ -79,29 +79,6 @@ export function OrderAnalyticsChart({
 
     return (
         <div className="flex h-full flex-1 flex-col">
-            <div
-                className={`mb-3 flex flex-row items-start justify-between gap-4 ${isRtl ? 'text-right' : ''}`}
-            >
-                <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-foreground">
-                        {title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {description}
-                    </p>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-nowrap">
-                        <LegendItem label={resolvedLabels.pending} color="var(--chart-pending)" />
-                        <LegendItem label={resolvedLabels.preparing} color="var(--chart-preparing)" />
-                        <LegendItem label={resolvedLabels.ready} color="var(--chart-ready)" />
-                        <LegendItem label={resolvedLabels.completed} color="var(--chart-completed)" />
-                        <LegendItem label={resolvedLabels.cancelled} color="var(--chart-cancelled)" />
-                    </div>
-                </div>
-            </div>
-
             <div className="flex-1">
                 <ChartContainer
                     config={chartConfig}
@@ -239,11 +216,11 @@ export function OrderAnalyticsChart({
                                     indicator="dot"
                                     labelKey="formattedDay"
                                     hideLabel
-                                        formatter={(value, name) => [
-                                            value,
-                                            resolvedLabels[
-                                                name as keyof typeof resolvedLabels
-                                            ] || name,
+                                    formatter={(value, name) => [
+                                        value,
+                                        resolvedLabels[
+                                            name as keyof typeof resolvedLabels
+                                        ] || name,
                                     ]}
                                 />
                             }
@@ -305,6 +282,42 @@ export function OrderAnalyticsChart({
                         />
                     </AreaChart>
                 </ChartContainer>
+            </div>
+
+            <div
+                className={`mt-4 border-t border-neutral-200/70 pt-4 dark:border-neutral-800/80 ${isRtl ? 'text-right' : ''}`}
+            >
+                <div className="space-y-1">
+                    <h3 className="text-base font-semibold text-foreground">
+                        {title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <LegendItem
+                        label={resolvedLabels.pending}
+                        color="var(--chart-pending)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.preparing}
+                        color="var(--chart-preparing)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.ready}
+                        color="var(--chart-ready)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.completed}
+                        color="var(--chart-completed)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.cancelled}
+                        color="var(--chart-cancelled)"
+                    />
+                </div>
             </div>
         </div>
     );
