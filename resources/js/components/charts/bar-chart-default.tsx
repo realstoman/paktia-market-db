@@ -29,12 +29,12 @@ interface BarChartDefaultProps {
     description?: string;
     footerNote?: string;
     compact?: boolean;
-    locale?: string;
     labels?: {
         netProfit?: string;
         noComparison?: string;
         trendUp?: string;
         trendDown?: string;
+        fromLastMonth?: string;
     };
     isRtl?: boolean;
 }
@@ -45,7 +45,6 @@ export function BarChartDefault({
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,
-    locale = 'en-US',
     labels,
     isRtl = false,
 }: BarChartDefaultProps) {
@@ -67,6 +66,7 @@ export function BarChartDefault({
             labels?.noComparison ?? 'No percentage comparison available',
         trendUp: labels?.trendUp ?? 'Up by',
         trendDown: labels?.trendDown ?? 'Down by',
+        fromLastMonth: labels?.fromLastMonth ?? 'from last month',
     };
 
     return (
@@ -117,7 +117,7 @@ export function BarChartDefault({
                         ? resolvedLabels.noComparison
                         : `${trendValue >= 0 ? resolvedLabels.trendUp : resolvedLabels.trendDown} ${Math.abs(
                               trendPercentage,
-                          ).toFixed(1)}% from last month`}{' '}
+                          ).toFixed(1)}% ${resolvedLabels.fromLastMonth}`}{' '}
                     {trendPercentage === null ? (
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     ) : trendIsPositive ? (

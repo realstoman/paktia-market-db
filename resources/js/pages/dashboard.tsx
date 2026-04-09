@@ -30,6 +30,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type Order } from '@/types';
@@ -44,18 +45,11 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
-
-function formatDate(date: Date | undefined) {
+function formatDate(date: Date | undefined, locale: string) {
     if (!date) {
         return '';
     }
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale, {
         weekday: 'short',
         day: '2-digit',
         month: 'short',
@@ -77,15 +71,40 @@ function toDateParam(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
-function formatOrderStatus(status?: string) {
+function formatOrderStatus(
+    status: string | undefined,
+    t: (key: string, fallback?: string) => string,
+) {
     if (!status) {
-        return 'Pending';
+        return t('dashboard.pending', 'Pending');
     }
 
-    return status
-        .split('_')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+    const map: Record<string, string> = {
+        pending: t('dashboard.pending', 'Pending'),
+        in_progress: t('dashboard.preparing', 'Preparing'),
+        ready: t('dashboard.ready', 'Ready'),
+        completed: t('dashboard.completed', 'Completed'),
+        cancelled: t('dashboard.cancelled', 'Cancelled'),
+    };
+
+    return map[status] ?? status;
+}
+
+function formatOrderType(
+    type: string | undefined,
+    t: (key: string, fallback?: string) => string,
+) {
+    const map: Record<string, string> = {
+        dine_in: t('dashboard.dineIn', 'Dine in'),
+        takeaway: t('dashboard.takeaway', 'Takeaway'),
+        delivery: t('dashboard.delivery', 'Delivery'),
+    };
+
+    if (!type) {
+        return '-';
+    }
+
+    return map[type] ?? type.replace('_', ' ');
 }
 
 function getOrderStatusBadgeClass(status?: string) {
@@ -314,15 +333,25 @@ function StatusPill({
 }
 
 export default function Dashboard({ data }: DashboardProps) {
+    const { t, locale, isRtl } = useLocalization();
+    const intlLocale =
+        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+    const selectedDateValue = data?.selectedDate ?? null;
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('dashboard.title', 'Dashboard'),
+            href: dashboard().url,
+        },
+    ];
     const selectedDateFromProps = React.useMemo(() => {
-        if (!data?.selectedDate) {
+        if (!selectedDateValue) {
             return new Date();
         }
 
-        const parsed = new Date(`${data.selectedDate}T00:00:00`);
+        const parsed = new Date(`${selectedDateValue}T00:00:00`);
 
         return isValidDate(parsed) ? parsed : new Date();
-    }, [data?.selectedDate]);
+    }, [selectedDateValue]);
     const [open, setOpen] = React.useState(false);
     const [date, setDate] = React.useState<Date | undefined>(
         selectedDateFromProps,
@@ -330,15 +359,17 @@ export default function Dashboard({ data }: DashboardProps) {
     const [month, setMonth] = React.useState<Date | undefined>(
         selectedDateFromProps,
     );
-    const [value, setValue] = React.useState(formatDate(selectedDateFromProps));
+    const [value, setValue] = React.useState(
+        formatDate(selectedDateFromProps, intlLocale),
+    );
     const ordersStats = data?.orders;
     const formattedSelectedDate = React.useMemo(() => {
-        if (!data?.selectedDate) {
-            return 'today';
+        if (!selectedDateValue) {
+            return t('dashboard.today', 'today');
         }
 
-        return new Date(`${data.selectedDate}T00:00:00`).toLocaleDateString(
-            'en-US',
+        return new Date(`${selectedDateValue}T00:00:00`).toLocaleDateString(
+            intlLocale,
             {
                 weekday: 'short',
                 month: 'short',
@@ -346,7 +377,7 @@ export default function Dashboard({ data }: DashboardProps) {
                 year: 'numeric',
             },
         );
-    }, [data?.selectedDate]);
+    }, [selectedDateValue, intlLocale, t]);
 
     const orderAnalyticsData = data?.orderAnalytics ?? [];
     const recentOrders = data?.recentOrders ?? [];
@@ -365,23 +396,23 @@ export default function Dashboard({ data }: DashboardProps) {
     const hasAnySection = canViewOrders || canViewInventory || canViewFinance;
     const orderMetricTiles = [
         {
-            label: 'Pending',
+            label: t('dashboard.pending', 'Pending'),
             value: ordersStats?.pending ?? 0,
         },
         {
-            label: 'Preparing',
+            label: t('dashboard.preparing', 'Preparing'),
             value: ordersStats?.in_progress ?? 0,
         },
         {
-            label: 'Ready',
+            label: t('dashboard.ready', 'Ready'),
             value: ordersStats?.ready ?? 0,
         },
         {
-            label: 'Completed',
+            label: t('dashboard.completed', 'Completed'),
             value: ordersStats?.completed ?? 0,
         },
         {
-            label: 'Cancelled',
+            label: t('dashboard.cancelled', 'Cancelled'),
             value: ordersStats?.cancelled ?? 0,
         },
     ];
@@ -389,8 +420,8 @@ export default function Dashboard({ data }: DashboardProps) {
     React.useEffect(() => {
         setDate(selectedDateFromProps);
         setMonth(selectedDateFromProps);
-        setValue(formatDate(selectedDateFromProps));
-    }, [selectedDateFromProps]);
+        setValue(formatDate(selectedDateFromProps, intlLocale));
+    }, [selectedDateFromProps, intlLocale]);
 
     const applyDateFilter = React.useCallback((selected: Date | undefined) => {
         if (!selected || !isValidDate(selected)) {
@@ -410,15 +441,15 @@ export default function Dashboard({ data }: DashboardProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title={t('dashboard.title', 'Dashboard')} />
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {hasAnySection ? (
                     <>
                         {financeStats?.projectionHealth ? (
                             <Card className="rounded-2xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardContent className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
+                                    <div className={cn('space-y-1', isRtl && 'text-right')}>
+                                        <div className={cn('flex items-center gap-2', isRtl && 'justify-end')}>
                                             <span
                                                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
                                                     financeStats
@@ -426,14 +457,21 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         .status,
                                                 )}`}
                                             >
-                                                Projection{' '}
+                                                {t('dashboard.projection', 'Projection')}{' '}
                                                 {
-                                                    financeStats
-                                                        .projectionHealth.status
+                                                    t(
+                                                        `dashboard.${financeStats.projectionHealth.status}`,
+                                                        financeStats
+                                                            .projectionHealth
+                                                            .status,
+                                                    )
                                                 }
                                             </span>
                                             <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase dark:text-neutral-400">
-                                                System health check
+                                                {t(
+                                                    'dashboard.systemHealthCheck',
+                                                    'System health check',
+                                                )}
                                             </span>
                                         </div>
                                         <p className="text-sm leading-6 text-foreground dark:text-neutral-200">
@@ -445,7 +483,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                     </div>
                                     <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
                                         <StatusPill
-                                            label="Healthy"
+                                            label={t('dashboard.healthy', 'Healthy')}
                                             value={formatNumber(
                                                 Math.max(
                                                     0,
@@ -463,7 +501,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             className="dark:border-neutral-800 dark:bg-neutral-950/40"
                                         />
                                         <StatusPill
-                                            label="Warning"
+                                            label={t('dashboard.warning', 'Warning')}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .warningBranchCount,
@@ -471,7 +509,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                             className="dark:border-neutral-800 dark:bg-neutral-950/40"
                                         />
                                         <StatusPill
-                                            label="Critical"
+                                            label={t('dashboard.critical', 'Critical')}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .criticalBranchCount,
@@ -486,27 +524,33 @@ export default function Dashboard({ data }: DashboardProps) {
                         <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
                             {canViewFinance ? (
                                 <DashboardSurface
-                                    title="Finance Snapshot"
-                                    description="A clean read of profitability and cash health."
+                                    title={t('dashboard.financeSnapshot', 'Finance Snapshot')}
+                                    description={t(
+                                        'dashboard.financeSnapshotDescription',
+                                        'A clean read of profitability and cash health.',
+                                    )}
                                     className="xl:col-span-3"
                                 >
                                     <div className="divide-y divide-neutral-200/70 dark:divide-neutral-800/80">
                                         <MetricInline
-                                            label="Net Profit"
+                                            label={t('dashboard.netProfit', 'Net Profit')}
                                             value={`${formatPrice(
                                                 financeStats?.netProfit ?? 0,
                                             )} ؋`}
                                             hint={financeStats?.notes.netProfit}
                                         />
                                         <MetricInline
-                                            label="Expenses"
+                                            label={t('dashboard.expenses', 'Expenses')}
                                             value={`${formatPrice(
                                                 financeStats?.expenses ?? 0,
                                             )} ؋`}
                                             hint={financeStats?.notes.expenses}
                                         />
                                         <MetricInline
-                                            label="Cash Position"
+                                            label={t(
+                                                'dashboard.cashPosition',
+                                                'Cash Position',
+                                            )}
                                             value={`${formatPrice(
                                                 financeStats?.cashPosition ?? 0,
                                             )} ؋`}
@@ -518,9 +562,26 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="mt-4 rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
                                         <BarChartDefault
                                             data={financeMiniTrend}
-                                            title="Net Profit Trend"
-                                            description="Past 4 months"
-                                            footerNote="Compact monthly net profit view"
+                                            title={t('dashboard.netProfitTrend', 'Net Profit Trend')}
+                                            description={t('dashboard.past4Months', 'Past 4 months')}
+                                            footerNote={t(
+                                                'dashboard.compactMonthlyNetProfitView',
+                                                'Compact monthly net profit view',
+                                            )}
+                                            isRtl={isRtl}
+                                            labels={{
+                                                netProfit: t('dashboard.netProfit', 'Net Profit'),
+                                                noComparison: t(
+                                                    'dashboard.noPercentageComparison',
+                                                    'No percentage comparison available',
+                                                ),
+                                                trendUp: t('dashboard.trendUpBy', 'Up by'),
+                                                trendDown: t('dashboard.trendDownBy', 'Down by'),
+                                                fromLastMonth: t(
+                                                    'dashboard.fromLastMonth',
+                                                    'from last month',
+                                                ),
+                                            }}
                                             compact
                                         />
                                     </div>
@@ -529,8 +590,11 @@ export default function Dashboard({ data }: DashboardProps) {
 
                             {canViewOrders ? (
                                 <DashboardSurface
-                                    title="Order Flow"
-                                    description={`Operational view for ${formattedSelectedDate}.`}
+                                    title={t('dashboard.orderFlow', 'Order Flow')}
+                                    description={t(
+                                        'dashboard.operationalViewFor',
+                                        'Operational view for :date.',
+                                    ).replace(':date', formattedSelectedDate)}
                                     className="xl:col-span-6"
                                     headerAction={
                                         <Field className="w-44">
@@ -559,11 +623,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                 id="date-picker"
                                                                 variant="ghost"
                                                                 size="icon-xs"
-                                                                aria-label="Select date"
+                                                                aria-label={t(
+                                                                    'dashboard.selectDate',
+                                                                    'Select date',
+                                                                )}
                                                             >
                                                                 <CalendarIcon />
                                                                 <span className="sr-only">
-                                                                    Select date
+                                                                    {t(
+                                                                        'dashboard.selectDate',
+                                                                        'Select date',
+                                                                    )}
                                                                 </span>
                                                             </InputGroupButton>
                                                         </PopoverTrigger>
@@ -593,6 +663,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     setValue(
                                                                         formatDate(
                                                                             date,
+                                                                            intlLocale,
                                                                         ),
                                                                     );
                                                                     setOpen(
@@ -625,8 +696,23 @@ export default function Dashboard({ data }: DashboardProps) {
                                         <div className="rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
                                             <OrderAnalyticsChart
                                                 data={orderAnalyticsData}
-                                                title="Order movement"
-                                                description="Past 7 days across pending, kitchen, and completion stages"
+                                                title={t(
+                                                    'dashboard.orderMovement',
+                                                    'Order movement',
+                                                )}
+                                                description={t(
+                                                    'dashboard.orderMovementDescription',
+                                                    'Past 7 days across pending, kitchen, and completion stages',
+                                                )}
+                                                locale={intlLocale}
+                                                isRtl={isRtl}
+                                                labels={{
+                                                    pending: t('dashboard.pending', 'Pending'),
+                                                    preparing: t('dashboard.preparing', 'Preparing'),
+                                                    ready: t('dashboard.ready', 'Ready'),
+                                                    completed: t('dashboard.completed', 'Completed'),
+                                                    cancelled: t('dashboard.cancelled', 'Cancelled'),
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -635,8 +721,14 @@ export default function Dashboard({ data }: DashboardProps) {
 
                             {canViewInventory ? (
                                 <DashboardSurface
-                                    title="Inventory Health"
-                                    description="Inventory strength, exposure, and stock pressure."
+                                    title={t(
+                                        'dashboard.inventoryHealth',
+                                        'Inventory Health',
+                                    )}
+                                    description={t(
+                                        'dashboard.inventoryHealthDescription',
+                                        'Inventory strength, exposure, and stock pressure.',
+                                    )}
                                     className="xl:col-span-3"
                                 >
                                     <div className="space-y-4">
@@ -662,32 +754,78 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     inventoryStats?.outOfStockItems ??
                                                     0
                                                 }
+                                                isRtl={isRtl}
+                                                labels={{
+                                                    title: t(
+                                                        'dashboard.inventoryStatusOverview',
+                                                        'Inventory Status Overview',
+                                                    ),
+                                                    description: t(
+                                                        'dashboard.restaurantItems',
+                                                        'Restaurant items',
+                                                    ),
+                                                    items: t(
+                                                        'dashboard.items',
+                                                        'Items',
+                                                    ),
+                                                    summaryTitle: t(
+                                                        'dashboard.inventoryDistributionOverview',
+                                                        'Inventory distribution overview',
+                                                    ),
+                                                    summaryDescription: t(
+                                                        'dashboard.inventoryDistributionSummary',
+                                                        'A quick breakdown of total items, fixed assets, usable stock, low stock, and out-of-stock items.',
+                                                    ),
+                                                    totalItems: t(
+                                                        'dashboard.totalItems',
+                                                        'Total Items',
+                                                    ),
+                                                    totalFixedItems: t(
+                                                        'dashboard.fixed',
+                                                        'Fixed',
+                                                    ),
+                                                    totalUsableItems: t(
+                                                        'dashboard.usable',
+                                                        'Usable',
+                                                    ),
+                                                    lowStockItems: t(
+                                                        'dashboard.lowStock',
+                                                        'Low stock',
+                                                    ),
+                                                    outOfStockItems: t(
+                                                        'dashboard.outOfStock',
+                                                        'Out of stock',
+                                                    ),
+                                                }}
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2.5">
                                             <StatusPill
-                                                label="Total Items"
+                                                label={t('dashboard.totalItems', 'Total Items')}
                                                 value={formatNumber(
                                                     inventoryStats?.totalItems ??
                                                         0,
                                                 )}
                                             />
                                             <StatusPill
-                                                label="Inventory Value"
+                                                label={t(
+                                                    'dashboard.inventoryValue',
+                                                    'Inventory Value',
+                                                )}
                                                 value={`${formatPrice(
                                                     inventoryStats?.inventoryValue ??
                                                         0,
                                                 )} ؋`}
                                             />
                                             <StatusPill
-                                                label="Usable"
+                                                label={t('dashboard.usable', 'Usable')}
                                                 value={formatNumber(
                                                     inventoryStats?.totalUsableItems ??
                                                         0,
                                                 )}
                                             />
                                             <StatusPill
-                                                label="Fixed"
+                                                label={t('dashboard.fixed', 'Fixed')}
                                                 value={formatNumber(
                                                     inventoryStats?.totalFixedItems ??
                                                         0,
@@ -699,7 +837,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
                                                     <Flame className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
-                                                        Low stock
+                                                        {t('dashboard.lowStock', 'Low stock')}
                                                     </span>
                                                 </div>
                                                 <p className="mt-2 text-2xl font-semibold text-foreground">
@@ -713,7 +851,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
                                                     <ShieldAlert className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
-                                                        Out of stock
+                                                        {t(
+                                                            'dashboard.outOfStock',
+                                                            'Out of stock',
+                                                        )}
                                                     </span>
                                                 </div>
                                                 <p className="mt-2 text-2xl font-semibold text-foreground">
@@ -731,8 +872,14 @@ export default function Dashboard({ data }: DashboardProps) {
 
                         <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
                             <DashboardSurface
-                                title="Needs Attention"
-                                description="Operational signals that need a closer look."
+                                title={t(
+                                    'dashboard.needsAttention',
+                                    'Needs Attention',
+                                )}
+                                description={t(
+                                    'dashboard.needsAttentionDescription',
+                                    'Operational signals that need a closer look.',
+                                )}
                                 className="xl:col-span-4"
                             >
                                 <div className="space-y-3">
@@ -756,23 +903,38 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             item.level,
                                                         )}`}
                                                     >
-                                                        {item.level}
-                                                    </span>
+                                                            {t(
+                                                                `dashboard.${item.level}`,
+                                                                item.level,
+                                                            )}
+                                                        </span>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
                                         <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            Everything looks steady right now.
-                                            No urgent operational alerts.
+                                            {t(
+                                                'dashboard.everythingLooksSteady',
+                                                'Everything looks steady right now.',
+                                            )}{' '}
+                                            {t(
+                                                'dashboard.noUrgentOperationalAlerts',
+                                                'No urgent operational alerts.',
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             </DashboardSurface>
 
                             <DashboardSurface
-                                title="Branch Performance"
-                                description="Top branch momentum over the last 30 days."
+                                title={t(
+                                    'dashboard.branchPerformance',
+                                    'Branch Performance',
+                                )}
+                                description={t(
+                                    'dashboard.branchPerformanceDescription',
+                                    'Top branch momentum over the last 30 days.',
+                                )}
                                 className="xl:col-span-4"
                             >
                                 <div className="space-y-3">
@@ -783,16 +945,16 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     key={branch.branchId}
                                                     className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                                 >
-                                                    <div className="flex items-center justify-between gap-3">
+                                                    <div className={cn('flex items-center justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
                                                         <div>
                                                             <p className="text-sm font-medium text-foreground">
                                                                 {branch.branchName}
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                Rank #{index + 1}
+                                                                {t('dashboard.rank', 'Rank')} #{index + 1}
                                                             </p>
                                                         </div>
-                                                        <div className="text-right">
+                                                        <div className={cn(isRtl ? 'text-left' : 'text-right')}>
                                                             <p className="text-lg font-semibold text-foreground">
                                                                 {formatPrice(
                                                                     branch.revenue,
@@ -800,14 +962,14 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                 ؋
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                Revenue
+                                                                {t('dashboard.revenue', 'Revenue')}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-3 grid grid-cols-2 gap-2">
                                                         <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
                                                             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                                                                Orders
+                                                                {t('dashboard.orders', 'Orders')}
                                                             </p>
                                                             <p className="mt-1 text-base font-semibold text-foreground">
                                                                 {formatNumber(
@@ -817,7 +979,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         </div>
                                                         <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
                                                             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                                                                Net Profit
+                                                                {t(
+                                                                    'dashboard.netProfit',
+                                                                    'Net Profit',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 text-base font-semibold text-foreground">
                                                                 {formatPrice(
@@ -832,16 +997,24 @@ export default function Dashboard({ data }: DashboardProps) {
                                         )
                                     ) : (
                                         <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            Branch performance data will show
-                                            here as daily metrics accumulate.
+                                            {t(
+                                                'dashboard.branchPerformanceEmpty',
+                                                'Branch performance data will show here as daily metrics accumulate.',
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             </DashboardSurface>
 
                             <DashboardSurface
-                                title="Low Stock Quick List"
-                                description="Fast visibility into items closest to running out."
+                                title={t(
+                                    'dashboard.lowStockQuickList',
+                                    'Low Stock Quick List',
+                                )}
+                                description={t(
+                                    'dashboard.lowStockQuickListDescription',
+                                    'Fast visibility into items closest to running out.',
+                                )}
                                 className="xl:col-span-4"
                             >
                                 <div className="space-y-3">
@@ -871,14 +1044,23 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         >
                                                             {item.status ===
                                                             'out'
-                                                                ? 'Out'
-                                                                : 'Low'}
+                                                                ? t(
+                                                                      'dashboard.out',
+                                                                      'Out',
+                                                                  )
+                                                                : t(
+                                                                      'dashboard.low',
+                                                                      'Low',
+                                                                  )}
                                                         </span>
                                                     </div>
                                                     <div className="mt-3 flex items-end justify-between gap-3">
                                                         <div>
                                                             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                                                                Quantity
+                                                                {t(
+                                                                    'dashboard.quantity',
+                                                                    'Quantity',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 text-lg font-semibold text-foreground">
                                                                 {formatNumber(
@@ -893,7 +1075,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                         )
                                     ) : (
                                         <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            No low-stock items right now.
+                                            {t(
+                                                'dashboard.noLowStockItems',
+                                                'No low-stock items right now.',
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -908,11 +1093,16 @@ export default function Dashboard({ data }: DashboardProps) {
                                             <CardHeader>
                                                 <div className="space-y-1">
                                                     <CardTitle className="text-lg font-semibold">
-                                                        Top Ordered Dishes
+                                                        {t(
+                                                            'dashboard.topOrderedDishes',
+                                                            'Top Ordered Dishes',
+                                                        )}
                                                     </CardTitle>
                                                     <CardDescription className="text-sm">
-                                                        Most ordered dishes of
-                                                        all time
+                                                        {t(
+                                                            'dashboard.topOrderedDishesDescription',
+                                                            'Most ordered dishes of all time',
+                                                        )}
                                                     </CardDescription>
                                                 </div>
                                             </CardHeader>
@@ -936,7 +1126,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     {formatNumber(
                                                                         item.total_quantity,
                                                                     )}{' '}
-                                                                    orders
+                                                                    {t(
+                                                                        'dashboard.allTimeOrdersSuffix',
+                                                                        'orders',
+                                                                    )}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -947,8 +1140,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 ))}
                                                 {topOrderedDishes.length === 0 ? (
                                                     <p className="text-sm text-muted-foreground">
-                                                        No order data available
-                                                        yet.
+                                                        {t(
+                                                            'dashboard.noOrderDataYet',
+                                                            'No order data available yet.',
+                                                        )}
                                                     </p>
                                                 ) : null}
                                             </CardContent>
@@ -959,18 +1154,23 @@ export default function Dashboard({ data }: DashboardProps) {
                                             <CardHeader className="flex flex-row items-start justify-between">
                                                 <div className="space-y-1">
                                                     <CardTitle className="text-lg font-semibold">
-                                                        Recent Orders
+                                                        {t(
+                                                            'dashboard.recentOrders',
+                                                            'Recent Orders',
+                                                        )}
                                                     </CardTitle>
                                                     <CardDescription className="text-sm">
-                                                        Latest orders across
-                                                        branches
+                                                        {t(
+                                                            'dashboard.recentOrdersDescription',
+                                                            'Latest orders across branches',
+                                                        )}
                                                     </CardDescription>
                                                 </div>
                                                 <a
                                                     href="/orders"
                                                     className="text-sm font-medium text-primary hover:underline"
                                                 >
-                                                    View all
+                                                    {t('dashboard.viewAll', 'View all')}
                                                 </a>
                                             </CardHeader>
                                             <CardContent className="max-h-[28rem] overflow-y-auto">
@@ -979,22 +1179,34 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>
-                                                                    Order #
+                                                                    {t(
+                                                                        'dashboard.orderNumber',
+                                                                        'Order #',
+                                                                    )}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    Type
+                                                                    {t('dashboard.type', 'Type')}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    Items
+                                                                    {t(
+                                                                        'dashboard.orderItems',
+                                                                        'Items',
+                                                                    )}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    QTY
+                                                                    {t('dashboard.qty', 'QTY')}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    Status
+                                                                    {t(
+                                                                        'dashboard.status',
+                                                                        'Status',
+                                                                    )}
                                                                 </TableHead>
-                                                                <TableHead className="text-right">
-                                                                    Total
+                                                                <TableHead className={cn(isRtl ? 'text-left' : 'text-right')}>
+                                                                    {t(
+                                                                        'dashboard.total',
+                                                                        'Total',
+                                                                    )}
                                                                 </TableHead>
                                                             </TableRow>
                                                         </TableHeader>
@@ -1014,11 +1226,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                             }
                                                                         </TableCell>
                                                                         <TableCell className="capitalize">
-                                                                            {order.order_type?.replace(
-                                                                                '_',
-                                                                                ' ',
-                                                                            ) ??
-                                                                                '-'}
+                                                                            {formatOrderType(
+                                                                                order.order_type,
+                                                                                t,
+                                                                            )}
                                                                         </TableCell>
                                                                         <TableCell>
                                                                             {order.items
@@ -1033,7 +1244,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                                         item
                                                                                             .product
                                                                                             ?.name ??
-                                                                                        'Unknown Item',
+                                                                                        t(
+                                                                                            'dashboard.unknownItem',
+                                                                                            'Unknown Item',
+                                                                                        ),
                                                                                 )
                                                                                 .join(
                                                                                     ', ',
@@ -1062,10 +1276,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                             >
                                                                                 {formatOrderStatus(
                                                                                     order.status,
+                                                                                    t,
                                                                                 )}
                                                                             </span>
                                                                         </TableCell>
-                                                                        <TableCell className="text-right font-medium">
+                                                                        <TableCell className={cn('font-medium', isRtl ? 'text-left' : 'text-right')}>
                                                                             {formatPrice(
                                                                                 order.total_amount,
                                                                             )}{' '}
@@ -1077,13 +1292,27 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         </TableBody>
                                                     </Table>
                                                 </div>
-                                                <div className="mt-4 text-right">
+                                                <div className={cn('mt-4', isRtl ? 'text-left' : 'text-right')}>
                                                     <a
                                                         href="/orders"
-                                                        className="flex justify-end gap-2 text-sm font-medium text-primary hover:underline"
+                                                        className={cn(
+                                                            'flex gap-2 text-sm font-medium text-primary hover:underline',
+                                                            isRtl
+                                                                ? 'justify-start'
+                                                                : 'justify-end',
+                                                        )}
                                                     >
-                                                        Go to orders
-                                                        <ArrowRight className="h-5 w-5" />
+                                                        {t(
+                                                            'dashboard.goToOrders',
+                                                            'Go to orders',
+                                                        )}
+                                                        <ArrowRight
+                                                            className={cn(
+                                                                'h-5 w-5',
+                                                                isRtl &&
+                                                                    'rotate-180',
+                                                            )}
+                                                        />
                                                     </a>
                                                 </div>
                                             </CardContent>
@@ -1097,13 +1326,16 @@ export default function Dashboard({ data }: DashboardProps) {
                     <Card className="border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                         <CardHeader>
                             <CardTitle className="text-lg font-semibold">
-                                Dashboard access is ready
+                                {t(
+                                    'dashboard.dashboardAccessReady',
+                                    'Dashboard access is ready',
+                                )}
                             </CardTitle>
                             <CardDescription className="text-sm">
-                                This user does not have any dashboard widgets
-                                assigned yet. Add section permissions to the
-                                role to show operations, inventory, finance, or
-                                reporting views here.
+                                {t(
+                                    'dashboard.dashboardAccessDescription',
+                                    'This user does not have any dashboard widgets assigned yet. Add section permissions to the role to show operations, inventory, finance, or reporting views here.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                     </Card>
