@@ -87,7 +87,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 className={cn('w-full', {
                                     'justify-start': !isRtl,
                                     'justify-end text-right': isRtl,
-                                    'bg-muted': isSameUrl(
+                                    'bg-muted font-semibold': isSameUrl(
+                                        currentPath,
+                                        item.href,
+                                    ),
+                                    'font-bold': isRtl && isSameUrl(
                                         currentPath,
                                         item.href,
                                     ),

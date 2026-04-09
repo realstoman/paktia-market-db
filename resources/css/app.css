@@ -258,6 +258,7 @@ html[lang='ps'] {
     header nav a,
     header nav button {
         font-family: var(--app-heading-font);
+        font-weight: 600;
     }
 
     html[lang='fa'] h1,
@@ -290,6 +291,13 @@ html[lang='ps'] {
     html[lang='ps'] aside button,
     html[lang='ps'] header nav a,
     html[lang='ps'] header nav button {
+        font-weight: 700;
+    }
+
+    html[lang='fa'] [data-sidebar='menu-button'][data-active='true'],
+    html[lang='fa'] [data-sidebar='menu-button'][data-active='true'] > span,
+    html[lang='ps'] [data-sidebar='menu-button'][data-active='true'],
+    html[lang='ps'] [data-sidebar='menu-button'][data-active='true'] > span {
         font-weight: 700;
     }
 }
