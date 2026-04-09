@@ -338,7 +338,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 setIsCreateOpen(false);
                 resetCreateForm();
             },
-            onError: (errors) => {
+            onError: (errors: Record<string, string>) => {
                 setCreateErrors(errors);
                 toast.error(
                     Object.values(errors)[0] ||
