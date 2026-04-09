@@ -10,6 +10,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @font-face {
+    font-family: 'Manrope';
+    src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+}
+
+@font-face {
     font-family: 'Bahij Nazanin';
     src: url('/fonts/bahij-nazanin.ttf') format('truetype');
     font-style: normal;
@@ -32,11 +40,11 @@ body {
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-heading:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -91,11 +99,11 @@ body {
 
 :root {
     --app-body-font:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --app-heading-font:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --background: #f8fafd;
