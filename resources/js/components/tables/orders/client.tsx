@@ -25,6 +25,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BranchTable, Order, Product, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
@@ -57,13 +58,6 @@ const ORDER_STATUSES = [
     'cancelled',
 ];
 
-const PAYMENT_METHOD_OPTIONS = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'credit_card', label: 'Credit Card' },
-    { value: 'other', label: 'Other' },
-];
-
 const emptyItem = (): OrderItemDraft => ({
     productId: '',
     sizeId: '',
@@ -79,6 +73,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     isLoading = false,
 }) => {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const canChangeBranch = auth.is_super_admin === true;
     const defaultBranchId = useMemo(() => {
         const assignedBranchId = auth.user?.branch_id;
@@ -123,6 +118,28 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [statusFilter, setStatusFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
 
+    const getStatusLabel = (status: string) =>
+        t(`orders.status.${status}`, status);
+    const getPaymentMethodLabel = (paymentMethodValue: string) =>
+        t(`orders.paymentMethod.${paymentMethodValue}`, paymentMethodValue);
+    const getOrderTypeLabel = (orderTypeValue: string) =>
+        t(`orders.orderType.${orderTypeValue}`, orderTypeValue);
+    const getSourceLabel = (sourceValue: string) =>
+        t(
+            `orders.source.${sourceValue}`,
+            sourceValue === 'mobile_app' ? 'Mobile' : 'POS',
+        );
+
+    const paymentMethodOptions = [
+        { value: 'cash', label: getPaymentMethodLabel('cash') },
+        {
+            value: 'bank_transfer',
+            label: getPaymentMethodLabel('bank_transfer'),
+        },
+        { value: 'credit_card', label: getPaymentMethodLabel('credit_card') },
+        { value: 'other', label: getPaymentMethodLabel('other') },
+    ];
+
     const resetCreateForm = () => {
         setEditingOrder(null);
         setBranchId(defaultBranchId);
@@ -146,7 +163,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const getItemKitchenName = (item: OrderItemDraft) => {
         const product = getProductById(item.productId);
-        return product?.kitchen?.name ?? 'Unassigned';
+        return (
+            product?.kitchen?.name ??
+            t('orders.detailsModal.unassigned', 'Unassigned')
+        );
     };
 
     const handleProductChange = (
@@ -295,8 +315,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             onSuccess: () => {
                 toast.success(
                     editingOrder
-                        ? 'Order updated successfully.'
-                        : 'Order created successfully.',
+                        ? t(
+                              'orders.messages.orderUpdated',
+                              'Order updated successfully.',
+                          )
+                        : t(
+                              'orders.messages.orderCreated',
+                              'Order created successfully.',
+                          ),
                 );
                 setIsCreateOpen(false);
                 resetCreateForm();
@@ -305,7 +331,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 setCreateErrors(errors);
                 toast.error(
                     Object.values(errors)[0] ||
-                        `Failed to ${editingOrder ? 'update' : 'create'} order.`,
+                        (editingOrder
+                            ? t(
+                                  'orders.messages.orderUpdateFailed',
+                                  'Failed to update order.',
+                              )
+                            : t(
+                                  'orders.messages.orderCreateFailed',
+                                  'Failed to create order.',
+                              )),
                 );
             },
             onFinish: () => {
@@ -341,12 +375,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Order status updated.');
+                    toast.success(
+                        t(
+                            'orders.messages.orderStatusUpdated',
+                            'Order status updated.',
+                        ),
+                    );
                 },
                 onError: (errors) => {
                     toast.error(
                         Object.values(errors)[0] ||
-                            'Failed to update order status.',
+                            t(
+                                'orders.messages.orderStatusUpdateFailed',
+                                'Failed to update order status.',
+                            ),
                     );
                 },
             },
@@ -392,7 +434,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const openReceiptPreview = (order: Order) => {
         if ((order.status ?? 'pending') !== 'completed') {
             toast.error(
-                'Only completed orders can be printed. Please complete the order first.',
+                t(
+                    'orders.messages.completedOnlyPrint',
+                    'Only completed orders can be printed. Please complete the order first.',
+                ),
             );
             return;
         }
@@ -420,14 +465,23 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Items added to order.');
+                    toast.success(
+                        t(
+                            'orders.messages.itemsAdded',
+                            'Items added to order.',
+                        ),
+                    );
                     setIsAddItemsOpen(false);
                     resetAddItemsForm();
                 },
                 onError: (errors) => {
                     setAddItemErrors(errors);
                     toast.error(
-                        Object.values(errors)[0] || 'Failed to add items.',
+                        Object.values(errors)[0] ||
+                            t(
+                                'orders.messages.addItemsFailed',
+                                'Failed to add items.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -450,18 +504,29 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        toast.success('Order table updated.');
+                        toast.success(
+                            t(
+                                'orders.messages.orderTableUpdated',
+                                'Order table updated.',
+                            ),
+                        );
                     },
                     onError: (errors) => {
                         toast.error(
                             Object.values(errors)[0] ||
-                                'Failed to update order table.',
+                                t(
+                                    'orders.messages.orderTableUpdateFailed',
+                                    'Failed to update order table.',
+                                ),
                         );
                     },
                 },
             );
         },
         branchTables,
+        t,
+        getStatusLabel,
+        getSourceLabel,
     });
     const filteredTablesByBranch = branchTables.filter(
         (table) =>
@@ -555,58 +620,70 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const branchFilterOptions = useMemo(
         () => [
-            { value: 'all', label: 'All Branches' },
+            {
+                value: 'all',
+                label: t('orders.filters.allBranches', 'All Branches'),
+            },
             ...branches.map((branch) => ({
                 value: String(branch.id),
                 label: branch.name,
             })),
         ],
-        [branches],
+        [branches, t],
     );
 
     const userFilterOptions = useMemo(
         () => [
-            { value: 'all', label: 'All Users' },
+            { value: 'all', label: t('orders.filters.allUsers', 'All Users') },
             ...users.map((user) => ({
                 value: String(user.id),
                 label: user.name,
             })),
         ],
-        [users],
+        [t, users],
     );
 
     const kitchenFilterOptions = useMemo(
         () => [
-            { value: 'all', label: 'All Kitchens' },
+            {
+                value: 'all',
+                label: t('orders.filters.allKitchens', 'All Kitchens'),
+            },
             ...kitchens.map((kitchen) => ({
                 value: String(kitchen.id),
                 label: kitchen.name,
             })),
         ],
-        [kitchens],
+        [kitchens, t],
     );
 
     const statusFilterOptions = useMemo(
         () => [
-            { value: 'all', label: 'All Statuses' },
+            {
+                value: 'all',
+                label: t('orders.filters.allStatuses', 'All Statuses'),
+            },
             ...ORDER_STATUSES.map((status) => ({
                 value: status,
-                label: status
-                    .split('_')
-                    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-                    .join(' '),
+                label: t(`orders.status.${status}`, status),
             })),
         ],
-        [],
+        [t],
     );
 
     const sourceFilterOptions = useMemo(
         () => [
-            { value: 'all', label: 'All Sources' },
-            { value: 'pos', label: 'POS' },
-            { value: 'mobile_app', label: 'Mobile' },
+            {
+                value: 'all',
+                label: t('orders.filters.allSources', 'All Sources'),
+            },
+            { value: 'pos', label: t('orders.source.pos', 'POS') },
+            {
+                value: 'mobile_app',
+                label: t('orders.source.mobile_app', 'Mobile'),
+            },
         ],
-        [],
+        [t],
     );
 
     const tableToolbar = (
@@ -615,45 +692,60 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 value={branchFilter}
                 options={branchFilterOptions}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branches found."
+                placeholder={t('orders.filters.branch', 'Branch')}
+                searchPlaceholder={t(
+                    'orders.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t('orders.filters.noBranches', 'No branches found.')}
                 className="w-[170px]"
             />
             <SearchableDropdown
                 value={userFilter}
                 options={userFilterOptions}
                 onValueChange={setUserFilter}
-                placeholder="User"
-                searchPlaceholder="Search users..."
-                emptyText="No users found."
+                placeholder={t('orders.filters.user', 'User')}
+                searchPlaceholder={t(
+                    'orders.filters.searchUsers',
+                    'Search users...',
+                )}
+                emptyText={t('orders.filters.noUsers', 'No users found.')}
                 className="w-[170px]"
             />
             <SearchableDropdown
                 value={kitchenFilter}
                 options={kitchenFilterOptions}
                 onValueChange={setKitchenFilter}
-                placeholder="Kitchen"
-                searchPlaceholder="Search kitchens..."
-                emptyText="No kitchens found."
+                placeholder={t('orders.filters.kitchen', 'Kitchen')}
+                searchPlaceholder={t(
+                    'orders.filters.searchKitchens',
+                    'Search kitchens...',
+                )}
+                emptyText={t('orders.filters.noKitchens', 'No kitchens found.')}
                 className="w-[170px]"
             />
             <SearchableDropdown
                 value={statusFilter}
                 options={statusFilterOptions}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No statuses found."
+                placeholder={t('orders.filters.status', 'Status')}
+                searchPlaceholder={t(
+                    'orders.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t('orders.filters.noStatuses', 'No statuses found.')}
                 className="w-[170px]"
             />
             <SearchableDropdown
                 value={sourceFilter}
                 options={sourceFilterOptions}
                 onValueChange={setSourceFilter}
-                placeholder="Source"
-                searchPlaceholder="Search sources..."
-                emptyText="No sources found."
+                placeholder={t('orders.filters.source', 'Source')}
+                searchPlaceholder={t(
+                    'orders.filters.searchSources',
+                    'Search sources...',
+                )}
+                emptyText={t('orders.filters.noSources', 'No sources found.')}
                 className="w-[170px]"
             />
         </div>
@@ -663,8 +755,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Orders: ${formatNumber(filteredData.length)}`}
-                    description="Track and manage orders (DESC order by ID)"
+                    title={`${t('orders.toolbarTitle', 'Orders:')} ${formatNumber(filteredData.length)}`}
+                    description={t(
+                        'orders.toolbarDescription',
+                        'Track and manage orders (DESC order by ID)',
+                    )}
                 />
                 <Button
                     onClick={() => {
@@ -674,7 +769,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     className="gap-2"
                 >
                     <Plus className="h-4 w-4" />
-                    Create Order
+                    {t('orders.createOrder', 'Create Order')}
                 </Button>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
@@ -693,7 +788,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
-                searchPlaceholder="Search orders by branch or status..."
+                searchPlaceholder={t(
+                    'orders.searchPlaceholder',
+                    'Search orders by branch or status...',
+                )}
                 toolbar={tableToolbar}
             />
 
@@ -711,19 +809,25 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         <DialogTitle className="flex items-center gap-1">
                             <ClipboardList className="mr-2 h-5 w-5" />
                             {editingOrder
-                                ? `Edit Order #${editingOrder.id}`
-                                : 'Create Order'}
+                                ? `${t('orders.form.editTitlePrefix', 'Edit Order #')}${editingOrder.id}`
+                                : t('orders.form.createTitle', 'Create Order')}
                         </DialogTitle>
                         <DialogDescription>
                             {editingOrder
-                                ? 'Update order details, remove items, or change values.'
-                                : 'Create a new order. Items are auto-routed to their product kitchen.'}
+                                ? t(
+                                      'orders.form.editDescription',
+                                      'Update order details, remove items, or change values.',
+                                  )
+                                : t(
+                                      'orders.form.createDescription',
+                                      'Create a new order. Items are auto-routed to their product kitchen.',
+                                  )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>{t('orders.form.branch', 'Branch')}</Label>
                             <Select
                                 value={branchId}
                                 onValueChange={(value) => {
@@ -733,7 +837,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 disabled={!canChangeBranch}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'orders.form.branchPlaceholder',
+                                            'Select branch',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {branches.map((branch) => (
@@ -748,13 +857,18 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             </Select>
                             {!canChangeBranch ? (
                                 <p className="text-xs text-muted-foreground">
-                                    Your branch is fixed based on your login assignment.
+                                    {t(
+                                        'orders.form.branchFixed',
+                                        'Your branch is fixed based on your login assignment.',
+                                    )}
                                 </p>
                             ) : null}
                             <InputError message={createErrors.branch_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Order Type</Label>
+                            <Label>
+                                {t('orders.form.orderType', 'Order Type')}
+                            </Label>
                             <Select
                                 value={orderType}
                                 onValueChange={(value) => {
@@ -770,33 +884,48 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'orders.form.orderTypePlaceholder',
+                                            'Select type',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="dine_in">
-                                        Dine In
+                                        {getOrderTypeLabel('dine_in')}
                                     </SelectItem>
                                     <SelectItem value="takeaway">
-                                        Takeaway
+                                        {getOrderTypeLabel('takeaway')}
                                     </SelectItem>
                                     <SelectItem value="delivery">
-                                        Delivery
+                                        {getOrderTypeLabel('delivery')}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                             <InputError message={createErrors.order_type} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Payment Method</Label>
+                            <Label>
+                                {t(
+                                    'orders.form.paymentMethod',
+                                    'Payment Method',
+                                )}
+                            </Label>
                             <Select
                                 value={paymentMethod}
                                 onValueChange={setPaymentMethod}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select payment method" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'orders.form.paymentMethodPlaceholder',
+                                            'Select payment method',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {PAYMENT_METHOD_OPTIONS.map((option) => (
+                                    {paymentMethodOptions.map((option) => (
                                         <SelectItem
                                             key={option.value}
                                             value={option.value}
@@ -810,14 +939,24 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </div>
                         {orderType === 'dine_in' ? (
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Table Number</Label>
+                                <Label>
+                                    {t(
+                                        'orders.form.tableNumber',
+                                        'Table Number',
+                                    )}
+                                </Label>
                                 <Select
                                     value={branchTableId}
                                     onValueChange={setBranchTableId}
                                     disabled={!branchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select table number" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'orders.form.tableNumberPlaceholder',
+                                                'Select table number',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {filteredTablesByBranch.map((table) => (
@@ -839,7 +978,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         {orderType === 'delivery' ? (
                             <>
                                 <div className="grid gap-2">
-                                    <Label>Customer Name</Label>
+                                    <Label>
+                                        {t(
+                                            'orders.form.customerName',
+                                            'Customer Name',
+                                        )}
+                                    </Label>
                                     <Input
                                         value={customerName}
                                         onChange={(event) =>
@@ -851,7 +995,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>Customer Phone</Label>
+                                    <Label>
+                                        {t(
+                                            'orders.form.customerPhone',
+                                            'Customer Phone',
+                                        )}
+                                    </Label>
                                     <Input
                                         value={customerPhone}
                                         onChange={(event) =>
@@ -863,7 +1012,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     />
                                 </div>
                                 <div className="grid gap-2 sm:col-span-2">
-                                    <Label>Delivery Address</Label>
+                                    <Label>
+                                        {t(
+                                            'orders.form.deliveryAddress',
+                                            'Delivery Address',
+                                        )}
+                                    </Label>
                                     <Textarea
                                         value={deliveryAddress}
                                         onChange={(event) =>
@@ -883,7 +1037,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                                Order Items
+                                {t('orders.form.orderItems', 'Order Items')}
                             </h4>
                             <Button
                                 variant="outline"
@@ -892,7 +1046,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 className="gap-2"
                             >
                                 <Plus className="h-4 w-4" />
-                                Add Item
+                                {t('orders.form.addItem', 'Add Item')}
                             </Button>
                         </div>
 
@@ -914,7 +1068,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                             >
                                                 <div className="grid gap-2 sm:col-span-2">
-                                                    <Label>Product</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'orders.form.product',
+                                                            'Product',
+                                                        )}
+                                                    </Label>
                                                     <Select
                                                         value={item.productId}
                                                         onValueChange={(
@@ -929,7 +1088,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         }
                                                     >
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="Select product" />
+                                                            <SelectValue
+                                                                placeholder={t(
+                                                                    'orders.form.productPlaceholder',
+                                                                    'Select product',
+                                                                )}
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {products.map(
@@ -953,7 +1117,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 </div>
                                                 {hasSizes ? (
                                                     <div className="grid gap-2">
-                                                        <Label>Size</Label>
+                                                        <Label>
+                                                            {t(
+                                                                'orders.form.size',
+                                                                'Size',
+                                                            )}
+                                                        </Label>
                                                         <Select
                                                             value={item.sizeId}
                                                             onValueChange={(
@@ -968,7 +1137,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             }
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select size" />
+                                                                <SelectValue
+                                                                    placeholder={t(
+                                                                        'orders.form.sizePlaceholder',
+                                                                        'Select size',
+                                                                    )}
+                                                                />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {sizes.map(
@@ -992,7 +1166,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </div>
                                                 ) : null}
                                                 <div className="grid gap-2">
-                                                    <Label>Qty</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'orders.form.qty',
+                                                            'Qty',
+                                                        )}
+                                                    </Label>
                                                     <NumericInput
                                                         min="1"
                                                         value={item.quantity}
@@ -1010,7 +1189,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     />
                                                 </div>
                                                 <div className="grid gap-2">
-                                                    <Label>Price</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'orders.form.price',
+                                                            'Price',
+                                                        )}
+                                                    </Label>
                                                     <NumericInput
                                                         min="0"
                                                         value={item.price}
@@ -1046,7 +1230,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         className="text-red-600"
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
-                                                        Remove
+                                                        {t(
+                                                            'orders.form.remove',
+                                                            'Remove',
+                                                        )}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -1071,7 +1258,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                         >
                                             <div className="grid gap-2 sm:col-span-2">
-                                                <Label>Product</Label>
+                                                <Label>
+                                                    {t(
+                                                        'orders.form.product',
+                                                        'Product',
+                                                    )}
+                                                </Label>
                                                 <Select
                                                     value={item.productId}
                                                     onValueChange={(value) =>
@@ -1084,7 +1276,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     }
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select product" />
+                                                        <SelectValue
+                                                            placeholder={t(
+                                                                'orders.form.productPlaceholder',
+                                                                'Select product',
+                                                            )}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {products.map(
@@ -1106,7 +1303,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             </div>
                                             {hasSizes ? (
                                                 <div className="grid gap-2">
-                                                    <Label>Size</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'orders.form.size',
+                                                            'Size',
+                                                        )}
+                                                    </Label>
                                                     <Select
                                                         value={item.sizeId}
                                                         onValueChange={(
@@ -1121,7 +1323,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         }
                                                     >
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="Select size" />
+                                                            <SelectValue
+                                                                placeholder={t(
+                                                                    'orders.form.sizePlaceholder',
+                                                                    'Select size',
+                                                                )}
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {sizes.map(
@@ -1145,7 +1352,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 </div>
                                             ) : null}
                                             <div className="grid gap-2">
-                                                <Label>Qty</Label>
+                                                <Label>
+                                                    {t('orders.form.qty', 'Qty')}
+                                                </Label>
                                                 <NumericInput
                                                     min="1"
                                                     value={item.quantity}
@@ -1161,7 +1370,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>Price</Label>
+                                                <Label>
+                                                    {t(
+                                                        'orders.form.price',
+                                                        'Price',
+                                                    )}
+                                                </Label>
                                                 <NumericInput
                                                     min="0"
                                                     value={item.price}
@@ -1195,7 +1409,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     className="text-red-600"
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
-                                                    Remove
+                                                    {t(
+                                                        'orders.form.remove',
+                                                        'Remove',
+                                                    )}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1205,7 +1422,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         )}
 
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>Total Amount</span>
+                            <span>
+                                {t('orders.form.totalAmount', 'Total Amount')}
+                            </span>
                             <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
                                 {formatAfn(createTotal)}
                             </span>
@@ -1219,7 +1438,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('orders.form.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
@@ -1235,7 +1454,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            {editingOrder ? 'Update Order' : 'Create Order'}
+                            {editingOrder
+                                ? t('orders.updateOrder', 'Update Order')
+                                : t('orders.createOrder', 'Create Order')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1245,10 +1466,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 <DialogContent className="sm:max-w-5xl">
                     <DialogHeader>
                         <DialogTitle>
-                            Order #{selectedOrder?.id ?? ''}
+                            {t('orders.detailsModal.titlePrefix', 'Order #')}
+                            {selectedOrder?.id ?? ''}
                         </DialogTitle>
                         <DialogDescription>
-                            View order details and update order status.
+                            {t(
+                                'orders.detailsModal.description',
+                                'View order details and update order status.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     {selectedOrder ? (
@@ -1262,21 +1487,27 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
                                     }
                                 >
-                                    {(selectedOrder.source ?? 'pos') ===
-                                    'mobile_app'
-                                        ? 'Mobile'
-                                        : 'POS'}
+                                    {getSourceLabel(
+                                        selectedOrder.source ?? 'pos',
+                                    )}
                                 </Badge>
                                 {selectedOrder.client?.name ? (
                                     <Badge variant="secondary">
-                                        Client: {selectedOrder.client.name}
+                                        {t(
+                                            'orders.detailsModal.clientPrefix',
+                                            'Client:',
+                                        )}{' '}
+                                        {selectedOrder.client.name}
                                     </Badge>
                                 ) : null}
                             </div>
                             <div className="grid gap-4 sm:grid-cols-6">
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Branch
+                                        {t(
+                                            'orders.detailsModal.branch',
+                                            'Branch',
+                                        )}
                                     </p>
                                     <p className="font-medium">
                                         {selectedOrder.branch?.name ?? '-'}
@@ -1284,26 +1515,39 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Order Type
+                                        {t(
+                                            'orders.detailsModal.orderType',
+                                            'Order Type',
+                                        )}
                                     </p>
                                     <p className="font-medium capitalize">
-                                        {selectedOrder.order_type?.replace(
-                                            '_',
-                                            ' ',
+                                        {getOrderTypeLabel(
+                                            selectedOrder.order_type ??
+                                                'dine_in',
                                         )}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Created By
+                                        {t(
+                                            'orders.detailsModal.createdBy',
+                                            'Created By',
+                                        )}
                                     </p>
                                     <p className="font-medium">
-                                        {selectedOrder.user?.name ?? 'System'}
+                                        {selectedOrder.user?.name ??
+                                            t(
+                                                'orders.detailsModal.system',
+                                                'System',
+                                            )}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Client
+                                        {t(
+                                            'orders.detailsModal.client',
+                                            'Client',
+                                        )}
                                     </p>
                                     <p className="font-medium">
                                         {selectedOrder.client?.name ??
@@ -1313,7 +1557,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total
+                                        {t(
+                                            'orders.detailsModal.total',
+                                            'Total',
+                                        )}
                                     </p>
                                     <p className="font-medium">
                                         {formatAfn(selectedOrder.total_amount)}
@@ -1321,14 +1568,15 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Status
+                                        {t(
+                                            'orders.detailsModal.status',
+                                            'Status',
+                                        )}
                                     </p>
                                     <p className="font-medium">
-                                        {(selectedOrder.status ?? 'pending')
-                                            .replace('_', ' ')
-                                            .replace(/\b\w/g, (c) =>
-                                                c.toUpperCase(),
-                                            )}
+                                        {getStatusLabel(
+                                            selectedOrder.status ?? 'pending',
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -1339,7 +1587,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 <div className="grid gap-4 rounded-md border border-neutral-200/70 p-4 sm:grid-cols-3 dark:border-neutral-800">
                                     <div>
                                         <p className="text-xs text-muted-foreground">
-                                            Client Email
+                                            {t(
+                                                'orders.detailsModal.clientEmail',
+                                                'Client Email',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {selectedOrder.client?.email ?? '-'}
@@ -1347,7 +1598,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground">
-                                            Client Phone
+                                            {t(
+                                                'orders.detailsModal.clientPhone',
+                                                'Client Phone',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {selectedOrder.client?.phone ??
@@ -1357,7 +1611,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground">
-                                            Customer Note
+                                            {t(
+                                                'orders.detailsModal.customerNote',
+                                                'Customer Note',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {selectedOrder.customer_note ?? '-'}
@@ -1379,7 +1636,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     }
                                 >
                                     <Printer className="h-4 w-4" />
-                                    Print Receipt
+                                    {t(
+                                        'orders.detailsModal.printReceipt',
+                                        'Print Receipt',
+                                    )}
                                 </Button>
                             </div>
 
@@ -1394,7 +1654,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 >
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            Product
+                                                            {t(
+                                                                'orders.detailsModal.product',
+                                                                'Product',
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             {item.product_name ??
@@ -1406,7 +1669,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            Kitchen
+                                                            {t(
+                                                                'orders.detailsModal.kitchen',
+                                                                'Kitchen',
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             {item.kitchen
@@ -1414,12 +1680,18 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                 item.product
                                                                     ?.kitchen
                                                                     ?.name ??
-                                                                'Unassigned'}
+                                                                t(
+                                                                    'orders.detailsModal.unassigned',
+                                                                    'Unassigned',
+                                                                )}
                                                         </p>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            Size
+                                                            {t(
+                                                                'orders.detailsModal.size',
+                                                                'Size',
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             {item.product_size_name ??
@@ -1432,7 +1704,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            Qty
+                                                            {t(
+                                                                'orders.detailsModal.qty',
+                                                                'Qty',
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             {item.quantity}
@@ -1440,7 +1715,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            Price
+                                                            {t(
+                                                                'orders.detailsModal.price',
+                                                                'Price',
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             {formatAfn(
@@ -1462,7 +1740,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         >
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Product
+                                                    {t(
+                                                        'orders.detailsModal.product',
+                                                        'Product',
+                                                    )}
                                                 </p>
                                                 <p className="font-medium">
                                                     {item.product_name ??
@@ -1473,18 +1754,27 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Kitchen
+                                                    {t(
+                                                        'orders.detailsModal.kitchen',
+                                                        'Kitchen',
+                                                    )}
                                                 </p>
                                                 <p className="font-medium">
                                                     {item.kitchen?.name ??
                                                         item.product?.kitchen
                                                             ?.name ??
-                                                        'Unassigned'}
+                                                        t(
+                                                            'orders.detailsModal.unassigned',
+                                                            'Unassigned',
+                                                        )}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Size
+                                                    {t(
+                                                        'orders.detailsModal.size',
+                                                        'Size',
+                                                    )}
                                                 </p>
                                                 <p className="font-medium">
                                                     {item.product_size_name ??
@@ -1496,7 +1786,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Qty
+                                                    {t(
+                                                        'orders.detailsModal.qty',
+                                                        'Qty',
+                                                    )}
                                                 </p>
                                                 <p className="font-medium">
                                                     {item.quantity}
@@ -1504,7 +1797,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Price
+                                                    {t(
+                                                        'orders.detailsModal.price',
+                                                        'Price',
+                                                    )}
                                                 </p>
                                                 <p className="font-medium">
                                                     {formatAfn(item.price)}
@@ -1523,10 +1819,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 <DialogContent className="sm:max-w-5xl">
                     <DialogHeader>
                         <DialogTitle>
-                            Add Items to Order #{selectedOrder?.id ?? ''}
+                            {t(
+                                'orders.form.addItemsTitlePrefix',
+                                'Add Items to Order #',
+                            )}
+                            {selectedOrder?.id ?? ''}
                         </DialogTitle>
                         <DialogDescription>
-                            Add additional items to an existing order.
+                            {t(
+                                'orders.form.addItemsDescription',
+                                'Add additional items to an existing order.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -1537,7 +1840,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 onClick={() => addDraftItem(setAddItems)}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Item
+                                {t('orders.form.addItem', 'Add Item')}
                             </Button>
                         </div>
                         <div className="space-y-3">
@@ -1553,7 +1856,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
                                     >
                                         <div className="grid gap-2 sm:col-span-2">
-                                            <Label>Product</Label>
+                                            <Label>
+                                                {t(
+                                                    'orders.form.product',
+                                                    'Product',
+                                                )}
+                                            </Label>
                                             <Select
                                                 value={item.productId}
                                                 onValueChange={(value) =>
@@ -1566,7 +1874,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 }
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select product" />
+                                                    <SelectValue
+                                                        placeholder={t(
+                                                            'orders.form.productPlaceholder',
+                                                            'Select product',
+                                                        )}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {products.map((entry) => (
@@ -1584,7 +1897,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         </div>
                                         {hasSizes ? (
                                             <div className="grid gap-2">
-                                                <Label>Size</Label>
+                                                <Label>
+                                                    {t(
+                                                        'orders.form.size',
+                                                        'Size',
+                                                    )}
+                                                </Label>
                                                 <Select
                                                     value={item.sizeId}
                                                     onValueChange={(value) =>
@@ -1597,7 +1915,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     }
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select size" />
+                                                        <SelectValue
+                                                            placeholder={t(
+                                                                'orders.form.sizePlaceholder',
+                                                                'Select size',
+                                                            )}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {sizes.map((size) => (
@@ -1615,7 +1938,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             </div>
                                         ) : null}
                                         <div className="grid gap-2">
-                                            <Label>Qty</Label>
+                                            <Label>
+                                                {t('orders.form.qty', 'Qty')}
+                                            </Label>
                                             <NumericInput
                                                 min="1"
                                                 value={item.quantity}
@@ -1631,7 +1956,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             />
                                         </div>
                                         <div className="grid gap-2">
-                                            <Label>Price</Label>
+                                            <Label>
+                                                {t(
+                                                    'orders.form.price',
+                                                    'Price',
+                                                )}
+                                            </Label>
                                             <NumericInput
                                                 min="0"
                                                 value={item.price}
@@ -1663,7 +1993,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 className="text-red-600"
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />
-                                                Remove
+                                                {t(
+                                                    'orders.form.remove',
+                                                    'Remove',
+                                                )}
                                             </Button>
                                         </div>
                                     </div>
@@ -1672,7 +2005,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </div>
 
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>Additional Total</span>
+                            <span>
+                                {t(
+                                    'orders.form.additionalTotal',
+                                    'Additional Total',
+                                )}
+                            </span>
                             <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
                                 {formatAfn(addItemsTotal)}
                             </span>
@@ -1686,14 +2024,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('orders.form.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleAddItemsSubmit}
                             disabled={isSubmitting}
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Add Items
+                            {t('orders.form.addItems', 'Add Items')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
