@@ -1,4 +1,7 @@
 const ps = {
+    brand: {
+        restaurantName: 'بابا رستورانت',
+    },
     common: {
         save: 'خوندي کول',
         saved: 'خوندي شول',

@@ -1,4 +1,7 @@
 const fa = {
+    brand: {
+        restaurantName: 'رستورانت بابا',
+    },
     common: {
         save: 'ذخیره',
         saved: 'ذخیره شد',

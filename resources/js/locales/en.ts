@@ -1,4 +1,7 @@
 const en = {
+    brand: {
+        restaurantName: 'Baba Restaurant',
+    },
     common: {
         save: 'Save',
         saved: 'Saved',
