@@ -28,6 +28,7 @@ const en = {
         users: 'Users',
         roles: 'Roles',
         reports: 'Reports',
+        tools: 'Tools',
         runtimeHealth: 'Runtime Health',
         mobileApp: 'Mobile App',
         website: 'Website',

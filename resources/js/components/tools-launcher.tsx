@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { useLocalization } from '@/lib/localization';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { KitchensClient } from '@/components/tables/kitchens/client';
@@ -88,6 +89,7 @@ function getCsrfToken() {
 }
 
 export function ToolsLauncher() {
+    const { t } = useLocalization();
     const [toolData, setToolData] = useState<ToolReferenceData>(
         emptyToolReferenceData,
     );
@@ -639,7 +641,9 @@ export function ToolsLauncher() {
     return (
         <>
             <SidebarGroup className="px-2 py-2">
-                <SidebarGroupLabel>Tools</SidebarGroupLabel>
+                <SidebarGroupLabel>
+                    {t('navigation.tools', 'Tools')}
+                </SidebarGroupLabel>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <Popover
@@ -648,10 +652,14 @@ export function ToolsLauncher() {
                         >
                             <PopoverTrigger asChild className="cursor-pointer">
                                 <SidebarMenuButton
-                                    tooltip={{ children: 'Tools' }}
+                                    tooltip={{
+                                        children: t('navigation.tools', 'Tools'),
+                                    }}
                                 >
                                     <LayoutDashboard />
-                                    <span className="text-base">Tools</span>
+                                    <span className="text-sm">
+                                        {t('navigation.tools', 'Tools')}
+                                    </span>
                                 </SidebarMenuButton>
                             </PopoverTrigger>
                             <PopoverContent

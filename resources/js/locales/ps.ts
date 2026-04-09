@@ -28,6 +28,7 @@ const ps = {
         users: 'کارنان',
         roles: 'رولونه',
         reports: 'راپورونه',
+        tools: 'وسایل',
         runtimeHealth: 'د سیستم وضعیت',
         mobileApp: 'موبایل اپ',
         website: 'وېب‌سایټ',

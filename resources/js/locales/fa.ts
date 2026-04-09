@@ -28,6 +28,7 @@ const fa = {
         users: 'کاربران',
         roles: 'نقش‌ها',
         reports: 'گزارش‌ها',
+        tools: 'ابزارها',
         runtimeHealth: 'وضعیت سیستم',
         mobileApp: 'اپلیکیشن موبایل',
         website: 'وب‌سایت',

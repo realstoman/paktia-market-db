@@ -266,7 +266,7 @@ html[lang='ps'] {
     header nav a,
     header nav button {
         font-family: var(--app-heading-font);
-        font-weight: 600;
+        font-weight: 500;
     }
 
     html[lang='fa'] h1,
@@ -277,13 +277,6 @@ html[lang='ps'] {
     html[lang='fa'] h6,
     html[lang='fa'] [data-slot='card-title'],
     html[lang='fa'] [data-slot='sidebar-group-label'],
-    html[lang='fa'] [data-sidebar='menu-button'],
-    html[lang='fa'] nav a,
-    html[lang='fa'] nav button,
-    html[lang='fa'] aside a,
-    html[lang='fa'] aside button,
-    html[lang='fa'] header nav a,
-    html[lang='fa'] header nav button,
     html[lang='ps'] h1,
     html[lang='ps'] h2,
     html[lang='ps'] h3,
@@ -291,21 +284,23 @@ html[lang='ps'] {
     html[lang='ps'] h5,
     html[lang='ps'] h6,
     html[lang='ps'] [data-slot='card-title'],
-    html[lang='ps'] [data-slot='sidebar-group-label'],
-    html[lang='ps'] [data-sidebar='menu-button'],
-    html[lang='ps'] nav a,
-    html[lang='ps'] nav button,
-    html[lang='ps'] aside a,
-    html[lang='ps'] aside button,
-    html[lang='ps'] header nav a,
-    html[lang='ps'] header nav button {
-        font-weight: 700;
+    html[lang='ps'] [data-slot='sidebar-group-label'] {
+        font-weight: 600;
+    }
+
+    [data-sidebar='menu-button'][data-active='true'],
+    [data-sidebar='menu-button'][data-active='true'] > span,
+    nav a[aria-current='page'],
+    nav button[aria-current='page'],
+    aside a[aria-current='page'],
+    aside button[aria-current='page'] {
+        font-weight: 600;
     }
 
     html[lang='fa'] [data-sidebar='menu-button'][data-active='true'],
     html[lang='fa'] [data-sidebar='menu-button'][data-active='true'] > span,
     html[lang='ps'] [data-sidebar='menu-button'][data-active='true'],
     html[lang='ps'] [data-sidebar='menu-button'][data-active='true'] > span {
-        font-weight: 700;
+        font-weight: 600;
     }
 }
