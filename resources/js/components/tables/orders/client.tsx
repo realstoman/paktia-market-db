@@ -73,7 +73,18 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     isLoading = false,
 }) => {
     const { auth } = usePage<SharedData>().props;
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
+    const dateLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF';
+        }
+
+        return 'en-US';
+    }, [locale]);
     const canChangeBranch = auth.is_super_admin === true;
     const defaultBranchId = useMemo(() => {
         const assignedBranchId = auth.user?.branch_id;
@@ -527,6 +538,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         t,
         getStatusLabel,
         getSourceLabel,
+        dateLocale,
     });
     const filteredTablesByBranch = branchTables.filter(
         (table) =>
@@ -687,7 +699,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     );
 
     const tableToolbar = (
-        <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
+        <div
+            className={`flex w-full flex-wrap gap-2 xl:flex-nowrap ${
+                locale === 'fa' || locale === 'ps'
+                    ? 'justify-end [&>*]:w-full md:[&>*]:flex-1'
+                    : 'justify-end'
+            }`}
+        >
             <SearchableDropdown
                 value={branchFilter}
                 options={branchFilterOptions}
@@ -698,7 +716,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search branches...',
                 )}
                 emptyText={t('orders.filters.noBranches', 'No branches found.')}
-                className="w-[170px]"
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
             />
             <SearchableDropdown
                 value={userFilter}
@@ -710,7 +732,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search users...',
                 )}
                 emptyText={t('orders.filters.noUsers', 'No users found.')}
-                className="w-[170px]"
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
             />
             <SearchableDropdown
                 value={kitchenFilter}
@@ -722,7 +748,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search kitchens...',
                 )}
                 emptyText={t('orders.filters.noKitchens', 'No kitchens found.')}
-                className="w-[170px]"
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
             />
             <SearchableDropdown
                 value={statusFilter}
@@ -734,7 +764,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search statuses...',
                 )}
                 emptyText={t('orders.filters.noStatuses', 'No statuses found.')}
-                className="w-[170px]"
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
             />
             <SearchableDropdown
                 value={sourceFilter}
@@ -746,7 +780,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search sources...',
                 )}
                 emptyText={t('orders.filters.noSources', 'No sources found.')}
-                className="w-[170px]"
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
             />
         </div>
     );

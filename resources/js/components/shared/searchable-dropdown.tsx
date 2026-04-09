@@ -53,32 +53,31 @@ export function SearchableDropdown({
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
                         'h-10 w-full justify-between border border-input px-3 font-normal',
-                        isRtl && 'flex-row-reverse text-right',
+                        isRtl && 'text-right',
                         className,
                     )}
                 >
-                    <span className="truncate">
+                    <span className={cn('truncate', isRtl && 'text-right')}>
                         {selectedLabel ?? placeholder}
                     </span>
-                    <ChevronsUpDown
-                        className={cn(
-                            'h-4 w-4 shrink-0 opacity-50',
-                            isRtl ? 'mr-2' : 'ml-2',
-                        )}
-                    />
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent
                 align="start"
                 className="w-[--radix-popover-trigger-width] p-0"
             >
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
+                <Command dir={isRtl ? 'rtl' : 'ltr'}>
+                    <CommandInput
+                        className={cn(isRtl && 'text-right')}
+                        placeholder={searchPlaceholder}
+                    />
                     <CommandList>
                         <CommandEmpty>{emptyText}</CommandEmpty>
                         <CommandGroup>

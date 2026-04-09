@@ -4,6 +4,7 @@ import InputError from '@/components/input-error';
 import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
 import { OrdersClient } from '@/components/tables/orders/client';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Card,
     CardContent,
@@ -18,7 +19,17 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
@@ -31,6 +42,7 @@ import {
     Clock3,
     CookingPot,
     FilterX,
+    CalendarIcon,
     type LucideIcon,
     PackageCheck,
 } from 'lucide-react';
@@ -66,6 +78,14 @@ const STATUS_CARDS: StatusCardConfig[] = [
     { key: 'cancelled', icon: CircleX },
 ];
 
+function toDateParam(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 export default function OrdersPage({
     orders,
     branches,
@@ -76,17 +96,29 @@ export default function OrdersPage({
     restaurantStartDate,
 }: OrdersPageProps) {
     const { t, locale, isRtl } = useLocalization();
+    const dateLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF';
+        }
+
+        return 'en-US';
+    }, [locale]);
     const [selectedStatus, setSelectedStatus] = useState<OrderStatusKey | null>(
         null,
     );
     const [dateFilter, setDateFilter] = useState(selectedDate ?? '');
     const [dateError, setDateError] = useState('');
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     const todayDate = useMemo(
         () =>
             selectedDate
                 ? new Date(`${selectedDate}T00:00:00`).toLocaleDateString(
-                      locale,
+                      dateLocale,
                       {
                           weekday: 'long',
                           month: 'long',
@@ -95,36 +127,25 @@ export default function OrdersPage({
                       },
                   )
                 : '',
-        [locale, selectedDate],
+        [dateLocale, selectedDate],
     );
 
     const restaurantStartedDate = useMemo(
         () =>
             restaurantStartDate
-                ? new Date(restaurantStartDate).toLocaleDateString(locale, {
+                ? new Date(restaurantStartDate).toLocaleDateString(dateLocale, {
                       month: 'long',
                       day: 'numeric',
                       year: 'numeric',
                   })
                 : null,
-        [locale, restaurantStartDate],
+        [dateLocale, restaurantStartDate],
     );
-    const afghanCalendarLocale = useMemo(() => {
-        if (locale === 'fa') {
-            return 'fa-AF-u-ca-persian';
-        }
-
-        if (locale === 'ps') {
-            return 'ps-AF-u-ca-persian';
-        }
-
-        return 'en-US';
-    }, [locale]);
     const selectedAfghanDate = useMemo(
         () =>
             dateFilter
                 ? new Date(`${dateFilter}T00:00:00`).toLocaleDateString(
-                      afghanCalendarLocale,
+                      dateLocale,
                       {
                           weekday: 'long',
                           year: 'numeric',
@@ -133,7 +154,11 @@ export default function OrdersPage({
                       },
                   )
                 : '',
-        [afghanCalendarLocale, dateFilter],
+        [dateLocale, dateFilter],
+    );
+    const selectedDateValue = useMemo(
+        () => (dateFilter ? new Date(`${dateFilter}T00:00:00`) : undefined),
+        [dateFilter],
     );
 
     const stats = useMemo(() => {
@@ -216,14 +241,78 @@ export default function OrdersPage({
                     <div className="w-full max-w-md space-y-1">
                         <div className="flex items-end justify-end gap-2">
                             <div className="w-full bg-white dark:bg-neutral-900">
-                                <Input
-                                    type="date"
-                                    className="h-10"
-                                    value={dateFilter}
-                                    onChange={(event) =>
-                                        setDateFilter(event.target.value)
-                                    }
-                                />
+                                <InputGroup className="h-10">
+                                    <InputGroupInput
+                                        value={selectedAfghanDate}
+                                        readOnly
+                                        placeholder={t(
+                                            'dashboard.selectDate',
+                                            'Select date',
+                                        )}
+                                        className={isRtl ? 'text-right' : ''}
+                                        onClick={() =>
+                                            setIsDatePickerOpen(true)
+                                        }
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'ArrowDown') {
+                                                event.preventDefault();
+                                                setIsDatePickerOpen(true);
+                                            }
+                                        }}
+                                    />
+                                    <InputGroupAddon
+                                        align={isRtl ? 'inline-start' : 'inline-end'}
+                                    >
+                                        <Popover
+                                            open={isDatePickerOpen}
+                                            onOpenChange={setIsDatePickerOpen}
+                                        >
+                                            <PopoverTrigger asChild>
+                                                <InputGroupButton
+                                                    variant="ghost"
+                                                    size="icon-xs"
+                                                    aria-label={t(
+                                                        'dashboard.selectDate',
+                                                        'Select date',
+                                                    )}
+                                                >
+                                                    <CalendarIcon />
+                                                    <span className="sr-only">
+                                                        {t(
+                                                            'dashboard.selectDate',
+                                                            'Select date',
+                                                        )}
+                                                    </span>
+                                                </InputGroupButton>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                className="w-auto overflow-hidden p-0"
+                                                align={isRtl ? 'start' : 'end'}
+                                                alignOffset={-8}
+                                                sideOffset={10}
+                                            >
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={selectedDateValue}
+                                                    month={selectedDateValue}
+                                                    onSelect={(date) => {
+                                                        if (!date) {
+                                                            return;
+                                                        }
+
+                                                        setDateFilter(
+                                                            toDateParam(date),
+                                                        );
+                                                        setDateError('');
+                                                        setIsDatePickerOpen(
+                                                            false,
+                                                        );
+                                                    }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </InputGroupAddon>
+                                </InputGroup>
                             </div>
                             <Button
                                 type="button"

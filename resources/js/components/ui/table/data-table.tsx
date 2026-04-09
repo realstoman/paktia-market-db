@@ -210,11 +210,17 @@ export function DataTable<TData, TValue>({
                         setSearchInput(event.target.value)
                     }
                     className={`h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80 ${
-                        isRtl ? 'text-right' : ''
+                        isRtl ? 'max-w-none flex-1 text-right' : ''
                     }`}
                 />
                 {toolbar ? (
-                    <div className={isRtl ? 'mr-auto' : 'ml-auto'}>
+                    <div
+                        className={
+                            isRtl
+                                ? 'mr-auto flex w-full justify-end'
+                                : 'ml-auto'
+                        }
+                    >
                         {toolbar}
                     </div>
                 ) : null}
@@ -225,7 +231,7 @@ export function DataTable<TData, TValue>({
                     dir={isRtl ? 'rtl' : 'ltr'}
                     className={
                         isRtl
-                            ? 'pr-2 [&_th]:text-right [&_td]:text-right'
+                            ? '[&_th]:text-right [&_td]:text-right [&_th:first-child]:pr-4 [&_td:first-child]:pr-4'
                             : ''
                     }
                 >
@@ -292,11 +298,7 @@ export function DataTable<TData, TValue>({
                     {selectedRowsText}
                 </div>
 
-                <div
-                    className={`flex items-center gap-2 ${
-                        isRtl ? 'flex-row-reverse' : ''
-                    }`}
-                >
+                <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         className='h-9 w-9 text-center flex items-center justify-center cursor-pointer'

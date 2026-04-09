@@ -115,6 +115,17 @@ export function ReceiptPreviewDialog({
     onOpenChange,
 }: ReceiptPreviewDialogProps) {
     const { t, locale, direction, isRtl } = useLocalization();
+    const dateLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF';
+        }
+
+        return 'en-US';
+    }, [locale]);
     const [discount, setDiscount] = useState('0');
 
     const subtotal = useMemo(() => {
@@ -138,7 +149,7 @@ export function ReceiptPreviewDialog({
     );
     const finalTotal = Math.max(0, subtotal - discountValue);
     const createdAt = order?.created_at
-        ? new Date(order.created_at).toLocaleString(locale)
+        ? new Date(order.created_at).toLocaleString(dateLocale)
         : '-';
     const orderTypeLabel = order?.order_type
         ? t(

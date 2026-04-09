@@ -39,6 +39,7 @@ interface BuildOrderColumnsOptions {
     t: (key: string, fallback?: string) => string;
     getStatusLabel: (status: string) => string;
     getSourceLabel: (source: string) => string;
+    dateLocale: string;
 }
 
 export const buildColumns = ({
@@ -52,6 +53,7 @@ export const buildColumns = ({
     t,
     getStatusLabel,
     getSourceLabel,
+    dateLocale,
 }: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
         id: 'select',
@@ -197,7 +199,7 @@ export const buildColumns = ({
         header: t('orders.columns.createdAt', 'Created At'),
         cell: ({ row }) => {
             const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
+            return date.toLocaleDateString(dateLocale);
         },
     },
     {
