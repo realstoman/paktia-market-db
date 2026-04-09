@@ -29,6 +29,14 @@ interface BarChartDefaultProps {
     description?: string;
     footerNote?: string;
     compact?: boolean;
+    locale?: string;
+    labels?: {
+        netProfit?: string;
+        noComparison?: string;
+        trendUp?: string;
+        trendDown?: string;
+    };
+    isRtl?: boolean;
 }
 
 export function BarChartDefault({
@@ -37,6 +45,9 @@ export function BarChartDefault({
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,
+    locale = 'en-US',
+    labels,
+    isRtl = false,
 }: BarChartDefaultProps) {
     const latestMonth = data[data.length - 1];
     const previousMonth = data[data.length - 2];
@@ -50,8 +61,16 @@ export function BarChartDefault({
             : null;
     const trendIsPositive = trendValue >= 0;
 
+    const resolvedLabels = {
+        netProfit: labels?.netProfit ?? 'Net Profit',
+        noComparison:
+            labels?.noComparison ?? 'No percentage comparison available',
+        trendUp: labels?.trendUp ?? 'Up by',
+        trendDown: labels?.trendDown ?? 'Down by',
+    };
+
     return (
-        <div className="flex h-full flex-col">
+        <div className={`flex h-full flex-col ${isRtl ? 'text-right' : ''}`}>
             <div className={compact ? 'mb-2' : 'mb-3'}>
                 <h3 className="text-base font-semibold text-foreground">
                     {title}
@@ -78,7 +97,7 @@ export function BarChartDefault({
                                 <ChartTooltipContent
                                     formatter={(value) => [
                                         `${formatPrice(Number(value))} ؋ `,
-                                        'Net Profit',
+                                        resolvedLabels.netProfit,
                                     ]}
                                 />
                             }
@@ -95,8 +114,8 @@ export function BarChartDefault({
             <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
                 <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
-                        ? 'No percentage comparison available'
-                        : `${trendValue >= 0 ? 'Up' : 'Down'} by ${Math.abs(
+                        ? resolvedLabels.noComparison
+                        : `${trendValue >= 0 ? resolvedLabels.trendUp : resolvedLabels.trendDown} ${Math.abs(
                               trendPercentage,
                           ).toFixed(1)}% from last month`}{' '}
                     {trendPercentage === null ? (

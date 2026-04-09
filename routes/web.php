@@ -201,9 +201,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         $inventoryPie = [
-            ['key' => 'usable', 'label' => 'Usable', 'value' => $totalUsableItems],
-            ['key' => 'fixed', 'label' => 'Fixed', 'value' => $totalFixedItems],
-            ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
+            ['key' => 'usable', 'label' => __('dashboard.inventory.usable'), 'value' => $totalUsableItems],
+            ['key' => 'fixed', 'label' => __('dashboard.inventory.fixed'), 'value' => $totalFixedItems],
+            ['key' => 'other', 'label' => __('dashboard.inventory.other'), 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
         $lowStockQuickList = $inventoryItems
@@ -217,7 +217,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'name' => $item->name,
                 'quantity' => (float) $item->quantity,
                 'unit' => $item->unit,
-                'branch' => $item->branch?->name ?? 'Unassigned',
+                'branch' => $item->branch?->name ?? __('dashboard.inventory.unassigned'),
                 'status' => (float) $item->quantity <= 0 ? 'out' : 'low',
             ])
             ->all();
@@ -344,43 +344,55 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $attentionItems = collect([
             $projectionHealth['criticalBranchCount'] > 0
                 ? [
-                    'title' => 'Critical projection branches',
-                    'detail' => $projectionHealth['criticalBranchCount'].' branch projections need review.',
+                    'title' => __('dashboard.attention.critical_projection_branches_title'),
+                    'detail' => __('dashboard.attention.critical_projection_branches_detail', [
+                        'count' => $projectionHealth['criticalBranchCount'],
+                    ]),
                     'level' => 'critical',
                 ]
                 : null,
             $projectionHealth['warningBranchCount'] > 0
                 ? [
-                    'title' => 'Projection warnings',
-                    'detail' => $projectionHealth['warningBranchCount'].' branches have stale or warning projections.',
+                    'title' => __('dashboard.attention.projection_warnings_title'),
+                    'detail' => __('dashboard.attention.projection_warnings_detail', [
+                        'count' => $projectionHealth['warningBranchCount'],
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $outOfStockItems > 0
                 ? [
-                    'title' => 'Out-of-stock inventory',
-                    'detail' => $outOfStockItems.' items are currently unavailable.',
+                    'title' => __('dashboard.attention.out_of_stock_title'),
+                    'detail' => __('dashboard.attention.out_of_stock_detail', [
+                        'count' => $outOfStockItems,
+                    ]),
                     'level' => 'critical',
                 ]
                 : null,
             $lowStockItems > 0
                 ? [
-                    'title' => 'Low-stock inventory',
-                    'detail' => $lowStockItems.' items are running below the stock threshold.',
+                    'title' => __('dashboard.attention.low_stock_title'),
+                    'detail' => __('dashboard.attention.low_stock_detail', [
+                        'count' => $lowStockItems,
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $cancelledRateToday >= 10
                 ? [
-                    'title' => 'Cancellation rate elevated',
-                    'detail' => 'Cancelled orders are at '.$cancelledRateToday.'% today.',
+                    'title' => __('dashboard.attention.cancellation_rate_title'),
+                    'detail' => __('dashboard.attention.cancellation_rate_detail', [
+                        'rate' => $cancelledRateToday,
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $amountOwedToVendors > 0
                 ? [
-                    'title' => 'Vendor balances pending',
-                    'detail' => 'Outstanding vendor payables total '.number_format($amountOwedToVendors, 0).' AFN.',
+                    'title' => __('dashboard.attention.vendor_balances_title'),
+                    'detail' => __('dashboard.attention.vendor_balances_detail', [
+                        'amount' => number_format($amountOwedToVendors, 0),
+                    ]),
                     'level' => 'info',
                 ]
                 : null,
@@ -413,10 +425,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'branchPerformance' => $branchPerformance,
                     'notes' => [
                         'netProfit' => $dashboardGrossProfit === null
-                            ? 'Net profit = sales - expenses until inventory cost postings are active.'
-                            : 'Net profit = gross profit - expenses, using posted inventory cost movements.',
-                        'expenses' => 'Expenses = sum of all recorded expense amounts.',
-                        'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
+                            ? __('dashboard.notes.net_profit_without_cogs')
+                            : __('dashboard.notes.net_profit_with_cogs'),
+                        'expenses' => __('dashboard.notes.expenses'),
+                        'cashPosition' => __('dashboard.notes.cash_position'),
                     ],
                 ] : null,
                 'attentionItems' => $attentionItems,
