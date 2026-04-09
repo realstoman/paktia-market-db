@@ -16,21 +16,27 @@ import { router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
     Bell,
+    Boxes,
     BriefcaseBusiness,
+    CheckCheck,
     CreditCard,
     DollarSign,
+    Package,
     ReceiptText,
     ShieldCheck,
     Sparkles,
+    Trash2,
     Users,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type NotificationCategory =
     | 'orders'
     | 'payments'
     | 'salary'
     | 'employees'
+    | 'inventory'
+    | 'products'
     | 'users'
     | 'system';
 
@@ -65,6 +71,18 @@ const categoryConfig = {
         accent: 'bg-violet-500/12 text-violet-700 ring-violet-500/20',
         dot: 'bg-violet-500',
     },
+    inventory: {
+        label: 'Inventory',
+        icon: Boxes,
+        accent: 'bg-orange-500/12 text-orange-700 ring-orange-500/20',
+        dot: 'bg-orange-500',
+    },
+    products: {
+        label: 'Products',
+        icon: Package,
+        accent: 'bg-teal-500/12 text-teal-700 ring-teal-500/20',
+        dot: 'bg-teal-500',
+    },
     users: {
         label: 'Users',
         icon: Users,
@@ -89,21 +107,50 @@ const categoryConfig = {
 
 const roleCategoryAccess: Record<string, NotificationCategory[]> = {
     cashier: ['orders', 'payments'],
-    admin: ['orders', 'payments', 'salary', 'employees', 'users', 'system'],
+    admin: ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users', 'system'],
     administrator: [
         'orders',
         'payments',
         'salary',
         'employees',
+        'inventory',
+        'products',
         'users',
         'system',
     ],
-    manager: ['orders', 'payments', 'salary', 'employees', 'users'],
+    manager: ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users'],
     accountant: ['payments', 'salary', 'system'],
     hr: ['salary', 'employees', 'users'],
     'human resources': ['salary', 'employees', 'users'],
-    supervisor: ['orders', 'payments', 'employees'],
+    supervisor: ['orders', 'payments', 'employees', 'inventory', 'products'],
+    'super-admin': ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users', 'system'],
 };
+
+const STORAGE_READ_KEY = 'header-notifications-read';
+const STORAGE_HIDDEN_KEY = 'header-notifications-hidden';
+
+function readStoredIds(key: string): string[] {
+    if (typeof window === 'undefined') {
+        return [];
+    }
+
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === 'string') : [];
+    } catch {
+        return [];
+    }
+}
+
+function writeStoredIds(key: string, ids: string[]) {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    window.localStorage.setItem(key, JSON.stringify(ids));
+}
 
 function getRoleNames(user: User): string[] {
     return (user.roles ?? [])
@@ -160,6 +207,10 @@ function getDefaultHref(category: NotificationCategory): string {
             return '/finance/payroll';
         case 'employees':
             return '/employees';
+        case 'inventory':
+            return '/inventory';
+        case 'products':
+            return '/products';
         case 'users':
             return '/users';
         case 'system':
@@ -173,9 +224,24 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
     const [selectedCategory, setSelectedCategory] = useState<
         NotificationCategory | 'all'
     >('all');
-    const notifications = getVisibleNotifications(
-        user,
-        page.props.notifications ?? [],
+    const [readIds, setReadIds] = useState<string[]>(() =>
+        readStoredIds(STORAGE_READ_KEY),
+    );
+    const [hiddenIds, setHiddenIds] = useState<string[]>(() =>
+        readStoredIds(STORAGE_HIDDEN_KEY),
+    );
+
+    const notifications = useMemo(
+        () =>
+            getVisibleNotifications(user, page.props.notifications ?? [])
+                .filter((notification) => !hiddenIds.includes(notification.id))
+                .map((notification) => ({
+                    ...notification,
+                    unread:
+                        Boolean(notification.unread) &&
+                        !readIds.includes(notification.id),
+                })),
+        [hiddenIds, page.props.notifications, readIds, user],
     );
     const displayedNotifications =
         selectedCategory === 'all'
@@ -189,6 +255,18 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
     const visibleCategories = new Set(
         notifications.map((notification) => notification.category),
     );
+
+    const markAsRead = (ids: string[]) => {
+        const next = Array.from(new Set([...readIds, ...ids]));
+        setReadIds(next);
+        writeStoredIds(STORAGE_READ_KEY, next);
+    };
+
+    const hideNotifications = (ids: string[]) => {
+        const next = Array.from(new Set([...hiddenIds, ...ids]));
+        setHiddenIds(next);
+        writeStoredIds(STORAGE_HIDDEN_KEY, next);
+    };
 
     return (
         <DropdownMenu>
@@ -241,6 +319,43 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                         >
                             {displayedNotifications.length} items
                         </Badge>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                        <div className="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 rounded-full px-3 text-xs"
+                                onClick={() =>
+                                    markAsRead(
+                                        notifications
+                                            .filter((notification) => notification.unread)
+                                            .map((notification) => notification.id),
+                                    )
+                                }
+                            >
+                                <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
+                                Mark all read
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 rounded-full px-3 text-xs"
+                                onClick={() =>
+                                    hideNotifications(
+                                        notifications.map(
+                                            (notification) => notification.id,
+                                        ),
+                                    )
+                                }
+                            >
+                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                Clear all
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -300,7 +415,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                     No notifications yet
                                 </p>
                                 <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
-                                    New orders, payments, salary activity,
+                                    New orders, products, inventory, payroll,
                                     employees, and users will appear here.
                                 </p>
                             </div>
@@ -332,7 +447,10 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                     <button
                                         key={notification.id}
                                         type="button"
-                                        onClick={() => router.visit(href)}
+                                        onClick={() => {
+                                            markAsRead([notification.id]);
+                                            router.visit(href);
+                                        }}
                                         className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900"
                                     >
                                         <div className="relative mt-0.5">

@@ -89,6 +89,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         return collect()
+            ->merge($this->flashNotifications($request))
             ->merge($this->recentOrderNotifications())
             ->merge($this->recentPaymentNotifications())
             ->merge($this->recentPayrollNotifications())
@@ -100,6 +101,30 @@ class HandleInertiaRequests extends Middleware
             ->take(12)
             ->values()
             ->all();
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function flashNotifications(Request $request): Collection
+    {
+        $flash = $request->session()->get('notification');
+
+        if (! is_array($flash) || empty($flash['id'])) {
+            return collect();
+        }
+
+        return collect([[
+            'id' => (string) $flash['id'],
+            'category' => $flash['category'] ?? 'system',
+            'title' => $flash['title'] ?? 'System activity',
+            'description' => $flash['description'] ?? '',
+            'createdAt' => now()->toIso8601String(),
+            'meta' => $flash['meta'] ?? null,
+            'href' => $flash['href'] ?? null,
+            'priority' => $flash['priority'] ?? 'medium',
+            'unread' => true,
+        ]]);
     }
 
     /**
