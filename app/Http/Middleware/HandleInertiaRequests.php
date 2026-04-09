@@ -3,9 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Models\Employee;
+use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PayrollRun;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Inspiring;
@@ -91,6 +93,8 @@ class HandleInertiaRequests extends Middleware
             ->merge($this->recentPaymentNotifications())
             ->merge($this->recentPayrollNotifications())
             ->merge($this->recentEmployeeNotifications())
+            ->merge($this->recentInventoryNotifications())
+            ->merge($this->recentProductNotifications())
             ->merge($this->recentUserNotifications($request->user()))
             ->sortByDesc('createdAt')
             ->take(12)
@@ -259,6 +263,74 @@ class HandleInertiaRequests extends Middleware
                 ])->filter()->join(' • ')),
                 'priority' => 'low',
                 'unread' => $user->created_at?->gt(now()->subDay()) ?? false,
+            ]);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentInventoryNotifications(): Collection
+    {
+        if (! Schema::hasTable('inventory_items')) {
+            return collect();
+        }
+
+        return InventoryItem::query()
+            ->with(['branch:id,name'])
+            ->latest('updated_at')
+            ->take(4)
+            ->get()
+            ->map(fn (InventoryItem $item) => [
+                'id' => "inventory-{$item->id}-{$item->updated_at?->timestamp}",
+                'category' => 'inventory',
+                'title' => $item->created_at?->equalTo($item->updated_at)
+                    ? 'Inventory item added'
+                    : 'Inventory item updated',
+                'description' => $item->created_at?->equalTo($item->updated_at)
+                    ? "{$item->name} was added to inventory."
+                    : "{$item->name} inventory details were updated.",
+                'createdAt' => $item->updated_at?->toIso8601String(),
+                'meta' => trim(collect([
+                    $item->branch?->name,
+                    $item->quantity !== null ? 'Qty '.number_format((float) $item->quantity, 0) : null,
+                ])->filter()->join(' • ')),
+                'href' => '/inventory',
+                'priority' => ((float) $item->quantity <= 0 ? 'high' : ((float) $item->quantity <= 10 ? 'medium' : 'low')),
+                'unread' => $item->updated_at?->gt(now()->subDay()) ?? false,
+            ]);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentProductNotifications(): Collection
+    {
+        if (! Schema::hasTable('products')) {
+            return collect();
+        }
+
+        return Product::query()
+            ->with(['category:id,name', 'kitchen:id,name'])
+            ->latest('updated_at')
+            ->take(4)
+            ->get()
+            ->map(fn (Product $product) => [
+                'id' => "product-{$product->id}-{$product->updated_at?->timestamp}",
+                'category' => 'products',
+                'title' => $product->created_at?->equalTo($product->updated_at)
+                    ? 'Product added'
+                    : 'Product updated',
+                'description' => $product->created_at?->equalTo($product->updated_at)
+                    ? "{$product->name} is now available in the catalog."
+                    : "{$product->name} product details were updated.",
+                'createdAt' => $product->updated_at?->toIso8601String(),
+                'meta' => trim(collect([
+                    $product->category?->name,
+                    $product->kitchen?->name,
+                ])->filter()->join(' • ')),
+                'href' => '/products',
+                'priority' => 'low',
+                'unread' => $product->updated_at?->gt(now()->subDay()) ?? false,
             ]);
     }
 }

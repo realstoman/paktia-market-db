@@ -67,6 +67,8 @@ export interface AppNotification {
         | 'payments'
         | 'salary'
         | 'employees'
+        | 'inventory'
+        | 'products'
         | 'users'
         | 'system';
     title: string;
