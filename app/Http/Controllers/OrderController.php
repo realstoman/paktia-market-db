@@ -26,6 +26,7 @@ class OrderController extends Controller
         return Inertia::render('orders/index', $service->getIndexData(
             selectedDate: $selectedDate,
             isAllTime: $isAllTime,
+            user: $request->user(),
         ));
     }
 
@@ -46,7 +47,7 @@ class OrderController extends Controller
             'items.*.price' => 'required|integer|min:0',
         ]);
 
-        $service->createOrder($validated, $request->user()?->id);
+        $service->createOrder($validated, $request->user()?->id, $request->user());
 
         return redirect()->route('orders.index')
             ->with('success', 'Order created successfully.');
@@ -69,7 +70,7 @@ class OrderController extends Controller
             'items.*.price' => 'required|integer|min:0',
         ]);
 
-        $service->updateOrder($order, $validated);
+        $service->updateOrder($order, $validated, $request->user());
 
         return redirect()->route('orders.index')
             ->with('success', 'Order updated successfully.');

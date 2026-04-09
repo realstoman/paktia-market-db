@@ -25,9 +25,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, BranchTable, Order, Product } from '@/types';
+import { Branch, BranchTable, Order, Product, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { ClipboardList, Plus, Printer, Save, Trash2, X } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -78,12 +78,27 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     branchTables,
     isLoading = false,
 }) => {
+    const { auth } = usePage<SharedData>().props;
+    const canChangeBranch = auth.is_super_admin === true;
+    const defaultBranchId = useMemo(() => {
+        const assignedBranchId = auth.user?.branch_id;
+        if (assignedBranchId) {
+            const matchingBranch = branches.find(
+                (branch) => branch.id === assignedBranchId,
+            );
+            if (matchingBranch) {
+                return String(matchingBranch.id);
+            }
+        }
+
+        return branches.length === 1 ? String(branches[0].id) : '';
+    }, [auth.user?.branch_id, branches]);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAddItemsOpen, setIsAddItemsOpen] = useState(false);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-    const [branchId, setBranchId] = useState('');
+    const [branchId, setBranchId] = useState(defaultBranchId);
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
     const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -110,7 +125,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const resetCreateForm = () => {
         setEditingOrder(null);
-        setBranchId('');
+        setBranchId(defaultBranchId);
         setBranchTableId('');
         setOrderType('dine_in');
         setPaymentMethod('cash');
@@ -715,6 +730,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     setBranchId(value);
                                     setBranchTableId('');
                                 }}
+                                disabled={!canChangeBranch}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select branch" />
@@ -730,6 +746,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {!canChangeBranch ? (
+                                <p className="text-xs text-muted-foreground">
+                                    Your branch is fixed based on your login assignment.
+                                </p>
+                            ) : null}
                             <InputError message={createErrors.branch_id} />
                         </div>
                         <div className="grid gap-2">
