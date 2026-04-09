@@ -507,7 +507,8 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                                 </span>
                                             </div>
 
-                                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                                                <div className="flex flex-wrap items-center gap-2">
                                                 {notification.meta ? (
                                                     <span className="pointer-events-none rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
                                                         {notification.meta}
@@ -518,6 +519,20 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                                                         notification.priority,
                                                     )}
                                                 </span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        hideNotifications([
+                                                            notification.id,
+                                                        ]);
+                                                    }}
+                                                    className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-white"
+                                                    aria-label="Remove notification"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     </button>
