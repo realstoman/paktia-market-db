@@ -11,7 +11,11 @@ import { type PropsWithChildren, useEffect, useRef, useState } from 'react';
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+    defaultSidebarOpen,
+}: PropsWithChildren<{
+    breadcrumbs?: BreadcrumbItem[];
+    defaultSidebarOpen?: boolean;
+}>) {
     const [isNavigating, setIsNavigating] = useState(false);
     const navigationTimeoutRef = useRef<number | null>(null);
 
@@ -45,7 +49,7 @@ export default function AppSidebarLayout({
     }, []);
 
     return (
-        <AppShell variant="sidebar">
+        <AppShell variant="sidebar" defaultSidebarOpen={defaultSidebarOpen}>
             <AppSidebar />
             <AppContent className="m-2 flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto rounded-xl">
                 <div className="px-3 pt-2 md:px-4">

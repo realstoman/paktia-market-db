@@ -43,7 +43,7 @@ import {
     Store,
     Truck,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 type OperationMode = 'cashier' | 'server' | 'order-taker' | 'general';
@@ -198,6 +198,7 @@ export default function OperationsPage({
     const [selectedReceiptOrder, setSelectedReceiptOrder] =
         useState<Order | null>(null);
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
+    const workspaceRef = useRef<HTMLDivElement | null>(null);
 
     const localizedProductName = (product?: Product | null) => {
         if (!product) {
@@ -348,6 +349,13 @@ export default function OperationsPage({
         setCustomerPhone(selectedOrder.customer_phone ?? '');
         setDeliveryAddress(selectedOrder.delivery_address ?? '');
     }, [localizedProductName, selectedOrder]);
+
+    useEffect(() => {
+        workspaceRef.current?.scrollIntoView({
+            block: 'start',
+            behavior: 'auto',
+        });
+    }, []);
 
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
@@ -654,7 +662,7 @@ export default function OperationsPage({
               : 'Order Intake';
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={breadcrumbs} defaultSidebarOpen={false}>
             <Head title={pageTitle} />
             <div className="space-y-4 py-2">
                 <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
@@ -722,7 +730,10 @@ export default function OperationsPage({
                     </div>
                 </section>
 
-                <div className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]">
+                <div
+                    ref={workspaceRef}
+                    className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]"
+                >
                     <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap gap-2">
@@ -935,9 +946,9 @@ export default function OperationsPage({
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="overflow-hidden rounded-[1.4rem] border border-neutral-200 bg-white"
+                                                className="h-[170px] overflow-hidden rounded-[1.4rem] border border-neutral-200 bg-white"
                                             >
-                                                <div className="grid min-h-[172px] grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
+                                                <div className="grid h-full grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
                                                     <div className="h-full overflow-hidden bg-[#f3eee7]">
                                                         {product.images?.[0]
                                                             ?.url ? (
@@ -960,16 +971,10 @@ export default function OperationsPage({
                                                     </div>
                                                     <div className="flex min-w-0 flex-col justify-between p-4">
                                                         <div className="min-w-0">
-                                                            <p className="truncate text-base font-semibold text-[#2f1d0f]">
+                                                            <p className="line-clamp-2 text-base leading-6 font-semibold text-[#2f1d0f]">
                                                                 {localizedProductName(
                                                                     product,
                                                                 )}
-                                                            </p>
-                                                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                                                                {localizedProductDescription(
-                                                                    product,
-                                                                ) ||
-                                                                    'Kitchen-ready menu item'}
                                                             </p>
                                                         </div>
                                                         <div className="mt-4 space-y-3">
@@ -984,11 +989,11 @@ export default function OperationsPage({
                                                                     ؋
                                                                 </span>
                                                             </p>
-                                                            <div className="flex items-center justify-between gap-1">
+                                                            <div className="flex items-center justify-between gap-3">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-6 w-6 shrink-0 rounded-full"
+                                                                    className="h-8 w-8 shrink-0 rounded-full"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1004,7 +1009,7 @@ export default function OperationsPage({
                                                                 </span>
                                                                 <Button
                                                                     size="icon"
-                                                                    className="h-6 w-6 shrink-0 rounded-full"
+                                                                    className="h-8 w-8 shrink-0 rounded-full"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
