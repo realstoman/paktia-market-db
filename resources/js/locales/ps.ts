@@ -509,7 +509,7 @@ const ps = {
             close: 'تړل',
             view: 'لیدل',
             edit: 'سمول',
-            delete: 'ړنګول',
+            delete: 'پاکول',
             openMenu: 'مینو پرانیزئ',
             actionMenu: 'اقدامات',
         },
