@@ -36,7 +36,8 @@ class OperationsDashboardService
             ->where('is_active', true)
             ->when($branchId, fn ($query) => $query->whereHas('kitchen.branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId)))
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->each(fn (Product $product) => $product->images->each->append('url'));
 
         $openOrders = Order::query()
             ->select([
@@ -84,8 +85,11 @@ class OperationsDashboardService
             ->where('is_active', true)
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->with('branch:id,name')
-            ->orderBy('table_number')
             ->get()
+            ->sortBy(fn (BranchTable $table) => [
+                (int) preg_replace('/\D+/', '', (string) $table->table_number),
+                (string) $table->table_number,
+            ])
             ->map(function (BranchTable $table) use ($activeOrdersByTable) {
                 $activeOrder = $activeOrdersByTable->get($table->id);
 
