@@ -61,6 +61,26 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
+test('blocked users can not authenticate using the login screen', function () {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'is_active' => false,
+        'blocked_at' => now(),
+    ]);
+
+    $response = $this->from(route('login'))->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors([
+            'email' => 'Your account is blocked. Ask the system admin to unblock your account.',
+        ]);
+
+    $this->assertGuest();
+});
+
 // test('users can logout', function () {
 //     $user = User::factory()->create();
 
