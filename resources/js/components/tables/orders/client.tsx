@@ -74,6 +74,29 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 }) => {
     const { auth } = usePage<SharedData>().props;
     const { t, locale } = useLocalization();
+    const localizedProductName = (product?: Product | null) => {
+        if (!product) {
+            return '';
+        }
+
+        if (locale === 'ps') {
+            return (
+                product.pashto_name?.trim() ||
+                product.dari_name?.trim() ||
+                product.name
+            );
+        }
+
+        if (locale === 'fa') {
+            return (
+                product.dari_name?.trim() ||
+                product.pashto_name?.trim() ||
+                product.name
+            );
+        }
+
+        return product.name;
+    };
     const dateLocale = useMemo(() => {
         if (locale === 'fa') {
             return 'fa-AF';
@@ -1144,9 +1167,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                             entry.id,
                                                                         )}
                                                                     >
-                                                                        {
-                                                                            entry.name
-                                                                        }
+                                                                        {localizedProductName(
+                                                                            entry,
+                                                                        )}
                                                                     </SelectItem>
                                                                 ),
                                                             )}
@@ -1332,7 +1355,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                         entry.id,
                                                                     )}
                                                                 >
-                                                                    {entry.name}
+                                                                    {localizedProductName(
+                                                                        entry,
+                                                                    )}
                                                                 </SelectItem>
                                                             ),
                                                         )}
@@ -1930,7 +1955,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                 entry.id,
                                                             )}
                                                         >
-                                                            {entry.name}
+                                                            {localizedProductName(
+                                                                entry,
+                                                            )}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>

@@ -148,6 +148,7 @@ const fa = {
         today: 'امروز',
         projection: 'پروجکشن',
         systemHealthCheck: 'بررسی وضعیت سیستم',
+        showFormula: 'نمایش فرمول',
         healthy: 'سالم',
         warning: 'هشدار',
         critical: 'بحرانی',

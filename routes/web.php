@@ -117,6 +117,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->get();
         $topOrderedDishes = OrderItem::query()
             ->selectRaw('products.name as product_name')
+            ->selectRaw('products.dari_name as product_name_fa')
+            ->selectRaw('products.pashto_name as product_name_ps')
             ->selectRaw('product_categories.name as category_name')
             ->selectRaw('SUM(order_items.quantity) as total_quantity')
             ->join('products', 'products.id', '=', 'order_items.product_id')
@@ -128,7 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             )
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.status', '!=', 'cancelled')
-            ->groupBy('products.id', 'products.name', 'product_categories.name')
+            ->groupBy('products.id', 'products.name', 'products.dari_name', 'products.pashto_name', 'product_categories.name')
             ->orderByDesc('total_quantity')
             ->limit(6)
             ->get();

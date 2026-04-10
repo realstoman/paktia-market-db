@@ -147,6 +147,7 @@ const en = {
         today: 'today',
         projection: 'Projection',
         systemHealthCheck: 'System health check',
+        showFormula: 'Show formula',
         healthy: 'Healthy',
         warning: 'Warning',
         critical: 'Critical',

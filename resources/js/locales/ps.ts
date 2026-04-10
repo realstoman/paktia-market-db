@@ -147,6 +147,7 @@ const ps = {
         today: 'نن',
         projection: 'پروجکشن',
         systemHealthCheck: 'د سیستم روغتیا کتنه',
+        showFormula: 'فورمول ښکاره کړئ',
         healthy: 'روغ',
         warning: 'خبرتیا',
         critical: 'بحراني',

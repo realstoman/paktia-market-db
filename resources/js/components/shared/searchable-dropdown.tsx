@@ -86,7 +86,8 @@ export function SearchableDropdown({
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
                                     className={cn(
-                                        isRtl && 'justify-end text-right',
+                                        isRtl &&
+                                            'w-full flex-row-reverse justify-start text-right',
                                     )}
                                     onSelect={() => {
                                         onValueChange(option.value);

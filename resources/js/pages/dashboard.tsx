@@ -29,6 +29,12 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
@@ -38,6 +44,7 @@ import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
+    CircleAlert,
     CalendarIcon,
     Dot,
     Flame,
@@ -168,6 +175,8 @@ interface DashboardProps {
         recentOrders: Order[];
         topOrderedDishes: Array<{
             product_name: string;
+            product_name_fa?: string | null;
+            product_name_ps?: string | null;
             category_name: string;
             total_quantity: number;
         }>;
@@ -282,24 +291,69 @@ function MetricInline({
     label,
     value,
     hint,
+    isRtl = false,
+    tooltipLabel,
+    valueClassName,
 }: {
     label: string;
     value: string;
     hint?: string;
+    isRtl?: boolean;
+    tooltipLabel?: string;
+    valueClassName?: string;
 }) {
     return (
-        <div className="flex items-start justify-between gap-4 py-3.5">
+        <div
+            className={cn(
+                'flex items-start justify-between gap-4 py-3.5',
+                isRtl && 'flex-row-reverse text-right',
+            )}
+        >
             <div className="space-y-1.5">
-                <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                    {label}
-                </p>
-                {hint ? (
-                    <p className="max-w-[28ch] text-xs leading-5 text-muted-foreground">
-                        {hint}
+                <div
+                    className={cn(
+                        'flex items-center gap-1.5',
+                        isRtl && 'justify-end',
+                    )}
+                >
+                    <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                        {label}
                     </p>
-                ) : null}
+                    {hint ? (
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        className="inline-flex h-4 w-4 items-center justify-center text-muted-foreground/80 transition hover:text-foreground"
+                                        aria-label={
+                                            tooltipLabel ?? 'Show formula'
+                                        }
+                                    >
+                                        <CircleAlert className="h-3.5 w-3.5" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                    className={cn(
+                                        'max-w-[28ch] text-xs leading-5',
+                                        isRtl && 'text-right',
+                                    )}
+                                >
+                                    {hint}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : null}
+                </div>
+                {hint ? <div className="h-0.5" /> : null}
             </div>
-            <div className="shrink-0 text-right text-[1.85rem] leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums">
+            <div
+                className={cn(
+                    'shrink-0 text-right text-[1.85rem] leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums',
+                    isRtl && 'text-left',
+                    valueClassName,
+                )}
+            >
                 {value}
             </div>
         </div>
@@ -310,22 +364,32 @@ function StatusPill({
     label,
     value,
     className,
+    valueClassName,
+    isRtl = false,
 }: {
     label: string;
     value: string;
     className?: string;
+    valueClassName?: string;
+    isRtl?: boolean;
 }) {
     return (
         <div
             className={cn(
                 'rounded-xl border border-neutral-200/70 bg-neutral-50/80 px-3.5 py-3 dark:border-neutral-800 dark:bg-neutral-950/40',
+                isRtl && 'text-right',
                 className,
             )}
         >
             <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
                 {label}
             </p>
-            <p className="mt-2 text-2xl leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums">
+            <p
+                className={cn(
+                    'mt-2 text-2xl leading-tight font-semibold tracking-[-0.03em] text-foreground tabular-nums',
+                    valueClassName,
+                )}
+            >
                 {value}
             </p>
         </div>
@@ -382,6 +446,23 @@ export default function Dashboard({ data }: DashboardProps) {
     const orderAnalyticsData = data?.orderAnalytics ?? [];
     const recentOrders = data?.recentOrders ?? [];
     const topOrderedDishes = data?.topOrderedDishes ?? [];
+    const getLocalizedDashboardProductName = (
+        item: {
+            product_name: string;
+            product_name_fa?: string | null;
+            product_name_ps?: string | null;
+        },
+    ) => {
+        if (locale === 'ps') {
+            return item.product_name_ps || item.product_name_fa || item.product_name;
+        }
+
+        if (locale === 'fa') {
+            return item.product_name_fa || item.product_name_ps || item.product_name;
+        }
+
+        return item.product_name;
+    };
     const inventoryStats = data?.inventory;
     const financeStats = data?.finance;
     const attentionItems = data?.attentionItems ?? [];
@@ -447,7 +528,12 @@ export default function Dashboard({ data }: DashboardProps) {
                     <>
                         {financeStats?.projectionHealth ? (
                             <Card className="rounded-2xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                                <CardContent className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                                <CardContent
+                                    className={cn(
+                                        'flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between',
+                                        isRtl && 'md:flex-row-reverse',
+                                    )}
+                                >
                                     <div className={cn('space-y-1', isRtl && 'text-right')}>
                                         <div className={cn('flex items-center gap-2', isRtl && 'justify-end')}>
                                             <span
@@ -481,8 +567,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                             }
                                         </p>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
-                                        <StatusPill
+                                        <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
+                                            <StatusPill
                                             label={t('dashboard.healthy', 'Healthy')}
                                             value={formatNumber(
                                                 Math.max(
@@ -498,27 +584,30 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             .criticalBranchCount,
                                                 ),
                                             )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                        />
+                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                                isRtl={isRtl}
+                                            />
                                         <StatusPill
                                             label={t('dashboard.warning', 'Warning')}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .warningBranchCount,
                                             )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                        />
+                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                                isRtl={isRtl}
+                                            />
                                         <StatusPill
                                             label={t('dashboard.critical', 'Critical')}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .criticalBranchCount,
                                             )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                                isRtl={isRtl}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
                         ) : null}
 
                         <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
@@ -538,6 +627,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 financeStats?.netProfit ?? 0,
                                             )} ؋`}
                                             hint={financeStats?.notes.netProfit}
+                                            isRtl={isRtl}
+                                            tooltipLabel={t(
+                                                'dashboard.showFormula',
+                                                'Show formula',
+                                            )}
                                         />
                                         <MetricInline
                                             label={t('dashboard.expenses', 'Expenses')}
@@ -545,6 +639,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 financeStats?.expenses ?? 0,
                                             )} ؋`}
                                             hint={financeStats?.notes.expenses}
+                                            isRtl={isRtl}
+                                            tooltipLabel={t(
+                                                'dashboard.showFormula',
+                                                'Show formula',
+                                            )}
                                         />
                                         <MetricInline
                                             label={t(
@@ -557,6 +656,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                             hint={
                                                 financeStats?.notes.cashPosition
                                             }
+                                            isRtl={isRtl}
+                                            tooltipLabel={t(
+                                                'dashboard.showFormula',
+                                                'Show formula',
+                                            )}
                                         />
                                     </div>
                                     <div className="mt-4 rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
@@ -806,6 +910,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     inventoryStats?.totalItems ??
                                                         0,
                                                 )}
+                                                isRtl={isRtl}
                                             />
                                             <StatusPill
                                                 label={t(
@@ -816,6 +921,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     inventoryStats?.inventoryValue ??
                                                         0,
                                                 )} ؋`}
+                                                isRtl={isRtl}
+                                                valueClassName="text-lg sm:text-xl break-words"
                                             />
                                             <StatusPill
                                                 label={t('dashboard.usable', 'Usable')}
@@ -823,6 +930,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     inventoryStats?.totalUsableItems ??
                                                         0,
                                                 )}
+                                                isRtl={isRtl}
                                             />
                                             <StatusPill
                                                 label={t('dashboard.fixed', 'Fixed')}
@@ -830,17 +938,18 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     inventoryStats?.totalFixedItems ??
                                                         0,
                                                 )}
+                                                isRtl={isRtl}
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="rounded-xl border border-amber-200/70 bg-amber-50/90 p-3 dark:border-amber-900/70 dark:bg-amber-950/30">
-                                                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                                                    <div className={cn('flex items-center gap-2 text-amber-700 dark:text-amber-300', isRtl && 'flex-row-reverse justify-end')}>
                                                     <Flame className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
                                                         {t('dashboard.lowStock', 'Low stock')}
                                                     </span>
                                                 </div>
-                                                <p className="mt-2 text-2xl font-semibold text-foreground">
+                                                <p className={cn('mt-2 text-2xl font-semibold text-foreground', isRtl && 'text-right')}>
                                                     {formatNumber(
                                                         inventoryStats?.lowStockItems ??
                                                             0,
@@ -848,7 +957,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 </p>
                                             </div>
                                             <div className="rounded-xl border border-red-200/70 bg-red-50/90 p-3 dark:border-red-900/70 dark:bg-red-950/30">
-                                                <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                                                    <div className={cn('flex items-center gap-2 text-red-700 dark:text-red-300', isRtl && 'flex-row-reverse justify-end')}>
                                                     <ShieldAlert className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
                                                         {t(
@@ -857,7 +966,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         )}
                                                     </span>
                                                 </div>
-                                                <p className="mt-2 text-2xl font-semibold text-foreground">
+                                                <p className={cn('mt-2 text-2xl font-semibold text-foreground', isRtl && 'text-right')}>
                                                     {formatNumber(
                                                         inventoryStats?.outOfStockItems ??
                                                             0,
@@ -889,8 +998,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 key={`${item.title}-${index}`}
                                                 className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                             >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="space-y-1">
+                                                <div className={cn('flex items-start justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
+                                                    <div className={cn('space-y-1', isRtl && 'text-right')}>
                                                         <p className="text-sm font-medium text-foreground">
                                                             {item.title}
                                                         </p>
@@ -1025,7 +1134,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     key={item.id}
                                                     className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                                 >
-                                                    <div className="flex items-start justify-between gap-3">
+                                                    <div className={cn('flex items-start justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
                                                         <div className="space-y-1">
                                                             <p className="text-sm font-medium text-foreground">
                                                                 {item.name}
@@ -1054,7 +1163,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                   )}
                                                         </span>
                                                     </div>
-                                                    <div className="mt-3 flex items-end justify-between gap-3">
+                                                    <div className={cn('mt-3 flex items-end justify-between gap-3', isRtl && 'flex-row-reverse')}>
                                                         <div>
                                                             <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                                                                 {t(
@@ -1112,13 +1221,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         key={`${item.product_name}-${index}`}
                                                         className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
                                                     >
-                                                        <div className="flex items-center gap-3">
+                                                        <div className={cn('flex items-center gap-3', isRtl && 'flex-row-reverse')}>
                                                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
                                                                 <Dot className="h-5 w-5" />
                                                             </div>
-                                                            <div>
+                                                            <div className={cn(isRtl && 'text-right')}>
                                                                 <p className="text-sm font-medium tracking-tight">
-                                                                    {item.product_name}
+                                                                    {getLocalizedDashboardProductName(item)}
                                                                 </p>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {item.category_name}{' '}
@@ -1168,14 +1277,17 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 </div>
                                                 <a
                                                     href="/orders"
-                                                    className="text-sm font-medium text-primary hover:underline"
+                                                    className={cn(
+                                                        'text-sm font-medium text-primary hover:underline',
+                                                        isRtl && 'text-right',
+                                                    )}
                                                 >
                                                     {t('dashboard.viewAll', 'View all')}
                                                 </a>
                                             </CardHeader>
                                             <CardContent className="max-h-[28rem] overflow-y-auto">
                                                 <div className="min-w-0 overflow-x-auto">
-                                                    <Table>
+                                                    <Table dir={isRtl ? 'rtl' : 'ltr'}>
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>
@@ -1241,9 +1353,20 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                                     (
                                                                                         item,
                                                                                     ) =>
+                                                                                        (locale ===
+                                                                                        'ps'
+                                                                                            ? item
+                                                                                                  .product
+                                                                                                  ?.pashto_name
+                                                                                            : locale ===
+                                                                                                'fa'
+                                                                                              ? item
+                                                                                                    .product
+                                                                                                    ?.dari_name
+                                                                                              : null) ||
                                                                                         item
                                                                                             .product
-                                                                                            ?.name ??
+                                                                                            ?.name ||
                                                                                         t(
                                                                                             'dashboard.unknownItem',
                                                                                             'Unknown Item',
@@ -1298,7 +1421,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         className={cn(
                                                             'flex gap-2 text-sm font-medium text-primary hover:underline',
                                                             isRtl
-                                                                ? 'justify-start'
+                                                                ? 'justify-start flex-row-reverse'
                                                                 : 'justify-end',
                                                         )}
                                                     >

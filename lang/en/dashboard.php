@@ -27,4 +27,15 @@ return [
         'expenses' => 'Expenses = sum of all recorded expense amounts.',
         'cash_position' => 'Cash position = cash sales - cash expenses + approved cash movements.',
     ],
+    'projection' => [
+        'branch_current' => 'Projection is current.',
+        'branch_missing' => 'Recent source activity exists but no projection has been recorded.',
+        'branch_critical' => 'Projection is critically behind recent source activity.',
+        'branch_warning' => 'Projection is behind recent source activity.',
+        'branch_unavailable' => 'No projection data recorded yet for this branch.',
+        'overall_critical' => 'One or more branches are materially behind recent source activity.',
+        'overall_warning' => 'Projection updates are delayed for some branches.',
+        'overall_unavailable' => 'Projection data has not been generated yet.',
+        'overall_healthy' => 'Projection data is current for active branches.',
+    ],
 ];
