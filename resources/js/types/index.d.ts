@@ -764,6 +764,7 @@ export interface Order {
     base_currency?: string;
     exchange_rate?: number | null;
     sub_total_amount?: number | string;
+    discount_amount?: number | string;
     total_amount: number | string;
     paid_amount: number | string;
     change_amount: number | string;

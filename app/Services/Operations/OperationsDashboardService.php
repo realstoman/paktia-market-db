@@ -86,10 +86,11 @@ class OperationsDashboardService
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->with('branch:id,name')
             ->get()
-            ->sortBy(fn (BranchTable $table) => [
+            ->sortBy(fn (BranchTable $table) => sprintf(
+                '%08d-%s',
                 (int) preg_replace('/\D+/', '', (string) $table->table_number),
                 (string) $table->table_number,
-            ])
+            ))
             ->map(function (BranchTable $table) use ($activeOrdersByTable) {
                 $activeOrder = $activeOrdersByTable->get($table->id);
 
