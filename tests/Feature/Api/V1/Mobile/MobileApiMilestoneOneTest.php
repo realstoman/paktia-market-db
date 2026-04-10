@@ -94,10 +94,13 @@ test('mobile products endpoint requires a valid app key', function () {
 });
 
 test('mobile top ordered dishes endpoint requires a valid app key and returns card fields', function () {
-    [, $product] = createMobileProductFixture();
+    [$branch, $product] = createMobileProductFixture();
 
     $order = Order::create([
+        'branch_id' => $branch->id,
         'order_type' => 'delivery',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 0,
         'status' => 'completed',
         'total_amount' => 0,
     ]);
@@ -110,7 +113,7 @@ test('mobile top ordered dishes endpoint requires a valid app key and returns ca
     $order->items()->create([
         'product_id' => $product->id,
         'quantity' => 5,
-        'unit_price' => $product->base_price,
+        'price' => $product->base_price,
         'line_total' => 5 * $product->base_price,
     ]);
 
@@ -122,7 +125,7 @@ test('mobile top ordered dishes endpoint requires a valid app key and returns ca
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Pepperoni Pizza')
         ->assertJsonPath('data.0.image_url', '/storage/products/pepperoni.jpg')
-        ->assertJsonPath('data.0.price', 500.0)
+        ->assertJsonPath('data.0.price', 500)
         ->assertJsonPath('data.0.link', '/products/pepperoni-pizza');
 });
 
