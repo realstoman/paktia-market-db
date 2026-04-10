@@ -7,7 +7,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLocalization } from '@/lib/localization';
-import { update } from '@/routes/language';
 import { setFormattingLocale } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Check, Globe } from 'lucide-react';
@@ -21,20 +20,37 @@ export default function LanguageDropdown({
     const { locale, languages, t, isRtl } = useLocalization();
 
     const handleSelectLanguage = (language: string) => {
+        if (language === locale) {
+            return;
+        }
+
         setFormattingLocale(language);
         router.put(
-            update().url,
+            '/language',
             { locale: language },
             {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
+                    document.documentElement.lang = language;
+                    const isNextRtl = language === 'fa' || language === 'ps';
+                    document.documentElement.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.body.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.documentElement.classList.toggle(
+                        'rtl',
+                        isNextRtl,
+                    );
+                    document.body.classList.toggle('rtl', isNextRtl);
                     toast.success(
                         t(
                             'language.updated',
                             'Language updated successfully.',
                         ),
                     );
+                    router.reload({
+                        preserveScroll: true,
+                        preserveState: false,
+                    });
                 },
             },
         );

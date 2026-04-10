@@ -48,6 +48,16 @@ const en = {
             login: 'login',
         },
         securedBy: 'Secured by industry-standard encryption',
+        promo: {
+            imageAlt: 'Restaurant dish',
+            heroTitle: 'Manage Your Restaurant',
+            heroDescription:
+                'Complete ERP solution for modern restaurant operations',
+            kitchenTitle: 'Kitchen Management',
+            kitchenDescription: 'Real-time order tracking',
+            menuTitle: 'Menu Control',
+            menuDescription: 'Dynamic pricing & inventory',
+        },
     },
     navigation: {
         platform: 'Platform',

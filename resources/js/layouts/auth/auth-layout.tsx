@@ -21,18 +21,13 @@ export default function AuthLayout({
             <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
                 <div className="flex h-full max-h-screen w-full max-w-lg flex-col items-start justify-between">
                     {/* Brand Logo */}
-                    <div
-                        className={`mb-0 flex w-full items-center sm:mb-12 ${
-                            isRtl ? 'justify-between flex-row-reverse' : 'justify-between'
-                        }`}
-                    >
+                    <div className="mb-0 flex w-full items-center justify-center sm:mb-12">
                         <img
                             src={`${brand.logoFull}`}
                             width="120"
                             height="120"
                             alt="Logo"
                         />
-                        <LanguageDropdown />
                     </div>
 
                     <div className="bottom-0 w-full">
@@ -85,6 +80,13 @@ export default function AuthLayout({
 
             {/* Right Side - Promotional Content */}
             <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-brand-tertiary p-12 lg:flex dark:bg-brand-bg-dark">
+                <div
+                    className={`absolute top-8 z-20 ${
+                        isRtl ? 'left-8' : 'right-8'
+                    }`}
+                >
+                    <LanguageDropdown />
+                </div>
                 {/* Decorative Background Elements */}
                 <div className="relative z-10 max-w-lg">
                     {/* Feature Cards */}
@@ -93,17 +95,25 @@ export default function AuthLayout({
                         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                             <img
                                 src="https://images.pexels.com/photos/1566837/pexels-photo-1566837.jpeg?auto=compress&cs=tinysrgb&w=800"
-                                alt="Delicious pizza"
+                                alt={t(
+                                    'auth.promo.imageAlt',
+                                    'Restaurant dish',
+                                )}
                                 className="h-80 w-full object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute right-6 bottom-6 left-6">
                                 <h3 className="mb-2 text-2xl font-bold text-white">
-                                    Manage Your Restaurant
+                                    {t(
+                                        'auth.promo.heroTitle',
+                                        'Manage Your Restaurant',
+                                    )}
                                 </h3>
                                 <p className="text-sm text-white/90">
-                                    Complete ERP solution for modern restaurant
-                                    operations
+                                    {t(
+                                        'auth.promo.heroDescription',
+                                        'Complete ERP solution for modern restaurant operations',
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -115,10 +125,16 @@ export default function AuthLayout({
                                     <ChefHat className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
-                                    Kitchen Management
+                                    {t(
+                                        'auth.promo.kitchenTitle',
+                                        'Kitchen Management',
+                                    )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
-                                    Real-time order tracking
+                                    {t(
+                                        'auth.promo.kitchenDescription',
+                                        'Real-time order tracking',
+                                    )}
                                 </p>
                             </div>
 
@@ -127,10 +143,16 @@ export default function AuthLayout({
                                     <Utensils className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
-                                    Menu Control
+                                    {t(
+                                        'auth.promo.menuTitle',
+                                        'Menu Control',
+                                    )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
-                                    Dynamic pricing & inventory
+                                    {t(
+                                        'auth.promo.menuDescription',
+                                        'Dynamic pricing & inventory',
+                                    )}
                                 </p>
                             </div>
                         </div>

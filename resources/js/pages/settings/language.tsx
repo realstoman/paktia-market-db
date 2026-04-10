@@ -2,7 +2,7 @@ import HeadingSmall from '@/components/shared/heading-small';
 import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { show, update } from '@/routes/language';
+import { show } from '@/routes/language';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Check } from 'lucide-react';
@@ -18,12 +18,31 @@ export default function LanguageSettings() {
     ];
 
     const handleChangeLanguage = (language: string) => {
+        if (language === locale) {
+            return;
+        }
+
         router.put(
-            update().url,
+            '/language',
             { locale: language },
             {
                 preserveScroll: true,
                 preserveState: true,
+                onSuccess: () => {
+                    document.documentElement.lang = language;
+                    const isNextRtl = language === 'fa' || language === 'ps';
+                    document.documentElement.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.body.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.documentElement.classList.toggle(
+                        'rtl',
+                        isNextRtl,
+                    );
+                    document.body.classList.toggle('rtl', isNextRtl);
+                    router.reload({
+                        preserveScroll: true,
+                        preserveState: false,
+                    });
+                },
             },
         );
     };

@@ -48,6 +48,16 @@ const ps = {
             login: 'ننوتل',
         },
         securedBy: 'د صنعت د معیاري کوډګذارۍ له لارې خوندي شوی',
+        promo: {
+            imageAlt: 'د رستورانت خواړه',
+            heroTitle: 'خپل رستورانت اداره کړئ',
+            heroDescription:
+                'د عصري رستورانت عملیاتو لپاره بشپړ ERP حل',
+            kitchenTitle: 'د پخلنځي مدیریت',
+            kitchenDescription: 'د امرونو پر وخت تعقیب',
+            menuTitle: 'د مېنو کنټرول',
+            menuDescription: 'متحرک قیمت‌ټاکنه او موجودي',
+        },
     },
     navigation: {
         platform: 'پلاتفورم',

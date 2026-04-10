@@ -20,6 +20,7 @@ use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ToolReferenceController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
@@ -49,6 +50,9 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return redirect()->route('login');
 })->middleware('guest');
+
+Route::put('language', [LanguageController::class, 'update'])
+    ->name('language.switch');
 
 /*
 |--------------------------------------------------------------------------

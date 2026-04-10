@@ -48,6 +48,16 @@ const fa = {
             login: 'ورود',
         },
         securedBy: 'محافظت‌شده با رمزگذاری استاندارد صنعتی',
+        promo: {
+            imageAlt: 'غذای رستورانت',
+            heroTitle: 'رستورانت خود را مدیریت کنید',
+            heroDescription:
+                'راهکار کامل ERP برای عملیات مدرن رستورانت',
+            kitchenTitle: 'مدیریت آشپزخانه',
+            kitchenDescription: 'پیگیری سفارش‌ها به‌صورت لحظه‌ای',
+            menuTitle: 'کنترول منو',
+            menuDescription: 'قیمت‌گذاری پویا و مدیریت موجودی',
+        },
     },
     navigation: {
         platform: 'پلتفرم',
