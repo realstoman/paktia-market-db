@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLocalization } from '@/lib/localization';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import {
@@ -28,7 +29,6 @@ import {
     IconPhone,
     IconWorldWww,
 } from '@tabler/icons-react';
-import { useLocalization } from '@/lib/localization';
 import { Printer, ReceiptText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -38,7 +38,10 @@ interface ReceiptPreviewDialogProps {
     onOpenChange: (open: boolean) => void;
     paymentMethod?: string;
     onPaymentMethodChange?: (value: string) => void;
-    onCompletePayment?: (order: Order, payload: { discountAmount: number; paymentMethod: string }) => void;
+    onCompletePayment?: (
+        order: Order,
+        payload: { discountAmount: number; paymentMethod: string },
+    ) => void;
     isCompletingPayment?: boolean;
 }
 
@@ -348,7 +351,10 @@ export function ReceiptPreviewDialog({
                         <div className="space-y-3 rounded-md border p-4">
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    {t('orders.receipt.discount', 'Discount (AFN)')}
+                                    {t(
+                                        'orders.receipt.discount',
+                                        'Discount (AFN)',
+                                    )}
                                 </label>
                                 <NumericInput
                                     min="0"
@@ -405,15 +411,30 @@ export function ReceiptPreviewDialog({
 
                             <div className="text-sm">
                                 <p className="flex items-center justify-between">
-                                    <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.subtotal',
+                                            'Subtotal',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(subtotal)}</span>
                                 </p>
                                 <p className="flex items-center justify-between">
-                                    <span>{t('orders.receipt.discountShort', 'Discount')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.discountShort',
+                                            'Discount',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(discountValue)}</span>
                                 </p>
                                 <p className="mt-2 flex items-center justify-between text-base font-semibold">
-                                    <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.grandTotal',
+                                            'Grand Total',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(finalTotal)}</span>
                                 </p>
                             </div>
@@ -443,11 +464,14 @@ export function ReceiptPreviewDialog({
 
                             <Button
                                 onClick={printReceipt}
-                                className="gap-2"
+                                className="mx-1 gap-2"
                                 disabled={!isPaymentCompleted}
                             >
                                 <Printer className="h-4 w-4" />
-                                {t('orders.receipt.printReceipt', 'Print Receipt')}
+                                {t(
+                                    'orders.receipt.printReceipt',
+                                    'Print Receipt',
+                                )}
                             </Button>
                         </div>
 
@@ -479,7 +503,8 @@ export function ReceiptPreviewDialog({
                                     <div className="my-2 border-t border-dashed" />
                                     <p>
                                         <span className="font-medium">
-                                            {t('orders.receipt.order', 'Order')}:
+                                            {t('orders.receipt.order', 'Order')}
+                                            :
                                         </span>{' '}
                                         #{order.id}
                                     </p>
@@ -509,13 +534,21 @@ export function ReceiptPreviewDialog({
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    {t('orders.receipt.phone', 'Phone')}:
+                                                    {t(
+                                                        'orders.receipt.phone',
+                                                        'Phone',
+                                                    )}
+                                                    :
                                                 </span>{' '}
                                                 {order.customer_phone ?? '-'}
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    {t('orders.receipt.address', 'Address')}:
+                                                    {t(
+                                                        'orders.receipt.address',
+                                                        'Address',
+                                                    )}
+                                                    :
                                                 </span>{' '}
                                                 {order.delivery_address ?? '-'}
                                             </p>
@@ -552,15 +585,30 @@ export function ReceiptPreviewDialog({
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
                                     <p className="flex items-center justify-between">
-                                        <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.subtotal',
+                                                'Subtotal',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(subtotal)}</span>
                                     </p>
                                     <p className="flex items-center justify-between">
-                                        <span>{t('orders.receipt.discountShort', 'Discount')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.discountShort',
+                                                'Discount',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(discountValue)}</span>
                                     </p>
                                     <p className="flex items-center justify-between font-semibold">
-                                        <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.grandTotal',
+                                                'Grand Total',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />
