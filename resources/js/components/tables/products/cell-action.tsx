@@ -379,7 +379,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         onClick={() => setIsViewOpen(true)}
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                     >
@@ -397,7 +397,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         }}
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                     >
@@ -412,7 +412,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         onClick={() => setIsDeleteOpen(true)}
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                     >

@@ -43,7 +43,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     <Link
                         className={`flex w-full items-center gap-2 ${
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'flex-row-reverse justify-start text-right'
                                 : ''
                         }`}
                         href={edit()}
@@ -59,7 +59,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     <Link
                         className={`flex w-full items-center gap-2 ${
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'flex-row-reverse justify-start text-right'
                                 : ''
                         }`}
                         href={edit()}
@@ -77,7 +77,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <Link
                     className={`flex w-full items-center gap-2 ${
                         isRtl
-                            ? 'flex-row-reverse justify-end text-right'
+                            ? 'flex-row-reverse justify-start text-right'
                             : ''
                     }`}
                     href={logout()}

@@ -49,27 +49,51 @@ export default function AppearanceToggleDropdown({
                 >
                     <DropdownMenuItem
                         onClick={() => updateAppearance('light')}
-                        className={isRtl ? 'justify-end text-right' : ''}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                     >
-                        <span className="flex items-center gap-2">
+                        <span
+                            className={`flex items-center gap-2 ${
+                                isRtl ? 'flex-row-reverse' : ''
+                            }`}
+                        >
                             <Sun className="h-5 w-5" />
                             {t('appearance.light', 'Light')}
                         </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('dark')}
-                        className={isRtl ? 'justify-end text-right' : ''}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                     >
-                        <span className="flex items-center gap-2">
+                        <span
+                            className={`flex items-center gap-2 ${
+                                isRtl ? 'flex-row-reverse' : ''
+                            }`}
+                        >
                             <Moon className="h-5 w-5" />
                             {t('appearance.dark', 'Dark')}
                         </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('system')}
-                        className={isRtl ? 'justify-end text-right' : ''}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                     >
-                        <span className="flex items-center gap-2">
+                        <span
+                            className={`flex items-center gap-2 ${
+                                isRtl ? 'flex-row-reverse' : ''
+                            }`}
+                        >
                             <Monitor className="h-5 w-5" />
                             {t('appearance.system', 'System')}
                         </span>

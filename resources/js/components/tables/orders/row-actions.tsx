@@ -140,7 +140,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => onView(order)}
@@ -153,7 +153,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => onEdit(order)}
@@ -166,7 +166,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => onAddItems(order)}
@@ -179,7 +179,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => canPrintReceipt && onPrint(order)}
@@ -193,7 +193,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => {
@@ -214,7 +214,7 @@ export function OrderRowActions({
                     <DropdownMenuItem
                         className={
                             isRtl
-                                ? 'flex-row-reverse justify-end text-right'
+                                ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
                         onClick={() => {
