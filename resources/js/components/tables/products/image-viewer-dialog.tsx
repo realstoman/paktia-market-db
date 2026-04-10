@@ -7,6 +7,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { useLocalization } from '@/lib/localization';
 import { ProductImage } from '@/types';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -42,6 +43,7 @@ export function ImageViewerDialog({
     images,
     triggerLabel = 'View',
 }: ImageViewerDialogProps) {
+    const { t } = useLocalization();
     const [activeIndex, setActiveIndex] = useState(0);
     const hasImages = images.length > 0;
 
@@ -72,9 +74,14 @@ export function ImageViewerDialog({
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Product Images</DialogTitle>
+                    <DialogTitle>
+                        {t('products.viewer.title', 'Product Images')}
+                    </DialogTitle>
                     <DialogDescription>
-                        Browse uploaded product images.
+                        {t(
+                            'products.viewer.description',
+                            'Browse uploaded product images.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 {hasImages ? (
@@ -82,7 +89,7 @@ export function ImageViewerDialog({
                         <div className="relative mx-auto flex h-[400px] w-[400px] items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
                             <img
                                 src={resolveImageUrl(images[activeIndex])}
-                                alt={`Product image ${activeIndex + 1}`}
+                                alt={`${t('products.viewer.imageAlt', 'Product image')} ${activeIndex + 1}`}
                                 className="h-full w-full object-cover"
                             />
                         </div>
@@ -95,7 +102,7 @@ export function ImageViewerDialog({
                                 disabled={images.length <= 1}
                             >
                                 <ChevronLeft className="mr-1 h-4 w-4" />
-                                Prev
+                                {t('products.viewer.prev', 'Prev')}
                             </Button>
                             <span className="text-sm text-muted-foreground">
                                 {activeIndex + 1} / {images.length}
@@ -107,14 +114,17 @@ export function ImageViewerDialog({
                                 onClick={onNext}
                                 disabled={images.length <= 1}
                             >
-                                Next
+                                {t('products.viewer.next', 'Next')}
                                 <ChevronRight className="ml-1 h-4 w-4" />
                             </Button>
                         </div>
                     </div>
                 ) : (
                     <p className="text-sm text-muted-foreground">
-                        No images available.
+                        {t(
+                            'products.fields.noImagesAvailable',
+                            'No images available.',
+                        )}
                     </p>
                 )}
             </DialogContent>

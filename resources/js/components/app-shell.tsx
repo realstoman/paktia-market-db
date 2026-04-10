@@ -12,8 +12,9 @@ interface AppShellProps {
 export function AppShell({ children, variant = 'header' }: AppShellProps) {
     const { sidebarOpen: isOpen, localization } = usePage<SharedData>().props;
 
+    setFormattingLocale(localization.locale);
+
     useEffect(() => {
-        setFormattingLocale(localization.locale);
         document.documentElement.lang = localization.locale;
         document.documentElement.dir = localization.direction;
         document.body.dir = localization.direction;
