@@ -35,6 +35,8 @@ const fa = {
             remember: 'من را وارد نگه‌دار',
             forgotPassword: 'رمز عبور را فراموش کرده‌اید؟',
             submit: 'ورود',
+            showPassword: 'نمایش رمز عبور',
+            hidePassword: 'پنهان کردن رمز عبور',
         },
         forgotPassword: {
             title: 'فراموشی رمز عبور',
@@ -45,6 +47,7 @@ const fa = {
             returnTo: 'یا، بازگشت به',
             login: 'ورود',
         },
+        securedBy: 'محافظت‌شده با رمزگذاری استاندارد صنعتی',
     },
     navigation: {
         platform: 'پلتفرم',

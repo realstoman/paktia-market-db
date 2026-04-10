@@ -35,6 +35,8 @@ const en = {
             remember: 'Keep me logged in',
             forgotPassword: 'Forgot password?',
             submit: 'Login',
+            showPassword: 'Show password',
+            hidePassword: 'Hide password',
         },
         forgotPassword: {
             title: 'Forgot password',
@@ -45,6 +47,7 @@ const en = {
             returnTo: 'Or, return to',
             login: 'login',
         },
+        securedBy: 'Secured by industry-standard encryption',
     },
     navigation: {
         platform: 'Platform',

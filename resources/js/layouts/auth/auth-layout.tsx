@@ -1,4 +1,6 @@
 import { brand } from '@/config/brand';
+import LanguageDropdown from '@/components/language-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { ChefHat, Copyright, ShieldCheck, Utensils } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
@@ -11,19 +13,26 @@ interface AuthLayoutProps {
 export default function AuthLayout({
     children,
 }: PropsWithChildren<AuthLayoutProps>) {
+    const { t, isRtl } = useLocalization();
+
     return (
         <div className="flex min-h-screen w-full">
             {/* Left Side - Auth Forms */}
             <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
                 <div className="flex h-full max-h-screen w-full max-w-lg flex-col items-start justify-between">
                     {/* Brand Logo */}
-                    <div className="mb-0 flex items-center justify-center sm:mb-12">
+                    <div
+                        className={`mb-0 flex w-full items-center sm:mb-12 ${
+                            isRtl ? 'justify-between flex-row-reverse' : 'justify-between'
+                        }`}
+                    >
                         <img
                             src={`${brand.logoFull}`}
                             width="120"
                             height="120"
                             alt="Logo"
                         />
+                        <LanguageDropdown />
                     </div>
 
                     <div className="bottom-0 w-full">
@@ -31,8 +40,16 @@ export default function AuthLayout({
                         {children}
 
                         {/* Footer - Security Note */}
-                        <div className="mt-8 border-t border-slate-800 pt-6 text-left">
-                            <p className="justify-left flex items-start gap-2 text-left text-sm text-slate-400">
+                        <div
+                            className={`mt-8 border-t border-slate-800 pt-6 ${
+                                isRtl ? 'text-right' : 'text-left'
+                            }`}
+                        >
+                            <p
+                                className={`flex items-start gap-2 text-sm text-slate-400 ${
+                                    isRtl ? 'justify-end flex-row-reverse text-right' : 'justify-left text-left'
+                                }`}
+                            >
                                 <Copyright className="mt-1 h-4 w-4" />{' '}
                                 <div>
                                     Copyright {new Date().getFullYear()}
@@ -44,12 +61,22 @@ export default function AuthLayout({
                                     >
                                         {brand.name}.
                                     </a>
-                                    All rights reserved.
+                                    {t(
+                                        'footer.allRightsReserved',
+                                        'All rights reserved.',
+                                    )}
                                 </div>
                             </p>
-                            <p className="justify-left flex items-center gap-1 pt-2 text-left text-sm text-slate-400">
+                            <p
+                                className={`flex items-center gap-1 pt-2 text-sm text-slate-400 ${
+                                    isRtl ? 'justify-end flex-row-reverse text-right' : 'justify-left text-left'
+                                }`}
+                            >
                                 <ShieldCheck className="h-4 w-4" />
-                                Secured by industry-standard encryption
+                                {t(
+                                    'auth.securedBy',
+                                    'Secured by industry-standard encryption',
+                                )}
                             </p>
                         </div>
                     </div>

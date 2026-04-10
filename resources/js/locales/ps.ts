@@ -35,6 +35,8 @@ const ps = {
             remember: 'ما ننوتلی وساتئ',
             forgotPassword: 'پټنوم مو هېر کړی؟',
             submit: 'ننوتل',
+            showPassword: 'پټنوم ښکاره کړئ',
+            hidePassword: 'پټنوم پټ کړئ',
         },
         forgotPassword: {
             title: 'پټنوم هېر شوی',
@@ -45,6 +47,7 @@ const ps = {
             returnTo: 'یا، بېرته لاړ شئ',
             login: 'ننوتل',
         },
+        securedBy: 'د صنعت د معیاري کوډګذارۍ له لارې خوندي شوی',
     },
     navigation: {
         platform: 'پلاتفورم',
