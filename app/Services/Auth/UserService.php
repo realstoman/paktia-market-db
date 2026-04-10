@@ -101,6 +101,7 @@ class UserService
             'province_id' => $user->province_id,
             'branch' => $user->branch ? $user->branch->name : null,
             'branch_id' => $user->branch_id,
+            'is_internal_user' => $user->is_internal_user,
 
             // Include full relationship objects if needed
             'country_object' => $user->country,

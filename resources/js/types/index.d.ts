@@ -93,6 +93,7 @@ export interface User {
     branch?: string | null;
     branch_id?: number | null;
     is_active?: boolean;
+    is_internal_user?: boolean;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;

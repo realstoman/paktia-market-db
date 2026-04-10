@@ -41,6 +41,15 @@ class UserPolicy
     }
 
     /**
+     * Determine whether the user can reset another user's password.
+     */
+    public function resetPassword(User $user, User $model): bool
+    {
+        return $user->id !== $model->id
+            && $user->hasPermissionTo(PermissionEnum::USER_RESET_PASSWORD->value);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, User $model): bool

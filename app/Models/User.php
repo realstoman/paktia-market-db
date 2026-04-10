@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * @method bool can(string $ability, array $arguments = [])
@@ -40,6 +41,15 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+    ];
+
+    /**
+     * Computed attributes for JSON responses.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'is_internal_user',
     ];
 
     /**
@@ -97,5 +107,19 @@ class User extends Authenticatable
     public function isBlocked(): bool
     {
         return ! $this->is_active;
+    }
+
+    protected function isInternalUser(): Attribute
+    {
+        return Attribute::get(function (): bool {
+            $hasRoles = $this->relationLoaded('roles')
+                ? $this->roles->isNotEmpty()
+                : $this->roles()->exists();
+
+            return $hasRoles
+                || $this->country_id !== null
+                || $this->province_id !== null
+                || $this->branch_id !== null;
+        });
     }
 }

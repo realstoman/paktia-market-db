@@ -12,6 +12,7 @@ enum PermissionEnum: string
     case USER_CREATE = 'user.create';
     case USER_UPDATE = 'user.update';
     case USER_BLOCK = 'user.block';
+    case USER_RESET_PASSWORD = 'user.reset-password';
 
     // Roles & Permissions
     case ROLE_VIEW = 'role.view';
