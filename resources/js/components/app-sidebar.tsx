@@ -33,7 +33,16 @@ import {
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems = [
+interface SidebarNavConfig {
+    titleKey: string;
+    fallbackTitle: string;
+    href: NavItem['href'];
+    icon: NonNullable<NavItem['icon']>;
+    can?: string;
+    canAny?: string[];
+}
+
+const mainNavItems: SidebarNavConfig[] = [
     {
         titleKey: 'navigation.dashboard',
         fallbackTitle: 'Dashboard',
@@ -104,9 +113,9 @@ const mainNavItems = [
         icon: ScrollText,
         can: 'reports.view',
     },
-] as const;
+] ;
 
-const footerNavItems = [
+const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
     {
         titleKey: 'navigation.mobileApp',
         fallbackTitle: 'Mobile App',
@@ -119,7 +128,7 @@ const footerNavItems = [
         href: 'https://babataste.com',
         icon: Globe,
     },
-] as const;
+];
 
 export function AppSidebar() {
     const { isSuperAdmin } = useAuthorization();

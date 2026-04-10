@@ -438,6 +438,12 @@ const fa = {
         totalProductsDescription: 'تمام محصولات موجود در سیستم.',
         mappedToTypeDescription:
             'محصولاتی که به این نوع محصول مرتبط شده‌اند.',
+        typeNames: {
+            food: 'غذا',
+            dessert: 'دسر',
+            drinks: 'نوشیدنی‌ها',
+            bundles: 'بسته‌ها',
+        },
         totalCategories: 'مجموع کتگوری‌ها',
         totalCategoriesDescription:
             'کتگوری‌های موجود برای تنظیم محصولات.',

@@ -437,6 +437,12 @@ const en = {
         totalProductsDescription:
             'All products currently available in the system.',
         mappedToTypeDescription: 'Products mapped to this product type.',
+        typeNames: {
+            food: 'Food',
+            dessert: 'Dessert',
+            drinks: 'Drinks',
+            bundles: 'Bundles',
+        },
         totalCategories: 'Total Categories',
         totalCategoriesDescription:
             'Categories available for organizing products.',

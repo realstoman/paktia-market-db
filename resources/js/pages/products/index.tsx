@@ -33,6 +33,35 @@ interface ProductsPageProps {
     sizes: ProductSize[];
 }
 
+const getTypeTranslationKey = (typeName: string) => {
+    const normalizedType = typeName.trim().toLowerCase();
+
+    if (normalizedType.includes('food')) {
+        return 'products.typeNames.food';
+    }
+
+    if (
+        normalizedType.includes('dessert') ||
+        normalizedType.includes('desert')
+    ) {
+        return 'products.typeNames.dessert';
+    }
+
+    if (
+        normalizedType.includes('beverage') ||
+        normalizedType.includes('bverage') ||
+        normalizedType.includes('drink')
+    ) {
+        return 'products.typeNames.drinks';
+    }
+
+    if (normalizedType.includes('bundle')) {
+        return 'products.typeNames.bundles';
+    }
+
+    return null;
+};
+
 const getTypeIcon = (typeName: string): LucideIcon => {
     const normalizedType = typeName.trim().toLowerCase();
 
@@ -121,18 +150,26 @@ export default function ProductsPage({
 
                     {productsByType.map((typeSummary) => {
                         const TypeIcon = getTypeIcon(typeSummary.name);
+                        const typeTranslationKey = getTypeTranslationKey(
+                            typeSummary.name,
+                        );
+                        const fallbackTitle = typeSummary.name
+                            .split(' ')
+                            .map(
+                                (part) =>
+                                    part.charAt(0).toUpperCase() +
+                                    part.slice(1),
+                            )
+                            .join(' ');
 
                         return (
                             <SummaryMetricCard
                                 key={typeSummary.name}
-                                title={typeSummary.name
-                                    .split(' ')
-                                    .map(
-                                        (part) =>
-                                            part.charAt(0).toUpperCase() +
-                                            part.slice(1),
-                                    )
-                                    .join(' ')}
+                                title={
+                                    typeTranslationKey
+                                        ? t(typeTranslationKey, fallbackTitle)
+                                        : fallbackTitle
+                                }
                                 value={formatNumber(typeSummary.count)}
                                 description={t(
                                     'products.mappedToTypeDescription',

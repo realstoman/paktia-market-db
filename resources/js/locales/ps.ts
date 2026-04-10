@@ -434,6 +434,12 @@ const ps = {
         totalProductsDescription: 'ټول هغه محصولات چې اوس په سیستم کې شته.',
         mappedToTypeDescription:
             'هغه محصولات چې دې د محصول ډول ته تړل شوي دي.',
+        typeNames: {
+            food: 'خواړه',
+            dessert: 'ډېزرټ',
+            drinks: 'څښاک',
+            bundles: 'بندلونه',
+        },
         totalCategories: 'ټولې کټګورۍ',
         totalCategoriesDescription:
             'هغه کټګورۍ چې د محصولاتو د تنظیم لپاره شته.',
