@@ -9,7 +9,17 @@ const localeMap: Record<string, string> = {
     ps: 'ps-AF',
 };
 
+let activeLocaleCode: string | null = null;
+
+export const setFormattingLocale = (locale: string) => {
+    activeLocaleCode = locale;
+};
+
 const resolveLocale = () => {
+    if (activeLocaleCode) {
+        return localeMap[activeLocaleCode] ?? activeLocaleCode;
+    }
+
     if (typeof document === 'undefined') {
         return 'en-US';
     }

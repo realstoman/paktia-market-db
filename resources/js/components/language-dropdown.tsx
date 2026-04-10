@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLocalization } from '@/lib/localization';
 import { update } from '@/routes/language';
+import { setFormattingLocale } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Check, Globe } from 'lucide-react';
 import { HTMLAttributes } from 'react';
@@ -20,6 +21,7 @@ export default function LanguageDropdown({
     const { locale, languages, t, isRtl } = useLocalization();
 
     const handleSelectLanguage = (language: string) => {
+        setFormattingLocale(language);
         router.put(
             update().url,
             { locale: language },
