@@ -672,6 +672,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 'dashboard.compactMonthlyNetProfitView',
                                                 'Compact monthly net profit view',
                                             )}
+                                            locale={intlLocale}
                                             isRtl={isRtl}
                                             labels={{
                                                 netProfit: t('dashboard.netProfit', 'Net Profit'),

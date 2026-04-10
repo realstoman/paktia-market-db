@@ -287,6 +287,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
         $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
 
+        $monthlySales = Order::query()
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+            ->get(['created_at', 'total_amount'])
+            ->groupBy(fn ($order) => Carbon::parse($order->created_at)->format('Y-m'))
+            ->map(fn ($orders) => (float) $orders->sum('total_amount'));
+
+        $monthlyExpenses = Expense::query()
+            ->whereBetween('expense_date', [
+                $monthlyStartDate->toDateString(),
+                $monthlyEndDate->toDateString(),
+            ])
+            ->get(['expense_date', 'amount'])
+            ->groupBy(fn ($expense) => Carbon::parse($expense->expense_date)->format('Y-m'))
+            ->map(fn ($expenses) => (float) $expenses->sum('amount'));
+
         $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? DB::table('inventory_transactions')
                 ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
@@ -296,23 +312,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->map(fn ($transactions) => (float) $transactions->sum('total_cost'))
             : collect();
 
-        $monthlyNetProfit = collect(
-            $branchDailyMetricReader->monthlyNetProfit($monthlyStartDate, $monthlyEndDate),
-        )->map(function (array $metric) use ($monthlyCogs) {
-            $bucket = Carbon::parse($metric['label'])->format('Y-m');
+        $monthlyNetProfit = [];
+        $monthCursor = $monthlyStartDate->copy()->startOfMonth();
+
+        while ($monthCursor->lte($monthlyEndDate)) {
+            $bucket = $monthCursor->format('Y-m');
+            $sales = (float) ($monthlySales[$bucket] ?? 0);
+            $expenses = (float) ($monthlyExpenses[$bucket] ?? 0);
             $cogs = $monthlyCogs->isNotEmpty()
                 ? (float) ($monthlyCogs[$bucket] ?? 0)
                 : null;
             $grossProfit = $cogs === null
-                ? $metric['sales']
-                : $metric['sales'] - $cogs;
+                ? $sales
+                : $sales - $cogs;
 
-            return [
-                'month' => $metric['month'],
-                'label' => $metric['label'],
-                'netProfit' => $grossProfit - $metric['expenses'],
+            $monthlyNetProfit[] = [
+                'month' => $monthCursor->format('M'),
+                'label' => $monthCursor->format('F Y'),
+                'monthKey' => $bucket,
+                'netProfit' => $grossProfit - $expenses,
             ];
-        })->values()->all();
+
+            $monthCursor->addMonth();
+        }
 
         $branchPerformanceStartDate = Carbon::today()->copy()->subDays(29)->startOfDay();
         $branchPerformanceEndDate = Carbon::today()->copy()->endOfDay();

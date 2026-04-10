@@ -23,12 +23,14 @@ interface BarChartDefaultProps {
     data?: Array<{
         month: string;
         label: string;
+        monthKey?: string;
         netProfit: number;
     }>;
     title?: string;
     description?: string;
     footerNote?: string;
     compact?: boolean;
+    locale?: string;
     labels?: {
         netProfit?: string;
         noComparison?: string;
@@ -45,6 +47,7 @@ export function BarChartDefault({
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,
+    locale = 'en-US',
     labels,
     isRtl = false,
 }: BarChartDefaultProps) {
@@ -68,6 +71,17 @@ export function BarChartDefault({
         trendDown: labels?.trendDown ?? 'Down by',
         fromLastMonth: labels?.fromLastMonth ?? 'from last month',
     };
+    const chartData = data.map((item) => {
+        const dateSource = item.monthKey ? `${item.monthKey}-01` : `${item.label}`;
+        const monthLabel = new Intl.DateTimeFormat(locale, {
+            month: 'short',
+        }).format(new Date(dateSource));
+
+        return {
+            ...item,
+            displayMonth: monthLabel,
+        };
+    });
 
     return (
         <div className={`flex h-full flex-col ${isRtl ? 'text-right' : ''}`}>
@@ -82,14 +96,13 @@ export function BarChartDefault({
                     config={chartConfig}
                     className={compact ? 'h-[180px] w-full' : 'h-full w-full'}
                 >
-                    <BarChart accessibilityLayer data={data}>
+                    <BarChart accessibilityLayer data={chartData}>
                         <CartesianGrid vertical={false} stroke="#edf1f5" />
                         <XAxis
-                            dataKey="month"
+                            dataKey="displayMonth"
                             tickLine={false}
                             tickMargin={10}
                             axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 3)}
                         />
                         <ChartTooltip
                             cursor={true}
