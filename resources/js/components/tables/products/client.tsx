@@ -35,6 +35,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Kitchen,
     Product,
@@ -87,6 +88,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     sizes,
     isLoading = false,
 }) => {
+    const { t, locale } = useLocalization();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
     const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
@@ -253,7 +255,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Product created successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.productCreated',
+                            'Product created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -297,7 +304,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             router.post(requestUrl, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Category updated successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.categoryUpdated',
+                            'Category updated successfully.',
+                        ),
+                    );
                     resetCategoryForm();
                     setMetaErrors({});
                 },
@@ -315,7 +327,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.post(requestUrl, payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Category created successfully.');
+                toast.success(
+                    t(
+                        'products.messages.categoryCreated',
+                        'Category created successfully.',
+                    ),
+                );
                 resetCategoryForm();
                 setMetaErrors({});
             },
@@ -352,7 +369,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.delete(`/products/categories/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Category deleted successfully.');
+                toast.success(
+                    t(
+                        'products.messages.categoryDeleted',
+                        'Category deleted successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 setMetaErrors(errors);
@@ -404,7 +426,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             router.post(requestUrl, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Type updated successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.typeUpdated',
+                            'Type updated successfully.',
+                        ),
+                    );
                     resetTypeForm();
                     setMetaErrors({});
                 },
@@ -412,10 +439,13 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     setMetaErrors(errors);
                     toast.error(
                         String(
-                            errors.name ??
+                                errors.name ??
                                 errors.image ??
                                 errors.type ??
-                                'Unable to update type.',
+                                t(
+                                    'products.messages.typeUpdateFailed',
+                                    'Unable to update type.',
+                                ),
                         ),
                     );
                 },
@@ -430,7 +460,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.post(requestUrl, payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Type created successfully.');
+                toast.success(
+                    t(
+                        'products.messages.typeCreated',
+                        'Type created successfully.',
+                    ),
+                );
                 resetTypeForm();
                 setMetaErrors({});
             },
@@ -441,7 +476,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         errors.name ??
                             errors.image ??
                             errors.type ??
-                            'Unable to create type.',
+                            t(
+                                'products.messages.typeCreateFailed',
+                                'Unable to create type.',
+                            ),
                     ),
                 );
             },
@@ -475,7 +513,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.delete(`/products/types/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Type deleted successfully.');
+                toast.success(
+                    t(
+                        'products.messages.typeDeleted',
+                        'Type deleted successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 setMetaErrors(errors);
@@ -503,8 +546,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     }, [types]);
 
     const tableColumns = useMemo(
-        () => buildColumns(categories, types, kitchens, sizes),
-        [categories, kitchens, sizes, types],
+        () => buildColumns(categories, types, kitchens, sizes, t),
+        [categories, kitchens, sizes, t, types],
     );
 
     const filteredData = useMemo(() => {
@@ -534,39 +577,66 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 <SearchableDropdown
                     value={categoryFilter}
                     options={[
-                        { value: 'all', label: 'All Categories' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allCategories',
+                                'All Categories',
+                            ),
+                        },
                         ...categories.map((category) => ({
                             value: String(category.id),
                             label: category.name,
                         })),
                     ]}
                     onValueChange={setCategoryFilter}
-                    placeholder="Category"
-                    searchPlaceholder="Search categories..."
-                    emptyText="No categories found."
+                    placeholder={t('products.filters.category', 'Category')}
+                    searchPlaceholder={t(
+                        'products.filters.searchCategories',
+                        'Search categories...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noCategories',
+                        'No categories found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={kitchenFilter}
                     options={[
-                        { value: 'all', label: 'All Kitchens' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allKitchens',
+                                'All Kitchens',
+                            ),
+                        },
                         ...kitchens.map((kitchen) => ({
                             value: String(kitchen.id),
                             label: kitchen.name ?? `Kitchen #${kitchen.id}`,
                         })),
                     ]}
                     onValueChange={setKitchenFilter}
-                    placeholder="Kitchen"
-                    searchPlaceholder="Search kitchens..."
-                    emptyText="No kitchens found."
+                    placeholder={t('products.filters.kitchen', 'Kitchen')}
+                    searchPlaceholder={t(
+                        'products.filters.searchKitchens',
+                        'Search kitchens...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noKitchens',
+                        'No kitchens found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={typeFilter}
                     options={[
-                        { value: 'all', label: 'All Types' },
+                        {
+                            value: 'all',
+                            label: t('products.filters.allTypes', 'All Types'),
+                        },
                         ...availableTypes.map((productType) => ({
                             value: productType.trim().toLowerCase(),
                             label:
@@ -575,23 +645,47 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         })),
                     ]}
                     onValueChange={setTypeFilter}
-                    placeholder="Type"
-                    searchPlaceholder="Search types..."
-                    emptyText="No types found."
+                    placeholder={t('products.filters.type', 'Type')}
+                    searchPlaceholder={t(
+                        'products.filters.searchTypes',
+                        'Search types...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noTypes',
+                        'No types found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={statusFilter}
                     options={[
-                        { value: 'all', label: 'All Statuses' },
-                        { value: 'active', label: 'Active' },
-                        { value: 'inactive', label: 'Inactive' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allStatuses',
+                                'All Statuses',
+                            ),
+                        },
+                        {
+                            value: 'active',
+                            label: t('products.filters.active', 'Active'),
+                        },
+                        {
+                            value: 'inactive',
+                            label: t('products.filters.inactive', 'Inactive'),
+                        },
                     ]}
                     onValueChange={setStatusFilter}
-                    placeholder="Status"
-                    searchPlaceholder="Search statuses..."
-                    emptyText="No statuses found."
+                    placeholder={t('products.filters.status', 'Status')}
+                    searchPlaceholder={t(
+                        'products.filters.searchStatuses',
+                        'Search statuses...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noStatuses',
+                        'No statuses found.',
+                    )}
                     className="w-44"
                 />
             </div>
@@ -603,6 +697,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             kitchenFilter,
             kitchens,
             statusFilter,
+            t,
             typeFilter,
         ],
     );
@@ -611,8 +706,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
                 <Heading
-                    title={`Products: ${formatNumber(data.length)}`}
-                    description="Manage menu items, categories, types, and pricing"
+                    title={`${t('products.headingTitle', 'Products:')} ${formatNumber(data.length)}`}
+                    description={t(
+                        'products.headingDescription',
+                        'Manage menu items, categories, types, and pricing',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     <Button
@@ -621,7 +719,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         className="gap-2"
                     >
                         <Tag className="h-4 w-4" />
-                        Manage Categories
+                        {t(
+                            'products.manageCategories',
+                            'Manage Categories',
+                        )}
                     </Button>
                     <Button
                         variant="outline"
@@ -629,14 +730,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         className="gap-2"
                     >
                         <Settings2 className="h-4 w-4" />
-                        Manage Types
+                        {t('products.manageTypes', 'Manage Types')}
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add New Product
+                        {t('products.addNewProduct', 'Add New Product')}
                     </Button>
                 </div>
             </div>
@@ -656,7 +757,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
-                searchPlaceholder="Search products by name or category..."
+                searchPlaceholder={t(
+                    'products.searchPlaceholder',
+                    'Search products by name or category...',
+                )}
                 toolbar={filterToolbar}
             />
 
@@ -673,11 +777,13 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <PackagePlus className="mr-2 h-5 w-5" />
-                            Create Product
+                            {t('products.createProduct', 'Create Product')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new product with images and optional size
-                            pricing.
+                            {t(
+                                'products.createProductDescription',
+                                'Add a new product with images and optional size pricing.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 

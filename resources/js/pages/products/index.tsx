@@ -3,6 +3,7 @@
 import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { ProductsClient } from '@/components/tables/products/client';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import {
     BreadcrumbItem,
     Kitchen,
@@ -23,17 +24,6 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Products',
-        href: '/products',
-    },
-];
 
 interface ProductsPageProps {
     products: Product[];
@@ -74,7 +64,18 @@ export default function ProductsPage({
     kitchens,
     sizes,
 }: ProductsPageProps) {
+    const { t } = useLocalization();
     const totalProducts = products.length;
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: '/dashboard',
+        },
+        {
+            title: t('products.breadcrumb', 'Products'),
+            href: '/products',
+        },
+    ];
 
     const productsByType = useMemo(() => {
         const typeCountMap = new Map<string, number>();
@@ -103,13 +104,16 @@ export default function ProductsPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Products" />
+            <Head title={t('products.title', 'Products')} />
             <div className="space-y-4 pt-3 pb-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     <SummaryMetricCard
-                        title="Total Products"
+                        title={t('products.totalProducts', 'Total Products')}
                         value={formatNumber(totalProducts)}
-                        description="All products currently available in the system."
+                        description={t(
+                            'products.totalProductsDescription',
+                            'All products currently available in the system.',
+                        )}
                         icon={Layers3}
                         variant="green"
                         className="md:col-span-4"
@@ -130,7 +134,10 @@ export default function ProductsPage({
                                     )
                                     .join(' ')}
                                 value={formatNumber(typeSummary.count)}
-                                description="Products mapped to this product type."
+                                description={t(
+                                    'products.mappedToTypeDescription',
+                                    'Products mapped to this product type.',
+                                )}
                                 icon={TypeIcon}
                                 variant="green"
                                 className="md:col-span-4"
@@ -139,9 +146,15 @@ export default function ProductsPage({
                     })}
 
                     <SummaryMetricCard
-                        title="Total Categories"
+                        title={t(
+                            'products.totalCategories',
+                            'Total Categories',
+                        )}
                         value={formatNumber(categories.length)}
-                        description="Categories available for organizing products."
+                        description={t(
+                            'products.totalCategoriesDescription',
+                            'Categories available for organizing products.',
+                        )}
                         icon={Tags}
                         variant="green"
                         className="md:col-span-4"
