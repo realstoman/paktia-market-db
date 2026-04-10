@@ -1,5 +1,6 @@
 'use client';
 
+import { ReceiptPreviewDialog } from '@/components/tables/orders/receipt-preview-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { BranchTable, BreadcrumbItem, Order, Product } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -36,10 +38,10 @@ import {
     Plus,
     ReceiptText,
     Search,
+    Sparkles,
     ShoppingBag,
     Store,
     Truck,
-    UserRound,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -128,6 +130,14 @@ function formatCurrency(value: number) {
     }).format(value);
 }
 
+function naturalSortKey(value: string | number | null | undefined) {
+    const normalized = String(value ?? '').trim();
+    const numeric = Number.parseInt(normalized.replace(/\D+/g, ''), 10);
+
+    return `${Number.isNaN(numeric) ? 99999999 : numeric}`.padStart(8, '0') +
+        `-${normalized}`;
+}
+
 function getStatusTone(status: string) {
     switch (status) {
         case 'ready':
@@ -166,6 +176,7 @@ export default function OperationsPage({
     openOrders,
     summary,
 }: OperationsPageProps) {
+    const { locale } = useLocalization();
     const { can } = useAuthorization();
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
     const [selectedChannel, setSelectedChannel] = useState<Channel>(channels[0]);
@@ -179,6 +190,66 @@ export default function OperationsPage({
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+    const [selectedReceiptOrder, setSelectedReceiptOrder] =
+        useState<Order | null>(null);
+    const [isCompletingPayment, setIsCompletingPayment] = useState(false);
+
+    const localizedProductName = (product?: Product | null) => {
+        if (!product) {
+            return '';
+        }
+
+        if (locale === 'ps') {
+            return (
+                product.pashto_name?.trim() ||
+                product.dari_name?.trim() ||
+                product.name
+            );
+        }
+
+        if (locale === 'fa') {
+            return (
+                product.dari_name?.trim() ||
+                product.pashto_name?.trim() ||
+                product.name
+            );
+        }
+
+        return product.name;
+    };
+
+    const localizedProductDescription = (product?: Product | null) => {
+        if (!product) {
+            return '';
+        }
+
+        if (locale === 'ps') {
+            return (
+                product.pashto_description?.trim() ||
+                product.dari_description?.trim() ||
+                product.description?.trim() ||
+                product.category?.pashto_name?.trim() ||
+                product.category?.dari_name?.trim() ||
+                product.category?.name ||
+                ''
+            );
+        }
+
+        if (locale === 'fa') {
+            return (
+                product.dari_description?.trim() ||
+                product.pashto_description?.trim() ||
+                product.description?.trim() ||
+                product.category?.dari_name?.trim() ||
+                product.category?.pashto_name?.trim() ||
+                product.category?.name ||
+                ''
+            );
+        }
+
+        return product.description?.trim() || product.category?.name || '';
+    };
 
     const selectedOrder = useMemo(
         () => openOrders.find((order) => order.id === selectedOrderId) ?? null,
@@ -193,6 +264,16 @@ export default function OperationsPage({
         [openOrders, selectedChannel],
     );
 
+    const orderedTables = useMemo(
+        () =>
+            [...tables].sort((a, b) =>
+                naturalSortKey(a.table_number).localeCompare(
+                    naturalSortKey(b.table_number),
+                ),
+            ),
+        [tables],
+    );
+
     const filteredProducts = useMemo(() => {
         const lowered = search.trim().toLowerCase();
 
@@ -202,9 +283,14 @@ export default function OperationsPage({
                     ? true
                     : String(product.category?.id ?? '') === selectedCategory;
             const haystack = [
+                localizedProductName(product),
+                localizedProductDescription(product),
                 product.name,
-                product.description,
+                product.pashto_name,
+                product.dari_name,
                 product.category?.name,
+                product.category?.pashto_name,
+                product.category?.dari_name,
             ]
                 .filter(Boolean)
                 .join(' ')
@@ -214,7 +300,7 @@ export default function OperationsPage({
 
             return matchesCategory && matchesSearch;
         });
-    }, [products, search, selectedCategory]);
+    }, [localizedProductDescription, localizedProductName, products, search, selectedCategory]);
 
     const selectedTable = useMemo(
         () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -241,7 +327,7 @@ export default function OperationsPage({
                 productId: item.product_id,
                 productSizeId: item.product_size_id ?? null,
                 name:
-                    item.product?.name ??
+                    localizedProductName(item.product) ??
                     item.product_name_snapshot ??
                     item.product_name ??
                     'Item',
@@ -253,7 +339,7 @@ export default function OperationsPage({
         setCustomerName(selectedOrder.customer_name ?? '');
         setCustomerPhone(selectedOrder.customer_phone ?? '');
         setDeliveryAddress(selectedOrder.delivery_address ?? '');
-    }, [selectedOrder]);
+    }, [localizedProductName, selectedOrder]);
 
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
@@ -307,7 +393,7 @@ export default function OperationsPage({
                     {
                         productId: product.id,
                         productSizeId: null,
-                        name: product.name,
+                        name: localizedProductName(product),
                         imageUrl: product.images?.[0]?.url ?? null,
                         price: basePrice,
                         quantity: 1,
@@ -385,6 +471,7 @@ export default function OperationsPage({
 
         const options = {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
                 toast.success(selectedOrder ? 'Order updated.' : 'Order created.');
             },
@@ -404,7 +491,7 @@ export default function OperationsPage({
         router.post('/orders', payload, options);
     };
 
-    const updateStatus = (status: 'in_progress' | 'ready' | 'completed') => {
+    const updateStatus = (status: 'in_progress' | 'ready') => {
         if (!selectedOrder) {
             toast.error('Save the order first.');
             return;
@@ -416,22 +503,117 @@ export default function OperationsPage({
             `/orders/${selectedOrder.id}/status`,
             {
                 status,
-                payment_method: status === 'completed' ? paymentMethod : null,
             },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
-                    toast.success(
-                        status === 'completed'
-                            ? 'Payment collected and order closed.'
-                            : 'Order status updated.',
-                    );
+                    toast.success('Order status updated.');
                 },
                 onError: () => {
                     toast.error('Unable to update order status.');
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const openPaymentFlow = (order: Order) => {
+        setSelectedReceiptOrder(order);
+        setPaymentMethod(
+            (order.payments?.[0]?.method as PaymentMethod | undefined) ??
+                paymentMethod,
+        );
+        setIsReceiptPreviewOpen(true);
+    };
+
+    const handleCollectPayment = () => {
+        if (!selectedOrder) {
+            toast.error('Save the order first.');
+            return;
+        }
+
+        const currentStatus = selectedOrder.status ?? 'pending';
+
+        if (currentStatus === 'ready' || currentStatus === 'completed') {
+            openPaymentFlow(selectedOrder);
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.patch(
+            `/orders/${selectedOrder.id}/status`,
+            { status: 'ready' },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success('Order marked ready for payment.');
+                    openPaymentFlow({
+                        ...selectedOrder,
+                        status: 'ready',
+                    });
+                },
+                onError: () => {
+                    toast.error('Unable to prepare the order for payment.');
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleCompletePayment = (
+        order: Order,
+        payload: { discountAmount: number; paymentMethod: string },
+    ) => {
+        const subtotal = Number(order.sub_total_amount ?? order.total_amount ?? 0);
+        const finalTotal = Math.max(0, subtotal - payload.discountAmount);
+
+        setIsCompletingPayment(true);
+
+        router.patch(
+            `/orders/${order.id}/status`,
+            {
+                status: 'completed',
+                payment_method: payload.paymentMethod,
+                discount_amount: payload.discountAmount,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Payment collected, finance updated, and order completed.',
+                    );
+                    setSelectedReceiptOrder({
+                        ...order,
+                        status: 'completed',
+                        discount_amount: payload.discountAmount,
+                        total_amount: finalTotal,
+                        paid_amount: finalTotal,
+                        payments: [
+                            {
+                                ...(order.payments?.[0] ?? {}),
+                                method: payload.paymentMethod,
+                                amount: finalTotal,
+                                status: 'paid',
+                            },
+                        ],
+                    });
+                },
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            'Unable to complete the payment.',
+                    );
+                },
+                onFinish: () => {
+                    setIsCompletingPayment(false);
                 },
             },
         );
@@ -548,12 +730,12 @@ export default function OperationsPage({
                             {selectedChannel === 'dine_in' ? (
                                 <ScrollArea className="h-[620px] px-4 pb-4">
                                     <div className="grid grid-cols-2 gap-3">
-                                        {tables.map((table) => (
+                                        {orderedTables.map((table) => (
                                             <button
                                                 key={table.id}
                                                 type="button"
                                                 onClick={() => handleTableSelect(table)}
-                                                className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'}`}
+                                                className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#2f1d0f] shadow-sm">
@@ -563,6 +745,12 @@ export default function OperationsPage({
                                                         {table.status.replace('_', ' ')}
                                                     </Badge>
                                                 </div>
+                                                {table.active_order ? (
+                                                    <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#fff1e7] px-2.5 py-1 text-[11px] font-medium text-[#b5542a]">
+                                                        <Sparkles className="h-3.5 w-3.5" />
+                                                        Serving
+                                                    </div>
+                                                ) : null}
                                                 <div className="mt-4 space-y-1">
                                                     <p className="text-sm font-medium text-[#2f1d0f]">
                                                         {table.active_order
@@ -680,7 +868,7 @@ export default function OperationsPage({
                                                         {product.images?.[0]?.url ? (
                                                             <img
                                                                 src={product.images[0].url}
-                                                                alt={product.name}
+                                                                alt={localizedProductName(product)}
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
@@ -691,11 +879,10 @@ export default function OperationsPage({
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <p className="truncate text-base font-semibold text-[#2f1d0f]">
-                                                            {product.name}
+                                                            {localizedProductName(product)}
                                                         </p>
                                                         <p className="line-clamp-2 text-xs text-muted-foreground">
-                                                            {product.description ||
-                                                                product.category?.name ||
+                                                            {localizedProductDescription(product) ||
                                                                 'Kitchen-ready menu item'}
                                                         </p>
                                                         <div className="mt-3 flex items-center justify-between">
@@ -703,6 +890,9 @@ export default function OperationsPage({
                                                                 {formatCurrency(
                                                                     Number(product.base_price ?? 0),
                                                                 )}
+                                                                <span className="ml-1 text-sm font-medium text-[#8b7560]">
+                                                                    AFN
+                                                                </span>
                                                             </p>
                                                             <div className="flex items-center gap-2">
                                                                 <Button
@@ -734,6 +924,14 @@ export default function OperationsPage({
                                             </div>
                                         );
                                     })}
+                                    {filteredProducts.length === 0 ? (
+                                        <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[1.4rem] border border-dashed border-neutral-300 bg-[#fcfbf8] p-6 text-center text-muted-foreground">
+                                            <CookingPot className="h-6 w-6" />
+                                            <p className="text-sm">
+                                                No products matched this branch, category, or search yet.
+                                            </p>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </ScrollArea>
                         </CardContent>
@@ -925,21 +1123,12 @@ export default function OperationsPage({
                                     <Button
                                         className="h-12 rounded-2xl bg-[#b5542a] text-base hover:bg-[#9f4722]"
                                         disabled={isSubmitting}
-                                        onClick={() => updateStatus('completed')}
+                                        onClick={handleCollectPayment}
                                     >
                                         <CreditCard className="mr-2 h-4 w-4" />
                                         Collect payment
                                     </Button>
                                 ) : null}
-                            </div>
-
-                            <div className="rounded-[1.2rem] border border-dashed border-neutral-300 p-3 text-xs text-muted-foreground">
-                                <div className="flex items-start gap-2">
-                                    <UserRound className="mt-0.5 h-4 w-4 shrink-0" />
-                                    <p>
-                                        Cashier can settle payments across all channels. Servers focus on dine-in tables, while order-takers focus on takeaway and delivery creation.
-                                    </p>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -980,6 +1169,18 @@ export default function OperationsPage({
                         </CardContent>
                     </Card>
                 </div>
+
+                <ReceiptPreviewDialog
+                    order={selectedReceiptOrder}
+                    open={isReceiptPreviewOpen}
+                    onOpenChange={setIsReceiptPreviewOpen}
+                    paymentMethod={paymentMethod}
+                    onPaymentMethodChange={(value) =>
+                        setPaymentMethod(value as PaymentMethod)
+                    }
+                    onCompletePayment={handleCompletePayment}
+                    isCompletingPayment={isCompletingPayment}
+                />
             </div>
         </AppLayout>
     );

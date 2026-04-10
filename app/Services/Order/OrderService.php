@@ -352,13 +352,6 @@ class OrderService
                 'status' => 'Only super admins can change the status of a completed order.',
             ]);
         }
-
-        if ($currentStatus !== OrderStatus::COMPLETED->value
-            && $nextStatus === OrderStatus::COMPLETED->value
-            && empty($order->payments()->count()) === false
-        ) {
-            // Existing payment rows are updated in-place when payment is completed.
-        }
     }
 
     private function syncOrderPayment(Order $order, string $paymentMethod, ?int $receivedBy = null): void
