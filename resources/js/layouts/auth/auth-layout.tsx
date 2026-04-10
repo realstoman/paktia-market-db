@@ -15,16 +15,20 @@ export default function AuthLayout({
 }: PropsWithChildren<AuthLayoutProps>) {
     const { t, locale, isRtl } = useLocalization();
     const copyrightYear = (() => {
-        if (locale === 'fa') {
-            return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
+        const getCalendarYear = (intlLocale: string) =>
+            new Intl.DateTimeFormat(intlLocale, {
                 year: 'numeric',
-            }).format(new Date());
+            })
+                .formatToParts(new Date())
+                .find((part) => part.type === 'year')
+                ?.value ?? '';
+
+        if (locale === 'fa') {
+            return getCalendarYear('fa-AF-u-ca-persian');
         }
 
         if (locale === 'ps') {
-            return new Intl.DateTimeFormat('ps-AF-u-ca-persian', {
-                year: 'numeric',
-            }).format(new Date());
+            return getCalendarYear('ps-AF-u-ca-persian');
         }
 
         return String(new Date().getFullYear());

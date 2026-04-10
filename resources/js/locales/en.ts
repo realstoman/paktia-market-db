@@ -54,9 +54,9 @@ const en = {
             heroDescription:
                 'Complete ERP solution for modern restaurant operations',
             kitchenTitle: 'Kitchen Management',
-            kitchenDescription: 'Real-time order tracking',
+            kitchenDescription: 'Real-time order tracking and management',
             menuTitle: 'Menu Control',
-            menuDescription: 'Dynamic pricing & inventory',
+            menuDescription: 'Dynamic pricing & inventory management',
         },
     },
     navigation: {
@@ -266,8 +266,7 @@ const en = {
                 'Create a new order. Items are auto-routed to their product kitchen.',
             branch: 'Branch',
             branchPlaceholder: 'Select branch',
-            branchFixed:
-                'Your branch is fixed based on your login assignment.',
+            branchFixed: 'Your branch is fixed based on your login assignment.',
             orderType: 'Order Type',
             orderTypePlaceholder: 'Select type',
             paymentMethod: 'Payment Method',
@@ -345,8 +344,7 @@ const en = {
             assignTable: 'Assign Table',
             updateStatus: 'Update Status',
             assignTableTitle: 'Assign Table Number',
-            assignTableDescriptionPrefix:
-                'Change table number for order #',
+            assignTableDescriptionPrefix: 'Change table number for order #',
             updateTable: 'Update Table',
             selectTableError: 'Please select a table number.',
             updateStatusTitle: 'Update Order Status',

@@ -61,10 +61,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     htmlFor="email"
                                     className="flex items-center justify-start gap-1 text-base text-slate-200"
                                 >
-                                    {t(
-                                        'auth.login.email',
-                                        'Email address',
-                                    )}{' '}
+                                    {t('auth.login.email', 'Email address')}{' '}
                                     <span className="pt-2 text-red-600">*</span>
                                 </Label>
                                 <Input
@@ -159,11 +156,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     isRtl ? 'flex-row-reverse' : ''
                                 }`}
                             >
-                                <div
-                                    className={`flex items-center ${
-                                        isRtl ? 'flex-row-reverse space-x-reverse space-x-3' : 'space-x-3'
-                                    }`}
-                                >
+                                <div className="flex items-center space-x-3">
                                     <Checkbox
                                         id="remember"
                                         name="remember"

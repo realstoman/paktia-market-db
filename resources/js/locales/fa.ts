@@ -18,21 +18,22 @@ const fa = {
         nextPage: 'صفحه بعدی',
     },
     language: {
-        switchLanguage: 'تغییر زبان',
+        switchLanguage: 'تغیر زبان',
         language: 'زبان',
-        description: 'زبانی را انتخاب کنید که در سراسر رابط کاربری استفاده شود.',
-        updated: 'زبان با موفقیت تغییر کرد.',
+        description:
+            'زبانی را انتخاب کنید که در سراسر رابط کاربری استفاده شود.',
+        updated: 'زبان با موفقیت تغیر کرد.',
     },
     auth: {
         login: {
             title: 'ورود',
             heading: 'خوش آمدید!',
             description: 'برای ادامه به حساب خود وارد شوید.',
-            email: 'آدرس ایمیل',
-            emailPlaceholder: 'you@babarestaurant.com',
+            email: 'ایمیل آدرس',
+            emailPlaceholder: 'you@babataste.com',
             password: 'رمز عبور',
             passwordPlaceholder: 'رمز عبور خود را وارد کنید',
-            remember: 'من را وارد نگه‌دار',
+            remember: 'من را به یاد داشته باش',
             forgotPassword: 'رمز عبور را فراموش کرده‌اید؟',
             submit: 'ورود',
             showPassword: 'نمایش رمز عبور',
@@ -40,23 +41,23 @@ const fa = {
         },
         forgotPassword: {
             title: 'فراموشی رمز عبور',
-            description: 'برای دریافت لینک بازنشانی رمز عبور، ایمیل خود را وارد کنید',
-            email: 'آدرس ایمیل',
-            emailPlaceholder: 'you@babarestaurant.com',
-            submit: 'ارسال لینک بازنشانی رمز عبور',
+            description:
+                'برای دریافت لینک بازنشانی رمز عبور، ایمیل خود را وارد کنید',
+            email: 'ایمیل آدرس',
+            emailPlaceholder: 'you@babataste.com',
+            submit: 'ارسال لینک تغیر رمز عبور',
             returnTo: 'یا، بازگشت به',
-            login: 'ورود',
+            login: 'صفحه ورود',
         },
-        securedBy: 'محافظت‌شده با رمزگذاری استاندارد صنعتی',
+        securedBy: 'محافظت‌ شده با رمزگذاری استاندارد صنعتی',
         promo: {
             imageAlt: 'غذای رستورانت',
             heroTitle: 'رستورانت خود را مدیریت کنید',
-            heroDescription:
-                'راهکار کامل ERP برای عملیات مدرن رستورانت',
+            heroDescription: 'سیستم کامل ERP برای مدیریت رستورانت',
             kitchenTitle: 'مدیریت آشپزخانه',
-            kitchenDescription: 'پیگیری سفارش‌ها به‌صورت لحظه‌ای',
-            menuTitle: 'کنترول منو',
-            menuDescription: 'قیمت‌گذاری پویا و مدیریت موجودی',
+            kitchenDescription: 'تعقیب و مدیریت سفارش ‌ها به‌ صورت لحظه‌ای',
+            menuTitle: 'کنترول مینو',
+            menuDescription: 'قیمت‌ گذاری هوشمند و مدیریت گدام',
         },
     },
     navigation: {
@@ -153,8 +154,7 @@ const fa = {
         everythingLooksSteady: 'فعلاً همه چیز باثبات به نظر می‌رسد.',
         noUrgentOperationalAlerts: 'هشدار عملیاتی فوری وجود ندارد.',
         branchPerformance: 'عملکرد شعبات',
-        branchPerformanceDescription:
-            'بیشترین شتاب شعبات در ۳۰ روز گذشته.',
+        branchPerformanceDescription: 'بیشترین شتاب شعبات در ۳۰ روز گذشته.',
         rank: 'رتبه',
         revenue: 'عواید',
         orders: 'سفارش‌ها',
@@ -229,7 +229,8 @@ const fa = {
             other: 'سایر',
         },
         toolbarTitle: 'سفارش‌ها:',
-        toolbarDescription: 'پیگیری و مدیریت سفارش‌ها (مرتب‌سازی نزولی بر اساس شناسه)',
+        toolbarDescription:
+            'پیگیری و مدیریت سفارش‌ها (مرتب‌سازی نزولی بر اساس شناسه)',
         createOrder: 'ایجاد سفارش',
         editOrder: 'ویرایش سفارش',
         updateOrder: 'به‌روزرسانی سفارش',
@@ -293,7 +294,8 @@ const fa = {
         },
         detailsModal: {
             titlePrefix: 'سفارش #',
-            description: 'جزئیات سفارش را ببینید و وضعیت آن را به‌روزرسانی کنید.',
+            description:
+                'جزئیات سفارش را ببینید و وضعیت آن را به‌روزرسانی کنید.',
             clientPrefix: 'مشتری:',
             branch: 'شعبه',
             orderType: 'نوع سفارش',

@@ -11,7 +11,6 @@ import { setFormattingLocale } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Check, Globe } from 'lucide-react';
 import { HTMLAttributes } from 'react';
-import { toast } from 'sonner';
 
 export default function LanguageDropdown({
     className = '',
@@ -41,12 +40,6 @@ export default function LanguageDropdown({
                         isNextRtl,
                     );
                     document.body.classList.toggle('rtl', isNextRtl);
-                    toast.success(
-                        t(
-                            'language.updated',
-                            'Language updated successfully.',
-                        ),
-                    );
                     router.reload({
                         preserveScroll: true,
                         preserveState: false,

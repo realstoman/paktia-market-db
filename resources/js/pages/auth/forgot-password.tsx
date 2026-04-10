@@ -88,10 +88,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="text-md space-x-1 text-center text-muted-foreground">
                     <span className="text-gray-300">
-                        {t(
-                            'auth.forgotPassword.returnTo',
-                            'Or, return to',
-                        )}
+                        {t('auth.forgotPassword.returnTo', 'Or, return to')}
                     </span>
                     <TextLink href={login()} className="text-brand-secondary">
                         {t('auth.forgotPassword.login', 'login')}
