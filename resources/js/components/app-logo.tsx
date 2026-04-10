@@ -17,8 +17,8 @@ export default function AppLogo() {
             </div>
             <div
                 className={cn('grid flex-1 text-sm', {
-                    'ml-1 text-left': !isRtl,
-                    'mr-1 text-right': isRtl,
+                    'ml-1 pt-2 text-left': !isRtl,
+                    'mr-1 pt-2 text-right text-xl': isRtl,
                 })}
             >
                 <span className="truncate leading-none font-semibold tracking-wide">

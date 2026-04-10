@@ -68,7 +68,7 @@ const ps = {
     navigation: {
         platform: 'سیستم',
         dashboard: 'ډشبورډ',
-        orders: 'د پیرودونکو آردرونه',
+        orders: 'د پیرودونکو آرډرونه',
         products: 'محصولات',
         inventory: 'د ګدام برخه',
         employees: 'کارکوونکي',
@@ -165,7 +165,7 @@ const ps = {
         trendUpBy: 'لوړ شوی په',
         trendDownBy: 'کم شوی په',
         fromLastMonth: 'له تېرې میاشتې سره',
-        orderFlow: 'د امرونو بهیر',
+        orderFlow: 'د پیرودوکنو د آرډرونو بهیر',
         operationalViewFor: 'د :date لپاره عملیاتي لید.',
         selectDate: 'نېټه وټاکئ',
         pending: 'په تمه',
@@ -176,16 +176,16 @@ const ps = {
         orderMovement: 'د امرونو حرکت',
         orderMovementDescription:
             'د تېرو ۷ ورځو د انتظار، پخلنځي او بشپړېدو پړاوونه',
-        inventoryHealth: 'د موجودۍ وضعیت',
-        inventoryHealthDescription: 'د موجودۍ ځواک، خطر او د کمښت فشار.',
-        inventoryStatusOverview: 'د موجودۍ وضعیت لنډیز',
+        inventoryHealth: 'د ګدام وضعیت',
+        inventoryHealthDescription: 'د ګدام ځواک، خطر او د کمښت فشار.',
+        inventoryStatusOverview: 'د ګدام وضعیت لنډیز',
         restaurantItems: 'د رستورانت توکي',
         items: 'توکي',
-        inventoryDistributionOverview: 'د موجودۍ وېش لنډیز',
+        inventoryDistributionOverview: 'د ګدام وېش لنډیز',
         inventoryDistributionSummary:
-            'د ټولو توکو، ثابتو شتمنیو، د کارونې وړ موجودۍ، کم موجودۍ او خلاصو توکو چټک ماتول.',
+            'د ټولو توکو، ثابتو شتمنیو، د کارونې وړ ګدام، کم ګدام او خلاصو توکو چټک ښودل.',
         totalItems: 'ټول توکي',
-        inventoryValue: 'د موجودۍ ارزښت',
+        inventoryValue: 'د ګدام ارزښت',
         usable: 'د کارونې وړ',
         fixed: 'ثابت',
         lowStock: 'کم موجودي',
@@ -201,7 +201,7 @@ const ps = {
         orders: 'امرونه',
         branchPerformanceEmpty:
             'کله چې ورځني میټریکونه راټول شي، د څانګو فعالیت به دلته ښکاره شي.',
-        lowStockQuickList: 'د کم موجودۍ چټک لست',
+        lowStockQuickList: 'د کم ګدام چټک لست',
         lowStockQuickListDescription:
             'هغو توکو ته چټک لید چې د ختمېدو سره نږدې دي.',
         out: 'خلاص',
@@ -227,7 +227,7 @@ const ps = {
         goToOrders: 'امرونو ته لاړ شئ',
         dashboardAccessReady: 'د ډشبورډ لاسرسی چمتو دی',
         dashboardAccessDescription:
-            'دې کاروونکي ته لا تر اوسه د ډشبورډ هېڅ ویجټ نه دی ټاکل شوی. د عملیاتو، موجودۍ، مالي یا راپورونو د ښودلو لپاره رول ته د برخو اجازه‌لیکونه ور اضافه کړئ.',
+            'دې کاروونکي ته لا تر اوسه د ډشبورډ هېڅ ویجټ نه دی ټاکل شوی. د عملیاتو، ګدام، مالي یا راپورونو د ښودلو لپاره رول ته د برخو اجازه‌لیکونه ور اضافه کړئ.',
         allTimeOrdersSuffix: 'امرونه',
     },
     orders: {
