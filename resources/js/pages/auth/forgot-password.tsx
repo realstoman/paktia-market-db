@@ -10,14 +10,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { useLocalization } from '@/lib/localization';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t, isRtl } = useLocalization();
+
     return (
         <AuthLayout
-            title="Forgot password"
-            description="Enter your email to receive a password reset link"
+            title={t('auth.forgotPassword.title', 'Forgot password')}
+            description={t(
+                'auth.forgotPassword.description',
+                'Enter your email to receive a password reset link',
+            )}
         >
-            <Head title="Forgot password" />
+            <Head title={t('auth.forgotPassword.title', 'Forgot password')} />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">
@@ -34,7 +40,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     htmlFor="email"
                                     className="flex items-center justify-start gap-1 text-base text-slate-200"
                                 >
-                                    Email address{' '}
+                                    {t(
+                                        'auth.forgotPassword.email',
+                                        'Email address',
+                                    )}{' '}
                                     <span className="pt-2 text-red-600">*</span>
                                 </Label>
                                 <Input
@@ -43,8 +52,13 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder="you@babarestaurant.com"
-                                    className="h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
+                                    placeholder={t(
+                                        'auth.forgotPassword.emailPlaceholder',
+                                        'you@babarestaurant.com',
+                                    )}
+                                    className={`h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20 ${
+                                        isRtl ? 'text-right' : ''
+                                    }`}
                                 />
 
                                 <InputError
@@ -62,7 +76,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Email password reset link
+                                    {t(
+                                        'auth.forgotPassword.submit',
+                                        'Email password reset link',
+                                    )}
                                 </Button>
                             </div>
                         </>
@@ -70,9 +87,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="text-md space-x-1 text-center text-muted-foreground">
-                    <span className="text-gray-300">Or, return to</span>
+                    <span className="text-gray-300">
+                        {t(
+                            'auth.forgotPassword.returnTo',
+                            'Or, return to',
+                        )}
+                    </span>
                     <TextLink href={login()} className="text-brand-secondary">
-                        login
+                        {t('auth.forgotPassword.login', 'login')}
                     </TextLink>
                 </div>
             </div>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { useLocalization } from '@/lib/localization';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
@@ -17,17 +18,22 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
+    const { t, isRtl } = useLocalization();
+
     return (
         <AuthLayout
-            title="Confirm your password"
-            description="This is a secure area of the application. Please confirm your password before continuing."
+            title={t('auth.login.title', 'Log in')}
+            description={t(
+                'auth.login.description',
+                'Sign in to continue to your account.',
+            )}
         >
-            <Head title="Log in" />
+            <Head title={t('auth.login.title', 'Log in')} />
 
             <div className="bottom-0 w-full">
                 <div className="mb-8">
                     <h2 className="mb-2 text-4xl font-bold text-white">
-                        Welcome back!
+                        {t('auth.login.heading', 'Welcome back!')}
                     </h2>
                 </div>
 
@@ -52,7 +58,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     htmlFor="email"
                                     className="flex items-center justify-start gap-1 text-base text-slate-200"
                                 >
-                                    Email address{' '}
+                                    {t(
+                                        'auth.login.email',
+                                        'Email address',
+                                    )}{' '}
                                     <span className="pt-2 text-red-600">*</span>
                                 </Label>
                                 <Input
@@ -63,8 +72,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="you@babarestaurant.com"
-                                    className="h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
+                                    placeholder={t(
+                                        'auth.login.emailPlaceholder',
+                                        'you@babarestaurant.com',
+                                    )}
+                                    className={`h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20 ${
+                                        isRtl ? 'text-right' : ''
+                                    }`}
                                 />
                                 <InputError
                                     message={errors.email}
@@ -79,7 +93,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         htmlFor="password"
                                         className="flex items-center justify-start gap-1 text-base text-slate-200"
                                     >
-                                        Password
+                                        {t('auth.login.password', 'Password')}
                                         <span className="pt-2 text-red-600">
                                             *
                                         </span>
@@ -92,8 +106,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Enter your password"
-                                    className="mt-1 h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20"
+                                    placeholder={t(
+                                        'auth.login.passwordPlaceholder',
+                                        'Enter your password',
+                                    )}
+                                    className={`mt-1 h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20 ${
+                                        isRtl ? 'text-right' : ''
+                                    }`}
                                 />
                                 <InputError
                                     message={errors.password}
@@ -114,7 +133,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         htmlFor="remember"
                                         className="cursor-pointer text-sm text-slate-300"
                                     >
-                                        Keep me logged in
+                                        {t(
+                                            'auth.login.remember',
+                                            'Keep me logged in',
+                                        )}
                                     </Label>
                                 </div>
                                 <div className="text-center">
@@ -124,7 +146,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             className="text-center text-sm text-brand-secondary hover:text-orange-300"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            {t(
+                                                'auth.login.forgotPassword',
+                                                'Forgot password?',
+                                            )}
                                         </TextLink>
                                     )}
                                 </div>
@@ -139,7 +164,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 data-test="login-button"
                             >
                                 {processing && <Spinner className="mr-2" />}
-                                Login
+                                {t('auth.login.submit', 'Login')}
                             </Button>
                         </>
                     )}
