@@ -13,7 +13,22 @@ interface AuthLayoutProps {
 export default function AuthLayout({
     children,
 }: PropsWithChildren<AuthLayoutProps>) {
-    const { t, isRtl } = useLocalization();
+    const { t, locale, isRtl } = useLocalization();
+    const copyrightYear = (() => {
+        if (locale === 'fa') {
+            return new Intl.DateTimeFormat('fa-AF-u-ca-persian', {
+                year: 'numeric',
+            }).format(new Date());
+        }
+
+        if (locale === 'ps') {
+            return new Intl.DateTimeFormat('ps-AF-u-ca-persian', {
+                year: 'numeric',
+            }).format(new Date());
+        }
+
+        return String(new Date().getFullYear());
+    })();
 
     return (
         <div className="flex min-h-screen w-full">
@@ -42,19 +57,27 @@ export default function AuthLayout({
                         >
                             <p
                                 className={`flex items-start gap-2 text-sm text-slate-400 ${
-                                    isRtl ? 'justify-end flex-row-reverse text-right' : 'justify-left text-left'
+                                    isRtl
+                                        ? 'justify-start text-right'
+                                        : 'justify-left text-left'
                                 }`}
                             >
-                                <Copyright className="mt-1 h-4 w-4" />{' '}
+                                <Copyright className="mt-1 h-4 w-4 shrink-0" />
                                 <div>
-                                    Copyright {new Date().getFullYear()}
+                                    {locale === 'en'
+                                        ? `Copyright ${copyrightYear}`
+                                        : copyrightYear}
                                     <a
                                         href="https://babataste.com"
                                         className="pr-1 pl-1 text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
                                         target="_blank"
                                         rel="noreferrer"
                                     >
-                                        {brand.name}.
+                                        {t(
+                                            'brand.restaurantName',
+                                            brand.name,
+                                        )}
+                                        .
                                     </a>
                                     {t(
                                         'footer.allRightsReserved',
@@ -64,10 +87,12 @@ export default function AuthLayout({
                             </p>
                             <p
                                 className={`flex items-center gap-1 pt-2 text-sm text-slate-400 ${
-                                    isRtl ? 'justify-end flex-row-reverse text-right' : 'justify-left text-left'
+                                    isRtl
+                                        ? 'justify-start text-right'
+                                        : 'justify-left text-left'
                                 }`}
                             >
-                                <ShieldCheck className="h-4 w-4" />
+                                <ShieldCheck className="h-4 w-4 shrink-0" />
                                 {t(
                                     'auth.securedBy',
                                     'Secured by industry-standard encryption',
