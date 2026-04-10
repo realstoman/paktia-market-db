@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useLocalization } from '@/lib/localization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ExternalLink, type LucideIcon } from 'lucide-react';
@@ -18,6 +19,8 @@ export function OrderStatusStatCard({
     onDetailsClick,
     className,
 }: OrderStatusStatCardProps) {
+    const { t } = useLocalization();
+
     return (
         <Card
             className={cn(
@@ -43,7 +46,7 @@ export function OrderStatusStatCard({
                     className="h-8 gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 text-xs text-neutral-800 hover:bg-white hover:text-neutral-900 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                     onClick={onDetailsClick}
                 >
-                    Details
+                    {t('orders.details', 'Details')}
                     <ExternalLink className="h-3.5 w-3.5" />
                 </Button>
             </CardContent>

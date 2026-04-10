@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\BranchTable;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Projection\ProjectionDispatchService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +22,11 @@ class OrderService
         private readonly ProjectionDispatchService $projectionDispatchService,
     ) {}
 
-    public function getIndexData(?string $selectedDate, bool $isAllTime): array
+    public function getIndexData(?string $selectedDate, bool $isAllTime, ?User $user = null): array
     {
+        $isSuperAdmin = $user?->hasRole('super-admin') ?? false;
+        $allowedBranchId = ! $isSuperAdmin ? $user?->branch_id : null;
+
         $ordersQuery = Order::with([
             'branch',
             'branchTable',
@@ -44,11 +48,16 @@ class OrderService
 
         return [
             'orders' => $ordersQuery->get(),
-            'branches' => Branch::orderBy('name')->get(),
+            'branches' => Branch::query()
+                ->when($allowedBranchId, fn ($query) => $query->where('id', $allowedBranchId))
+                ->orderBy('name')
+                ->get(),
             'products' => Product::with(['sizes', 'kitchen'])
                 ->orderBy('name')
                 ->get(),
-            'branchTables' => BranchTable::where('is_active', true)
+            'branchTables' => BranchTable::query()
+                ->where('is_active', true)
+                ->when($allowedBranchId, fn ($query) => $query->where('branch_id', $allowedBranchId))
                 ->orderBy('branch_id')
                 ->orderBy('table_number')
                 ->get(),
@@ -67,8 +76,9 @@ class OrderService
         return $date ?? Carbon::today()->toDateString();
     }
 
-    public function createOrder(array $data, ?int $userId): void
+    public function createOrder(array $data, ?int $userId, ?User $user = null): void
     {
+        $data['branch_id'] = $this->resolveAllowedBranchId($data['branch_id'], $user);
         $this->validateOrderConstraints($data);
 
         DB::transaction(function () use ($data, $userId) {
@@ -110,8 +120,9 @@ class OrderService
         });
     }
 
-    public function updateOrder(Order $order, array $data): void
+    public function updateOrder(Order $order, array $data, ?User $user = null): void
     {
+        $data['branch_id'] = $this->resolveAllowedBranchId($data['branch_id'], $user);
         $this->validateOrderConstraints($data);
         $originalBranchId = $order->branch_id;
         $originalCreatedAt = $order->created_at;
@@ -148,6 +159,29 @@ class OrderService
             $order->branch_id,
             $order->created_at,
         );
+    }
+
+    private function resolveAllowedBranchId(int|string|null $branchId, ?User $user): int
+    {
+        $requestedBranchId = (int) $branchId;
+
+        if (! $user || $user->hasRole('super-admin')) {
+            return $requestedBranchId;
+        }
+
+        if (! $user->branch_id) {
+            throw ValidationException::withMessages([
+                'branch_id' => 'This user is not assigned to a branch.',
+            ]);
+        }
+
+        if ($requestedBranchId !== (int) $user->branch_id) {
+            throw ValidationException::withMessages([
+                'branch_id' => 'You can only create orders for your assigned branch.',
+            ]);
+        }
+
+        return (int) $user->branch_id;
     }
 
     public function updateStatus(

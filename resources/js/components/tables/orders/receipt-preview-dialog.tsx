@@ -21,6 +21,7 @@ import {
     IconPhone,
     IconWorldWww,
 } from '@tabler/icons-react';
+import { useLocalization } from '@/lib/localization';
 import { Printer, ReceiptText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -113,6 +114,18 @@ export function ReceiptPreviewDialog({
     open,
     onOpenChange,
 }: ReceiptPreviewDialogProps) {
+    const { t, locale, direction, isRtl } = useLocalization();
+    const dateLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF';
+        }
+
+        return 'en-US';
+    }, [locale]);
     const [discount, setDiscount] = useState('0');
 
     const subtotal = useMemo(() => {
@@ -136,11 +149,14 @@ export function ReceiptPreviewDialog({
     );
     const finalTotal = Math.max(0, subtotal - discountValue);
     const createdAt = order?.created_at
-        ? new Date(order.created_at).toLocaleString()
+        ? new Date(order.created_at).toLocaleString(dateLocale)
         : '-';
-    const orderTypeLabel = (order?.order_type ?? '-')
-        .replace('_', ' ')
-        .replace(/\b\w/g, (char) => char.toUpperCase());
+    const orderTypeLabel = order?.order_type
+        ? t(
+              `orders.orderType.${order.order_type}`,
+              order.order_type.replace('_', ' '),
+          )
+        : '-';
 
     const printReceipt = () => {
         if (!order) {
@@ -171,9 +187,9 @@ export function ReceiptPreviewDialog({
         const deliveryDetails =
             order.order_type === 'delivery'
                 ? `
-                    <p><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? '-')}</p>
-                    <p><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? '-')}</p>
-                    <p><strong>Address:</strong> ${escapeHtml(order.delivery_address ?? '-')}</p>
+                    <p><strong>${escapeHtml(t('orders.receipt.customer', 'Customer'))}:</strong> ${escapeHtml(order.customer_name ?? '-')}</p>
+                    <p><strong>${escapeHtml(t('orders.receipt.phone', 'Phone'))}:</strong> ${escapeHtml(order.customer_phone ?? '-')}</p>
+                    <p><strong>${escapeHtml(t('orders.receipt.address', 'Address'))}:</strong> ${escapeHtml(order.delivery_address ?? '-')}</p>
                 `
                 : '';
 
@@ -183,7 +199,7 @@ export function ReceiptPreviewDialog({
                     <title>Order #${order.id} Receipt</title>
                     <style>
                         @page { size: 80mm auto; margin: 4mm; }
-                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; }
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; direction: ${direction}; }
                         .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
                         .meta p { margin: 3px 0; line-height: 1.35; }
@@ -200,34 +216,34 @@ export function ReceiptPreviewDialog({
                 <body>
                     <div class="receipt">
                         <div class="center">
-                            <img src="${window.location.origin}/brand/logo.png" alt="Baba Restaurant Logo" />
-                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">Baba Restaurant</h3>
-                            <p class="muted" style="margin:0;">Order Receipt</p>
+                            <img src="${window.location.origin}/brand/logo.png" alt="${escapeHtml(t('brand.restaurantName', 'Baba Restaurant'))} Logo" />
+                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">${escapeHtml(t('brand.restaurantName', 'Baba Restaurant'))}</h3>
+                            <p class="muted" style="margin:0;">${escapeHtml(t('orders.receipt.receiptTitle', 'Order Receipt'))}</p>
                         </div>
                         <hr />
                         <div class="meta">
-                            <p><strong>Order:</strong> #${order.id}</p>
-                            <p><strong>Date:</strong> ${escapeHtml(createdAt)}</p>
-                            <p><strong>Type:</strong> ${escapeHtml(orderTypeLabel)}</p>
+                            <p><strong>${escapeHtml(t('orders.receipt.order', 'Order'))}:</strong> #${order.id}</p>
+                            <p><strong>${escapeHtml(t('orders.receipt.date', 'Date'))}:</strong> ${escapeHtml(createdAt)}</p>
+                            <p><strong>${escapeHtml(t('orders.receipt.type', 'Type'))}:</strong> ${escapeHtml(orderTypeLabel)}</p>
                             ${deliveryDetails}
                         </div>
                         <hr />
                         <table>
                             <thead>
                                 <tr>
-                                    <th style="text-align:left;">Item</th>
-                                    <th style="text-align:center;">Qty</th>
-                                    <th style="text-align:right;">Price</th>
-                                    <th style="text-align:right;">Total</th>
+                                    <th style="text-align:${isRtl ? 'right' : 'left'};">${escapeHtml(t('orders.receipt.item', 'Item'))}</th>
+                                    <th style="text-align:center;">${escapeHtml(t('orders.receipt.qty', 'Qty'))}</th>
+                                    <th style="text-align:right;">${escapeHtml(t('orders.receipt.price', 'Price'))}</th>
+                                    <th style="text-align:right;">${escapeHtml(t('orders.receipt.total', 'Total'))}</th>
                                 </tr>
                             </thead>
                             <tbody>${rows}</tbody>
                         </table>
                         <hr />
                         <div class="totals">
-                            <p><span>Subtotal</span><span>${escapeHtml(formatAfn(subtotal))}</span></p>
-                            <p><span>Discount</span><span>${escapeHtml(formatAfn(discountValue))}</span></p>
-                            <p><strong>Grand Total</strong><strong>${escapeHtml(formatAfn(finalTotal))}</strong></p>
+                            <p><span>${escapeHtml(t('orders.receipt.subtotal', 'Subtotal'))}</span><span>${escapeHtml(formatAfn(subtotal))}</span></p>
+                            <p><span>${escapeHtml(t('orders.receipt.discountShort', 'Discount'))}</span><span>${escapeHtml(formatAfn(discountValue))}</span></p>
+                            <p><strong>${escapeHtml(t('orders.receipt.grandTotal', 'Grand Total'))}</strong><strong>${escapeHtml(formatAfn(finalTotal))}</strong></p>
                         </div>
                         <hr />
                         <div class="muted" style="font-size:10px;">
@@ -266,11 +282,13 @@ export function ReceiptPreviewDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Print Receipt Preview
+                        {t('orders.receipt.title', 'Print Receipt Preview')}
                     </DialogTitle>
                     <DialogDescription>
-                        Preview on X-Printer size. Adjust discount if needed,
-                        then print.
+                        {t(
+                            'orders.receipt.description',
+                            'Preview on X-Printer size. Adjust discount if needed, then print.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -279,7 +297,7 @@ export function ReceiptPreviewDialog({
                         <div className="space-y-3 rounded-md border p-4">
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    Discount (AFN)
+                                    {t('orders.receipt.discount', 'Discount (AFN)')}
                                 </label>
                                 <NumericInput
                                     min="0"
@@ -290,22 +308,22 @@ export function ReceiptPreviewDialog({
 
                             <div className="text-sm">
                                 <p className="flex items-center justify-between">
-                                    <span>Subtotal</span>
+                                    <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
                                     <span>{formatAfn(subtotal)}</span>
                                 </p>
                                 <p className="flex items-center justify-between">
-                                    <span>Discount</span>
+                                    <span>{t('orders.receipt.discountShort', 'Discount')}</span>
                                     <span>{formatAfn(discountValue)}</span>
                                 </p>
                                 <p className="mt-2 flex items-center justify-between text-base font-semibold">
-                                    <span>Grand Total</span>
+                                    <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
                                     <span>{formatAfn(finalTotal)}</span>
                                 </p>
                             </div>
 
                             <Button onClick={printReceipt} className="gap-2">
                                 <Printer className="h-4 w-4" />
-                                Print Receipt
+                                {t('orders.receipt.printReceipt', 'Print Receipt')}
                             </Button>
                         </div>
 
@@ -318,32 +336,38 @@ export function ReceiptPreviewDialog({
                                     <div className="text-center">
                                         <img
                                             src="/brand/logo.png"
-                                            alt="Baba Restaurant Logo"
+                                            alt={`${t('brand.restaurantName', 'Baba Restaurant')} Logo`}
                                             className="mx-auto h-8 w-8 object-contain"
                                         />
                                         <p className="mt-1 text-sm font-semibold">
-                                            Baba Restaurant
+                                            {t(
+                                                'brand.restaurantName',
+                                                'Baba Restaurant',
+                                            )}
                                         </p>
                                         <p className="text-[10px] text-neutral-500">
-                                            Order Receipt
+                                            {t(
+                                                'orders.receipt.receiptTitle',
+                                                'Order Receipt',
+                                            )}
                                         </p>
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
                                     <p>
                                         <span className="font-medium">
-                                            Order:
+                                            {t('orders.receipt.order', 'Order')}:
                                         </span>{' '}
                                         #{order.id}
                                     </p>
                                     <p>
                                         <span className="font-medium">
-                                            Date:
+                                            {t('orders.receipt.date', 'Date')}:
                                         </span>{' '}
                                         {createdAt}
                                     </p>
                                     <p>
                                         <span className="font-medium">
-                                            Type:
+                                            {t('orders.receipt.type', 'Type')}:
                                         </span>{' '}
                                         {orderTypeLabel}
                                     </p>
@@ -351,19 +375,23 @@ export function ReceiptPreviewDialog({
                                         <>
                                             <p>
                                                 <span className="font-medium">
-                                                    Customer:
+                                                    {t(
+                                                        'orders.receipt.customer',
+                                                        'Customer',
+                                                    )}
+                                                    :
                                                 </span>{' '}
                                                 {order.customer_name ?? '-'}
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    Phone:
+                                                    {t('orders.receipt.phone', 'Phone')}:
                                                 </span>{' '}
                                                 {order.customer_phone ?? '-'}
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    Address:
+                                                    {t('orders.receipt.address', 'Address')}:
                                                 </span>{' '}
                                                 {order.delivery_address ?? '-'}
                                             </p>
@@ -400,15 +428,15 @@ export function ReceiptPreviewDialog({
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
                                     <p className="flex items-center justify-between">
-                                        <span>Subtotal</span>
+                                        <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
                                         <span>{formatAfn(subtotal)}</span>
                                     </p>
                                     <p className="flex items-center justify-between">
-                                        <span>Discount</span>
+                                        <span>{t('orders.receipt.discountShort', 'Discount')}</span>
                                         <span>{formatAfn(discountValue)}</span>
                                     </p>
                                     <p className="flex items-center justify-between font-semibold">
-                                        <span>Grand Total</span>
+                                        <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />

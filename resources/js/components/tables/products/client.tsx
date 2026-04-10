@@ -35,6 +35,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Kitchen,
     Product,
@@ -87,6 +88,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     sizes,
     isLoading = false,
 }) => {
+    const { t } = useLocalization();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
     const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
@@ -253,7 +255,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Product created successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.productCreated',
+                            'Product created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -297,7 +304,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             router.post(requestUrl, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Category updated successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.categoryUpdated',
+                            'Category updated successfully.',
+                        ),
+                    );
                     resetCategoryForm();
                     setMetaErrors({});
                 },
@@ -315,7 +327,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.post(requestUrl, payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Category created successfully.');
+                toast.success(
+                    t(
+                        'products.messages.categoryCreated',
+                        'Category created successfully.',
+                    ),
+                );
                 resetCategoryForm();
                 setMetaErrors({});
             },
@@ -352,7 +369,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.delete(`/products/categories/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Category deleted successfully.');
+                toast.success(
+                    t(
+                        'products.messages.categoryDeleted',
+                        'Category deleted successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 setMetaErrors(errors);
@@ -404,7 +426,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             router.post(requestUrl, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Type updated successfully.');
+                    toast.success(
+                        t(
+                            'products.messages.typeUpdated',
+                            'Type updated successfully.',
+                        ),
+                    );
                     resetTypeForm();
                     setMetaErrors({});
                 },
@@ -412,10 +439,13 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     setMetaErrors(errors);
                     toast.error(
                         String(
-                            errors.name ??
+                                errors.name ??
                                 errors.image ??
                                 errors.type ??
-                                'Unable to update type.',
+                                t(
+                                    'products.messages.typeUpdateFailed',
+                                    'Unable to update type.',
+                                ),
                         ),
                     );
                 },
@@ -430,7 +460,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.post(requestUrl, payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Type created successfully.');
+                toast.success(
+                    t(
+                        'products.messages.typeCreated',
+                        'Type created successfully.',
+                    ),
+                );
                 resetTypeForm();
                 setMetaErrors({});
             },
@@ -441,7 +476,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         errors.name ??
                             errors.image ??
                             errors.type ??
-                            'Unable to create type.',
+                            t(
+                                'products.messages.typeCreateFailed',
+                                'Unable to create type.',
+                            ),
                     ),
                 );
             },
@@ -475,7 +513,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         router.delete(`/products/types/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Type deleted successfully.');
+                toast.success(
+                    t(
+                        'products.messages.typeDeleted',
+                        'Type deleted successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 setMetaErrors(errors);
@@ -503,8 +546,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     }, [types]);
 
     const tableColumns = useMemo(
-        () => buildColumns(categories, types, kitchens, sizes),
-        [categories, kitchens, sizes, types],
+        () => buildColumns(categories, types, kitchens, sizes, t),
+        [categories, kitchens, sizes, t, types],
     );
 
     const filteredData = useMemo(() => {
@@ -534,39 +577,66 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 <SearchableDropdown
                     value={categoryFilter}
                     options={[
-                        { value: 'all', label: 'All Categories' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allCategories',
+                                'All Categories',
+                            ),
+                        },
                         ...categories.map((category) => ({
                             value: String(category.id),
                             label: category.name,
                         })),
                     ]}
                     onValueChange={setCategoryFilter}
-                    placeholder="Category"
-                    searchPlaceholder="Search categories..."
-                    emptyText="No categories found."
+                    placeholder={t('products.filters.category', 'Category')}
+                    searchPlaceholder={t(
+                        'products.filters.searchCategories',
+                        'Search categories...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noCategories',
+                        'No categories found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={kitchenFilter}
                     options={[
-                        { value: 'all', label: 'All Kitchens' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allKitchens',
+                                'All Kitchens',
+                            ),
+                        },
                         ...kitchens.map((kitchen) => ({
                             value: String(kitchen.id),
                             label: kitchen.name ?? `Kitchen #${kitchen.id}`,
                         })),
                     ]}
                     onValueChange={setKitchenFilter}
-                    placeholder="Kitchen"
-                    searchPlaceholder="Search kitchens..."
-                    emptyText="No kitchens found."
+                    placeholder={t('products.filters.kitchen', 'Kitchen')}
+                    searchPlaceholder={t(
+                        'products.filters.searchKitchens',
+                        'Search kitchens...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noKitchens',
+                        'No kitchens found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={typeFilter}
                     options={[
-                        { value: 'all', label: 'All Types' },
+                        {
+                            value: 'all',
+                            label: t('products.filters.allTypes', 'All Types'),
+                        },
                         ...availableTypes.map((productType) => ({
                             value: productType.trim().toLowerCase(),
                             label:
@@ -575,23 +645,47 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         })),
                     ]}
                     onValueChange={setTypeFilter}
-                    placeholder="Type"
-                    searchPlaceholder="Search types..."
-                    emptyText="No types found."
+                    placeholder={t('products.filters.type', 'Type')}
+                    searchPlaceholder={t(
+                        'products.filters.searchTypes',
+                        'Search types...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noTypes',
+                        'No types found.',
+                    )}
                     className="w-44"
                 />
 
                 <SearchableDropdown
                     value={statusFilter}
                     options={[
-                        { value: 'all', label: 'All Statuses' },
-                        { value: 'active', label: 'Active' },
-                        { value: 'inactive', label: 'Inactive' },
+                        {
+                            value: 'all',
+                            label: t(
+                                'products.filters.allStatuses',
+                                'All Statuses',
+                            ),
+                        },
+                        {
+                            value: 'active',
+                            label: t('products.filters.active', 'Active'),
+                        },
+                        {
+                            value: 'inactive',
+                            label: t('products.filters.inactive', 'Inactive'),
+                        },
                     ]}
                     onValueChange={setStatusFilter}
-                    placeholder="Status"
-                    searchPlaceholder="Search statuses..."
-                    emptyText="No statuses found."
+                    placeholder={t('products.filters.status', 'Status')}
+                    searchPlaceholder={t(
+                        'products.filters.searchStatuses',
+                        'Search statuses...',
+                    )}
+                    emptyText={t(
+                        'products.filters.noStatuses',
+                        'No statuses found.',
+                    )}
                     className="w-44"
                 />
             </div>
@@ -603,6 +697,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             kitchenFilter,
             kitchens,
             statusFilter,
+            t,
             typeFilter,
         ],
     );
@@ -611,8 +706,11 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
                 <Heading
-                    title={`Products: ${formatNumber(data.length)}`}
-                    description="Manage menu items, categories, types, and pricing"
+                    title={`${t('products.headingTitle', 'Products:')} ${formatNumber(data.length)}`}
+                    description={t(
+                        'products.headingDescription',
+                        'Manage menu items, categories, types, and pricing',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     <Button
@@ -621,7 +719,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         className="gap-2"
                     >
                         <Tag className="h-4 w-4" />
-                        Manage Categories
+                        {t(
+                            'products.manageCategories',
+                            'Manage Categories',
+                        )}
                     </Button>
                     <Button
                         variant="outline"
@@ -629,14 +730,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                         className="gap-2"
                     >
                         <Settings2 className="h-4 w-4" />
-                        Manage Types
+                        {t('products.manageTypes', 'Manage Types')}
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add New Product
+                        {t('products.addNewProduct', 'Add New Product')}
                     </Button>
                 </div>
             </div>
@@ -656,7 +757,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
-                searchPlaceholder="Search products by name or category..."
+                searchPlaceholder={t(
+                    'products.searchPlaceholder',
+                    'Search products by name or category...',
+                )}
                 toolbar={filterToolbar}
             />
 
@@ -673,63 +777,82 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <PackagePlus className="mr-2 h-5 w-5" />
-                            Create Product
+                            {t('products.createProduct', 'Create Product')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new product with images and optional size
-                            pricing.
+                            {t(
+                                'products.createProductDescription',
+                                'Add a new product with images and optional size pricing.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="grid gap-2">
-                                <Label htmlFor="product-name">Name</Label>
-                                <Input
-                                    id="product-name"
-                                    value={name}
-                                    onChange={(event) =>
-                                        setName(event.target.value)
-                                    }
-                                />
-                                <InputError message={createErrors.name} />
+                            <div className="grid gap-4 sm:col-span-2 md:grid-cols-3">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-name">
+                                        {t('products.fields.name', 'Name')}
+                                    </Label>
+                                    <Input
+                                        id="product-name"
+                                        value={name}
+                                        onChange={(event) =>
+                                            setName(event.target.value)
+                                        }
+                                    />
+                                    <InputError message={createErrors.name} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-pashto-name">
+                                        {t(
+                                            'products.fields.pashtoName',
+                                            'Pashto Name',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="product-pashto-name"
+                                        value={pashtoName}
+                                        onChange={(event) =>
+                                            setPashtoName(event.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.pashto_name}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-dari-name">
+                                        {t(
+                                            'products.fields.dariName',
+                                            'Dari Name',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="product-dari-name"
+                                        value={dariName}
+                                        onChange={(event) =>
+                                            setDariName(event.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.dari_name}
+                                    />
+                                </div>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="product-pashto-name">
-                                    Pashto Name
-                                </Label>
-                                <Input
-                                    id="product-pashto-name"
-                                    value={pashtoName}
-                                    onChange={(event) =>
-                                        setPashtoName(event.target.value)
-                                    }
-                                />
-                                <InputError
-                                    message={createErrors.pashto_name}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="product-dari-name">
-                                    Dari Name
-                                </Label>
-                                <Input
-                                    id="product-dari-name"
-                                    value={dariName}
-                                    onChange={(event) =>
-                                        setDariName(event.target.value)
-                                    }
-                                />
-                                <InputError message={createErrors.dari_name} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>Category</Label>
+                                <Label>{t('products.fields.category', 'Category')}</Label>
                                 <Select
                                     value={categoryId}
                                     onValueChange={setCategoryId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectCategory',
+                                                'Select category',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((category) => (
@@ -747,13 +870,18 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Kitchen</Label>
+                                <Label>{t('products.fields.kitchen', 'Kitchen')}</Label>
                                 <Select
                                     value={kitchenId}
                                     onValueChange={setKitchenId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select kitchen" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectKitchen',
+                                                'Select kitchen',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {kitchens.map((kitchen) => (
@@ -770,10 +898,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 <InputError message={createErrors.kitchen_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Type</Label>
+                                <Label>{t('products.fields.type', 'Type')}</Label>
                                 <Select value={type} onValueChange={setType}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectType',
+                                                'Select type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableTypes.map((productType) => (
@@ -792,7 +925,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="product-base-price">
-                                    Base Price (AFN)
+                                    {t(
+                                        'products.fields.basePrice',
+                                        'Base Price (AFN)',
+                                    )}
                                 </Label>
                                 <NumericInput
                                     id="product-base-price"
@@ -804,7 +940,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="product-description">
-                                    Description
+                                    {t(
+                                        'products.fields.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id="product-description"
@@ -819,7 +958,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="product-pashto-description">
-                                    Pashto Description
+                                    {t(
+                                        'products.fields.pashtoDescription',
+                                        'Pashto Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id="product-pashto-description"
@@ -834,7 +976,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="product-dari-description">
-                                    Dari Description
+                                    {t(
+                                        'products.fields.dariDescription',
+                                        'Dari Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id="product-dari-description"
@@ -848,7 +993,12 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Size Pricing (Optional, AFN)</Label>
+                                <Label>
+                                    {t(
+                                        'products.fields.sizePricing',
+                                        'Size Pricing (Optional, AFN)',
+                                    )}
+                                </Label>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {sizes.map((size) => (
                                         <div
@@ -860,7 +1010,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             </span>
                                             <NumericInput
                                                 min="0"
-                                                placeholder="Use base price"
+                                                placeholder={t(
+                                                    'products.fields.useBasePrice',
+                                                    'Use base price',
+                                                )}
                                                 value={
                                                     sizePrices[size.id] ?? ''
                                                 }
@@ -877,21 +1030,31 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="product-images">
-                                    Product Images
+                                    {t(
+                                        'products.fields.productImages',
+                                        'Product Images',
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload up to {MAX_IMAGES} images.
-                                            Recommended size: 400x400 or
-                                            400x480.
+                                            {t(
+                                                'products.imageUploadHelp',
+                                                'Upload up to :count images. Recommended size: 400x400 or 400x480.',
+                                            ).replace(
+                                                ':count',
+                                                String(MAX_IMAGES),
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor="product-images"
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Images
+                                            {t(
+                                                'products.selectImages',
+                                                'Select Images',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -944,7 +1107,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     }
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                    Active product
+                                    {t(
+                                        'products.fields.activeProduct',
+                                        'Active product',
+                                    )}
                                 </span>
                             </div>
                         </div>
@@ -957,7 +1123,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('products.actions.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
@@ -971,7 +1137,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Product
+                            {t('products.actions.create', 'Create Product')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -989,43 +1155,70 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             >
                 <DialogContent className="flex max-h-[84vh] flex-col overflow-hidden sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Categories</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'products.categoryMeta.title',
+                                'Manage Categories',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Create, edit, and remove product categories.
+                            {t(
+                                'products.categoryMeta.description',
+                                'Create, edit, and remove product categories.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
-                            <Input
-                                placeholder="Category name"
-                                value={categoryName}
-                                onChange={(event) =>
-                                    setCategoryName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder="Pashto title (optional)"
-                                value={categoryPashtoName}
-                                onChange={(event) =>
-                                    setCategoryPashtoName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder="Dari title (optional)"
-                                value={categoryDariName}
-                                onChange={(event) =>
-                                    setCategoryDariName(event.target.value)
-                                }
-                            />
+                            <div className="grid gap-2 md:grid-cols-3">
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.namePlaceholder',
+                                        'Category name',
+                                    )}
+                                    value={categoryName}
+                                    onChange={(event) =>
+                                        setCategoryName(event.target.value)
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.pashtoPlaceholder',
+                                        'Pashto title (optional)',
+                                    )}
+                                    value={categoryPashtoName}
+                                    onChange={(event) =>
+                                        setCategoryPashtoName(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.dariPlaceholder',
+                                        'Dari title (optional)',
+                                    )}
+                                    value={categoryDariName}
+                                    onChange={(event) =>
+                                        setCategoryDariName(event.target.value)
+                                    }
+                                />
+                            </div>
                             <Textarea
-                                placeholder="Category description (optional)"
+                                placeholder={t(
+                                    'products.categoryMeta.descriptionPlaceholder',
+                                    'Category description (optional)',
+                                )}
                                 value={categoryDescription}
                                 onChange={(event) =>
                                     setCategoryDescription(event.target.value)
                                 }
                             />
                             <Textarea
-                                placeholder="Pashto description (optional)"
+                                placeholder={t(
+                                    'products.categoryMeta.pashtoDescriptionPlaceholder',
+                                    'Pashto description (optional)',
+                                )}
                                 value={categoryPashtoDescription}
                                 onChange={(event) =>
                                     setCategoryPashtoDescription(
@@ -1034,7 +1227,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 }
                             />
                             <Textarea
-                                placeholder="Dari description (optional)"
+                                placeholder={t(
+                                    'products.categoryMeta.dariDescriptionPlaceholder',
+                                    'Dari description (optional)',
+                                )}
                                 value={categoryDariDescription}
                                 onChange={(event) =>
                                     setCategoryDariDescription(
@@ -1059,7 +1255,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     <div className="overflow-hidden rounded-md border">
                                         <img
                                             src={categoryImagePreview}
-                                            alt="Category preview"
+                                            alt={t(
+                                                'products.categoryMeta.title',
+                                                'Manage Categories',
+                                            )}
                                             className="h-24 w-full object-cover"
                                         />
                                     </div>
@@ -1074,8 +1273,14 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 {editingCategoryId
-                                    ? 'Update Category'
-                                    : 'Add Category'}
+                                    ? t(
+                                          'products.categoryMeta.update',
+                                          'Update Category',
+                                      )
+                                    : t(
+                                          'products.categoryMeta.add',
+                                          'Add Category',
+                                      )}
                             </Button>
                             {editingCategoryId && (
                                 <Button
@@ -1085,7 +1290,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     onClick={resetCategoryForm}
                                     disabled={isSubmitting}
                                 >
-                                    Cancel Edit
+                                    {t(
+                                        'products.categoryMeta.cancelEdit',
+                                        'Cancel Edit',
+                                    )}
                                 </Button>
                             )}
                         </div>
@@ -1177,50 +1385,77 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             >
                 <DialogContent className="flex max-h-[84vh] flex-col overflow-hidden sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Types</DialogTitle>
+                        <DialogTitle>
+                            {t('products.typeMeta.title', 'Manage Types')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Create, edit, or remove product types.
+                            {t(
+                                'products.typeMeta.description',
+                                'Create, edit, or remove product types.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
-                            <Input
-                                placeholder="Type name (example: food)"
-                                value={typeName}
-                                onChange={(event) =>
-                                    setTypeName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder="Pashto title (optional)"
-                                value={typePashtoName}
-                                onChange={(event) =>
-                                    setTypePashtoName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder="Dari title (optional)"
-                                value={typeDariName}
-                                onChange={(event) =>
-                                    setTypeDariName(event.target.value)
-                                }
-                            />
+                            <div className="grid gap-2 md:grid-cols-3">
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.namePlaceholder',
+                                        'Type name (example: food)',
+                                    )}
+                                    value={typeName}
+                                    onChange={(event) =>
+                                        setTypeName(event.target.value)
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.pashtoPlaceholder',
+                                        'Pashto title (optional)',
+                                    )}
+                                    value={typePashtoName}
+                                    onChange={(event) =>
+                                        setTypePashtoName(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.dariPlaceholder',
+                                        'Dari title (optional)',
+                                    )}
+                                    value={typeDariName}
+                                    onChange={(event) =>
+                                        setTypeDariName(event.target.value)
+                                    }
+                                />
+                            </div>
                             <Textarea
-                                placeholder="Type description (optional)"
+                                placeholder={t(
+                                    'products.typeMeta.descriptionPlaceholder',
+                                    'Type description (optional)',
+                                )}
                                 value={typeDescription}
                                 onChange={(event) =>
                                     setTypeDescription(event.target.value)
                                 }
                             />
                             <Textarea
-                                placeholder="Pashto description (optional)"
+                                placeholder={t(
+                                    'products.typeMeta.pashtoDescriptionPlaceholder',
+                                    'Pashto description (optional)',
+                                )}
                                 value={typePashtoDescription}
                                 onChange={(event) =>
                                     setTypePashtoDescription(event.target.value)
                                 }
                             />
                             <Textarea
-                                placeholder="Dari description (optional)"
+                                placeholder={t(
+                                    'products.typeMeta.dariDescriptionPlaceholder',
+                                    'Dari description (optional)',
+                                )}
                                 value={typeDariDescription}
                                 onChange={(event) =>
                                     setTypeDariDescription(event.target.value)
@@ -1243,7 +1478,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     <div className="overflow-hidden rounded-md border">
                                         <img
                                             src={typeImagePreview}
-                                            alt="Type preview"
+                                            alt={t(
+                                                'products.typeMeta.title',
+                                                'Manage Types',
+                                            )}
                                             className="h-24 w-full object-cover"
                                         />
                                     </div>
@@ -1257,7 +1495,15 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 disabled={!typeName.trim() || isSubmitting}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
-                                {editingTypeId ? 'Update Type' : 'Add Type'}
+                                {editingTypeId
+                                    ? t(
+                                          'products.typeMeta.update',
+                                          'Update Type',
+                                      )
+                                    : t(
+                                          'products.typeMeta.add',
+                                          'Add Type',
+                                      )}
                             </Button>
                             {editingTypeId && (
                                 <Button
@@ -1267,7 +1513,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     onClick={resetTypeForm}
                                     disabled={isSubmitting}
                                 >
-                                    Cancel Edit
+                                    {t(
+                                        'products.typeMeta.cancelEdit',
+                                        'Cancel Edit',
+                                    )}
                                 </Button>
                             )}
                         </div>
@@ -1359,16 +1608,27 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete category</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t(
+                                'products.categoryMeta.deleteTitle',
+                                'Delete Category',
+                            )}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {categoryToDelete
-                                ? `Are you sure you want to delete "${categoryToDelete.name}"? This action cannot be undone.`
-                                : 'Are you sure you want to delete this category?'}
+                                ? `${t(
+                                      'products.categoryMeta.deleteDescription',
+                                      'Are you sure you want to delete this category?',
+                                  )} "${categoryToDelete.name}"`
+                                : t(
+                                      'products.categoryMeta.deleteDescription',
+                                      'Are you sure you want to delete this category?',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            Cancel
+                            {t('products.actions.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -1380,7 +1640,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 }
                             }}
                         >
-                            Delete
+                            {t('products.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1396,16 +1656,27 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete type</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t(
+                                'products.typeMeta.deleteTitle',
+                                'Delete Type',
+                            )}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {typeToDelete
-                                ? `Are you sure you want to delete "${typeToDelete.name}"? This action cannot be undone.`
-                                : 'Are you sure you want to delete this type?'}
+                                ? `${t(
+                                      'products.typeMeta.deleteDescription',
+                                      'Are you sure you want to delete this type?',
+                                  )} "${typeToDelete.name}"`
+                                : t(
+                                      'products.typeMeta.deleteDescription',
+                                      'Are you sure you want to delete this type?',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            Cancel
+                            {t('products.actions.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -1417,7 +1688,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 }
                             }}
                         >
-                            Delete
+                            {t('products.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

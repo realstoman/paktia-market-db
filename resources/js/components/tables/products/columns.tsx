@@ -49,6 +49,7 @@ export const buildColumns = (
     types: ProductType[],
     kitchens: Kitchen[],
     sizes: ProductSize[],
+    t: (key: string, fallback?: string) => string,
 ): ColumnDef<Product>[] => {
     const categoryById = new Map(
         categories.map((category) => [category.id, category]),
@@ -63,22 +64,22 @@ export const buildColumns = (
                     onCheckedChange={(value) =>
                         table.toggleAllPageRowsSelected(!!value)
                     }
-                    aria-label="Select all"
+                    aria-label={t('products.columns.selectAll', 'Select all')}
                 />
             ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                />
-            ),
+        cell: ({ row }) => (
+            <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                aria-label={t('products.columns.selectRow', 'Select row')}
+            />
+        ),
             enableSorting: false,
             enableHiding: false,
         },
         {
             accessorKey: 'name',
-            header: 'Product',
+            header: t('products.columns.product', 'Product'),
             cell: ({ row }) => {
                 const product = row.original;
                 const imageUrl = resolveImageUrl(
@@ -111,12 +112,14 @@ export const buildColumns = (
                             </span>
                             {product.pashto_name ? (
                                 <span className="text-xs text-muted-foreground">
-                                    PS: {product.pashto_name}
+                                    {t('products.columns.psPrefix', 'PS:')}{' '}
+                                    {product.pashto_name}
                                 </span>
                             ) : null}
                             {product.dari_name ? (
                                 <span className="text-xs text-muted-foreground">
-                                    FA: {product.dari_name}
+                                    {t('products.columns.faPrefix', 'FA:')}{' '}
+                                    {product.dari_name}
                                 </span>
                             ) : null}
                             {/* <span className="text-xs text-muted-foreground">
@@ -134,18 +137,24 @@ export const buildColumns = (
                 const byId = row.product_category_id
                     ? categoryById.get(row.product_category_id)?.name
                     : null;
-                return byRelation || byId || 'Uncategorized';
+                return (
+                    byRelation ||
+                    byId ||
+                    t('products.columns.uncategorized', 'Uncategorized')
+                );
             },
-            header: 'Category',
+            header: t('products.columns.category', 'Category'),
         },
         {
             id: 'kitchen.name',
-            accessorFn: (row) => row.kitchen?.name ?? 'Unassigned',
-            header: 'Kitchen',
+            accessorFn: (row) =>
+                row.kitchen?.name ??
+                t('products.columns.unassigned', 'Unassigned'),
+            header: t('products.columns.kitchen', 'Kitchen'),
         },
         {
             accessorKey: 'type',
-            header: 'Type',
+            header: t('products.columns.type', 'Type'),
             cell: ({ row }) => (
                 <Badge variant="secondary" className="capitalize">
                     {row.getValue('type')}
@@ -154,24 +163,25 @@ export const buildColumns = (
         },
         {
             accessorKey: 'base_price',
-            header: 'Base Price',
+            header: t('products.columns.basePrice', 'Base Price'),
             cell: ({ row }) => formatAfn(row.getValue('base_price')),
         },
         {
             id: 'sizes',
-            header: 'Sizes',
+            header: t('products.columns.sizes', 'Sizes'),
             cell: ({ row }) => {
                 const sizeCount = row.original.sizes?.length ?? 0;
                 return (
                     <span className="text-sm text-muted-foreground">
-                        {sizeCount} size{sizeCount === 1 ? '' : 's'}
+                        {sizeCount}{' '}
+                        {t('products.columns.sizes', 'Sizes')}
                     </span>
                 );
             },
         },
         {
             id: 'images',
-            header: 'Images',
+            header: t('products.columns.images', 'Images'),
             cell: ({ row }) => {
                 const count = row.original.images?.length ?? 0;
                 return (
@@ -182,7 +192,10 @@ export const buildColumns = (
                         </div>
                         <ImageViewerDialog
                             images={row.original.images ?? []}
-                            triggerLabel="View"
+                            triggerLabel={t(
+                                'products.columns.imageView',
+                                'View',
+                            )}
                         />
                     </div>
                 );
@@ -190,25 +203,25 @@ export const buildColumns = (
         },
         {
             accessorKey: 'is_active',
-            header: 'Status',
+            header: t('products.columns.status', 'Status'),
             cell: ({ row }) => {
                 const active = row.getValue('is_active');
                 return active ? (
                     <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                        Active
+                        {t('products.filters.active', 'Active')}
                     </Badge>
                 ) : (
                     <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
                         <Ban className="h-4 w-4 text-red-600" />
-                        Inactive
+                        {t('products.filters.inactive', 'Inactive')}
                     </Badge>
                 );
             },
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('products.columns.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

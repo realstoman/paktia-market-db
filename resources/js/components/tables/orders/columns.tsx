@@ -6,25 +6,20 @@ import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';
 import { OrderRowActions } from './row-actions';
 
-const statusStyles: Record<string, { label: string; icon: JSX.Element }> = {
+const statusStyles: Record<string, { icon: JSX.Element }> = {
     pending: {
-        label: 'Pending',
         icon: <Clock3 className="h-4 w-4 text-amber-600" />,
     },
     in_progress: {
-        label: 'In Progress',
         icon: <CookingPot className="h-4 w-4 text-blue-600" />,
     },
     ready: {
-        label: 'Ready',
         icon: <BadgeCheck className="h-4 w-4 text-emerald-600" />,
     },
     completed: {
-        label: 'Completed',
         icon: <BadgeCheck className="h-4 w-4 text-green-600" />,
     },
     cancelled: {
-        label: 'Cancelled',
         icon: <Ban className="h-4 w-4 text-red-600" />,
     },
 };
@@ -41,6 +36,10 @@ interface BuildOrderColumnsOptions {
     ) => void;
     onPrint: (order: Order) => void;
     branchTables: BranchTable[];
+    t: (key: string, fallback?: string) => string;
+    getStatusLabel: (status: string) => string;
+    getSourceLabel: (source: string) => string;
+    dateLocale: string;
 }
 
 export const buildColumns = ({
@@ -51,6 +50,10 @@ export const buildColumns = ({
     onUpdateStatus,
     onPrint,
     branchTables,
+    t,
+    getStatusLabel,
+    getSourceLabel,
+    dateLocale,
 }: BuildOrderColumnsOptions): ColumnDef<Order>[] => [
     {
         id: 'select',
@@ -60,14 +63,14 @@ export const buildColumns = ({
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
-                aria-label="Select all"
+                aria-label={t('orders.columns.selectAll', 'Select all')}
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={t('orders.columns.selectRow', 'Select row')}
             />
         ),
         enableSorting: false,
@@ -75,27 +78,28 @@ export const buildColumns = ({
     },
     {
         accessorKey: 'id',
-        header: 'Order ID',
+        header: t('orders.columns.orderId', 'Order ID'),
     },
     {
         id: 'branch.name',
-        accessorFn: (row) => row.branch?.name ?? 'Unknown',
-        header: 'Branch',
+        accessorFn: (row) =>
+            row.branch?.name ?? t('orders.columns.unknown', 'Unknown'),
+        header: t('orders.columns.branch', 'Branch'),
     },
     {
         id: 'branch_table.table_number',
         accessorFn: (row) => row.branch_table?.table_number ?? '-',
-        header: 'Table Number',
+        header: t('orders.columns.tableNumber', 'Table Number'),
     },
     {
         id: 'user.name',
-        accessorFn: (row) => row.user?.name ?? 'System',
-        header: 'Created By',
+        accessorFn: (row) => row.user?.name ?? t('orders.columns.system', 'System'),
+        header: t('orders.columns.createdBy', 'Created By'),
     },
     {
         id: 'source',
         accessorFn: (row) => row.source ?? 'pos',
-        header: 'Source',
+        header: t('orders.columns.source', 'Source'),
         cell: ({ row }) => {
             const source = row.original.source ?? 'pos';
             const isMobile = source === 'mobile_app';
@@ -108,7 +112,7 @@ export const buildColumns = ({
                             : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
                     }
                 >
-                    {isMobile ? 'Mobile' : 'POS'}
+                    {getSourceLabel(isMobile ? 'mobile_app' : 'pos')}
                 </Badge>
             );
         },
@@ -117,7 +121,7 @@ export const buildColumns = ({
         id: 'customer',
         accessorFn: (row) =>
             row.client?.name ?? row.customer_name ?? row.customer_phone ?? '-',
-        header: 'Customer',
+        header: t('orders.columns.customer', 'Customer'),
         cell: ({ row }) => {
             const order = row.original;
             const name = order.client?.name ?? order.customer_name ?? '-';
@@ -127,7 +131,7 @@ export const buildColumns = ({
                 <div className="space-y-0.5">
                     <p className="text-sm font-medium">{name}</p>
                     <p className="text-xs text-muted-foreground">
-                        {phone ?? 'No phone'}
+                        {phone ?? t('orders.columns.noPhone', 'No phone')}
                     </p>
                 </div>
             );
@@ -135,7 +139,7 @@ export const buildColumns = ({
     },
     {
         id: 'kitchens',
-        header: 'Kitchens',
+        header: t('orders.columns.kitchens', 'Kitchens'),
         cell: ({ row }) => {
             const names = Array.from(
                 new Set(
@@ -144,7 +148,7 @@ export const buildColumns = ({
                             (item) =>
                                 item.kitchen?.name ??
                                 item.product?.kitchen?.name ??
-                                'Unassigned',
+                                t('orders.columns.unassigned', 'Unassigned'),
                         )
                         .filter(Boolean),
                 ),
@@ -152,14 +156,16 @@ export const buildColumns = ({
 
             return (
                 <span className="text-sm text-muted-foreground">
-                    {names.length > 0 ? names.join(', ') : 'Unassigned'}
+                    {names.length > 0
+                        ? names.join(', ')
+                        : t('orders.columns.unassigned', 'Unassigned')}
                 </span>
             );
         },
     },
     {
         accessorKey: 'items_count',
-        header: 'Items',
+        header: t('orders.columns.items', 'Items'),
         cell: ({ row }) => (
             <span className="text-sm text-muted-foreground">
                 {row.getValue('items_count') ?? row.original.items?.length ?? 0}
@@ -168,12 +174,12 @@ export const buildColumns = ({
     },
     {
         accessorKey: 'total_amount',
-        header: 'Total',
+        header: t('orders.columns.total', 'Total'),
         cell: ({ row }) => formatAfn(row.getValue('total_amount')),
     },
     {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('orders.columns.status', 'Status'),
         cell: ({ row }) => {
             const statusValue = row.getValue('status') as string | undefined;
             const status =
@@ -183,22 +189,22 @@ export const buildColumns = ({
             return (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                     {status.icon}
-                    {status.label}
+                    {getStatusLabel(statusValue ?? 'pending')}
                 </Badge>
             );
         },
     },
     {
         accessorKey: 'created_at',
-        header: 'Created At',
+        header: t('orders.columns.createdAt', 'Created At'),
         cell: ({ row }) => {
             const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
+            return date.toLocaleDateString(dateLocale);
         },
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: t('orders.columns.actions', 'Actions'),
         cell: ({ row }) => (
             <OrderRowActions
                 order={row.original}

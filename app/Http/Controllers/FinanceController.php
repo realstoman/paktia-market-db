@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Models\Branch;
+use App\Models\BranchDailyMetric;
 use App\Models\CashMovement;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -48,13 +49,23 @@ class FinanceController extends Controller
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
         $canUseProjectedFinanceData = $paymentMethod === null && $category === null;
+        $hasProjectedFinanceData = $canUseProjectedFinanceData
+            ? BranchDailyMetric::query()
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->whereBetween('metric_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ])
+                ->exists()
+            : false;
+        $useProjectedFinanceData = $canUseProjectedFinanceData && $hasProjectedFinanceData;
 
-        $salesTotal = $canUseProjectedFinanceData
+        $salesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumCompletedSales($startDate, $endDate, $branchId)
             : (float) $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
                 ->sum('total_amount');
 
-        $expensesTotal = $canUseProjectedFinanceData
+        $expensesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
             : (float) Expense::query()
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -225,7 +236,7 @@ class FinanceController extends Controller
 
         $netProfit = ($grossProfit ?? (float) $salesTotal) - (float) $expensesTotal;
 
-        if ($canUseProjectedFinanceData) {
+        if ($useProjectedFinanceData) {
             $trend = $this->branchDailyMetricReader
                 ->trend($startDate, $endDate, $branchId)
                 ->map(fn (array $row) => [
@@ -440,7 +451,13 @@ class FinanceController extends Controller
             : 0;
 
         $completedSalesCount = $canUseProjectedFinanceData
-            ? $this->branchDailyMetricReader->sumCompletedOrders($startDate, $endDate, $branchId)
+            ? ($useProjectedFinanceData
+                ? $this->branchDailyMetricReader->sumCompletedOrders($startDate, $endDate, $branchId)
+                : Order::query()
+                    ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                    ->where('status', OrderStatus::COMPLETED->value)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count())
             : Order::query()
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->where('status', OrderStatus::COMPLETED->value)
@@ -549,7 +566,7 @@ class FinanceController extends Controller
             ],
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'expenseCategories' => $expenseCategoryOptions->values(),
-            'projectionHealth' => $this->projectionHealthService->snapshot($canUseProjectedFinanceData),
+            'projectionHealth' => $this->projectionHealthService->snapshot($useProjectedFinanceData),
             'dashboard' => [
                 'summary' => [
                     'sales' => (float) $salesTotal,

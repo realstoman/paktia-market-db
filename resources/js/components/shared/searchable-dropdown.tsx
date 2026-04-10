@@ -13,6 +13,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useLocalization } from '@/lib/localization';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -40,6 +41,7 @@ export function SearchableDropdown({
     emptyText = 'No results found.',
     className,
 }: SearchableDropdownProps) {
+    const { isRtl } = useLocalization();
     const [open, setOpen] = useState(false);
 
     const selectedLabel = useMemo(
@@ -51,26 +53,31 @@ export function SearchableDropdown({
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
                         'h-10 w-full justify-between border border-input px-3 font-normal',
+                        isRtl && 'text-right',
                         className,
                     )}
                 >
-                    <span className="truncate">
+                    <span className={cn('truncate', isRtl && 'text-right')}>
                         {selectedLabel ?? placeholder}
                     </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent
                 align="start"
                 className="w-[--radix-popover-trigger-width] p-0"
             >
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
+                <Command dir={isRtl ? 'rtl' : 'ltr'}>
+                    <CommandInput
+                        className={cn(isRtl && 'text-right')}
+                        placeholder={searchPlaceholder}
+                    />
                     <CommandList>
                         <CommandEmpty>{emptyText}</CommandEmpty>
                         <CommandGroup>
@@ -78,6 +85,10 @@ export function SearchableDropdown({
                                 <CommandItem
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
+                                    className={cn(
+                                        isRtl &&
+                                            'w-full flex-row-reverse justify-start text-right',
+                                    )}
                                     onSelect={() => {
                                         onValueChange(option.value);
                                         setOpen(false);
@@ -85,7 +96,8 @@ export function SearchableDropdown({
                                 >
                                     <Check
                                         className={cn(
-                                            'mr-2 h-4 w-4',
+                                            'h-4 w-4',
+                                            isRtl ? 'ml-2' : 'mr-2',
                                             value === option.value
                                                 ? 'opacity-100'
                                                 : 'opacity-0',

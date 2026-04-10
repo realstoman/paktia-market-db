@@ -20,6 +20,7 @@ use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ToolReferenceController;
 use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
@@ -49,6 +50,9 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return redirect()->route('login');
 })->middleware('guest');
+
+Route::put('language', [LanguageController::class, 'update'])
+    ->name('language.switch');
 
 /*
 |--------------------------------------------------------------------------
@@ -113,6 +117,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->get();
         $topOrderedDishes = OrderItem::query()
             ->selectRaw('products.name as product_name')
+            ->selectRaw('products.dari_name as product_name_fa')
+            ->selectRaw('products.pashto_name as product_name_ps')
             ->selectRaw('product_categories.name as category_name')
             ->selectRaw('SUM(order_items.quantity) as total_quantity')
             ->join('products', 'products.id', '=', 'order_items.product_id')
@@ -124,7 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             )
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.status', '!=', 'cancelled')
-            ->groupBy('products.id', 'products.name', 'product_categories.name')
+            ->groupBy('products.id', 'products.name', 'products.dari_name', 'products.pashto_name', 'product_categories.name')
             ->orderByDesc('total_quantity')
             ->limit(6)
             ->get();
@@ -201,9 +207,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         $inventoryPie = [
-            ['key' => 'usable', 'label' => 'Usable', 'value' => $totalUsableItems],
-            ['key' => 'fixed', 'label' => 'Fixed', 'value' => $totalFixedItems],
-            ['key' => 'other', 'label' => 'Other', 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
+            ['key' => 'usable', 'label' => __('dashboard.inventory.usable'), 'value' => $totalUsableItems],
+            ['key' => 'fixed', 'label' => __('dashboard.inventory.fixed'), 'value' => $totalFixedItems],
+            ['key' => 'other', 'label' => __('dashboard.inventory.other'), 'value' => max(0, $totalInventoryItems - $totalUsableItems - $totalFixedItems)],
         ];
 
         $lowStockQuickList = $inventoryItems
@@ -217,7 +223,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'name' => $item->name,
                 'quantity' => (float) $item->quantity,
                 'unit' => $item->unit,
-                'branch' => $item->branch?->name ?? 'Unassigned',
+                'branch' => $item->branch?->name ?? __('dashboard.inventory.unassigned'),
                 'status' => (float) $item->quantity <= 0 ? 'out' : 'low',
             ])
             ->all();
@@ -281,6 +287,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $monthlyStartDate = Carbon::today()->copy()->subMonths(4)->startOfMonth();
         $monthlyEndDate = Carbon::today()->copy()->endOfMonth();
 
+        $monthlySales = Order::query()
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
+            ->get(['created_at', 'total_amount'])
+            ->groupBy(fn ($order) => Carbon::parse($order->created_at)->format('Y-m'))
+            ->map(fn ($orders) => (float) $orders->sum('total_amount'));
+
+        $monthlyExpenses = Expense::query()
+            ->whereBetween('expense_date', [
+                $monthlyStartDate->toDateString(),
+                $monthlyEndDate->toDateString(),
+            ])
+            ->get(['expense_date', 'amount'])
+            ->groupBy(fn ($expense) => Carbon::parse($expense->expense_date)->format('Y-m'))
+            ->map(fn ($expenses) => (float) $expenses->sum('amount'));
+
         $monthlyCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? DB::table('inventory_transactions')
                 ->whereIn('action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
@@ -290,23 +312,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->map(fn ($transactions) => (float) $transactions->sum('total_cost'))
             : collect();
 
-        $monthlyNetProfit = collect(
-            $branchDailyMetricReader->monthlyNetProfit($monthlyStartDate, $monthlyEndDate),
-        )->map(function (array $metric) use ($monthlyCogs) {
-            $bucket = Carbon::parse($metric['label'])->format('Y-m');
+        $monthlyNetProfit = [];
+        $monthCursor = $monthlyStartDate->copy()->startOfMonth();
+
+        while ($monthCursor->lte($monthlyEndDate)) {
+            $bucket = $monthCursor->format('Y-m');
+            $sales = (float) ($monthlySales[$bucket] ?? 0);
+            $expenses = (float) ($monthlyExpenses[$bucket] ?? 0);
             $cogs = $monthlyCogs->isNotEmpty()
                 ? (float) ($monthlyCogs[$bucket] ?? 0)
                 : null;
             $grossProfit = $cogs === null
-                ? $metric['sales']
-                : $metric['sales'] - $cogs;
+                ? $sales
+                : $sales - $cogs;
 
-            return [
-                'month' => $metric['month'],
-                'label' => $metric['label'],
-                'netProfit' => $grossProfit - $metric['expenses'],
+            $monthlyNetProfit[] = [
+                'month' => $monthCursor->format('M'),
+                'label' => $monthCursor->format('F Y'),
+                'monthKey' => $bucket,
+                'netProfit' => $grossProfit - $expenses,
             ];
-        })->values()->all();
+
+            $monthCursor->addMonth();
+        }
 
         $branchPerformanceStartDate = Carbon::today()->copy()->subDays(29)->startOfDay();
         $branchPerformanceEndDate = Carbon::today()->copy()->endOfDay();
@@ -344,43 +372,55 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $attentionItems = collect([
             $projectionHealth['criticalBranchCount'] > 0
                 ? [
-                    'title' => 'Critical projection branches',
-                    'detail' => $projectionHealth['criticalBranchCount'].' branch projections need review.',
+                    'title' => __('dashboard.attention.critical_projection_branches_title'),
+                    'detail' => __('dashboard.attention.critical_projection_branches_detail', [
+                        'count' => $projectionHealth['criticalBranchCount'],
+                    ]),
                     'level' => 'critical',
                 ]
                 : null,
             $projectionHealth['warningBranchCount'] > 0
                 ? [
-                    'title' => 'Projection warnings',
-                    'detail' => $projectionHealth['warningBranchCount'].' branches have stale or warning projections.',
+                    'title' => __('dashboard.attention.projection_warnings_title'),
+                    'detail' => __('dashboard.attention.projection_warnings_detail', [
+                        'count' => $projectionHealth['warningBranchCount'],
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $outOfStockItems > 0
                 ? [
-                    'title' => 'Out-of-stock inventory',
-                    'detail' => $outOfStockItems.' items are currently unavailable.',
+                    'title' => __('dashboard.attention.out_of_stock_title'),
+                    'detail' => __('dashboard.attention.out_of_stock_detail', [
+                        'count' => $outOfStockItems,
+                    ]),
                     'level' => 'critical',
                 ]
                 : null,
             $lowStockItems > 0
                 ? [
-                    'title' => 'Low-stock inventory',
-                    'detail' => $lowStockItems.' items are running below the stock threshold.',
+                    'title' => __('dashboard.attention.low_stock_title'),
+                    'detail' => __('dashboard.attention.low_stock_detail', [
+                        'count' => $lowStockItems,
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $cancelledRateToday >= 10
                 ? [
-                    'title' => 'Cancellation rate elevated',
-                    'detail' => 'Cancelled orders are at '.$cancelledRateToday.'% today.',
+                    'title' => __('dashboard.attention.cancellation_rate_title'),
+                    'detail' => __('dashboard.attention.cancellation_rate_detail', [
+                        'rate' => $cancelledRateToday,
+                    ]),
                     'level' => 'warning',
                 ]
                 : null,
             $amountOwedToVendors > 0
                 ? [
-                    'title' => 'Vendor balances pending',
-                    'detail' => 'Outstanding vendor payables total '.number_format($amountOwedToVendors, 0).' AFN.',
+                    'title' => __('dashboard.attention.vendor_balances_title'),
+                    'detail' => __('dashboard.attention.vendor_balances_detail', [
+                        'amount' => number_format($amountOwedToVendors, 0),
+                    ]),
                     'level' => 'info',
                 ]
                 : null,
@@ -413,10 +453,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'branchPerformance' => $branchPerformance,
                     'notes' => [
                         'netProfit' => $dashboardGrossProfit === null
-                            ? 'Net profit = sales - expenses until inventory cost postings are active.'
-                            : 'Net profit = gross profit - expenses, using posted inventory cost movements.',
-                        'expenses' => 'Expenses = sum of all recorded expense amounts.',
-                        'cashPosition' => 'Cash position = cash sales - cash expenses + approved cash movements.',
+                            ? __('dashboard.notes.net_profit_without_cogs')
+                            : __('dashboard.notes.net_profit_with_cogs'),
+                        'expenses' => __('dashboard.notes.expenses'),
+                        'cashPosition' => __('dashboard.notes.cash_position'),
                     ],
                 ] : null,
                 'attentionItems' => $attentionItems,

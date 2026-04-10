@@ -2,7 +2,6 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ToolsLauncher } from '@/components/tools-launcher';
-import { useAuthorization } from '@/lib/permissions';
 import {
     Sidebar,
     SidebarContent,
@@ -12,28 +11,38 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Activity,
+    Banknote,
     Boxes,
+    BriefcaseBusiness,
     Building2,
-    CookingPot,
     Globe,
     LayoutGrid,
     Package,
+    ReceiptText,
     ScrollText,
     ShieldCheck,
     Smartphone,
-    UserRound,
     Users,
-    Wallet,
 } from 'lucide-react';
-import { useLocalization } from '@/lib/localization';
 import AppLogo from './app-logo';
 
-const mainNavItems = [
+interface SidebarNavConfig {
+    titleKey: string;
+    fallbackTitle: string;
+    href: NavItem['href'];
+    icon: NonNullable<NavItem['icon']>;
+    can?: string;
+    canAny?: string[];
+}
+
+const mainNavItems: SidebarNavConfig[] = [
     {
         titleKey: 'navigation.dashboard',
         fallbackTitle: 'Dashboard',
@@ -45,7 +54,7 @@ const mainNavItems = [
         titleKey: 'navigation.orders',
         fallbackTitle: 'Orders',
         href: '/orders',
-        icon: CookingPot,
+        icon: ReceiptText,
         can: 'orders.view',
     },
     {
@@ -66,14 +75,14 @@ const mainNavItems = [
         titleKey: 'navigation.employees',
         fallbackTitle: 'Employees',
         href: '/employees',
-        icon: UserRound,
+        icon: BriefcaseBusiness,
         can: 'employees.view',
     },
     {
         titleKey: 'navigation.finance',
         fallbackTitle: 'Finance',
         href: '/finance',
-        icon: Wallet,
+        icon: Banknote,
         canAny: ['finance.view', 'payroll.view'],
     },
     {
@@ -104,9 +113,9 @@ const mainNavItems = [
         icon: ScrollText,
         can: 'reports.view',
     },
-] as const;
+] ;
 
-const footerNavItems = [
+const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
     {
         titleKey: 'navigation.mobileApp',
         fallbackTitle: 'Mobile App',
@@ -119,7 +128,7 @@ const footerNavItems = [
         href: 'https://babataste.com',
         icon: Globe,
     },
-] as const;
+];
 
 export function AppSidebar() {
     const { isSuperAdmin } = useAuthorization();
@@ -135,10 +144,7 @@ export function AppSidebar() {
         ...(isSuperAdmin
             ? [
                   {
-                      title: t(
-                          'navigation.runtimeHealth',
-                          'Runtime Health',
-                      ),
+                      title: t('navigation.runtimeHealth', 'Runtime Health'),
                       href: '/operations/runtime-health',
                       icon: Activity,
                   } satisfies NavItem,

@@ -367,6 +367,9 @@ class InventoryController extends Controller
 
     public function destroy(InventoryItem $inventory)
     {
+        $itemName = $inventory->name;
+        $branchName = $inventory->branch?->name;
+
         DB::transaction(function () use ($inventory) {
             $imagePaths = $inventory->images()
                 ->pluck('path')
@@ -390,6 +393,15 @@ class InventoryController extends Controller
         });
 
         return redirect()->route('inventory.index')
+            ->with('notification', [
+                'id' => 'inventory-deleted-'.str()->uuid(),
+                'category' => 'inventory',
+                'title' => 'Inventory item removed',
+                'description' => "{$itemName} was removed from inventory.",
+                'meta' => $branchName,
+                'href' => '/inventory',
+                'priority' => 'high',
+            ])
             ->with('success', 'Inventory item deleted successfully.');
     }
 

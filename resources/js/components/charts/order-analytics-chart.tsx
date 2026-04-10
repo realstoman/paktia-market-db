@@ -47,13 +47,25 @@ export function OrderAnalyticsChart({
     data,
     title = 'Order Analytics',
     description = 'Last 7 days order stats',
+    labels,
+    locale = 'en-US',
+    isRtl = false,
 }: OrderAnalyticsChartProps) {
     const formattedData = useMemo(() => {
         return data.map((item) => ({
             ...item,
-            formattedDay: item.day,
+            formattedDay: new Intl.DateTimeFormat(locale, {
+                weekday: 'short',
+            }).format(new Date(`${item.date}T00:00:00`)),
         }));
-    }, [data]);
+    }, [data, locale]);
+    const resolvedLabels = {
+        pending: labels?.pending ?? 'Pending',
+        preparing: labels?.preparing ?? 'Preparing',
+        ready: labels?.ready ?? 'Ready',
+        completed: labels?.completed ?? 'Completed',
+        cancelled: labels?.cancelled ?? 'Cancelled',
+    };
     const animationKey = useMemo(
         () =>
             formattedData
@@ -67,27 +79,6 @@ export function OrderAnalyticsChart({
 
     return (
         <div className="flex h-full flex-1 flex-col">
-            <div className="mb-3 flex flex-row items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-foreground">
-                        {title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {description}
-                    </p>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-nowrap">
-                        <LegendItem label="Pending" color="var(--chart-pending)" />
-                        <LegendItem label="Preparing" color="var(--chart-preparing)" />
-                        <LegendItem label="Ready" color="var(--chart-ready)" />
-                        <LegendItem label="Completed" color="var(--chart-completed)" />
-                        <LegendItem label="Cancelled" color="var(--chart-cancelled)" />
-                    </div>
-                </div>
-            </div>
-
             <div className="flex-1">
                 <ChartContainer
                     config={chartConfig}
@@ -227,9 +218,9 @@ export function OrderAnalyticsChart({
                                     hideLabel
                                     formatter={(value, name) => [
                                         value,
-                                        chartConfig[
-                                            name as keyof typeof chartConfig
-                                        ]?.label || name,
+                                        resolvedLabels[
+                                            name as keyof typeof resolvedLabels
+                                        ] || name,
                                     ]}
                                 />
                             }
@@ -291,6 +282,42 @@ export function OrderAnalyticsChart({
                         />
                     </AreaChart>
                 </ChartContainer>
+            </div>
+
+            <div
+                className={`mt-4 border-t border-neutral-200/70 pt-4 dark:border-neutral-800/80 ${isRtl ? 'text-right' : ''}`}
+            >
+                <div className="space-y-1">
+                    <h3 className="text-base font-semibold text-foreground">
+                        {title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <LegendItem
+                        label={resolvedLabels.pending}
+                        color="var(--chart-pending)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.preparing}
+                        color="var(--chart-preparing)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.ready}
+                        color="var(--chart-ready)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.completed}
+                        color="var(--chart-completed)"
+                    />
+                    <LegendItem
+                        label={resolvedLabels.cancelled}
+                        color="var(--chart-cancelled)"
+                    />
+                </div>
             </div>
         </div>
     );

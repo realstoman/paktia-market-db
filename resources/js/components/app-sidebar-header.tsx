@@ -13,6 +13,7 @@ import {
     type SharedData,
 } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { useLocalization } from '@/lib/localization';
 import AppearanceToggleDropdown from './appearance-dropdown';
 import LanguageDropdown from './language-dropdown';
 import { Button } from './ui/button';
@@ -23,6 +24,7 @@ export function AppSidebarHeader({
     breadcrumbs?: BreadcrumbItemType[];
 }) {
     const { auth } = usePage<SharedData>().props;
+    const { isRtl } = useLocalization();
 
     return (
         <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-lg border border-neutral-100/90 bg-white px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
@@ -48,8 +50,8 @@ export function AppSidebarHeader({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-64 rounded-lg"
-                        align="end"
+                        className={`w-52 rounded-lg ${isRtl ? 'text-right' : ''}`}
+                        align={isRtl ? 'start' : 'end'}
                     >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>

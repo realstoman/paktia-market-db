@@ -7,11 +7,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLocalization } from '@/lib/localization';
-import { update } from '@/routes/language';
+import { setFormattingLocale } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Check, Globe } from 'lucide-react';
 import { HTMLAttributes } from 'react';
-import { toast } from 'sonner';
 
 export default function LanguageDropdown({
     className = '',
@@ -20,19 +19,31 @@ export default function LanguageDropdown({
     const { locale, languages, t, isRtl } = useLocalization();
 
     const handleSelectLanguage = (language: string) => {
+        if (language === locale) {
+            return;
+        }
+
+        setFormattingLocale(language);
         router.put(
-            update().url,
+            '/language',
             { locale: language },
             {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    toast.success(
-                        t(
-                            'language.updated',
-                            'Language updated successfully.',
-                        ),
+                    document.documentElement.lang = language;
+                    const isNextRtl = language === 'fa' || language === 'ps';
+                    document.documentElement.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.body.dir = isNextRtl ? 'rtl' : 'ltr';
+                    document.documentElement.classList.toggle(
+                        'rtl',
+                        isNextRtl,
                     );
+                    document.body.classList.toggle('rtl', isNextRtl);
+                    router.reload({
+                        preserveScroll: true,
+                        preserveState: false,
+                    });
                 },
             },
         );

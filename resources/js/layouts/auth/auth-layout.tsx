@@ -1,4 +1,6 @@
 import { brand } from '@/config/brand';
+import LanguageDropdown from '@/components/language-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { ChefHat, Copyright, ShieldCheck, Utensils } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
@@ -11,13 +13,34 @@ interface AuthLayoutProps {
 export default function AuthLayout({
     children,
 }: PropsWithChildren<AuthLayoutProps>) {
+    const { t, locale, isRtl } = useLocalization();
+    const copyrightYear = (() => {
+        const getCalendarYear = (intlLocale: string) =>
+            new Intl.DateTimeFormat(intlLocale, {
+                year: 'numeric',
+            })
+                .formatToParts(new Date())
+                .find((part) => part.type === 'year')
+                ?.value ?? '';
+
+        if (locale === 'fa') {
+            return getCalendarYear('fa-AF-u-ca-persian');
+        }
+
+        if (locale === 'ps') {
+            return getCalendarYear('ps-AF-u-ca-persian');
+        }
+
+        return String(new Date().getFullYear());
+    })();
+
     return (
         <div className="flex min-h-screen w-full">
             {/* Left Side - Auth Forms */}
             <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
                 <div className="flex h-full max-h-screen w-full max-w-lg flex-col items-start justify-between">
                     {/* Brand Logo */}
-                    <div className="mb-0 flex items-center justify-center sm:mb-12">
+                    <div className="mb-0 flex w-full items-center justify-center sm:mb-12">
                         <img
                             src={`${brand.logoFull}`}
                             width="120"
@@ -31,25 +54,53 @@ export default function AuthLayout({
                         {children}
 
                         {/* Footer - Security Note */}
-                        <div className="mt-8 border-t border-slate-800 pt-6 text-left">
-                            <p className="justify-left flex items-start gap-2 text-left text-sm text-slate-400">
-                                <Copyright className="mt-1 h-4 w-4" />{' '}
+                        <div
+                            className={`mt-8 border-t border-slate-800 pt-6 ${
+                                isRtl ? 'text-right' : 'text-left'
+                            }`}
+                        >
+                            <p
+                                className={`flex items-start gap-2 text-sm text-slate-400 ${
+                                    isRtl
+                                        ? 'justify-start text-right'
+                                        : 'justify-left text-left'
+                                }`}
+                            >
+                                <Copyright className="mt-1 h-4 w-4 shrink-0" />
                                 <div>
-                                    Copyright {new Date().getFullYear()}
+                                    {locale === 'en'
+                                        ? `Copyright ${copyrightYear}`
+                                        : copyrightYear}
                                     <a
                                         href="https://babataste.com"
                                         className="pr-1 pl-1 text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
                                         target="_blank"
                                         rel="noreferrer"
                                     >
-                                        {brand.name}.
+                                        {t(
+                                            'brand.restaurantName',
+                                            brand.name,
+                                        )}
+                                        .
                                     </a>
-                                    All rights reserved.
+                                    {t(
+                                        'footer.allRightsReserved',
+                                        'All rights reserved.',
+                                    )}
                                 </div>
                             </p>
-                            <p className="justify-left flex items-center gap-1 pt-2 text-left text-sm text-slate-400">
-                                <ShieldCheck className="h-4 w-4" />
-                                Secured by industry-standard encryption
+                            <p
+                                className={`flex items-center gap-1 pt-2 text-sm text-slate-400 ${
+                                    isRtl
+                                        ? 'justify-start text-right'
+                                        : 'justify-left text-left'
+                                }`}
+                            >
+                                <ShieldCheck className="h-4 w-4 shrink-0" />
+                                {t(
+                                    'auth.securedBy',
+                                    'Secured by industry-standard encryption',
+                                )}
                             </p>
                         </div>
                     </div>
@@ -58,6 +109,13 @@ export default function AuthLayout({
 
             {/* Right Side - Promotional Content */}
             <div className="relative hidden flex-1 items-center justify-center overflow-hidden bg-brand-tertiary p-12 lg:flex dark:bg-brand-bg-dark">
+                <div
+                    className={`absolute top-8 z-20 ${
+                        isRtl ? 'left-8' : 'right-8'
+                    }`}
+                >
+                    <LanguageDropdown />
+                </div>
                 {/* Decorative Background Elements */}
                 <div className="relative z-10 max-w-lg">
                     {/* Feature Cards */}
@@ -66,17 +124,25 @@ export default function AuthLayout({
                         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                             <img
                                 src="https://images.pexels.com/photos/1566837/pexels-photo-1566837.jpeg?auto=compress&cs=tinysrgb&w=800"
-                                alt="Delicious pizza"
+                                alt={t(
+                                    'auth.promo.imageAlt',
+                                    'Restaurant dish',
+                                )}
                                 className="h-80 w-full object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute right-6 bottom-6 left-6">
                                 <h3 className="mb-2 text-2xl font-bold text-white">
-                                    Manage Your Restaurant
+                                    {t(
+                                        'auth.promo.heroTitle',
+                                        'Manage Your Restaurant',
+                                    )}
                                 </h3>
                                 <p className="text-sm text-white/90">
-                                    Complete ERP solution for modern restaurant
-                                    operations
+                                    {t(
+                                        'auth.promo.heroDescription',
+                                        'Complete ERP solution for modern restaurant operations',
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -88,10 +154,16 @@ export default function AuthLayout({
                                     <ChefHat className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
-                                    Kitchen Management
+                                    {t(
+                                        'auth.promo.kitchenTitle',
+                                        'Kitchen Management',
+                                    )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
-                                    Real-time order tracking
+                                    {t(
+                                        'auth.promo.kitchenDescription',
+                                        'Real-time order tracking',
+                                    )}
                                 </p>
                             </div>
 
@@ -100,10 +172,16 @@ export default function AuthLayout({
                                     <Utensils className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
-                                    Menu Control
+                                    {t(
+                                        'auth.promo.menuTitle',
+                                        'Menu Control',
+                                    )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
-                                    Dynamic pricing & inventory
+                                    {t(
+                                        'auth.promo.menuDescription',
+                                        'Dynamic pricing & inventory',
+                                    )}
                                 </p>
                             </div>
                         </div>

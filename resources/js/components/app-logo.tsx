@@ -1,6 +1,10 @@
 import { brand } from '@/config/brand';
+import { useLocalization } from '@/lib/localization';
+import { cn } from '@/lib/utils';
 
 export default function AppLogo() {
+    const { isRtl, t } = useLocalization();
+
     return (
         <>
             <div className="flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
@@ -11,9 +15,14 @@ export default function AppLogo() {
                     alt="Logo"
                 />
             </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="truncate leading-none font-bold tracking-wide">
-                    Baba Restaurant
+            <div
+                className={cn('grid flex-1 text-sm', {
+                    'ml-1 text-left': !isRtl,
+                    'mr-1 text-right': isRtl,
+                })}
+            >
+                <span className="truncate leading-none font-semibold tracking-wide">
+                    {t('brand.restaurantName', 'Baba Restaurant')}
                 </span>
             </div>
         </>

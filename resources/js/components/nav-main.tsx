@@ -41,7 +41,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         >
                             <Link href={item.href}>
                                 {item.icon && <item.icon />}
-                                <span className="text-base">{item.title}</span>
+                                <span className="text-sm">{item.title}</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

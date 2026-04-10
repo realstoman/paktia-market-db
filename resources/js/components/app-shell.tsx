@@ -1,5 +1,6 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SharedData } from '@/types';
+import { setFormattingLocale } from '@/utils/format';
 import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 
@@ -10,6 +11,8 @@ interface AppShellProps {
 
 export function AppShell({ children, variant = 'header' }: AppShellProps) {
     const { sidebarOpen: isOpen, localization } = usePage<SharedData>().props;
+
+    setFormattingLocale(localization.locale);
 
     useEffect(() => {
         document.documentElement.lang = localization.locale;

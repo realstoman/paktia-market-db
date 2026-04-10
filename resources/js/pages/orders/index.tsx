@@ -4,6 +4,7 @@ import InputError from '@/components/input-error';
 import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
 import { OrdersClient } from '@/components/tables/orders/client';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Card,
     CardContent,
@@ -18,9 +19,20 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BranchTable, BreadcrumbItem, Order, Product } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
@@ -30,21 +42,11 @@ import {
     Clock3,
     CookingPot,
     FilterX,
+    CalendarIcon,
     type LucideIcon,
     PackageCheck,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Orders',
-        href: '/orders',
-    },
-];
 
 interface OrdersPageProps {
     orders: Order[];
@@ -65,17 +67,24 @@ type OrderStatusKey =
 
 interface StatusCardConfig {
     key: OrderStatusKey;
-    title: string;
     icon: LucideIcon;
 }
 
 const STATUS_CARDS: StatusCardConfig[] = [
-    { key: 'ready', title: 'Ready', icon: PackageCheck },
-    { key: 'completed', title: 'Completed', icon: CheckCircle2 },
-    { key: 'in_progress', title: 'In Progress', icon: CookingPot },
-    { key: 'pending', title: 'Pending', icon: Clock3 },
-    { key: 'cancelled', title: 'Cancelled', icon: CircleX },
+    { key: 'ready', icon: PackageCheck },
+    { key: 'completed', icon: CheckCircle2 },
+    { key: 'in_progress', icon: CookingPot },
+    { key: 'pending', icon: Clock3 },
+    { key: 'cancelled', icon: CircleX },
 ];
+
+function toDateParam(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
 
 export default function OrdersPage({
     orders,
@@ -86,17 +95,30 @@ export default function OrdersPage({
     isAllTime,
     restaurantStartDate,
 }: OrdersPageProps) {
+    const { t, locale, isRtl } = useLocalization();
+    const dateLocale = useMemo(() => {
+        if (locale === 'fa') {
+            return 'fa-AF';
+        }
+
+        if (locale === 'ps') {
+            return 'ps-AF';
+        }
+
+        return 'en-US';
+    }, [locale]);
     const [selectedStatus, setSelectedStatus] = useState<OrderStatusKey | null>(
         null,
     );
     const [dateFilter, setDateFilter] = useState(selectedDate ?? '');
     const [dateError, setDateError] = useState('');
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     const todayDate = useMemo(
         () =>
             selectedDate
                 ? new Date(`${selectedDate}T00:00:00`).toLocaleDateString(
-                      'en-US',
+                      dateLocale,
                       {
                           weekday: 'long',
                           month: 'long',
@@ -105,19 +127,38 @@ export default function OrdersPage({
                       },
                   )
                 : '',
-        [selectedDate],
+        [dateLocale, selectedDate],
     );
 
     const restaurantStartedDate = useMemo(
         () =>
             restaurantStartDate
-                ? new Date(restaurantStartDate).toLocaleDateString('en-US', {
+                ? new Date(restaurantStartDate).toLocaleDateString(dateLocale, {
                       month: 'long',
                       day: 'numeric',
                       year: 'numeric',
                   })
                 : null,
-        [restaurantStartDate],
+        [dateLocale, restaurantStartDate],
+    );
+    const selectedAfghanDate = useMemo(
+        () =>
+            dateFilter
+                ? new Date(`${dateFilter}T00:00:00`).toLocaleDateString(
+                      dateLocale,
+                      {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                      },
+                  )
+                : '',
+        [dateLocale, dateFilter],
+    );
+    const selectedDateValue = useMemo(
+        () => (dateFilter ? new Date(`${dateFilter}T00:00:00`) : undefined),
+        [dateFilter],
     );
 
     const stats = useMemo(() => {
@@ -142,15 +183,27 @@ export default function OrdersPage({
     const selectedCard = STATUS_CARDS.find(
         (card) => card.key === selectedStatus,
     );
+    const getStatusLabel = (status: OrderStatusKey) =>
+        t(`orders.status.${status}`, status);
     const selectedOrders = orders.filter(
         (order) => (order.status ?? 'pending') === selectedStatus,
     );
     const topRowStatusCards = STATUS_CARDS.slice(0, 2);
     const bottomRowStatusCards = STATUS_CARDS.slice(2);
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: '/dashboard',
+        },
+        {
+            title: t('orders.breadcrumb', 'Orders'),
+            href: '/orders',
+        },
+    ];
 
     const handleDateSubmit = () => {
         if (!dateFilter) {
-            setDateError('Please select a date.');
+            setDateError(t('orders.selectDateError', 'Please select a date.'));
             return;
         }
 
@@ -182,27 +235,91 @@ export default function OrdersPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Orders" />
+            <Head title={t('orders.title', 'Orders')} />
             <div className="space-y-3 py-2">
                 <div className="flex justify-end">
                     <div className="w-full max-w-md space-y-1">
                         <div className="flex items-end justify-end gap-2">
                             <div className="w-full bg-white dark:bg-neutral-900">
-                                <Input
-                                    type="date"
-                                    className="h-10"
-                                    value={dateFilter}
-                                    onChange={(event) =>
-                                        setDateFilter(event.target.value)
-                                    }
-                                />
+                                <InputGroup className="h-10">
+                                    <InputGroupInput
+                                        value={selectedAfghanDate}
+                                        readOnly
+                                        placeholder={t(
+                                            'dashboard.selectDate',
+                                            'Select date',
+                                        )}
+                                        className={isRtl ? 'text-right' : ''}
+                                        onClick={() =>
+                                            setIsDatePickerOpen(true)
+                                        }
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'ArrowDown') {
+                                                event.preventDefault();
+                                                setIsDatePickerOpen(true);
+                                            }
+                                        }}
+                                    />
+                                    <InputGroupAddon
+                                        align={isRtl ? 'inline-start' : 'inline-end'}
+                                    >
+                                        <Popover
+                                            open={isDatePickerOpen}
+                                            onOpenChange={setIsDatePickerOpen}
+                                        >
+                                            <PopoverTrigger asChild>
+                                                <InputGroupButton
+                                                    variant="ghost"
+                                                    size="icon-xs"
+                                                    aria-label={t(
+                                                        'dashboard.selectDate',
+                                                        'Select date',
+                                                    )}
+                                                >
+                                                    <CalendarIcon />
+                                                    <span className="sr-only">
+                                                        {t(
+                                                            'dashboard.selectDate',
+                                                            'Select date',
+                                                        )}
+                                                    </span>
+                                                </InputGroupButton>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                className="w-auto overflow-hidden p-0"
+                                                align={isRtl ? 'start' : 'end'}
+                                                alignOffset={-8}
+                                                sideOffset={10}
+                                            >
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={selectedDateValue}
+                                                    month={selectedDateValue}
+                                                    onSelect={(date) => {
+                                                        if (!date) {
+                                                            return;
+                                                        }
+
+                                                        setDateFilter(
+                                                            toDateParam(date),
+                                                        );
+                                                        setDateError('');
+                                                        setIsDatePickerOpen(
+                                                            false,
+                                                        );
+                                                    }}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </InputGroupAddon>
+                                </InputGroup>
                             </div>
                             <Button
                                 type="button"
                                 className="h-10 shrink-0"
                                 onClick={handleDateSubmit}
                             >
-                                Submit
+                                {t('orders.submit', 'Submit')}
                             </Button>
                             <Button
                                 type="button"
@@ -211,9 +328,19 @@ export default function OrdersPage({
                                 onClick={handleClearFilter}
                             >
                                 <FilterX className="h-4 w-4" />
-                                Clear
+                                {t('orders.clear', 'Clear')}
                             </Button>
                         </div>
+                        {selectedAfghanDate && locale !== 'en' ? (
+                            <p
+                                className={`text-xs text-muted-foreground ${
+                                    isRtl ? 'text-right' : ''
+                                }`}
+                            >
+                                {t('orders.afghanDateLabel', 'Afghan date')}:{' '}
+                                {selectedAfghanDate}
+                            </p>
+                        ) : null}
                         <InputError message={dateError} />
                     </div>
                 </div>
@@ -223,12 +350,18 @@ export default function OrdersPage({
                         <Card className="gap-3 overflow-hidden border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f5f8f8_52%,rgba(16,47,51,0.16)_100%)] pt-4 pb-0 shadow-none md:col-span-4 md:row-span-2 dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-0">
                                 <CardTitle className="text-xl text-neutral-900 dark:text-white">
-                                    Baba Restaurant
+                                    {t(
+                                        'brand.restaurantName',
+                                        'Baba Restaurant',
+                                    )}
                                 </CardTitle>
                                 <CardDescription className="text-sm text-neutral-600 dark:text-neutral-300">
                                     {isAllTime
-                                        ? 'All time records for orders'
-                                        : `Order statistics for ${todayDate}`}
+                                        ? t(
+                                              'orders.allTimeRecords',
+                                              'All time records for orders',
+                                          )
+                                        : `${t('orders.statisticsFor', 'Order statistics for')} ${todayDate}`}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-1">
@@ -237,8 +370,11 @@ export default function OrdersPage({
                                 </p>
                                 <p className="text-xs text-neutral-600 dark:text-neutral-300">
                                     {isAllTime
-                                        ? `All time since ${restaurantStartedDate ?? '-'}`
-                                        : 'Total orders today'}
+                                        ? `${t('orders.allTimeSince', 'All time since')} ${restaurantStartedDate ?? '-'}`
+                                        : t(
+                                              'orders.totalOrdersToday',
+                                              'Total orders today',
+                                          )}
                                 </p>
                             </CardContent>
                         </Card>
@@ -248,7 +384,7 @@ export default function OrdersPage({
                                 return (
                                     <OrderStatusStatCard
                                         key={card.key}
-                                        title={card.title}
+                                        title={getStatusLabel(card.key)}
                                         value={formatNumber(stats[card.key])}
                                         icon={card.icon}
                                         className="md:col-span-6"
@@ -263,7 +399,7 @@ export default function OrdersPage({
                                 return (
                                     <OrderStatusStatCard
                                         key={card.key}
-                                        title={card.title}
+                                        title={getStatusLabel(card.key)}
                                         value={formatNumber(stats[card.key])}
                                         icon={card.icon}
                                         className="md:col-span-4"
@@ -290,17 +426,27 @@ export default function OrdersPage({
             <Drawer
                 open={Boolean(selectedStatus)}
                 onOpenChange={(open) => !open && setSelectedStatus(null)}
-                direction="right"
+                direction={isRtl ? 'right' : 'left'}
             >
                 <DrawerContent className="h-screen w-full p-0 data-[vaul-drawer-direction=right]:sm:max-w-xl">
                     <DrawerHeader className="sticky top-0 z-10 border-b bg-background">
                         <DrawerTitle>
-                            {selectedCard?.title ?? 'Status'} Orders
+                            {selectedCard
+                                ? `${getStatusLabel(selectedCard.key)} ${t('orders.statusOrders', 'Orders')}`
+                                : `${t('orders.title', 'Orders')}`}
                         </DrawerTitle>
                         <DrawerDescription>
-                            Orders currently in{' '}
-                            {selectedCard?.title.toLowerCase() ?? 'selected'}{' '}
-                            status.
+                            {t(
+                                'orders.statusOrdersDescription',
+                                'Orders currently in',
+                            )}{' '}
+                            {selectedCard
+                                ? getStatusLabel(selectedCard.key)
+                                : t('orders.details', 'Details')}{' '}
+                            {t(
+                                'orders.statusOrdersDescriptionSuffix',
+                                'status.',
+                            )}
                         </DrawerDescription>
                     </DrawerHeader>
 
@@ -308,7 +454,10 @@ export default function OrdersPage({
                         <div className="space-y-2 py-4">
                             {selectedOrders.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    No orders found for this status.
+                                    {t(
+                                        'orders.noOrdersForStatus',
+                                        'No orders found for this status.',
+                                    )}
                                 </p>
                             ) : (
                                 selectedOrders.map((order) => (
@@ -317,16 +466,30 @@ export default function OrdersPage({
                                         className="rounded-md border border-neutral-200/70 p-3 dark:border-neutral-800"
                                     >
                                         <p className="font-medium">
-                                            Order #{order.id}
+                                            {t(
+                                                'orders.detailsModal.titlePrefix',
+                                                'Order #',
+                                            )}
+                                            {order.id}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Branch:{' '}
+                                            {t(
+                                                'orders.detailsModal.branch',
+                                                'Branch',
+                                            )}
+                                            :{' '}
                                             {order.branch?.name ??
-                                                'Unknown branch'}
+                                                t(
+                                                    'orders.unknownBranch',
+                                                    'Unknown branch',
+                                                )}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Total:{' '}
-                                            {formatAfn(order.total_amount)}
+                                            {t(
+                                                'orders.detailsModal.total',
+                                                'Total',
+                                            )}
+                                            : {formatAfn(order.total_amount)}
                                         </p>
                                     </div>
                                 ))

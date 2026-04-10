@@ -23,6 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLocalization } from '@/lib/localization';
 import { BranchTable, Order } from '@/types';
 import {
     Edit3,
@@ -41,13 +42,6 @@ const ORDER_STATUSES = [
     'ready',
     'completed',
     'cancelled',
-];
-
-const PAYMENT_METHOD_OPTIONS = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'credit_card', label: 'Credit Card' },
-    { value: 'other', label: 'Other' },
 ];
 
 interface OrderRowActionsProps {
@@ -75,6 +69,7 @@ export function OrderRowActions({
     onUpdateStatus,
     onPrint,
 }: OrderRowActionsProps) {
+    const { t, isRtl } = useLocalization();
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [branchTableId, setBranchTableId] = useState(
@@ -86,6 +81,18 @@ export function OrderRowActions({
     );
     const [error, setError] = useState('');
     const canPrintReceipt = (order.status ?? 'pending') === 'completed';
+    const paymentMethodOptions = [
+        { value: 'cash', label: t('orders.paymentMethod.cash', 'Cash') },
+        {
+            value: 'bank_transfer',
+            label: t('orders.paymentMethod.bank_transfer', 'Bank Transfer'),
+        },
+        {
+            value: 'credit_card',
+            label: t('orders.paymentMethod.credit_card', 'Credit Card'),
+        },
+        { value: 'other', label: t('orders.paymentMethod.other', 'Other') },
+    ];
 
     const tableOptions = useMemo(
         () =>
@@ -99,7 +106,12 @@ export function OrderRowActions({
 
     const handleAssign = () => {
         if (!branchTableId) {
-            setError('Please select a table number.');
+            setError(
+                t(
+                    'orders.rowActions.selectTableError',
+                    'Please select a table number.',
+                ),
+            );
             return;
         }
         setError('');
@@ -112,32 +124,78 @@ export function OrderRowActions({
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">
+                            {t('orders.rowActions.openMenu', 'Open menu')}
+                        </span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => onView(order)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit(order)}>
-                        <Edit3 className="mr-2 h-4 w-4" />
-                        Edit Order
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onAddItems(order)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Item
+                <DropdownMenuContent
+                    align={isRtl ? 'start' : 'end'}
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        {t('orders.rowActions.actions', 'Actions')}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
+                        onClick={() => onView(order)}
+                    >
+                        <Eye
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.viewDetails', 'Details')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
+                        onClick={() => onEdit(order)}
+                    >
+                        <Edit3
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.editOrder', 'Edit Order')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
+                        onClick={() => onAddItems(order)}
+                    >
+                        <Plus
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.addItem', 'Add Item')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                         onClick={() => canPrintReceipt && onPrint(order)}
                         disabled={!canPrintReceipt}
                     >
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Receipt
+                        <Printer
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.printReceipt', 'Print Receipt')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                         onClick={() => {
                             setBranchTableId(
                                 order.branch_table_id
@@ -148,10 +206,17 @@ export function OrderRowActions({
                             setIsAssignTableOpen(true);
                         }}
                     >
-                        <Edit3 className="mr-2 h-4 w-4" />
-                        Assign Table
+                        <Edit3
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.assignTable', 'Assign Table')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                         onClick={() => {
                             setStatus(order.status ?? 'pending');
                             setPaymentMethod(
@@ -160,8 +225,10 @@ export function OrderRowActions({
                             setIsStatusOpen(true);
                         }}
                     >
-                        <Edit3 className="mr-2 h-4 w-4" />
-                        Update Status
+                        <Edit3
+                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                        />
+                        {t('orders.rowActions.updateStatus', 'Update Status')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -172,20 +239,36 @@ export function OrderRowActions({
             >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Assign Table Number</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'orders.rowActions.assignTableTitle',
+                                'Assign Table Number',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Change table number for order #{order.id}.
+                            {t(
+                                'orders.rowActions.assignTableDescriptionPrefix',
+                                'Change table number for order #',
+                            )}
+                            {order.id}.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-2">
-                        <Label>Table Number</Label>
+                        <Label>
+                            {t('orders.form.tableNumber', 'Table Number')}
+                        </Label>
                         <Select
                             value={branchTableId}
                             onValueChange={setBranchTableId}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select table number" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'orders.form.tableNumberPlaceholder',
+                                        'Select table number',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {tableOptions.map((table) => (
@@ -207,11 +290,11 @@ export function OrderRowActions({
                             onClick={() => setIsAssignTableOpen(false)}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('orders.rowActions.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={handleAssign}>
                             <Save className="mr-2 h-4 w-4" />
-                            Update Table
+                            {t('orders.rowActions.updateTable', 'Update Table')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -220,14 +303,25 @@ export function OrderRowActions({
             <Dialog open={isStatusOpen} onOpenChange={setIsStatusOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Update Order Status</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'orders.rowActions.updateStatusTitle',
+                                'Update Order Status',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Change status for order #{order.id}.
+                            {t(
+                                'orders.rowActions.updateStatusDescriptionPrefix',
+                                'Change status for order #',
+                            )}
+                            {order.id}.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-2">
-                        <Label>Status</Label>
+                        <Label>
+                            {t('orders.detailsModal.status', 'Status')}
+                        </Label>
                         <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger>
                                 <SelectValue />
@@ -235,11 +329,7 @@ export function OrderRowActions({
                             <SelectContent>
                                 {ORDER_STATUSES.map((entry) => (
                                     <SelectItem key={entry} value={entry}>
-                                        {entry
-                                            .replace('_', ' ')
-                                            .replace(/\b\w/g, (c) =>
-                                                c.toUpperCase(),
-                                            )}
+                                        {t(`orders.status.${entry}`, entry)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -248,16 +338,26 @@ export function OrderRowActions({
 
                     {status === 'completed' ? (
                         <div className="grid gap-2">
-                            <Label>Payment Method</Label>
+                            <Label>
+                                {t(
+                                    'orders.form.paymentMethod',
+                                    'Payment Method',
+                                )}
+                            </Label>
                             <Select
                                 value={paymentMethod}
                                 onValueChange={setPaymentMethod}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select payment method" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'orders.form.paymentMethodPlaceholder',
+                                            'Select payment method',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {PAYMENT_METHOD_OPTIONS.map((option) => (
+                                    {paymentMethodOptions.map((option) => (
                                         <SelectItem
                                             key={option.value}
                                             value={option.value}
@@ -276,7 +376,7 @@ export function OrderRowActions({
                             onClick={() => setIsStatusOpen(false)}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('orders.rowActions.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={() => {
@@ -291,7 +391,10 @@ export function OrderRowActions({
                             }}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Update Status
+                            {t(
+                                'orders.rowActions.updateStatus',
+                                'Update Status',
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

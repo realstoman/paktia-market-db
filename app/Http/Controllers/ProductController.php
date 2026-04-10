@@ -197,6 +197,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $productName = $product->name;
+        $categoryName = $product->category?->name;
         $paths = $product->images()->pluck('path')->all();
 
         $product->delete();
@@ -206,6 +208,15 @@ class ProductController extends Controller
         }
 
         return redirect()->route('products.index')
+            ->with('notification', [
+                'id' => 'product-deleted-'.str()->uuid(),
+                'category' => 'products',
+                'title' => 'Product removed',
+                'description' => "{$productName} was removed from the catalog.",
+                'meta' => $categoryName,
+                'href' => '/products',
+                'priority' => 'medium',
+            ])
             ->with('success', 'Product deleted successfully.');
     }
 

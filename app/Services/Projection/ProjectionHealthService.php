@@ -68,24 +68,24 @@ class ProjectionHealthService
                 : null;
 
             $status = 'healthy';
-            $message = 'Projection is current.';
+            $message = __('dashboard.projection.branch_current');
 
             if ($latestSourceAt && $latestSourceAt->gte($recentCutoff)) {
                 if (! $latestProjectionAt) {
                     $status = 'critical';
-                    $message = 'Recent source activity exists but no projection has been recorded.';
+                    $message = __('dashboard.projection.branch_missing');
                 } elseif ($latestProjectionAt->lt($latestSourceAt)) {
                     if (($lagMinutes ?? 0) >= $criticalAfterMinutes) {
                         $status = 'critical';
-                        $message = 'Projection is critically behind recent source activity.';
+                        $message = __('dashboard.projection.branch_critical');
                     } elseif (($lagMinutes ?? 0) >= $staleAfterMinutes) {
                         $status = 'warning';
-                        $message = 'Projection is behind recent source activity.';
+                        $message = __('dashboard.projection.branch_warning');
                     }
                 }
             } elseif (! $latestProjectionAt) {
                 $status = 'unavailable';
-                $message = 'No projection data recorded yet for this branch.';
+                $message = __('dashboard.projection.branch_unavailable');
             }
 
             return [
@@ -112,10 +112,10 @@ class ProjectionHealthService
         };
 
         $overallMessage = match ($overallStatus) {
-            'critical' => 'One or more branches are materially behind recent source activity.',
-            'warning' => 'Projection updates are delayed for some branches.',
-            'unavailable' => 'Projection data has not been generated yet.',
-            default => 'Projection data is current for active branches.',
+            'critical' => __('dashboard.projection.overall_critical'),
+            'warning' => __('dashboard.projection.overall_warning'),
+            'unavailable' => __('dashboard.projection.overall_unavailable'),
+            default => __('dashboard.projection.overall_healthy'),
         };
 
         $latestProjectionAt = $branchStates

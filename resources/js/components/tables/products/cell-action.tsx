@@ -38,6 +38,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Kitchen,
     Product,
@@ -120,6 +121,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     kitchens,
     sizes,
 }) => {
+    const { t, isRtl } = useLocalization();
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -166,11 +168,11 @@ export const CellAction: React.FC<CellActionProps> = ({
         data.category?.name ??
         categories.find((category) => category.id === data.product_category_id)
             ?.name ??
-        'Uncategorized';
+        t('products.columns.uncategorized', 'Uncategorized');
     const resolvedKitchen =
         data.kitchen?.name ??
         kitchens.find((kitchen) => kitchen.id === data.kitchen_id)?.name ??
-        'Unassigned';
+        t('products.columns.unassigned', 'Unassigned');
 
     useEffect(() => {
         return () => {
@@ -306,13 +308,24 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.post(`/products/${data.id}`, formData, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Product updated successfully.');
+                toast.success(
+                    t(
+                        'products.messages.productUpdated',
+                        'Product updated successfully.',
+                    ),
+                );
                 setIsEditOpen(false);
             },
             onError: (errors) => {
                 setEditErrors(errors);
                 const firstError = Object.values(errors)[0];
-                toast.error(firstError || 'Failed to update product.');
+                toast.error(
+                    firstError ||
+                        t(
+                            'products.messages.productUpdateFailed',
+                            'Failed to update product.',
+                        ),
+                );
             },
             onFinish: () => {
                 setIsSubmitting(false);
@@ -330,7 +343,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/products/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Product deleted successfully.');
+                toast.success(
+                    t(
+                        'products.messages.productDeleted',
+                        'Product deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -344,28 +362,68 @@ export const CellAction: React.FC<CellActionProps> = ({
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">
+                            {t('products.actions.openMenu', 'Open menu')}
+                        </span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
+                <DropdownMenuContent
+                    align={isRtl ? 'start' : 'end'}
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        {t('products.actions.actionMenu', 'Actions')}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                        onClick={() => setIsViewOpen(true)}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
+                    >
+                        <Eye
+                            className={
+                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
+                            }
+                        />
+                        {t('products.actions.view', 'View')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
                             resetEdit();
                             setIsEditOpen(true);
                         }}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
                     >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        <Edit
+                            className={
+                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
+                            }
+                        />
+                        {t('products.actions.edit', 'Edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                    <DropdownMenuItem
+                        onClick={() => setIsDeleteOpen(true)}
+                        className={
+                            isRtl
+                                ? 'w-full flex-row-reverse justify-start text-right'
+                                : ''
+                        }
+                    >
+                        <Trash2
+                            className={
+                                isRtl
+                                    ? 'ml-2 h-4 w-4 text-red-600'
+                                    : 'mr-2 h-4 w-4 text-red-600'
+                            }
+                        />
+                        {t('products.actions.delete', 'Delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -373,9 +431,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Product Details</DialogTitle>
+                        <DialogTitle>
+                            {t('products.details.title', 'Product Details')}
+                        </DialogTitle>
                         <DialogDescription>
-                            View complete details for this product.
+                            {t(
+                                'products.details.description',
+                                'View complete details for this product.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -383,13 +446,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Name
+                                    {t('products.fields.name', 'Name')}
                                 </p>
                                 <p className="font-medium">{data.name}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Pashto Name
+                                    {t('products.fields.pashtoName', 'Pashto Name')}
                                 </p>
                                 <p className="font-medium">
                                     {data.pashto_name || '-'}
@@ -397,7 +460,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Dari Name
+                                    {t('products.fields.dariName', 'Dari Name')}
                                 </p>
                                 <p className="font-medium">
                                     {data.dari_name || '-'}
@@ -405,7 +468,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Category
+                                    {t('products.fields.category', 'Category')}
                                 </p>
                                 <p className="font-medium">
                                     {resolvedCategory}
@@ -413,13 +476,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Kitchen
+                                    {t('products.fields.kitchen', 'Kitchen')}
                                 </p>
                                 <p className="font-medium">{resolvedKitchen}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Type
+                                    {t('products.fields.type', 'Type')}
                                 </p>
                                 <Badge
                                     variant="secondary"
@@ -430,7 +493,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Base Price
+                                    {t('products.columns.basePrice', 'Base Price')}
                                 </p>
                                 <p className="font-medium">
                                     {formatAfn(data.base_price ?? 0)}
@@ -438,7 +501,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
-                                    Status
+                                    {t('products.columns.status', 'Status')}
                                 </p>
                                 <Badge
                                     variant={
@@ -447,12 +510,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             : 'destructive'
                                     }
                                 >
-                                    {data.is_active ? 'Active' : 'Inactive'}
+                                    {data.is_active
+                                        ? t('products.filters.active', 'Active')
+                                        : t(
+                                              'products.filters.inactive',
+                                              'Inactive',
+                                          )}
                                 </Badge>
                             </div>
                             <div className="space-y-1 sm:col-span-2">
                                 <p className="text-xs text-muted-foreground">
-                                    Description
+                                    {t('products.fields.description', 'Description')}
                                 </p>
                                 <p className="rounded-md border p-3 text-sm">
                                     {data.description || '-'}
@@ -460,7 +528,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1 sm:col-span-2">
                                 <p className="text-xs text-muted-foreground">
-                                    Pashto Description
+                                    {t(
+                                        'products.fields.pashtoDescription',
+                                        'Pashto Description',
+                                    )}
                                 </p>
                                 <p className="rounded-md border p-3 text-sm">
                                     {data.pashto_description || '-'}
@@ -468,7 +539,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1 sm:col-span-2">
                                 <p className="text-xs text-muted-foreground">
-                                    Dari Description
+                                    {t(
+                                        'products.fields.dariDescription',
+                                        'Dari Description',
+                                    )}
                                 </p>
                                 <p className="rounded-md border p-3 text-sm">
                                     {data.dari_description || '-'}
@@ -476,12 +550,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1 sm:col-span-2">
                                 <p className="text-xs text-muted-foreground">
-                                    Sizes
+                                    {t('products.columns.sizes', 'Sizes')}
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     {(data.sizes ?? []).length === 0 ? (
                                         <span className="text-sm text-muted-foreground">
-                                            No size pricing set
+                                            {t(
+                                                'products.fields.sizesEmpty',
+                                                'No size pricing set',
+                                            )}
                                         </span>
                                     ) : (
                                         data.sizes?.map((size) => (
@@ -502,11 +579,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-2 sm:col-span-2">
                                 <p className="text-xs text-muted-foreground">
-                                    Images ({activeImages.length})
+                                    {t('products.fields.imagesCount', 'Images')}{' '}
+                                    ({activeImages.length})
                                 </p>
                                 {activeImages.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">
-                                        No images
+                                        {t(
+                                            'products.fields.noImages',
+                                            'No images',
+                                        )}
                                     </p>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -533,7 +614,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             variant="outline"
                             onClick={() => setIsViewOpen(false)}
                         >
-                            Close
+                            {t('products.actions.close', 'Close')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -542,9 +623,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Product</DialogTitle>
+                        <DialogTitle>
+                            {t('products.edit.title', 'Edit Product')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update product details, pricing, and images.
+                            {t(
+                                'products.edit.description',
+                                'Update product details, pricing, and images.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -552,7 +638,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor={`product-name-${data.id}`}>
-                                    Name
+                                    {t('products.fields.name', 'Name')}
                                 </Label>
                                 <Input
                                     id={`product-name-${data.id}`}
@@ -567,7 +653,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label
                                     htmlFor={`product-pashto-name-${data.id}`}
                                 >
-                                    Pashto Name
+                                    {t('products.fields.pashtoName', 'Pashto Name')}
                                 </Label>
                                 <Input
                                     id={`product-pashto-name-${data.id}`}
@@ -580,7 +666,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor={`product-dari-name-${data.id}`}>
-                                    Dari Name
+                                    {t('products.fields.dariName', 'Dari Name')}
                                 </Label>
                                 <Input
                                     id={`product-dari-name-${data.id}`}
@@ -592,13 +678,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.dari_name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Category</Label>
+                                <Label>
+                                    {t('products.fields.category', 'Category')}
+                                </Label>
                                 <Select
                                     value={categoryId}
                                     onValueChange={setCategoryId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectCategory',
+                                                'Select category',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((category) => (
@@ -616,13 +709,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Kitchen</Label>
+                                <Label>
+                                    {t('products.fields.kitchen', 'Kitchen')}
+                                </Label>
                                 <Select
                                     value={kitchenId}
                                     onValueChange={setKitchenId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select kitchen" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectKitchen',
+                                                'Select kitchen',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {kitchens.map((kitchen) => (
@@ -639,10 +739,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.kitchen_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Type</Label>
+                                <Label>{t('products.fields.type', 'Type')}</Label>
                                 <Select value={type} onValueChange={setType}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectType',
+                                                'Select type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableTypes.map((productType) => (
@@ -661,7 +766,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor={`product-price-${data.id}`}>
-                                    Base Price (AFN)
+                                    {t(
+                                        'products.fields.basePrice',
+                                        'Base Price (AFN)',
+                                    )}
                                 </Label>
                                 <NumericInput
                                     id={`product-price-${data.id}`}
@@ -672,7 +780,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.base_price} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Size Pricing (Optional, AFN)</Label>
+                                <Label>
+                                    {t(
+                                        'products.fields.sizePricing',
+                                        'Size Pricing (Optional, AFN)',
+                                    )}
+                                </Label>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {sizes.map((size) => (
                                         <div
@@ -684,7 +797,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             </span>
                                             <NumericInput
                                                 min="0"
-                                                placeholder="Use base price"
+                                                placeholder={t(
+                                                    'products.fields.useBasePrice',
+                                                    'Use base price',
+                                                )}
                                                 value={
                                                     sizePrices[size.id] ?? ''
                                                 }
@@ -703,7 +819,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label
                                     htmlFor={`product-description-${data.id}`}
                                 >
-                                    Description
+                                    {t(
+                                        'products.fields.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id={`product-description-${data.id}`}
@@ -718,7 +837,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label
                                     htmlFor={`product-pashto-description-${data.id}`}
                                 >
-                                    Pashto Description
+                                    {t(
+                                        'products.fields.pashtoDescription',
+                                        'Pashto Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id={`product-pashto-description-${data.id}`}
@@ -735,7 +857,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label
                                     htmlFor={`product-dari-description-${data.id}`}
                                 >
-                                    Dari Description
+                                    {t(
+                                        'products.fields.dariDescription',
+                                        'Dari Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id={`product-dari-description-${data.id}`}
@@ -750,11 +875,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
 
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Existing Images</Label>
+                                <Label>
+                                    {t(
+                                        'products.fields.existingImages',
+                                        'Existing Images',
+                                    )}
+                                </Label>
                                 <div className="flex flex-wrap gap-2 rounded-md border p-3">
                                     {existingImages.length === 0 ? (
                                         <span className="text-sm text-muted-foreground">
-                                            No images
+                                            {t('products.fields.noImages', 'No images')}
                                         </span>
                                     ) : (
                                         existingImages.map((image) => {
@@ -772,7 +902,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                         src={resolveImageUrl(
                                                             image,
                                                         )}
-                                                        alt="Product image"
+                                                        alt={t(
+                                                            'products.viewer.imageAlt',
+                                                            'Product image',
+                                                        )}
                                                         className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
                                                     />
                                                     <button
@@ -800,21 +933,28 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label
                                     htmlFor={`product-images-new-${data.id}`}
                                 >
-                                    Add New Images
+                                    {t(
+                                        'products.fields.newImages',
+                                        'New Images',
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Max {MAX_IMAGES} total images.
-                                            Recommended size: 400x400 or
-                                            400x480.
+                                            {t(
+                                                'products.imageUploadHelp',
+                                                'Upload up to :count images. Recommended size: 400x400 or 400x480.',
+                                            ).replace(':count', String(MAX_IMAGES))}
                                         </p>
                                         <Label
                                             htmlFor={`product-images-new-${data.id}`}
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Images
+                                            {t(
+                                                'products.selectImages',
+                                                'Select Images',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -868,7 +1008,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                    Active product
+                                    {t(
+                                        'products.fields.activeProduct',
+                                        'Active product',
+                                    )}
                                 </span>
                             </div>
                         </div>
@@ -881,7 +1024,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('products.actions.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
@@ -895,7 +1038,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Save Changes
+                            {t('products.actions.update', 'Update Product')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -904,16 +1047,23 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete product</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t(
+                                'products.messages.productDeleteTitle',
+                                'Delete Product',
+                            )}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the product and all its
-                            images.
+                            {t(
+                                'products.messages.productDeleteDescription',
+                                'This will permanently remove the product and all its images.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('products.actions.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -921,7 +1071,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-5 w-5" />
-                            Delete
+                            {t('products.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

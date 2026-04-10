@@ -21,6 +21,7 @@ const config: Config = {
                     secondaryBody: '#646B76',
                     bgLight: '#F0F5F9',
                     bgDark: '#171717',
+                    bgoDark: '#171717',
                 },
 
                 /** ============================

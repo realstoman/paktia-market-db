@@ -23,12 +23,22 @@ interface BarChartDefaultProps {
     data?: Array<{
         month: string;
         label: string;
+        monthKey?: string;
         netProfit: number;
     }>;
     title?: string;
     description?: string;
     footerNote?: string;
     compact?: boolean;
+    locale?: string;
+    labels?: {
+        netProfit?: string;
+        noComparison?: string;
+        trendUp?: string;
+        trendDown?: string;
+        fromLastMonth?: string;
+    };
+    isRtl?: boolean;
 }
 
 export function BarChartDefault({
@@ -37,6 +47,9 @@ export function BarChartDefault({
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,
+    locale = 'en-US',
+    labels,
+    isRtl = false,
 }: BarChartDefaultProps) {
     const latestMonth = data[data.length - 1];
     const previousMonth = data[data.length - 2];
@@ -50,8 +63,28 @@ export function BarChartDefault({
             : null;
     const trendIsPositive = trendValue >= 0;
 
+    const resolvedLabels = {
+        netProfit: labels?.netProfit ?? 'Net Profit',
+        noComparison:
+            labels?.noComparison ?? 'No percentage comparison available',
+        trendUp: labels?.trendUp ?? 'Up by',
+        trendDown: labels?.trendDown ?? 'Down by',
+        fromLastMonth: labels?.fromLastMonth ?? 'from last month',
+    };
+    const chartData = data.map((item) => {
+        const dateSource = item.monthKey ? `${item.monthKey}-01` : `${item.label}`;
+        const monthLabel = new Intl.DateTimeFormat(locale, {
+            month: 'short',
+        }).format(new Date(dateSource));
+
+        return {
+            ...item,
+            displayMonth: monthLabel,
+        };
+    });
+
     return (
-        <div className="flex h-full flex-col">
+        <div className={`flex h-full flex-col ${isRtl ? 'text-right' : ''}`}>
             <div className={compact ? 'mb-2' : 'mb-3'}>
                 <h3 className="text-base font-semibold text-foreground">
                     {title}
@@ -63,14 +96,13 @@ export function BarChartDefault({
                     config={chartConfig}
                     className={compact ? 'h-[180px] w-full' : 'h-full w-full'}
                 >
-                    <BarChart accessibilityLayer data={data}>
+                    <BarChart accessibilityLayer data={chartData}>
                         <CartesianGrid vertical={false} stroke="#edf1f5" />
                         <XAxis
-                            dataKey="month"
+                            dataKey="displayMonth"
                             tickLine={false}
                             tickMargin={10}
                             axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 3)}
                         />
                         <ChartTooltip
                             cursor={true}
@@ -78,7 +110,7 @@ export function BarChartDefault({
                                 <ChartTooltipContent
                                     formatter={(value) => [
                                         `${formatPrice(Number(value))} ؋ `,
-                                        'Net Profit',
+                                        resolvedLabels.netProfit,
                                     ]}
                                 />
                             }
@@ -95,10 +127,10 @@ export function BarChartDefault({
             <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
                 <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
-                        ? 'No percentage comparison available'
-                        : `${trendValue >= 0 ? 'Up' : 'Down'} by ${Math.abs(
+                        ? resolvedLabels.noComparison
+                        : `${trendValue >= 0 ? resolvedLabels.trendUp : resolvedLabels.trendDown} ${Math.abs(
                               trendPercentage,
-                          ).toFixed(1)}% from last month`}{' '}
+                          ).toFixed(1)}% ${resolvedLabels.fromLastMonth}`}{' '}
                     {trendPercentage === null ? (
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     ) : trendIsPositive ? (

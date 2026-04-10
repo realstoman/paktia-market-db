@@ -4,6 +4,8 @@ import React, {
     useMemo,
     useState,
 } from 'react';
+import { useLocalization } from '@/lib/localization';
+import { formatNumber } from '@/utils/format';
 import {
     ColumnDef,
     FilterFn,
@@ -91,6 +93,7 @@ export function DataTable<TData, TValue>({
     searchPlaceholder = 'Search...',
     toolbar,
 }: DataTableProps<TData, TValue>) {
+    const { t, isRtl } = useLocalization();
     const [searchInput, setSearchInput] = useState('');
     const [pagination, setPagination] = useState({
         pageIndex: 0,
@@ -187,25 +190,52 @@ export function DataTable<TData, TValue>({
 
         return pages;
     }, [currentPage, pageCount]);
+    const selectedRowsText = t(
+        'common.rowsSelected',
+        ':selected of :total row(s) selected.',
+    )
+        .replace(':selected', formatNumber(selectedRowCount))
+        .replace(':total', formatNumber(filteredRowCount));
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            <div
+                className={`flex flex-wrap items-start justify-between gap-3 ${
+                    isRtl ? 'flex-row-reverse' : ''
+                }`}
+            >
                 <Input
                     placeholder={searchPlaceholder}
                     value={searchInput}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         setSearchInput(event.target.value)
                     }
-                    className="h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80"
+                    className={`h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80 ${
+                        isRtl ? 'max-w-none flex-1 text-right' : ''
+                    }`}
                 />
                 {toolbar ? (
-                    <div className="ml-auto">{toolbar}</div>
+                    <div
+                        className={
+                            isRtl
+                                ? 'mr-auto flex w-full justify-end'
+                                : 'ml-auto'
+                        }
+                    >
+                        {toolbar}
+                    </div>
                 ) : null}
             </div>
 
             <ScrollArea className="h-[calc(80vh-220px)] rounded-md border border-neutral-200/60 dark:border-neutral-900/80">
-                <Table>
+                <Table
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className={
+                        isRtl
+                            ? '[&_th]:text-right [&_td]:text-right [&_th:first-child]:pr-4 [&_td:first-child]:pr-4'
+                            : ''
+                    }
+                >
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -248,7 +278,10 @@ export function DataTable<TData, TValue>({
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    No results found.
+                                    {t(
+                                        'common.noResultsFound',
+                                        'No results found.',
+                                    )}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -257,9 +290,13 @@ export function DataTable<TData, TValue>({
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
-            <div className="flex items-center justify-between">
+            <div
+                className={`flex items-center justify-between ${
+                    isRtl ? 'flex-row-reverse' : ''
+                }`}
+            >
                 <div className="text-sm text-muted-foreground">
-                    {selectedRowCount} of {filteredRowCount} row(s) selected.
+                    {selectedRowsText}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -269,8 +306,13 @@ export function DataTable<TData, TValue>({
                         size="sm"
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
+                        aria-label={t('common.previousPage', 'Previous page')}
                     >
-                        <ChevronLeft className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        {isRtl ? (
+                            <ChevronRight className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        ) : (
+                            <ChevronLeft className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        )}
                     </Button>
 
                     {pageNumbers.map((page, idx) =>
@@ -289,7 +331,7 @@ export function DataTable<TData, TValue>({
                                     table.setPageIndex((page as number) - 1)
                                 }
                             >
-                                {page}
+                                {formatNumber(page as number)}
                             </Button>
                         )
                     )}
@@ -300,9 +342,13 @@ export function DataTable<TData, TValue>({
                         size="sm"
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
+                        aria-label={t('common.nextPage', 'Next page')}
                     >
-
-                        <ChevronRight className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        {isRtl ? (
+                            <ChevronLeft className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        ) : (
+                            <ChevronRight className="h-[20px] w-[20px] dark:text-neutral-300" />
+                        )}
                     </Button>
                 </div>
             </div>
