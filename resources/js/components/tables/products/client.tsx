@@ -789,52 +789,56 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="grid gap-2">
-                                <Label htmlFor="product-name">
-                                    {t('products.fields.name', 'Name')}
-                                </Label>
-                                <Input
-                                    id="product-name"
-                                    value={name}
-                                    onChange={(event) =>
-                                        setName(event.target.value)
-                                    }
-                                />
-                                <InputError message={createErrors.name} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="product-pashto-name">
-                                    {t(
-                                        'products.fields.pashtoName',
-                                        'Pashto Name',
-                                    )}
-                                </Label>
-                                <Input
-                                    id="product-pashto-name"
-                                    value={pashtoName}
-                                    onChange={(event) =>
-                                        setPashtoName(event.target.value)
-                                    }
-                                />
-                                <InputError
-                                    message={createErrors.pashto_name}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="product-dari-name">
-                                    {t(
-                                        'products.fields.dariName',
-                                        'Dari Name',
-                                    )}
-                                </Label>
-                                <Input
-                                    id="product-dari-name"
-                                    value={dariName}
-                                    onChange={(event) =>
-                                        setDariName(event.target.value)
-                                    }
-                                />
-                                <InputError message={createErrors.dari_name} />
+                            <div className="grid gap-4 sm:col-span-2 md:grid-cols-3">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-name">
+                                        {t('products.fields.name', 'Name')}
+                                    </Label>
+                                    <Input
+                                        id="product-name"
+                                        value={name}
+                                        onChange={(event) =>
+                                            setName(event.target.value)
+                                        }
+                                    />
+                                    <InputError message={createErrors.name} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-pashto-name">
+                                        {t(
+                                            'products.fields.pashtoName',
+                                            'Pashto Name',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="product-pashto-name"
+                                        value={pashtoName}
+                                        onChange={(event) =>
+                                            setPashtoName(event.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.pashto_name}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="product-dari-name">
+                                        {t(
+                                            'products.fields.dariName',
+                                            'Dari Name',
+                                        )}
+                                    </Label>
+                                    <Input
+                                        id="product-dari-name"
+                                        value={dariName}
+                                        onChange={(event) =>
+                                            setDariName(event.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.dari_name}
+                                    />
+                                </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label>{t('products.fields.category', 'Category')}</Label>
