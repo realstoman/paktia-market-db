@@ -103,6 +103,9 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
     { value: 'other', label: 'Other' },
 ];
 
+const WORKSPACE_CARD_CLASS =
+    'min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[860px]';
+
 const CHANNEL_META: Record<
     Channel,
     { label: string; icon: typeof Store; description: string }
@@ -734,7 +737,9 @@ export default function OperationsPage({
                     ref={workspaceRef}
                     className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]"
                 >
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap gap-2">
                                 {channels.map((channel) => {
@@ -769,9 +774,9 @@ export default function OperationsPage({
                                 </CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className="min-h-0 flex-1 p-0">
                             {selectedChannel === 'dine_in' ? (
-                                <ScrollArea className="h-[620px] px-4 pb-4">
+                                <ScrollArea className="h-full px-4 pb-0">
                                     <div className="grid grid-cols-2 gap-3">
                                         {orderedTables.map((table) => (
                                             <button
@@ -818,7 +823,7 @@ export default function OperationsPage({
                                     </div>
                                 </ScrollArea>
                             ) : (
-                                <ScrollArea className="h-[620px] px-4 pb-4">
+                                <ScrollArea className="h-full px-4 pb-4">
                                     <div className="space-y-3">
                                         <Button
                                             variant="outline"
@@ -888,7 +893,9 @@ export default function OperationsPage({
                         </CardContent>
                     </Card>
 
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="space-y-4">
                             <div className="relative">
                                 <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -934,8 +941,8 @@ export default function OperationsPage({
                                 ))}
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <ScrollArea className="h-[650px] px-4 pb-4">
+                        <CardContent className="min-h-0 flex-1 p-0">
+                            <ScrollArea className="h-full px-4 pb-0">
                                 <div className="grid gap-3 md:grid-cols-2">
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
@@ -993,7 +1000,7 @@ export default function OperationsPage({
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1009,7 +1016,7 @@ export default function OperationsPage({
                                                                 </span>
                                                                 <Button
                                                                     size="icon"
-                                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1040,7 +1047,9 @@ export default function OperationsPage({
                         </CardContent>
                     </Card>
 
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -1117,8 +1126,8 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <ScrollArea className="h-[320px] rounded-2xl border border-neutral-200 px-3 py-3">
+                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+                            <ScrollArea className="min-h-0 flex-1 rounded-2xl border border-neutral-200 px-3 py-3">
                                 <div className="space-y-3">
                                     {cartLines.map((line) => (
                                         <div
@@ -1226,7 +1235,7 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
 
-                            <div className="grid gap-2">
+                            <div className="grid min-h-[146px] gap-2">
                                 <Button
                                     className="h-12 rounded-2xl text-base"
                                     disabled={isSubmitting}
@@ -1263,12 +1272,33 @@ export default function OperationsPage({
                                             Ready
                                         </Button>
                                     </div>
-                                ) : null}
+                                ) : (
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-2xl"
+                                            disabled
+                                        >
+                                            <Clock3 className="mr-2 h-4 w-4" />
+                                            Preparing
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-2xl"
+                                            disabled
+                                        >
+                                            <PackageCheck className="mr-2 h-4 w-4" />
+                                            Ready
+                                        </Button>
+                                    </div>
+                                )}
 
-                                {selectedOrder && canTakePayment ? (
+                                {canTakePayment ? (
                                     <Button
                                         className="h-12 rounded-2xl bg-[#b5542a] text-base hover:bg-[#9f4722]"
-                                        disabled={isSubmitting}
+                                        disabled={
+                                            !selectedOrder || isSubmitting
+                                        }
                                         onClick={handleCollectPayment}
                                     >
                                         <CreditCard className="mr-2 h-4 w-4" />
