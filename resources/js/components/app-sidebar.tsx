@@ -113,7 +113,7 @@ const mainNavItems: SidebarNavConfig[] = [
         icon: ScrollText,
         can: 'reports.view',
     },
-] ;
+];
 
 const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
     {
