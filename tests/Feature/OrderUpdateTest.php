@@ -49,7 +49,7 @@ test('orders can be edited and items removed with totals recalculated', function
     $this->seed(RolePermissionSeeder::class);
 
     [$branch, $kitchen, $category] = createOrderUpdateBaseData();
-    $user = User::factory()->create();
+    $user = User::factory()->create(['branch_id' => $branch->id]);
     $user->givePermissionTo('orders.update');
 
     $firstProduct = Product::create([
