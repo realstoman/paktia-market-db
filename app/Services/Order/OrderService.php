@@ -123,6 +123,7 @@ class OrderService
     public function updateOrder(Order $order, array $data, ?User $user = null): void
     {
         $data['branch_id'] = $this->resolveAllowedBranchId($data['branch_id'], $user);
+        $this->assertOrderCanBeModified($order);
         $this->validateOrderConstraints($data);
         $originalBranchId = $order->branch_id;
         $originalCreatedAt = $order->created_at;
@@ -188,9 +189,26 @@ class OrderService
         Order $order,
         string $status,
         ?string $paymentMethod = null,
+        ?float $discountAmount = null,
+        ?User $actor = null,
     ): void
     {
-        DB::transaction(function () use ($order, $status, $paymentMethod) {
+        $this->assertStatusCanBeUpdated($order, $status, $actor);
+
+        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $actor) {
+            if ($status === OrderStatus::COMPLETED->value) {
+                $subTotal = (float) ($order->sub_total_amount ?? 0);
+                $resolvedDiscount = $discountAmount !== null
+                    ? min(max($discountAmount, 0), $subTotal)
+                    : (float) ($order->discount_amount ?? 0);
+
+                $order->update([
+                    'discount_amount' => $resolvedDiscount,
+                ]);
+
+                $this->syncOrderAmounts($order, $subTotal);
+            }
+
             $order->update([
                 'status' => $status,
                 'completed_at' => $status === OrderStatus::COMPLETED->value
@@ -205,6 +223,7 @@ class OrderService
                 $this->syncOrderPayment(
                     order: $order->fresh(),
                     paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
+                    receivedBy: $actor?->id ?? $order->user_id,
                 );
             }
         });
@@ -215,8 +234,10 @@ class OrderService
         );
     }
 
-    public function updateTable(Order $order, int $branchTableId): void
+    public function updateTable(Order $order, int $branchTableId, ?User $user = null): void
     {
+        $this->assertOrderCanBeModified($order);
+
         $this->assertTableBelongsToBranch(
             branchTableId: $branchTableId,
             branchId: $order->branch_id,
@@ -229,8 +250,10 @@ class OrderService
         ]);
     }
 
-    public function addItems(Order $order, array $items): void
+    public function addItems(Order $order, array $items, ?User $user = null): void
     {
+        $this->assertOrderCanBeModified($order);
+
         DB::transaction(function () use ($order, $items) {
             $payload = $this->orderItemService->createManyForOrder($order, $items);
             $delta = $this->orderItemService->calculateTotalFromPayload($payload);
@@ -309,7 +332,36 @@ class OrderService
         }
     }
 
-    private function syncOrderPayment(Order $order, string $paymentMethod): void
+    private function assertOrderCanBeModified(Order $order): void
+    {
+        if (($order->status?->value ?? $order->status) === OrderStatus::COMPLETED->value) {
+            throw ValidationException::withMessages([
+                'order' => 'Completed orders can no longer be edited.',
+            ]);
+        }
+    }
+
+    private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor): void
+    {
+        $currentStatus = (string) ($order->status?->value ?? $order->status);
+
+        if ($currentStatus === OrderStatus::COMPLETED->value
+            && ! ($actor?->hasRole('super-admin') ?? false)
+        ) {
+            throw ValidationException::withMessages([
+                'status' => 'Only super admins can change the status of a completed order.',
+            ]);
+        }
+
+        if ($currentStatus !== OrderStatus::COMPLETED->value
+            && $nextStatus === OrderStatus::COMPLETED->value
+            && empty($order->payments()->count()) === false
+        ) {
+            // Existing payment rows are updated in-place when payment is completed.
+        }
+    }
+
+    private function syncOrderPayment(Order $order, string $paymentMethod, ?int $receivedBy = null): void
     {
         $order->update([
             'paid_amount' => $order->total_amount,
@@ -325,7 +377,7 @@ class OrderService
             'method' => $paymentMethod,
             'payment_date' => now(),
             'status' => 'paid',
-            'received_by' => $order->user_id,
+            'received_by' => $receivedBy,
         ];
 
         if ($payment) {
