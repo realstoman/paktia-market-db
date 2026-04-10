@@ -38,8 +38,8 @@ import {
     Plus,
     ReceiptText,
     Search,
-    Sparkles,
     ShoppingBag,
+    Sparkles,
     Store,
     Truck,
 } from 'lucide-react';
@@ -134,8 +134,10 @@ function naturalSortKey(value: string | number | null | undefined) {
     const normalized = String(value ?? '').trim();
     const numeric = Number.parseInt(normalized.replace(/\D+/g, ''), 10);
 
-    return `${Number.isNaN(numeric) ? 99999999 : numeric}`.padStart(8, '0') +
-        `-${normalized}`;
+    return (
+        `${Number.isNaN(numeric) ? 99999999 : numeric}`.padStart(8, '0') +
+        `-${normalized}`
+    );
 }
 
 function getStatusTone(status: string) {
@@ -179,7 +181,9 @@ export default function OperationsPage({
     const { locale } = useLocalization();
     const { can } = useAuthorization();
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
-    const [selectedChannel, setSelectedChannel] = useState<Channel>(channels[0]);
+    const [selectedChannel, setSelectedChannel] = useState<Channel>(
+        channels[0],
+    );
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [search, setSearch] = useState('');
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
@@ -258,9 +262,7 @@ export default function OperationsPage({
 
     const filteredOrders = useMemo(
         () =>
-            openOrders.filter(
-                (order) => order.order_type === selectedChannel,
-            ),
+            openOrders.filter((order) => order.order_type === selectedChannel),
         [openOrders, selectedChannel],
     );
 
@@ -300,7 +302,13 @@ export default function OperationsPage({
 
             return matchesCategory && matchesSearch;
         });
-    }, [localizedProductDescription, localizedProductName, products, search, selectedCategory]);
+    }, [
+        localizedProductDescription,
+        localizedProductName,
+        products,
+        search,
+        selectedCategory,
+    ]);
 
     const selectedTable = useMemo(
         () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -380,7 +388,9 @@ export default function OperationsPage({
 
         setCartLines((current) => {
             const existing = current.find(
-                (line) => line.productId === product.id && line.productSizeId === null,
+                (line) =>
+                    line.productId === product.id &&
+                    line.productSizeId === null,
             );
 
             if (!existing && delta < 0) {
@@ -404,14 +414,20 @@ export default function OperationsPage({
             return current
                 .map((line) =>
                     line.productId === product.id && line.productSizeId === null
-                        ? { ...line, quantity: Math.max(0, line.quantity + delta) }
+                        ? {
+                              ...line,
+                              quantity: Math.max(0, line.quantity + delta),
+                          }
                         : line,
                 )
                 .filter((line) => line.quantity > 0);
         });
     };
 
-    const totalQuantity = cartLines.reduce((sum, line) => sum + line.quantity, 0);
+    const totalQuantity = cartLines.reduce(
+        (sum, line) => sum + line.quantity,
+        0,
+    );
     const subTotal = cartLines.reduce(
         (sum, line) => sum + line.quantity * line.price,
         0,
@@ -433,8 +449,14 @@ export default function OperationsPage({
         }
 
         if (selectedChannel === 'delivery') {
-            if (!customerName.trim() || !customerPhone.trim() || !deliveryAddress.trim()) {
-                toast.error('Delivery orders need customer name, phone, and address.');
+            if (
+                !customerName.trim() ||
+                !customerPhone.trim() ||
+                !deliveryAddress.trim()
+            ) {
+                toast.error(
+                    'Delivery orders need customer name, phone, and address.',
+                );
                 return;
             }
         }
@@ -448,7 +470,8 @@ export default function OperationsPage({
 
         const payload = {
             branch_id: branchId,
-            branch_table_id: selectedChannel === 'dine_in' ? selectedTableId : null,
+            branch_table_id:
+                selectedChannel === 'dine_in' ? selectedTableId : null,
             order_type: selectedChannel,
             payment_method: null,
             customer_name:
@@ -473,7 +496,9 @@ export default function OperationsPage({
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                toast.success(selectedOrder ? 'Order updated.' : 'Order created.');
+                toast.success(
+                    selectedOrder ? 'Order updated.' : 'Order created.',
+                );
             },
             onError: () => {
                 toast.error('Unable to save the order.');
@@ -571,7 +596,9 @@ export default function OperationsPage({
         order: Order,
         payload: { discountAmount: number; paymentMethod: string },
     ) => {
-        const subtotal = Number(order.sub_total_amount ?? order.total_amount ?? 0);
+        const subtotal = Number(
+            order.sub_total_amount ?? order.total_amount ?? 0,
+        );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
 
         setIsCompletingPayment(true);
@@ -642,7 +669,10 @@ export default function OperationsPage({
                                     Operations dashboard for live orders
                                 </h1>
                                 <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                    Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
+                                    Tables, takeaway, delivery, and payment
+                                    handling stay in one workspace. The visible
+                                    channels and actions adapt automatically to
+                                    the signed-in role.
                                 </p>
                             </div>
                         </div>
@@ -650,7 +680,7 @@ export default function OperationsPage({
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Dine In
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -660,7 +690,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Takeaway
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -670,7 +700,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Delivery
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -680,7 +710,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Ready To Pay
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -709,7 +739,9 @@ export default function OperationsPage({
                                                     : 'outline'
                                             }
                                             className="gap-2 rounded-full"
-                                            onClick={() => resetComposer(channel)}
+                                            onClick={() =>
+                                                resetComposer(channel)
+                                            }
                                         >
                                             <Icon className="h-4 w-4" />
                                             {meta.label}
@@ -734,15 +766,22 @@ export default function OperationsPage({
                                             <button
                                                 key={table.id}
                                                 type="button"
-                                                onClick={() => handleTableSelect(table)}
+                                                onClick={() =>
+                                                    handleTableSelect(table)
+                                                }
                                                 className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#2f1d0f] shadow-sm">
                                                         T-{table.table_number}
                                                     </div>
-                                                    <Badge className={`border ${getStatusTone(table.status)}`}>
-                                                        {table.status.replace('_', ' ')}
+                                                    <Badge
+                                                        className={`border ${getStatusTone(table.status)}`}
+                                                    >
+                                                        {table.status.replace(
+                                                            '_',
+                                                            ' ',
+                                                        )}
                                                     </Badge>
                                                 </div>
                                                 {table.active_order ? (
@@ -773,17 +812,26 @@ export default function OperationsPage({
                                         <Button
                                             variant="outline"
                                             className="w-full justify-start gap-2 rounded-2xl border-dashed"
-                                            onClick={() => resetComposer(selectedChannel)}
+                                            onClick={() =>
+                                                resetComposer(selectedChannel)
+                                            }
                                         >
                                             <Plus className="h-4 w-4" />
-                                            New {CHANNEL_META[selectedChannel].label} order
+                                            New{' '}
+                                            {
+                                                CHANNEL_META[selectedChannel]
+                                                    .label
+                                            }{' '}
+                                            order
                                         </Button>
 
                                         {filteredOrders.map((order) => (
                                             <button
                                                 key={order.id}
                                                 type="button"
-                                                onClick={() => handleOrderSelect(order)}
+                                                onClick={() =>
+                                                    handleOrderSelect(order)
+                                                }
                                                 className={`w-full rounded-[1.2rem] border p-4 text-left transition ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -792,19 +840,33 @@ export default function OperationsPage({
                                                             Order #{order.id}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {order.customer_name || 'Walk-in customer'}
+                                                            {order.customer_name ||
+                                                                'Walk-in customer'}
                                                         </p>
                                                     </div>
-                                                    <Badge className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}>
-                                                        {String(order.status ?? 'pending').replace('_', ' ')}
+                                                    <Badge
+                                                        className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}
+                                                    >
+                                                        {String(
+                                                            order.status ??
+                                                                'pending',
+                                                        ).replace('_', ' ')}
                                                     </Badge>
                                                 </div>
                                                 <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                                                     <span>
-                                                        {order.items?.length ?? 0} items
+                                                        {order.items?.length ??
+                                                            0}{' '}
+                                                        items
                                                     </span>
                                                     <span>
-                                                        {formatCurrency(Number(order.total_amount ?? 0))} AFN
+                                                        {formatCurrency(
+                                                            Number(
+                                                                order.total_amount ??
+                                                                    0,
+                                                            ),
+                                                        )}{' '}
+                                                        ؋
                                                     </span>
                                                 </div>
                                             </button>
@@ -821,14 +883,20 @@ export default function OperationsPage({
                                 <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     value={search}
-                                    onChange={(event) => setSearch(event.target.value)}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
                                     placeholder="Search products, categories, or menu items"
                                     className="h-12 rounded-2xl pl-9"
                                 />
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button
-                                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                                    variant={
+                                        selectedCategory === 'all'
+                                            ? 'default'
+                                            : 'outline'
+                                    }
                                     className="rounded-full"
                                     onClick={() => setSelectedCategory('all')}
                                 >
@@ -838,12 +906,17 @@ export default function OperationsPage({
                                     <Button
                                         key={category.id}
                                         variant={
-                                            selectedCategory === String(category.id)
+                                            selectedCategory ===
+                                            String(category.id)
                                                 ? 'default'
                                                 : 'outline'
                                         }
                                         className="rounded-full"
-                                        onClick={() => setSelectedCategory(String(category.id))}
+                                        onClick={() =>
+                                            setSelectedCategory(
+                                                String(category.id),
+                                            )
+                                        }
                                     >
                                         {category.name}
                                     </Button>
@@ -855,20 +928,28 @@ export default function OperationsPage({
                                 <div className="grid gap-3 md:grid-cols-2">
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
-                                            (entry) => entry.productId === product.id,
+                                            (entry) =>
+                                                entry.productId === product.id,
                                         );
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="rounded-[1.4rem] border border-neutral-200 bg-white p-3"
+                                                className="overflow-hidden rounded-[1.4rem] border border-neutral-200 bg-white"
                                             >
-                                                <div className="flex gap-3">
-                                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#f3eee7]">
-                                                        {product.images?.[0]?.url ? (
+                                                <div className="grid min-h-[172px] grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
+                                                    <div className="h-full overflow-hidden bg-[#f3eee7]">
+                                                        {product.images?.[0]
+                                                            ?.url ? (
                                                             <img
-                                                                src={product.images[0].url}
-                                                                alt={localizedProductName(product)}
+                                                                src={
+                                                                    product
+                                                                        .images[0]
+                                                                        .url
+                                                                }
+                                                                alt={localizedProductName(
+                                                                    product,
+                                                                )}
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
@@ -877,42 +958,58 @@ export default function OperationsPage({
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-base font-semibold text-[#2f1d0f]">
-                                                            {localizedProductName(product)}
-                                                        </p>
-                                                        <p className="line-clamp-2 text-xs text-muted-foreground">
-                                                            {localizedProductDescription(product) ||
-                                                                'Kitchen-ready menu item'}
-                                                        </p>
-                                                        <div className="mt-3 flex items-center justify-between">
-                                                            <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                                    <div className="flex min-w-0 flex-col justify-between p-4">
+                                                        <div className="min-w-0">
+                                                            <p className="truncate text-base font-semibold text-[#2f1d0f]">
+                                                                {localizedProductName(
+                                                                    product,
+                                                                )}
+                                                            </p>
+                                                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                                                {localizedProductDescription(
+                                                                    product,
+                                                                ) ||
+                                                                    'Kitchen-ready menu item'}
+                                                            </p>
+                                                        </div>
+                                                        <div className="mt-4 space-y-3">
+                                                            <p className="text-2xl leading-none font-semibold text-[#2f1d0f]">
                                                                 {formatCurrency(
-                                                                    Number(product.base_price ?? 0),
+                                                                    Number(
+                                                                        product.base_price ??
+                                                                            0,
+                                                                    ),
                                                                 )}
                                                                 <span className="ml-1 text-sm font-medium text-[#8b7560]">
-                                                                    AFN
+                                                                    ؋
                                                                 </span>
                                                             </p>
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center justify-between gap-1">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-9 w-9 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
-                                                                        adjustQuantity(product, -1)
+                                                                        adjustQuantity(
+                                                                            product,
+                                                                            -1,
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Minus className="h-4 w-4" />
                                                                 </Button>
-                                                                <span className="w-6 text-center text-sm font-medium">
-                                                                    {line?.quantity ?? 0}
+                                                                <span className="min-w-6 text-center text-sm font-medium">
+                                                                    {line?.quantity ??
+                                                                        0}
                                                                 </span>
                                                                 <Button
                                                                     size="icon"
-                                                                    className="h-9 w-9 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
-                                                                        adjustQuantity(product, 1)
+                                                                        adjustQuantity(
+                                                                            product,
+                                                                            1,
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Plus className="h-4 w-4" />
@@ -928,7 +1025,8 @@ export default function OperationsPage({
                                         <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[1.4rem] border border-dashed border-neutral-300 bg-[#fcfbf8] p-6 text-center text-muted-foreground">
                                             <CookingPot className="h-6 w-6" />
                                             <p className="text-sm">
-                                                No products matched this branch, category, or search yet.
+                                                No products matched this branch,
+                                                category, or search yet.
                                             </p>
                                         </div>
                                     ) : null}
@@ -950,8 +1048,12 @@ export default function OperationsPage({
                                             : 'Build a new order ticket'}
                                     </CardDescription>
                                 </div>
-                                {selectedChannel === 'dine_in' && selectedTable ? (
-                                    <Badge variant="outline" className="gap-1 rounded-full">
+                                {selectedChannel === 'dine_in' &&
+                                selectedTable ? (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 rounded-full"
+                                    >
                                         <LayoutGrid className="h-3.5 w-3.5" />
                                         Table {selectedTable.table_number}
                                     </Badge>
@@ -961,31 +1063,47 @@ export default function OperationsPage({
                             {selectedChannel !== 'dine_in' ? (
                                 <div className="grid gap-3">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer-name">Customer</Label>
+                                        <Label htmlFor="customer-name">
+                                            Customer
+                                        </Label>
                                         <Input
                                             id="customer-name"
                                             value={customerName}
-                                            onChange={(event) => setCustomerName(event.target.value)}
+                                            onChange={(event) =>
+                                                setCustomerName(
+                                                    event.target.value,
+                                                )
+                                            }
                                             placeholder="Customer name"
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer-phone">Phone</Label>
+                                        <Label htmlFor="customer-phone">
+                                            Phone
+                                        </Label>
                                         <Input
                                             id="customer-phone"
                                             value={customerPhone}
-                                            onChange={(event) => setCustomerPhone(event.target.value)}
+                                            onChange={(event) =>
+                                                setCustomerPhone(
+                                                    event.target.value,
+                                                )
+                                            }
                                             placeholder="Phone number"
                                         />
                                     </div>
                                     {selectedChannel === 'delivery' ? (
                                         <div className="grid gap-2">
-                                            <Label htmlFor="delivery-address">Address</Label>
+                                            <Label htmlFor="delivery-address">
+                                                Address
+                                            </Label>
                                             <Input
                                                 id="delivery-address"
                                                 value={deliveryAddress}
                                                 onChange={(event) =>
-                                                    setDeliveryAddress(event.target.value)
+                                                    setDeliveryAddress(
+                                                        event.target.value,
+                                                    )
                                                 }
                                                 placeholder="Delivery address"
                                             />
@@ -1020,12 +1138,17 @@ export default function OperationsPage({
                                                     {line.name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {line.quantity} x {formatCurrency(line.price)} AFN
+                                                    {line.quantity} x{' '}
+                                                    {formatCurrency(line.price)}{' '}
+                                                    ؋
                                                 </p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-sm font-semibold text-[#2f1d0f]">
-                                                    {formatCurrency(line.quantity * line.price)}
+                                                    {formatCurrency(
+                                                        line.quantity *
+                                                            line.price,
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -1035,7 +1158,8 @@ export default function OperationsPage({
                                         <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                                             <Armchair className="h-6 w-6" />
                                             <p className="text-sm">
-                                                Select a table or queue item, then add products from the menu.
+                                                Select a table or queue item,
+                                                then add products from the menu.
                                             </p>
                                         </div>
                                     ) : null}
@@ -1045,20 +1169,28 @@ export default function OperationsPage({
                             <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
                                 <div className="space-y-3 text-sm">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Items</span>
+                                        <span className="text-muted-foreground">
+                                            Items
+                                        </span>
                                         <span>{totalQuantity}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Subtotal</span>
-                                        <span>{formatCurrency(subTotal)} AFN</span>
+                                        <span className="text-muted-foreground">
+                                            Subtotal
+                                        </span>
+                                        <span>
+                                            {formatCurrency(subTotal)} ؋
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Tax</span>
-                                        <span>{formatCurrency(tax)} AFN</span>
+                                        <span className="text-muted-foreground">
+                                            Tax
+                                        </span>
+                                        <span>{formatCurrency(tax)} ؋</span>
                                     </div>
                                     <div className="flex items-center justify-between border-t border-dashed pt-3 text-base font-semibold text-[#2f1d0f]">
                                         <span>Total</span>
-                                        <span>{formatCurrency(total)} AFN</span>
+                                        <span>{formatCurrency(total)} ؋</span>
                                     </div>
                                 </div>
                             </div>
@@ -1077,7 +1209,10 @@ export default function OperationsPage({
                                         </SelectTrigger>
                                         <SelectContent>
                                             {PAYMENT_METHODS.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -1093,7 +1228,9 @@ export default function OperationsPage({
                                     onClick={submitOrder}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
-                                    {selectedOrder ? 'Update order' : 'Save order'}
+                                    {selectedOrder
+                                        ? 'Update order'
+                                        : 'Save order'}
                                 </Button>
 
                                 {selectedOrder && canManageStatus ? (
@@ -1102,7 +1239,9 @@ export default function OperationsPage({
                                             variant="outline"
                                             className="rounded-2xl"
                                             disabled={isSubmitting}
-                                            onClick={() => updateStatus('in_progress')}
+                                            onClick={() =>
+                                                updateStatus('in_progress')
+                                            }
                                         >
                                             <Clock3 className="mr-2 h-4 w-4" />
                                             Preparing
@@ -1111,7 +1250,9 @@ export default function OperationsPage({
                                             variant="outline"
                                             className="rounded-2xl"
                                             disabled={isSubmitting}
-                                            onClick={() => updateStatus('ready')}
+                                            onClick={() =>
+                                                updateStatus('ready')
+                                            }
                                         >
                                             <PackageCheck className="mr-2 h-4 w-4" />
                                             Ready
@@ -1139,9 +1280,15 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <Store className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Tables with live tickets</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Tables with live tickets
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {tables.filter((table) => table.active_order).length}
+                                    {
+                                        tables.filter(
+                                            (table) => table.active_order,
+                                        ).length
+                                    }
                                 </p>
                             </div>
                         </CardContent>
@@ -1150,9 +1297,16 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <Bike className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Active delivery queue</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Active delivery queue
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {openOrders.filter((order) => order.order_type === 'delivery').length}
+                                    {
+                                        openOrders.filter(
+                                            (order) =>
+                                                order.order_type === 'delivery',
+                                        ).length
+                                    }
                                 </p>
                             </div>
                         </CardContent>
@@ -1161,7 +1315,9 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Orders ready for checkout</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Orders ready for checkout
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
                                     {summary.readyToPay}
                                 </p>
