@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ProductIndexRequest;
 use App\Http\Resources\Api\V1\ProductCategoryResource;
 use App\Http\Resources\Api\V1\ProductResource;
+use App\Http\Resources\Api\V1\TopOrderedDishResource;
 use App\Http\Resources\Api\V1\ProductTypeResource;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
 use App\Services\Product\ProductApiService;
+use App\Services\Product\TopOrderedDishService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
@@ -25,6 +27,11 @@ class ProductController extends Controller
     public function show(Product $product, ProductApiService $service): ProductResource
     {
         return ProductResource::make($service->getById($product));
+    }
+
+    public function topOrderedDishes(TopOrderedDishService $service): AnonymousResourceCollection
+    {
+        return TopOrderedDishResource::collection($service->get(6));
     }
 
     public function categories(ProductApiService $service): AnonymousResourceCollection

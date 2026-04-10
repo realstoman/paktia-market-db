@@ -3,6 +3,8 @@
 use App\Models\Branch;
 use App\Models\Country;
 use App\Models\Kitchen;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
@@ -254,4 +256,71 @@ test('api v1 type products endpoint returns products for the selected type', fun
         ->assertJsonPath('data.0.sizes.1.name', 'Family')
         ->assertJsonPath('data.0.sizes.1.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/mantu.jpg');
+});
+
+test('api v1 top ordered dishes endpoint returns only the top 6 dishes with card data', function () {
+    [, $kitchen] = createProductApiBaseData();
+    $category = ProductCategory::create(['name' => 'Afghan Dishes']);
+
+    $products = collect(range(1, 7))->map(function (int $index) use ($category, $kitchen) {
+        $product = Product::create([
+            'product_category_id' => $category->id,
+            'kitchen_id' => $kitchen->id,
+            'name' => "Dish {$index}",
+            'type' => 'food',
+            'base_price' => 100 + ($index * 10),
+            'is_active' => true,
+        ]);
+
+        $product->images()->create([
+            'path' => "products/dish-{$index}.jpg",
+            'sort_order' => 0,
+        ]);
+
+        return $product;
+    });
+
+    foreach ($products as $index => $product) {
+        $order = Order::create([
+            'order_type' => 'delivery',
+            'status' => 'completed',
+            'total_amount' => 0,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 70 - ($index * 10),
+            'unit_price' => $product->base_price,
+            'line_total' => (70 - ($index * 10)) * $product->base_price,
+        ]);
+    }
+
+    $cancelledOrder = Order::create([
+        'order_type' => 'delivery',
+        'status' => 'cancelled',
+        'total_amount' => 0,
+    ]);
+
+    OrderItem::create([
+        'order_id' => $cancelledOrder->id,
+        'product_id' => $products->last()->id,
+        'quantity' => 999,
+        'unit_price' => $products->last()->base_price,
+        'line_total' => 999 * $products->last()->base_price,
+    ]);
+
+    $response = $this->getJson('/api/v1/products/top-ordered-dishes')
+        ->assertOk()
+        ->assertJsonCount(6, 'data')
+        ->assertJsonPath('data.0.name', 'Dish 1')
+        ->assertJsonPath('data.0.image_url', '/storage/products/dish-1.jpg')
+        ->assertJsonPath('data.0.price', 110.0)
+        ->assertJsonPath('data.0.link', '/products/dish-1')
+        ->assertJsonPath('data.0.api_link', url('/api/v1/products/'.$products->first()->id))
+        ->assertJsonPath('data.0.category_name', 'Afghan Dishes')
+        ->assertJsonPath('data.0.total_quantity', 70);
+
+    expect(collect($response->json('data'))->pluck('name')->all())
+        ->toBe(['Dish 1', 'Dish 2', 'Dish 3', 'Dish 4', 'Dish 5', 'Dish 6']);
 });

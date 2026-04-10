@@ -93,6 +93,39 @@ test('mobile products endpoint requires a valid app key', function () {
     $this->getJson('/api/v1/mobile/products', mobileHeaders())->assertOk();
 });
 
+test('mobile top ordered dishes endpoint requires a valid app key and returns card fields', function () {
+    [, $product] = createMobileProductFixture();
+
+    $order = Order::create([
+        'order_type' => 'delivery',
+        'status' => 'completed',
+        'total_amount' => 0,
+    ]);
+
+    $product->images()->create([
+        'path' => 'products/pepperoni.jpg',
+        'sort_order' => 0,
+    ]);
+
+    $order->items()->create([
+        'product_id' => $product->id,
+        'quantity' => 5,
+        'unit_price' => $product->base_price,
+        'line_total' => 5 * $product->base_price,
+    ]);
+
+    $this->getJson('/api/v1/mobile/products/top-ordered-dishes')
+        ->assertUnauthorized()
+        ->assertJsonPath('message', 'Unauthorized app client.');
+
+    $this->getJson('/api/v1/mobile/products/top-ordered-dishes', mobileHeaders())
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.0.image_url', '/storage/products/pepperoni.jpg')
+        ->assertJsonPath('data.0.price', 500.0)
+        ->assertJsonPath('data.0.link', '/products/pepperoni-pizza');
+});
+
 test('guest session endpoint creates a guest session token', function () {
     $this->postJson('/api/v1/mobile/guest/session', [
         'device_id' => 'device-001',

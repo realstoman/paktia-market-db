@@ -30,10 +30,10 @@ use App\Models\BranchDailyMetric;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Services\Operations\OperationsDashboardService;
 use App\Services\Projection\BranchDailyMetricReader;
 use App\Services\Projection\ProjectionHealthService;
+use App\Services\Product\TopOrderedDishService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         OperationsDashboardService $operationsDashboardService,
         BranchDailyMetricReader $branchDailyMetricReader,
         ProjectionHealthService $projectionHealthService,
+        TopOrderedDishService $topOrderedDishService,
     ) {
         $user = $request->user();
         abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
@@ -115,25 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->orderByDesc('id')
             ->limit(8)
             ->get();
-        $topOrderedDishes = OrderItem::query()
-            ->selectRaw('products.name as product_name')
-            ->selectRaw('products.dari_name as product_name_fa')
-            ->selectRaw('products.pashto_name as product_name_ps')
-            ->selectRaw('product_categories.name as category_name')
-            ->selectRaw('SUM(order_items.quantity) as total_quantity')
-            ->join('products', 'products.id', '=', 'order_items.product_id')
-            ->join(
-                'product_categories',
-                'product_categories.id',
-                '=',
-                'products.product_category_id',
-            )
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('orders.status', '!=', 'cancelled')
-            ->groupBy('products.id', 'products.name', 'products.dari_name', 'products.pashto_name', 'product_categories.name')
-            ->orderByDesc('total_quantity')
-            ->limit(6)
-            ->get();
+        $topOrderedDishes = $topOrderedDishService->get(6);
 
         $analyticsByDate = [];
 
