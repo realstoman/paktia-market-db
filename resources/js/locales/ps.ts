@@ -69,7 +69,7 @@ const ps = {
         platform: 'سیستم',
         dashboard: 'ډشبورډ',
         orders: 'د پیرودونکو آرډرونه',
-        products: 'محصولات',
+        products: 'مینو او محصولات',
         inventory: 'د ګدام برخه',
         employees: 'کارکوونکي',
         finance: 'د مالي برخه',

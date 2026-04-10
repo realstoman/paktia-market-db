@@ -70,7 +70,7 @@ const fa = {
         platform: 'سیستم',
         dashboard: 'دشبورد',
         orders: 'سفارش‌ ها',
-        products: 'محصولات',
+        products: 'مینو و محصولات',
         inventory: 'بخش گدام',
         employees: 'کارمندان',
         finance: 'بخش مالی',
