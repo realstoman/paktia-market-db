@@ -45,6 +45,12 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if ($request->user()?->is_internal_user) {
+            return back()->withErrors([
+                'account' => 'Restaurant staff accounts cannot delete themselves.',
+            ]);
+        }
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);

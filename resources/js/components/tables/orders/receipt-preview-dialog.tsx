@@ -8,6 +8,14 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useLocalization } from '@/lib/localization';
 import { Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import {
@@ -21,14 +29,20 @@ import {
     IconPhone,
     IconWorldWww,
 } from '@tabler/icons-react';
-import { useLocalization } from '@/lib/localization';
 import { Printer, ReceiptText } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    paymentMethod?: string;
+    onPaymentMethodChange?: (value: string) => void;
+    onCompletePayment?: (
+        order: Order,
+        payload: { discountAmount: number; paymentMethod: string },
+    ) => void;
+    isCompletingPayment?: boolean;
 }
 
 const RECEIPT_WIDTH_PX = 302;
@@ -113,6 +127,10 @@ export function ReceiptPreviewDialog({
     order,
     open,
     onOpenChange,
+    paymentMethod = 'cash',
+    onPaymentMethodChange,
+    onCompletePayment,
+    isCompletingPayment = false,
 }: ReceiptPreviewDialogProps) {
     const { t, locale, direction, isRtl } = useLocalization();
     const dateLocale = useMemo(() => {
@@ -127,6 +145,12 @@ export function ReceiptPreviewDialog({
         return 'en-US';
     }, [locale]);
     const [discount, setDiscount] = useState('0');
+    const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
+    const canFinalizePayment =
+        !!order &&
+        ((order.status ?? 'pending') === 'ready' ||
+            (order.status ?? 'pending') === 'completed') &&
+        typeof onCompletePayment === 'function';
 
     const subtotal = useMemo(() => {
         if (!order) {
@@ -157,6 +181,14 @@ export function ReceiptPreviewDialog({
               order.order_type.replace('_', ' '),
           )
         : '-';
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        setDiscount(String(Number(order?.discount_amount ?? 0) || 0));
+    }, [open, order?.discount_amount]);
 
     const printReceipt = () => {
         if (!order) {
@@ -268,6 +300,28 @@ export function ReceiptPreviewDialog({
         printWindow.document.close();
     };
 
+    const handleCompletePayment = () => {
+        if (!order || !onCompletePayment) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            t(
+                'orders.receipt.confirmPaymentCompletion',
+                'Confirm payment completion and post this order to finance?',
+            ),
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        onCompletePayment(order, {
+            discountAmount: discountValue,
+            paymentMethod,
+        });
+    };
+
     return (
         <Dialog
             open={open}
@@ -297,7 +351,10 @@ export function ReceiptPreviewDialog({
                         <div className="space-y-3 rounded-md border p-4">
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    {t('orders.receipt.discount', 'Discount (AFN)')}
+                                    {t(
+                                        'orders.receipt.discount',
+                                        'Discount (AFN)',
+                                    )}
                                 </label>
                                 <NumericInput
                                     min="0"
@@ -306,24 +363,115 @@ export function ReceiptPreviewDialog({
                                 />
                             </div>
 
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium">
+                                    {t(
+                                        'orders.form.paymentMethod',
+                                        'Payment Method',
+                                    )}
+                                </label>
+                                <Select
+                                    value={paymentMethod}
+                                    onValueChange={(value) =>
+                                        onPaymentMethodChange?.(value)
+                                    }
+                                    disabled={isPaymentCompleted}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cash">
+                                            {t(
+                                                'orders.paymentMethod.cash',
+                                                'Cash',
+                                            )}
+                                        </SelectItem>
+                                        <SelectItem value="credit_card">
+                                            {t(
+                                                'orders.paymentMethod.credit_card',
+                                                'Credit Card',
+                                            )}
+                                        </SelectItem>
+                                        <SelectItem value="bank_transfer">
+                                            {t(
+                                                'orders.paymentMethod.bank_transfer',
+                                                'Bank Transfer',
+                                            )}
+                                        </SelectItem>
+                                        <SelectItem value="other">
+                                            {t(
+                                                'orders.paymentMethod.other',
+                                                'Other',
+                                            )}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
                             <div className="text-sm">
                                 <p className="flex items-center justify-between">
-                                    <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.subtotal',
+                                            'Subtotal',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(subtotal)}</span>
                                 </p>
                                 <p className="flex items-center justify-between">
-                                    <span>{t('orders.receipt.discountShort', 'Discount')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.discountShort',
+                                            'Discount',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(discountValue)}</span>
                                 </p>
                                 <p className="mt-2 flex items-center justify-between text-base font-semibold">
-                                    <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
+                                    <span>
+                                        {t(
+                                            'orders.receipt.grandTotal',
+                                            'Grand Total',
+                                        )}
+                                    </span>
                                     <span>{formatAfn(finalTotal)}</span>
                                 </p>
                             </div>
 
-                            <Button onClick={printReceipt} className="gap-2">
+                            {canFinalizePayment ? (
+                                <Button
+                                    onClick={handleCompletePayment}
+                                    className="gap-2"
+                                    disabled={
+                                        isCompletingPayment ||
+                                        isPaymentCompleted
+                                    }
+                                    variant="outline"
+                                >
+                                    <ReceiptText className="h-4 w-4" />
+                                    {isPaymentCompleted
+                                        ? t(
+                                              'orders.receipt.paymentCompleted',
+                                              'Payment Completed',
+                                          )
+                                        : t(
+                                              'orders.receipt.markPaymentCompleted',
+                                              'Payment Completed',
+                                          )}
+                                </Button>
+                            ) : null}
+
+                            <Button
+                                onClick={printReceipt}
+                                className="mx-1 gap-2"
+                                disabled={!isPaymentCompleted}
+                            >
                                 <Printer className="h-4 w-4" />
-                                {t('orders.receipt.printReceipt', 'Print Receipt')}
+                                {t(
+                                    'orders.receipt.printReceipt',
+                                    'Print Receipt',
+                                )}
                             </Button>
                         </div>
 
@@ -355,7 +503,8 @@ export function ReceiptPreviewDialog({
                                     <div className="my-2 border-t border-dashed" />
                                     <p>
                                         <span className="font-medium">
-                                            {t('orders.receipt.order', 'Order')}:
+                                            {t('orders.receipt.order', 'Order')}
+                                            :
                                         </span>{' '}
                                         #{order.id}
                                     </p>
@@ -385,13 +534,21 @@ export function ReceiptPreviewDialog({
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    {t('orders.receipt.phone', 'Phone')}:
+                                                    {t(
+                                                        'orders.receipt.phone',
+                                                        'Phone',
+                                                    )}
+                                                    :
                                                 </span>{' '}
                                                 {order.customer_phone ?? '-'}
                                             </p>
                                             <p>
                                                 <span className="font-medium">
-                                                    {t('orders.receipt.address', 'Address')}:
+                                                    {t(
+                                                        'orders.receipt.address',
+                                                        'Address',
+                                                    )}
+                                                    :
                                                 </span>{' '}
                                                 {order.delivery_address ?? '-'}
                                             </p>
@@ -428,15 +585,30 @@ export function ReceiptPreviewDialog({
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
                                     <p className="flex items-center justify-between">
-                                        <span>{t('orders.receipt.subtotal', 'Subtotal')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.subtotal',
+                                                'Subtotal',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(subtotal)}</span>
                                     </p>
                                     <p className="flex items-center justify-between">
-                                        <span>{t('orders.receipt.discountShort', 'Discount')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.discountShort',
+                                                'Discount',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(discountValue)}</span>
                                     </p>
                                     <p className="flex items-center justify-between font-semibold">
-                                        <span>{t('orders.receipt.grandTotal', 'Grand Total')}</span>
+                                        <span>
+                                            {t(
+                                                'orders.receipt.grandTotal',
+                                                'Grand Total',
+                                            )}
+                                        </span>
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />

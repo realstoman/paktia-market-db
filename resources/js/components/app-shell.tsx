@@ -7,9 +7,14 @@ import { useEffect } from 'react';
 interface AppShellProps {
     children: React.ReactNode;
     variant?: 'header' | 'sidebar';
+    defaultSidebarOpen?: boolean;
 }
 
-export function AppShell({ children, variant = 'header' }: AppShellProps) {
+export function AppShell({
+    children,
+    variant = 'header',
+    defaultSidebarOpen,
+}: AppShellProps) {
     const { sidebarOpen: isOpen, localization } = usePage<SharedData>().props;
 
     setFormattingLocale(localization.locale);
@@ -28,5 +33,9 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
         );
     }
 
-    return <SidebarProvider defaultOpen={isOpen}>{children}</SidebarProvider>;
+    return (
+        <SidebarProvider defaultOpen={defaultSidebarOpen ?? isOpen}>
+            {children}
+        </SidebarProvider>
+    );
 }

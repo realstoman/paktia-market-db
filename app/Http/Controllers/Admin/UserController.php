@@ -14,6 +14,7 @@ use Spatie\Permission\Models\Role;
 use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\RedirectResponse;
 
 class UserController extends Controller
 {
@@ -149,5 +150,27 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        if ($request->user()?->is($user)) {
+            return back()->withErrors([
+                'password' => 'Use your own profile settings to change your password.',
+            ]);
+        }
+
+        $this->authorize('resetPassword', $user);
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user->forceFill([
+            'password' => $validated['password'],
+        ])->save();
+
+        return redirect()->route('users.index')
+            ->with('success', 'User password reset successfully.');
     }
 }

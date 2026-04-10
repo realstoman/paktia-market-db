@@ -1,5 +1,6 @@
 'use client';
 
+import { ReceiptPreviewDialog } from '@/components/tables/orders/receipt-preview-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { BranchTable, BreadcrumbItem, Order, Product } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -37,11 +39,11 @@ import {
     ReceiptText,
     Search,
     ShoppingBag,
+    Sparkles,
     Store,
     Truck,
-    UserRound,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 type OperationMode = 'cashier' | 'server' | 'order-taker' | 'general';
@@ -101,6 +103,9 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
     { value: 'other', label: 'Other' },
 ];
 
+const WORKSPACE_CARD_CLASS =
+    'min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[860px]';
+
 const CHANNEL_META: Record<
     Channel,
     { label: string; icon: typeof Store; description: string }
@@ -126,6 +131,16 @@ function formatCurrency(value: number) {
     return new Intl.NumberFormat('en-US', {
         maximumFractionDigits: 0,
     }).format(value);
+}
+
+function naturalSortKey(value: string | number | null | undefined) {
+    const normalized = String(value ?? '').trim();
+    const numeric = Number.parseInt(normalized.replace(/\D+/g, ''), 10);
+
+    return (
+        `${Number.isNaN(numeric) ? 99999999 : numeric}`.padStart(8, '0') +
+        `-${normalized}`
+    );
 }
 
 function getStatusTone(status: string) {
@@ -166,9 +181,12 @@ export default function OperationsPage({
     openOrders,
     summary,
 }: OperationsPageProps) {
+    const { locale } = useLocalization();
     const { can } = useAuthorization();
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
-    const [selectedChannel, setSelectedChannel] = useState<Channel>(channels[0]);
+    const [selectedChannel, setSelectedChannel] = useState<Channel>(
+        channels[0],
+    );
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [search, setSearch] = useState('');
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
@@ -179,6 +197,67 @@ export default function OperationsPage({
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+    const [selectedReceiptOrder, setSelectedReceiptOrder] =
+        useState<Order | null>(null);
+    const [isCompletingPayment, setIsCompletingPayment] = useState(false);
+    const workspaceRef = useRef<HTMLDivElement | null>(null);
+
+    const localizedProductName = (product?: Product | null) => {
+        if (!product) {
+            return '';
+        }
+
+        if (locale === 'ps') {
+            return (
+                product.pashto_name?.trim() ||
+                product.dari_name?.trim() ||
+                product.name
+            );
+        }
+
+        if (locale === 'fa') {
+            return (
+                product.dari_name?.trim() ||
+                product.pashto_name?.trim() ||
+                product.name
+            );
+        }
+
+        return product.name;
+    };
+
+    const localizedProductDescription = (product?: Product | null) => {
+        if (!product) {
+            return '';
+        }
+
+        if (locale === 'ps') {
+            return (
+                product.pashto_description?.trim() ||
+                product.dari_description?.trim() ||
+                product.description?.trim() ||
+                product.category?.pashto_name?.trim() ||
+                product.category?.dari_name?.trim() ||
+                product.category?.name ||
+                ''
+            );
+        }
+
+        if (locale === 'fa') {
+            return (
+                product.dari_description?.trim() ||
+                product.pashto_description?.trim() ||
+                product.description?.trim() ||
+                product.category?.dari_name?.trim() ||
+                product.category?.pashto_name?.trim() ||
+                product.category?.name ||
+                ''
+            );
+        }
+
+        return product.description?.trim() || product.category?.name || '';
+    };
 
     const selectedOrder = useMemo(
         () => openOrders.find((order) => order.id === selectedOrderId) ?? null,
@@ -187,10 +266,18 @@ export default function OperationsPage({
 
     const filteredOrders = useMemo(
         () =>
-            openOrders.filter(
-                (order) => order.order_type === selectedChannel,
-            ),
+            openOrders.filter((order) => order.order_type === selectedChannel),
         [openOrders, selectedChannel],
+    );
+
+    const orderedTables = useMemo(
+        () =>
+            [...tables].sort((a, b) =>
+                naturalSortKey(a.table_number).localeCompare(
+                    naturalSortKey(b.table_number),
+                ),
+            ),
+        [tables],
     );
 
     const filteredProducts = useMemo(() => {
@@ -202,9 +289,14 @@ export default function OperationsPage({
                     ? true
                     : String(product.category?.id ?? '') === selectedCategory;
             const haystack = [
+                localizedProductName(product),
+                localizedProductDescription(product),
                 product.name,
-                product.description,
+                product.pashto_name,
+                product.dari_name,
                 product.category?.name,
+                product.category?.pashto_name,
+                product.category?.dari_name,
             ]
                 .filter(Boolean)
                 .join(' ')
@@ -214,7 +306,13 @@ export default function OperationsPage({
 
             return matchesCategory && matchesSearch;
         });
-    }, [products, search, selectedCategory]);
+    }, [
+        localizedProductDescription,
+        localizedProductName,
+        products,
+        search,
+        selectedCategory,
+    ]);
 
     const selectedTable = useMemo(
         () => tables.find((table) => table.id === selectedTableId) ?? null,
@@ -241,7 +339,7 @@ export default function OperationsPage({
                 productId: item.product_id,
                 productSizeId: item.product_size_id ?? null,
                 name:
-                    item.product?.name ??
+                    localizedProductName(item.product) ??
                     item.product_name_snapshot ??
                     item.product_name ??
                     'Item',
@@ -253,7 +351,14 @@ export default function OperationsPage({
         setCustomerName(selectedOrder.customer_name ?? '');
         setCustomerPhone(selectedOrder.customer_phone ?? '');
         setDeliveryAddress(selectedOrder.delivery_address ?? '');
-    }, [selectedOrder]);
+    }, [localizedProductName, selectedOrder]);
+
+    useEffect(() => {
+        workspaceRef.current?.scrollIntoView({
+            block: 'start',
+            behavior: 'auto',
+        });
+    }, []);
 
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
@@ -294,7 +399,9 @@ export default function OperationsPage({
 
         setCartLines((current) => {
             const existing = current.find(
-                (line) => line.productId === product.id && line.productSizeId === null,
+                (line) =>
+                    line.productId === product.id &&
+                    line.productSizeId === null,
             );
 
             if (!existing && delta < 0) {
@@ -307,7 +414,7 @@ export default function OperationsPage({
                     {
                         productId: product.id,
                         productSizeId: null,
-                        name: product.name,
+                        name: localizedProductName(product),
                         imageUrl: product.images?.[0]?.url ?? null,
                         price: basePrice,
                         quantity: 1,
@@ -318,14 +425,20 @@ export default function OperationsPage({
             return current
                 .map((line) =>
                     line.productId === product.id && line.productSizeId === null
-                        ? { ...line, quantity: Math.max(0, line.quantity + delta) }
+                        ? {
+                              ...line,
+                              quantity: Math.max(0, line.quantity + delta),
+                          }
                         : line,
                 )
                 .filter((line) => line.quantity > 0);
         });
     };
 
-    const totalQuantity = cartLines.reduce((sum, line) => sum + line.quantity, 0);
+    const totalQuantity = cartLines.reduce(
+        (sum, line) => sum + line.quantity,
+        0,
+    );
     const subTotal = cartLines.reduce(
         (sum, line) => sum + line.quantity * line.price,
         0,
@@ -347,8 +460,14 @@ export default function OperationsPage({
         }
 
         if (selectedChannel === 'delivery') {
-            if (!customerName.trim() || !customerPhone.trim() || !deliveryAddress.trim()) {
-                toast.error('Delivery orders need customer name, phone, and address.');
+            if (
+                !customerName.trim() ||
+                !customerPhone.trim() ||
+                !deliveryAddress.trim()
+            ) {
+                toast.error(
+                    'Delivery orders need customer name, phone, and address.',
+                );
                 return;
             }
         }
@@ -362,7 +481,8 @@ export default function OperationsPage({
 
         const payload = {
             branch_id: branchId,
-            branch_table_id: selectedChannel === 'dine_in' ? selectedTableId : null,
+            branch_table_id:
+                selectedChannel === 'dine_in' ? selectedTableId : null,
             order_type: selectedChannel,
             payment_method: null,
             customer_name:
@@ -385,8 +505,11 @@ export default function OperationsPage({
 
         const options = {
             preserveScroll: true,
+            preserveState: true,
             onSuccess: () => {
-                toast.success(selectedOrder ? 'Order updated.' : 'Order created.');
+                toast.success(
+                    selectedOrder ? 'Order updated.' : 'Order created.',
+                );
             },
             onError: () => {
                 toast.error('Unable to save the order.');
@@ -404,7 +527,7 @@ export default function OperationsPage({
         router.post('/orders', payload, options);
     };
 
-    const updateStatus = (status: 'in_progress' | 'ready' | 'completed') => {
+    const updateStatus = (status: 'in_progress' | 'ready') => {
         if (!selectedOrder) {
             toast.error('Save the order first.');
             return;
@@ -416,22 +539,119 @@ export default function OperationsPage({
             `/orders/${selectedOrder.id}/status`,
             {
                 status,
-                payment_method: status === 'completed' ? paymentMethod : null,
             },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
-                    toast.success(
-                        status === 'completed'
-                            ? 'Payment collected and order closed.'
-                            : 'Order status updated.',
-                    );
+                    toast.success('Order status updated.');
                 },
                 onError: () => {
                     toast.error('Unable to update order status.');
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const openPaymentFlow = (order: Order) => {
+        setSelectedReceiptOrder(order);
+        setPaymentMethod(
+            (order.payments?.[0]?.method as PaymentMethod | undefined) ??
+                paymentMethod,
+        );
+        setIsReceiptPreviewOpen(true);
+    };
+
+    const handleCollectPayment = () => {
+        if (!selectedOrder) {
+            toast.error('Save the order first.');
+            return;
+        }
+
+        const currentStatus = selectedOrder.status ?? 'pending';
+
+        if (currentStatus === 'ready' || currentStatus === 'completed') {
+            openPaymentFlow(selectedOrder);
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.patch(
+            `/orders/${selectedOrder.id}/status`,
+            { status: 'ready' },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success('Order marked ready for payment.');
+                    openPaymentFlow({
+                        ...selectedOrder,
+                        status: 'ready',
+                    });
+                },
+                onError: () => {
+                    toast.error('Unable to prepare the order for payment.');
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
+    const handleCompletePayment = (
+        order: Order,
+        payload: { discountAmount: number; paymentMethod: string },
+    ) => {
+        const subtotal = Number(
+            order.sub_total_amount ?? order.total_amount ?? 0,
+        );
+        const finalTotal = Math.max(0, subtotal - payload.discountAmount);
+
+        setIsCompletingPayment(true);
+
+        router.patch(
+            `/orders/${order.id}/status`,
+            {
+                status: 'completed',
+                payment_method: payload.paymentMethod,
+                discount_amount: payload.discountAmount,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Payment collected, finance updated, and order completed.',
+                    );
+                    setSelectedReceiptOrder({
+                        ...order,
+                        status: 'completed',
+                        discount_amount: payload.discountAmount,
+                        total_amount: finalTotal,
+                        paid_amount: finalTotal,
+                        payments: [
+                            {
+                                ...(order.payments?.[0] ?? {}),
+                                method: payload.paymentMethod,
+                                amount: finalTotal,
+                                status: 'paid',
+                            },
+                        ],
+                    });
+                },
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            'Unable to complete the payment.',
+                    );
+                },
+                onFinish: () => {
+                    setIsCompletingPayment(false);
                 },
             },
         );
@@ -445,7 +665,7 @@ export default function OperationsPage({
               : 'Order Intake';
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={breadcrumbs} defaultSidebarOpen={false}>
             <Head title={pageTitle} />
             <div className="space-y-4 py-2">
                 <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
@@ -460,7 +680,10 @@ export default function OperationsPage({
                                     Operations dashboard for live orders
                                 </h1>
                                 <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                    Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
+                                    Tables, takeaway, delivery, and payment
+                                    handling stay in one workspace. The visible
+                                    channels and actions adapt automatically to
+                                    the signed-in role.
                                 </p>
                             </div>
                         </div>
@@ -468,7 +691,7 @@ export default function OperationsPage({
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Dine In
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -478,7 +701,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Takeaway
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -488,7 +711,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Delivery
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -498,7 +721,7 @@ export default function OperationsPage({
                             </Card>
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
-                                    <p className="text-xs uppercase tracking-[0.2em] text-[#8b7560]">
+                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
                                         Ready To Pay
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
@@ -510,8 +733,13 @@ export default function OperationsPage({
                     </div>
                 </section>
 
-                <div className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]">
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                <div
+                    ref={workspaceRef}
+                    className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]"
+                >
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap gap-2">
                                 {channels.map((channel) => {
@@ -527,7 +755,9 @@ export default function OperationsPage({
                                                     : 'outline'
                                             }
                                             className="gap-2 rounded-full"
-                                            onClick={() => resetComposer(channel)}
+                                            onClick={() =>
+                                                resetComposer(channel)
+                                            }
                                         >
                                             <Icon className="h-4 w-4" />
                                             {meta.label}
@@ -544,25 +774,38 @@ export default function OperationsPage({
                                 </CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className="min-h-0 flex-1 p-0">
                             {selectedChannel === 'dine_in' ? (
-                                <ScrollArea className="h-[620px] px-4 pb-4">
+                                <ScrollArea className="h-full px-4 pb-0">
                                     <div className="grid grid-cols-2 gap-3">
-                                        {tables.map((table) => (
+                                        {orderedTables.map((table) => (
                                             <button
                                                 key={table.id}
                                                 type="button"
-                                                onClick={() => handleTableSelect(table)}
-                                                className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'}`}
+                                                onClick={() =>
+                                                    handleTableSelect(table)
+                                                }
+                                                className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#2f1d0f] shadow-sm">
                                                         T-{table.table_number}
                                                     </div>
-                                                    <Badge className={`border ${getStatusTone(table.status)}`}>
-                                                        {table.status.replace('_', ' ')}
+                                                    <Badge
+                                                        className={`border ${getStatusTone(table.status)}`}
+                                                    >
+                                                        {table.status.replace(
+                                                            '_',
+                                                            ' ',
+                                                        )}
                                                     </Badge>
                                                 </div>
+                                                {table.active_order ? (
+                                                    <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#fff1e7] px-2.5 py-1 text-[11px] font-medium text-[#b5542a]">
+                                                        <Sparkles className="h-3.5 w-3.5" />
+                                                        Serving
+                                                    </div>
+                                                ) : null}
                                                 <div className="mt-4 space-y-1">
                                                     <p className="text-sm font-medium text-[#2f1d0f]">
                                                         {table.active_order
@@ -580,22 +823,31 @@ export default function OperationsPage({
                                     </div>
                                 </ScrollArea>
                             ) : (
-                                <ScrollArea className="h-[620px] px-4 pb-4">
+                                <ScrollArea className="h-full px-4 pb-4">
                                     <div className="space-y-3">
                                         <Button
                                             variant="outline"
                                             className="w-full justify-start gap-2 rounded-2xl border-dashed"
-                                            onClick={() => resetComposer(selectedChannel)}
+                                            onClick={() =>
+                                                resetComposer(selectedChannel)
+                                            }
                                         >
                                             <Plus className="h-4 w-4" />
-                                            New {CHANNEL_META[selectedChannel].label} order
+                                            New{' '}
+                                            {
+                                                CHANNEL_META[selectedChannel]
+                                                    .label
+                                            }{' '}
+                                            order
                                         </Button>
 
                                         {filteredOrders.map((order) => (
                                             <button
                                                 key={order.id}
                                                 type="button"
-                                                onClick={() => handleOrderSelect(order)}
+                                                onClick={() =>
+                                                    handleOrderSelect(order)
+                                                }
                                                 className={`w-full rounded-[1.2rem] border p-4 text-left transition ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -604,19 +856,33 @@ export default function OperationsPage({
                                                             Order #{order.id}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {order.customer_name || 'Walk-in customer'}
+                                                            {order.customer_name ||
+                                                                'Walk-in customer'}
                                                         </p>
                                                     </div>
-                                                    <Badge className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}>
-                                                        {String(order.status ?? 'pending').replace('_', ' ')}
+                                                    <Badge
+                                                        className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}
+                                                    >
+                                                        {String(
+                                                            order.status ??
+                                                                'pending',
+                                                        ).replace('_', ' ')}
                                                     </Badge>
                                                 </div>
                                                 <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                                                     <span>
-                                                        {order.items?.length ?? 0} items
+                                                        {order.items?.length ??
+                                                            0}{' '}
+                                                        items
                                                     </span>
                                                     <span>
-                                                        {formatCurrency(Number(order.total_amount ?? 0))} AFN
+                                                        {formatCurrency(
+                                                            Number(
+                                                                order.total_amount ??
+                                                                    0,
+                                                            ),
+                                                        )}{' '}
+                                                        ؋
                                                     </span>
                                                 </div>
                                             </button>
@@ -627,20 +893,28 @@ export default function OperationsPage({
                         </CardContent>
                     </Card>
 
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="space-y-4">
                             <div className="relative">
                                 <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     value={search}
-                                    onChange={(event) => setSearch(event.target.value)}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
                                     placeholder="Search products, categories, or menu items"
                                     className="h-12 rounded-2xl pl-9"
                                 />
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button
-                                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                                    variant={
+                                        selectedCategory === 'all'
+                                            ? 'default'
+                                            : 'outline'
+                                    }
                                     className="rounded-full"
                                     onClick={() => setSelectedCategory('all')}
                                 >
@@ -650,37 +924,50 @@ export default function OperationsPage({
                                     <Button
                                         key={category.id}
                                         variant={
-                                            selectedCategory === String(category.id)
+                                            selectedCategory ===
+                                            String(category.id)
                                                 ? 'default'
                                                 : 'outline'
                                         }
                                         className="rounded-full"
-                                        onClick={() => setSelectedCategory(String(category.id))}
+                                        onClick={() =>
+                                            setSelectedCategory(
+                                                String(category.id),
+                                            )
+                                        }
                                     >
                                         {category.name}
                                     </Button>
                                 ))}
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <ScrollArea className="h-[650px] px-4 pb-4">
+                        <CardContent className="min-h-0 flex-1 p-0">
+                            <ScrollArea className="h-full px-4 pb-0">
                                 <div className="grid gap-3 md:grid-cols-2">
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
-                                            (entry) => entry.productId === product.id,
+                                            (entry) =>
+                                                entry.productId === product.id,
                                         );
 
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="rounded-[1.4rem] border border-neutral-200 bg-white p-3"
+                                                className="h-[170px] overflow-hidden rounded-[1.4rem] border border-neutral-200 bg-white"
                                             >
-                                                <div className="flex gap-3">
-                                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#f3eee7]">
-                                                        {product.images?.[0]?.url ? (
+                                                <div className="grid h-full grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
+                                                    <div className="h-full overflow-hidden bg-[#f3eee7]">
+                                                        {product.images?.[0]
+                                                            ?.url ? (
                                                             <img
-                                                                src={product.images[0].url}
-                                                                alt={product.name}
+                                                                src={
+                                                                    product
+                                                                        .images[0]
+                                                                        .url
+                                                                }
+                                                                alt={localizedProductName(
+                                                                    product,
+                                                                )}
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
@@ -689,40 +976,52 @@ export default function OperationsPage({
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-base font-semibold text-[#2f1d0f]">
-                                                            {product.name}
-                                                        </p>
-                                                        <p className="line-clamp-2 text-xs text-muted-foreground">
-                                                            {product.description ||
-                                                                product.category?.name ||
-                                                                'Kitchen-ready menu item'}
-                                                        </p>
-                                                        <div className="mt-3 flex items-center justify-between">
-                                                            <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                                                {formatCurrency(
-                                                                    Number(product.base_price ?? 0),
+                                                    <div className="flex min-w-0 flex-col justify-between p-4">
+                                                        <div className="min-w-0">
+                                                            <p className="line-clamp-2 text-base leading-6 font-semibold text-[#2f1d0f]">
+                                                                {localizedProductName(
+                                                                    product,
                                                                 )}
                                                             </p>
-                                                            <div className="flex items-center gap-2">
+                                                        </div>
+                                                        <div className="mt-4 space-y-3">
+                                                            <p className="text-2xl leading-none font-semibold text-[#2f1d0f]">
+                                                                {formatCurrency(
+                                                                    Number(
+                                                                        product.base_price ??
+                                                                            0,
+                                                                    ),
+                                                                )}
+                                                                <span className="ml-1 text-sm font-medium text-[#8b7560]">
+                                                                    ؋
+                                                                </span>
+                                                            </p>
+                                                            <div className="flex items-center justify-between gap-3">
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-9 w-9 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
-                                                                        adjustQuantity(product, -1)
+                                                                        adjustQuantity(
+                                                                            product,
+                                                                            -1,
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Minus className="h-4 w-4" />
                                                                 </Button>
-                                                                <span className="w-6 text-center text-sm font-medium">
-                                                                    {line?.quantity ?? 0}
+                                                                <span className="min-w-6 text-center text-sm font-medium">
+                                                                    {line?.quantity ??
+                                                                        0}
                                                                 </span>
                                                                 <Button
                                                                     size="icon"
-                                                                    className="h-9 w-9 rounded-full"
+                                                                    className="h-6 w-6 shrink-0 rounded-full"
                                                                     onClick={() =>
-                                                                        adjustQuantity(product, 1)
+                                                                        adjustQuantity(
+                                                                            product,
+                                                                            1,
+                                                                        )
                                                                     }
                                                                 >
                                                                     <Plus className="h-4 w-4" />
@@ -734,12 +1033,23 @@ export default function OperationsPage({
                                             </div>
                                         );
                                     })}
+                                    {filteredProducts.length === 0 ? (
+                                        <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[1.4rem] border border-dashed border-neutral-300 bg-[#fcfbf8] p-6 text-center text-muted-foreground">
+                                            <CookingPot className="h-6 w-6" />
+                                            <p className="text-sm">
+                                                No products matched this branch,
+                                                category, or search yet.
+                                            </p>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </ScrollArea>
                         </CardContent>
                     </Card>
 
-                    <Card className="min-h-[760px] border-neutral-200/70 shadow-none">
+                    <Card
+                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                    >
                         <CardHeader className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -752,8 +1062,12 @@ export default function OperationsPage({
                                             : 'Build a new order ticket'}
                                     </CardDescription>
                                 </div>
-                                {selectedChannel === 'dine_in' && selectedTable ? (
-                                    <Badge variant="outline" className="gap-1 rounded-full">
+                                {selectedChannel === 'dine_in' &&
+                                selectedTable ? (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 rounded-full"
+                                    >
                                         <LayoutGrid className="h-3.5 w-3.5" />
                                         Table {selectedTable.table_number}
                                     </Badge>
@@ -763,31 +1077,47 @@ export default function OperationsPage({
                             {selectedChannel !== 'dine_in' ? (
                                 <div className="grid gap-3">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer-name">Customer</Label>
+                                        <Label htmlFor="customer-name">
+                                            Customer
+                                        </Label>
                                         <Input
                                             id="customer-name"
                                             value={customerName}
-                                            onChange={(event) => setCustomerName(event.target.value)}
+                                            onChange={(event) =>
+                                                setCustomerName(
+                                                    event.target.value,
+                                                )
+                                            }
                                             placeholder="Customer name"
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer-phone">Phone</Label>
+                                        <Label htmlFor="customer-phone">
+                                            Phone
+                                        </Label>
                                         <Input
                                             id="customer-phone"
                                             value={customerPhone}
-                                            onChange={(event) => setCustomerPhone(event.target.value)}
+                                            onChange={(event) =>
+                                                setCustomerPhone(
+                                                    event.target.value,
+                                                )
+                                            }
                                             placeholder="Phone number"
                                         />
                                     </div>
                                     {selectedChannel === 'delivery' ? (
                                         <div className="grid gap-2">
-                                            <Label htmlFor="delivery-address">Address</Label>
+                                            <Label htmlFor="delivery-address">
+                                                Address
+                                            </Label>
                                             <Input
                                                 id="delivery-address"
                                                 value={deliveryAddress}
                                                 onChange={(event) =>
-                                                    setDeliveryAddress(event.target.value)
+                                                    setDeliveryAddress(
+                                                        event.target.value,
+                                                    )
                                                 }
                                                 placeholder="Delivery address"
                                             />
@@ -796,8 +1126,8 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <ScrollArea className="h-[320px] rounded-2xl border border-neutral-200 px-3 py-3">
+                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+                            <ScrollArea className="min-h-0 flex-1 rounded-2xl border border-neutral-200 px-3 py-3">
                                 <div className="space-y-3">
                                     {cartLines.map((line) => (
                                         <div
@@ -822,12 +1152,17 @@ export default function OperationsPage({
                                                     {line.name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {line.quantity} x {formatCurrency(line.price)} AFN
+                                                    {line.quantity} x{' '}
+                                                    {formatCurrency(line.price)}{' '}
+                                                    ؋
                                                 </p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-sm font-semibold text-[#2f1d0f]">
-                                                    {formatCurrency(line.quantity * line.price)}
+                                                    {formatCurrency(
+                                                        line.quantity *
+                                                            line.price,
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -837,7 +1172,8 @@ export default function OperationsPage({
                                         <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                                             <Armchair className="h-6 w-6" />
                                             <p className="text-sm">
-                                                Select a table or queue item, then add products from the menu.
+                                                Select a table or queue item,
+                                                then add products from the menu.
                                             </p>
                                         </div>
                                     ) : null}
@@ -847,20 +1183,28 @@ export default function OperationsPage({
                             <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
                                 <div className="space-y-3 text-sm">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Items</span>
+                                        <span className="text-muted-foreground">
+                                            Items
+                                        </span>
                                         <span>{totalQuantity}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Subtotal</span>
-                                        <span>{formatCurrency(subTotal)} AFN</span>
+                                        <span className="text-muted-foreground">
+                                            Subtotal
+                                        </span>
+                                        <span>
+                                            {formatCurrency(subTotal)} ؋
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Tax</span>
-                                        <span>{formatCurrency(tax)} AFN</span>
+                                        <span className="text-muted-foreground">
+                                            Tax
+                                        </span>
+                                        <span>{formatCurrency(tax)} ؋</span>
                                     </div>
                                     <div className="flex items-center justify-between border-t border-dashed pt-3 text-base font-semibold text-[#2f1d0f]">
                                         <span>Total</span>
-                                        <span>{formatCurrency(total)} AFN</span>
+                                        <span>{formatCurrency(total)} ؋</span>
                                     </div>
                                 </div>
                             </div>
@@ -879,7 +1223,10 @@ export default function OperationsPage({
                                         </SelectTrigger>
                                         <SelectContent>
                                             {PAYMENT_METHODS.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -888,14 +1235,16 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
 
-                            <div className="grid gap-2">
+                            <div className="grid min-h-[146px] gap-2">
                                 <Button
                                     className="h-12 rounded-2xl text-base"
                                     disabled={isSubmitting}
                                     onClick={submitOrder}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
-                                    {selectedOrder ? 'Update order' : 'Save order'}
+                                    {selectedOrder
+                                        ? 'Update order'
+                                        : 'Save order'}
                                 </Button>
 
                                 {selectedOrder && canManageStatus ? (
@@ -904,7 +1253,9 @@ export default function OperationsPage({
                                             variant="outline"
                                             className="rounded-2xl"
                                             disabled={isSubmitting}
-                                            onClick={() => updateStatus('in_progress')}
+                                            onClick={() =>
+                                                updateStatus('in_progress')
+                                            }
                                         >
                                             <Clock3 className="mr-2 h-4 w-4" />
                                             Preparing
@@ -913,33 +1264,47 @@ export default function OperationsPage({
                                             variant="outline"
                                             className="rounded-2xl"
                                             disabled={isSubmitting}
-                                            onClick={() => updateStatus('ready')}
+                                            onClick={() =>
+                                                updateStatus('ready')
+                                            }
                                         >
                                             <PackageCheck className="mr-2 h-4 w-4" />
                                             Ready
                                         </Button>
                                     </div>
-                                ) : null}
+                                ) : (
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-2xl"
+                                            disabled
+                                        >
+                                            <Clock3 className="mr-2 h-4 w-4" />
+                                            Preparing
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-2xl"
+                                            disabled
+                                        >
+                                            <PackageCheck className="mr-2 h-4 w-4" />
+                                            Ready
+                                        </Button>
+                                    </div>
+                                )}
 
-                                {selectedOrder && canTakePayment ? (
+                                {canTakePayment ? (
                                     <Button
                                         className="h-12 rounded-2xl bg-[#b5542a] text-base hover:bg-[#9f4722]"
-                                        disabled={isSubmitting}
-                                        onClick={() => updateStatus('completed')}
+                                        disabled={
+                                            !selectedOrder || isSubmitting
+                                        }
+                                        onClick={handleCollectPayment}
                                     >
                                         <CreditCard className="mr-2 h-4 w-4" />
                                         Collect payment
                                     </Button>
                                 ) : null}
-                            </div>
-
-                            <div className="rounded-[1.2rem] border border-dashed border-neutral-300 p-3 text-xs text-muted-foreground">
-                                <div className="flex items-start gap-2">
-                                    <UserRound className="mt-0.5 h-4 w-4 shrink-0" />
-                                    <p>
-                                        Cashier can settle payments across all channels. Servers focus on dine-in tables, while order-takers focus on takeaway and delivery creation.
-                                    </p>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -950,9 +1315,15 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <Store className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Tables with live tickets</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Tables with live tickets
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {tables.filter((table) => table.active_order).length}
+                                    {
+                                        tables.filter(
+                                            (table) => table.active_order,
+                                        ).length
+                                    }
                                 </p>
                             </div>
                         </CardContent>
@@ -961,9 +1332,16 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <Bike className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Active delivery queue</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Active delivery queue
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {openOrders.filter((order) => order.order_type === 'delivery').length}
+                                    {
+                                        openOrders.filter(
+                                            (order) =>
+                                                order.order_type === 'delivery',
+                                        ).length
+                                    }
                                 </p>
                             </div>
                         </CardContent>
@@ -972,7 +1350,9 @@ export default function OperationsPage({
                         <CardContent className="flex items-center gap-3 p-4">
                             <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Orders ready for checkout</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Orders ready for checkout
+                                </p>
                                 <p className="text-2xl font-semibold text-[#2f1d0f]">
                                     {summary.readyToPay}
                                 </p>
@@ -980,6 +1360,18 @@ export default function OperationsPage({
                         </CardContent>
                     </Card>
                 </div>
+
+                <ReceiptPreviewDialog
+                    order={selectedReceiptOrder}
+                    open={isReceiptPreviewOpen}
+                    onOpenChange={setIsReceiptPreviewOpen}
+                    paymentMethod={paymentMethod}
+                    onPaymentMethodChange={(value) =>
+                        setPaymentMethod(value as PaymentMethod)
+                    }
+                    onCompletePayment={handleCompletePayment}
+                    isCompletingPayment={isCompletingPayment}
+                />
             </div>
         </AppLayout>
     );

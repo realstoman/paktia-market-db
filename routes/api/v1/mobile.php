@@ -16,6 +16,7 @@ Route::middleware('app.auth')->group(function (): void {
         Route::get('types', [ProductController::class, 'types'])->name('types.index');
         Route::get('types/{type}', [ProductController::class, 'showType'])->name('types.show');
         Route::get('types/{type}/products', [ProductController::class, 'productsByType'])->name('types.products');
+        Route::get('top-ordered-dishes', [ProductController::class, 'topOrderedDishes'])->name('top-ordered-dishes');
         Route::get('/', [ProductController::class, 'index'])->name('index');
         Route::get('{product}', [ProductController::class, 'show'])->name('show');
     });

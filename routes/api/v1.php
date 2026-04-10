@@ -17,6 +17,7 @@ Route::get('products/categories/{category}/products', [ProductController::class,
 Route::get('products/types', [ProductController::class, 'types'])->name('products.types.index');
 Route::get('products/types/{type}', [ProductController::class, 'showType'])->name('products.types.show');
 Route::get('products/types/{type}/products', [ProductController::class, 'productsByType'])->name('products.types.products');
+Route::get('products/top-ordered-dishes', [ProductController::class, 'topOrderedDishes'])->name('products.top-ordered-dishes');
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
 

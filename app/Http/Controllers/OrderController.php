@@ -49,7 +49,7 @@ class OrderController extends Controller
 
         $service->createOrder($validated, $request->user()?->id, $request->user());
 
-        return redirect()->route('orders.index')
+        return back()
             ->with('success', 'Order created successfully.');
     }
 
@@ -72,7 +72,7 @@ class OrderController extends Controller
 
         $service->updateOrder($order, $validated, $request->user());
 
-        return redirect()->route('orders.index')
+        return back()
             ->with('success', 'Order updated successfully.');
     }
 
@@ -81,15 +81,18 @@ class OrderController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(OrderStatus::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'discount_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $service->updateStatus(
             $order,
             $validated['status'],
             $validated['payment_method'] ?? null,
+            isset($validated['discount_amount']) ? (float) $validated['discount_amount'] : null,
+            $request->user(),
         );
 
-        return redirect()->route('orders.index')
+        return back()
             ->with('success', 'Order status updated successfully.');
     }
 
@@ -99,9 +102,9 @@ class OrderController extends Controller
             'branch_table_id' => ['required', 'exists:branch_tables,id'],
         ]);
 
-        $service->updateTable($order, (int) $validated['branch_table_id']);
+        $service->updateTable($order, (int) $validated['branch_table_id'], $request->user());
 
-        return redirect()->route('orders.index')
+        return back()
             ->with('success', 'Order table updated successfully.');
     }
 
@@ -115,9 +118,9 @@ class OrderController extends Controller
             'items.*.price' => 'required|integer|min:0',
         ]);
 
-        $service->addItems($order, $validated['items']);
+        $service->addItems($order, $validated['items'], $request->user());
 
-        return redirect()->route('orders.index')
+        return back()
             ->with('success', 'Order items added successfully.');
     }
 }

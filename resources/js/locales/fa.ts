@@ -32,7 +32,7 @@ const fa = {
     },
     auth: {
         login: {
-            title: 'ورود',
+            title: 'ورود به سیستم',
             heading: 'خوش آمدید!',
             description: 'برای ادامه به حساب خود وارد شوید.',
             email: 'ایمیل آدرس',
@@ -41,7 +41,7 @@ const fa = {
             passwordPlaceholder: 'رمز عبور خود را وارد کنید',
             remember: 'من را به یاد داشته باش',
             forgotPassword: 'رمز عبور را فراموش کرده‌اید؟',
-            submit: 'ورود',
+            submit: 'ورود به سیستم',
             showPassword: 'نمایش رمز عبور',
             hidePassword: 'پنهان کردن رمز عبور',
         },
@@ -67,21 +67,21 @@ const fa = {
         },
     },
     navigation: {
-        platform: 'پلتفرم',
-        dashboard: 'داشبورد',
-        orders: 'سفارش‌ها',
-        products: 'محصولات',
-        inventory: 'موجودی',
+        platform: 'سیستم',
+        dashboard: 'دشبورد',
+        orders: 'سفارش‌ ها',
+        products: 'مینو و محصولات',
+        inventory: 'بخش گدام',
         employees: 'کارمندان',
-        finance: 'مالی',
-        branches: 'شعبات',
-        users: 'کاربران',
-        roles: 'نقش‌ها',
-        reports: 'گزارش‌ها',
+        finance: 'بخش مالی',
+        branches: 'شعبات رستورانت',
+        users: 'کاربران سیستم',
+        roles: 'صلاحیت ها',
+        reports: 'گزارش‌ ها',
         tools: 'ابزارها',
         runtimeHealth: 'وضعیت سیستم',
         mobileApp: 'اپلیکیشن موبایل',
-        website: 'وب‌سایت',
+        website: 'وب‌ سایت',
     },
     settings: {
         title: 'تنظیمات',
@@ -136,7 +136,8 @@ const fa = {
         },
         emptyCategory: {
             title: 'در این کتگوری موردی وجود ندارد',
-            description: 'برای دیدن اعلان‌های بیشتر، نشان دیگری را انتخاب کنید.',
+            description:
+                'برای دیدن اعلان‌های بیشتر، نشان دیگری را انتخاب کنید.',
         },
     },
     footer: {
@@ -146,7 +147,7 @@ const fa = {
     dashboard: {
         title: 'داشبورد',
         today: 'امروز',
-        projection: 'پروجکشن',
+        projection: 'وضعیت',
         systemHealthCheck: 'بررسی وضعیت سیستم',
         showFormula: 'نمایش فرمول',
         healthy: 'سالم',
@@ -155,18 +156,18 @@ const fa = {
         unavailable: 'ناموجود',
         info: 'اطلاع',
         financeSnapshot: 'نمای مالی',
-        financeSnapshotDescription: 'نمایی روشن از سودآوری و وضعیت نقدی.',
-        netProfit: 'سود خالص',
+        financeSnapshotDescription: 'نمایی روشن از درآمد، مصارف و وضعیت نقدی.',
+        netProfit: 'فایده خالص',
         expenses: 'مصارف',
         cashPosition: 'وضعیت نقدی',
-        netProfitTrend: 'روند سود خالص',
+        netProfitTrend: 'روند فایده خالص',
         past4Months: '۴ ماه گذشته',
-        compactMonthlyNetProfitView: 'نمای فشرده سود خالص ماهانه',
+        compactMonthlyNetProfitView: 'نمای فشرده فایده خالص ماهانه',
         noPercentageComparison: 'مقایسه درصدی در دسترس نیست',
         trendUpBy: 'افزایش به میزان',
         trendDownBy: 'کاهش به میزان',
         fromLastMonth: 'نسبت به ماه گذشته',
-        orderFlow: 'جریان سفارش‌ها',
+        orderFlow: 'جریان سفارشات مشتریان',
         operationalViewFor: 'نمای عملیاتی برای :date.',
         selectDate: 'انتخاب تاریخ',
         pending: 'در انتظار',
@@ -178,8 +179,7 @@ const fa = {
         orderMovementDescription:
             '۷ روز گذشته در مراحل انتظار، آشپزخانه و تکمیل',
         inventoryHealth: 'وضعیت موجودی',
-        inventoryHealthDescription:
-            'قدرت موجودی، میزان ریسک و فشار کمبود موجودی.',
+        inventoryHealthDescription: 'وضعیت ګدام و اجناس موجود در رستورانت.',
         inventoryStatusOverview: 'نمای وضعیت موجودی',
         restaurantItems: 'اقلام رستورانت',
         items: 'اقلام',
@@ -437,8 +437,7 @@ const fa = {
         breadcrumb: 'محصولات',
         totalProducts: 'مجموع محصولات',
         totalProductsDescription: 'تمام محصولات موجود در سیستم.',
-        mappedToTypeDescription:
-            'محصولاتی که به این نوع محصول مرتبط شده‌اند.',
+        mappedToTypeDescription: 'محصولاتی که به این نوع محصول مرتبط شده‌اند.',
         typeNames: {
             food: 'غذا',
             dessert: 'دسر',
@@ -446,8 +445,7 @@ const fa = {
             bundles: 'بسته‌ها',
         },
         totalCategories: 'مجموع کتگوری‌ها',
-        totalCategoriesDescription:
-            'کتگوری‌های موجود برای تنظیم محصولات.',
+        totalCategoriesDescription: 'کتگوری‌های موجود برای تنظیم محصولات.',
         headingTitle: 'محصولات:',
         headingDescription: 'مدیریت اقلام منو، کتگوری‌ها، انواع و قیمت‌گذاری',
         manageCategories: 'مدیریت کتگوری‌ها',
@@ -530,7 +528,8 @@ const fa = {
             update: 'به‌روزرسانی کتگوری',
             cancelEdit: 'لغو ویرایش',
             deleteTitle: 'حذف کتگوری',
-            deleteDescription: 'آیا مطمئن هستید که می‌خواهید این کتگوری را حذف کنید؟',
+            deleteDescription:
+                'آیا مطمئن هستید که می‌خواهید این کتگوری را حذف کنید؟',
         },
         typeMeta: {
             title: 'مدیریت انواع',
@@ -545,7 +544,8 @@ const fa = {
             update: 'به‌روزرسانی نوع',
             cancelEdit: 'لغو ویرایش',
             deleteTitle: 'حذف نوع',
-            deleteDescription: 'آیا مطمئن هستید که می‌خواهید این نوع را حذف کنید؟',
+            deleteDescription:
+                'آیا مطمئن هستید که می‌خواهید این نوع را حذف کنید؟',
         },
         columns: {
             product: 'محصول',
@@ -578,7 +578,8 @@ const fa = {
         },
         edit: {
             title: 'ویرایش محصول',
-            description: 'جزئیات، قیمت‌گذاری و تصاویر محصول را به‌روزرسانی کنید.',
+            description:
+                'جزئیات، قیمت‌گذاری و تصاویر محصول را به‌روزرسانی کنید.',
         },
         messages: {
             productCreated: 'محصول با موفقیت ایجاد شد.',

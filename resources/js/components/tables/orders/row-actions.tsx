@@ -24,7 +24,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useLocalization } from '@/lib/localization';
-import { BranchTable, Order } from '@/types';
+import { BranchTable, Order, SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import {
     Edit3,
     Eye,
@@ -69,6 +70,7 @@ export function OrderRowActions({
     onUpdateStatus,
     onPrint,
 }: OrderRowActionsProps) {
+    const { auth } = usePage<SharedData>().props;
     const { t, isRtl } = useLocalization();
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -80,7 +82,14 @@ export function OrderRowActions({
         order.payments?.[0]?.method ?? 'cash',
     );
     const [error, setError] = useState('');
-    const canPrintReceipt = (order.status ?? 'pending') === 'completed';
+    const isCompleted = (order.status ?? 'pending') === 'completed';
+    const canPrintReceipt = ['ready', 'completed'].includes(
+        order.status ?? 'pending',
+    );
+    const canEditOrder = !isCompleted;
+    const canAddOrderItems = !isCompleted;
+    const canAssignOrderTable = !isCompleted;
+    const canUpdateStatus = !isCompleted || auth.is_super_admin === true;
     const paymentMethodOptions = [
         { value: 'cash', label: t('orders.paymentMethod.cash', 'Cash') },
         {
@@ -156,7 +165,8 @@ export function OrderRowActions({
                                 ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
-                        onClick={() => onEdit(order)}
+                        onClick={() => canEditOrder && onEdit(order)}
+                        disabled={!canEditOrder}
                     >
                         <Edit3
                             className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
@@ -169,7 +179,8 @@ export function OrderRowActions({
                                 ? 'w-full flex-row-reverse justify-start text-right'
                                 : ''
                         }
-                        onClick={() => onAddItems(order)}
+                        onClick={() => canAddOrderItems && onAddItems(order)}
+                        disabled={!canAddOrderItems}
                     >
                         <Plus
                             className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
@@ -197,6 +208,9 @@ export function OrderRowActions({
                                 : ''
                         }
                         onClick={() => {
+                            if (!canAssignOrderTable) {
+                                return;
+                            }
                             setBranchTableId(
                                 order.branch_table_id
                                     ? String(order.branch_table_id)
@@ -205,6 +219,7 @@ export function OrderRowActions({
                             setError('');
                             setIsAssignTableOpen(true);
                         }}
+                        disabled={!canAssignOrderTable}
                     >
                         <Edit3
                             className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
@@ -218,12 +233,16 @@ export function OrderRowActions({
                                 : ''
                         }
                         onClick={() => {
+                            if (!canUpdateStatus) {
+                                return;
+                            }
                             setStatus(order.status ?? 'pending');
                             setPaymentMethod(
                                 order.payments?.[0]?.method ?? 'cash',
                             );
                             setIsStatusOpen(true);
                         }}
+                        disabled={!canUpdateStatus}
                     >
                         <Edit3
                             className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}

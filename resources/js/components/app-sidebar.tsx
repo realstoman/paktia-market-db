@@ -22,11 +22,11 @@ import {
     Boxes,
     BriefcaseBusiness,
     Building2,
+    ChartLine,
     Globe,
     LayoutGrid,
     Package,
     ReceiptText,
-    ScrollText,
     ShieldCheck,
     Smartphone,
     Users,
@@ -110,10 +110,10 @@ const mainNavItems: SidebarNavConfig[] = [
         titleKey: 'navigation.reports',
         fallbackTitle: 'Reports',
         href: '/reports',
-        icon: ScrollText,
+        icon: ChartLine,
         can: 'reports.view',
     },
-] ;
+];
 
 const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
     {

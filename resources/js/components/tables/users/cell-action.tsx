@@ -35,12 +35,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Branch, Country, Province, Role, User } from '@/types';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
     CheckCircle,
     Edit,
     Eye,
+    EyeOff,
+    KeyRound,
     MoreHorizontal,
     Save,
     Trash,
@@ -65,9 +67,11 @@ export const CellAction: React.FC<CellActionProps> = ({
     provinces,
     branches,
 }) => {
+    const { auth } = usePage().props as { auth: { user: User; is_super_admin?: boolean } };
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isBlockOpen, setIsBlockOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
     const [editName, setEditName] = useState(data.name);
     const [editEmail, setEditEmail] = useState(data.email);
     const [editRoleId, setEditRoleId] = useState(
@@ -85,8 +89,17 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editPassword, setEditPassword] = useState('');
     const [editPasswordConfirmation, setEditPasswordConfirmation] =
         useState('');
+    const [resetPassword, setResetPassword] = useState('');
+    const [resetPasswordConfirmation, setResetPasswordConfirmation] =
+        useState('');
+    const [showResetPassword, setShowResetPassword] = useState(false);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+    const [resetPasswordErrors, setResetPasswordErrors] = useState<
+        Record<string, string>
+    >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const canResetPassword =
+        auth.is_super_admin === true && auth.user.id !== data.id;
 
     const resetEdit = () => {
         setEditName(data.name);
@@ -183,6 +196,43 @@ export const CellAction: React.FC<CellActionProps> = ({
         });
     };
 
+    const resetPasswordForm = () => {
+        setResetPassword('');
+        setResetPasswordConfirmation('');
+        setShowResetPassword(false);
+        setResetPasswordErrors({});
+    };
+
+    const handleResetPassword = () => {
+        if (!canResetPassword || !resetPassword || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.put(
+            `/users/${data.id}/reset-password`,
+            {
+                password: resetPassword,
+                password_confirmation: resetPasswordConfirmation,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Password reset successfully.');
+                    setIsResetPasswordOpen(false);
+                    resetPasswordForm();
+                },
+                onError: (errors) => {
+                    setResetPasswordErrors(errors);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
+
     return (
         <>
             <DropdownMenu modal={false}>
@@ -213,6 +263,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Ban className="mr-2 h-4 w-4" />
                         {data.is_active ? 'Block' : 'Unblock'}
                     </DropdownMenuItem>
+                    {canResetPassword ? (
+                        <DropdownMenuItem
+                            onClick={() => {
+                                resetPasswordForm();
+                                setIsResetPasswordOpen(true);
+                            }}
+                        >
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            Reset password
+                        </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                         <Trash className="mr-2 h-4 w-4 text-red-600" />
                         Delete
@@ -402,6 +463,105 @@ export const CellAction: React.FC<CellActionProps> = ({
                         >
                             <Save className="mr-2 h-4 w-4" />
                             Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isResetPasswordOpen}
+                onOpenChange={(open) => {
+                    setIsResetPasswordOpen(open);
+
+                    if (!open) {
+                        resetPasswordForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Reset User Password</DialogTitle>
+                        <DialogDescription>
+                            Set a new password for {data.name}. Ask the user to
+                            change it after signing in.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor={`reset-password-${data.id}`}>
+                                New password
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    id={`reset-password-${data.id}`}
+                                    type={showResetPassword ? 'text' : 'password'}
+                                    value={resetPassword}
+                                    onChange={(event) =>
+                                        setResetPassword(event.target.value)
+                                    }
+                                    placeholder="Minimum 8 characters"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2"
+                                    onClick={() =>
+                                        setShowResetPassword((current) => !current)
+                                    }
+                                >
+                                    {showResetPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
+                            <InputError message={resetPasswordErrors.password} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor={`reset-password-confirmation-${data.id}`}>
+                                Confirm password
+                            </Label>
+                            <Input
+                                id={`reset-password-confirmation-${data.id}`}
+                                type={showResetPassword ? 'text' : 'password'}
+                                value={resetPasswordConfirmation}
+                                onChange={(event) =>
+                                    setResetPasswordConfirmation(
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder="Repeat the new password"
+                            />
+                            <InputError
+                                message={
+                                    resetPasswordErrors.password_confirmation
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setIsResetPasswordOpen(false);
+                                resetPasswordForm();
+                            }}
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleResetPassword}
+                            disabled={!resetPassword || isSubmitting}
+                        >
+                            Reset password
                         </Button>
                     </DialogFooter>
                 </DialogContent>
