@@ -154,6 +154,12 @@ class UserController extends Controller
 
     public function resetPassword(Request $request, User $user): RedirectResponse
     {
+        if ($request->user()?->is($user)) {
+            return back()->withErrors([
+                'password' => 'Use your own profile settings to change your password.',
+            ]);
+        }
+
         $this->authorize('resetPassword', $user);
 
         $validated = $request->validate([

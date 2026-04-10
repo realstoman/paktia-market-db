@@ -141,7 +141,7 @@ export default function Profile({
                     </Form>
                 </div>
 
-                <DeleteUser />
+                <DeleteUser canDelete={!auth.user.is_internal_user} />
             </SettingsLayout>
         </AppLayout>
     );
