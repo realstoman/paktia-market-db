@@ -368,13 +368,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
+                <DropdownMenuContent
+                    align={isRtl ? 'start' : 'end'}
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                         {t('products.actions.actionMenu', 'Actions')}
                     </DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() => setIsViewOpen(true)}
-                        className={isRtl ? 'flex-row-reverse justify-end' : ''}
+                        className={
+                            isRtl
+                                ? 'flex-row-reverse justify-end text-right'
+                                : ''
+                        }
                     >
                         <Eye
                             className={
@@ -388,7 +395,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             resetEdit();
                             setIsEditOpen(true);
                         }}
-                        className={isRtl ? 'flex-row-reverse justify-end' : ''}
+                        className={
+                            isRtl
+                                ? 'flex-row-reverse justify-end text-right'
+                                : ''
+                        }
                     >
                         <Edit
                             className={
@@ -399,7 +410,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => setIsDeleteOpen(true)}
-                        className={isRtl ? 'flex-row-reverse justify-end' : ''}
+                        className={
+                            isRtl
+                                ? 'flex-row-reverse justify-end text-right'
+                                : ''
+                        }
                     >
                         <Trash2
                             className={

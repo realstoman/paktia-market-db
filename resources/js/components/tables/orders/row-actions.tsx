@@ -130,8 +130,11 @@ export function OrderRowActions({
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
+                <DropdownMenuContent
+                    align={isRtl ? 'start' : 'end'}
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                         {t('orders.rowActions.actions', 'Actions')}
                     </DropdownMenuLabel>
                     <DropdownMenuItem

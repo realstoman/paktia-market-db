@@ -42,7 +42,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className={`flex w-full items-center gap-2 ${
-                            isRtl ? 'justify-end text-right' : ''
+                            isRtl
+                                ? 'flex-row-reverse justify-end text-right'
+                                : ''
                         }`}
                         href={edit()}
                         as="button"
@@ -56,7 +58,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className={`flex w-full items-center gap-2 ${
-                            isRtl ? 'justify-end text-right' : ''
+                            isRtl
+                                ? 'flex-row-reverse justify-end text-right'
+                                : ''
                         }`}
                         href={edit()}
                         as="button"
@@ -72,7 +76,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link
                     className={`flex w-full items-center gap-2 ${
-                        isRtl ? 'justify-end text-right' : ''
+                        isRtl
+                            ? 'flex-row-reverse justify-end text-right'
+                            : ''
                     }`}
                     href={logout()}
                     as="button"
