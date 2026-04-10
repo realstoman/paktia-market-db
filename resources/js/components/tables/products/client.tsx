@@ -1166,36 +1166,40 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     </DialogHeader>
                     <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
-                            <Input
-                                placeholder={t(
-                                    'products.categoryMeta.namePlaceholder',
-                                    'Category name',
-                                )}
-                                value={categoryName}
-                                onChange={(event) =>
-                                    setCategoryName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder={t(
-                                    'products.categoryMeta.pashtoPlaceholder',
-                                    'Pashto title (optional)',
-                                )}
-                                value={categoryPashtoName}
-                                onChange={(event) =>
-                                    setCategoryPashtoName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder={t(
-                                    'products.categoryMeta.dariPlaceholder',
-                                    'Dari title (optional)',
-                                )}
-                                value={categoryDariName}
-                                onChange={(event) =>
-                                    setCategoryDariName(event.target.value)
-                                }
-                            />
+                            <div className="grid gap-2 md:grid-cols-3">
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.namePlaceholder',
+                                        'Category name',
+                                    )}
+                                    value={categoryName}
+                                    onChange={(event) =>
+                                        setCategoryName(event.target.value)
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.pashtoPlaceholder',
+                                        'Pashto title (optional)',
+                                    )}
+                                    value={categoryPashtoName}
+                                    onChange={(event) =>
+                                        setCategoryPashtoName(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.categoryMeta.dariPlaceholder',
+                                        'Dari title (optional)',
+                                    )}
+                                    value={categoryDariName}
+                                    onChange={(event) =>
+                                        setCategoryDariName(event.target.value)
+                                    }
+                                />
+                            </div>
                             <Textarea
                                 placeholder={t(
                                     'products.categoryMeta.descriptionPlaceholder',
@@ -1389,36 +1393,40 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     </DialogHeader>
                     <div className="flex min-h-0 flex-1 flex-col gap-3">
                         <div className="space-y-2 rounded-md border p-3">
-                            <Input
-                                placeholder={t(
-                                    'products.typeMeta.namePlaceholder',
-                                    'Type name (example: food)',
-                                )}
-                                value={typeName}
-                                onChange={(event) =>
-                                    setTypeName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder={t(
-                                    'products.typeMeta.pashtoPlaceholder',
-                                    'Pashto title (optional)',
-                                )}
-                                value={typePashtoName}
-                                onChange={(event) =>
-                                    setTypePashtoName(event.target.value)
-                                }
-                            />
-                            <Input
-                                placeholder={t(
-                                    'products.typeMeta.dariPlaceholder',
-                                    'Dari title (optional)',
-                                )}
-                                value={typeDariName}
-                                onChange={(event) =>
-                                    setTypeDariName(event.target.value)
-                                }
-                            />
+                            <div className="grid gap-2 md:grid-cols-3">
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.namePlaceholder',
+                                        'Type name (example: food)',
+                                    )}
+                                    value={typeName}
+                                    onChange={(event) =>
+                                        setTypeName(event.target.value)
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.pashtoPlaceholder',
+                                        'Pashto title (optional)',
+                                    )}
+                                    value={typePashtoName}
+                                    onChange={(event) =>
+                                        setTypePashtoName(
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                                <Input
+                                    placeholder={t(
+                                        'products.typeMeta.dariPlaceholder',
+                                        'Dari title (optional)',
+                                    )}
+                                    value={typeDariName}
+                                    onChange={(event) =>
+                                        setTypeDariName(event.target.value)
+                                    }
+                                />
+                            </div>
                             <Textarea
                                 placeholder={t(
                                     'products.typeMeta.descriptionPlaceholder',
