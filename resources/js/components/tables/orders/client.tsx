@@ -126,6 +126,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAddItemsOpen, setIsAddItemsOpen] = useState(false);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+    const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [branchId, setBranchId] = useState(defaultBranchId);
     const [branchTableId, setBranchTableId] = useState('');
@@ -408,6 +409,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
                     toast.success(
                         t(
@@ -424,6 +426,66 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 'Failed to update order status.',
                             ),
                     );
+                },
+            },
+        );
+    };
+
+    const handleCompletePayment = (
+        order: Order,
+        payload: { discountAmount: number; paymentMethod: string },
+    ) => {
+        const subtotal = Number(
+            order.sub_total_amount ?? order.total_amount ?? 0,
+        );
+        const finalTotal = Math.max(0, subtotal - payload.discountAmount);
+
+        setIsCompletingPayment(true);
+
+        router.patch(
+            `/orders/${order.id}/status`,
+            {
+                status: 'completed',
+                payment_method: payload.paymentMethod,
+                discount_amount: payload.discountAmount,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        t(
+                            'orders.messages.paymentCompleted',
+                            'Payment completed and finance updated.',
+                        ),
+                    );
+                    setSelectedReceiptOrder({
+                        ...order,
+                        status: 'completed',
+                        discount_amount: payload.discountAmount,
+                        total_amount: finalTotal,
+                        paid_amount: finalTotal,
+                        payments: [
+                            {
+                                ...(order.payments?.[0] ?? {}),
+                                method: payload.paymentMethod,
+                                amount: finalTotal,
+                                status: 'paid',
+                            },
+                        ],
+                    });
+                },
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ||
+                            t(
+                                'orders.messages.paymentCompletionFailed',
+                                'Failed to complete payment.',
+                            ),
+                    );
+                },
+                onFinish: () => {
+                    setIsCompletingPayment(false);
                 },
             },
         );
@@ -466,17 +528,18 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     };
 
     const openReceiptPreview = (order: Order) => {
-        if ((order.status ?? 'pending') !== 'completed') {
+        if (!['ready', 'completed'].includes(order.status ?? 'pending')) {
             toast.error(
                 t(
-                    'orders.messages.completedOnlyPrint',
-                    'Only completed orders can be printed. Please complete the order first.',
+                    'orders.messages.readyOrCompletedOnlyPrint',
+                    'Only ready or completed orders can open receipt preview.',
                 ),
             );
             return;
         }
 
         setSelectedReceiptOrder(order);
+        setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
         setIsReceiptPreviewOpen(true);
     };
 
@@ -498,6 +561,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
                     toast.success(
                         t(
@@ -537,6 +601,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 { branch_table_id: nextBranchTableId },
                 {
                     preserveScroll: true,
+                    preserveState: true,
                     onSuccess: () => {
                         toast.success(
                             t(
@@ -1694,8 +1759,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     variant="outline"
                                     className="gap-2"
                                     disabled={
-                                        (selectedOrder.status ?? 'pending') !==
-                                        'completed'
+                                        !['ready', 'completed'].includes(
+                                            selectedOrder.status ?? 'pending',
+                                        )
                                     }
                                     onClick={() =>
                                         openReceiptPreview(selectedOrder)
@@ -2109,6 +2175,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 order={selectedReceiptOrder}
                 open={isReceiptPreviewOpen}
                 onOpenChange={setIsReceiptPreviewOpen}
+                paymentMethod={paymentMethod}
+                onPaymentMethodChange={setPaymentMethod}
+                onCompletePayment={handleCompletePayment}
+                isCompletingPayment={isCompletingPayment}
             />
         </div>
     );
