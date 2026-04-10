@@ -23,6 +23,12 @@ const ps = {
         description: 'هغه ژبه وټاکئ چې په ټول انٹرفېس کې وکارول شي.',
         updated: 'ژبه په بریالیتوب سره بدله شوه.',
     },
+    appearance: {
+        toggleTheme: 'بڼه بدلول',
+        light: 'روښانه',
+        dark: 'تیاره',
+        system: 'سیستم',
+    },
     auth: {
         login: {
             title: 'سیستم ته ننوتل',
@@ -94,6 +100,43 @@ const ps = {
         profile: 'پروفایل',
         settings: 'امستنې',
         logout: 'وتل',
+    },
+    notifications: {
+        openNotifications: 'خبرتیاوې پرانیزئ',
+        center: 'د خبرتیاوو مرکز',
+        recentActivity: 'وروستي فعالیتونه',
+        unreadSummary: ':count نالوستل شوي تازه معلومات پاملرنې ته اړتیا لري.',
+        allCaughtUp: 'اوسمهال ټول څه کتل شوي دي.',
+        items: ':count توکي',
+        markAllRead: 'ټول ولوستل شول',
+        clearAll: 'ټول پاک کړئ',
+        all: 'ټول',
+        recently: 'همدا اوس',
+        remove: 'خبرتیا لرې کړئ',
+        categories: {
+            orders: 'امرونه',
+            payments: 'تادیات',
+            salary: 'معاش',
+            employees: 'کارکوونکي',
+            inventory: 'ذخیره',
+            products: 'محصولات',
+            users: 'کارنان',
+            system: 'سیستم',
+        },
+        priority: {
+            high: 'لوړ لومړیتوب',
+            medium: 'پاملرنې ته اړتیا لري',
+            low: 'معلوماتي',
+        },
+        empty: {
+            title: 'تر اوسه خبرتیا نشته',
+            description:
+                'نوي امرونه، محصولات، ذخیره، معاش، کارکوونکي او کارنان به دلته ښکاره شي.',
+        },
+        emptyCategory: {
+            title: 'په دې کتګورۍ کې کوم توکی نشته',
+            description: 'د نورو تازه معلوماتو لپاره پورته بله نښه وټاکئ.',
+        },
     },
     footer: {
         allRightsReserved: 'ټول حقونه خوندي دي.',

@@ -1,8 +1,10 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { usePage } from "@inertiajs/react"
 import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { SharedData } from "@/types"
 
 function Dialog({
   ...props
@@ -49,6 +51,9 @@ function DialogContent({
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  const { localization } = usePage<SharedData>().props
+  const isRtl = localization?.isRtl ?? false
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -61,7 +66,10 @@ function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+        <DialogPrimitive.Close className={cn(
+          "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+          isRtl ? "left-4" : "right-4"
+        )}>
           <XIcon />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
@@ -71,10 +79,17 @@ function DialogContent({
 }
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+  const { localization } = usePage<SharedData>().props
+  const isRtl = localization?.isRtl ?? false
+
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn(
+        "flex flex-col gap-2 text-center",
+        isRtl ? "sm:text-right" : "sm:text-left",
+        className
+      )}
       {...props}
     />
   )

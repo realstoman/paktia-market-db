@@ -19,7 +19,7 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
 
     const handleLogout = () => {
         cleanup();
@@ -29,7 +29,11 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     return (
         <>
             <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div
+                    className={`px-1 py-1.5 text-sm ${
+                        isRtl ? 'text-right' : 'text-left'
+                    }`}
+                >
                     <UserInfo user={user} showEmail={true} />
                 </div>
             </DropdownMenuLabel>
@@ -37,25 +41,29 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
                     <Link
-                        className="block w-full"
+                        className={`flex w-full items-center gap-2 ${
+                            isRtl ? 'justify-end text-right' : ''
+                        }`}
                         href={edit()}
                         as="button"
                         prefetch
                         onClick={cleanup}
                     >
-                        <UserIcon className="mr-2" />
+                        <UserIcon className={isRtl ? 'ml-2' : 'mr-2'} />
                         {t('userMenu.profile', 'Profile')}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link
-                        className="block w-full"
+                        className={`flex w-full items-center gap-2 ${
+                            isRtl ? 'justify-end text-right' : ''
+                        }`}
                         href={edit()}
                         as="button"
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Settings className={isRtl ? 'ml-2' : 'mr-2'} />
                         {t('userMenu.settings', 'Settings')}
                     </Link>
                 </DropdownMenuItem>
@@ -63,13 +71,15 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
                 <Link
-                    className="block w-full"
+                    className={`flex w-full items-center gap-2 ${
+                        isRtl ? 'justify-end text-right' : ''
+                    }`}
                     href={logout()}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className="mr-2" />
+                    <LogOut className={isRtl ? 'ml-2' : 'mr-2'} />
                     {t('userMenu.logout', 'Log out')}
                 </Link>
             </DropdownMenuItem>

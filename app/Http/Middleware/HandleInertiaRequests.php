@@ -117,7 +117,7 @@ class HandleInertiaRequests extends Middleware
         return collect([[
             'id' => (string) $flash['id'],
             'category' => $flash['category'] ?? 'system',
-            'title' => $flash['title'] ?? 'System activity',
+            'title' => $flash['title'] ?? __('notifications.flash.title'),
             'description' => $flash['description'] ?? '',
             'createdAt' => now()->toIso8601String(),
             'meta' => $flash['meta'] ?? null,
@@ -144,17 +144,28 @@ class HandleInertiaRequests extends Middleware
             ->map(fn (Order $order) => [
                 'id' => "order-{$order->id}",
                 'category' => 'orders',
-                'title' => 'New order received',
-                'description' => sprintf(
-                    'Order #%d was created%s%s.',
-                    $order->id,
-                    $order->branchTable?->table_number ? " for table {$order->branchTable->table_number}" : '',
-                    $order->user?->name ? " by {$order->user->name}" : '',
-                ),
+                'title' => __('notifications.orders.title'),
+                'description' => __('notifications.orders.description', [
+                    'id' => $order->id,
+                    'table' => $order->branchTable?->table_number
+                        ? __('notifications.orders.table_segment', [
+                            'table' => $order->branchTable->table_number,
+                        ])
+                        : '',
+                    'user' => $order->user?->name
+                        ? __('notifications.orders.user_segment', [
+                            'user' => $order->user->name,
+                        ])
+                        : '',
+                ]),
                 'createdAt' => $order->created_at?->toIso8601String(),
                 'meta' => trim(collect([
                     $order->branch?->name,
-                    $order->total_amount !== null ? 'Total '.number_format((float) $order->total_amount, 0) : null,
+                    $order->total_amount !== null
+                        ? __('notifications.orders.total_meta', [
+                            'amount' => number_format((float) $order->total_amount, 0),
+                        ])
+                        : null,
                 ])->filter()->join(' • ')),
                 'priority' => 'high',
                 'unread' => $order->created_at?->gt(now()->subHours(12)) ?? false,
@@ -178,13 +189,20 @@ class HandleInertiaRequests extends Middleware
             ->map(fn (Payment $payment) => [
                 'id' => "payment-{$payment->id}",
                 'category' => 'payments',
-                'title' => 'Payment recorded',
-                'description' => sprintf(
-                    '%s payment%s%s was posted successfully.',
-                    strtoupper((string) $payment->method ?: 'Payment'),
-                    $payment->order_id ? " for order #{$payment->order_id}" : '',
-                    $payment->receiver?->name ? " by {$payment->receiver->name}" : '',
-                ),
+                'title' => __('notifications.payments.title'),
+                'description' => __('notifications.payments.description', [
+                    'method' => strtoupper((string) $payment->method ?: __('notifications.payments.method_fallback')),
+                    'order' => $payment->order_id
+                        ? __('notifications.payments.order_segment', [
+                            'order' => $payment->order_id,
+                        ])
+                        : '',
+                    'user' => $payment->receiver?->name
+                        ? __('notifications.payments.user_segment', [
+                            'user' => $payment->receiver->name,
+                        ])
+                        : '',
+                ]),
                 'createdAt' => ($payment->payment_date ?? $payment->created_at)?->toIso8601String(),
                 'meta' => trim(collect([
                     $payment->currency ? strtoupper((string) $payment->currency) : null,
@@ -213,13 +231,12 @@ class HandleInertiaRequests extends Middleware
             ->map(fn (PayrollRun $payrollRun) => [
                 'id' => "payroll-{$payrollRun->id}",
                 'category' => 'salary',
-                'title' => 'Payroll activity updated',
-                'description' => sprintf(
-                    'Payroll run #%d for %d employees is currently %s.',
-                    $payrollRun->id,
-                    $payrollRun->items_count,
-                    str_replace('_', ' ', strtolower((string) $payrollRun->status)),
-                ),
+                'title' => __('notifications.salary.title'),
+                'description' => __('notifications.salary.description', [
+                    'id' => $payrollRun->id,
+                    'count' => $payrollRun->items_count,
+                    'status' => str_replace('_', ' ', strtolower((string) $payrollRun->status)),
+                ]),
                 'createdAt' => ($payrollRun->paid_at ?? $payrollRun->approved_at ?? $payrollRun->created_at)?->toIso8601String(),
                 'meta' => trim(collect([
                     $payrollRun->branch?->name,
@@ -249,8 +266,10 @@ class HandleInertiaRequests extends Middleware
             ->map(fn (Employee $employee) => [
                 'id' => "employee-{$employee->id}",
                 'category' => 'employees',
-                'title' => 'New employee added',
-                'description' => trim("{$employee->first_name} {$employee->last_name} joined the team."),
+                'title' => __('notifications.employees.title'),
+                'description' => __('notifications.employees.description', [
+                    'name' => trim("{$employee->first_name} {$employee->last_name}"),
+                ]),
                 'createdAt' => $employee->created_at?->toIso8601String(),
                 'meta' => trim(collect([
                     $employee->branch?->name,
@@ -279,8 +298,10 @@ class HandleInertiaRequests extends Middleware
             ->map(fn (User $user) => [
                 'id' => "user-{$user->id}",
                 'category' => 'users',
-                'title' => 'New user account created',
-                'description' => "{$user->name} was added to the platform.",
+                'title' => __('notifications.users.title'),
+                'description' => __('notifications.users.description', [
+                    'name' => $user->name,
+                ]),
                 'createdAt' => $user->created_at?->toIso8601String(),
                 'meta' => trim(collect([
                     $user->roles->pluck('name')->join(', '),
@@ -309,15 +330,23 @@ class HandleInertiaRequests extends Middleware
                 'id' => "inventory-{$item->id}-{$item->updated_at?->timestamp}",
                 'category' => 'inventory',
                 'title' => $item->created_at?->equalTo($item->updated_at)
-                    ? 'Inventory item added'
-                    : 'Inventory item updated',
+                    ? __('notifications.inventory.added_title')
+                    : __('notifications.inventory.updated_title'),
                 'description' => $item->created_at?->equalTo($item->updated_at)
-                    ? "{$item->name} was added to inventory."
-                    : "{$item->name} inventory details were updated.",
+                    ? __('notifications.inventory.added_description', [
+                        'name' => $item->name,
+                    ])
+                    : __('notifications.inventory.updated_description', [
+                        'name' => $item->name,
+                    ]),
                 'createdAt' => $item->updated_at?->toIso8601String(),
                 'meta' => trim(collect([
                     $item->branch?->name,
-                    $item->quantity !== null ? 'Qty '.number_format((float) $item->quantity, 0) : null,
+                    $item->quantity !== null
+                        ? __('notifications.inventory.qty_meta', [
+                            'quantity' => number_format((float) $item->quantity, 0),
+                        ])
+                        : null,
                 ])->filter()->join(' • ')),
                 'href' => '/inventory',
                 'priority' => ((float) $item->quantity <= 0 ? 'high' : ((float) $item->quantity <= 10 ? 'medium' : 'low')),
@@ -343,11 +372,15 @@ class HandleInertiaRequests extends Middleware
                 'id' => "product-{$product->id}-{$product->updated_at?->timestamp}",
                 'category' => 'products',
                 'title' => $product->created_at?->equalTo($product->updated_at)
-                    ? 'Product added'
-                    : 'Product updated',
+                    ? __('notifications.products.added_title')
+                    : __('notifications.products.updated_title'),
                 'description' => $product->created_at?->equalTo($product->updated_at)
-                    ? "{$product->name} is now available in the catalog."
-                    : "{$product->name} product details were updated.",
+                    ? __('notifications.products.added_description', [
+                        'name' => $product->name,
+                    ])
+                    : __('notifications.products.updated_description', [
+                        'name' => $product->name,
+                    ]),
                 'createdAt' => $product->updated_at?->toIso8601String(),
                 'meta' => trim(collect([
                     $product->category?->name,

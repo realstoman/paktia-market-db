@@ -1,4 +1,5 @@
 import { HeaderNotifications } from '@/components/header-notifications';
+import { useLocalization } from '@/lib/localization';
 import { Icon } from '@/components/icon';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -66,6 +67,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
+    const { isRtl } = useLocalization();
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
@@ -244,7 +246,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuContent
+                                className={`w-52 ${isRtl ? 'text-right' : ''}`}
+                                align={isRtl ? 'start' : 'end'}
+                            >
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>

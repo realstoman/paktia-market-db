@@ -23,6 +23,12 @@ const en = {
         description: 'Choose the language used across the interface.',
         updated: 'Language updated successfully.',
     },
+    appearance: {
+        toggleTheme: 'Toggle theme',
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+    },
     auth: {
         login: {
             title: 'Log in',
@@ -94,6 +100,43 @@ const en = {
         profile: 'Profile',
         settings: 'Settings',
         logout: 'Log out',
+    },
+    notifications: {
+        openNotifications: 'Open notifications',
+        center: 'Notifications Center',
+        recentActivity: 'Recent activity',
+        unreadSummary: ':count unread updates need attention.',
+        allCaughtUp: 'Everything is reviewed for now.',
+        items: ':count items',
+        markAllRead: 'Mark all read',
+        clearAll: 'Clear all',
+        all: 'All',
+        recently: 'Recently',
+        remove: 'Remove notification',
+        categories: {
+            orders: 'Orders',
+            payments: 'Payments',
+            salary: 'Salary',
+            employees: 'Employees',
+            inventory: 'Inventory',
+            products: 'Products',
+            users: 'Users',
+            system: 'System',
+        },
+        priority: {
+            high: 'High priority',
+            medium: 'Needs attention',
+            low: 'Informational',
+        },
+        empty: {
+            title: 'No notifications yet',
+            description:
+                'New orders, products, inventory, payroll, employees, and users will appear here.',
+        },
+        emptyCategory: {
+            title: 'No items in this category',
+            description: 'Choose another badge above to see more recent updates.',
+        },
     },
     footer: {
         allRightsReserved: 'All rights reserved.',

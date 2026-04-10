@@ -5,6 +5,7 @@ import React, {
     useState,
 } from 'react';
 import { useLocalization } from '@/lib/localization';
+import { formatNumber } from '@/utils/format';
 import {
     ColumnDef,
     FilterFn,
@@ -193,8 +194,8 @@ export function DataTable<TData, TValue>({
         'common.rowsSelected',
         ':selected of :total row(s) selected.',
     )
-        .replace(':selected', String(selectedRowCount))
-        .replace(':total', String(filteredRowCount));
+        .replace(':selected', formatNumber(selectedRowCount))
+        .replace(':total', formatNumber(filteredRowCount));
 
     return (
         <div className="space-y-4">
@@ -330,7 +331,7 @@ export function DataTable<TData, TValue>({
                                     table.setPageIndex((page as number) - 1)
                                 }
                             >
-                                {page}
+                                {formatNumber(page as number)}
                             </Button>
                         )
                     )}

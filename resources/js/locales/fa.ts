@@ -24,6 +24,12 @@ const fa = {
             'زبانی را انتخاب کنید که در سراسر رابط کاربری استفاده شود.',
         updated: 'زبان با موفقیت تغیر کرد.',
     },
+    appearance: {
+        toggleTheme: 'تغییر نمای ظاهری',
+        light: 'روشن',
+        dark: 'تاریک',
+        system: 'سیستم',
+    },
     auth: {
         login: {
             title: 'ورود',
@@ -95,6 +101,43 @@ const fa = {
         profile: 'پروفایل',
         settings: 'تنظیمات',
         logout: 'خروج',
+    },
+    notifications: {
+        openNotifications: 'باز کردن اعلان‌ها',
+        center: 'مرکز اعلان‌ها',
+        recentActivity: 'فعالیت‌های اخیر',
+        unreadSummary: ':count اعلان خوانده‌نشده نیاز به توجه دارد.',
+        allCaughtUp: 'همه موارد فعلاً بررسی شده‌اند.',
+        items: ':count مورد',
+        markAllRead: 'خواندن همه',
+        clearAll: 'پاک کردن همه',
+        all: 'همه',
+        recently: 'تازه',
+        remove: 'حذف اعلان',
+        categories: {
+            orders: 'سفارش‌ها',
+            payments: 'پرداخت‌ها',
+            salary: 'معاش',
+            employees: 'کارمندان',
+            inventory: 'موجودی',
+            products: 'محصولات',
+            users: 'کاربران',
+            system: 'سیستم',
+        },
+        priority: {
+            high: 'اولویت بالا',
+            medium: 'نیازمند توجه',
+            low: 'اطلاعاتی',
+        },
+        empty: {
+            title: 'هنوز اعلانی وجود ندارد',
+            description:
+                'سفارش‌ها، محصولات، موجودی، معاش، کارمندان و کاربران جدید در اینجا نمایش داده می‌شوند.',
+        },
+        emptyCategory: {
+            title: 'در این کتگوری موردی وجود ندارد',
+            description: 'برای دیدن اعلان‌های بیشتر، نشان دیگری را انتخاب کنید.',
+        },
     },
     footer: {
         allRightsReserved: 'تمام حقوق محفوظ است.',
