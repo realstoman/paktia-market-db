@@ -88,7 +88,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     sizes,
     isLoading = false,
 }) => {
-    const { t, locale } = useLocalization();
+    const { t } = useLocalization();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
     const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
@@ -1247,7 +1247,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     <div className="overflow-hidden rounded-md border">
                                         <img
                                             src={categoryImagePreview}
-                                            alt="Category preview"
+                                            alt={t(
+                                                'products.categoryMeta.title',
+                                                'Manage Categories',
+                                            )}
                                             className="h-24 w-full object-cover"
                                         />
                                     </div>
@@ -1463,7 +1466,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     <div className="overflow-hidden rounded-md border">
                                         <img
                                             src={typeImagePreview}
-                                            alt="Type preview"
+                                            alt={t(
+                                                'products.typeMeta.title',
+                                                'Manage Types',
+                                            )}
                                             className="h-24 w-full object-cover"
                                         />
                                     </div>

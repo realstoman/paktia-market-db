@@ -2,7 +2,6 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ToolsLauncher } from '@/components/tools-launcher';
-import { useAuthorization } from '@/lib/permissions';
 import {
     Sidebar,
     SidebarContent,
@@ -12,12 +11,16 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Activity,
+    Banknote,
     Boxes,
+    BriefcaseBusiness,
     Building2,
     Globe,
     LayoutGrid,
@@ -26,11 +29,8 @@ import {
     ScrollText,
     ShieldCheck,
     Smartphone,
-    UserRound,
     Users,
-    Wallet,
 } from 'lucide-react';
-import { useLocalization } from '@/lib/localization';
 import AppLogo from './app-logo';
 
 const mainNavItems = [
@@ -66,14 +66,14 @@ const mainNavItems = [
         titleKey: 'navigation.employees',
         fallbackTitle: 'Employees',
         href: '/employees',
-        icon: UserRound,
+        icon: BriefcaseBusiness,
         can: 'employees.view',
     },
     {
         titleKey: 'navigation.finance',
         fallbackTitle: 'Finance',
         href: '/finance',
-        icon: Wallet,
+        icon: Banknote,
         canAny: ['finance.view', 'payroll.view'],
     },
     {
@@ -135,10 +135,7 @@ export function AppSidebar() {
         ...(isSuperAdmin
             ? [
                   {
-                      title: t(
-                          'navigation.runtimeHealth',
-                          'Runtime Health',
-                      ),
+                      title: t('navigation.runtimeHealth', 'Runtime Health'),
                       href: '/operations/runtime-health',
                       icon: Activity,
                   } satisfies NavItem,

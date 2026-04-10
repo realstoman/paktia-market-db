@@ -43,7 +43,7 @@ export function ImageViewerDialog({
     images,
     triggerLabel = 'View',
 }: ImageViewerDialogProps) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const [activeIndex, setActiveIndex] = useState(0);
     const hasImages = images.length > 0;
 
@@ -101,7 +101,11 @@ export function ImageViewerDialog({
                                 onClick={onPrev}
                                 disabled={images.length <= 1}
                             >
-                                <ChevronLeft className="mr-1 h-4 w-4" />
+                                {isRtl ? (
+                                    <ChevronRight className="ml-1 h-4 w-4" />
+                                ) : (
+                                    <ChevronLeft className="mr-1 h-4 w-4" />
+                                )}
                                 {t('products.viewer.prev', 'Prev')}
                             </Button>
                             <span className="text-sm text-muted-foreground">
@@ -115,7 +119,11 @@ export function ImageViewerDialog({
                                 disabled={images.length <= 1}
                             >
                                 {t('products.viewer.next', 'Next')}
-                                <ChevronRight className="ml-1 h-4 w-4" />
+                                {isRtl ? (
+                                    <ChevronLeft className="mr-1 h-4 w-4" />
+                                ) : (
+                                    <ChevronRight className="ml-1 h-4 w-4" />
+                                )}
                             </Button>
                         </div>
                     </div>

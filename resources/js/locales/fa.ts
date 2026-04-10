@@ -535,6 +535,9 @@ const fa = {
             productUpdated: 'محصول با موفقیت به‌روزرسانی شد.',
             productUpdateFailed: 'به‌روزرسانی محصول ناموفق بود.',
             productDeleted: 'محصول با موفقیت حذف شد.',
+            productDeleteTitle: 'حذف محصول',
+            productDeleteDescription:
+                'این کار محصول و تمام تصاویر آن را برای همیشه حذف می‌کند.',
             categoryCreated: 'کتگوری با موفقیت ایجاد شد.',
             categoryUpdated: 'کتگوری با موفقیت به‌روزرسانی شد.',
             categoryDeleted: 'کتگوری با موفقیت حذف شد.',

@@ -532,6 +532,9 @@ const ps = {
             productUpdated: 'محصول په بریالیتوب سره تازه شو.',
             productUpdateFailed: 'د محصول تازه کول ناکام شول.',
             productDeleted: 'محصول په بریالیتوب سره ړنګ شو.',
+            productDeleteTitle: 'محصول ړنګول',
+            productDeleteDescription:
+                'دا به محصول او د هغه ټول انځورونه د تل لپاره ړنګ کړي.',
             categoryCreated: 'کټګوري په بریالیتوب سره جوړه شوه.',
             categoryUpdated: 'کټګوري په بریالیتوب سره تازه شوه.',
             categoryDeleted: 'کټګوري په بریالیتوب سره ړنګه شوه.',

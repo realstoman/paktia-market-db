@@ -173,7 +173,8 @@ export const buildColumns = (
                 const sizeCount = row.original.sizes?.length ?? 0;
                 return (
                     <span className="text-sm text-muted-foreground">
-                        {sizeCount} size{sizeCount === 1 ? '' : 's'}
+                        {sizeCount}{' '}
+                        {t('products.columns.sizes', 'Sizes')}
                     </span>
                 );
             },

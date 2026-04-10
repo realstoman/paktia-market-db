@@ -538,6 +538,9 @@ const en = {
             productUpdated: 'Product updated successfully.',
             productUpdateFailed: 'Failed to update product.',
             productDeleted: 'Product deleted successfully.',
+            productDeleteTitle: 'Delete Product',
+            productDeleteDescription:
+                'This will permanently remove the product and all its images.',
             categoryCreated: 'Category created successfully.',
             categoryUpdated: 'Category updated successfully.',
             categoryDeleted: 'Category deleted successfully.',
