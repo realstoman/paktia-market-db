@@ -81,14 +81,7 @@ test('blocked users can not authenticate using the login screen', function () {
     $this->assertGuest();
 });
 
-// test('users can logout', function () {
-//     $user = User::factory()->create();
 
-//     $response = $this->actingAs($user)->post(route('logout'));
-
-//     $this->assertGuest();
-//     $response->assertRedirect(route('login'));
-// });
 
 test('users are rate limited', function () {
     $user = User::factory()->create();
