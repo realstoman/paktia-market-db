@@ -33,9 +33,16 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BranchTable, BreadcrumbItem, Order, Product } from '@/types';
+import {
+    Branch,
+    BranchTable,
+    BreadcrumbItem,
+    Order,
+    Product,
+    SharedData,
+} from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     CheckCircle2,
     CircleX,
@@ -43,8 +50,10 @@ import {
     CookingPot,
     FilterX,
     CalendarIcon,
+    Download,
     type LucideIcon,
     PackageCheck,
+    Printer,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -95,6 +104,7 @@ export default function OrdersPage({
     isAllTime,
     restaurantStartDate,
 }: OrdersPageProps) {
+    const { auth } = usePage<SharedData>().props;
     const { t, locale, isRtl } = useLocalization();
     const dateLocale = useMemo(() => {
         if (locale === 'fa') {
@@ -160,6 +170,13 @@ export default function OrdersPage({
         () => (dateFilter ? new Date(`${dateFilter}T00:00:00`) : undefined),
         [dateFilter],
     );
+    const reportLabel = useMemo(() => {
+        if (isAllTime) {
+            return t('orders.allTimeRecords', 'All time records for orders');
+        }
+
+        return todayDate || t('orders.totalOrdersToday', 'Total orders today');
+    }, [isAllTime, t, todayDate]);
 
     const stats = useMemo(() => {
         const initial = {
@@ -185,6 +202,69 @@ export default function OrdersPage({
     );
     const getStatusLabel = (status: OrderStatusKey) =>
         t(`orders.status.${status}`, status);
+    const getOrderTypeLabel = (orderType: string) =>
+        t(`orders.orderType.${orderType}`, orderType.replace('_', ' '));
+    const userPerformance = useMemo(() => {
+        const rows = new Map<
+            string,
+            {
+                total: number;
+                completed: number;
+                cancelled: number;
+                revenue: number;
+                payments: number;
+            }
+        >();
+
+        for (const order of orders) {
+            const userName =
+                order.user?.name ??
+                t('orders.unassignedUser', 'Unassigned user');
+            const current = rows.get(userName) ?? {
+                total: 0,
+                completed: 0,
+                cancelled: 0,
+                revenue: 0,
+                payments: 0,
+            };
+
+            current.total += 1;
+            if ((order.status ?? 'pending') === 'completed') {
+                current.completed += 1;
+                current.revenue += Number(order.total_amount ?? 0) || 0;
+            }
+            if ((order.status ?? 'pending') === 'cancelled') {
+                current.cancelled += 1;
+            }
+            current.payments += (order.payments ?? []).reduce(
+                (sum, payment) => sum + (Number(payment.amount ?? 0) || 0),
+                0,
+            );
+
+            rows.set(userName, current);
+        }
+
+        return Array.from(rows.entries())
+            .map(([userName, data]) => ({
+                userName,
+                ...data,
+            }))
+            .sort((a, b) => b.completed - a.completed || b.total - a.total);
+    }, [orders, t]);
+    const totalCollected = useMemo(
+        () =>
+            orders.reduce(
+                (sum, order) =>
+                    sum +
+                    (order.payments ?? []).reduce(
+                        (paymentSum, payment) =>
+                            paymentSum + (Number(payment.amount ?? 0) || 0),
+                        0,
+                    ),
+                0,
+            ),
+        [orders],
+    );
     const selectedOrders = orders.filter(
         (order) => (order.status ?? 'pending') === selectedStatus,
     );
