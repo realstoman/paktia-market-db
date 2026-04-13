@@ -41,7 +41,6 @@ const ORDER_STATUSES = [
     'pending',
     'in_progress',
     'ready',
-    'completed',
     'cancelled',
 ];
 
@@ -78,9 +77,6 @@ export function OrderRowActions({
         order.branch_table_id ? String(order.branch_table_id) : '',
     );
     const [status, setStatus] = useState(order.status ?? 'pending');
-    const [paymentMethod, setPaymentMethod] = useState(
-        order.payments?.[0]?.method ?? 'cash',
-    );
     const [error, setError] = useState('');
     const isCompleted = (order.status ?? 'pending') === 'completed';
     const canPrintReceipt = ['ready', 'completed'].includes(
@@ -90,19 +86,6 @@ export function OrderRowActions({
     const canAddOrderItems = !isCompleted;
     const canAssignOrderTable = !isCompleted;
     const canUpdateStatus = !isCompleted || auth.is_super_admin === true;
-    const paymentMethodOptions = [
-        { value: 'cash', label: t('orders.paymentMethod.cash', 'Cash') },
-        {
-            value: 'bank_transfer',
-            label: t('orders.paymentMethod.bank_transfer', 'Bank Transfer'),
-        },
-        {
-            value: 'credit_card',
-            label: t('orders.paymentMethod.credit_card', 'Credit Card'),
-        },
-        { value: 'other', label: t('orders.paymentMethod.other', 'Other') },
-    ];
-
     const tableOptions = useMemo(
         () =>
             branchTables.filter(
@@ -237,9 +220,6 @@ export function OrderRowActions({
                                 return;
                             }
                             setStatus(order.status ?? 'pending');
-                            setPaymentMethod(
-                                order.payments?.[0]?.method ?? 'cash',
-                            );
                             setIsStatusOpen(true);
                         }}
                         disabled={!canUpdateStatus}
@@ -355,40 +335,6 @@ export function OrderRowActions({
                         </Select>
                     </div>
 
-                    {status === 'completed' ? (
-                        <div className="grid gap-2">
-                            <Label>
-                                {t(
-                                    'orders.form.paymentMethod',
-                                    'Payment Method',
-                                )}
-                            </Label>
-                            <Select
-                                value={paymentMethod}
-                                onValueChange={setPaymentMethod}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'orders.form.paymentMethodPlaceholder',
-                                            'Select payment method',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {paymentMethodOptions.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : null}
-
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -399,13 +345,7 @@ export function OrderRowActions({
                         </Button>
                         <Button
                             onClick={() => {
-                                onUpdateStatus(
-                                    order,
-                                    status,
-                                    status === 'completed'
-                                        ? paymentMethod
-                                        : undefined,
-                                );
+                                onUpdateStatus(order, status);
                                 setIsStatusOpen(false);
                             }}
                         >

@@ -58,6 +58,8 @@ const ORDER_STATUSES = [
     'cancelled',
 ];
 
+const ORDER_TYPE_OPTIONS = ['dine_in', 'takeaway', 'delivery'] as const;
+
 const emptyItem = (): OrderItemDraft => ({
     productId: '',
     sizeId: '',
@@ -149,9 +151,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [branchFilter, setBranchFilter] = useState('all');
     const [userFilter, setUserFilter] = useState('all');
+    const [orderTypeFilter, setOrderTypeFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
+    const isOrderTaker = auth.roles.includes('order-taker');
 
     const getStatusLabel = (status: string) =>
         t(`orders.status.${status}`, status);
@@ -685,6 +689,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             }
 
             if (
+                orderTypeFilter !== 'all' &&
+                (order.order_type ?? 'takeaway') !== orderTypeFilter
+            ) {
+                return false;
+            }
+
+            if (
                 statusFilter !== 'all' &&
                 (order.status ?? 'pending') !== statusFilter
             ) {
@@ -713,6 +724,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         branchFilter,
         data,
         kitchenFilter,
+        orderTypeFilter,
         sourceFilter,
         statusFilter,
         userFilter,
@@ -755,6 +767,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             })),
         ],
         [kitchens, t],
+    );
+
+    const orderTypeFilterOptions = useMemo(
+        () => [
+            {
+                value: 'all',
+                label: t('orders.filters.allTypes', 'All Types'),
+            },
+            ...ORDER_TYPE_OPTIONS.map((orderType) => ({
+                value: orderType,
+                label: t(`orders.orderType.${orderType}`, orderType),
+            })),
+        ],
+        [t],
     );
 
     const statusFilterOptions = useMemo(
@@ -810,16 +836,34 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         : 'w-[170px]'
                 }
             />
+            {!isOrderTaker ? (
+                <SearchableDropdown
+                    value={userFilter}
+                    options={userFilterOptions}
+                    onValueChange={setUserFilter}
+                    placeholder={t('orders.filters.user', 'User')}
+                    searchPlaceholder={t(
+                        'orders.filters.searchUsers',
+                        'Search users...',
+                    )}
+                    emptyText={t('orders.filters.noUsers', 'No users found.')}
+                    className={
+                        locale === 'fa' || locale === 'ps'
+                            ? 'w-full md:min-w-[170px]'
+                            : 'w-[170px]'
+                    }
+                />
+            ) : null}
             <SearchableDropdown
-                value={userFilter}
-                options={userFilterOptions}
-                onValueChange={setUserFilter}
-                placeholder={t('orders.filters.user', 'User')}
+                value={orderTypeFilter}
+                options={orderTypeFilterOptions}
+                onValueChange={setOrderTypeFilter}
+                placeholder={t('orders.filters.type', 'Type')}
                 searchPlaceholder={t(
-                    'orders.filters.searchUsers',
-                    'Search users...',
+                    'orders.filters.searchTypes',
+                    'Search types...',
                 )}
-                emptyText={t('orders.filters.noUsers', 'No users found.')}
+                emptyText={t('orders.filters.noTypes', 'No types found.')}
                 className={
                     locale === 'fa' || locale === 'ps'
                         ? 'w-full md:min-w-[170px]'

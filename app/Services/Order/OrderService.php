@@ -2,6 +2,7 @@
 
 namespace App\Services\Order;
 
+use App\Enums\PermissionEnum;
 use App\Enums\PaymentMethod;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
@@ -25,6 +26,7 @@ class OrderService
     public function getIndexData(?string $selectedDate, bool $isAllTime, ?User $user = null): array
     {
         $isSuperAdmin = $user?->hasRole('super-admin') ?? false;
+        $isOrderTaker = $user?->hasRole('order-taker') ?? false;
         $allowedBranchId = ! $isSuperAdmin ? $user?->branch_id : null;
 
         $ordersQuery = Order::with([
@@ -40,6 +42,12 @@ class OrderService
 
         if (! $isAllTime && $selectedDate) {
             $ordersQuery->whereDate('created_at', $selectedDate);
+        }
+
+        if ($isOrderTaker && $user?->id) {
+            $ordersQuery->where('user_id', $user->id);
+        } elseif ($allowedBranchId) {
+            $ordersQuery->where('branch_id', $allowedBranchId);
         }
 
         $restaurantStartDate = Order::query()
@@ -193,7 +201,7 @@ class OrderService
         ?User $actor = null,
     ): void
     {
-        $this->assertStatusCanBeUpdated($order, $status, $actor);
+        $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod);
 
         DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $actor) {
             if ($status === OrderStatus::COMPLETED->value) {
@@ -341,7 +349,7 @@ class OrderService
         }
     }
 
-    private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor): void
+    private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor, ?string $paymentMethod = null): void
     {
         $currentStatus = (string) ($order->status?->value ?? $order->status);
 
@@ -351,6 +359,23 @@ class OrderService
             throw ValidationException::withMessages([
                 'status' => 'Only super admins can change the status of a completed order.',
             ]);
+        }
+
+        if ($nextStatus === OrderStatus::COMPLETED->value) {
+            $canSettlePayment = ($actor?->hasRole('super-admin') ?? false)
+                || ($actor?->can(PermissionEnum::PAYMENTS_CREATE->value) ?? false);
+
+            if (! $canSettlePayment) {
+                throw ValidationException::withMessages([
+                    'status' => 'Only cashiers or super admins can complete an order after payment.',
+                ]);
+            }
+
+            if (! $paymentMethod) {
+                throw ValidationException::withMessages([
+                    'payment_method' => 'Payment method is required before completing an order.',
+                ]);
+            }
         }
     }
 
