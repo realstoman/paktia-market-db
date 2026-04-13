@@ -75,3 +75,24 @@ test('users can not block their own account from user management', function () {
 
     expect($superAdmin->fresh()?->is_active)->toBeTrue();
 });
+
+test('users can not delete their own account from user management', function () {
+    $superAdminRole = Role::firstOrCreate([
+        'name' => 'super-admin',
+        'guard_name' => 'web',
+    ]);
+
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole($superAdminRole);
+
+    $response = $this
+        ->actingAs($superAdmin)
+        ->from(route('users.index'))
+        ->delete(route('users.destroy', $superAdmin));
+
+    $response
+        ->assertSessionHasErrors('user')
+        ->assertRedirect(route('users.index'));
+
+    expect($superAdmin->fresh())->not->toBeNull();
+});

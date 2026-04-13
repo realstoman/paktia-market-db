@@ -152,6 +152,12 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
+        if (request()->user()?->is($user)) {
+            return back()->withErrors([
+                'user' => 'You can not delete your own account from user management.',
+            ]);
+        }
+
         $this->userService->delete($user);
 
         return redirect()->route('users.index')
