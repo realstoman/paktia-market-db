@@ -722,7 +722,7 @@ export interface OrderItem {
 }
 
 export interface Payment {
-    id: number;
+    id?: number;
     order_id?: number;
     currency?: string;
     amount?: number | string;

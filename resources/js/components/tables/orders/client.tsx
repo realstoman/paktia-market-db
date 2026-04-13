@@ -2172,6 +2172,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             </Dialog>
 
             <ReceiptPreviewDialog
+                key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}
                 order={selectedReceiptOrder}
                 open={isReceiptPreviewOpen}
                 onOpenChange={setIsReceiptPreviewOpen}

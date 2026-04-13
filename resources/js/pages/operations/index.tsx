@@ -43,7 +43,7 @@ import {
     Store,
     Truck,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 type OperationMode = 'cashier' | 'server' | 'order-taker' | 'general';
@@ -203,61 +203,67 @@ export default function OperationsPage({
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const workspaceRef = useRef<HTMLDivElement | null>(null);
 
-    const localizedProductName = (product?: Product | null) => {
-        if (!product) {
-            return '';
-        }
+    const localizedProductName = useCallback(
+        (product?: Product | null) => {
+            if (!product) {
+                return '';
+            }
 
-        if (locale === 'ps') {
-            return (
-                product.pashto_name?.trim() ||
-                product.dari_name?.trim() ||
-                product.name
-            );
-        }
+            if (locale === 'ps') {
+                return (
+                    product.pashto_name?.trim() ||
+                    product.dari_name?.trim() ||
+                    product.name
+                );
+            }
 
-        if (locale === 'fa') {
-            return (
-                product.dari_name?.trim() ||
-                product.pashto_name?.trim() ||
-                product.name
-            );
-        }
+            if (locale === 'fa') {
+                return (
+                    product.dari_name?.trim() ||
+                    product.pashto_name?.trim() ||
+                    product.name
+                );
+            }
 
-        return product.name;
-    };
+            return product.name;
+        },
+        [locale],
+    );
 
-    const localizedProductDescription = (product?: Product | null) => {
-        if (!product) {
-            return '';
-        }
+    const localizedProductDescription = useCallback(
+        (product?: Product | null) => {
+            if (!product) {
+                return '';
+            }
 
-        if (locale === 'ps') {
-            return (
-                product.pashto_description?.trim() ||
-                product.dari_description?.trim() ||
-                product.description?.trim() ||
-                product.category?.pashto_name?.trim() ||
-                product.category?.dari_name?.trim() ||
-                product.category?.name ||
-                ''
-            );
-        }
+            if (locale === 'ps') {
+                return (
+                    product.pashto_description?.trim() ||
+                    product.dari_description?.trim() ||
+                    product.description?.trim() ||
+                    product.category?.pashto_name?.trim() ||
+                    product.category?.dari_name?.trim() ||
+                    product.category?.name ||
+                    ''
+                );
+            }
 
-        if (locale === 'fa') {
-            return (
-                product.dari_description?.trim() ||
-                product.pashto_description?.trim() ||
-                product.description?.trim() ||
-                product.category?.dari_name?.trim() ||
-                product.category?.pashto_name?.trim() ||
-                product.category?.name ||
-                ''
-            );
-        }
+            if (locale === 'fa') {
+                return (
+                    product.dari_description?.trim() ||
+                    product.pashto_description?.trim() ||
+                    product.description?.trim() ||
+                    product.category?.dari_name?.trim() ||
+                    product.category?.pashto_name?.trim() ||
+                    product.category?.name ||
+                    ''
+                );
+            }
 
-        return product.description?.trim() || product.category?.name || '';
-    };
+            return product.description?.trim() || product.category?.name || '';
+        },
+        [locale],
+    );
 
     const selectedOrder = useMemo(
         () => openOrders.find((order) => order.id === selectedOrderId) ?? null,
@@ -1362,6 +1368,7 @@ export default function OperationsPage({
                 </div>
 
                 <ReceiptPreviewDialog
+                    key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}
                     order={selectedReceiptOrder}
                     open={isReceiptPreviewOpen}
                     onOpenChange={setIsReceiptPreviewOpen}

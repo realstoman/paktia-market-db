@@ -30,7 +30,7 @@ import {
     IconWorldWww,
 } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
@@ -144,7 +144,9 @@ export function ReceiptPreviewDialog({
 
         return 'en-US';
     }, [locale]);
-    const [discount, setDiscount] = useState('0');
+    const [discount, setDiscount] = useState(
+        String(Number(order?.discount_amount ?? 0) || 0),
+    );
     const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
     const canFinalizePayment =
         !!order &&
@@ -181,14 +183,6 @@ export function ReceiptPreviewDialog({
               order.order_type.replace('_', ' '),
           )
         : '-';
-
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        setDiscount(String(Number(order?.discount_amount ?? 0) || 0));
-    }, [open, order?.discount_amount]);
 
     const printReceipt = () => {
         if (!order) {

@@ -49,7 +49,7 @@ class OrderController extends Controller
 
         $service->createOrder($validated, $request->user()?->id, $request->user());
 
-        return back()
+        return redirect()->back(fallback: route('orders.index'))
             ->with('success', 'Order created successfully.');
     }
 
@@ -72,7 +72,7 @@ class OrderController extends Controller
 
         $service->updateOrder($order, $validated, $request->user());
 
-        return back()
+        return redirect()->back(fallback: route('orders.index'))
             ->with('success', 'Order updated successfully.');
     }
 
@@ -92,7 +92,7 @@ class OrderController extends Controller
             $request->user(),
         );
 
-        return back()
+        return redirect()->back(fallback: route('orders.index'))
             ->with('success', 'Order status updated successfully.');
     }
 
@@ -104,7 +104,7 @@ class OrderController extends Controller
 
         $service->updateTable($order, (int) $validated['branch_table_id'], $request->user());
 
-        return back()
+        return redirect()->back(fallback: route('orders.index'))
             ->with('success', 'Order table updated successfully.');
     }
 
@@ -120,7 +120,7 @@ class OrderController extends Controller
 
         $service->addItems($order, $validated['items'], $request->user());
 
-        return back()
+        return redirect()->back(fallback: route('orders.index'))
             ->with('success', 'Order items added successfully.');
     }
 }
