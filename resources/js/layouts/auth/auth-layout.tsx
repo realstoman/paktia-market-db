@@ -35,10 +35,10 @@ export default function AuthLayout({
     })();
 
     return (
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen min-h-svh w-full">
             {/* Left Side - Auth Forms */}
-            <div className="flex-center flex flex-1 items-center justify-center bg-brand-primary p-8">
-                <div className="flex h-full max-h-screen w-full max-w-lg flex-col items-start justify-between">
+            <div className="flex-center flex min-h-screen min-h-svh flex-1 items-center justify-center bg-brand-primary p-6 md:p-8">
+                <div className="flex w-full max-w-lg flex-col items-start justify-between gap-8 py-2 lg:min-h-[calc(100svh-4rem)]">
                     {/* Brand Logo */}
                     <div className="mb-0 flex w-full items-center justify-center sm:mb-12">
                         <img
@@ -49,7 +49,7 @@ export default function AuthLayout({
                         />
                     </div>
 
-                    <div className="bottom-0 w-full">
+                    <div className="w-full">
                         {/* Form Content */}
                         {children}
 
