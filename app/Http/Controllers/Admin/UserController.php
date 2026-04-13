@@ -133,6 +133,12 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
+        if (request()->user()?->is($user)) {
+            return back()->withErrors([
+                'user' => 'You can not block or unblock your own account.',
+            ]);
+        }
+
         if ($user->is_active) {
             $user->block();
         } else {

@@ -52,3 +52,26 @@ test('internal users cannot delete their own account from profile settings', fun
     expect($user->fresh())->not->toBeNull();
     $this->assertAuthenticatedAs($user->fresh());
 });
+
+test('users can not block their own account from user management', function () {
+    $superAdminRole = Role::firstOrCreate([
+        'name' => 'super-admin',
+        'guard_name' => 'web',
+    ]);
+
+    $superAdmin = User::factory()->create([
+        'is_active' => true,
+    ]);
+    $superAdmin->assignRole($superAdminRole);
+
+    $response = $this
+        ->actingAs($superAdmin)
+        ->from(route('users.index'))
+        ->post(route('users.block', $superAdmin));
+
+    $response
+        ->assertSessionHasErrors('user')
+        ->assertRedirect(route('users.index'));
+
+    expect($superAdmin->fresh()?->is_active)->toBeTrue();
+});
