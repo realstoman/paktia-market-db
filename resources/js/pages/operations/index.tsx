@@ -105,6 +105,9 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
 
 const WORKSPACE_CARD_CLASS =
     'min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[860px]';
+const ORDER_TAKER_TOP_CARD_CLASS =
+    'min-h-[560px] xl:h-[calc(100svh-18rem)] xl:min-h-[620px]';
+const ORDER_TAKER_MENU_CARD_CLASS = 'min-h-[520px] xl:min-h-[540px]';
 
 const CHANNEL_META: Record<
     Channel,
@@ -183,6 +186,7 @@ export default function OperationsPage({
 }: OperationsPageProps) {
     const { locale } = useLocalization();
     const { can } = useAuthorization();
+    const isOrderTakerMode = mode === 'order-taker';
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
     const [selectedChannel, setSelectedChannel] = useState<Channel>(
         channels[0],
@@ -669,6 +673,18 @@ export default function OperationsPage({
             : mode === 'server'
               ? 'Floor Service'
               : 'Order Intake';
+    const workspaceGridClass = isOrderTakerMode
+        ? 'grid gap-4 xl:grid-cols-[1.25fr_0.95fr]'
+        : 'grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]';
+    const tablesCardClass = isOrderTakerMode
+        ? ORDER_TAKER_TOP_CARD_CLASS
+        : WORKSPACE_CARD_CLASS;
+    const menuCardClass = isOrderTakerMode
+        ? `${ORDER_TAKER_MENU_CARD_CLASS} xl:order-3 xl:col-span-2`
+        : WORKSPACE_CARD_CLASS;
+    const invoiceCardClass = isOrderTakerMode
+        ? `${ORDER_TAKER_TOP_CARD_CLASS} xl:order-2`
+        : WORKSPACE_CARD_CLASS;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} defaultSidebarOpen={false}>
@@ -683,18 +699,21 @@ export default function OperationsPage({
                             </div>
                             <div>
                                 <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#2f1d0f]">
-                                    Operations dashboard for live orders
+                                    {isOrderTakerMode
+                                        ? 'Tablet order desk for fast table service'
+                                        : 'Operations dashboard for live orders'}
                                 </h1>
                                 <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                    Tables, takeaway, delivery, and payment
-                                    handling stay in one workspace. The visible
-                                    channels and actions adapt automatically to
-                                    the signed-in role.
+                                    {isOrderTakerMode
+                                        ? 'Order-takers can tap any table, open the live ticket, and add menu items quickly from a tablet-friendly workspace. Payment stays with cashier.'
+                                        : 'Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.'}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <div
+                            className={`grid gap-3 ${isOrderTakerMode ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4'}`}
+                        >
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
                                     <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
@@ -728,23 +747,41 @@ export default function OperationsPage({
                             <Card className="border-white/70 bg-white/80 shadow-none">
                                 <CardContent className="p-4">
                                     <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                        Ready To Pay
+                                        {isOrderTakerMode
+                                            ? 'Ready Queue'
+                                            : 'Ready To Pay'}
                                     </p>
                                     <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
                                         {summary.readyToPay}
                                     </p>
                                 </CardContent>
                             </Card>
+                            {!isOrderTakerMode ? null : (
+                                <Card className="border-white/70 bg-white/80 shadow-none">
+                                    <CardContent className="p-4">
+                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                            Open Tables
+                                        </p>
+                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                            {
+                                                tables.filter(
+                                                    (table) => table.active_order,
+                                                ).length
+                                            }
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            )}
                         </div>
                     </div>
                 </section>
 
                 <div
                     ref={workspaceRef}
-                    className="grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]"
+                    className={workspaceGridClass}
                 >
                     <Card
-                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                        className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'xl:order-1' : ''}`}
                     >
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap gap-2">
@@ -776,14 +813,20 @@ export default function OperationsPage({
                                     {CHANNEL_META[selectedChannel].label}
                                 </CardTitle>
                                 <CardDescription>
-                                    {CHANNEL_META[selectedChannel].description}
+                                    {isOrderTakerMode &&
+                                    selectedChannel === 'dine_in'
+                                        ? 'Tap a table to open the ticket, then add items from the menu.'
+                                        : CHANNEL_META[selectedChannel]
+                                              .description}
                                 </CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent className="min-h-0 flex-1 p-0">
                             {selectedChannel === 'dine_in' ? (
                                 <ScrollArea className="h-full px-4 pb-0">
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div
+                                        className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-2'}`}
+                                    >
                                         {orderedTables.map((table) => (
                                             <button
                                                 key={table.id}
@@ -791,10 +834,10 @@ export default function OperationsPage({
                                                 onClick={() =>
                                                     handleTableSelect(table)
                                                 }
-                                                className={`rounded-[1.4rem] border p-4 text-left transition ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
+                                                className={`rounded-[1.4rem] border text-left transition ${isOrderTakerMode ? 'min-h-[180px] p-5' : 'p-4'} ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-lg font-semibold text-[#2f1d0f] shadow-sm">
+                                                    <div className={`inline-flex items-center justify-center rounded-full bg-white font-semibold text-[#2f1d0f] shadow-sm ${isOrderTakerMode ? 'h-14 w-14 text-xl' : 'h-12 w-12 text-lg'}`}>
                                                         T-{table.table_number}
                                                     </div>
                                                     <Badge
@@ -812,13 +855,13 @@ export default function OperationsPage({
                                                         Serving
                                                     </div>
                                                 ) : null}
-                                                <div className="mt-4 space-y-1">
-                                                    <p className="text-sm font-medium text-[#2f1d0f]">
+                                                <div className="mt-4 space-y-1.5">
+                                                    <p className={`${isOrderTakerMode ? 'text-base' : 'text-sm'} font-medium text-[#2f1d0f]`}>
                                                         {table.active_order
                                                             ? `Order #${table.active_order.id}`
                                                             : 'Open a new table ticket'}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground">
+                                                    <p className={`${isOrderTakerMode ? 'text-sm' : 'text-xs'} text-muted-foreground`}>
                                                         {table.elapsed_label
                                                             ? `${table.elapsed_label} active`
                                                             : 'No active order yet'}
@@ -900,7 +943,7 @@ export default function OperationsPage({
                     </Card>
 
                     <Card
-                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                        className={`${menuCardClass} flex flex-col border-neutral-200/70 shadow-none`}
                     >
                         <CardHeader className="space-y-4">
                             <div className="relative">
@@ -949,7 +992,9 @@ export default function OperationsPage({
                         </CardHeader>
                         <CardContent className="min-h-0 flex-1 p-0">
                             <ScrollArea className="h-full px-4 pb-0">
-                                <div className="grid gap-3 md:grid-cols-2">
+                                <div
+                                    className={`grid gap-3 ${isOrderTakerMode ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
+                                >
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
                                             (entry) =>
@@ -1054,18 +1099,22 @@ export default function OperationsPage({
                     </Card>
 
                     <Card
-                        className={`${WORKSPACE_CARD_CLASS} flex flex-col border-neutral-200/70 shadow-none`}
+                        className={`${invoiceCardClass} flex flex-col border-neutral-200/70 shadow-none`}
                     >
                         <CardHeader className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <CardTitle className="text-xl">
-                                        Invoice
+                                        {isOrderTakerMode
+                                            ? 'Open Ticket'
+                                            : 'Invoice'}
                                     </CardTitle>
                                     <CardDescription>
                                         {selectedOrder
                                             ? `Editing order #${selectedOrder.id}`
-                                            : 'Build a new order ticket'}
+                                            : isOrderTakerMode
+                                              ? 'Select a table and build the ticket.'
+                                              : 'Build a new order ticket'}
                                     </CardDescription>
                                 </div>
                                 {selectedChannel === 'dine_in' &&
@@ -1178,8 +1227,9 @@ export default function OperationsPage({
                                         <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                                             <Armchair className="h-6 w-6" />
                                             <p className="text-sm">
-                                                Select a table or queue item,
-                                                then add products from the menu.
+                                                {isOrderTakerMode
+                                                    ? 'Choose a table, then tap menu items to start the order.'
+                                                    : 'Select a table or queue item, then add products from the menu.'}
                                             </p>
                                         </div>
                                     ) : null}
@@ -1241,16 +1291,22 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
 
-                            <div className="grid min-h-[146px] gap-2">
+                            <div
+                                className={`grid gap-2 ${isOrderTakerMode ? 'min-h-[120px]' : 'min-h-[146px]'}`}
+                            >
                                 <Button
-                                    className="h-12 rounded-2xl text-base"
+                                    className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
                                     disabled={isSubmitting}
                                     onClick={submitOrder}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
                                     {selectedOrder
-                                        ? 'Update order'
-                                        : 'Save order'}
+                                        ? isOrderTakerMode
+                                            ? 'Update ticket'
+                                            : 'Update order'
+                                        : isOrderTakerMode
+                                          ? 'Save ticket'
+                                          : 'Save order'}
                                 </Button>
 
                                 {selectedOrder && canManageStatus ? (
@@ -1275,7 +1331,9 @@ export default function OperationsPage({
                                             }
                                         >
                                             <PackageCheck className="mr-2 h-4 w-4" />
-                                            Ready
+                                            {isOrderTakerMode
+                                                ? 'Mark ready'
+                                                : 'Ready'}
                                         </Button>
                                     </div>
                                 ) : (
@@ -1294,7 +1352,9 @@ export default function OperationsPage({
                                             disabled
                                         >
                                             <PackageCheck className="mr-2 h-4 w-4" />
-                                            Ready
+                                            {isOrderTakerMode
+                                                ? 'Mark ready'
+                                                : 'Ready'}
                                         </Button>
                                     </div>
                                 )}
@@ -1316,7 +1376,9 @@ export default function OperationsPage({
                     </Card>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3">
+                <div
+                    className={`grid gap-3 ${isOrderTakerMode ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-3'}`}
+                >
                     <Card className="border-neutral-200/70 shadow-none">
                         <CardContent className="flex items-center gap-3 p-4">
                             <Store className="h-8 w-8 text-[#b5542a]" />
