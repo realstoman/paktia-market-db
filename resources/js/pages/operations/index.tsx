@@ -166,7 +166,7 @@ function resolveModeChannels(mode: OperationMode): Channel[] {
     }
 
     if (mode === 'order-taker') {
-        return ['takeaway', 'delivery'];
+        return ['dine_in', 'takeaway', 'delivery'];
     }
 
     return ['dine_in', 'takeaway', 'delivery'];
