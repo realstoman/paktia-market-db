@@ -1099,7 +1099,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-5xl">
+                <DialogContent className="max-h-[92vh] sm:max-w-5xl overflow-hidden">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ClipboardList className="mr-2 h-5 w-5" />
@@ -1120,6 +1120,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
+                    <ScrollArea className="max-h-[calc(92vh-8rem)] pr-2">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>{t('orders.form.branch', 'Branch')}</Label>
@@ -1731,7 +1732,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </div>
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="mt-4">
                         <Button
                             variant="outline"
                             onClick={() => setIsCreateOpen(false)}
@@ -1759,11 +1760,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 : t('orders.createOrder', 'Create Order')}
                         </Button>
                     </DialogFooter>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="sm:max-w-5xl">
+                <DialogContent className="max-h-[92vh] overflow-y-auto overscroll-contain sm:max-w-5xl">
                     <DialogHeader>
                         <DialogTitle>
                             {t('orders.detailsModal.titlePrefix', 'Order #')}
@@ -1777,7 +1779,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
                     {selectedOrder ? (
-                        <div className="space-y-4">
+                        <div className="space-y-4 pr-1">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Badge
                                     className={

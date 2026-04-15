@@ -270,6 +270,11 @@ export function DataTable<TData, TValue>({
                                             ? () => onRowClick(row.original)
                                             : undefined
                                     }
+                                    onTouchEnd={
+                                        onRowClick
+                                            ? () => onRowClick(row.original)
+                                            : undefined
+                                    }
                                     className={
                                         onRowClick || getRowClassName
                                             ? `${onRowClick ? 'cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60' : ''} ${getRowClassName?.(row.original) ?? ''}`.trim()
