@@ -83,7 +83,9 @@ export default function SystemBranding({
         form.transform((data) => ({
             ...data,
             _method: 'put',
-        })).post('/settings/system-branding', {
+        }));
+
+        form.post('/settings/system-branding', {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {

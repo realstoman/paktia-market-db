@@ -3,11 +3,15 @@
 namespace App\Http\Middleware;
 
 use App\Enums\PermissionEnum;
+use App\Models\CashMovement;
 use App\Models\Employee;
+use App\Models\EmployeeAdvance;
+use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PayrollRun;
+use App\Models\PayrollRunItem;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Settings\SystemBrandingService;
@@ -100,6 +104,10 @@ class HandleInertiaRequests extends Middleware
             ->merge($this->recentOrderNotifications($user))
             ->merge($this->recentPaymentNotifications($user))
             ->merge($this->recentPayrollNotifications($user))
+            ->merge($this->recentPayrollPaymentNotifications($user))
+            ->merge($this->recentAdvanceNotifications($user))
+            ->merge($this->recentExpenseNotifications($user))
+            ->merge($this->recentCashMovementNotifications($user))
             ->merge($this->recentEmployeeNotifications($user))
             ->merge($this->recentInventoryNotifications($user))
             ->merge($this->recentProductNotifications($user))
@@ -292,6 +300,178 @@ class HandleInertiaRequests extends Middleware
                 ])->filter()->join(' • ')),
                 'priority' => 'high',
                 'unread' => ($payrollRun->paid_at ?? $payrollRun->approved_at ?? $payrollRun->created_at)?->gt(now()->subDay()) ?? false,
+            ]);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentPayrollPaymentNotifications(User $currentUser): Collection
+    {
+        if (! Schema::hasTable('payroll_run_items') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::PAYROLL_VIEW->value,
+            PermissionEnum::PAYROLL_PAY->value,
+        ])) {
+            return collect();
+        }
+
+        return PayrollRunItem::query()
+            ->with(['employee:id,first_name,last_name,branch_id', 'employee.branch:id,name', 'payrollRun:id,branch_id'])
+            ->where('payment_status', 'paid')
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->whereHas('payrollRun', fn ($runQuery) => $runQuery->where('branch_id', $currentUser->branch_id)),
+            )
+            ->latest('payment_date')
+            ->take(4)
+            ->get()
+            ->map(function (PayrollRunItem $item) {
+                $employeeName = trim((string) (($item->employee?->first_name ?? '').' '.($item->employee?->last_name ?? '')));
+
+                return [
+                    'id' => "payroll-item-{$item->id}-".($item->payment_date?->timestamp ?? $item->updated_at?->timestamp ?? $item->id),
+                    'category' => 'salary',
+                    'title' => 'Salary paid',
+                    'description' => $employeeName !== ''
+                        ? "Salary payment recorded for {$employeeName}."
+                        : 'Salary payment recorded.',
+                    'createdAt' => ($item->payment_date ?? $item->updated_at ?? $item->created_at)?->toIso8601String(),
+                    'meta' => trim(collect([
+                        $item->employee?->branch?->name,
+                        $item->net_salary !== null ? number_format((float) $item->net_salary, 0) : null,
+                    ])->filter()->join(' • ')),
+                    'href' => '/finance/payroll',
+                    'priority' => 'high',
+                    'unread' => ($item->payment_date ?? $item->updated_at ?? $item->created_at)?->gt(now()->subDay()) ?? false,
+                ];
+            });
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentAdvanceNotifications(User $currentUser): Collection
+    {
+        if (! Schema::hasTable('employee_advances') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::FINANCE_VIEW->value,
+            PermissionEnum::FINANCE_MANAGE->value,
+            PermissionEnum::PAYROLL_VIEW->value,
+            PermissionEnum::PAYROLL_APPROVE->value,
+        ])) {
+            return collect();
+        }
+
+        return EmployeeAdvance::query()
+            ->with(['employee:id,first_name,last_name', 'branch:id,name', 'creator:id,name', 'approver:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
+            ->latest('updated_at')
+            ->take(4)
+            ->get()
+            ->map(function (EmployeeAdvance $advance) {
+                $employeeName = trim((string) (($advance->employee?->first_name ?? '').' '.($advance->employee?->last_name ?? '')));
+                $status = Str::of((string) ($advance->status ?? 'draft'))->replace('_', ' ')->lower()->value();
+
+                return [
+                    'id' => "advance-{$advance->id}-".($advance->updated_at?->timestamp ?? $advance->created_at?->timestamp ?? $advance->id),
+                    'category' => 'salary',
+                    'title' => 'Employee advance update',
+                    'description' => $employeeName !== ''
+                        ? "Advance for {$employeeName} is {$status}."
+                        : "Employee advance is {$status}.",
+                    'createdAt' => ($advance->updated_at ?? $advance->created_at)?->toIso8601String(),
+                    'meta' => trim(collect([
+                        $advance->branch?->name,
+                        $advance->amount !== null ? number_format((float) $advance->amount, 0) : null,
+                    ])->filter()->join(' • ')),
+                    'href' => '/finance/employee-advances',
+                    'priority' => in_array($advance->status, ['approved', 'rejected'], true) ? 'high' : 'medium',
+                    'unread' => ($advance->updated_at ?? $advance->created_at)?->gt(now()->subDay()) ?? false,
+                ];
+            });
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentExpenseNotifications(User $currentUser): Collection
+    {
+        if (! Schema::hasTable('expenses') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::FINANCE_VIEW->value,
+            PermissionEnum::FINANCE_MANAGE->value,
+            PermissionEnum::EXPENSES_VIEW->value,
+            PermissionEnum::EXPENSES_CREATE->value,
+        ])) {
+            return collect();
+        }
+
+        return Expense::query()
+            ->with(['branch:id,name', 'vendor:id,name', 'creator:id,name', 'approver:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
+            ->latest('updated_at')
+            ->take(4)
+            ->get()
+            ->map(fn (Expense $expense) => [
+                'id' => "expense-{$expense->id}-".($expense->updated_at?->timestamp ?? $expense->created_at?->timestamp ?? $expense->id),
+                'category' => 'payments',
+                'title' => 'Expense activity',
+                'description' => $expense->title
+                    ? "Expense \"{$expense->title}\" is ".Str::of((string) ($expense->approval_status ?? 'draft'))->replace('_', ' ')->lower()->value().'.'
+                    : 'An expense entry was updated.',
+                'createdAt' => ($expense->updated_at ?? $expense->created_at)?->toIso8601String(),
+                'meta' => trim(collect([
+                    $expense->branch?->name,
+                    $expense->vendor?->name,
+                    $expense->amount !== null ? number_format((float) $expense->amount, 0) : null,
+                ])->filter()->join(' • ')),
+                'href' => '/finance/expenses',
+                'priority' => in_array($expense->approval_status, ['approved', 'rejected'], true) ? 'high' : 'medium',
+                'unread' => ($expense->updated_at ?? $expense->created_at)?->gt(now()->subDay()) ?? false,
+            ]);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentCashMovementNotifications(User $currentUser): Collection
+    {
+        if (! Schema::hasTable('cash_movements') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::FINANCE_VIEW->value,
+            PermissionEnum::FINANCE_MANAGE->value,
+            PermissionEnum::PAYMENTS_VIEW->value,
+            PermissionEnum::PAYMENTS_CREATE->value,
+        ])) {
+            return collect();
+        }
+
+        return CashMovement::query()
+            ->with(['branch:id,name', 'creator:id,name', 'approver:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
+            ->latest('updated_at')
+            ->take(4)
+            ->get()
+            ->map(fn (CashMovement $movement) => [
+                'id' => "cash-movement-{$movement->id}-".($movement->updated_at?->timestamp ?? $movement->created_at?->timestamp ?? $movement->id),
+                'category' => 'payments',
+                'title' => 'Cash movement activity',
+                'description' => 'Cash movement '.Str::of((string) ($movement->approval_status ?? 'draft'))->replace('_', ' ')->lower()->value().' for '.Str::of((string) ($movement->movement_type ?? 'movement'))->replace('_', ' ')->lower()->value().'.',
+                'createdAt' => ($movement->updated_at ?? $movement->created_at)?->toIso8601String(),
+                'meta' => trim(collect([
+                    $movement->branch?->name,
+                    strtoupper((string) ($movement->direction ?? '')),
+                    $movement->amount !== null ? number_format((float) $movement->amount, 0) : null,
+                ])->filter()->join(' • ')),
+                'href' => '/finance/cash-bank',
+                'priority' => in_array($movement->approval_status, ['approved', 'rejected'], true) ? 'high' : 'medium',
+                'unread' => ($movement->updated_at ?? $movement->created_at)?->gt(now()->subDay()) ?? false,
             ]);
     }
 
