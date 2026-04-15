@@ -2,7 +2,6 @@ import HeadingSmall from '@/components/shared/heading-small';
 import InputError from '@/components/input-error';
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -382,7 +381,8 @@ export default function SystemBranding({
                         <AlertDialogCancel disabled={form.processing}>
                             {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <Button
+                            type="button"
                             onClick={(event) => {
                                 event.preventDefault();
                                 submit();
@@ -392,7 +392,7 @@ export default function SystemBranding({
                             {form.processing
                                 ? t('settings.savingBranding', 'Saving...')
                                 : t('common.save', 'Save')}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
