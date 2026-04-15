@@ -23,7 +23,12 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { BranchTable, BreadcrumbItem, Order, Product } from '@/types';
+import {
+    BranchTable,
+    BreadcrumbItem,
+    Order,
+    Product,
+} from '@/types';
 import { Head, router } from '@inertiajs/react';
 import {
     Armchair,
@@ -106,8 +111,9 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
 const WORKSPACE_CARD_CLASS =
     'min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[860px]';
 const ORDER_TAKER_TOP_CARD_CLASS =
-    'min-h-[560px] xl:h-[calc(100svh-18rem)] xl:min-h-[620px]';
-const ORDER_TAKER_MENU_CARD_CLASS = 'min-h-[520px] xl:min-h-[540px]';
+    'min-h-[420px] md:h-[calc(44svh-5.75rem)] md:min-h-[460px]';
+const ORDER_TAKER_MENU_CARD_CLASS =
+    'min-h-[520px] md:h-[calc(56svh-7rem)] md:min-h-[560px]';
 
 const CHANNEL_META: Record<
     Channel,
@@ -674,114 +680,92 @@ export default function OperationsPage({
               ? 'Floor Service'
               : 'Order Intake';
     const workspaceGridClass = isOrderTakerMode
-        ? 'grid gap-4 xl:grid-cols-[1.25fr_0.95fr]'
+        ? 'grid gap-4 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]'
         : 'grid gap-4 xl:grid-cols-[1.2fr_1.6fr_1fr]';
     const tablesCardClass = isOrderTakerMode
         ? ORDER_TAKER_TOP_CARD_CLASS
         : WORKSPACE_CARD_CLASS;
     const menuCardClass = isOrderTakerMode
-        ? `${ORDER_TAKER_MENU_CARD_CLASS} xl:order-3 xl:col-span-2`
+        ? `${ORDER_TAKER_MENU_CARD_CLASS} md:order-3 md:col-span-2`
         : WORKSPACE_CARD_CLASS;
     const invoiceCardClass = isOrderTakerMode
-        ? `${ORDER_TAKER_TOP_CARD_CLASS} xl:order-2`
+        ? `${ORDER_TAKER_TOP_CARD_CLASS} md:order-2`
         : WORKSPACE_CARD_CLASS;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} defaultSidebarOpen={false}>
             <Head title={pageTitle} />
             <div className="space-y-4 py-2">
-                <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
-                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                        <div className="space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-[#d8c6b3] bg-white/80 px-3 py-1 text-sm text-[#6e4e2d]">
-                                <ReceiptText className="h-4 w-4" />
-                                {pageTitle}
+                {isOrderTakerMode ? null : (
+                    <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
+                        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                            <div className="space-y-2">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-[#d8c6b3] bg-white/80 px-3 py-1 text-sm text-[#6e4e2d]">
+                                    <ReceiptText className="h-4 w-4" />
+                                    {pageTitle}
+                                </div>
+                                <div>
+                                    <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#2f1d0f]">
+                                        Operations dashboard for live orders
+                                    </h1>
+                                    <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
+                                        Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#2f1d0f]">
-                                    {isOrderTakerMode
-                                        ? 'Tablet order desk for fast table service'
-                                        : 'Operations dashboard for live orders'}
-                                </h1>
-                                <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                    {isOrderTakerMode
-                                        ? 'Order-takers can tap any table, open the live ticket, and add menu items quickly from a tablet-friendly workspace. Payment stays with cashier.'
-                                        : 'Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.'}
-                                </p>
-                            </div>
-                        </div>
 
-                        <div
-                            className={`grid gap-3 ${isOrderTakerMode ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4'}`}
-                        >
-                            <Card className="border-white/70 bg-white/80 shadow-none">
-                                <CardContent className="p-4">
-                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                        Dine In
-                                    </p>
-                                    <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                        {summary.dineInOpen}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-white/70 bg-white/80 shadow-none">
-                                <CardContent className="p-4">
-                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                        Takeaway
-                                    </p>
-                                    <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                        {summary.takeawayOpen}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-white/70 bg-white/80 shadow-none">
-                                <CardContent className="p-4">
-                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                        Delivery
-                                    </p>
-                                    <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                        {summary.deliveryOpen}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            <Card className="border-white/70 bg-white/80 shadow-none">
-                                <CardContent className="p-4">
-                                    <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                        {isOrderTakerMode
-                                            ? 'Ready Queue'
-                                            : 'Ready To Pay'}
-                                    </p>
-                                    <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                        {summary.readyToPay}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                            {!isOrderTakerMode ? null : (
+                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                 <Card className="border-white/70 bg-white/80 shadow-none">
                                     <CardContent className="p-4">
                                         <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                            Open Tables
+                                            Dine In
                                         </p>
                                         <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                            {
-                                                tables.filter(
-                                                    (table) => table.active_order,
-                                                ).length
-                                            }
+                                            {summary.dineInOpen}
                                         </p>
                                     </CardContent>
                                 </Card>
-                            )}
+                                <Card className="border-white/70 bg-white/80 shadow-none">
+                                    <CardContent className="p-4">
+                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                            Takeaway
+                                        </p>
+                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                            {summary.takeawayOpen}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-white/70 bg-white/80 shadow-none">
+                                    <CardContent className="p-4">
+                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                            Delivery
+                                        </p>
+                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                            {summary.deliveryOpen}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-white/70 bg-white/80 shadow-none">
+                                    <CardContent className="p-4">
+                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                            Ready To Pay
+                                        </p>
+                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                            {summary.readyToPay}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                )}
 
                 <div
                     ref={workspaceRef}
                     className={workspaceGridClass}
                 >
                     <Card
-                        className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'xl:order-1' : ''}`}
+                        className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'md:order-1' : ''}`}
                     >
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap gap-2">
@@ -825,7 +809,7 @@ export default function OperationsPage({
                             {selectedChannel === 'dine_in' ? (
                                 <ScrollArea className="h-full px-4 pb-0">
                                     <div
-                                        className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-2'}`}
+                                        className="grid grid-cols-2 gap-3"
                                     >
                                         {orderedTables.map((table) => (
                                             <button
@@ -993,7 +977,7 @@ export default function OperationsPage({
                         <CardContent className="min-h-0 flex-1 p-0">
                             <ScrollArea className="h-full px-4 pb-0">
                                 <div
-                                    className={`grid gap-3 ${isOrderTakerMode ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
+                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-2' : 'md:grid-cols-2'}`}
                                 >
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
@@ -1376,58 +1360,59 @@ export default function OperationsPage({
                     </Card>
                 </div>
 
-                <div
-                    className={`grid gap-3 ${isOrderTakerMode ? 'md:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-3'}`}
-                >
-                    <Card className="border-neutral-200/70 shadow-none">
-                        <CardContent className="flex items-center gap-3 p-4">
-                            <Store className="h-8 w-8 text-[#b5542a]" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Tables with live tickets
-                                </p>
-                                <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {
-                                        tables.filter(
-                                            (table) => table.active_order,
-                                        ).length
-                                    }
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/70 shadow-none">
-                        <CardContent className="flex items-center gap-3 p-4">
-                            <Bike className="h-8 w-8 text-[#b5542a]" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Active delivery queue
-                                </p>
-                                <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {
-                                        openOrders.filter(
-                                            (order) =>
-                                                order.order_type === 'delivery',
-                                        ).length
-                                    }
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/70 shadow-none">
-                        <CardContent className="flex items-center gap-3 p-4">
-                            <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Orders ready for checkout
-                                </p>
-                                <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                    {summary.readyToPay}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {isOrderTakerMode ? null : (
+                    <div className="grid gap-3 md:grid-cols-3">
+                        <Card className="border-neutral-200/70 shadow-none">
+                            <CardContent className="flex items-center gap-3 p-4">
+                                <Store className="h-8 w-8 text-[#b5542a]" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Tables with live tickets
+                                    </p>
+                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                        {
+                                            tables.filter(
+                                                (table) => table.active_order,
+                                            ).length
+                                        }
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-neutral-200/70 shadow-none">
+                            <CardContent className="flex items-center gap-3 p-4">
+                                <Bike className="h-8 w-8 text-[#b5542a]" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Active delivery queue
+                                    </p>
+                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                        {
+                                            openOrders.filter(
+                                                (order) =>
+                                                    order.order_type ===
+                                                    'delivery',
+                                            ).length
+                                        }
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-neutral-200/70 shadow-none">
+                            <CardContent className="flex items-center gap-3 p-4">
+                                <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Orders ready for checkout
+                                    </p>
+                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                        {summary.readyToPay}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
 
                 <ReceiptPreviewDialog
                     key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}

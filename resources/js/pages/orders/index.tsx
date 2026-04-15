@@ -105,6 +105,7 @@ export default function OrdersPage({
     restaurantStartDate,
 }: OrdersPageProps) {
     const { auth } = usePage<SharedData>().props;
+    const isOrderTaker = auth.roles.includes('order-taker');
     const { t, locale, isRtl } = useLocalization();
     const dateLocale = useMemo(() => {
         if (locale === 'fa') {
@@ -551,7 +552,10 @@ export default function OrdersPage({
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout
+            breadcrumbs={breadcrumbs}
+            defaultSidebarOpen={isOrderTaker ? false : undefined}
+        >
             <Head title={t('orders.title', 'Orders')} />
             <div className="space-y-3 py-2">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
