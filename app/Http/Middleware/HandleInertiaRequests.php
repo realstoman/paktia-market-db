@@ -250,7 +250,7 @@ class HandleInertiaRequests extends Middleware
                 'meta' => trim(collect([
                     $payment->order?->branch?->name,
                     $payment->currency ? strtoupper((string) $payment->currency) : null,
-                    $payment->amount !== null ? number_format((float) $payment->amount, 0) : null,
+                    $payment->amount !== null ? $this->formatAfnMeta((float) $payment->amount) : null,
                 ])->filter()->join(' • ')),
                 'href' => $href,
                 'priority' => 'medium',
@@ -338,7 +338,7 @@ class HandleInertiaRequests extends Middleware
                     'createdAt' => ($item->payment_date ?? $item->updated_at ?? $item->created_at)?->toIso8601String(),
                     'meta' => trim(collect([
                         $item->employee?->branch?->name,
-                        $item->net_salary !== null ? number_format((float) $item->net_salary, 0) : null,
+                        $item->net_salary !== null ? $this->formatAfnMeta((float) $item->net_salary) : null,
                     ])->filter()->join(' • ')),
                     'href' => '/finance/payroll',
                     'priority' => 'high',
@@ -384,7 +384,7 @@ class HandleInertiaRequests extends Middleware
                     'createdAt' => ($advance->updated_at ?? $advance->created_at)?->toIso8601String(),
                     'meta' => trim(collect([
                         $advance->branch?->name,
-                        $advance->amount !== null ? number_format((float) $advance->amount, 0) : null,
+                        $advance->amount !== null ? $this->formatAfnMeta((float) $advance->amount) : null,
                     ])->filter()->join(' • ')),
                     'href' => '/finance/employee-advances',
                     'priority' => in_array($advance->status, ['approved', 'rejected'], true) ? 'high' : 'medium',
@@ -427,7 +427,7 @@ class HandleInertiaRequests extends Middleware
                 'meta' => trim(collect([
                     $expense->branch?->name,
                     $expense->vendor?->name,
-                    $expense->amount !== null ? number_format((float) $expense->amount, 0) : null,
+                    $expense->amount !== null ? $this->formatAfnMeta((float) $expense->amount) : null,
                 ])->filter()->join(' • ')),
                 'href' => '/finance/expenses',
                 'priority' => in_array($expense->approval_status, ['approved', 'rejected'], true) ? 'high' : 'medium',
@@ -467,7 +467,7 @@ class HandleInertiaRequests extends Middleware
                 'meta' => trim(collect([
                     $movement->branch?->name,
                     strtoupper((string) ($movement->direction ?? '')),
-                    $movement->amount !== null ? number_format((float) $movement->amount, 0) : null,
+                    $movement->amount !== null ? $this->formatAfnMeta((float) $movement->amount) : null,
                 ])->filter()->join(' • ')),
                 'href' => '/finance/cash-bank',
                 'priority' => in_array($movement->approval_status, ['approved', 'rejected'], true) ? 'high' : 'medium',
@@ -710,5 +710,10 @@ class HandleInertiaRequests extends Middleware
         }
 
         return false;
+    }
+
+    private function formatAfnMeta(float $amount): string
+    {
+        return '؋ '.number_format($amount, 0);
     }
 }

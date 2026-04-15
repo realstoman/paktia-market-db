@@ -16,7 +16,6 @@ import {
     BriefcaseBusiness,
     CheckCheck,
     CreditCard,
-    DollarSign,
     Package,
     ReceiptText,
     ShieldCheck,
@@ -53,7 +52,7 @@ const categoryConfig = {
     },
     salary: {
         label: 'Salary',
-        icon: DollarSign,
+        icon: AfnIcon,
         accent: 'bg-sky-500/12 text-sky-700 ring-sky-500/20',
         dot: 'bg-sky-500',
     },
@@ -96,6 +95,14 @@ const categoryConfig = {
         dot: string;
     }
 >;
+
+function AfnIcon({ className }: { className?: string }) {
+    return (
+        <span className={cn('text-[1.15em] leading-none font-semibold', className)}>
+            ؋
+        </span>
+    );
+}
 
 const STORAGE_READ_KEY = 'header-notifications-read';
 const STORAGE_HIDDEN_KEY = 'header-notifications-hidden';
