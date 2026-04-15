@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SystemBrandingController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use App\Http\Controllers\Settings\LanguageController;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/system-branding', [SystemBrandingController::class, 'edit'])
+        ->name('system-branding.edit');
+    Route::put('settings/system-branding', [SystemBrandingController::class, 'update'])
+        ->name('system-branding.update');
 });

@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Settings\SystemBrandingService;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -50,10 +51,11 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $supportedLocales = config('localization.supported', []);
         $currentLocale = app()->getLocale();
+        $branding = app(SystemBrandingService::class)->getBranding();
 
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => $branding['name'],
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
@@ -63,6 +65,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => fn () => $this->buildNotifications($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'branding' => $branding,
             'localization' => [
                 'locale' => $currentLocale,
                 'direction' => data_get($supportedLocales, "{$currentLocale}.direction", 'ltr'),

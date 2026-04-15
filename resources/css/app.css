@@ -98,6 +98,9 @@ body {
 }
 
 :root {
+    --brand-primary: #102f33;
+    --brand-secondary: #cc924b;
+    --brand-tertiary: #f8fafd;
     --app-body-font:
         'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',

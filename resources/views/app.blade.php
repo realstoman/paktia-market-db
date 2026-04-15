@@ -1,3 +1,6 @@
+@php
+    $branding = app(\App\Services\Settings\SystemBrandingService::class)->getBranding();
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $locale ?? app()->getLocale()) }}" dir="{{ $textDirection ?? 'ltr' }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
@@ -9,6 +12,7 @@
         <script>
             (function() {
                 const appearance = '{{ $appearance ?? "system" }}';
+                window.__APP_BRANDING__ = @json($branding);
 
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -22,6 +26,12 @@
 
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
+            :root {
+                --brand-primary: {{ $branding['primaryColor'] }};
+                --brand-secondary: {{ $branding['secondaryColor'] }};
+                --brand-tertiary: {{ $branding['tertiaryColor'] }};
+            }
+
             html {
                 background-color: oklch(1 0 0);
             }
@@ -31,7 +41,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Baba Restaurant') }}</title>
+        <title inertia>{{ $branding['name'] }}</title>
 
         @php
             $faviconIcoVersion = filemtime(public_path('favicon.ico'));
@@ -45,7 +55,7 @@
         <link rel="icon" type="image/x-icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
         <link rel="shortcut icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
         <link rel="manifest" href="/site.webmanifest">
-        <meta name="theme-color" content="#111827">
+        <meta name="theme-color" content="{{ $branding['primaryColor'] }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

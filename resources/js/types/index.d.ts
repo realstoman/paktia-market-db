@@ -31,6 +31,17 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    branding: {
+        name: string;
+        shortName: string;
+        logoUrl: string;
+        logoFullUrl: string;
+        logoPath?: string | null;
+        logoFullPath?: string | null;
+        primaryColor: string;
+        secondaryColor: string;
+        tertiaryColor: string;
+    };
     localization: {
         locale: 'en' | 'fa' | 'ps';
         direction: 'ltr' | 'rtl';
