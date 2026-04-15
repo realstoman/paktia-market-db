@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\PermissionEnum;
 use App\Models\Employee;
 use App\Models\InventoryItem;
 use App\Models\Order;
@@ -13,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -84,19 +86,21 @@ class HandleInertiaRequests extends Middleware
      */
     private function buildNotifications(Request $request): array
     {
-        if (! $request->user()) {
+        $user = $request->user();
+
+        if (! $user) {
             return [];
         }
 
         return collect()
             ->merge($this->flashNotifications($request))
-            ->merge($this->recentOrderNotifications())
-            ->merge($this->recentPaymentNotifications())
-            ->merge($this->recentPayrollNotifications())
-            ->merge($this->recentEmployeeNotifications())
-            ->merge($this->recentInventoryNotifications())
-            ->merge($this->recentProductNotifications())
-            ->merge($this->recentUserNotifications($request->user()))
+            ->merge($this->recentOrderNotifications($user))
+            ->merge($this->recentPaymentNotifications($user))
+            ->merge($this->recentPayrollNotifications($user))
+            ->merge($this->recentEmployeeNotifications($user))
+            ->merge($this->recentInventoryNotifications($user))
+            ->merge($this->recentProductNotifications($user))
+            ->merge($this->recentUserNotifications($user))
             ->sortByDesc('createdAt')
             ->take(12)
             ->values()
@@ -130,60 +134,88 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentOrderNotifications(): Collection
+    private function recentOrderNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('orders')) {
+        if (! Schema::hasTable('orders') || ! $this->canSeeOrderNotifications($currentUser)) {
             return collect();
         }
 
+        $showBranchOrders = $this->shouldSeeBranchOrderNotifications($currentUser);
+
         return Order::query()
             ->with(['branch:id,name', 'branchTable:id,table_number', 'user:id,name'])
-            ->latest()
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && ! $showBranchOrders,
+                fn ($query) => $query->where('user_id', $currentUser->id),
+            )
+            ->latest('updated_at')
             ->take(6)
             ->get()
-            ->map(fn (Order $order) => [
-                'id' => "order-{$order->id}",
-                'category' => 'orders',
-                'title' => __('notifications.orders.title'),
-                'description' => __('notifications.orders.description', [
-                    'id' => $order->id,
-                    'table' => $order->branchTable?->table_number
-                        ? __('notifications.orders.table_segment', [
-                            'table' => $order->branchTable->table_number,
-                        ])
-                        : '',
-                    'user' => $order->user?->name
-                        ? __('notifications.orders.user_segment', [
-                            'user' => $order->user->name,
-                        ])
-                        : '',
-                ]),
-                'createdAt' => $order->created_at?->toIso8601String(),
-                'meta' => trim(collect([
-                    $order->branch?->name,
-                    $order->total_amount !== null
-                        ? __('notifications.orders.total_meta', [
-                            'amount' => number_format((float) $order->total_amount, 0),
-                        ])
-                        : null,
-                ])->filter()->join(' • ')),
-                'priority' => 'high',
-                'unread' => $order->created_at?->gt(now()->subHours(12)) ?? false,
-            ]);
+            ->map(function (Order $order) {
+                $status = (string) ($order->status?->value ?? $order->status ?? 'pending');
+                $statusLabel = Str::of($status)->replace('_', ' ')->title()->value();
+                $wasUpdated = $order->updated_at && $order->created_at
+                    ? $order->updated_at->gt($order->created_at->addSeconds(5))
+                    : false;
+
+                return [
+                    'id' => "order-{$order->id}-".($order->updated_at?->timestamp ?? $order->created_at?->timestamp ?? $order->id),
+                    'category' => 'orders',
+                    'title' => $wasUpdated
+                        ? "Order #{$order->id} moved to {$statusLabel}"
+                        : __('notifications.orders.title'),
+                    'description' => __('notifications.orders.description', [
+                        'id' => $order->id,
+                        'table' => $order->branchTable?->table_number
+                            ? __('notifications.orders.table_segment', [
+                                'table' => $order->branchTable->table_number,
+                            ])
+                            : '',
+                        'user' => $order->user?->name
+                            ? __('notifications.orders.user_segment', [
+                                'user' => $order->user->name,
+                            ])
+                            : '',
+                    ]),
+                    'createdAt' => ($order->updated_at ?? $order->created_at)?->toIso8601String(),
+                    'meta' => trim(collect([
+                        $order->branch?->name,
+                        $statusLabel,
+                        $order->total_amount !== null
+                            ? __('notifications.orders.total_meta', [
+                                'amount' => number_format((float) $order->total_amount, 0),
+                            ])
+                            : null,
+                    ])->filter()->join(' • ')),
+                    'href' => '/orders',
+                    'priority' => 'high',
+                    'unread' => ($order->updated_at ?? $order->created_at)?->gt(now()->subHours(12)) ?? false,
+                ];
+            });
     }
 
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentPaymentNotifications(): Collection
+    private function recentPaymentNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('payments')) {
+        if (! Schema::hasTable('payments') || ! $this->canSeePaymentNotifications($currentUser)) {
             return collect();
         }
 
+        $href = $this->paymentNotificationHref($currentUser);
+
         return Payment::query()
-            ->with(['order:id,total_amount', 'receiver:id,name'])
-            ->latest()
+            ->with(['order:id,total_amount,branch_id,user_id', 'order.branch:id,name', 'receiver:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->whereHas('order', fn ($orderQuery) => $orderQuery->where('branch_id', $currentUser->branch_id)),
+            )
+            ->latest('payment_date')
             ->take(4)
             ->get()
             ->map(fn (Payment $payment) => [
@@ -205,9 +237,11 @@ class HandleInertiaRequests extends Middleware
                 ]),
                 'createdAt' => ($payment->payment_date ?? $payment->created_at)?->toIso8601String(),
                 'meta' => trim(collect([
+                    $payment->order?->branch?->name,
                     $payment->currency ? strtoupper((string) $payment->currency) : null,
                     $payment->amount !== null ? number_format((float) $payment->amount, 0) : null,
                 ])->filter()->join(' • ')),
+                'href' => $href,
                 'priority' => 'medium',
                 'unread' => ($payment->payment_date ?? $payment->created_at)?->gt(now()->subHours(12)) ?? false,
             ]);
@@ -216,14 +250,23 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentPayrollNotifications(): Collection
+    private function recentPayrollNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('payroll_runs')) {
+        if (! Schema::hasTable('payroll_runs') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::PAYROLL_VIEW->value,
+            PermissionEnum::PAYROLL_CREATE->value,
+            PermissionEnum::PAYROLL_APPROVE->value,
+            PermissionEnum::PAYROLL_PAY->value,
+        ])) {
             return collect();
         }
 
         return PayrollRun::query()
             ->with(['branch:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
             ->withCount('items')
             ->latest()
             ->take(3)
@@ -252,14 +295,22 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentEmployeeNotifications(): Collection
+    private function recentEmployeeNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('employees')) {
+        if (! Schema::hasTable('employees') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::EMPLOYEES_VIEW->value,
+            PermissionEnum::EMPLOYEES_CREATE->value,
+            PermissionEnum::EMPLOYEES_UPDATE->value,
+        ])) {
             return collect();
         }
 
         return Employee::query()
             ->with(['branch:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
             ->latest()
             ->take(4)
             ->get()
@@ -285,13 +336,21 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentUserNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('users')) {
+        if (! Schema::hasTable('users') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::USER_VIEW->value,
+            PermissionEnum::USER_CREATE->value,
+            PermissionEnum::USER_UPDATE->value,
+        ])) {
             return collect();
         }
 
         return User::query()
             ->with(['roles:id,name', 'branch:id,name'])
             ->whereKeyNot($currentUser->getKey())
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
             ->latest()
             ->take(4)
             ->get()
@@ -315,14 +374,21 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentInventoryNotifications(): Collection
+    private function recentInventoryNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('inventory_items')) {
+        if (! Schema::hasTable('inventory_items') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::INVENTORY_VIEW->value,
+            PermissionEnum::INVENTORY_ADJUST->value,
+        ])) {
             return collect();
         }
 
         return InventoryItem::query()
             ->with(['branch:id,name'])
+            ->when(
+                ! $this->isSuperAdmin($currentUser) && $currentUser->branch_id,
+                fn ($query) => $query->where('branch_id', $currentUser->branch_id),
+            )
             ->latest('updated_at')
             ->take(4)
             ->get()
@@ -357,9 +423,14 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentProductNotifications(): Collection
+    private function recentProductNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('products')) {
+        if (! Schema::hasTable('products') || ! $this->hasAnyPermission($currentUser, [
+            PermissionEnum::PRODUCTS_VIEW->value,
+            PermissionEnum::PRODUCTS_CREATE->value,
+            PermissionEnum::PRODUCTS_UPDATE->value,
+            PermissionEnum::PRODUCTS_DELETE->value,
+        ])) {
             return collect();
         }
 
@@ -390,5 +461,71 @@ class HandleInertiaRequests extends Middleware
                 'priority' => 'low',
                 'unread' => $product->updated_at?->gt(now()->subDay()) ?? false,
             ]);
+    }
+
+    private function canSeeOrderNotifications(User $user): bool
+    {
+        return $this->hasAnyPermission($user, [
+            PermissionEnum::ORDERS_VIEW->value,
+            PermissionEnum::ORDERS_CREATE->value,
+            PermissionEnum::ORDERS_UPDATE->value,
+            PermissionEnum::PAYMENTS_CREATE->value,
+        ]);
+    }
+
+    private function shouldSeeBranchOrderNotifications(User $user): bool
+    {
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $user->hasRole('cashier')
+            || $user->hasRole('kitchen')
+            || $this->hasAnyPermission($user, [
+                PermissionEnum::PAYMENTS_CREATE->value,
+                PermissionEnum::PAYMENTS_VIEW->value,
+            ]);
+    }
+
+    private function canSeePaymentNotifications(User $user): bool
+    {
+        return $this->hasAnyPermission($user, [
+            PermissionEnum::PAYMENTS_VIEW->value,
+            PermissionEnum::PAYMENTS_CREATE->value,
+            PermissionEnum::FINANCE_VIEW->value,
+            PermissionEnum::FINANCE_MANAGE->value,
+        ]);
+    }
+
+    private function paymentNotificationHref(User $user): string
+    {
+        if ($user->hasRole('cashier') || ($user->can(PermissionEnum::PAYMENTS_CREATE->value) && ! $user->can(PermissionEnum::FINANCE_VIEW->value))) {
+            return '/orders';
+        }
+
+        return '/finance/cash-bank';
+    }
+
+    private function isSuperAdmin(User $user): bool
+    {
+        return $user->hasRole('super-admin');
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     */
+    private function hasAnyPermission(User $user, array $permissions): bool
+    {
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        foreach ($permissions as $permission) {
+            if ($user->can($permission)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

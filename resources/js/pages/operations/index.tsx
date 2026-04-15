@@ -113,7 +113,7 @@ const WORKSPACE_CARD_CLASS =
 const ORDER_TAKER_TOP_CARD_CLASS =
     'min-h-[560px] md:h-[calc(100svh-10rem)] md:min-h-[640px]';
 const ORDER_TAKER_MENU_CARD_CLASS =
-    'min-h-[560px] md:h-[calc(100svh-10rem)] md:min-h-[640px]';
+    'h-[calc(100svh-16rem)] min-h-[560px] md:h-[calc(100svh-10rem)] md:min-h-[640px]';
 
 const CHANNEL_META: Record<
     Channel,
@@ -986,7 +986,7 @@ export default function OperationsPage({
                         <CardContent className="min-h-0 flex-1 p-0">
                             <ScrollArea className="h-full px-4 pb-0">
                                 <div
-                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-2' : 'md:grid-cols-2'}`}
+                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2' : 'md:grid-cols-2'}`}
                                 >
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
@@ -997,9 +997,9 @@ export default function OperationsPage({
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="h-[170px] overflow-hidden rounded-[1.4rem] border border-neutral-200 bg-white"
+                                                className="h-[116px] overflow-hidden rounded-[1.2rem] border border-neutral-200 bg-white sm:min-h-[168px] sm:rounded-[1.4rem] sm:h-[170px]"
                                             >
-                                                <div className="grid h-full grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
+                                                <div className="grid h-full grid-cols-[92px_minmax(0,1fr)] sm:grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
                                                     <div className="h-full overflow-hidden bg-[#f3eee7]">
                                                         {product.images?.[0]
                                                             ?.url ? (
@@ -1020,23 +1020,23 @@ export default function OperationsPage({
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex min-w-0 flex-col justify-between p-4">
+                                                    <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
                                                         <div className="min-w-0">
-                                                            <p className="line-clamp-2 text-base leading-6 font-semibold text-[#2f1d0f]">
+                                                            <p className="line-clamp-2 text-sm leading-5 font-semibold text-[#2f1d0f] sm:text-base sm:leading-6">
                                                                 {localizedProductName(
                                                                     product,
                                                                 )}
                                                             </p>
                                                         </div>
-                                                        <div className="mt-4 space-y-3">
-                                                            <p className="text-2xl leading-none font-semibold text-[#2f1d0f]">
+                                                        <div className="mt-2 space-y-2 sm:mt-4 sm:space-y-3">
+                                                            <p className="text-xl leading-none font-semibold text-[#2f1d0f] sm:text-2xl">
                                                                 {formatCurrency(
                                                                     Number(
                                                                         product.base_price ??
                                                                             0,
                                                                     ),
                                                                 )}
-                                                                <span className="ml-1 text-sm font-medium text-[#8b7560]">
+                                                                <span className="ml-1 text-xs font-medium text-[#8b7560] sm:text-sm">
                                                                     ؋
                                                                 </span>
                                                             </p>
@@ -1044,7 +1044,7 @@ export default function OperationsPage({
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-6 w-6 shrink-0 rounded-full"
+                                                                    className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1054,13 +1054,13 @@ export default function OperationsPage({
                                                                 >
                                                                     <Minus className="h-4 w-4" />
                                                                 </Button>
-                                                                <span className="min-w-6 text-center text-sm font-medium">
+                                                                <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
                                                                     {line?.quantity ??
                                                                         0}
                                                                 </span>
                                                                 <Button
                                                                     size="icon"
-                                                                    className="h-6 w-6 shrink-0 rounded-full"
+                                                                    className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,

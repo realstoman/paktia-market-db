@@ -37,7 +37,7 @@ export function AppSidebarHeader({
             <div className="ml-2 flex shrink-0 items-center gap-2">
                 <AppearanceToggleDropdown />
                 <LanguageDropdown />
-                <HeaderNotifications user={auth.user} />
+                <HeaderNotifications />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
