@@ -4,6 +4,7 @@ const en = {
     },
     common: {
         save: 'Save',
+        cancel: 'Cancel',
         saved: 'Saved',
         settings: 'Settings',
         profile: 'Profile',
@@ -111,6 +112,13 @@ const en = {
         previewLabel: 'Live preview',
         systemBrandingHelp:
             'Save and reload to apply the updated branding across the system.',
+        systemBrandingUpdated: 'Branding settings updated successfully.',
+        systemBrandingUpdateFailed:
+            'Unable to update branding settings.',
+        confirmBrandingUpdateTitle: 'Apply branding changes?',
+        confirmBrandingUpdateDescription:
+            'This will update the shared restaurant name, logo, and colors across the system after reload.',
+        savingBranding: 'Saving...',
     },
     userMenu: {
         profile: 'Profile',

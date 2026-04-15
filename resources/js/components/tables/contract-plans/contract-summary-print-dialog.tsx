@@ -1,3 +1,4 @@
+import { brand } from '@/config/brand';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -115,7 +116,7 @@ export function ContractSummaryPrintDialog({
                                 <p class="header-value"><strong>Status:</strong> ${escapeHtml(contract.status)}</p>
                             </div>
                             <div class="brand">
-                                <img src="${window.location.origin}/brand/logo.png" alt="Baba Restaurant Logo" />
+                                <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Baba Restaurant</h1>
                                 <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
                             </div>
@@ -200,7 +201,7 @@ export function ContractSummaryPrintDialog({
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
                                         <img
-                                            src="/brand/logo.png"
+                                            src={brand.logoFull}
                                             alt="Baba Restaurant Logo"
                                             className="mx-auto mb-3 h-16 w-16 object-contain"
                                         />

@@ -4,6 +4,7 @@ const fa = {
     },
     common: {
         save: 'ذخیره',
+        cancel: 'لغو',
         saved: 'ذخیره شد',
         settings: 'تنظیمات',
         profile: 'پروفایل',
@@ -112,6 +113,13 @@ const fa = {
         previewLabel: 'پیش‌نمایش زنده',
         systemBrandingHelp:
             'برای اعمال هویت جدید در سراسر سیستم، ذخیره و دوباره بارگذاری کنید.',
+        systemBrandingUpdated: 'تنظیمات هویت سیستم با موفقیت ذخیره شد.',
+        systemBrandingUpdateFailed:
+            'امکان به‌روزرسانی تنظیمات هویت سیستم وجود ندارد.',
+        confirmBrandingUpdateTitle: 'تغییرات هویت سیستم اعمال شود؟',
+        confirmBrandingUpdateDescription:
+            'پس از بارگذاری دوباره، نام رستورانت، لوگو و رنگ‌های مشترک در سراسر سیستم به‌روزرسانی می‌شود.',
+        savingBranding: 'در حال ذخیره...',
     },
     userMenu: {
         profile: 'پروفایل',

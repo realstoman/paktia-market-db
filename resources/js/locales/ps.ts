@@ -4,6 +4,7 @@ const ps = {
     },
     common: {
         save: 'خوندي کول',
+        cancel: 'لغوه',
         saved: 'خوندي شول',
         settings: 'ترتیبات',
         profile: 'پروفایل',
@@ -111,6 +112,13 @@ const ps = {
         previewLabel: 'ژوندی مخکتنه',
         systemBrandingHelp:
             'د نوي هويت د پلي کېدو لپاره خوندي او بيا پورته کړئ.',
+        systemBrandingUpdated: 'د سيستم د هويت تنظيمات په برياليتوب سره خوندي شول.',
+        systemBrandingUpdateFailed:
+            'د سيستم د هويت تنظيمات نوي نه شول.',
+        confirmBrandingUpdateTitle: 'د هويت بدلونونه پلي شي؟',
+        confirmBrandingUpdateDescription:
+            'له بيا پورته کېدو وروسته به د رستورانت نوم، لوګو او ګډ رنګونه په ټول سيستم کې نوي شي.',
+        savingBranding: 'خوندي کېږي...',
     },
     userMenu: {
         profile: 'پروفایل',

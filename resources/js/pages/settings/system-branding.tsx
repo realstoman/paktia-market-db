@@ -1,5 +1,15 @@
 import HeadingSmall from '@/components/shared/heading-small';
 import InputError from '@/components/input-error';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +19,7 @@ import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface SystemBrandingPageProps {
     branding: SharedData['branding'];
@@ -29,6 +40,7 @@ export default function SystemBranding({
     const { auth } = usePage<SharedData>().props;
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [logoFullPreview, setLogoFullPreview] = useState<string | null>(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('settings.systemBrandingTitle', 'System branding'),
@@ -59,6 +71,14 @@ export default function SystemBranding({
             form.data.tertiary_color,
         ],
     );
+    const hasChanges =
+        form.data.restaurant_name !== branding.name ||
+        form.data.restaurant_short_name !== branding.shortName ||
+        form.data.primary_color !== branding.primaryColor ||
+        form.data.secondary_color !== branding.secondaryColor ||
+        form.data.tertiary_color !== branding.tertiaryColor ||
+        form.data.logo !== null ||
+        form.data.logo_full !== null;
 
     const submit = () => {
         form.transform((data) => ({
@@ -68,7 +88,22 @@ export default function SystemBranding({
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
+                setIsConfirmOpen(false);
+                toast.success(
+                    t(
+                        'settings.systemBrandingUpdated',
+                        'Branding settings updated successfully.',
+                    ),
+                );
                 window.location.reload();
+            },
+            onError: () => {
+                toast.error(
+                    t(
+                        'settings.systemBrandingUpdateFailed',
+                        'Unable to update branding settings.',
+                    ),
+                );
             },
         });
     };
@@ -310,8 +345,8 @@ export default function SystemBranding({
                             <div className="flex items-center gap-3">
                                 <Button
                                     type="button"
-                                    onClick={submit}
-                                    disabled={form.processing}
+                                    onClick={() => setIsConfirmOpen(true)}
+                                    disabled={form.processing || !hasChanges}
                                 >
                                     {t('common.save', 'Save')}
                                 </Button>
@@ -326,6 +361,41 @@ export default function SystemBranding({
                     )}
                 </div>
             </SettingsLayout>
+
+            <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {t(
+                                'settings.confirmBrandingUpdateTitle',
+                                'Apply branding changes?',
+                            )}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                'settings.confirmBrandingUpdateDescription',
+                                'This will update the shared restaurant name, logo, and colors across the system after reload.',
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={form.processing}>
+                            {t('common.cancel', 'Cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(event) => {
+                                event.preventDefault();
+                                submit();
+                            }}
+                            disabled={form.processing}
+                        >
+                            {form.processing
+                                ? t('settings.savingBranding', 'Saving...')
+                                : t('common.save', 'Save')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

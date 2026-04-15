@@ -37,4 +37,5 @@ Route::middleware('auth')->group(function () {
         ->name('system-branding.edit');
     Route::put('settings/system-branding', [SystemBrandingController::class, 'update'])
         ->name('system-branding.update');
+    Route::post('settings/system-branding', [SystemBrandingController::class, 'update']);
 });
