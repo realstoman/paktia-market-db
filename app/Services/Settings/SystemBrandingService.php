@@ -4,6 +4,7 @@ namespace App\Services\Settings;
 
 use App\Models\SystemSetting;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class SystemBrandingService
@@ -13,6 +14,20 @@ class SystemBrandingService
      */
     public function getBranding(): array
     {
+        if (! Schema::hasTable('system_settings')) {
+            return [
+                'name' => $this->defaults()['restaurant_name'],
+                'shortName' => $this->defaults()['restaurant_short_name'],
+                'logoUrl' => '/brand/logo.svg',
+                'logoFullUrl' => '/brand/logo-full.svg',
+                'logoPath' => '',
+                'logoFullPath' => '',
+                'primaryColor' => $this->defaults()['primary_color'],
+                'secondaryColor' => $this->defaults()['secondary_color'],
+                'tertiaryColor' => $this->defaults()['tertiary_color'],
+            ];
+        }
+
         $settings = SystemSetting::query()
             ->whereIn('key', array_keys($this->defaults()))
             ->pluck('value', 'key');

@@ -10,6 +10,7 @@ const fa = {
         password: 'رمز عبور',
         appearance: 'نمای ظاهری',
         language: 'زبان',
+        systemBranding: 'هویت سیستم',
         twoFactorAuth: 'احراز هویت دومرحله‌ای',
         logout: 'خروج',
         noResultsFound: 'هیچ نتیجه‌ای یافت نشد.',
@@ -96,6 +97,21 @@ const fa = {
             'انگلیسی زبان پیش‌فرض است. دری و پشتو با چیدمان راست به چپ نمایش داده می‌شوند.',
         openLanguageSettings: 'باز کردن تنظیمات زبان',
         saveLanguage: 'ذخیره زبان',
+        systemBrandingTitle: 'هویت سیستم',
+        systemBrandingDescription:
+            'لوگو و رنگ‌های مشترک که در سراسر سیستم استفاده می‌شوند را مدیریت کنید.',
+        systemBrandingRestricted:
+            'فقط سوپر ادمین می‌تواند تنظیمات هویت سیستم را تغییر دهد.',
+        restaurantNameLabel: 'نام رستورانت',
+        restaurantShortNameLabel: 'نام کوتاه',
+        primaryColorLabel: 'رنگ اصلی',
+        secondaryColorLabel: 'رنگ ثانوی',
+        tertiaryColorLabel: 'رنگ سوم',
+        logoLabel: 'لوگوی سایدبار',
+        logoFullLabel: 'لوگوی کامل صفحه ورود',
+        previewLabel: 'پیش‌نمایش زنده',
+        systemBrandingHelp:
+            'برای اعمال هویت جدید در سراسر سیستم، ذخیره و دوباره بارگذاری کنید.',
     },
     userMenu: {
         profile: 'پروفایل',

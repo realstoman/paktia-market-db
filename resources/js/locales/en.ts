@@ -10,6 +10,7 @@ const en = {
         password: 'Password',
         appearance: 'Appearance',
         language: 'Language',
+        systemBranding: 'System Branding',
         twoFactorAuth: 'Two-Factor Auth',
         logout: 'Log out',
         noResultsFound: 'No results found.',
@@ -95,6 +96,21 @@ const en = {
             'English is the default language. Dari and Pashto use a right-to-left layout.',
         openLanguageSettings: 'Open language settings',
         saveLanguage: 'Save language',
+        systemBrandingTitle: 'System branding',
+        systemBrandingDescription:
+            'Manage the shared logo and theme colors used across the system.',
+        systemBrandingRestricted:
+            'Only super-admin can update system branding settings.',
+        restaurantNameLabel: 'Restaurant name',
+        restaurantShortNameLabel: 'Short name',
+        primaryColorLabel: 'Primary color',
+        secondaryColorLabel: 'Secondary color',
+        tertiaryColorLabel: 'Tertiary color',
+        logoLabel: 'Sidebar logo',
+        logoFullLabel: 'Full auth logo',
+        previewLabel: 'Live preview',
+        systemBrandingHelp:
+            'Save and reload to apply the updated branding across the system.',
     },
     userMenu: {
         profile: 'Profile',
