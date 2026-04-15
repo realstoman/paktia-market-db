@@ -111,9 +111,9 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
 const WORKSPACE_CARD_CLASS =
     'min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[860px]';
 const ORDER_TAKER_TOP_CARD_CLASS =
-    'min-h-[420px] md:h-[calc(44svh-5.75rem)] md:min-h-[460px]';
+    'min-h-[560px] md:h-[calc(100svh-10rem)] md:min-h-[640px]';
 const ORDER_TAKER_MENU_CARD_CLASS =
-    'min-h-[520px] md:h-[calc(56svh-7rem)] md:min-h-[560px]';
+    'min-h-[560px] md:h-[calc(100svh-10rem)] md:min-h-[640px]';
 
 const CHANNEL_META: Record<
     Channel,
@@ -475,15 +475,24 @@ export default function OperationsPage({
             return;
         }
 
-        if (selectedChannel === 'delivery') {
-            if (
-                !customerName.trim() ||
-                !customerPhone.trim() ||
-                !deliveryAddress.trim()
-            ) {
-                toast.error(
-                    'Delivery orders need customer name, phone, and address.',
-                );
+        if (
+            selectedChannel === 'delivery' &&
+            !deliveryAddress.trim()
+        ) {
+            toast.error(
+                'Delivery orders need an address before the ticket can be saved.',
+            );
+            return;
+        }
+
+        if (selectedChannel === 'takeaway' || selectedChannel === 'delivery') {
+            if (customerName.trim().length > 255) {
+                toast.error('Customer name is too long.');
+                return;
+            }
+
+            if (customerPhone.trim().length > 50) {
+                toast.error('Customer phone is too long.');
                 return;
             }
         }
@@ -1083,7 +1092,7 @@ export default function OperationsPage({
                     </Card>
 
                     <Card
-                        className={`${invoiceCardClass} flex flex-col border-neutral-200/70 shadow-none`}
+                        className={`${invoiceCardClass} flex flex-col overflow-hidden border-neutral-200/70 shadow-none`}
                     >
                         <CardHeader className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -1127,7 +1136,7 @@ export default function OperationsPage({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Customer name"
+                                            placeholder="Customer name (optional)"
                                         />
                                     </div>
                                     <div className="grid gap-2">
@@ -1142,7 +1151,7 @@ export default function OperationsPage({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Phone number"
+                                            placeholder="Phone number (optional)"
                                         />
                                     </div>
                                     {selectedChannel === 'delivery' ? (
@@ -1159,14 +1168,17 @@ export default function OperationsPage({
                                                     )
                                                 }
                                                 placeholder="Delivery address"
+                                                required
                                             />
                                         </div>
                                     ) : null}
                                 </div>
                             ) : null}
                         </CardHeader>
-                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-                            <ScrollArea className="min-h-0 flex-1 rounded-2xl border border-neutral-200 px-3 py-3">
+                        <CardContent
+                            className={`flex min-h-0 flex-1 flex-col gap-4 ${isOrderTakerMode ? 'overflow-y-auto pr-1' : ''}`}
+                        >
+                            <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
                                 <div className="space-y-3">
                                     {cartLines.map((line) => (
                                         <div
@@ -1208,7 +1220,9 @@ export default function OperationsPage({
                                     ))}
 
                                     {cartLines.length === 0 ? (
-                                        <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+                                        <div
+                                            className={`flex flex-col items-center justify-center gap-2 text-center text-muted-foreground ${isOrderTakerMode ? 'min-h-[140px]' : 'min-h-[220px]'}`}
+                                        >
                                             <Armchair className="h-6 w-6" />
                                             <p className="text-sm">
                                                 {isOrderTakerMode
@@ -1218,7 +1232,7 @@ export default function OperationsPage({
                                         </div>
                                     ) : null}
                                 </div>
-                            </ScrollArea>
+                            </div>
 
                             <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
                                 <div className="space-y-3 text-sm">
@@ -1276,7 +1290,7 @@ export default function OperationsPage({
                             ) : null}
 
                             <div
-                                className={`grid gap-2 ${isOrderTakerMode ? 'min-h-[120px]' : 'min-h-[146px]'}`}
+                                className={`shrink-0 grid gap-2 ${isOrderTakerMode ? 'min-h-[120px]' : 'min-h-[146px]'}`}
                             >
                                 <Button
                                     className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
@@ -1294,7 +1308,9 @@ export default function OperationsPage({
                                 </Button>
 
                                 {selectedOrder && canManageStatus ? (
-                                    <div className="grid gap-2 sm:grid-cols-2">
+                                    <div
+                                        className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
+                                    >
                                         <Button
                                             variant="outline"
                                             className="rounded-2xl"
@@ -1321,7 +1337,9 @@ export default function OperationsPage({
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="grid gap-2 sm:grid-cols-2">
+                                    <div
+                                        className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
+                                    >
                                         <Button
                                             variant="outline"
                                             className="rounded-2xl"

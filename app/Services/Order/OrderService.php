@@ -97,10 +97,16 @@ class OrderService
                 'branch_table_id' => $data['branch_table_id'] ?? null,
                 'user_id' => $userId,
                 'order_type' => $data['order_type'],
-                'customer_name' => $data['order_type'] === OrderType::DELIVERY->value
+                'customer_name' => in_array($data['order_type'], [
+                    OrderType::DELIVERY->value,
+                    OrderType::TAKEAWAY->value,
+                ], true)
                     ? trim((string) ($data['customer_name'] ?? ''))
                     : null,
-                'customer_phone' => $data['order_type'] === OrderType::DELIVERY->value
+                'customer_phone' => in_array($data['order_type'], [
+                    OrderType::DELIVERY->value,
+                    OrderType::TAKEAWAY->value,
+                ], true)
                     ? trim((string) ($data['customer_phone'] ?? ''))
                     : null,
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
@@ -145,10 +151,16 @@ class OrderService
                     ? ($data['branch_table_id'] ?? null)
                     : null,
                 'order_type' => $data['order_type'],
-                'customer_name' => $data['order_type'] === OrderType::DELIVERY->value
+                'customer_name' => in_array($data['order_type'], [
+                    OrderType::DELIVERY->value,
+                    OrderType::TAKEAWAY->value,
+                ], true)
                     ? trim((string) ($data['customer_name'] ?? ''))
                     : null,
-                'customer_phone' => $data['order_type'] === OrderType::DELIVERY->value
+                'customer_phone' => in_array($data['order_type'], [
+                    OrderType::DELIVERY->value,
+                    OrderType::TAKEAWAY->value,
+                ], true)
                     ? trim((string) ($data['customer_phone'] ?? ''))
                     : null,
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
@@ -302,18 +314,6 @@ class OrderService
         }
 
         if (($data['order_type'] ?? null) === OrderType::DELIVERY->value) {
-            if (empty(trim((string) ($data['customer_name'] ?? '')))) {
-                throw ValidationException::withMessages([
-                    'customer_name' => 'Customer name is required for delivery orders.',
-                ]);
-            }
-
-            if (empty(trim((string) ($data['customer_phone'] ?? '')))) {
-                throw ValidationException::withMessages([
-                    'customer_phone' => 'Customer phone is required for delivery orders.',
-                ]);
-            }
-
             if (empty(trim((string) ($data['delivery_address'] ?? '')))) {
                 throw ValidationException::withMessages([
                     'delivery_address' => 'Delivery address is required for delivery orders.',
