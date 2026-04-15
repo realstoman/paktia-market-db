@@ -29,10 +29,25 @@ import { useLocalization } from '@/lib/localization';
 import { Branch, BranchTable, Order, Product, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
-import { ClipboardList, Plus, Printer, Save, Trash2, X } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
+import {
+    ClipboardList,
+    Plus,
+    Printer,
+    Save,
+    ShoppingBag,
+    Trash2,
+    X,
+} from 'lucide-react';
+import {
+    type Dispatch,
+    type SetStateAction,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
+import { OrderRowActions } from './row-actions';
 import { ReceiptPreviewDialog } from './receipt-preview-dialog';
 
 interface OrderItemDraft {
@@ -142,6 +157,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [selectedReceiptOrder, setSelectedReceiptOrder] =
         useState<Order | null>(null);
+    const [mobileActionOrder, setMobileActionOrder] = useState<Order | null>(
+        null,
+    );
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -156,6 +174,21 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [statusFilter, setStatusFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
     const isOrderTaker = auth.roles.includes('order-taker');
+    const [isCompactViewport, setIsCompactViewport] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const media = window.matchMedia('(max-width: 1023px)');
+        const syncViewport = () => setIsCompactViewport(media.matches);
+
+        syncViewport();
+        media.addEventListener('change', syncViewport);
+
+        return () => media.removeEventListener('change', syncViewport);
+    }, []);
 
     const getStatusLabel = (status: string) =>
         t(`orders.status.${status}`, status);
@@ -547,6 +580,42 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setIsReceiptPreviewOpen(true);
     };
 
+    const handleAssignTable = (order: Order, nextBranchTableId: number) => {
+        router.patch(
+            `/orders/${order.id}/table`,
+            { branch_table_id: nextBranchTableId },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        t(
+                            'orders.messages.orderTableUpdated',
+                            'Order table updated.',
+                        ),
+                    );
+                },
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ||
+                            t(
+                                'orders.messages.orderTableUpdateFailed',
+                                'Failed to update order table.',
+                            ),
+                    );
+                },
+            },
+        );
+    };
+
+    const handleMobileRowTap = (order: Order) => {
+        if (!isCompactViewport) {
+            return;
+        }
+
+        setMobileActionOrder(order);
+    };
+
     const handleAddItemsSubmit = () => {
         if (!selectedOrder || isSubmitting) {
             return;
@@ -599,33 +668,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         onAddItems: openAddItems,
         onUpdateStatus: handleStatusUpdate,
         onPrint: openReceiptPreview,
-        onAssignTable: (order, nextBranchTableId) => {
-            router.patch(
-                `/orders/${order.id}/table`,
-                { branch_table_id: nextBranchTableId },
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        toast.success(
-                            t(
-                                'orders.messages.orderTableUpdated',
-                                'Order table updated.',
-                            ),
-                        );
-                    },
-                    onError: (errors) => {
-                        toast.error(
-                            Object.values(errors)[0] ||
-                                t(
-                                    'orders.messages.orderTableUpdateFailed',
-                                    'Failed to update order table.',
-                                ),
-                        );
-                    },
-                },
-            );
-        },
+        onAssignTable: handleAssignTable,
         branchTables,
         t,
         getStatusLabel,
@@ -963,7 +1006,89 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search orders by branch or status...',
                 )}
                 toolbar={tableToolbar}
+                onRowClick={handleMobileRowTap}
+                getRowClassName={() =>
+                    isCompactViewport
+                        ? 'cursor-pointer lg:cursor-default'
+                        : undefined
+                }
             />
+
+            <Dialog
+                open={mobileActionOrder !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setMobileActionOrder(null);
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-lg lg:hidden">
+                    {mobileActionOrder ? (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    <ShoppingBag className="h-5 w-5" />
+                                    {t(
+                                        'orders.mobileActions.title',
+                                        'Order actions',
+                                    )}{' '}
+                                    #{mobileActionOrder.id}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    {t(
+                                        'orders.mobileActions.description',
+                                        'Tap an action below to view details, update status, or continue working on this order.',
+                                    )}
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="grid gap-3 rounded-2xl border border-neutral-200/70 bg-neutral-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.status', 'Status')}
+                                    </span>
+                                    <Badge className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                                        {getStatusLabel(
+                                            mobileActionOrder.status ?? 'pending',
+                                        )}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.branch', 'Branch')}
+                                    </span>
+                                    <span className="font-medium">
+                                        {mobileActionOrder.branch?.name ?? '-'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.total', 'Total')}
+                                    </span>
+                                    <span className="font-medium">
+                                        {formatAfn(
+                                            mobileActionOrder.total_amount,
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <OrderRowActions
+                                order={mobileActionOrder}
+                                branchTables={branchTables}
+                                onEdit={openEdit}
+                                onView={openDetails}
+                                onAddItems={openAddItems}
+                                onAssignTable={handleAssignTable}
+                                onUpdateStatus={handleStatusUpdate}
+                                onPrint={openReceiptPreview}
+                                mode="panel"
+                                onAction={() => setMobileActionOrder(null)}
+                            />
+                        </>
+                    ) : null}
+                </DialogContent>
+            </Dialog>
 
             <Dialog
                 open={isCreateOpen}

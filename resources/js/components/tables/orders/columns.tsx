@@ -63,6 +63,7 @@ export const buildColumns = ({
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
+                onClick={(event) => event.stopPropagation()}
                 aria-label={t('orders.columns.selectAll', 'Select all')}
             />
         ),
@@ -70,6 +71,7 @@ export const buildColumns = ({
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
+                onClick={(event) => event.stopPropagation()}
                 aria-label={t('orders.columns.selectRow', 'Select row')}
             />
         ),
