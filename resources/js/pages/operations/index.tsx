@@ -1176,7 +1176,7 @@ export default function OperationsPage({
                             ) : null}
                         </CardHeader>
                         <CardContent
-                            className={`flex min-h-0 flex-1 flex-col gap-4 ${isOrderTakerMode ? 'overflow-y-auto pr-1' : ''}`}
+                            className={`flex min-h-0 flex-1 flex-col gap-4 ${isOrderTakerMode ? 'overflow-y-auto pr-1 pb-8 md:pb-12' : ''}`}
                         >
                             <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
                                 <div className="space-y-3">
