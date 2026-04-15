@@ -3,7 +3,7 @@ import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 
 export default function AppLogo() {
-    const { isRtl, t } = useLocalization();
+    const { isRtl } = useLocalization();
 
     return (
         <>
@@ -22,7 +22,7 @@ export default function AppLogo() {
                 })}
             >
                 <span className="truncate leading-none font-semibold tracking-wide">
-                    {t('brand.restaurantName', 'Baba Restaurant')}
+                    {brand.name}
                 </span>
             </div>
         </>

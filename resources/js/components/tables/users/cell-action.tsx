@@ -98,6 +98,8 @@ export const CellAction: React.FC<CellActionProps> = ({
         Record<string, string>
     >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const canToggleBlock = auth.user.id !== data.id;
+    const canDeleteUser = auth.user.id !== data.id;
     const canResetPassword =
         auth.is_super_admin === true && auth.user.id !== data.id;
 
@@ -259,10 +261,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
-                        <Ban className="mr-2 h-4 w-4" />
-                        {data.is_active ? 'Block' : 'Unblock'}
-                    </DropdownMenuItem>
+                    {canToggleBlock ? (
+                        <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
+                            <Ban className="mr-2 h-4 w-4" />
+                            {data.is_active ? 'Block' : 'Unblock'}
+                        </DropdownMenuItem>
+                    ) : null}
                     {canResetPassword ? (
                         <DropdownMenuItem
                             onClick={() => {
@@ -274,10 +278,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                             Reset password
                         </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
-                    </DropdownMenuItem>
+                    {canDeleteUser ? (
+                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                            <Trash className="mr-2 h-4 w-4 text-red-600" />
+                            Delete
+                        </DropdownMenuItem>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -567,7 +573,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={isBlockOpen} onOpenChange={setIsBlockOpen}>
+            <AlertDialog
+                open={canToggleBlock ? isBlockOpen : false}
+                onOpenChange={setIsBlockOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
@@ -605,7 +614,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </AlertDialogContent>
             </AlertDialog>
 
-            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <AlertDialog
+                open={canDeleteUser ? isDeleteOpen : false}
+                onOpenChange={setIsDeleteOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete user</AlertDialogTitle>

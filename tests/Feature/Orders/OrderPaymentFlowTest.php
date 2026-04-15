@@ -7,6 +7,7 @@ use App\Models\Province;
 use App\Models\User;
 use App\Services\Order\OrderService;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 
 function createBranchForOrders(): Branch
 {
@@ -62,9 +63,11 @@ test('non super admins cannot change the status of completed orders', function (
 test('completing payment applies discount and stores the final paid amount', function () {
     $service = app(OrderService::class);
     $branch = createBranchForOrders();
+    Permission::findOrCreate('payments.create', 'web');
     $cashier = User::factory()->create([
         'branch_id' => $branch->id,
     ]);
+    $cashier->givePermissionTo('payments.create');
 
     $order = Order::create([
         'branch_id' => $branch->id,
@@ -95,4 +98,31 @@ test('completing payment applies discount and stores the final paid amount', fun
     expect((float) $payment->amount)->toBe(1300.0);
     expect($payment->method)->toBe('cash');
     expect($payment->received_by)->toBe($cashier->id);
+});
+
+test('order takers can not complete orders directly without payment permission', function () {
+    $service = app(OrderService::class);
+    $branch = createBranchForOrders();
+    $orderTaker = User::factory()->create([
+        'branch_id' => $branch->id,
+    ]);
+
+    $order = Order::create([
+        'branch_id' => $branch->id,
+        'user_id' => $orderTaker->id,
+        'order_type' => 'takeaway',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 900,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'total_amount' => 900,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'ready',
+    ]);
+
+    expect(fn () => $service->updateStatus($order, 'completed', 'cash', null, $orderTaker))
+        ->toThrow(ValidationException::class);
 });

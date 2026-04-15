@@ -1,3 +1,4 @@
+import { brand } from '@/config/brand';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +31,7 @@ import {
     IconWorldWww,
 } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
@@ -144,7 +145,9 @@ export function ReceiptPreviewDialog({
 
         return 'en-US';
     }, [locale]);
-    const [discount, setDiscount] = useState('0');
+    const [discount, setDiscount] = useState(
+        String(Number(order?.discount_amount ?? 0) || 0),
+    );
     const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
     const canFinalizePayment =
         !!order &&
@@ -175,20 +178,15 @@ export function ReceiptPreviewDialog({
     const createdAt = order?.created_at
         ? new Date(order.created_at).toLocaleString(dateLocale)
         : '-';
+    const fullLogoSrc = brand.logoFull.startsWith('http')
+        ? brand.logoFull
+        : `${window.location.origin}${brand.logoFull}`;
     const orderTypeLabel = order?.order_type
         ? t(
               `orders.orderType.${order.order_type}`,
               order.order_type.replace('_', ' '),
           )
         : '-';
-
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        setDiscount(String(Number(order?.discount_amount ?? 0) || 0));
-    }, [open, order?.discount_amount]);
 
     const printReceipt = () => {
         if (!order) {
@@ -248,8 +246,8 @@ export function ReceiptPreviewDialog({
                 <body>
                     <div class="receipt">
                         <div class="center">
-                            <img src="${window.location.origin}/brand/logo.png" alt="${escapeHtml(t('brand.restaurantName', 'Baba Restaurant'))} Logo" />
-                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">${escapeHtml(t('brand.restaurantName', 'Baba Restaurant'))}</h3>
+                            <img src="${fullLogoSrc}" alt="${escapeHtml(brand.name)} Logo" />
+                            <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">${escapeHtml(brand.name)}</h3>
                             <p class="muted" style="margin:0;">${escapeHtml(t('orders.receipt.receiptTitle', 'Order Receipt'))}</p>
                         </div>
                         <hr />
@@ -483,15 +481,12 @@ export function ReceiptPreviewDialog({
                                 >
                                     <div className="text-center">
                                         <img
-                                            src="/brand/logo.png"
-                                            alt={`${t('brand.restaurantName', 'Baba Restaurant')} Logo`}
-                                            className="mx-auto h-8 w-8 object-contain"
+                                            src={brand.logoFull}
+                                            alt={`${brand.name} Logo`}
+                                            className="mx-auto h-10 w-auto max-w-[120px] object-contain"
                                         />
                                         <p className="mt-1 text-sm font-semibold">
-                                            {t(
-                                                'brand.restaurantName',
-                                                'Baba Restaurant',
-                                            )}
+                                            {brand.name}
                                         </p>
                                         <p className="text-[10px] text-neutral-500">
                                             {t(

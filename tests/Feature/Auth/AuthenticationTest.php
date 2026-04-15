@@ -18,7 +18,7 @@ test('users can authenticate using the login screen', function () {
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
+    expect(auth()->check())->toBeTrue();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
@@ -47,7 +47,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 
     $response->assertRedirect(route('two-factor.login'));
     $response->assertSessionHas('login.id', $user->id);
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });
 
 test('users can not authenticate with invalid password', function () {
@@ -58,17 +58,30 @@ test('users can not authenticate with invalid password', function () {
         'password' => 'wrong-password',
     ]);
 
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });
 
-// test('users can logout', function () {
-//     $user = User::factory()->create();
+test('blocked users can not authenticate using the login screen', function () {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'is_active' => false,
+        'blocked_at' => now(),
+    ]);
 
-//     $response = $this->actingAs($user)->post(route('logout'));
+    $response = $this->from(route('login'))->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
 
-//     $this->assertGuest();
-//     $response->assertRedirect(route('login'));
-// });
+    $response
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors([
+            'email' => 'Your account is blocked. Ask the system admin to unblock your account.',
+        ]);
+
+    expect(auth()->check())->toBeFalse();
+});
+
+
 
 test('users are rate limited', function () {
     $user = User::factory()->create();

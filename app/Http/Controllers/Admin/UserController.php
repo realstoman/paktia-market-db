@@ -133,6 +133,12 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
+        if (request()->user()?->is($user)) {
+            return back()->withErrors([
+                'user' => 'You can not block or unblock your own account.',
+            ]);
+        }
+
         if ($user->is_active) {
             $user->block();
         } else {
@@ -145,6 +151,12 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
+
+        if (request()->user()?->is($user)) {
+            return back()->withErrors([
+                'user' => 'You can not delete your own account from user management.',
+            ]);
+        }
 
         $this->userService->delete($user);
 

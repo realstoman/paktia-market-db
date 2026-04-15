@@ -228,7 +228,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
-                        <HeaderNotifications user={auth.user} />
+                        <HeaderNotifications />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button

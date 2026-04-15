@@ -41,7 +41,6 @@ const ORDER_STATUSES = [
     'pending',
     'in_progress',
     'ready',
-    'completed',
     'cancelled',
 ];
 
@@ -58,6 +57,8 @@ interface OrderRowActionsProps {
         paymentMethod?: string,
     ) => void;
     onPrint: (order: Order) => void;
+    mode?: 'dropdown' | 'panel';
+    onAction?: () => void;
 }
 
 export function OrderRowActions({
@@ -69,6 +70,8 @@ export function OrderRowActions({
     onAssignTable,
     onUpdateStatus,
     onPrint,
+    mode = 'dropdown',
+    onAction,
 }: OrderRowActionsProps) {
     const { auth } = usePage<SharedData>().props;
     const { t, isRtl } = useLocalization();
@@ -78,9 +81,6 @@ export function OrderRowActions({
         order.branch_table_id ? String(order.branch_table_id) : '',
     );
     const [status, setStatus] = useState(order.status ?? 'pending');
-    const [paymentMethod, setPaymentMethod] = useState(
-        order.payments?.[0]?.method ?? 'cash',
-    );
     const [error, setError] = useState('');
     const isCompleted = (order.status ?? 'pending') === 'completed';
     const canPrintReceipt = ['ready', 'completed'].includes(
@@ -90,19 +90,6 @@ export function OrderRowActions({
     const canAddOrderItems = !isCompleted;
     const canAssignOrderTable = !isCompleted;
     const canUpdateStatus = !isCompleted || auth.is_super_admin === true;
-    const paymentMethodOptions = [
-        { value: 'cash', label: t('orders.paymentMethod.cash', 'Cash') },
-        {
-            value: 'bank_transfer',
-            label: t('orders.paymentMethod.bank_transfer', 'Bank Transfer'),
-        },
-        {
-            value: 'credit_card',
-            label: t('orders.paymentMethod.credit_card', 'Credit Card'),
-        },
-        { value: 'other', label: t('orders.paymentMethod.other', 'Other') },
-    ];
-
     const tableOptions = useMemo(
         () =>
             branchTables.filter(
@@ -126,131 +113,197 @@ export function OrderRowActions({
         setError('');
         onAssignTable(order, Number(branchTableId));
         setIsAssignTableOpen(false);
+        onAction?.();
     };
+
+    const handleView = () => {
+        onView(order);
+        onAction?.();
+    };
+
+    const handleEdit = () => {
+        if (!canEditOrder) {
+            return;
+        }
+
+        onEdit(order);
+        onAction?.();
+    };
+
+    const handleAddItems = () => {
+        if (!canAddOrderItems) {
+            return;
+        }
+
+        onAddItems(order);
+        onAction?.();
+    };
+
+    const handlePrint = () => {
+        if (!canPrintReceipt) {
+            return;
+        }
+
+        onPrint(order);
+        onAction?.();
+    };
+
+    const handleAssignOpen = () => {
+        if (!canAssignOrderTable) {
+            return;
+        }
+        setBranchTableId(order.branch_table_id ? String(order.branch_table_id) : '');
+        setError('');
+        setIsAssignTableOpen(true);
+    };
+
+    const handleStatusOpen = () => {
+        if (!canUpdateStatus) {
+            return;
+        }
+        setStatus(order.status ?? 'pending');
+        setIsStatusOpen(true);
+    };
+
+    const actionItems = (
+        <>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handleView}
+            >
+                <Eye className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.viewDetails', 'Details')}
+            </Button>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handleEdit}
+                disabled={!canEditOrder}
+            >
+                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.editOrder', 'Edit Order')}
+            </Button>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handleAddItems}
+                disabled={!canAddOrderItems}
+            >
+                <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.addItem', 'Add Item')}
+            </Button>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handlePrint}
+                disabled={!canPrintReceipt}
+            >
+                <Printer className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.printReceipt', 'Print Receipt')}
+            </Button>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handleAssignOpen}
+                disabled={!canAssignOrderTable}
+            >
+                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.assignTable', 'Assign Table')}
+            </Button>
+            <Button
+                type="button"
+                variant="ghost"
+                className="h-10 w-full justify-start"
+                onClick={handleStatusOpen}
+                disabled={!canUpdateStatus}
+            >
+                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                {t('orders.rowActions.updateStatus', 'Update Status')}
+            </Button>
+        </>
+    );
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">
-                            {t('orders.rowActions.openMenu', 'Open menu')}
-                        </span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    align={isRtl ? 'start' : 'end'}
-                    className={isRtl ? 'text-right' : ''}
-                >
-                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
-                        {t('orders.rowActions.actions', 'Actions')}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => onView(order)}
+            {mode === 'dropdown' ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            <span className="sr-only">
+                                {t('orders.rowActions.openMenu', 'Open menu')}
+                            </span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        align={isRtl ? 'start' : 'end'}
+                        className={isRtl ? 'text-right' : ''}
                     >
-                        <Eye
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.viewDetails', 'Details')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => canEditOrder && onEdit(order)}
-                        disabled={!canEditOrder}
-                    >
-                        <Edit3
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.editOrder', 'Edit Order')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => canAddOrderItems && onAddItems(order)}
-                        disabled={!canAddOrderItems}
-                    >
-                        <Plus
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.addItem', 'Add Item')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => canPrintReceipt && onPrint(order)}
-                        disabled={!canPrintReceipt}
-                    >
-                        <Printer
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.printReceipt', 'Print Receipt')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => {
-                            if (!canAssignOrderTable) {
-                                return;
-                            }
-                            setBranchTableId(
-                                order.branch_table_id
-                                    ? String(order.branch_table_id)
-                                    : '',
-                            );
-                            setError('');
-                            setIsAssignTableOpen(true);
-                        }}
-                        disabled={!canAssignOrderTable}
-                    >
-                        <Edit3
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.assignTable', 'Assign Table')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                        onClick={() => {
-                            if (!canUpdateStatus) {
-                                return;
-                            }
-                            setStatus(order.status ?? 'pending');
-                            setPaymentMethod(
-                                order.payments?.[0]?.method ?? 'cash',
-                            );
-                            setIsStatusOpen(true);
-                        }}
-                        disabled={!canUpdateStatus}
-                    >
-                        <Edit3
-                            className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                        />
-                        {t('orders.rowActions.updateStatus', 'Update Status')}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                        <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                            {t('orders.rowActions.actions', 'Actions')}
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handleView}
+                        >
+                            <Eye className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.viewDetails', 'Details')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handleEdit}
+                            disabled={!canEditOrder}
+                        >
+                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.editOrder', 'Edit Order')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handleAddItems}
+                            disabled={!canAddOrderItems}
+                        >
+                            <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.addItem', 'Add Item')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handlePrint}
+                            disabled={!canPrintReceipt}
+                        >
+                            <Printer className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.printReceipt', 'Print Receipt')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handleAssignOpen}
+                            disabled={!canAssignOrderTable}
+                        >
+                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.assignTable', 'Assign Table')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
+                            onClick={handleStatusOpen}
+                            disabled={!canUpdateStatus}
+                        >
+                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {t('orders.rowActions.updateStatus', 'Update Status')}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+                <div className="grid gap-1.5">{actionItems}</div>
+            )}
 
             <Dialog
                 open={isAssignTableOpen}
@@ -355,40 +408,6 @@ export function OrderRowActions({
                         </Select>
                     </div>
 
-                    {status === 'completed' ? (
-                        <div className="grid gap-2">
-                            <Label>
-                                {t(
-                                    'orders.form.paymentMethod',
-                                    'Payment Method',
-                                )}
-                            </Label>
-                            <Select
-                                value={paymentMethod}
-                                onValueChange={setPaymentMethod}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'orders.form.paymentMethodPlaceholder',
-                                            'Select payment method',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {paymentMethodOptions.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : null}
-
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -399,14 +418,9 @@ export function OrderRowActions({
                         </Button>
                         <Button
                             onClick={() => {
-                                onUpdateStatus(
-                                    order,
-                                    status,
-                                    status === 'completed'
-                                        ? paymentMethod
-                                        : undefined,
-                                );
+                                onUpdateStatus(order, status);
                                 setIsStatusOpen(false);
+                                onAction?.();
                             }}
                         >
                             <Save className="mr-2 h-4 w-4" />

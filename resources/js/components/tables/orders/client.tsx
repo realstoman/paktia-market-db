@@ -29,10 +29,25 @@ import { useLocalization } from '@/lib/localization';
 import { Branch, BranchTable, Order, Product, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
-import { ClipboardList, Plus, Printer, Save, Trash2, X } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
+import {
+    ClipboardList,
+    Plus,
+    Printer,
+    Save,
+    ShoppingBag,
+    Trash2,
+    X,
+} from 'lucide-react';
+import {
+    type Dispatch,
+    type SetStateAction,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
+import { OrderRowActions } from './row-actions';
 import { ReceiptPreviewDialog } from './receipt-preview-dialog';
 
 interface OrderItemDraft {
@@ -57,6 +72,8 @@ const ORDER_STATUSES = [
     'completed',
     'cancelled',
 ];
+
+const ORDER_TYPE_OPTIONS = ['dine_in', 'takeaway', 'delivery'] as const;
 
 const emptyItem = (): OrderItemDraft => ({
     productId: '',
@@ -140,6 +157,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [selectedReceiptOrder, setSelectedReceiptOrder] =
         useState<Order | null>(null);
+    const [mobileActionOrder, setMobileActionOrder] = useState<Order | null>(
+        null,
+    );
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
     );
@@ -149,9 +169,26 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [branchFilter, setBranchFilter] = useState('all');
     const [userFilter, setUserFilter] = useState('all');
+    const [orderTypeFilter, setOrderTypeFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
+    const isOrderTaker = auth.roles.includes('order-taker');
+    const [isCompactViewport, setIsCompactViewport] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const media = window.matchMedia('(max-width: 1023px)');
+        const syncViewport = () => setIsCompactViewport(media.matches);
+
+        syncViewport();
+        media.addEventListener('change', syncViewport);
+
+        return () => media.removeEventListener('change', syncViewport);
+    }, []);
 
     const getStatusLabel = (status: string) =>
         t(`orders.status.${status}`, status);
@@ -543,6 +580,42 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setIsReceiptPreviewOpen(true);
     };
 
+    const handleAssignTable = (order: Order, nextBranchTableId: number) => {
+        router.patch(
+            `/orders/${order.id}/table`,
+            { branch_table_id: nextBranchTableId },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        t(
+                            'orders.messages.orderTableUpdated',
+                            'Order table updated.',
+                        ),
+                    );
+                },
+                onError: (errors) => {
+                    toast.error(
+                        Object.values(errors)[0] ||
+                            t(
+                                'orders.messages.orderTableUpdateFailed',
+                                'Failed to update order table.',
+                            ),
+                    );
+                },
+            },
+        );
+    };
+
+    const handleMobileRowTap = (order: Order) => {
+        if (!isCompactViewport) {
+            return;
+        }
+
+        setMobileActionOrder(order);
+    };
+
     const handleAddItemsSubmit = () => {
         if (!selectedOrder || isSubmitting) {
             return;
@@ -595,33 +668,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         onAddItems: openAddItems,
         onUpdateStatus: handleStatusUpdate,
         onPrint: openReceiptPreview,
-        onAssignTable: (order, nextBranchTableId) => {
-            router.patch(
-                `/orders/${order.id}/table`,
-                { branch_table_id: nextBranchTableId },
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onSuccess: () => {
-                        toast.success(
-                            t(
-                                'orders.messages.orderTableUpdated',
-                                'Order table updated.',
-                            ),
-                        );
-                    },
-                    onError: (errors) => {
-                        toast.error(
-                            Object.values(errors)[0] ||
-                                t(
-                                    'orders.messages.orderTableUpdateFailed',
-                                    'Failed to update order table.',
-                                ),
-                        );
-                    },
-                },
-            );
-        },
+        onAssignTable: handleAssignTable,
         branchTables,
         t,
         getStatusLabel,
@@ -685,6 +732,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             }
 
             if (
+                orderTypeFilter !== 'all' &&
+                (order.order_type ?? 'takeaway') !== orderTypeFilter
+            ) {
+                return false;
+            }
+
+            if (
                 statusFilter !== 'all' &&
                 (order.status ?? 'pending') !== statusFilter
             ) {
@@ -713,6 +767,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         branchFilter,
         data,
         kitchenFilter,
+        orderTypeFilter,
         sourceFilter,
         statusFilter,
         userFilter,
@@ -755,6 +810,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             })),
         ],
         [kitchens, t],
+    );
+
+    const orderTypeFilterOptions = useMemo(
+        () => [
+            {
+                value: 'all',
+                label: t('orders.filters.allTypes', 'All Types'),
+            },
+            ...ORDER_TYPE_OPTIONS.map((orderType) => ({
+                value: orderType,
+                label: t(`orders.orderType.${orderType}`, orderType),
+            })),
+        ],
+        [t],
     );
 
     const statusFilterOptions = useMemo(
@@ -810,16 +879,34 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         : 'w-[170px]'
                 }
             />
+            {!isOrderTaker ? (
+                <SearchableDropdown
+                    value={userFilter}
+                    options={userFilterOptions}
+                    onValueChange={setUserFilter}
+                    placeholder={t('orders.filters.user', 'User')}
+                    searchPlaceholder={t(
+                        'orders.filters.searchUsers',
+                        'Search users...',
+                    )}
+                    emptyText={t('orders.filters.noUsers', 'No users found.')}
+                    className={
+                        locale === 'fa' || locale === 'ps'
+                            ? 'w-full md:min-w-[170px]'
+                            : 'w-[170px]'
+                    }
+                />
+            ) : null}
             <SearchableDropdown
-                value={userFilter}
-                options={userFilterOptions}
-                onValueChange={setUserFilter}
-                placeholder={t('orders.filters.user', 'User')}
+                value={orderTypeFilter}
+                options={orderTypeFilterOptions}
+                onValueChange={setOrderTypeFilter}
+                placeholder={t('orders.filters.type', 'Type')}
                 searchPlaceholder={t(
-                    'orders.filters.searchUsers',
-                    'Search users...',
+                    'orders.filters.searchTypes',
+                    'Search types...',
                 )}
-                emptyText={t('orders.filters.noUsers', 'No users found.')}
+                emptyText={t('orders.filters.noTypes', 'No types found.')}
                 className={
                     locale === 'fa' || locale === 'ps'
                         ? 'w-full md:min-w-[170px]'
@@ -919,7 +1006,89 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search orders by branch or status...',
                 )}
                 toolbar={tableToolbar}
+                onRowClick={handleMobileRowTap}
+                getRowClassName={() =>
+                    isCompactViewport
+                        ? 'cursor-pointer lg:cursor-default'
+                        : undefined
+                }
             />
+
+            <Dialog
+                open={mobileActionOrder !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setMobileActionOrder(null);
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-lg lg:hidden">
+                    {mobileActionOrder ? (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    <ShoppingBag className="h-5 w-5" />
+                                    {t(
+                                        'orders.mobileActions.title',
+                                        'Order actions',
+                                    )}{' '}
+                                    #{mobileActionOrder.id}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    {t(
+                                        'orders.mobileActions.description',
+                                        'Tap an action below to view details, update status, or continue working on this order.',
+                                    )}
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="grid gap-3 rounded-2xl border border-neutral-200/70 bg-neutral-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.status', 'Status')}
+                                    </span>
+                                    <Badge className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                                        {getStatusLabel(
+                                            mobileActionOrder.status ?? 'pending',
+                                        )}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.branch', 'Branch')}
+                                    </span>
+                                    <span className="font-medium">
+                                        {mobileActionOrder.branch?.name ?? '-'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t('orders.columns.total', 'Total')}
+                                    </span>
+                                    <span className="font-medium">
+                                        {formatAfn(
+                                            mobileActionOrder.total_amount,
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <OrderRowActions
+                                order={mobileActionOrder}
+                                branchTables={branchTables}
+                                onEdit={openEdit}
+                                onView={openDetails}
+                                onAddItems={openAddItems}
+                                onAssignTable={handleAssignTable}
+                                onUpdateStatus={handleStatusUpdate}
+                                onPrint={openReceiptPreview}
+                                mode="panel"
+                                onAction={() => setMobileActionOrder(null)}
+                            />
+                        </>
+                    ) : null}
+                </DialogContent>
+            </Dialog>
 
             <Dialog
                 open={isCreateOpen}
@@ -930,7 +1099,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-5xl">
+                <DialogContent className="max-h-[92vh] sm:max-w-5xl overflow-hidden">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ClipboardList className="mr-2 h-5 w-5" />
@@ -951,6 +1120,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
 
+                    <ScrollArea className="max-h-[calc(92vh-8rem)] pr-2">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label>{t('orders.form.branch', 'Branch')}</Label>
@@ -1562,7 +1732,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </div>
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="mt-4">
                         <Button
                             variant="outline"
                             onClick={() => setIsCreateOpen(false)}
@@ -1590,11 +1760,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 : t('orders.createOrder', 'Create Order')}
                         </Button>
                     </DialogFooter>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="sm:max-w-5xl">
+                <DialogContent className="max-h-[92vh] overflow-y-auto overscroll-contain sm:max-w-5xl">
                     <DialogHeader>
                         <DialogTitle>
                             {t('orders.detailsModal.titlePrefix', 'Order #')}
@@ -1608,7 +1779,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         </DialogDescription>
                     </DialogHeader>
                     {selectedOrder ? (
-                        <div className="space-y-4">
+                        <div className="space-y-4 pr-1">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Badge
                                     className={
@@ -2172,6 +2343,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             </Dialog>
 
             <ReceiptPreviewDialog
+                key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}
                 order={selectedReceiptOrder}
                 open={isReceiptPreviewOpen}
                 onOpenChange={setIsReceiptPreviewOpen}

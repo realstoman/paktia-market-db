@@ -7,12 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useLocalization } from '@/lib/localization';
-import {
-    type AppNotification,
-    type Role,
-    type SharedData,
-    type User,
-} from '@/types';
+import { type SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { formatNumber } from '@/utils/format';
 import {
@@ -21,7 +16,6 @@ import {
     BriefcaseBusiness,
     CheckCheck,
     CreditCard,
-    DollarSign,
     Package,
     ReceiptText,
     ShieldCheck,
@@ -43,10 +37,6 @@ type NotificationCategory =
 
 type NotificationPriority = 'high' | 'medium' | 'low';
 
-interface HeaderNotificationsProps {
-    user: User;
-}
-
 const categoryConfig = {
     orders: {
         label: 'Orders',
@@ -62,7 +52,7 @@ const categoryConfig = {
     },
     salary: {
         label: 'Salary',
-        icon: DollarSign,
+        icon: AfnIcon,
         accent: 'bg-sky-500/12 text-sky-700 ring-sky-500/20',
         dot: 'bg-sky-500',
     },
@@ -106,26 +96,13 @@ const categoryConfig = {
     }
 >;
 
-const roleCategoryAccess: Record<string, NotificationCategory[]> = {
-    cashier: ['orders', 'payments'],
-    admin: ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users', 'system'],
-    administrator: [
-        'orders',
-        'payments',
-        'salary',
-        'employees',
-        'inventory',
-        'products',
-        'users',
-        'system',
-    ],
-    manager: ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users'],
-    accountant: ['payments', 'salary', 'system'],
-    hr: ['salary', 'employees', 'users'],
-    'human resources': ['salary', 'employees', 'users'],
-    supervisor: ['orders', 'payments', 'employees', 'inventory', 'products'],
-    'super-admin': ['orders', 'payments', 'salary', 'employees', 'inventory', 'products', 'users', 'system'],
-};
+function AfnIcon({ className }: { className?: string }) {
+    return (
+        <span className={cn('text-[1.15em] leading-none font-semibold', className)}>
+            ؋
+        </span>
+    );
+}
 
 const STORAGE_READ_KEY = 'header-notifications-read';
 const STORAGE_HIDDEN_KEY = 'header-notifications-hidden';
@@ -151,44 +128,6 @@ function writeStoredIds(key: string, ids: string[]) {
     }
 
     window.localStorage.setItem(key, JSON.stringify(ids));
-}
-
-function getRoleNames(user: User): string[] {
-    return (user.roles ?? [])
-        .map((role) =>
-            typeof role === 'string'
-                ? role
-                : ((role as Role | undefined)?.name ?? ''),
-        )
-        .map((role) => role.trim().toLowerCase())
-        .filter(Boolean);
-}
-
-function getVisibleNotifications(
-    user: User,
-    notifications: AppNotification[],
-): AppNotification[] {
-    const roles = getRoleNames(user);
-
-    if (roles.length === 0) {
-        return notifications;
-    }
-
-    const allowedCategories = new Set<NotificationCategory>();
-
-    roles.forEach((role) => {
-        roleCategoryAccess[role]?.forEach((category) =>
-            allowedCategories.add(category),
-        );
-    });
-
-    if (allowedCategories.size === 0) {
-        return notifications;
-    }
-
-    return notifications.filter((notification) =>
-        allowedCategories.has(notification.category),
-    );
 }
 
 function getPriorityLabel(
@@ -227,7 +166,7 @@ function getDefaultHref(category: NotificationCategory): string {
     }
 }
 
-export function HeaderNotifications({ user }: HeaderNotificationsProps) {
+export function HeaderNotifications() {
     const page = usePage<SharedData>();
     const { t, locale, isRtl } = useLocalization();
     const [selectedCategory, setSelectedCategory] = useState<
@@ -242,7 +181,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
 
     const notifications = useMemo(
         () =>
-            getVisibleNotifications(user, page.props.notifications ?? [])
+            (page.props.notifications ?? [])
                 .filter((notification) => !hiddenIds.includes(notification.id))
                 .map((notification) => ({
                     ...notification,
@@ -250,7 +189,7 @@ export function HeaderNotifications({ user }: HeaderNotificationsProps) {
                         Boolean(notification.unread) &&
                         !readIds.includes(notification.id),
                 })),
-        [hiddenIds, page.props.notifications, readIds, user],
+        [hiddenIds, page.props.notifications, readIds],
     );
     const displayedNotifications =
         selectedCategory === 'all'

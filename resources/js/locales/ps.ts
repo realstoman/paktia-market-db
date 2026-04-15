@@ -4,12 +4,14 @@ const ps = {
     },
     common: {
         save: 'خوندي کول',
+        cancel: 'لغوه',
         saved: 'خوندي شول',
         settings: 'ترتیبات',
         profile: 'پروفایل',
         password: 'پسورډ',
         appearance: 'د سیستم ښودل',
         language: 'ژبه',
+        systemBranding: 'د سيستم هويت',
         twoFactorAuth: 'دوه پړاوه تصدیق',
         logout: 'وتل',
         noResultsFound: 'هیڅ پایله ونه موندل شوه.',
@@ -95,6 +97,28 @@ const ps = {
             'انګلیسي اصلي ژبه ده. دري او پښتو په ښي-نه-کيڼ ترتیب ښودل کېږي.',
         openLanguageSettings: 'د ژبې ترتیبات پرانیزئ',
         saveLanguage: 'ژبه خوندي کړئ',
+        systemBrandingTitle: 'د سيستم هويت',
+        systemBrandingDescription:
+            'هغه ګډ لوګو او رنګونه سمبال کړئ چې په ټول سيستم کې کارېږي.',
+        systemBrandingRestricted:
+            'يوازې سوپر اېډمين د سيستم د هويت تنظيمات بدلولی شي.',
+        restaurantNameLabel: 'د رستورانت نوم',
+        restaurantShortNameLabel: 'لنډ نوم',
+        primaryColorLabel: 'اصلي رنګ',
+        secondaryColorLabel: 'دويم رنګ',
+        tertiaryColorLabel: 'درېيم رنګ',
+        logoLabel: 'د سايډبار لوګو',
+        logoFullLabel: 'د ننوتلو بشپړ لوګو',
+        previewLabel: 'ژوندی مخکتنه',
+        systemBrandingHelp:
+            'د نوي هويت د پلي کېدو لپاره خوندي او بيا پورته کړئ.',
+        systemBrandingUpdated: 'د سيستم د هويت تنظيمات په برياليتوب سره خوندي شول.',
+        systemBrandingUpdateFailed:
+            'د سيستم د هويت تنظيمات نوي نه شول.',
+        confirmBrandingUpdateTitle: 'د هويت بدلونونه پلي شي؟',
+        confirmBrandingUpdateDescription:
+            'له بيا پورته کېدو وروسته به د رستورانت نوم، لوګو او ګډ رنګونه په ټول سيستم کې نوي شي.',
+        savingBranding: 'خوندي کېږي...',
     },
     userMenu: {
         profile: 'پروفایل',

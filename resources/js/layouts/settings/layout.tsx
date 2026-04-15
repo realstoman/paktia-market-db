@@ -8,8 +8,8 @@ import { show as showLanguage } from '@/routes/language';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
 
 const sidebarNavItems = [
@@ -47,6 +47,7 @@ const sidebarNavItems = [
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isRtl, t } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
@@ -59,6 +60,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         href: item.href,
         icon: item.icon,
     }));
+
+    if (auth.is_super_admin === true) {
+        translatedNavItems.push({
+            title: t('common.systemBranding', 'System Branding'),
+            href: '/settings/system-branding',
+            icon: null,
+        });
+    }
 
     return (
         <div className="h-full rounded-lg bg-white px-4 py-6 dark:bg-brand-bg-dark">

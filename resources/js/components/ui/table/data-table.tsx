@@ -38,6 +38,8 @@ interface DataTableProps<TData, TValue> {
     isLoading?: boolean;
     searchPlaceholder?: string;
     toolbar?: React.ReactNode;
+    onRowClick?: (row: TData) => void;
+    getRowClassName?: (row: TData) => string | undefined;
 }
 
 const pathSegmentsCache = new Map<string, string[]>();
@@ -92,6 +94,8 @@ export function DataTable<TData, TValue>({
     isLoading = false,
     searchPlaceholder = 'Search...',
     toolbar,
+    onRowClick,
+    getRowClassName,
 }: DataTableProps<TData, TValue>) {
     const { t, isRtl } = useLocalization();
     const [searchInput, setSearchInput] = useState('');
@@ -261,6 +265,21 @@ export function DataTable<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
+                                    onClick={
+                                        onRowClick
+                                            ? () => onRowClick(row.original)
+                                            : undefined
+                                    }
+                                    onTouchEnd={
+                                        onRowClick
+                                            ? () => onRowClick(row.original)
+                                            : undefined
+                                    }
+                                    className={
+                                        onRowClick || getRowClassName
+                                            ? `${onRowClick ? 'cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60' : ''} ${getRowClassName?.(row.original) ?? ''}`.trim()
+                                            : undefined
+                                    }
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id} className='dark:text-neutral-100'>
