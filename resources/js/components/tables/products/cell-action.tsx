@@ -132,7 +132,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         data.product_category_id ? String(data.product_category_id) : '',
     );
     const [kitchenId, setKitchenId] = useState(
-        data.kitchen_id ? String(data.kitchen_id) : '',
+        data.kitchen_id ? String(data.kitchen_id) : 'none',
     );
     const [type, setType] = useState(data.type ?? types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState(
@@ -187,7 +187,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
-        setKitchenId(data.kitchen_id ? String(data.kitchen_id) : '');
+        setKitchenId(data.kitchen_id ? String(data.kitchen_id) : 'none');
         setType(data.type ?? types[0]?.name ?? 'food');
         setBasePrice(normalizePriceInput(data.base_price));
         setDescription(data.description ?? '');
@@ -259,7 +259,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         if (
             !name.trim() ||
             !categoryId ||
-            !kitchenId ||
             !type ||
             !basePrice ||
             isSubmitting
@@ -275,7 +274,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         formData.append('pashto_name', pashtoName.trim());
         formData.append('dari_name', dariName.trim());
         formData.append('product_category_id', String(Number(categoryId)));
-        formData.append('kitchen_id', String(Number(kitchenId)));
+        if (kitchenId !== 'none') {
+            formData.append('kitchen_id', String(Number(kitchenId)));
+        }
         formData.append('type', type);
         formData.append('base_price', String(Number(basePrice)));
         formData.append('description', description.trim());
@@ -375,19 +376,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                         {t('products.actions.actionMenu', 'Actions')}
                     </DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => setIsViewOpen(true)}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                    >
-                        <Eye
-                            className={
-                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
-                            }
-                        />
+                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
                         {t('products.actions.view', 'View')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -395,34 +385,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                             resetEdit();
                             setIsEditOpen(true);
                         }}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
                     >
-                        <Edit
-                            className={
-                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
-                            }
-                        />
+                        <Edit className="mr-2 h-4 w-4" />
                         {t('products.actions.edit', 'Edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => setIsDeleteOpen(true)}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                    >
-                        <Trash2
-                            className={
-                                isRtl
-                                    ? 'ml-2 h-4 w-4 text-red-600'
-                                    : 'mr-2 h-4 w-4 text-red-600'
-                            }
-                        />
+                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         {t('products.actions.delete', 'Delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -725,6 +693,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="none">
+                                            No kitchen / direct serve
+                                        </SelectItem>
                                         {kitchens.map((kitchen) => (
                                             <SelectItem
                                                 key={kitchen.id}
@@ -1031,7 +1002,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !categoryId ||
-                                !kitchenId ||
                                 !type ||
                                 !basePrice ||
                                 isSubmitting

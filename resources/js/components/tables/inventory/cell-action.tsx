@@ -37,6 +37,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     Currency,
@@ -88,6 +89,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     categories,
     inventoryTypes,
 }) => {
+    const { t, locale } = useLocalization();
     const VENDOR_NONE = '__none__';
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
@@ -176,6 +178,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
         return matched?.symbol ?? data.currency_symbol ?? '';
     }, [currencies, data.currency_symbol, restockCurrencyCode]);
+
+    const dateLocale =
+        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
 
     useEffect(() => {
         return () => {
@@ -268,7 +273,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Item restocked successfully.');
+                    toast.success(
+                        t(
+                            'inventory.rowActions.restocked',
+                            'Item restocked successfully.',
+                        ),
+                    );
                     setIsRestockOpen(false);
                     resetRestockForm();
                 },
@@ -276,7 +286,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                     setErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to restock item.',
+                            t(
+                                'inventory.rowActions.restockFailed',
+                                'Failed to restock item.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -325,7 +338,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Inventory item updated successfully.');
+                    toast.success(
+                        t(
+                            'inventory.rowActions.updated',
+                            'Inventory item updated successfully.',
+                        ),
+                    );
                     setIsEditOpen(false);
                     resetEditForm();
                 },
@@ -333,7 +351,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                     setEditErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to update inventory item.',
+                            t(
+                                'inventory.rowActions.updateFailed',
+                                'Failed to update inventory item.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -350,11 +371,21 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/inventory/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Inventory item deleted successfully.');
+                toast.success(
+                    t(
+                        'inventory.rowActions.deleted',
+                        'Inventory item deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onError: () => {
-                toast.error('Failed to delete inventory item.');
+                toast.error(
+                    t(
+                        'inventory.rowActions.deleteFailed',
+                        'Failed to delete inventory item.',
+                    ),
+                );
             },
             onFinish: () => {
                 setIsDeleteSubmitting(false);
@@ -367,22 +398,29 @@ export const CellAction: React.FC<CellActionProps> = ({
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">
+                            {t('inventory.rowActions.openMenu', 'Open menu')}
+                        </span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                        {t('inventory.rowActions.actions', 'Actions')}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        Details
+                        {t('inventory.rowActions.details', 'Details')}
                     </DropdownMenuItem>
                     {data.is_usable ? (
                         <DropdownMenuItem
                             onClick={() => setIsUsageHistoryOpen(true)}
                         >
                             <CalendarClock className="mr-2 h-4 w-4" />
-                            Usage History
+                            {t(
+                                'inventory.rowActions.usageHistory',
+                                'Usage History',
+                            )}
                         </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem
@@ -392,18 +430,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                         }}
                     >
                         <Pencil className="mr-2 h-4 w-4" />
-                        Edit
+                        {t('inventory.common.edit', 'Edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsRestockOpen(true)}>
                         <PackagePlus className="mr-2 h-4 w-4" />
-                        Restock
+                        {t('inventory.rowActions.restock', 'Restock')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => setIsDeleteOpen(true)}
                         className="text-red-600 focus:text-red-600"
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        {t('inventory.common.delete', 'Delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -412,17 +450,30 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Delete Inventory Item?
+                            {t(
+                                'inventory.rowActions.deleteTitle',
+                                'Delete Inventory Item?',
+                            )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete "{data.name}" and
-                            cascade related records (images and transactions).
+                            {t(
+                                'inventory.rowActions.deleteDescription',
+                                'This will permanently delete ":name" and cascade related records (images and transactions).',
+                            ).replace(':name', data.name)}
                             <br />
                             <br />
-                            Current stock: {Number(data.quantity || 0)}{' '}
-                            {data.unit ?? 'unit'}
+                            {t(
+                                'inventory.rowActions.currentStock',
+                                'Current stock',
+                            )}
+                            : {Number(data.quantity || 0)}{' '}
+                            {data.unit ?? t('inventory.common.unit', 'unit')}
                             <br />
-                            Payment due: {data.currency_symbol ?? ''}
+                            {t(
+                                'inventory.rowActions.paymentDue',
+                                'Payment due',
+                            )}
+                            : {data.currency_symbol ?? ''}
                             {formatPrice(
                                 Math.max(
                                     0,
@@ -436,14 +487,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleteSubmitting}>
-                            Cancel
+                            {t('inventory.common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={isDeleteSubmitting}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t('inventory.common.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -452,16 +503,24 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Inventory Item</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'inventory.rowActions.editTitle',
+                                'Edit Inventory Item',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update item details, price, quantity, and receipt.
+                            {t(
+                                'inventory.rowActions.editDescription',
+                                'Update item details, price, quantity, and receipt.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label>Name</Label>
+                                <Label>{t('inventory.common.name', 'Name')}</Label>
                                 <Input
                                     value={editName}
                                     onChange={(event) =>
@@ -471,13 +530,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Branch</Label>
+                                <Label>{t('inventory.common.branch', 'Branch')}</Label>
                                 <Select
                                     value={editBranchId}
                                     onValueChange={setEditBranchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select branch" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectBranch',
+                                                'Select branch',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {branches.map((branch) => (
@@ -493,13 +557,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.branch_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Type</Label>
+                                <Label>{t('inventory.common.type', 'Type')}</Label>
                                 <Select
                                     value={editTypeId}
                                     onValueChange={setEditTypeId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectType',
+                                                'Select type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {inventoryTypes.map((entry) => (
@@ -517,17 +586,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Vendor</Label>
+                                <Label>{t('inventory.common.vendor', 'Vendor')}</Label>
                                 <Select
                                     value={editVendorId}
                                     onValueChange={setEditVendorId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select vendor" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectVendor',
+                                                'Select vendor',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value={VENDOR_NONE}>
-                                            No Vendor
+                                            {t('inventory.common.noVendor', 'No Vendor')}
                                         </SelectItem>
                                         {vendors.map((vendor) => (
                                             <SelectItem
@@ -542,13 +616,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.vendor_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Currency</Label>
+                                <Label>{t('inventory.common.currency', 'Currency')}</Label>
                                 <Select
                                     value={editCurrencyCode}
                                     onValueChange={setEditCurrencyCode}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select currency" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectCurrency',
+                                                'Select currency',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {currencies.map((currency) => (
@@ -567,13 +646,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Unit</Label>
+                                <Label>{t('inventory.common.unitLabel', 'Unit')}</Label>
                                 <Select
                                     value={editUnitId}
                                     onValueChange={setEditUnitId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select unit" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectUnit',
+                                                'Select unit',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {units.map((entry) => (
@@ -589,13 +673,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.unit_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Category</Label>
+                                <Label>{t('inventory.common.category', 'Category')}</Label>
                                 <Select
                                     value={editCategoryId}
                                     onValueChange={setEditCategoryId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectCategory',
+                                                'Select category',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((entry) => (
@@ -611,7 +700,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.category_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Quantity</Label>
+                                <Label>
+                                    {t('inventory.common.quantity', 'Quantity')}
+                                </Label>
                                 <NumericInput
                                     min="0"
                                     value={editQuantity}
@@ -620,7 +711,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.quantity} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Single Price {editCurrencySymbol}</Label>
+                                <Label>
+                                    {t('inventory.common.singlePrice', 'Single Price')}{' '}
+                                    {editCurrencySymbol}
+                                </Label>
                                 <NumericInput
                                     min="0"
                                     value={editUnitPrice}
@@ -630,7 +724,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Total Price (Auto) {editCurrencySymbol}
+                                    {t('inventory.common.totalPriceAuto', 'Total Price (Auto)')}{' '}
+                                    {editCurrencySymbol}
                                 </Label>
                                 <Input
                                     value={formatPrice(editTotalPrice)}
@@ -639,7 +734,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Paid Amount {editCurrencySymbol}</Label>
+                                <Label>
+                                    {t('inventory.common.paidAmount', 'Paid Amount')}{' '}
+                                    {editCurrencySymbol}
+                                </Label>
                                 <NumericInput
                                     min="0"
                                     value={editPaidAmount}
@@ -649,7 +747,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Remaining Amount (Auto) {editCurrencySymbol}
+                                    {t(
+                                        'inventory.common.remainingAmountAuto',
+                                        'Remaining Amount (Auto)',
+                                    )}{' '}
+                                    {editCurrencySymbol}
                                 </Label>
                                 <Input
                                     value={`${editCurrencySymbol}${formatPrice(
@@ -672,12 +774,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         }
                                     />
                                     <span className="text-sm text-muted-foreground">
-                                        Usable item
+                                        {t('inventory.common.usableItem', 'Usable item')}
                                     </span>
                                 </div>
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Description</Label>
+                                <Label>
+                                    {t('inventory.common.description', 'Description')}
+                                </Label>
                                 <Textarea
                                     value={editDescription}
                                     onChange={(event) =>
@@ -688,7 +792,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor={`edit-receipt-${data.id}`}>
-                                    Replace Receipt/Bill (optional)
+                                    {t(
+                                        'inventory.rowActions.replaceReceipt',
+                                        'Replace Receipt/Bill (optional)',
+                                    )}
                                 </Label>
                                 <Input
                                     id={`edit-receipt-${data.id}`}
@@ -710,30 +817,41 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         rel="noreferrer"
                                         className="text-xs text-blue-600 hover:underline"
                                     >
-                                        View current receipt
+                                        {t(
+                                            'inventory.common.viewCurrentReceipt',
+                                            'View current receipt',
+                                        )}
                                     </a>
                                 ) : null}
                                 {editReceipt ? (
                                     <p className="text-xs text-muted-foreground">
-                                        New file: {editReceipt.name}
+                                        {t('inventory.common.newFile', 'New file')}:
+                                        {' '}{editReceipt.name}
                                     </p>
                                 ) : null}
                                 <InputError message={editErrors.receipt} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Add New Images (optional)</Label>
+                                <Label>
+                                    {t(
+                                        'inventory.rowActions.addNewImages',
+                                        'Add New Images (optional)',
+                                    )}
+                                </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload additional images for this
-                                            item.
+                                            {t(
+                                                'inventory.rowActions.uploadAdditionalImages',
+                                                'Upload additional images for this item.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor={`edit-images-${data.id}`}
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Images
+                                            {t('inventory.common.selectImages', 'Select Images')}
                                         </Label>
                                     </div>
                                     <Input
@@ -787,7 +905,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={() => setIsEditOpen(false)}
                             disabled={isEditSubmitting}
                         >
-                            Cancel
+                            {t('inventory.common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleUpdate}
@@ -803,7 +921,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Changes
+                            {t('inventory.common.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -814,14 +932,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <DialogHeader>
                         <DialogTitle>{data.name}</DialogTitle>
                         <DialogDescription>
-                            Inventory item details and latest transactions.
+                            {t(
+                                'inventory.details.description',
+                                'Inventory item details and latest transactions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Type
+                                {t('inventory.common.type', 'Type')}
                             </p>
                             <p className="font-medium capitalize">
                                 {data.type}
@@ -829,15 +950,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Branch
+                                {t('inventory.common.branch', 'Branch')}
                             </p>
                             <p className="font-medium">
-                                {data.branch?.name ?? 'Unknown'}
+                                {data.branch?.name ??
+                                    t('inventory.common.unknown', 'Unknown')}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Vendor
+                                {t('inventory.common.vendor', 'Vendor')}
                             </p>
                             <p className="font-medium">
                                 {data.vendor?.name ?? '-'}
@@ -845,23 +967,26 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Stock
+                                {t('inventory.common.stock', 'Stock')}
                             </p>
                             <p className="font-medium">
-                                {Number(data.quantity)} {data.unit ?? 'unit'}
+                                {Number(data.quantity)}{' '}
+                                {data.unit ?? t('inventory.common.unit', 'unit')}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Usable
+                                {t('inventory.common.usableLabel', 'Usable')}
                             </p>
                             <p className="font-medium">
-                                {data.is_usable ? 'Yes' : 'No'}
+                                {data.is_usable
+                                    ? t('inventory.common.yes', 'Yes')
+                                    : t('inventory.common.no', 'No')}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Single Price
+                                {t('inventory.common.singlePrice', 'Single Price')}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(data.unit_price ?? 0)}`}
@@ -869,7 +994,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Total Price
+                                {t('inventory.common.totalPrice', 'Total Price')}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(
@@ -880,7 +1005,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Paid Amount
+                                {t('inventory.common.paidAmount', 'Paid Amount')}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(data.paid_amount ?? 0)}`}
@@ -888,7 +1013,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Remaining Amount
+                                {t(
+                                    'inventory.common.remainingAmount',
+                                    'Remaining Amount',
+                                )}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(data.outstanding_amount ?? 0)}`}
@@ -896,7 +1024,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="sm:col-span-2">
                             <p className="text-xs text-muted-foreground">
-                                Receipt/Bill
+                                {t('inventory.common.receipt', 'Receipt/Bill')}
                             </p>
                             {data.receipt_url || data.receipt_path ? (
                                 <a
@@ -907,7 +1035,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     rel="noreferrer"
                                     className="font-medium text-blue-600 hover:underline"
                                 >
-                                    View uploaded receipt
+                                    {t(
+                                        'inventory.common.viewUploadedReceipt',
+                                        'View uploaded receipt',
+                                    )}
                                 </a>
                             ) : (
                                 <p className="font-medium">-</p>
@@ -915,7 +1046,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="sm:col-span-2">
                             <p className="text-xs text-muted-foreground">
-                                Description
+                                {t('inventory.common.description', 'Description')}
                             </p>
                             <p className="font-medium">
                                 {data.description || '-'}
@@ -925,12 +1056,18 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                     <div className="space-y-2">
                         <p className="text-sm font-medium">
-                            Latest Transactions
+                            {t(
+                                'inventory.details.latestTransactions',
+                                'Latest Transactions',
+                            )}
                         </p>
                         <div className="max-h-48 space-y-2 overflow-auto rounded-md border p-3">
                             {latestTransactions.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    No transactions yet.
+                                    {t(
+                                        'inventory.details.noTransactions',
+                                        'No transactions yet.',
+                                    )}
                                 </p>
                             ) : (
                                 latestTransactions.map((transaction) => (
@@ -962,9 +1099,18 @@ export const CellAction: React.FC<CellActionProps> = ({
             >
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Usage History - {data.name}</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'inventory.usageHistory.title',
+                                'Usage History',
+                            )}{' '}
+                            - {data.name}
+                        </DialogTitle>
                         <DialogDescription>
-                            Usage cycle records for this usable item.
+                            {t(
+                                'inventory.usageHistory.description',
+                                'Usage cycle records for this usable item.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -973,13 +1119,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <thead className="bg-muted/40 text-left">
                                 <tr>
                                     <th className="px-3 py-2 font-medium">
-                                        Date
+                                        {t('inventory.common.date', 'Date')}
                                     </th>
                                     <th className="px-3 py-2 font-medium">
-                                        Usage Amount
+                                        {t(
+                                            'inventory.usageHistory.amount',
+                                            'Usage Amount',
+                                        )}
                                     </th>
                                     <th className="px-3 py-2 font-medium">
-                                        Note
+                                        {t('inventory.common.note', 'Note')}
                                     </th>
                                 </tr>
                             </thead>
@@ -990,7 +1139,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             colSpan={3}
                                             className="px-3 py-6 text-center text-muted-foreground"
                                         >
-                                            No usage history found.
+                                            {t(
+                                                'inventory.usageHistory.empty',
+                                                'No usage history found.',
+                                            )}
                                         </td>
                                     </tr>
                                 ) : (
@@ -999,7 +1151,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             Number(transaction.quantity || 0),
                                         );
                                         const dateLabel = transaction.created_at
-                                            ? new Intl.DateTimeFormat('en-US', {
+                                            ? new Intl.DateTimeFormat(dateLocale, {
                                                   year: 'numeric',
                                                   month: 'short',
                                                   day: 'numeric',
@@ -1020,7 +1172,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 </td>
                                                 <td className="px-3 py-2">
                                                     {quantity}{' '}
-                                                    {data.unit ?? 'unit'}
+                                                    {data.unit ??
+                                                        t(
+                                                            'inventory.common.unit',
+                                                            'unit',
+                                                        )}
                                                 </td>
                                                 <td className="px-3 py-2 text-muted-foreground">
                                                     {transaction.note || '-'}
@@ -1046,16 +1202,26 @@ export const CellAction: React.FC<CellActionProps> = ({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Restock {data.name}</DialogTitle>
+                        <DialogTitle>
+                            {t('inventory.rowActions.restock', 'Restock')}{' '}
+                            {data.name}
+                        </DialogTitle>
                         <DialogDescription>
-                            Increase stock quantity for this inventory item.
+                            {t(
+                                'inventory.rowActions.restockDescription',
+                                'Increase stock quantity for this inventory item.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor={`restock-qty-${data.id}`}>
-                                Quantity to add ({data.unit ?? 'unit'})
+                                {t(
+                                    'inventory.rowActions.quantityToAdd',
+                                    'Quantity to add',
+                                )}{' '}
+                                ({data.unit ?? t('inventory.common.unit', 'unit')})
                             </Label>
                             <NumericInput
                                 id={`restock-qty-${data.id}`}
@@ -1074,7 +1240,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                    Apply new price to all stock
+                                    {t(
+                                        'inventory.rowActions.applyNewPrice',
+                                        'Apply new price to all stock',
+                                    )}
                                 </span>
                             </div>
                         </div>
@@ -1084,7 +1253,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <Label
                                         htmlFor={`restock-currency-${data.id}`}
                                     >
-                                        Currency
+                                        {t('inventory.common.currency', 'Currency')}
                                     </Label>
                                     <Select
                                         value={restockCurrencyCode}
@@ -1093,7 +1262,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         <SelectTrigger
                                             id={`restock-currency-${data.id}`}
                                         >
-                                            <SelectValue placeholder="Select currency" />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'inventory.common.selectCurrency',
+                                                    'Select currency',
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {currencies.map((currency) => (
@@ -1113,7 +1287,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor={`restock-price-${data.id}`}>
-                                        New Single Price {restockCurrencySymbol}
+                                        {t(
+                                            'inventory.rowActions.newSinglePrice',
+                                            'New Single Price',
+                                        )}{' '}
+                                        {restockCurrencySymbol}
                                     </Label>
                                     <NumericInput
                                         id={`restock-price-${data.id}`}
@@ -1127,7 +1305,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         ) : null}
                         <div className="grid gap-2">
                             <Label htmlFor={`restock-note-${data.id}`}>
-                                Note (optional)
+                                {t('inventory.common.noteOptional', 'Note (optional)')}
                             </Label>
                             <Textarea
                                 id={`restock-note-${data.id}`}
@@ -1140,7 +1318,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`restock-receipt-${data.id}`}>
-                                Upload Receipt/Bill (optional)
+                                {t(
+                                    'inventory.rowActions.uploadReceipt',
+                                    'Upload Receipt/Bill (optional)',
+                                )}
                             </Label>
                             <Input
                                 id={`restock-receipt-${data.id}`}
@@ -1161,12 +1342,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     rel="noreferrer"
                                     className="text-xs text-blue-600 hover:underline"
                                 >
-                                    View current receipt
+                                    {t(
+                                        'inventory.common.viewCurrentReceipt',
+                                        'View current receipt',
+                                    )}
                                 </a>
                             ) : null}
                             {restockReceipt ? (
                                 <p className="text-xs text-muted-foreground">
-                                    New file: {restockReceipt.name}
+                                    {t('inventory.common.newFile', 'New file')}:
+                                    {' '}{restockReceipt.name}
                                 </p>
                             ) : null}
                             <InputError message={errors.receipt} />
@@ -1179,7 +1364,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={() => setIsRestockOpen(false)}
                             disabled={isSubmitting}
                         >
-                            Cancel
+                            {t('inventory.common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleRestock}
@@ -1192,7 +1377,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Restock
+                            {t(
+                                'inventory.rowActions.saveRestock',
+                                'Save Restock',
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

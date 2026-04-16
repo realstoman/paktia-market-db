@@ -26,12 +26,16 @@ class OrderItemResource extends JsonResource
             'product_size_name' => $this->product_size_name_snapshot ?? $this->productSize?->name,
             'kitchen_id' => $this->kitchen_id,
             'kitchen_name' => $this->kitchen?->name,
+            'prep_status' => (string) ($this->prep_status?->value ?? $this->prep_status ?? 'pending'),
             'quantity' => $quantity,
             'price' => $price,
             'line_total' => $storedLineTotal === null || ($storedLineTotal === 0.0 && $computedLineTotal > 0)
                 ? $computedLineTotal
                 : $storedLineTotal,
             'note' => $this->note,
+            'started_at' => optional($this->started_at)->toIso8601String(),
+            'ready_at' => optional($this->ready_at)->toIso8601String(),
+            'delivered_at' => optional($this->delivered_at)->toIso8601String(),
         ];
     }
 }

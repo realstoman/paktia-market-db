@@ -44,6 +44,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { formatNumber } from '@/utils/format';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Branch,
@@ -593,9 +594,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 Salary:
                                             </span>{' '}
                                             {data.contract_amount
-                                                ? `${Number(data.contract_amount).toLocaleString()} ${data.salary_currency ?? 'AFN'} (Contract)`
+                                                ? `${formatNumber(Number(data.contract_amount))} ${data.salary_currency ?? 'AFN'} (Contract)`
                                                 : data.salary
-                                                  ? `${Number(data.salary).toLocaleString()} ${data.salary_currency ?? 'AFN'}`
+                                                  ? `${formatNumber(Number(data.salary))} ${data.salary_currency ?? 'AFN'}`
                                                   : '—'}
                                         </p>
                                         <p>
@@ -683,7 +684,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p className="text-2xl font-semibold">
-                                            {`${Number(data.contract_amount ?? data.salary ?? 25000).toLocaleString()} ${data.salary_currency ?? 'AFN'}`}
+                                            {`${formatNumber(Number(data.contract_amount ?? data.salary ?? 25000))} ${data.salary_currency ?? 'AFN'}`}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             Monthly salary for{' '}
@@ -739,7 +740,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                             </span>
                                                         </TableCell>
                                                         <TableCell className="font-medium">
-                                                            {`${payment.amount.toLocaleString()} ${payment.currency}`}
+                                                            {`${formatNumber(payment.amount)} ${payment.currency}`}
                                                         </TableCell>
                                                         <TableCell className="text-muted-foreground">
                                                             {payment.note}

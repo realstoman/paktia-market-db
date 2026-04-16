@@ -10,6 +10,7 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from '@/components/ui/chart';
+import { formatNumber } from '@/utils/format';
 
 export const description = 'A donut chart with text';
 
@@ -181,7 +182,7 @@ export function PieChartDonutText({
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-3xl font-bold"
                                                 >
-                                                    {totalItems.toLocaleString()}
+                                                    {formatNumber(totalItems)}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}

@@ -27,7 +27,9 @@ class OrderService
     {
         $isSuperAdmin = $user?->hasRole('super-admin') ?? false;
         $isOrderTaker = $user?->hasRole('order-taker') ?? false;
+        $isKitchen = $user?->hasRole('kitchen') ?? false;
         $allowedBranchId = ! $isSuperAdmin ? $user?->branch_id : null;
+        $allowedKitchenId = $isKitchen ? $user?->kitchen_id : null;
 
         $ordersQuery = Order::with([
             'branch',
@@ -35,17 +37,21 @@ class OrderService
             'user',
             'client',
             'payments',
-            'items.product',
-            'items.productSize',
-            'items.kitchen',
+            'items' => fn ($query) => $query
+                ->when($allowedKitchenId, fn ($itemQuery) => $itemQuery->where('kitchen_id', $allowedKitchenId))
+                ->with(['product', 'productSize', 'kitchen']),
         ])->withCount('items')->orderByDesc('id');
 
         if (! $isAllTime && $selectedDate) {
             $ordersQuery->whereDate('created_at', $selectedDate);
         }
 
-        if ($isOrderTaker && $user?->id) {
+        if ($isKitchen && ! $allowedKitchenId) {
+            $ordersQuery->whereRaw('1 = 0');
+        } elseif ($isOrderTaker && $user?->id) {
             $ordersQuery->where('user_id', $user->id);
+        } elseif ($allowedKitchenId) {
+            $ordersQuery->whereHas('items', fn ($query) => $query->where('kitchen_id', $allowedKitchenId));
         } elseif ($allowedBranchId) {
             $ordersQuery->where('branch_id', $allowedBranchId);
         }

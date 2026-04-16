@@ -86,24 +86,42 @@ export function SearchableDropdown({
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
                                     className={cn(
-                                        isRtl &&
-                                            'w-full flex-row-reverse justify-start text-right',
+                                        isRtl && 'w-full text-right',
                                     )}
                                     onSelect={() => {
                                         onValueChange(option.value);
                                         setOpen(false);
                                     }}
                                 >
-                                    <Check
-                                        className={cn(
-                                            'h-4 w-4',
-                                            isRtl ? 'ml-2' : 'mr-2',
-                                            value === option.value
-                                                ? 'opacity-100'
-                                                : 'opacity-0',
-                                        )}
-                                    />
-                                    {option.label}
+                                    {isRtl ? (
+                                        <>
+                                            <span className="flex-1 truncate text-right">
+                                                {option.label}
+                                            </span>
+                                            <Check
+                                                className={cn(
+                                                    'h-4 w-4 shrink-0',
+                                                    value === option.value
+                                                        ? 'opacity-100'
+                                                        : 'opacity-0',
+                                                )}
+                                            />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check
+                                                className={cn(
+                                                    'mr-2 h-4 w-4 shrink-0',
+                                                    value === option.value
+                                                        ? 'opacity-100'
+                                                        : 'opacity-0',
+                                                )}
+                                            />
+                                            <span className="flex-1 truncate">
+                                                {option.label}
+                                            </span>
+                                        </>
+                                    )}
                                 </CommandItem>
                             ))}
                         </CommandGroup>

@@ -24,6 +24,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     Currency,
@@ -81,6 +82,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     inventoryTypes,
     isLoading = false,
 }) => {
+    const { t } = useLocalization();
     interface UsageCycleItem {
         id: string;
         inventoryItemId: string;
@@ -367,8 +369,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 onSuccess: () => {
                     toast.success(
                         editingVendorId
-                            ? 'Vendor updated successfully.'
-                            : 'Vendor created successfully.',
+                            ? t(
+                                  'inventory.vendorModal.updated',
+                                  'Vendor updated successfully.',
+                              )
+                            : t(
+                                  'inventory.vendorModal.created',
+                                  'Vendor created successfully.',
+                              ),
                     );
                     setIsVendorDialogOpen(false);
                     resetVendorForm();
@@ -377,7 +385,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setVendorErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save vendor.',
+                            t(
+                                'inventory.vendorModal.saveFailed',
+                                'Failed to save vendor.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -435,8 +446,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 onSuccess: () => {
                     toast.success(
                         editingCurrencyId
-                            ? 'Currency updated successfully.'
-                            : 'Currency created successfully.',
+                            ? t(
+                                  'inventory.currencyModal.updated',
+                                  'Currency updated successfully.',
+                              )
+                            : t(
+                                  'inventory.currencyModal.created',
+                                  'Currency created successfully.',
+                              ),
                     );
                     setIsCurrencyDialogOpen(false);
                     resetCurrencyForm();
@@ -445,7 +462,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setCurrencyErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save currency.',
+                            t(
+                                'inventory.currencyModal.saveFailed',
+                                'Failed to save currency.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -459,13 +479,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         router.delete(`/currencies/${currency.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Currency deleted successfully.');
+                toast.success(
+                    t(
+                        'inventory.currencyModal.deleted',
+                        'Currency deleted successfully.',
+                    ),
+                );
                 if (currency.code === currencyCode) {
                     setCurrencyCode(DEFAULT_CURRENCY_CODE);
                 }
             },
             onError: () => {
-                toast.error('Failed to delete currency.');
+                toast.error(
+                    t(
+                        'inventory.currencyModal.deleteFailed',
+                        'Failed to delete currency.',
+                    ),
+                );
             },
         });
     };
@@ -494,8 +524,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 onSuccess: () => {
                     toast.success(
                         editingUnitId
-                            ? 'Unit updated successfully.'
-                            : 'Unit created successfully.',
+                            ? t(
+                                  'inventory.unitModal.updated',
+                                  'Unit updated successfully.',
+                              )
+                            : t(
+                                  'inventory.unitModal.created',
+                                  'Unit created successfully.',
+                              ),
                     );
                     setIsUnitDialogOpen(false);
                     resetUnitForm();
@@ -504,7 +540,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save unit.',
+                            t(
+                                'inventory.unitModal.saveFailed',
+                                'Failed to save unit.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -518,13 +557,20 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         router.delete(`/units/${unit.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Unit deleted successfully.');
+                toast.success(
+                    t('inventory.unitModal.deleted', 'Unit deleted successfully.'),
+                );
                 if (String(unit.id) === unitId) {
                     setUnitId('');
                 }
             },
             onError: () => {
-                toast.error('Failed to delete unit.');
+                toast.error(
+                    t(
+                        'inventory.unitModal.deleteFailed',
+                        'Failed to delete unit.',
+                    ),
+                );
             },
         });
     };
@@ -554,8 +600,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 onSuccess: () => {
                     toast.success(
                         editingTypeId
-                            ? 'Inventory type updated successfully.'
-                            : 'Inventory type created successfully.',
+                            ? t(
+                                  'inventory.typeModal.updated',
+                                  'Inventory type updated successfully.',
+                              )
+                            : t(
+                                  'inventory.typeModal.created',
+                                  'Inventory type created successfully.',
+                              ),
                     );
                     setIsTypeDialogOpen(false);
                     resetTypeForm();
@@ -564,7 +616,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save inventory type.',
+                            t(
+                                'inventory.typeModal.saveFailed',
+                                'Failed to save inventory type.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -578,13 +633,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         router.delete(`/inventory-types/${entry.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Inventory type deleted successfully.');
+                toast.success(
+                    t(
+                        'inventory.typeModal.deleted',
+                        'Inventory type deleted successfully.',
+                    ),
+                );
                 if (String(entry.id) === inventoryTypeId) {
                     setInventoryTypeId('');
                 }
             },
             onError: () => {
-                toast.error('Failed to delete inventory type.');
+                toast.error(
+                    t(
+                        'inventory.typeModal.deleteFailed',
+                        'Failed to delete inventory type.',
+                    ),
+                );
             },
         });
     };
@@ -614,8 +679,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 onSuccess: () => {
                     toast.success(
                         editingCategoryId
-                            ? 'Category updated successfully.'
-                            : 'Category created successfully.',
+                            ? t(
+                                  'inventory.categoryModal.updated',
+                                  'Category updated successfully.',
+                              )
+                            : t(
+                                  'inventory.categoryModal.created',
+                                  'Category created successfully.',
+                              ),
                     );
                     setIsCategoryDialogOpen(false);
                     resetCategoryForm();
@@ -624,7 +695,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save category.',
+                            t(
+                                'inventory.categoryModal.saveFailed',
+                                'Failed to save category.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -638,13 +712,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         router.delete(`/inventory-categories/${category.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Category deleted successfully.');
+                toast.success(
+                    t(
+                        'inventory.categoryModal.deleted',
+                        'Category deleted successfully.',
+                    ),
+                );
                 if (String(category.id) === categoryId) {
                     setCategoryId('');
                 }
             },
             onError: () => {
-                toast.error('Failed to delete category.');
+                toast.error(
+                    t(
+                        'inventory.categoryModal.deleteFailed',
+                        'Failed to delete category.',
+                    ),
+                );
             },
         });
     };
@@ -689,7 +773,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Inventory item created successfully.');
+                    toast.success(
+                        t(
+                            'inventory.createModal.created',
+                            'Inventory item created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -697,7 +786,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to create inventory item.',
+                            t(
+                                'inventory.createModal.createFailed',
+                                'Failed to create inventory item.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -730,7 +822,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Usage cycle saved successfully.');
+                    toast.success(
+                        t(
+                            'inventory.usageModal.saved',
+                            'Usage cycle saved successfully.',
+                        ),
+                    );
                     setIsUsageCycleOpen(false);
                     resetUsageCycleForm();
                 },
@@ -738,7 +835,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     setUsageErrors(validationErrors);
                     toast.error(
                         Object.values(validationErrors)[0] ||
-                            'Failed to save usage cycle.',
+                            t(
+                                'inventory.usageModal.saveFailed',
+                                'Failed to save usage cycle.',
+                            ),
                     );
                 },
                 onFinish: () => {
@@ -806,8 +906,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 units,
                 categories,
                 inventoryTypes,
+                t,
             ),
-        [branches, vendors, currencies, units, categories, inventoryTypes],
+        [branches, vendors, currencies, units, categories, inventoryTypes, t],
     );
 
     const availableTypes = useMemo(() => {
@@ -878,8 +979,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Inventory Items: ${formatNumber(data.length)}`}
-                    description="Manage grocery, food supplies, and other usable/non-usable inventory."
+                    title={t(
+                        'inventory.toolbar.title',
+                        'Inventory Items: :count',
+                    ).replace(':count', formatNumber(data.length))}
+                    description={t(
+                        'inventory.toolbar.description',
+                        'Manage grocery, food supplies, and other usable/non-usable inventory.',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     <Button
@@ -888,7 +995,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         className="gap-2"
                     >
                         <Clock className="h-4 w-4" />
-                        Usage
+                        {t('inventory.toolbar.usage', 'Usage')}
                     </Button>
                     <Button
                         variant="outline"
@@ -899,7 +1006,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         className="gap-2"
                     >
                         <Tag className="h-4 w-4" />
-                        Categories
+                        {t('inventory.toolbar.categories', 'Categories')}
                     </Button>
                     <Button
                         variant="outline"
@@ -910,7 +1017,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         className="gap-2"
                     >
                         <ImagePlus className="h-4 w-4" />
-                        Units
+                        {t('inventory.toolbar.units', 'Units')}
                     </Button>
                     <Button
                         variant="outline"
@@ -921,14 +1028,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         className="gap-2"
                     >
                         <Pencil className="h-4 w-4" />
-                        Types
+                        {t('inventory.toolbar.types', 'Types')}
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add New Item
+                        {t('inventory.toolbar.addNewItem', 'Add New Item')}
                     </Button>
                 </div>
             </div>
@@ -938,20 +1045,35 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
-                searchPlaceholder="Search inventory by item, type, or branch..."
+                searchPlaceholder={t(
+                    'inventory.filters.searchPlaceholder',
+                    'Search inventory by item, type, or branch...',
+                )}
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
                         <SearchableDropdown
                             value={selectedBranchFilter}
                             onValueChange={setSelectedBranchFilter}
-                            placeholder="Filter by branch"
-                            searchPlaceholder="Search branches..."
-                            emptyText="No branches found."
+                            placeholder={t(
+                                'inventory.filters.branch',
+                                'Filter by branch',
+                            )}
+                            searchPlaceholder={t(
+                                'inventory.filters.searchBranches',
+                                'Search branches...',
+                            )}
+                            emptyText={t(
+                                'inventory.filters.noBranches',
+                                'No branches found.',
+                            )}
                             className="w-[180px]"
                             options={[
                                 {
                                     value: FILTER_ALL,
-                                    label: 'All Branches',
+                                    label: t(
+                                        'inventory.filters.allBranches',
+                                        'All Branches',
+                                    ),
                                 },
                                 ...branches.map((branch) => ({
                                     value: String(branch.id),
@@ -963,22 +1085,40 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         <SearchableDropdown
                             value={selectedTypeFilter}
                             onValueChange={setSelectedTypeFilter}
-                            placeholder="Filter by type"
-                            searchPlaceholder="Search types..."
-                            emptyText="No types found."
+                            placeholder={t(
+                                'inventory.filters.type',
+                                'Filter by type',
+                            )}
+                            searchPlaceholder={t(
+                                'inventory.filters.searchTypes',
+                                'Search types...',
+                            )}
+                            emptyText={t(
+                                'inventory.filters.noTypes',
+                                'No types found.',
+                            )}
                             className="w-[200px]"
                             options={[
                                 {
                                     value: FILTER_ALL,
-                                    label: 'All Types',
+                                    label: t(
+                                        'inventory.filters.allTypes',
+                                        'All Types',
+                                    ),
                                 },
                                 {
                                     value: 'usable',
-                                    label: 'Usable',
+                                    label: t(
+                                        'inventory.common.usable',
+                                        'Usable',
+                                    ),
                                 },
                                 {
                                     value: 'not_usable',
-                                    label: 'Not Usable',
+                                    label: t(
+                                        'inventory.common.notUsable',
+                                        'Not Usable',
+                                    ),
                                 },
                                 ...availableTypes.map((typeEntry) => ({
                                     value: typeEntry,
@@ -992,14 +1132,26 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         <SearchableDropdown
                             value={selectedVendorFilter}
                             onValueChange={setSelectedVendorFilter}
-                            placeholder="Filter by vendor"
-                            searchPlaceholder="Search vendors..."
-                            emptyText="No vendors found."
+                            placeholder={t(
+                                'inventory.filters.vendor',
+                                'Filter by vendor',
+                            )}
+                            searchPlaceholder={t(
+                                'inventory.filters.searchVendors',
+                                'Search vendors...',
+                            )}
+                            emptyText={t(
+                                'inventory.filters.noVendors',
+                                'No vendors found.',
+                            )}
                             className="w-[220px]"
                             options={[
                                 {
                                     value: FILTER_ALL,
-                                    label: 'All Vendors',
+                                    label: t(
+                                        'inventory.filters.allVendors',
+                                        'All Vendors',
+                                    ),
                                 },
                                 ...vendors.map((vendor) => ({
                                     value: String(vendor.id),
@@ -1011,22 +1163,43 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                         <SearchableDropdown
                             value={selectedStockFilter}
                             onValueChange={setSelectedStockFilter}
-                            placeholder="Filter by stock"
-                            searchPlaceholder="Search stock status..."
-                            emptyText="No stock filters found."
+                            placeholder={t(
+                                'inventory.filters.stock',
+                                'Filter by stock',
+                            )}
+                            searchPlaceholder={t(
+                                'inventory.filters.searchStock',
+                                'Search stock status...',
+                            )}
+                            emptyText={t(
+                                'inventory.filters.noStockFilters',
+                                'No stock filters found.',
+                            )}
                             className="w-[220px]"
                             options={[
                                 {
                                     value: FILTER_ALL,
-                                    label: 'All Stock Levels',
+                                    label: t(
+                                        'inventory.filters.allStockLevels',
+                                        'All Stock Levels',
+                                    ),
                                 },
                                 {
                                     value: 'low_stock',
-                                    label: `Low Stock (<= ${LOW_STOCK_THRESHOLD})`,
+                                    label: t(
+                                        'inventory.filters.lowStock',
+                                        'Low Stock (<= :count)',
+                                    ).replace(
+                                        ':count',
+                                        String(LOW_STOCK_THRESHOLD),
+                                    ),
                                 },
                                 {
                                     value: 'out_of_stock',
-                                    label: 'Out of Stock',
+                                    label: t(
+                                        'inventory.filters.outOfStock',
+                                        'Out of Stock',
+                                    ),
                                 },
                             ]}
                         />
@@ -1046,17 +1219,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingVendorId ? 'Edit Vendor' : 'Manage Vendors'}
+                            {editingVendorId ? t('inventory.vendorModal.editTitle', 'Edit Vendor') : t('inventory.vendorModal.title', 'Manage Vendors') }
                         </DialogTitle>
                         <DialogDescription>
-                            Create and update vendors/wholesale stores you buy
-                            inventory from.
+                            {t(
+                                'inventory.vendorModal.description',
+                                'Create and update vendors/wholesale stores you buy inventory from.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Store Name</Label>
+                            <Label>{t('inventory.vendorModal.storeName', 'Store Name')}</Label>
                             <Input
                                 value={vendorName}
                                 onChange={(event) =>
@@ -1066,9 +1241,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Category</Label>
+                            <Label>{t('inventory.vendorModal.category', 'Category')}</Label>
                             <Input
-                                placeholder="Butcher, Grocery, Furniture..."
+                                placeholder={t('inventory.vendorModal.categoryPlaceholder', 'Butcher, Grocery, Furniture...')}
                                 value={vendorCategory}
                                 onChange={(event) =>
                                     setVendorCategory(event.target.value)
@@ -1077,7 +1252,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.category} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Contact Person</Label>
+                            <Label>{t('inventory.vendorModal.contactPerson', 'Contact Person')}</Label>
                             <Input
                                 value={vendorContactPerson}
                                 onChange={(event) =>
@@ -1087,7 +1262,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.contact_person} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Phone</Label>
+                            <Label>{t('inventory.vendorModal.phone', 'Phone')}</Label>
                             <Input
                                 value={vendorPhone}
                                 onChange={(event) =>
@@ -1097,7 +1272,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.phone} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Email</Label>
+                            <Label>{t('inventory.vendorModal.email', 'Email')}</Label>
                             <Input
                                 type="email"
                                 value={vendorEmail}
@@ -1108,7 +1283,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.email} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Address</Label>
+                            <Label>{t('inventory.vendorModal.address', 'Address')}</Label>
                             <Input
                                 value={vendorAddress}
                                 onChange={(event) =>
@@ -1118,7 +1293,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={vendorErrors.address} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label>Notes</Label>
+                            <Label>{t('inventory.vendorModal.notes', 'Notes')}</Label>
                             <Textarea
                                 value={vendorNotes}
                                 onChange={(event) =>
@@ -1135,23 +1310,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             onClick={resetVendorForm}
                             disabled={isVendorSubmitting}
                         >
-                            Clear
+                            {t('inventory.common.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={handleSaveVendor}
                             disabled={!vendorName.trim() || isVendorSubmitting}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {editingVendorId ? 'Update Vendor' : 'Save Vendor'}
+                            {editingVendorId ? t('inventory.vendorModal.update', 'Update Vendor') : t('inventory.vendorModal.save', 'Save Vendor')}
                         </Button>
                     </DialogFooter>
 
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">Existing Vendors</p>
+                        <p className="text-sm font-medium">{t('inventory.vendorModal.existing', 'Existing Vendors')}</p>
                         <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                             {vendors.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    No vendors yet.
+                                    {t('inventory.vendorModal.empty', 'No vendors yet.')}
                                 </p>
                             ) : (
                                 vendors.map((vendor) => (
@@ -1166,7 +1341,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             <p className="text-xs text-muted-foreground">
                                                 {vendor.category || '-'} |{' '}
                                                 {vendor.contact_person || '-'} |{' '}
-                                                {vendor.phone || '-'} | Owed:{' '}
+                                                {vendor.phone || '-'} | {t('inventory.common.owed', 'Owed')}: 
                                                 {formatPrice(
                                                     vendorOutstanding.get(
                                                         vendor.id,
@@ -1182,7 +1357,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
-                                            Edit
+                                            {t('inventory.common.edit', 'Edit')}
                                         </Button>
                                     </div>
                                 ))
@@ -1204,19 +1379,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingCurrencyId
-                                ? 'Edit Currency'
-                                : 'Manage Currencies'}
+                            {editingCurrencyId ? t('inventory.currencyModal.editTitle', 'Edit Currency') : t('inventory.currencyModal.title', 'Manage Currencies')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove currencies by name and
-                            symbol.
+                            {t(
+                                'inventory.currencyModal.description',
+                                'Add, update, and remove currencies by name and symbol.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>{t('inventory.common.name', 'Name')}</Label>
                             <Input
                                 value={currencyName}
                                 onChange={(event) =>
@@ -1226,7 +1401,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={currencyErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>{t('inventory.currencyModal.code', 'Code')}</Label>
                             <Input
                                 maxLength={3}
                                 value={currencyCodeInput}
@@ -1237,7 +1412,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={currencyErrors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Symbol</Label>
+                            <Label>{t('inventory.currencyModal.symbol', 'Symbol')}</Label>
                             <Input
                                 value={currencySymbol}
                                 onChange={(event) =>
@@ -1254,7 +1429,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             onClick={resetCurrencyForm}
                             disabled={isCurrencySubmitting}
                         >
-                            Clear
+                            {t('inventory.common.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={handleSaveCurrency}
@@ -1266,20 +1441,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {editingCurrencyId
-                                ? 'Update Currency'
-                                : 'Save Currency'}
+                            {editingCurrencyId ? t('inventory.currencyModal.update', 'Update Currency') : t('inventory.currencyModal.save', 'Save Currency')}
                         </Button>
                     </DialogFooter>
 
                     <div className="space-y-2">
                         <p className="text-sm font-medium">
-                            Existing Currencies
+                            {t('inventory.currencyModal.existing', 'Existing Currencies')}
                         </p>
                         <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                             {currencies.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    No currencies yet.
+                                    {t('inventory.currencyModal.empty', 'No currencies yet.')}
                                 </p>
                             ) : (
                                 currencies.map((currency) => (
@@ -1293,7 +1466,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 )
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Symbol: {currency.symbol}
+                                                {t('inventory.currencyModal.symbol', 'Symbol')}: {currency.symbol}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -1307,7 +1480,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 }
                                             >
                                                 <Pencil className="mr-1 h-3 w-3" />
-                                                Edit
+                                                {t('inventory.common.edit', 'Edit')}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -1319,7 +1492,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 }
                                             >
                                                 <Trash2 className="mr-1 h-3 w-3" />
-                                                Delete
+                                                {t('inventory.common.delete', 'Delete')}
                                             </Button>
                                         </div>
                                     </div>
@@ -1342,17 +1515,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingUnitId ? 'Edit Unit' : 'Manage Units'}
+                            {editingUnitId ? t('inventory.unitModal.editTitle', 'Edit Unit') : t('inventory.unitModal.title', 'Manage Units')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove units used in inventory
-                            items.
+                            {t(
+                                'inventory.unitModal.description',
+                                'Add, update, and remove units used in inventory items.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>{t('inventory.common.name', 'Name')}</Label>
                             <Input
                                 value={unitName}
                                 onChange={(event) =>
@@ -1362,7 +1537,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Symbol</Label>
+                            <Label>{t('inventory.unitModal.symbol', 'Symbol')}</Label>
                             <Input
                                 value={unitSymbol}
                                 onChange={(event) =>
@@ -1372,7 +1547,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.symbol} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Description</Label>
+                            <Label>{t('inventory.common.description', 'Description')}</Label>
                             <Input
                                 value={unitDescription}
                                 onChange={(event) =>
@@ -1385,7 +1560,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetUnitForm}>
-                            Clear
+                            {t('inventory.common.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={handleSaveUnit}
@@ -1396,14 +1571,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {editingUnitId ? 'Update Unit' : 'Save Unit'}
+                            {editingUnitId ? t('inventory.unitModal.update', 'Update Unit') : t('inventory.unitModal.save', 'Save Unit')}
                         </Button>
                     </DialogFooter>
 
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {units.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                                No units yet.
+                                {t('inventory.unitModal.empty', 'No units yet.')}
                             </p>
                         ) : (
                             units.map((entry) => (
@@ -1428,7 +1603,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
-                                            Edit
+                                            {t('inventory.common.edit', 'Edit')}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -1438,7 +1613,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t('inventory.common.delete', 'Delete')}
                                         </Button>
                                     </div>
                                 </div>
@@ -1460,18 +1635,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingTypeId
-                                ? 'Edit Inventory Type'
-                                : 'Manage Inventory Types'}
+                            {editingTypeId ? t('inventory.typeModal.editTitle', 'Edit Inventory Type') : t('inventory.typeModal.title', 'Manage Inventory Types')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove inventory item types.
+                            {t(
+                                'inventory.typeModal.description',
+                                'Add, update, and remove inventory item types.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>{t('inventory.common.name', 'Name')}</Label>
                             <Input
                                 value={typeName}
                                 onChange={(event) =>
@@ -1481,7 +1657,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t('inventory.common.description', 'Description')}
+                            </Label>
                             <Input
                                 value={typeDescription}
                                 onChange={(event) =>
@@ -1494,21 +1672,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetTypeForm}>
-                            Clear
+                            {t('inventory.common.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={handleSaveType}
                             disabled={isSubmitting || !typeName.trim()}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {editingTypeId ? 'Update Type' : 'Save Type'}
+                            {editingTypeId ? t('inventory.typeModal.update', 'Update Type') : t('inventory.typeModal.save', 'Save Type')}
                         </Button>
                     </DialogFooter>
 
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {inventoryTypes.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                                No inventory types yet.
+                                {t('inventory.typeModal.empty', 'No inventory types yet.')}
                             </p>
                         ) : (
                             inventoryTypes.map((entry) => (
@@ -1533,7 +1711,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
-                                            Edit
+                                            {t('inventory.common.edit', 'Edit')}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -1543,7 +1721,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t('inventory.common.delete', 'Delete')}
                                         </Button>
                                     </div>
                                 </div>
@@ -1565,18 +1743,19 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingCategoryId
-                                ? 'Edit Category'
-                                : 'Manage Categories'}
+                            {editingCategoryId ? t('inventory.categoryModal.editTitle', 'Edit Category') : t('inventory.categoryModal.title', 'Manage Categories')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add, update, and remove inventory categories.
+                            {t(
+                                'inventory.categoryModal.description',
+                                'Add, update, and remove inventory categories.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>{t('inventory.common.name', 'Name')}</Label>
                             <Input
                                 value={categoryName}
                                 onChange={(event) =>
@@ -1586,7 +1765,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t('inventory.common.description', 'Description')}
+                            </Label>
                             <Input
                                 value={categoryDescription}
                                 onChange={(event) =>
@@ -1599,23 +1780,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetCategoryForm}>
-                            Clear
+                            {t('inventory.common.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={handleSaveCategory}
                             disabled={isSubmitting || !categoryName.trim()}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {editingCategoryId
-                                ? 'Update Category'
-                                : 'Save Category'}
+                            {editingCategoryId ? t('inventory.categoryModal.update', 'Update Category') : t('inventory.categoryModal.save', 'Save Category')}
                         </Button>
                     </DialogFooter>
 
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
                         {categories.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                                No categories yet.
+                                {t('inventory.categoryModal.empty', 'No categories yet.')}
                             </p>
                         ) : (
                             categories.map((entry) => (
@@ -1640,7 +1819,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Pencil className="mr-1 h-3 w-3" />
-                                            Edit
+                                            {t('inventory.common.edit', 'Edit')}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -1650,7 +1829,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t('inventory.common.delete', 'Delete')}
                                         </Button>
                                     </div>
                                 </div>
@@ -1671,17 +1850,24 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             >
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Create Inventory Item</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'inventory.createModal.title',
+                                'Create Inventory Item',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Add a new item with stock quantity, price,
-                            receipt/bill, and images.
+                            {t(
+                                'inventory.createModal.description',
+                                'Add a new item with stock quantity, price, receipt/bill, and images.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label>Name</Label>
+                                <Label>{t('inventory.common.name', 'Name')}</Label>
                                 <Input
                                     value={name}
                                     onChange={(event) =>
@@ -1691,13 +1877,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Branch</Label>
+                                <Label>{t('inventory.common.branch', 'Branch')}</Label>
                                 <Select
                                     value={branchId}
                                     onValueChange={setBranchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select branch" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectBranch',
+                                                'Select branch',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {branches.map((branch) => (
@@ -1713,17 +1904,27 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.branch_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Vendor (optional)</Label>
+                                <Label>
+                                    {t(
+                                        'inventory.createModal.vendorOptional',
+                                        'Vendor (optional)',
+                                    )}
+                                </Label>
                                 <Select
                                     value={vendorId}
                                     onValueChange={setVendorId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select vendor" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectVendor',
+                                                'Select vendor',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value={VENDOR_NONE}>
-                                            No Vendor
+                                            {t('inventory.common.noVendor', 'No Vendor')}
                                         </SelectItem>
                                         {vendors.map((vendor) => (
                                             <SelectItem
@@ -1738,13 +1939,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.vendor_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Currency</Label>
+                                <Label>{t('inventory.common.currency', 'Currency')}</Label>
                                 <Select
                                     value={currencyCode}
                                     onValueChange={setCurrencyCode}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select currency" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectCurrency',
+                                                'Select currency',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {currencies.map((currency) => (
@@ -1761,13 +1967,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.currency_code} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Type</Label>
+                                <Label>{t('inventory.common.type', 'Type')}</Label>
                                 <Select
                                     value={inventoryTypeId}
                                     onValueChange={setInventoryTypeId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectType',
+                                                'Select type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {inventoryTypes.map((entry) => (
@@ -1785,13 +1996,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Unit</Label>
+                                <Label>{t('inventory.common.unitLabel', 'Unit')}</Label>
                                 <Select
                                     value={unitId}
                                     onValueChange={setUnitId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select unit" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectUnit',
+                                                'Select unit',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {units.map((entry) => (
@@ -1807,13 +2023,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.unit_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Category</Label>
+                                <Label>{t('inventory.common.category', 'Category')}</Label>
                                 <Select
                                     value={categoryId}
                                     onValueChange={setCategoryId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'inventory.common.selectCategory',
+                                                'Select category',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((entry) => (
@@ -1829,7 +2050,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <InputError message={errors.category_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Initial Quantity</Label>
+                                <Label>
+                                    {t(
+                                        'inventory.createModal.initialQuantity',
+                                        'Initial Quantity',
+                                    )}
+                                </Label>
                                 <NumericInput
                                     min="0"
                                     value={quantity}
@@ -1839,7 +2065,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Single Price {selectedCurrencySymbol || ''}
+                                    {t('inventory.common.singlePrice', 'Single Price')}{' '}
+                                    {selectedCurrencySymbol || ''}
                                 </Label>
                                 <NumericInput
                                     min="0"
@@ -1850,7 +2077,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Total Price (Auto){' '}
+                                    {t('inventory.common.totalPriceAuto', 'Total Price (Auto)')}{' '}
                                     {selectedCurrencySymbol || ''}
                                 </Label>
                                 <Input
@@ -1861,7 +2088,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Paid Amount {selectedCurrencySymbol || ''}
+                                    {t('inventory.common.paidAmount', 'Paid Amount')}{' '}
+                                    {selectedCurrencySymbol || ''}
                                 </Label>
                                 <NumericInput
                                     min="0"
@@ -1872,7 +2100,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    Remaining Amount (Auto){' '}
+                                    {t(
+                                        'inventory.common.remainingAmountAuto',
+                                        'Remaining Amount (Auto)',
+                                    )}{' '}
                                     {selectedCurrencySymbol || ''}
                                 </Label>
                                 <Input
@@ -1890,12 +2121,14 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         }
                                     />
                                     <span className="text-sm text-muted-foreground">
-                                        Usable item
+                                        {t('inventory.common.usableItem', 'Usable item')}
                                     </span>
                                 </div>
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Description</Label>
+                                <Label>
+                                    {t('inventory.common.description', 'Description')}
+                                </Label>
                                 <Textarea
                                     value={description}
                                     onChange={(event) =>
@@ -1906,7 +2139,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="inventory-receipt">
-                                    Receipt/Bill (image or PDF)
+                                    {t(
+                                        'inventory.common.receiptUpload',
+                                        'Receipt/Bill (image or PDF)',
+                                    )}
                                 </Label>
                                 <Input
                                     id="inventory-receipt"
@@ -1920,24 +2156,32 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 />
                                 {receipt ? (
                                     <p className="text-xs text-muted-foreground">
-                                        Selected: {receipt.name}
+                                        {t('inventory.common.selected', 'Selected')}: {receipt.name}
                                     </p>
                                 ) : null}
                                 <InputError message={errors.receipt} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Images (up to 10)</Label>
+                                <Label>
+                                    {t(
+                                        'inventory.createModal.imagesLabel',
+                                        'Images (up to :count)',
+                                    ).replace(':count', String(MAX_IMAGES))}
+                                </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload item images.
+                                            {t(
+                                                'inventory.createModal.uploadImages',
+                                                'Upload item images.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor="inventory-images"
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Images
+                                            {t('inventory.common.selectImages', 'Select Images')}
                                         </Label>
                                     </div>
                                     <Input
@@ -1992,7 +2236,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('inventory.common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreate}
@@ -2007,7 +2251,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Item
+                            {t('inventory.createModal.create', 'Create Item')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -2024,16 +2268,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             >
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Usage Cycle</DialogTitle>
+                        <DialogTitle>
+                            {t('inventory.usageModal.title', 'Usage Cycle')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Record usable item consumption and deduct stock.
+                            {t(
+                                'inventory.usageModal.description',
+                                'Record usable item consumption and deduct stock.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="space-y-4">
                             <div className="grid gap-2">
-                                <Label>Date</Label>
+                                <Label>{t('inventory.common.date', 'Date')}</Label>
                                 <Input
                                     type="date"
                                     value={usageDate}
@@ -2059,7 +2308,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         >
                                             <div className="grid gap-3 sm:grid-cols-2">
                                                 <div className="grid gap-2">
-                                                    <Label>Usable Item</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'inventory.usageModal.usableItem',
+                                                            'Usable Item',
+                                                        )}
+                                                    </Label>
                                                     <Select
                                                         value={
                                                             row.inventoryItemId
@@ -2075,7 +2329,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                         }
                                                     >
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="Select usable item" />
+                                                            <SelectValue
+                                                                placeholder={t(
+                                                                    'inventory.usageModal.selectUsableItem',
+                                                                    'Select usable item',
+                                                                )}
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {usableItems.map(
@@ -2096,14 +2355,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                                             .branch
                                                                             ?.name ??
                                                                             `Branch #${item.branch_id}`}
-                                                                        ) -
-                                                                        Available:{' '}
+                                                                        ) -{' '}
+                                                                        {t(
+                                                                            'inventory.usageModal.available',
+                                                                            'Available',
+                                                                        )}
+                                                                        :{' '}
                                                                         {Number(
                                                                             item.quantity ||
                                                                                 0,
                                                                         )}{' '}
                                                                         {item.unit ??
-                                                                            'unit'}
+                                                                            t(
+                                                                                'inventory.common.unit',
+                                                                                'unit',
+                                                                            )}
                                                                     </SelectItem>
                                                                 ),
                                                             )}
@@ -2118,7 +2384,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     />
                                                 </div>
                                                 <div className="grid gap-2">
-                                                    <Label>Quantity Used</Label>
+                                                    <Label>
+                                                        {t(
+                                                            'inventory.usageModal.quantityUsed',
+                                                            'Quantity Used',
+                                                        )}
+                                                    </Label>
                                                     <NumericInput
                                                         min="1"
                                                         value={row.quantityUsed}
@@ -2142,7 +2413,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                 </div>
                                                 <div className="grid gap-2 sm:col-span-2">
                                                     <Label>
-                                                        Note (optional)
+                                                        {t(
+                                                            'inventory.common.noteOptional',
+                                                            'Note (optional)',
+                                                        )}
                                                     </Label>
                                                     <Textarea
                                                         value={row.note}
@@ -2167,20 +2441,32 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
                                             {selectedItem ? (
                                                 <p className="text-xs text-muted-foreground">
-                                                    Unit Price:{' '}
+                                                    {t(
+                                                        'inventory.common.unitPrice',
+                                                        'Unit Price',
+                                                    )}
+                                                    :{' '}
                                                     {selectedItem.currency_symbol ??
                                                         ''}
                                                     {formatPrice(
                                                         selectedItem.unit_price ||
                                                             0,
                                                     )}{' '}
-                                                    | Available:{' '}
+                                                    |{' '}
+                                                    {t(
+                                                        'inventory.usageModal.available',
+                                                        'Available',
+                                                    )}
+                                                    :{' '}
                                                     {Number(
                                                         selectedItem.quantity ||
                                                             0,
                                                     )}{' '}
                                                     {selectedItem.unit ??
-                                                        'unit'}
+                                                        t(
+                                                            'inventory.common.unit',
+                                                            'unit',
+                                                        )}
                                                 </p>
                                             ) : null}
 
@@ -2197,7 +2483,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                         }
                                                     >
                                                         <Trash2 className="mr-1 h-3 w-3" />
-                                                        Remove
+                                                        {t(
+                                                            'inventory.common.remove',
+                                                            'Remove',
+                                                        )}
                                                     </Button>
                                                 </div>
                                             ) : null}
@@ -2212,7 +2501,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     className="gap-2"
                                 >
                                     <Plus className="h-4 w-4" />
-                                    Add Item
+                                    {t('inventory.common.addItem', 'Add Item')}
                                 </Button>
                                 <InputError message={usageErrors.items} />
                             </div>
@@ -2220,7 +2509,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             <div className="grid gap-2 rounded-md border p-3 sm:grid-cols-2">
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total Number Used
+                                        {t(
+                                            'inventory.usageModal.totalNumberUsed',
+                                            'Total Number Used',
+                                        )}
                                     </p>
                                     <p className="text-lg font-semibold">
                                         {formatNumber(
@@ -2230,7 +2522,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total Valuation
+                                        {t(
+                                            'inventory.usageModal.totalValuation',
+                                            'Total Valuation',
+                                        )}
                                     </p>
                                     <p className="text-lg font-semibold">
                                         {formatAfn(usageSummary.totalValuation)}
@@ -2246,7 +2541,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             onClick={() => setIsUsageCycleOpen(false)}
                             disabled={isUsageSubmitting}
                         >
-                            Cancel
+                            {t('inventory.common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleSaveUsageCycle}
@@ -2261,7 +2556,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Usage Cycle
+                            {t(
+                                'inventory.usageModal.save',
+                                'Save Usage Cycle',
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

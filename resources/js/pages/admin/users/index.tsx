@@ -5,7 +5,7 @@ import { UsersClient } from '@/components/tables/users/client';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
-import { Branch, BreadcrumbItem, Country, Province, Role, User } from '@/types';
+import { Branch, BreadcrumbItem, Country, Kitchen, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import { Building2, Globe2, ShieldCheck, Users } from 'lucide-react';
@@ -27,6 +27,7 @@ interface UsersPageProps {
     countries: Country[];
     provinces: Province[];
     branches: Branch[];
+    kitchens: Kitchen[];
 }
 
 export default function UsersPage({
@@ -35,6 +36,7 @@ export default function UsersPage({
     countries,
     provinces,
     branches,
+    kitchens,
 }: UsersPageProps) {
     const activeUsers = users.filter((user) => user.is_active !== false).length;
     const blockedUsers = users.length - activeUsers;
@@ -81,6 +83,7 @@ export default function UsersPage({
                             countries={countries}
                             provinces={provinces}
                             branches={branches}
+                            kitchens={kitchens}
                         />
                     </div>
                 </div>

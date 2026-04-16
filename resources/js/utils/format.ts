@@ -3,30 +3,10 @@
  * Author: @realstoman
  */
 
-const localeMap: Record<string, string> = {
-    en: 'en-US',
-    fa: 'fa-AF',
-    ps: 'ps-AF',
-};
-
-let activeLocaleCode: string | null = null;
+const numberLocale = 'en-US';
 
 export const setFormattingLocale = (locale: string) => {
-    activeLocaleCode = locale;
-};
-
-const resolveLocale = () => {
-    if (activeLocaleCode) {
-        return localeMap[activeLocaleCode] ?? activeLocaleCode;
-    }
-
-    if (typeof document === 'undefined') {
-        return 'en-US';
-    }
-
-    const rawLocale = document.documentElement.lang || 'en';
-
-    return localeMap[rawLocale] ?? rawLocale;
+    void locale;
 };
 
 /**
@@ -36,8 +16,9 @@ const resolveLocale = () => {
 export const formatNumber = (value: number | string) => {
     if (value === null || value === undefined) return '';
 
-    return new Intl.NumberFormat(resolveLocale(), {
+    return new Intl.NumberFormat(numberLocale, {
         maximumFractionDigits: 0,
+        useGrouping: true,
     }).format(Number(value));
 };
 
@@ -48,9 +29,10 @@ export const formatNumber = (value: number | string) => {
 export const formatPrice = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
 
-    return new Intl.NumberFormat(resolveLocale(), {
+    return new Intl.NumberFormat(numberLocale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
+        useGrouping: true,
     }).format(Number(value));
 };
 
@@ -64,11 +46,12 @@ export const formatCurrency = (
 ): string => {
     if (value === null || value === undefined || value === '') return '';
 
-    return new Intl.NumberFormat(resolveLocale(), {
+    return new Intl.NumberFormat(numberLocale, {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
+        useGrouping: true,
     }).format(Number(value));
 };
 
@@ -79,7 +62,8 @@ export const formatCurrency = (
 export const formatAfn = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
 
-    return ` ؋ ${new Intl.NumberFormat(resolveLocale(), {
+    return ` ؋ ${new Intl.NumberFormat(numberLocale, {
         maximumFractionDigits: 0,
+        useGrouping: true,
     }).format(Math.round(Number(value)))}`;
 };
