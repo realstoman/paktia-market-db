@@ -134,7 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->with(['items.product'])
             ->withCount('items')
             ->orderByDesc('id')
-            ->limit(8)
+            ->limit(10)
             ->get();
         $topOrderedDishes = $topOrderedDishService->get(6);
 

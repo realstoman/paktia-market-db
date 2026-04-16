@@ -1459,7 +1459,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     )}
                                                 </a>
                                             </CardHeader>
-                                            <CardContent className="max-h-[28rem] overflow-y-auto">
+                                            <CardContent className="max-h-[31rem] overflow-y-auto">
                                                 <div className="min-w-0 overflow-x-auto">
                                                     <Table
                                                         dir={
