@@ -45,7 +45,6 @@ function createKitchenWorkflowBaseData(): array
 
     $category = ProductCategory::create([
         'name' => 'Afghan Foods',
-        'is_active' => true,
     ]);
 
     $product = Product::create([

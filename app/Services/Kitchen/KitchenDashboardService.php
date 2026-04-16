@@ -165,12 +165,19 @@ class KitchenDashboardService
 
     private function resolveTicketStatus(Collection $statusCounts): string
     {
-        if (($statusCounts[OrderItemPrepStatus::PENDING->value] ?? 0) > 0) {
-            return OrderItemPrepStatus::PENDING->value;
-        }
-
         if (($statusCounts[OrderItemPrepStatus::IN_PROGRESS->value] ?? 0) > 0) {
             return OrderItemPrepStatus::IN_PROGRESS->value;
+        }
+
+        if (($statusCounts[OrderItemPrepStatus::PENDING->value] ?? 0) > 0
+            && (($statusCounts[OrderItemPrepStatus::READY->value] ?? 0) > 0
+                || ($statusCounts[OrderItemPrepStatus::DELIVERED->value] ?? 0) > 0)
+        ) {
+            return OrderItemPrepStatus::IN_PROGRESS->value;
+        }
+
+        if (($statusCounts[OrderItemPrepStatus::PENDING->value] ?? 0) > 0) {
+            return OrderItemPrepStatus::PENDING->value;
         }
 
         if (($statusCounts[OrderItemPrepStatus::READY->value] ?? 0) > 0) {
