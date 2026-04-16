@@ -33,6 +33,24 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'App Digits';
+    src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    unicode-range:
+        U+0030-0039,
+        U+002B,
+        U+002C,
+        U+002D,
+        U+002E,
+        U+002F,
+        U+003A,
+        U+066B,
+        U+066C;
+}
+
 html,
 body {
     background: var(--background);
@@ -40,11 +58,11 @@ body {
 
 @theme {
     --font-sans:
-        'Manrope', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-heading:
-        'Manrope', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -102,11 +120,11 @@ body {
     --brand-secondary: #cc924b;
     --brand-tertiary: #f8fafd;
     --app-body-font:
-        'Manrope', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --app-heading-font:
-        'Manrope', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --background: #f8fafd;
@@ -185,19 +203,19 @@ html[lang='fa'],
 html[lang='ps'] {
     font-size: 18px;
     --font-sans:
-        'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-heading:
-        'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --app-body-font:
-        'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --app-heading-font:
-        'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
+        'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 }
@@ -252,6 +270,7 @@ html[lang='ps'] {
         @apply bg-background text-base text-foreground;
         font-family: var(--app-body-font);
         line-height: 1.6;
+        font-variant-numeric: tabular-nums lining-nums;
     }
 
     html[lang='fa'] body,

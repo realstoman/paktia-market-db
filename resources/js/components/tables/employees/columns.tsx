@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatNumber } from '@/utils/format';
 import {
     Branch,
     Employee,
@@ -151,7 +152,7 @@ export const buildColumns = (
                 return '—';
             }
 
-            return `${numericSalary.toLocaleString()} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ' (Contract)' : ''}`;
+            return `${formatNumber(numericSalary)} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ' (Contract)' : ''}`;
         },
     },
     {
