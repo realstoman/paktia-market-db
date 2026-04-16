@@ -103,6 +103,8 @@ export interface User {
     province_id?: number | null;
     branch?: string | null;
     branch_id?: number | null;
+    kitchen?: string | Kitchen | null;
+    kitchen_id?: number | null;
     is_active?: boolean;
     is_internal_user?: boolean;
     avatar?: string;
@@ -720,10 +722,16 @@ export interface OrderItem {
     product_size_name?: string | null;
     product_size_name_snapshot?: string | null;
     kitchen_id?: number | null;
+    prep_status?: 'pending' | 'in_progress' | 'ready' | 'delivered';
     quantity: number;
     price: number | string;
     line_total?: number | string;
     note?: string | null;
+    started_at?: string | null;
+    ready_at?: string | null;
+    delivered_at?: string | null;
+    prepared_by?: number | string | null;
+    kitchen_receipt_printed_at?: string | null;
     product?: Product | null;
     product_size?: ProductSize | null;
     kitchen?: Kitchen | null;

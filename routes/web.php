@@ -15,6 +15,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\KitchenOrderItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
@@ -30,6 +31,7 @@ use App\Models\BranchDailyMetric;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Services\Kitchen\KitchenDashboardService;
 use App\Services\Operations\OperationsDashboardService;
 use App\Services\Projection\BranchDailyMetricReader;
 use App\Services\Projection\ProjectionHealthService;
@@ -65,11 +67,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tools.reference-data');
     Route::get('operations/runtime-health', OperationsRuntimeHealthController::class)
         ->name('operations.runtime-health');
+    Route::post('kitchen/order-items/{orderItem}/start', [KitchenOrderItemController::class, 'start'])
+        ->name('kitchen.order-items.start');
+    Route::post('kitchen/order-items/{orderItem}/ready', [KitchenOrderItemController::class, 'ready'])
+        ->name('kitchen.order-items.ready');
+    Route::post('kitchen/order-items/{orderItem}/delivered', [KitchenOrderItemController::class, 'delivered'])
+        ->name('kitchen.order-items.delivered');
 
     // Dashboard
     Route::get('dashboard', function (
         Request $request,
         OperationsDashboardService $operationsDashboardService,
+        KitchenDashboardService $kitchenDashboardService,
         BranchDailyMetricReader $branchDailyMetricReader,
         ProjectionHealthService $projectionHealthService,
         TopOrderedDishService $topOrderedDishService,
@@ -79,6 +88,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         if ($user->hasAnyRole(['cashier', 'server', 'order-taker'])) {
             return Inertia::render('operations/index', $operationsDashboardService->build($user));
+        }
+
+        if ($user->hasRole('kitchen')) {
+            $validated = $request->validate([
+                'report_date' => ['nullable', 'date_format:Y-m-d'],
+            ]);
+
+            return Inertia::render('operations/index', $kitchenDashboardService->build(
+                user: $user,
+                reportDate: $validated['report_date'] ?? null,
+            ));
         }
 
         $canViewOrders = $user->can(PermissionEnum::ORDERS_VIEW->value);

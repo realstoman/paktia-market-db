@@ -7,6 +7,7 @@ use App\Enums\PermissionEnum;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\Branch;
+use App\Models\Kitchen;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,6 +51,7 @@ class UserController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
             'branches' => Branch::orderBy('name')->get(),
+            'kitchens' => Kitchen::orderBy('name')->get(),
         ]);
     }
 
@@ -74,6 +76,7 @@ class UserController extends Controller
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
             'branch_id' => 'nullable|exists:branches,id',
+            'kitchen_id' => 'nullable|exists:kitchens,id',
         ]);
 
         $user = $this->userService->create($validated);
@@ -90,6 +93,7 @@ class UserController extends Controller
             'user' => $user->load(['roles', 'country', 'province', 'branch']),
             'roles' => Role::all(),
             'countries' => Country::all(),
+            'kitchens' => Kitchen::all(),
         ]);
     }
 
@@ -115,6 +119,7 @@ class UserController extends Controller
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
             'branch_id' => 'nullable|exists:branches,id',
+            'kitchen_id' => 'nullable|exists:kitchens,id',
             'is_active' => 'boolean',
         ]);
 
