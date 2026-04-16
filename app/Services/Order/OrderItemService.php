@@ -2,6 +2,7 @@
 
 namespace App\Services\Order;
 
+use App\Enums\OrderItemPrepStatus;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Collection;
@@ -54,10 +55,14 @@ class OrderItemService
                 'product_size_id' => $item['product_size_id'] ?? null,
                 'product_size_name_snapshot' => $productSize?->name,
                 'kitchen_id' => $product?->kitchen_id,
+                'prep_status' => $product?->kitchen_id
+                    ? OrderItemPrepStatus::PENDING->value
+                    : OrderItemPrepStatus::READY->value,
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
                 'line_total' => $item['price'] * $item['quantity'],
                 'note' => $item['note'] ?? null,
+                'ready_at' => $product?->kitchen_id ? null : now(),
             ];
         })->all();
     }
