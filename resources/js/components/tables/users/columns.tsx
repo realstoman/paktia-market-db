@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -10,6 +10,7 @@ export const buildColumns = (
     countries: Country[],
     provinces: Province[],
     branches: Branch[],
+    kitchens: Kitchen[],
 ): ColumnDef<User>[] => [
     {
         id: 'select',
@@ -121,6 +122,7 @@ export const buildColumns = (
                 countries={countries}
                 provinces={provinces}
                 branches={branches}
+                kitchens={kitchens}
             />
         ),
     },

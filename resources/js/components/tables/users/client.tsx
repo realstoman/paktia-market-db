@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -42,6 +42,7 @@ interface UsersClientProps {
     countries: Country[];
     provinces: Province[];
     branches: Branch[];
+    kitchens: Kitchen[];
     isLoading?: boolean;
 }
 
@@ -51,6 +52,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     countries,
     provinces,
     branches,
+    kitchens,
     isLoading = false,
 }) => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -64,6 +66,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     const [countryId, setCountryId] = useState<string>('');
     const [provinceId, setProvinceId] = useState<string>('');
     const [branchId, setBranchId] = useState<string>('');
+    const [kitchenId, setKitchenId] = useState<string>('none');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [showPasswords, setShowPasswords] = useState(false);
@@ -79,6 +82,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         setCountryId('');
         setProvinceId('');
         setBranchId('');
+        setKitchenId('none');
         setPassword('');
         setPasswordConfirmation('');
         setShowPasswords(false);
@@ -103,6 +107,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 country_id: countryId ? Number(countryId) : null,
                 province_id: provinceId ? Number(provinceId) : null,
                 branch_id: branchId ? Number(branchId) : null,
+                kitchen_id: kitchenId !== 'none' ? Number(kitchenId) : null,
             },
             {
                 preserveScroll: true,
@@ -128,8 +133,8 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         )?.[1];
 
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches),
-        [roles, countries, provinces, branches],
+        () => buildColumns(roles, countries, provinces, branches, kitchens),
+        [roles, countries, provinces, branches, kitchens],
     );
     const roleFilterOptions = useMemo(
         () => [
@@ -559,6 +564,26 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={createErrors.branch_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Kitchen</Label>
+                            <Select value={kitchenId} onValueChange={setKitchenId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select kitchen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No kitchen assignment</SelectItem>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
+                                        >
+                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={createErrors.kitchen_id} />
                         </div>
                     </div>
 

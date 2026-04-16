@@ -96,7 +96,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [pashtoName, setPashtoName] = useState('');
     const [dariName, setDariName] = useState('');
     const [categoryId, setCategoryId] = useState('');
-    const [kitchenId, setKitchenId] = useState('');
+    const [kitchenId, setKitchenId] = useState('none');
     const [type, setType] = useState(types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState('');
     const [description, setDescription] = useState('');
@@ -167,7 +167,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         setPashtoName('');
         setDariName('');
         setCategoryId('');
-        setKitchenId('');
+        setKitchenId('none');
         setType(types[0]?.name ?? 'food');
         setBasePrice('');
         setDescription('');
@@ -217,7 +217,6 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         if (
             !name.trim() ||
             !categoryId ||
-            !kitchenId ||
             !type ||
             !basePrice ||
             isSubmitting
@@ -241,7 +240,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 pashto_name: pashtoName.trim() || null,
                 dari_name: dariName.trim() || null,
                 product_category_id: Number(categoryId),
-                kitchen_id: Number(kitchenId),
+                kitchen_id: kitchenId !== 'none' ? Number(kitchenId) : null,
                 type,
                 base_price: Number(basePrice),
                 description: description.trim() || null,
@@ -884,10 +883,13 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {kitchens.map((kitchen) => (
-                                            <SelectItem
-                                                key={kitchen.id}
-                                                value={String(kitchen.id)}
+                                    <SelectItem value="none">
+                                        No kitchen / direct serve
+                                    </SelectItem>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
                                             >
                                                 {kitchen.name ??
                                                     `Kitchen #${kitchen.id}`}
@@ -1130,7 +1132,6 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                             disabled={
                                 !name.trim() ||
                                 !categoryId ||
-                                !kitchenId ||
                                 !type ||
                                 !basePrice ||
                                 isSubmitting

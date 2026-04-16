@@ -34,7 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
@@ -58,6 +58,7 @@ interface CellActionProps {
     countries: Country[];
     provinces: Province[];
     branches: Branch[];
+    kitchens: Kitchen[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
@@ -66,6 +67,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     countries,
     provinces,
     branches,
+    kitchens,
 }) => {
     const { auth } = usePage().props as { auth: { user: User; is_super_admin?: boolean } };
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -85,6 +87,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [editBranchId, setEditBranchId] = useState(
         data.branch_id ? String(data.branch_id) : '',
+    );
+    const [editKitchenId, setEditKitchenId] = useState(
+        data.kitchen_id ? String(data.kitchen_id) : 'none',
     );
     const [editPassword, setEditPassword] = useState('');
     const [editPasswordConfirmation, setEditPasswordConfirmation] =
@@ -110,6 +115,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditCountryId(data.country_id ? String(data.country_id) : '');
         setEditProvinceId(data.province_id ? String(data.province_id) : '');
         setEditBranchId(data.branch_id ? String(data.branch_id) : '');
+        setEditKitchenId(data.kitchen_id ? String(data.kitchen_id) : 'none');
         setEditPassword('');
         setEditPasswordConfirmation('');
         setEditErrors({});
@@ -133,6 +139,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 country_id: editCountryId ? Number(editCountryId) : null,
                 province_id: editProvinceId ? Number(editProvinceId) : null,
                 branch_id: editBranchId ? Number(editBranchId) : null,
+                kitchen_id: editKitchenId !== 'none' ? Number(editKitchenId) : null,
             },
             {
                 preserveScroll: true,
@@ -447,6 +454,32 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.branch_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Kitchen</Label>
+                            <Select
+                                value={editKitchenId}
+                                onValueChange={setEditKitchenId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select kitchen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">
+                                        No kitchen assignment
+                                    </SelectItem>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem
+                                            key={kitchen.id}
+                                            value={String(kitchen.id)}
+                                        >
+                                            {kitchen.name ??
+                                                `Kitchen #${kitchen.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={editErrors.kitchen_id} />
                         </div>
                     </div>
 
