@@ -179,7 +179,7 @@ export default function InventoryPage({
         return Array.from(vendorMap.values())
             .filter((entry) => entry.owedAmount > 0)
             .sort((a, b) => b.owedAmount - a.owedAmount);
-    }, [statsItems, vendors]);
+    }, [statsItems, t, vendors]);
 
     const formatPaidDate = (timestamp: number | null) => {
         if (!timestamp) {
