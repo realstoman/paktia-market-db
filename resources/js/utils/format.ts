@@ -3,32 +3,10 @@
  * Author: @realstoman
  */
 
-const localeMap: Record<string, string> = {
-    en: 'en-US',
-    fa: 'fa-AF',
-    ps: 'ps-AF',
-};
-
 const numberLocale = 'en-US';
 
-let activeLocaleCode: string | null = null;
-
 export const setFormattingLocale = (locale: string) => {
-    activeLocaleCode = locale;
-};
-
-const resolveLocale = () => {
-    if (activeLocaleCode) {
-        return localeMap[activeLocaleCode] ?? activeLocaleCode;
-    }
-
-    if (typeof document === 'undefined') {
-        return 'en-US';
-    }
-
-    const rawLocale = document.documentElement.lang || 'en';
-
-    return localeMap[rawLocale] ?? rawLocale;
+    void locale;
 };
 
 /**

@@ -220,6 +220,7 @@ export default function OperationsPage({
 }: OperationsPageProps) {
     const { locale } = useLocalization();
     const { can } = useAuthorization();
+    const isKitchenMode = mode === 'kitchen';
     const isOrderTakerMode = mode === 'order-taker';
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
     const [selectedChannel, setSelectedChannel] = useState<Channel>(
@@ -240,22 +241,6 @@ export default function OperationsPage({
         useState<Order | null>(null);
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const workspaceRef = useRef<HTMLDivElement | null>(null);
-
-    if (mode === 'kitchen') {
-        return (
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Kitchen Dashboard" />
-                <KitchenDashboard
-                    kitchenId={kitchenId}
-                    kitchenName={kitchenName}
-                    kitchenQueue={kitchenQueue as never[]}
-                    kitchenDailyReport={kitchenDailyReport as never[]}
-                    kitchenSummary={kitchenSummary}
-                    reportDate={reportDate}
-                />
-            </AppLayout>
-        );
-    }
 
     const localizedProductName = useCallback(
         (product?: Product | null) => {
@@ -793,76 +778,86 @@ export default function OperationsPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs} defaultSidebarOpen={false}>
-            <Head title={pageTitle} />
-            <div className="space-y-4 py-2">
-                {isOrderTakerMode ? null : (
-                    <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
-                        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                            <div className="space-y-2">
-                                <div className="inline-flex items-center gap-2 rounded-full border border-[#d8c6b3] bg-white/80 px-3 py-1 text-sm text-[#6e4e2d]">
-                                    <ReceiptText className="h-4 w-4" />
-                                    {pageTitle}
+            <Head title={isKitchenMode ? 'Kitchen Dashboard' : pageTitle} />
+            {isKitchenMode ? (
+                <KitchenDashboard
+                    kitchenId={kitchenId}
+                    kitchenName={kitchenName}
+                    kitchenQueue={kitchenQueue as never[]}
+                    kitchenDailyReport={kitchenDailyReport as never[]}
+                    kitchenSummary={kitchenSummary}
+                    reportDate={reportDate}
+                />
+            ) : (
+                <div className="space-y-4 py-2">
+                    {isOrderTakerMode ? null : (
+                        <section className="overflow-hidden rounded-[2rem] border border-[#eadfd2] bg-[linear-gradient(135deg,#fffdf8_0%,#f5f0e5_52%,#efe8db_100%)] p-5 shadow-none">
+                            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                                <div className="space-y-2">
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-[#d8c6b3] bg-white/80 px-3 py-1 text-sm text-[#6e4e2d]">
+                                        <ReceiptText className="h-4 w-4" />
+                                        {pageTitle}
+                                    </div>
+                                    <div>
+                                        <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#2f1d0f]">
+                                            Operations dashboard for live orders
+                                        </h1>
+                                        <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
+                                            Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#2f1d0f]">
-                                        Operations dashboard for live orders
-                                    </h1>
-                                    <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                        Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
-                                    </p>
+
+                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                    <Card className="border-white/70 bg-white/80 shadow-none">
+                                        <CardContent className="p-4">
+                                            <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                                Dine In
+                                            </p>
+                                            <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                                {summary.dineInOpen}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="border-white/70 bg-white/80 shadow-none">
+                                        <CardContent className="p-4">
+                                            <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                                Takeaway
+                                            </p>
+                                            <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                                {summary.takeawayOpen}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="border-white/70 bg-white/80 shadow-none">
+                                        <CardContent className="p-4">
+                                            <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                                Delivery
+                                            </p>
+                                            <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                                {summary.deliveryOpen}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="border-white/70 bg-white/80 shadow-none">
+                                        <CardContent className="p-4">
+                                            <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
+                                                Ready To Pay
+                                            </p>
+                                            <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
+                                                {summary.readyToPay}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             </div>
+                        </section>
+                    )}
 
-                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                                <Card className="border-white/70 bg-white/80 shadow-none">
-                                    <CardContent className="p-4">
-                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                            Dine In
-                                        </p>
-                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                            {summary.dineInOpen}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-white/70 bg-white/80 shadow-none">
-                                    <CardContent className="p-4">
-                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                            Takeaway
-                                        </p>
-                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                            {summary.takeawayOpen}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-white/70 bg-white/80 shadow-none">
-                                    <CardContent className="p-4">
-                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                            Delivery
-                                        </p>
-                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                            {summary.deliveryOpen}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="border-white/70 bg-white/80 shadow-none">
-                                    <CardContent className="p-4">
-                                        <p className="text-xs tracking-[0.2em] text-[#8b7560] uppercase">
-                                            Ready To Pay
-                                        </p>
-                                        <p className="mt-2 text-3xl font-semibold text-[#2f1d0f]">
-                                            {summary.readyToPay}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                <div
-                    ref={workspaceRef}
-                    className={workspaceGridClass}
-                >
+                    <div
+                        ref={workspaceRef}
+                        className={workspaceGridClass}
+                    >
                     <Card
                         className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'md:order-1' : ''}`}
                     >
@@ -1564,7 +1559,8 @@ export default function OperationsPage({
                     onCompletePayment={handleCompletePayment}
                     isCompletingPayment={isCompletingPayment}
                 />
-            </div>
+                </div>
+            )}
         </AppLayout>
     );
 }
