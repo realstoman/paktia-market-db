@@ -4,9 +4,10 @@ import { BranchTable, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';
+import React from 'react';
 import { OrderRowActions } from './row-actions';
 
-const statusStyles: Record<string, { icon: JSX.Element }> = {
+const statusStyles: Record<string, { icon: React.JSX.Element }> = {
     pending: {
         icon: <Clock3 className="h-4 w-4 text-amber-600" />,
     },
@@ -95,7 +96,8 @@ export const buildColumns = ({
     },
     {
         id: 'user.name',
-        accessorFn: (row) => row.user?.name ?? t('orders.columns.system', 'System'),
+        accessorFn: (row) =>
+            row.user?.name ?? t('orders.columns.system', 'System'),
         header: t('orders.columns.createdBy', 'Created By'),
     },
     {
