@@ -375,19 +375,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                         {t('products.actions.actionMenu', 'Actions')}
                     </DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => setIsViewOpen(true)}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                    >
-                        <Eye
-                            className={
-                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
-                            }
-                        />
+                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
                         {t('products.actions.view', 'View')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -395,34 +384,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                             resetEdit();
                             setIsEditOpen(true);
                         }}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
                     >
-                        <Edit
-                            className={
-                                isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'
-                            }
-                        />
+                        <Edit className="mr-2 h-4 w-4" />
                         {t('products.actions.edit', 'Edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => setIsDeleteOpen(true)}
-                        className={
-                            isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
-                                : ''
-                        }
-                    >
-                        <Trash2
-                            className={
-                                isRtl
-                                    ? 'ml-2 h-4 w-4 text-red-600'
-                                    : 'mr-2 h-4 w-4 text-red-600'
-                            }
-                        />
+                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         {t('products.actions.delete', 'Delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>

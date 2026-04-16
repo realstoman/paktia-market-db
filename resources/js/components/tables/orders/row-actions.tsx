@@ -252,51 +252,43 @@ export function OrderRowActions({
                         <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                             {t('orders.rowActions.actions', 'Actions')}
                         </DropdownMenuLabel>
-                        <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
-                            onClick={handleView}
-                        >
-                            <Eye className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                        <DropdownMenuItem onClick={handleView}>
+                            <Eye className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.viewDetails', 'Details')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
                             onClick={handleEdit}
                             disabled={!canEditOrder}
                         >
-                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            <Edit3 className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.editOrder', 'Edit Order')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
                             onClick={handleAddItems}
                             disabled={!canAddOrderItems}
                         >
-                            <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            <Plus className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.addItem', 'Add Item')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
                             onClick={handlePrint}
                             disabled={!canPrintReceipt}
                         >
-                            <Printer className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            <Printer className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.printReceipt', 'Print Receipt')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
                             onClick={handleAssignOpen}
                             disabled={!canAssignOrderTable}
                         >
-                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            <Edit3 className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.assignTable', 'Assign Table')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className={isRtl ? 'w-full flex-row-reverse justify-start text-right' : ''}
                             onClick={handleStatusOpen}
                             disabled={!canUpdateStatus}
                         >
-                            <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            <Edit3 className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.updateStatus', 'Update Status')}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
