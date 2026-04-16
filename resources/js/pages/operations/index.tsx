@@ -323,6 +323,52 @@ export default function OperationsPage({
         () => openOrders.find((order) => order.id === selectedOrderId) ?? null,
         [openOrders, selectedOrderId],
     );
+    const selectedOrderKitchenProgress = useMemo(() => {
+        if (!selectedOrder) {
+            return [];
+        }
+
+        const grouped = new Map<
+            string,
+            { label: string; ready: number; total: number; status: string }
+        >();
+
+        (selectedOrder.items ?? []).forEach((item) => {
+            if (!item.kitchen_id) {
+                return;
+            }
+
+            const label =
+                item.kitchen?.name ??
+                item.product?.kitchen?.name ??
+                'Kitchen';
+            const status = item.prep_status ?? 'pending';
+            const current = grouped.get(label) ?? {
+                label,
+                ready: 0,
+                total: 0,
+                status: 'pending',
+            };
+
+            current.total += 1;
+
+            if (status === 'ready' || status === 'delivered') {
+                current.ready += 1;
+            }
+
+            if (status === 'in_progress' && current.status === 'pending') {
+                current.status = 'in_progress';
+            }
+
+            if (current.ready === current.total) {
+                current.status = 'ready';
+            }
+
+            grouped.set(label, current);
+        });
+
+        return Array.from(grouped.values());
+    }, [selectedOrder]);
 
     const filteredOrders = useMemo(
         () =>
@@ -1277,6 +1323,36 @@ export default function OperationsPage({
                                     ) : null}
                                 </div>
                             </div>
+
+                            {selectedOrderKitchenProgress.length > 0 ? (
+                                <div className="rounded-[1.4rem] border border-neutral-200 bg-white p-4">
+                                    <p className="mb-3 text-sm font-semibold text-[#2f1d0f]">
+                                        Kitchen Progress
+                                    </p>
+                                    <div className="space-y-2">
+                                        {selectedOrderKitchenProgress.map((entry) => (
+                                            <div
+                                                key={entry.label}
+                                                className="flex items-center justify-between rounded-2xl bg-[#f8f5ef] px-3 py-2"
+                                            >
+                                                <div>
+                                                    <p className="text-sm font-medium text-[#2f1d0f]">
+                                                        {entry.label}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {entry.ready}/{entry.total} items ready
+                                                    </p>
+                                                </div>
+                                                <Badge
+                                                    className={`border ${getStatusTone(entry.status)}`}
+                                                >
+                                                    {entry.status.replace('_', ' ')}
+                                                </Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null}
 
                             <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
                                 <div className="space-y-3 text-sm">
