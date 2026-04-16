@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderItemPrepStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
@@ -13,10 +14,24 @@ class OrderItem extends Model
         'product_size_id',
         'product_size_name_snapshot',
         'kitchen_id',
+        'prep_status',
         'quantity',
         'price',
         'line_total',
         'note',
+        'started_at',
+        'ready_at',
+        'delivered_at',
+        'prepared_by',
+        'kitchen_receipt_printed_at',
+    ];
+
+    protected $casts = [
+        'prep_status' => OrderItemPrepStatus::class,
+        'started_at' => 'datetime',
+        'ready_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'kitchen_receipt_printed_at' => 'datetime',
     ];
 
     public function order()
@@ -37,5 +52,10 @@ class OrderItem extends Model
     public function productSize()
     {
         return $this->belongsTo(ProductSize::class);
+    }
+
+    public function preparedBy()
+    {
+        return $this->belongsTo(User::class, 'prepared_by');
     }
 }
