@@ -46,7 +46,9 @@ class OrderService
             $ordersQuery->whereDate('created_at', $selectedDate);
         }
 
-        if ($isOrderTaker && $user?->id) {
+        if ($isKitchen && ! $allowedKitchenId) {
+            $ordersQuery->whereRaw('1 = 0');
+        } elseif ($isOrderTaker && $user?->id) {
             $ordersQuery->where('user_id', $user->id);
         } elseif ($allowedKitchenId) {
             $ordersQuery->whereHas('items', fn ($query) => $query->where('kitchen_id', $allowedKitchenId));

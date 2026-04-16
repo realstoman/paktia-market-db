@@ -1953,7 +1953,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             (item) => (
                                                 <div
                                                     key={item.id}
-                                                    className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
+                                                    className="grid gap-2 rounded-md border p-3 sm:grid-cols-6"
                                                 >
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
@@ -2018,6 +2018,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-muted-foreground">
+                                                            Prep
+                                                        </p>
+                                                        <p className="font-medium capitalize">
+                                                            {(item.prep_status ?? 'pending').replace(
+                                                                '_',
+                                                                ' ',
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">
                                                             {t(
                                                                 'orders.detailsModal.price',
                                                                 'Price',
@@ -2039,7 +2050,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     {(selectedOrder.items ?? []).map((item) => (
                                         <div
                                             key={item.id}
-                                            className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
+                                            className="grid gap-2 rounded-md border p-3 sm:grid-cols-6"
                                         >
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
@@ -2096,6 +2107,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                 </p>
                                                 <p className="font-medium">
                                                     {item.quantity}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Prep
+                                                </p>
+                                                <p className="font-medium capitalize">
+                                                    {(item.prep_status ?? 'pending').replace(
+                                                        '_',
+                                                        ' ',
+                                                    )}
                                                 </p>
                                             </div>
                                             <div>
