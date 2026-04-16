@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     BreadcrumbItem,
@@ -69,6 +70,7 @@ export default function InventoryPage({
     categories,
     inventoryTypes,
 }: InventoryPageProps) {
+    const { t, locale } = useLocalization();
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
@@ -178,17 +180,26 @@ export default function InventoryPage({
     }, [statsItems, vendors]);
 
     const formatPaidDate = (timestamp: number | null) => {
-        if (!timestamp) return 'No payment recorded';
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        }).format(new Date(timestamp));
+        if (!timestamp) {
+            return t(
+                'inventory.page.vendorOwed.noPayment',
+                'No payment recorded',
+            );
+        }
+
+        return new Intl.DateTimeFormat(
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            },
+        ).format(new Date(timestamp));
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Inventory" />
+            <Head title={t('inventory.page.title', 'Inventory')} />
             <div className="space-y-4 pt-3 pb-8">
                 <div className="flex justify-end">
                     <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
@@ -197,11 +208,19 @@ export default function InventoryPage({
                             onValueChange={setSelectedBranchId}
                         >
                             <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Select branch for stats" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'inventory.page.branchStatsPlaceholder',
+                                        'Select branch for stats',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={BRANCH_FILTER_ALL}>
-                                    All Branches
+                                    {t(
+                                        'inventory.page.allBranches',
+                                        'All Branches',
+                                    )}
                                 </SelectItem>
                                 {branches.map((branch) => (
                                     <SelectItem
@@ -218,9 +237,15 @@ export default function InventoryPage({
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     <SummaryMetricCard
-                        title="Total Inventory Value"
+                        title={t(
+                            'inventory.page.stats.totalValue',
+                            'Total Inventory Value',
+                        )}
                         value={formatAfn(stats.totalValue)}
-                        description="Current value from quantity x single price."
+                        description={t(
+                            'inventory.page.stats.totalValueDescription',
+                            'Current value from quantity x single price.',
+                        )}
                         icon={Banknote}
                         variant="teal"
                         className="md:col-span-4 md:row-span-2"
@@ -228,9 +253,15 @@ export default function InventoryPage({
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         <SummaryMetricCard
-                            title="Total Items"
+                            title={t(
+                                'inventory.page.stats.totalItems',
+                                'Total Items',
+                            )}
                             value={formatNumber(stats.totalItems)}
-                            description="Inventory records currently tracked."
+                            description={t(
+                                'inventory.page.stats.totalItemsDescription',
+                                'Inventory records currently tracked.',
+                            )}
                             icon={Boxes}
                             variant="teal"
                             className="md:col-span-6"
@@ -239,7 +270,10 @@ export default function InventoryPage({
                         <Card className="gap-3 border-red-200 bg-red-50 py-4 shadow-none md:col-span-6 dark:border-red-900/50 dark:bg-red-950/20">
                             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
                                 <CardTitle className="text-sm">
-                                    Amount Owed to Vendors
+                                    {t(
+                                        'inventory.page.stats.totalOwed',
+                                        'Amount Owed to Vendors',
+                                    )}
                                 </CardTitle>
                                 <Banknote className="h-4 w-4 text-red-600 dark:text-red-400" />
                             </CardHeader>
@@ -255,7 +289,10 @@ export default function InventoryPage({
                                         }
                                         className="text-xs font-medium text-red-700 underline underline-offset-4 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
                                     >
-                                        View details
+                                        {t(
+                                            'inventory.page.vendorOwed.viewDetails',
+                                            'View details',
+                                        )}
                                     </button>
                                 </div>
                             </CardContent>
@@ -264,27 +301,45 @@ export default function InventoryPage({
 
                     <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
                         <SummaryMetricCard
-                            title="Total Fixed Items"
+                            title={t(
+                                'inventory.page.stats.totalFixed',
+                                'Total Fixed Items',
+                            )}
                             value={formatNumber(stats.totalFixedItems)}
-                            description="Equipment and long-term stock items."
+                            description={t(
+                                'inventory.page.stats.totalFixedDescription',
+                                'Equipment and long-term stock items.',
+                            )}
                             icon={Warehouse}
                             variant="teal"
                             className="md:col-span-4"
                         />
 
                         <SummaryMetricCard
-                            title="Low Stock Items"
+                            title={t(
+                                'inventory.page.stats.lowStock',
+                                'Low Stock Items',
+                            )}
                             value={formatNumber(stats.lowStockItems)}
-                            description={`Quantity ≤ ${LOW_STOCK_THRESHOLD}.`}
+                            description={t(
+                                'inventory.page.stats.lowStockDescription',
+                                'Quantity ≤ :count.',
+                            ).replace(':count', String(LOW_STOCK_THRESHOLD))}
                             icon={PackageMinus}
                             variant="teal"
                             className="md:col-span-4"
                         />
 
                         <SummaryMetricCard
-                            title="Out of Stock Items"
+                            title={t(
+                                'inventory.page.stats.outOfStock',
+                                'Out of Stock Items',
+                            )}
                             value={formatNumber(stats.outOfStockItems)}
-                            description="Items that currently have zero quantity."
+                            description={t(
+                                'inventory.page.stats.outOfStockDescription',
+                                'Items that currently have zero quantity.',
+                            )}
                             icon={PackageX}
                             variant="teal"
                             className="md:col-span-4"
@@ -298,10 +353,17 @@ export default function InventoryPage({
                 >
                     <DialogContent className="sm:max-w-3xl">
                         <DialogHeader>
-                            <DialogTitle>Amount Owed to Vendors</DialogTitle>
+                            <DialogTitle>
+                                {t(
+                                    'inventory.page.vendorOwed.title',
+                                    'Amount Owed to Vendors',
+                                )}
+                            </DialogTitle>
                             <DialogDescription>
-                                Outstanding payable amounts grouped by vendor
-                                and last payment date.
+                                {t(
+                                    'inventory.page.vendorOwed.description',
+                                    'Outstanding payable amounts grouped by vendor and last payment date.',
+                                )}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -310,13 +372,22 @@ export default function InventoryPage({
                                 <thead className="bg-muted/40 text-left">
                                     <tr>
                                         <th className="px-3 py-2 font-medium">
-                                            Vendor
+                                            {t(
+                                                'inventory.page.vendorOwed.vendor',
+                                                'Vendor',
+                                            )}
                                         </th>
                                         <th className="px-3 py-2 font-medium">
-                                            Amount Owed
+                                            {t(
+                                                'inventory.page.vendorOwed.amount',
+                                                'Amount Owed',
+                                            )}
                                         </th>
                                         <th className="px-3 py-2 font-medium">
-                                            Last Paid
+                                            {t(
+                                                'inventory.page.vendorOwed.lastPaid',
+                                                'Last Paid',
+                                            )}
                                         </th>
                                     </tr>
                                 </thead>
@@ -327,7 +398,10 @@ export default function InventoryPage({
                                                 colSpan={3}
                                                 className="px-3 py-6 text-center text-muted-foreground"
                                             >
-                                                No outstanding vendor balance.
+                                                {t(
+                                                    'inventory.page.vendorOwed.empty',
+                                                    'No outstanding vendor balance.',
+                                                )}
                                             </td>
                                         </tr>
                                     ) : (
