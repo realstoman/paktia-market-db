@@ -10,7 +10,6 @@ import {
     Unit,
     Vendor,
 } from '@/types';
-import { useLocalization } from '@/lib/localization';
 import { formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
@@ -53,8 +52,8 @@ export const buildColumns = (
     units: Unit[],
     categories: InventoryCategory[],
     inventoryTypes: InventoryType[],
+    t: (key: string, fallback?: string) => string,
 ): ColumnDef<InventoryItem>[] => {
-    const { t } = useLocalization();
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 

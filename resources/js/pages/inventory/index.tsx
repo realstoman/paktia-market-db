@@ -40,17 +40,6 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Inventory',
-        href: '/inventory',
-    },
-];
-
 interface InventoryPageProps {
     inventoryItems: InventoryItem[];
     branches: Branch[];
@@ -71,6 +60,16 @@ export default function InventoryPage({
     inventoryTypes,
 }: InventoryPageProps) {
     const { t, locale } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: '/dashboard',
+        },
+        {
+            title: t('navigation.inventory', 'Inventory'),
+            href: '/inventory',
+        },
+    ];
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
@@ -151,7 +150,10 @@ export default function InventoryPage({
             const vendorName =
                 item.vendor?.name ??
                 vendors.find((vendor) => vendor.id === item.vendor_id)?.name ??
-                `Vendor #${item.vendor_id}`;
+                t('inventory.common.vendorNumber', 'Vendor #:id').replace(
+                    ':id',
+                    String(item.vendor_id),
+                );
 
             const existing = vendorMap.get(item.vendor_id) ?? {
                 vendorName,
