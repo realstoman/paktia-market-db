@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { KitchenDashboard } from '@/pages/operations/kitchen-dashboard';
 import {
     Select,
     SelectContent,
@@ -51,7 +52,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-type OperationMode = 'cashier' | 'server' | 'order-taker' | 'general';
+type OperationMode = 'cashier' | 'server' | 'order-taker' | 'kitchen' | 'general';
 type Channel = 'dine_in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'credit_card' | 'bank_transfer' | 'other';
 
@@ -73,16 +74,27 @@ interface TableCard extends Omit<BranchTable, 'branch'> {
 interface OperationsPageProps {
     mode: OperationMode;
     branchId: number | null;
-    products: Product[];
-    categories: CategoryOption[];
-    tables: TableCard[];
-    openOrders: Order[];
-    summary: {
+    products?: Product[];
+    categories?: CategoryOption[];
+    tables?: TableCard[];
+    openOrders?: Order[];
+    summary?: {
         dineInOpen: number;
         takeawayOpen: number;
         deliveryOpen: number;
         readyToPay: number;
     };
+    kitchenId?: number | null;
+    kitchenName?: string | null;
+    kitchenQueue?: unknown[];
+    kitchenDailyReport?: unknown[];
+    kitchenSummary?: {
+        pending: number;
+        inProgress: number;
+        ready: number;
+        deliveredToday: number;
+    };
+    reportDate?: string;
 }
 
 interface CartLine {
@@ -184,11 +196,27 @@ function resolveModeChannels(mode: OperationMode): Channel[] {
 export default function OperationsPage({
     mode,
     branchId,
-    products,
-    categories,
-    tables,
-    openOrders,
-    summary,
+    products = [],
+    categories = [],
+    tables = [],
+    openOrders = [],
+    summary = {
+        dineInOpen: 0,
+        takeawayOpen: 0,
+        deliveryOpen: 0,
+        readyToPay: 0,
+    },
+    kitchenId = null,
+    kitchenName = null,
+    kitchenQueue = [],
+    kitchenDailyReport = [],
+    kitchenSummary = {
+        pending: 0,
+        inProgress: 0,
+        ready: 0,
+        deliveredToday: 0,
+    },
+    reportDate = '',
 }: OperationsPageProps) {
     const { locale } = useLocalization();
     const { can } = useAuthorization();
@@ -212,6 +240,22 @@ export default function OperationsPage({
         useState<Order | null>(null);
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const workspaceRef = useRef<HTMLDivElement | null>(null);
+
+    if (mode === 'kitchen') {
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Kitchen Dashboard" />
+                <KitchenDashboard
+                    kitchenId={kitchenId}
+                    kitchenName={kitchenName}
+                    kitchenQueue={kitchenQueue as never[]}
+                    kitchenDailyReport={kitchenDailyReport as never[]}
+                    kitchenSummary={kitchenSummary}
+                    reportDate={reportDate}
+                />
+            </AppLayout>
+        );
+    }
 
     const localizedProductName = useCallback(
         (product?: Product | null) => {
