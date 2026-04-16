@@ -10,6 +10,7 @@ import {
     Unit,
     Vendor,
 } from '@/types';
+import { useLocalization } from '@/lib/localization';
 import { formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
@@ -53,6 +54,7 @@ export const buildColumns = (
     categories: InventoryCategory[],
     inventoryTypes: InventoryType[],
 ): ColumnDef<InventoryItem>[] => {
+    const { t } = useLocalization();
     const branchById = new Map(branches.map((branch) => [branch.id, branch]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
@@ -65,14 +67,14 @@ export const buildColumns = (
                     onCheckedChange={(value) =>
                         table.toggleAllPageRowsSelected(!!value)
                     }
-                    aria-label="Select all"
+                    aria-label={t('inventory.columns.selectAll', 'Select all')}
                 />
             ),
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.getIsSelected()}
                     onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
+                    aria-label={t('inventory.columns.selectRow', 'Select row')}
                 />
             ),
             enableSorting: false,
@@ -80,7 +82,7 @@ export const buildColumns = (
         },
         {
             accessorKey: 'name',
-            header: 'Item',
+            header: t('inventory.columns.item', 'Item'),
             cell: ({ row }) => {
                 const item = row.original;
                 const imageUrl = resolveImageUrl(
@@ -115,8 +117,8 @@ export const buildColumns = (
             accessorFn: (row) =>
                 row.branch?.name ||
                 (row.branch_id ? branchById.get(row.branch_id)?.name : null) ||
-                'Unknown',
-            header: 'Branch',
+                t('inventory.columns.unknown', 'Unknown'),
+            header: t('inventory.columns.branch', 'Branch'),
         },
         {
             id: 'vendor.name',
@@ -124,23 +126,24 @@ export const buildColumns = (
                 row.vendor?.name ||
                 (row.vendor_id ? vendorById.get(row.vendor_id)?.name : null) ||
                 '-',
-            header: 'Vendor',
+            header: t('inventory.columns.vendor', 'Vendor'),
         },
         {
             accessorKey: 'quantity',
-            header: 'Stock',
+            header: t('inventory.columns.stock', 'Stock'),
             cell: ({ row }) => {
                 const item = row.original;
                 return (
                     <span className="text-sm text-muted-foreground">
-                        {Number(item.quantity)} {item.unit ?? 'unit'}
+                        {Number(item.quantity)}{' '}
+                        {item.unit ?? t('inventory.common.unit', 'unit')}
                     </span>
                 );
             },
         },
         {
             accessorKey: 'unit_price',
-            header: 'Single Price',
+            header: t('inventory.columns.singlePrice', 'Single Price'),
             cell: ({ row }) =>
                 `${row.original.currency_symbol ?? ''}${formatNumber(
                     row.original.unit_price ?? 0,
@@ -148,7 +151,7 @@ export const buildColumns = (
         },
         {
             id: 'total_price',
-            header: 'Total Price',
+            header: t('inventory.columns.totalPrice', 'Total Price'),
             accessorFn: (row) =>
                 Number(row.quantity || 0) * Number(row.unit_price || 0),
             cell: ({ row }) => {
@@ -160,28 +163,28 @@ export const buildColumns = (
         },
         {
             accessorKey: 'is_usable',
-            header: 'Usable',
+            header: t('inventory.columns.usable', 'Usable'),
             cell: ({ row }) =>
                 row.original.is_usable ? (
                     <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                        Usable
+                        {t('inventory.common.usable', 'Usable')}
                     </Badge>
                 ) : (
                     <Badge className="bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300">
-                        Not Usable
+                        {t('inventory.common.notUsable', 'Not Usable')}
                     </Badge>
                 ),
         },
         {
             id: 'images',
-            header: 'Images',
+            header: t('inventory.columns.images', 'Images'),
             cell: ({ row }) => (
                 <ImageViewerDialog images={row.original.images ?? []} />
             ),
         },
         {
             id: 'receipt',
-            header: 'Receipt/Bill',
+            header: t('inventory.columns.receipt', 'Receipt/Bill'),
             cell: ({ row }) => {
                 const item = row.original;
                 const receiptUrl = resolveImageUrl(
@@ -202,14 +205,14 @@ export const buildColumns = (
                         rel="noreferrer"
                         className="text-sm text-blue-600 hover:underline"
                     >
-                        View
+                        {t('inventory.common.view', 'View')}
                     </a>
                 );
             },
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('inventory.columns.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}
