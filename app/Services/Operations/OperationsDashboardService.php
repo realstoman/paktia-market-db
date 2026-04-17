@@ -34,14 +34,6 @@ class OperationsDashboardService
                 'kitchen:id,name',
             ])
             ->where('is_active', true)
-            ->when($branchId, function ($query) use ($branchId) {
-                $query->where(function ($productQuery) use ($branchId) {
-                    $productQuery
-                        ->whereHas('kitchen', fn ($kitchenQuery) => $kitchenQuery->where('branch_id', $branchId))
-                        ->orWhereHas('kitchen.branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId))
-                        ->orWhereNull('kitchen_id');
-                });
-            })
             ->orderBy('name')
             ->get()
             ->each(fn (Product $product) => $product->images->each->append('url'));

@@ -456,6 +456,30 @@ export default function OperationsPage({
         });
     }, []);
 
+    useEffect(() => {
+        if (isKitchenMode) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            router.reload({
+                preserveScroll: true,
+                preserveState: true,
+                only: [
+                    'mode',
+                    'branchId',
+                    'products',
+                    'categories',
+                    'tables',
+                    'openOrders',
+                    'summary',
+                ],
+            });
+        }, 10000);
+
+        return () => window.clearInterval(interval);
+    }, [isKitchenMode]);
+
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
         setSelectedOrderId(null);
