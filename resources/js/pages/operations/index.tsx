@@ -1321,12 +1321,10 @@ export default function OperationsPage({
                                 </div>
                             ) : null}
                         </CardHeader>
-                        <CardContent
-                            className={`flex min-h-0 flex-1 flex-col gap-4 ${isOrderTakerMode ? 'overflow-y-auto pr-1 pb-8 md:pb-12' : ''}`}
-                        >
+                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-8 md:pb-12">
                             <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
                                 <div
-                                    className={`space-y-3 ${isOrderTakerMode ? '' : 'max-h-[260px] overflow-y-auto pr-1'}`}
+                                    className="max-h-[260px] space-y-3 overflow-y-auto pr-1"
                                 >
                                     {cartLines.map((line) => (
                                         <div
@@ -1387,7 +1385,7 @@ export default function OperationsPage({
                                     <p className="mb-3 text-sm font-semibold text-[#2f1d0f]">
                                         Kitchen Progress
                                     </p>
-                                    <div className="space-y-2">
+                                    <div className="max-h-[196px] space-y-2 overflow-y-auto pr-1">
                                         {selectedOrderKitchenProgress.map((entry) => (
                                             <div
                                                 key={entry.label}
