@@ -131,16 +131,18 @@ const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
 ];
 
 export function AppSidebar() {
-    const { isSuperAdmin } = useAuthorization();
+    const { hasRole, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
     const navigationItems: NavItem[] = [
-        ...mainNavItems.map((item) => ({
-            title: t(item.titleKey, item.fallbackTitle),
-            href: item.href,
-            icon: item.icon,
-            can: item.can,
-            canAny: item.canAny,
-        })),
+        ...mainNavItems
+            .filter((item) => item.href !== '/orders' || !hasRole('kitchen'))
+            .map((item) => ({
+                title: t(item.titleKey, item.fallbackTitle),
+                href: item.href,
+                icon: item.icon,
+                can: item.can,
+                canAny: item.canAny,
+            })),
         ...(isSuperAdmin
             ? [
                   {

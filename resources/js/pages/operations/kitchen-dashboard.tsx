@@ -93,6 +93,7 @@ export function KitchenDashboard({
 }: KitchenDashboardProps) {
     const { locale, t } = useLocalization();
     const previousQueueRef = useRef<number[]>([]);
+    const boardRef = useRef<HTMLDivElement | null>(null);
     const isRtlLocale = locale === 'fa' || locale === 'ps';
     const kitchenLabel = t('orders.kitchenDashboard.kitchen', 'Kitchen');
     const unassignedKitchenLabel = t(
@@ -175,6 +176,17 @@ export function KitchenDashboard({
 
         previousQueueRef.current = currentPendingIds;
     }, [groupedQueue.pending, t]);
+
+    useEffect(() => {
+        const frame = window.requestAnimationFrame(() => {
+            boardRef.current?.scrollIntoView({
+                block: 'start',
+                behavior: 'auto',
+            });
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, []);
 
     const resolveItemName = (item: KitchenTicketItem) => {
         if (locale === 'ps') {
@@ -395,7 +407,7 @@ export function KitchenDashboard({
     };
 
     return (
-        <div className="py-2">
+        <div ref={boardRef} className="py-2">
             {!kitchenId ? (
                 <Card className="border-neutral-200/70 shadow-none">
                     <CardContent className="py-12 text-center text-muted-foreground">

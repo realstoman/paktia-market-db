@@ -2,6 +2,7 @@
 
 use App\Models\Branch;
 use App\Models\Country;
+use App\Models\Kitchen;
 use App\Models\Order;
 use App\Models\Province;
 use App\Models\User;
@@ -71,4 +72,46 @@ test('order takers only see their own orders on the orders page', function () {
             ->has('orders', 1)
             ->where('orders.0.id', $ownOrder->id)
         );
+});
+
+test('kitchen users are redirected away from the shared orders page', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => 'AFN',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'name' => 'Main Branch',
+        'address' => 'Kabul',
+        'description' => 'HQ',
+        'is_active' => true,
+    ]);
+
+    $kitchen = Kitchen::create([
+        'branch_id' => $branch->id,
+        'name' => 'Afghan Foods Kitchen',
+        'is_active' => true,
+    ]);
+
+    $kitchenUser = User::factory()->create([
+        'branch_id' => $branch->id,
+        'kitchen_id' => $kitchen->id,
+    ]);
+    $kitchenUser->assignRole('kitchen');
+
+    $this->actingAs($kitchenUser)
+        ->get(route('orders.index'))
+        ->assertRedirect(route('dashboard'));
 });
