@@ -491,6 +491,11 @@ export default function OperationsPage({
     };
 
     const adjustQuantity = (product: Product, delta: number) => {
+        if (!canEditComposer) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         const basePrice = Number(product.base_price ?? 0);
 
         setCartLines((current) => {
@@ -543,8 +548,20 @@ export default function OperationsPage({
     const total = subTotal + tax;
     const canTakePayment = can('payments.create') && mode === 'cashier';
     const canManageStatus = can('orders.update');
+    const canManageAnyOrder = isSuperAdmin || can('payments.create');
+    const canManageSelectedOrder =
+        !selectedOrder ||
+        canManageAnyOrder ||
+        (currentUserId !== null &&
+            Number(selectedOrder.user_id ?? 0) === Number(currentUserId));
+    const canEditComposer = !selectedOrder || canManageSelectedOrder;
 
     const submitOrder = () => {
+        if (!canEditComposer) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         if (!branchId) {
             toast.error('Assign a branch to this user before taking orders.');
             return;
@@ -633,6 +650,11 @@ export default function OperationsPage({
     };
 
     const updateStatus = (status: 'in_progress' | 'ready') => {
+        if (!canManageSelectedOrder) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         if (!selectedOrder) {
             toast.error('Save the order first.');
             return;
@@ -1135,6 +1157,7 @@ export default function OperationsPage({
                                                                     variant="outline"
                                                                     size="icon"
                                                                     className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                    disabled={!canEditComposer}
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1151,6 +1174,7 @@ export default function OperationsPage({
                                                                 <Button
                                                                     size="icon"
                                                                     className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                    disabled={!canEditComposer}
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1227,6 +1251,7 @@ export default function OperationsPage({
                                                 )
                                             }
                                             placeholder="Customer name (optional)"
+                                            disabled={!canEditComposer}
                                         />
                                     </div>
                                     <div className="grid gap-2">
@@ -1242,6 +1267,7 @@ export default function OperationsPage({
                                                 )
                                             }
                                             placeholder="Phone number (optional)"
+                                            disabled={!canEditComposer}
                                         />
                                     </div>
                                     {selectedChannel === 'delivery' ? (
@@ -1259,6 +1285,7 @@ export default function OperationsPage({
                                                 }
                                                 placeholder="Delivery address"
                                                 required
+                                                disabled={!canEditComposer}
                                             />
                                         </div>
                                     ) : null}
@@ -1414,7 +1441,7 @@ export default function OperationsPage({
                             >
                                 <Button
                                     className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || !canEditComposer}
                                     onClick={submitOrder}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
@@ -1427,7 +1454,9 @@ export default function OperationsPage({
                                           : 'Save order'}
                                 </Button>
 
-                                {selectedOrder && canManageStatus ? (
+                                {selectedOrder &&
+                                canManageStatus &&
+                                canManageSelectedOrder ? (
                                     <div
                                         className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
                                     >

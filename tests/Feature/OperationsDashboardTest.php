@@ -78,3 +78,50 @@ test('cashier sees operations dashboard instead of analytics dashboard', functio
             ->has('openOrders', 1)
         );
 });
+
+test('operations dashboard includes active products without a kitchen assignment', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'name' => 'Main Branch',
+        'address' => 'Kabul',
+        'description' => 'HQ',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create(['branch_id' => $branch->id]);
+    $user->assignRole('cashier');
+
+    $category = ProductCategory::create(['name' => 'Drinks']);
+
+    $drink = Product::create([
+        'name' => 'Cola',
+        'product_category_id' => $category->id,
+        'base_price' => 60,
+        'is_active' => true,
+        'kitchen_id' => null,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('operations/index')
+            ->where('products.0.id', $drink->id)
+        );
+});
