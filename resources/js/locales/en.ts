@@ -462,6 +462,7 @@ const en = {
                 delivered: 'Delivered',
             },
             actions: {
+                print: 'Print',
                 start: 'Start',
                 startAll: 'Start All',
                 markReady: 'Mark Ready',

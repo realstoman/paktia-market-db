@@ -463,6 +463,7 @@ const fa = {
                 delivered: 'تحویل‌شده',
             },
             actions: {
+                print: 'چاپ',
                 start: 'شروع',
                 startAll: 'شروع همه',
                 markReady: 'علامت‌گذاری به‌عنوان آماده',

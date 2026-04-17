@@ -67,18 +67,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tools.reference-data');
     Route::get('operations/runtime-health', OperationsRuntimeHealthController::class)
         ->name('operations.runtime-health');
-    Route::post('kitchen/order-items/{orderItem}/start', [KitchenOrderItemController::class, 'start'])
-        ->name('kitchen.order-items.start');
-    Route::post('kitchen/order-items/{orderItem}/ready', [KitchenOrderItemController::class, 'ready'])
-        ->name('kitchen.order-items.ready');
-    Route::post('kitchen/order-items/{orderItem}/delivered', [KitchenOrderItemController::class, 'delivered'])
-        ->name('kitchen.order-items.delivered');
     Route::post('kitchen/order-items/bulk/start', [KitchenOrderItemController::class, 'startBulk'])
         ->name('kitchen.order-items.bulk.start');
     Route::post('kitchen/order-items/bulk/ready', [KitchenOrderItemController::class, 'readyBulk'])
         ->name('kitchen.order-items.bulk.ready');
     Route::post('kitchen/order-items/bulk/delivered', [KitchenOrderItemController::class, 'deliveredBulk'])
         ->name('kitchen.order-items.bulk.delivered');
+    Route::post('kitchen/order-items/{orderItem}/start', [KitchenOrderItemController::class, 'start'])
+        ->name('kitchen.order-items.start');
+    Route::post('kitchen/order-items/{orderItem}/ready', [KitchenOrderItemController::class, 'ready'])
+        ->name('kitchen.order-items.ready');
+    Route::post('kitchen/order-items/{orderItem}/delivered', [KitchenOrderItemController::class, 'delivered'])
+        ->name('kitchen.order-items.delivered');
 
     // Dashboard
     Route::get('dashboard', function (

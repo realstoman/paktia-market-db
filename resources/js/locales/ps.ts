@@ -459,6 +459,7 @@ const ps = {
                 delivered: 'سپارل شوی',
             },
             actions: {
+                print: 'چاپ',
                 start: 'پیل',
                 startAll: 'ټول پیل کړئ',
                 markReady: 'د چمتو په توګه نښه کول',

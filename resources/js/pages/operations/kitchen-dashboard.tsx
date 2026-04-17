@@ -216,6 +216,9 @@ export function KitchenDashboard({
     const printTicket = (ticket: KitchenTicket) => {
         const logoSrc = brand.logoFull || brand.logo;
         const printWindow = window.open('', '_blank', 'width=420,height=720');
+        const textAlign = isRtlLocale ? 'right' : 'left';
+        const rowDirection = isRtlLocale ? 'rtl' : 'ltr';
+        const qtyAlign = isRtlLocale ? 'left' : 'center';
 
         if (!printWindow) {
             toast.error(
@@ -263,9 +266,6 @@ export function KitchenDashboard({
             'orders.kitchenDashboard.print.ticketTitle',
             'Kitchen Ticket',
         );
-        const textAlign = isRtlLocale ? 'right' : 'left';
-        const rowDirection = isRtlLocale ? 'rtl' : 'ltr';
-        const qtyAlign = isRtlLocale ? 'left' : 'center';
 
         printWindow.document.write(`
             <html>
@@ -590,7 +590,7 @@ export function KitchenDashboard({
                                                                                 )}
                                                                             </Button>
                                                                         ) : null}
-                                                                        {item.prep_status !== 'ready' && item.prep_status !== 'delivered' ? (
+                                                                        {item.prep_status === 'in_progress' ? (
                                                                             <Button
                                                                                 size="sm"
                                                                                 onClick={() => mutateItem(item.id, 'ready')}
@@ -621,11 +621,8 @@ export function KitchenDashboard({
                                                         </div>
 
                                                         <div className="mt-3 flex flex-wrap gap-2">
-                                                            {ticket.items.some(
-                                                                (item) =>
-                                                                    item.prep_status ===
-                                                                    'pending',
-                                                            ) ? (
+                                                            {ticket.ticket_status ===
+                                                            'pending' ? (
                                                                 <Button
                                                                     size="sm"
                                                                     variant="outline"
@@ -656,13 +653,8 @@ export function KitchenDashboard({
                                                                     )}
                                                                 </Button>
                                                             ) : null}
-                                                            {ticket.items.some(
-                                                                (item) =>
-                                                                    item.prep_status ===
-                                                                        'pending' ||
-                                                                    item.prep_status ===
-                                                                        'in_progress',
-                                                            ) ? (
+                                                            {ticket.ticket_status ===
+                                                            'in_progress' ? (
                                                                 <Button
                                                                     size="sm"
                                                                     onClick={() =>
@@ -694,11 +686,8 @@ export function KitchenDashboard({
                                                                     )}
                                                                 </Button>
                                                             ) : null}
-                                                            {ticket.items.some(
-                                                                (item) =>
-                                                                    item.prep_status ===
-                                                                    'ready',
-                                                            ) ? (
+                                                            {ticket.ticket_status ===
+                                                            'ready' ? (
                                                                 <Button
                                                                     size="sm"
                                                                     variant="outline"
@@ -729,17 +718,24 @@ export function KitchenDashboard({
                                                                     )}
                                                                 </Button>
                                                             ) : null}
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                onClick={() => printTicket(ticket)}
-                                                            >
-                                                                <Printer className="mr-2 h-4 w-4" />
-                                                                {t(
-                                                                    'orders.kitchenDashboard.actions.printChit',
-                                                                    'Print Chit',
-                                                                )}
-                                                            </Button>
+                                                            {ticket.ticket_status ===
+                                                            'ready' ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        printTicket(
+                                                                            ticket,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Printer className="mr-2 h-4 w-4" />
+                                                                    {t(
+                                                                        'orders.kitchenDashboard.actions.print',
+                                                                        'Print',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
                                                         </div>
                                                     </div>
                                                 ))}
