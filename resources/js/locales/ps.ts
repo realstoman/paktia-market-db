@@ -460,8 +460,11 @@ const ps = {
             },
             actions: {
                 start: 'پیل',
+                startAll: 'ټول پیل کړئ',
                 markReady: 'د چمتو په توګه نښه کول',
+                markAllReady: 'ټول د چمتو په توګه ونښه کړئ',
                 markDelivered: 'د سپارل شوي په توګه نښه کول',
+                markAllDelivered: 'ټول د سپارل شوي په توګه ونښه کړئ',
                 printChit: 'چیت چاپ',
                 printReport: 'راپور چاپ',
             },

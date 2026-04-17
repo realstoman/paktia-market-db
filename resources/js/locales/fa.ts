@@ -464,8 +464,11 @@ const fa = {
             },
             actions: {
                 start: 'شروع',
+                startAll: 'شروع همه',
                 markReady: 'علامت‌گذاری به‌عنوان آماده',
+                markAllReady: 'علامت‌گذاری همه به‌عنوان آماده',
                 markDelivered: 'علامت‌گذاری به‌عنوان تحویل‌شده',
+                markAllDelivered: 'علامت‌گذاری همه به‌عنوان تحویل‌شده',
                 printChit: 'چاپ چیت',
                 printReport: 'چاپ گزارش',
             },

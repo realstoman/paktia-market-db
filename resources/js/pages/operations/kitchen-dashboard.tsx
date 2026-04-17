@@ -195,6 +195,24 @@ export function KitchenDashboard({
         });
     };
 
+    const mutateTicket = (
+        itemIds: number[],
+        action: 'start' | 'ready' | 'delivered',
+    ) => {
+        if (itemIds.length === 0) {
+            return;
+        }
+
+        router.post(
+            `/kitchen/order-items/bulk/${action}`,
+            { item_ids: itemIds },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
+    };
+
     const printTicket = (ticket: KitchenTicket) => {
         const logoSrc = brand.logoFull || brand.logo;
         const printWindow = window.open('', '_blank', 'width=420,height=720');
@@ -603,6 +621,114 @@ export function KitchenDashboard({
                                                         </div>
 
                                                         <div className="mt-3 flex flex-wrap gap-2">
+                                                            {ticket.items.some(
+                                                                (item) =>
+                                                                    item.prep_status ===
+                                                                    'pending',
+                                                            ) ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        mutateTicket(
+                                                                            ticket.items
+                                                                                .filter(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.prep_status ===
+                                                                                        'pending',
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.id,
+                                                                                ),
+                                                                            'start',
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <ChefHat className="mr-2 h-4 w-4" />
+                                                                    {t(
+                                                                        'orders.kitchenDashboard.actions.startAll',
+                                                                        'Start All',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
+                                                            {ticket.items.some(
+                                                                (item) =>
+                                                                    item.prep_status ===
+                                                                        'pending' ||
+                                                                    item.prep_status ===
+                                                                        'in_progress',
+                                                            ) ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        mutateTicket(
+                                                                            ticket.items
+                                                                                .filter(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.prep_status !==
+                                                                                            'ready' &&
+                                                                                        item.prep_status !==
+                                                                                            'delivered',
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.id,
+                                                                                ),
+                                                                            'ready',
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <PackageCheck className="mr-2 h-4 w-4" />
+                                                                    {t(
+                                                                        'orders.kitchenDashboard.actions.markAllReady',
+                                                                        'Mark All Ready',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
+                                                            {ticket.items.some(
+                                                                (item) =>
+                                                                    item.prep_status ===
+                                                                    'ready',
+                                                            ) ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        mutateTicket(
+                                                                            ticket.items
+                                                                                .filter(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.prep_status ===
+                                                                                        'ready',
+                                                                                )
+                                                                                .map(
+                                                                                    (
+                                                                                        item,
+                                                                                    ) =>
+                                                                                        item.id,
+                                                                                ),
+                                                                            'delivered',
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Truck className="mr-2 h-4 w-4" />
+                                                                    {t(
+                                                                        'orders.kitchenDashboard.actions.markAllDelivered',
+                                                                        'Mark All Delivered',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"

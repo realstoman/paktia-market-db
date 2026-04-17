@@ -463,8 +463,11 @@ const en = {
             },
             actions: {
                 start: 'Start',
+                startAll: 'Start All',
                 markReady: 'Mark Ready',
+                markAllReady: 'Mark All Ready',
                 markDelivered: 'Mark Delivered',
+                markAllDelivered: 'Mark All Delivered',
                 printChit: 'Print Chit',
                 printReport: 'Print Report',
             },
