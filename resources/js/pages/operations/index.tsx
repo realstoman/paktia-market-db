@@ -1086,43 +1086,48 @@ export default function OperationsPage({
                                     className="h-12 rounded-2xl pl-9"
                                 />
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                <Button
-                                    variant={
-                                        selectedCategory === 'all'
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    className="rounded-full"
-                                    onClick={() => setSelectedCategory('all')}
-                                >
-                                    All Menu
-                                </Button>
-                                {categories.map((category) => (
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex flex-wrap gap-2">
                                     <Button
-                                        key={category.id}
                                         variant={
-                                            selectedCategory ===
-                                            String(category.id)
+                                            selectedCategory === 'all'
                                                 ? 'default'
                                                 : 'outline'
                                         }
                                         className="rounded-full"
-                                        onClick={() =>
-                                            setSelectedCategory(
-                                                String(category.id),
-                                            )
-                                        }
+                                        onClick={() => setSelectedCategory('all')}
                                     >
-                                        {category.name}
+                                        All Menu
                                     </Button>
-                                ))}
+                                    {categories.map((category) => (
+                                        <Button
+                                            key={category.id}
+                                            variant={
+                                                selectedCategory ===
+                                                String(category.id)
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            className="rounded-full"
+                                            onClick={() =>
+                                                setSelectedCategory(
+                                                    String(category.id),
+                                                )
+                                            }
+                                        >
+                                            {category.name}
+                                        </Button>
+                                    ))}
+                                </div>
+                                <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
+                                    {products.length} products
+                                </p>
                             </div>
                         </CardHeader>
                         <CardContent className="min-h-0 flex-1 p-0">
                             <ScrollArea className="h-full px-4 pb-0">
                                 <div
-                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2' : 'md:grid-cols-2'}`}
+                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
                                 >
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
