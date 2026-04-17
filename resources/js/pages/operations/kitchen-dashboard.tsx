@@ -92,6 +92,7 @@ export function KitchenDashboard({
 }: KitchenDashboardProps) {
     const { locale, t } = useLocalization();
     const previousQueueRef = useRef<number[]>([]);
+    const isRtlLocale = locale === 'fa' || locale === 'ps';
     const kitchenLabel = t('orders.kitchenDashboard.kitchen', 'Kitchen');
     const unassignedKitchenLabel = t(
         'orders.kitchenDashboard.unassignedKitchen',
@@ -211,10 +212,19 @@ export function KitchenDashboard({
             .map(
                 (item) => `
                     <tr>
-                        <td style="padding: 6px 0; text-align: left;">${resolveItemName(item)}</td>
-                        <td style="padding: 6px 0; text-align: center;">x${item.quantity}</td>
+                        ${
+                            isRtlLocale
+                                ? `
+                        <td style="padding: 6px 0; text-align: ${qtyAlign};">${formatNumber(item.quantity)}x</td>
+                        <td style="padding: 6px 0; text-align: ${textAlign};">${resolveItemName(item)}</td>
+                        `
+                                : `
+                        <td style="padding: 6px 0; text-align: ${textAlign};">${resolveItemName(item)}</td>
+                        <td style="padding: 6px 0; text-align: ${qtyAlign};">x${formatNumber(item.quantity)}</td>
+                        `
+                        }
                     </tr>
-                    ${item.note ? `<tr><td colspan="2" style="padding: 0 0 6px; font-size: 11px; color: #555;">${t('orders.kitchenDashboard.note', 'Note')}: ${item.note}</td></tr>` : ''}
+                    ${item.note ? `<tr><td colspan="2" style="padding: 0 0 6px; font-size: 11px; color: #555; text-align: ${textAlign};">${t('orders.kitchenDashboard.note', 'Note')}: ${item.note}</td></tr>` : ''}
                 `,
             )
             .join('');
@@ -234,13 +244,16 @@ export function KitchenDashboard({
             'orders.kitchenDashboard.print.ticketTitle',
             'Kitchen Ticket',
         );
+        const textAlign = isRtlLocale ? 'right' : 'left';
+        const rowDirection = isRtlLocale ? 'rtl' : 'ltr';
+        const qtyAlign = isRtlLocale ? 'left' : 'center';
 
         printWindow.document.write(`
             <html>
                 <head>
                     <title>${kitchenPrintTitle} #${ticket.order_id}</title>
                     <style>
-                        body { font-family: Manrope, sans-serif; margin: 0; padding: 12px; color: #111; }
+                        body { font-family: Manrope, sans-serif; margin: 0; padding: 12px; color: #111; direction: ${rowDirection}; text-align: ${textAlign}; }
                         .wrap { width: 72mm; margin: 0 auto; }
                         .center { text-align: center; }
                         .muted { color: #666; font-size: 12px; }
@@ -299,6 +312,9 @@ export function KitchenDashboard({
         const tableLabel = t('orders.form.tableNumber', 'Table Number');
         const logoSrc = brand.logoFull || brand.logo;
         const kitchenReportTitle = `${kitchenName ?? kitchenLabel} ${dailyReportTitle}`;
+        const textAlign = isRtlLocale ? 'right' : 'left';
+        const rowDirection = isRtlLocale ? 'rtl' : 'ltr';
+        const rowJustify = isRtlLocale ? 'row-reverse' : 'row';
 
         const ticketsHtml = kitchenDailyReport
             .map(
@@ -312,9 +328,12 @@ export function KitchenDashboard({
                             ${ticket.items
                                 .map(
                                     (item) => `
-                                        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px;">
-                                            <span>${resolveItemName(item)}</span>
-                                            <span>x${item.quantity}</span>
+                                        <div style="display: flex; flex-direction: ${rowJustify}; justify-content: space-between; gap: 8px; font-size: 12px; text-align: ${textAlign};">
+                                            ${
+                                                isRtlLocale
+                                                    ? `<span>${formatNumber(item.quantity)}x</span><span>${resolveItemName(item)}</span>`
+                                                    : `<span>${resolveItemName(item)}</span><span>x${formatNumber(item.quantity)}</span>`
+                                            }
                                         </div>
                                     `,
                                 )
@@ -331,7 +350,7 @@ export function KitchenDashboard({
                 <head>
                     <title>${kitchenReportTitle}</title>
                     <style>
-                        body { font-family: Manrope, sans-serif; margin: 0; padding: 12px; color: #111; }
+                        body { font-family: Manrope, sans-serif; margin: 0; padding: 12px; color: #111; direction: ${rowDirection}; text-align: ${textAlign}; }
                         .wrap { width: 72mm; margin: 0 auto; }
                         .center { text-align: center; }
                         .muted { color: #666; font-size: 12px; }
