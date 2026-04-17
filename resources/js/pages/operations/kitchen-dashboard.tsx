@@ -395,58 +395,7 @@ export function KitchenDashboard({
     };
 
     return (
-        <div className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <Card className="border-neutral-200/70 shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground">
-                            {kitchenLabel}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-3">
-                            <ChefHat className="h-5 w-5 text-[#b5542a]" />
-                            <p className="text-lg font-semibold">
-                                {kitchenName ?? unassignedKitchenLabel}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="border-neutral-200/70 shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground">
-                            {t(
-                                'orders.kitchenDashboard.newTickets',
-                                'New Tickets',
-                            )}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-2xl font-semibold">{formatNumber(kitchenSummary.pending)}</CardContent>
-                </Card>
-                <Card className="border-neutral-200/70 shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground">
-                            {t(
-                                'orders.kitchenDashboard.status.preparing',
-                                'Preparing',
-                            )}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-2xl font-semibold">{formatNumber(kitchenSummary.inProgress)}</CardContent>
-                </Card>
-                <Card className="border-neutral-200/70 shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground">
-                            {t(
-                                'orders.kitchenDashboard.deliveredToday',
-                                'Delivered Today',
-                            )}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-2xl font-semibold">{formatNumber(kitchenSummary.deliveredToday)}</CardContent>
-                </Card>
-            </div>
-
+        <div className="py-2">
             {!kitchenId ? (
                 <Card className="border-neutral-200/70 shadow-none">
                     <CardContent className="py-12 text-center text-muted-foreground">
@@ -458,8 +407,7 @@ export function KitchenDashboard({
                 </Card>
             ) : (
                 <>
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,2.1fr)_minmax(360px,0.9fr)]">
-                        <div className="grid gap-4 lg:grid-cols-3">
+                    <div className="grid gap-4 xl:grid-cols-4">
                             {[
                                 {
                                     key: 'pending',
@@ -486,7 +434,7 @@ export function KitchenDashboard({
                                     tickets: groupedQueue.ready,
                                 },
                             ].map((column) => (
-                                <Card key={column.key} className="min-h-[720px] border-neutral-200/70 shadow-none">
+                                <Card key={column.key} className="min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px] border-neutral-200/70 shadow-none">
                                     <CardHeader className="pb-3">
                                         <CardTitle className="flex items-center justify-between text-base">
                                             <span>{column.title}</span>
@@ -494,7 +442,7 @@ export function KitchenDashboard({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="min-h-0 px-4 pb-4">
-                                        <ScrollArea className="h-[620px] pr-3">
+                                        <ScrollArea className="h-[calc(100svh-12.5rem)] min-h-[620px] pr-3">
                                             <div className="space-y-3">
                                                 {column.tickets.map((ticket) => (
                                                     <div
@@ -753,9 +701,8 @@ export function KitchenDashboard({
                                     </CardContent>
                                 </Card>
                             ))}
-                        </div>
 
-                        <Card className="min-h-[720px] border-neutral-200/70 shadow-none">
+                        <Card className="min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px] border-neutral-200/70 shadow-none">
                             <CardHeader className="space-y-3">
                                 <div className="flex items-center justify-between gap-3">
                                     <CardTitle className="text-base">
@@ -808,7 +755,7 @@ export function KitchenDashboard({
                                 </div>
                             </CardHeader>
                             <CardContent className="px-4 pb-4">
-                                <ScrollArea className="h-[590px] pr-3">
+                                <ScrollArea className="h-[calc(100svh-14.5rem)] min-h-[590px] pr-3">
                                     <div className="space-y-3">
                                         {kitchenDailyReport.map((ticket) => (
                                             <div key={`report-${ticket.order_id}`} className="rounded-2xl border border-neutral-200 bg-white p-4">
