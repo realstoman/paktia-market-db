@@ -440,6 +440,46 @@ const en = {
             price: 'Price',
             total: 'Total',
         },
+        kitchenDashboard: {
+            kitchen: 'Kitchen',
+            unassignedKitchen: 'Unassigned kitchen',
+            unassignedDescription:
+                'This kitchen account is not assigned to a kitchen yet. Assign a kitchen from the users section to start receiving tickets.',
+            newTickets: 'New Tickets',
+            deliveredToday: 'Delivered Today',
+            dailyReportTitle: 'Daily Kitchen Report',
+            completedTickets: 'Completed tickets',
+            reportDate: 'Report Date',
+            preparedAt: 'Prepared',
+            completedAndDelivered: 'Completed and delivered',
+            note: 'Note',
+            by: 'By',
+            now: 'now',
+            status: {
+                new: 'New',
+                preparing: 'Preparing',
+                ready: 'Ready',
+                delivered: 'Delivered',
+            },
+            actions: {
+                start: 'Start',
+                markReady: 'Mark Ready',
+                markDelivered: 'Mark Delivered',
+                printChit: 'Print Chit',
+                printReport: 'Print Report',
+            },
+            empty: {
+                column: 'No tickets in this column right now.',
+                dailyReport: 'No completed kitchen tickets found for this date.',
+            },
+            messages: {
+                newTicketReceived: 'New kitchen ticket received.',
+                printWindowBlocked: 'Unable to open print window.',
+            },
+            print: {
+                ticketTitle: 'Kitchen Ticket',
+            },
+        },
         messages: {
             orderCreated: 'Order created successfully.',
             orderUpdated: 'Order updated successfully.',

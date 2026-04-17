@@ -82,19 +82,6 @@ function ticketTone(status: KitchenTicket['ticket_status']) {
     }
 }
 
-function statusLabel(status: KitchenTicket['ticket_status']) {
-    switch (status) {
-        case 'in_progress':
-            return 'Preparing';
-        case 'ready':
-            return 'Ready';
-        case 'delivered':
-            return 'Delivered';
-        default:
-            return 'New';
-    }
-}
-
 export function KitchenDashboard({
     kitchenId,
     kitchenName,
