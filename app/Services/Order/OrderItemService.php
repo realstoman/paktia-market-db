@@ -11,12 +11,65 @@ class OrderItemService
 {
     public function replaceForOrder(Order $order, array $items): array
     {
-        $payload = $this->buildPayload($items);
+        $groupedPayload = collect($this->buildPayload($items))
+            ->groupBy(fn (array $item) => $this->signature(
+                (int) $item['product_id'],
+                $item['product_size_id'] !== null ? (int) $item['product_size_id'] : null,
+                (float) $item['price'],
+            ));
+
+        $existingItems = $order->items()->get()->groupBy(
+            fn (OrderItem $item) => $this->signature(
+                (int) $item->product_id,
+                $item->product_size_id !== null ? (int) $item->product_size_id : null,
+                (float) $item->price,
+            ),
+        );
+
+        $preservedPayload = [];
+        $consumedExistingIds = [];
+
+        foreach ($groupedPayload as $signature => $incomingGroup) {
+            $desiredQuantity = (int) collect($incomingGroup)->sum('quantity');
+            $prototype = $incomingGroup->first();
+            $matchingExisting = $existingItems->get($signature, collect());
+
+            $protectedItems = $matchingExisting
+                ->filter(fn (OrderItem $item) => $this->isProtectedKitchenItem($item))
+                ->values();
+
+            foreach ($protectedItems as $existingItem) {
+                $consumedExistingIds[] = $existingItem->id;
+                $preservedPayload[] = $this->existingItemPayload($existingItem);
+                $desiredQuantity -= (int) $existingItem->quantity;
+            }
+
+            $pendingItems = $matchingExisting
+                ->reject(fn (OrderItem $item) => in_array($item->id, $consumedExistingIds, true))
+                ->values();
+
+            if ($desiredQuantity > 0) {
+                if ($pendingItem = $pendingItems->shift()) {
+                    $consumedExistingIds[] = $pendingItem->id;
+                    $preservedPayload[] = [
+                        ...$this->existingItemPayload($pendingItem),
+                        'quantity' => $desiredQuantity,
+                        'line_total' => $desiredQuantity * (float) $pendingItem->price,
+                    ];
+                } else {
+                    $preservedPayload[] = [
+                        ...$prototype,
+                        'quantity' => $desiredQuantity,
+                        'line_total' => $desiredQuantity * (float) $prototype['price'],
+                    ];
+                }
+            }
+        }
 
         $order->items()->delete();
-        $order->items()->createMany($payload);
+        $order->items()->createMany($preservedPayload);
 
-        return $payload;
+        return $preservedPayload;
     }
 
     public function createManyForOrder(Order $order, array $items): array
@@ -65,6 +118,48 @@ class OrderItemService
                 'ready_at' => $product?->kitchen_id ? null : now(),
             ];
         })->all();
+    }
+
+    private function signature(int $productId, ?int $productSizeId, float $price): string
+    {
+        return implode(':', [
+            $productId,
+            $productSizeId ?? 'none',
+            number_format($price, 2, '.', ''),
+        ]);
+    }
+
+    private function isProtectedKitchenItem(OrderItem $item): bool
+    {
+        $status = (string) ($item->prep_status?->value ?? $item->prep_status ?? OrderItemPrepStatus::PENDING->value);
+
+        return $item->kitchen_id !== null
+            && in_array($status, [
+                OrderItemPrepStatus::IN_PROGRESS->value,
+                OrderItemPrepStatus::READY->value,
+                OrderItemPrepStatus::DELIVERED->value,
+            ], true);
+    }
+
+    private function existingItemPayload(OrderItem $item): array
+    {
+        return [
+            'product_id' => $item->product_id,
+            'product_name_snapshot' => $item->product_name_snapshot,
+            'product_size_id' => $item->product_size_id,
+            'product_size_name_snapshot' => $item->product_size_name_snapshot,
+            'kitchen_id' => $item->kitchen_id,
+            'prep_status' => (string) ($item->prep_status?->value ?? $item->prep_status),
+            'quantity' => (int) $item->quantity,
+            'price' => (float) $item->price,
+            'line_total' => (float) ($item->line_total ?? ($item->quantity * $item->price)),
+            'note' => $item->note,
+            'started_at' => $item->started_at,
+            'ready_at' => $item->ready_at,
+            'delivered_at' => $item->delivered_at,
+            'prepared_by' => $item->prepared_by,
+            'kitchen_receipt_printed_at' => $item->kitchen_receipt_printed_at,
+        ];
     }
 
     private function getProductsById(array $items): Collection

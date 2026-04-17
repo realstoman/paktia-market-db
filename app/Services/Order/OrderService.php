@@ -142,6 +142,7 @@ class OrderService
 
     public function updateOrder(Order $order, array $data, ?User $user = null): void
     {
+        $this->assertActorCanManageOrder($order, $user);
         $data['branch_id'] = $this->resolveAllowedBranchId($data['branch_id'], $user);
         $this->assertOrderCanBeModified($order);
         $this->validateOrderConstraints($data);
@@ -149,8 +150,6 @@ class OrderService
         $originalCreatedAt = $order->created_at;
 
         DB::transaction(function () use ($order, $data) {
-            $total = $this->orderItemService->calculateTotal($data['items']);
-
             $order->update([
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
@@ -175,6 +174,7 @@ class OrderService
             ]);
 
             $this->orderItemService->replaceForOrder($order, $data['items']);
+            $total = (float) $order->items()->sum('line_total');
             $this->syncOrderAmounts($order, $total);
         });
 
@@ -262,6 +262,7 @@ class OrderService
 
     public function updateTable(Order $order, int $branchTableId, ?User $user = null): void
     {
+        $this->assertActorCanManageOrder($order, $user);
         $this->assertOrderCanBeModified($order);
 
         $this->assertTableBelongsToBranch(
@@ -278,6 +279,7 @@ class OrderService
 
     public function addItems(Order $order, array $items, ?User $user = null): void
     {
+        $this->assertActorCanManageOrder($order, $user);
         $this->assertOrderCanBeModified($order);
 
         DB::transaction(function () use ($order, $items) {
@@ -357,6 +359,7 @@ class OrderService
 
     private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor, ?string $paymentMethod = null): void
     {
+        $this->assertActorCanManageOrder($order, $actor);
         $currentStatus = (string) ($order->status?->value ?? $order->status);
 
         if ($currentStatus === OrderStatus::COMPLETED->value
@@ -382,6 +385,26 @@ class OrderService
                     'payment_method' => 'Payment method is required before completing an order.',
                 ]);
             }
+        }
+    }
+
+    private function assertActorCanManageOrder(Order $order, ?User $actor): void
+    {
+        if (! $actor) {
+            return;
+        }
+
+        $canManageAllOrders = $actor->hasRole('super-admin')
+            || $actor->can(PermissionEnum::PAYMENTS_CREATE->value);
+
+        if ($canManageAllOrders) {
+            return;
+        }
+
+        if ((int) ($order->user_id ?? 0) !== (int) $actor->id) {
+            throw ValidationException::withMessages([
+                'order' => 'You can only manage orders you created.',
+            ]);
         }
     }
 
