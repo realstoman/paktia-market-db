@@ -177,3 +177,66 @@ test('kitchen users can mark their item ready and push the order to ready when a
     expect($item->ready_at)->not->toBeNull();
     expect((string) ($order->status->value ?? $order->status))->toBe('ready');
 });
+
+test('kitchen dashboard splits the same order into separate cards by prep status', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    [$branch, $kitchen, $product] = createKitchenWorkflowBaseData();
+
+    $kitchenUser = User::factory()->create([
+        'branch_id' => $branch->id,
+        'kitchen_id' => $kitchen->id,
+    ]);
+    $kitchenUser->assignRole('kitchen');
+
+    $order = Order::create([
+        'branch_id' => $branch->id,
+        'user_id' => $kitchenUser->id,
+        'order_type' => 'dine_in',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 900,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'total_amount' => 900,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'in_progress',
+    ]);
+
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_id' => $product->id,
+        'product_name_snapshot' => $product->name,
+        'kitchen_id' => $kitchen->id,
+        'prep_status' => OrderItemPrepStatus::PENDING->value,
+        'quantity' => 1,
+        'price' => 450,
+        'line_total' => 450,
+    ]);
+
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_id' => $product->id,
+        'product_name_snapshot' => $product->name,
+        'kitchen_id' => $kitchen->id,
+        'prep_status' => OrderItemPrepStatus::READY->value,
+        'quantity' => 1,
+        'price' => 450,
+        'line_total' => 450,
+    ]);
+
+    $this->actingAs($kitchenUser)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('operations/index')
+            ->where('mode', 'kitchen')
+            ->has('kitchenQueue', 2)
+            ->where('kitchenQueue.0.order_id', $order->id)
+            ->where('kitchenQueue.0.ticket_status', OrderItemPrepStatus::PENDING->value)
+            ->where('kitchenQueue.1.order_id', $order->id)
+            ->where('kitchenQueue.1.ticket_status', OrderItemPrepStatus::READY->value)
+        );
+});
