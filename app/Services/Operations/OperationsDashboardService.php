@@ -38,7 +38,8 @@ class OperationsDashboardService
                 $query->where(function ($productQuery) use ($branchId) {
                     $productQuery
                         ->whereHas('kitchen', fn ($kitchenQuery) => $kitchenQuery->where('branch_id', $branchId))
-                        ->orWhereHas('kitchen.branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId));
+                        ->orWhereHas('kitchen.branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId))
+                        ->orWhereNull('kitchen_id');
                 });
             })
             ->orderBy('name')
@@ -67,8 +68,8 @@ class OperationsDashboardService
                 'branchTable:id,branch_id,table_number,title,description,is_active',
                 'user:id,name',
                 'payments:id,order_id,method,amount,currency,payment_date',
-                'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,product_name_snapshot',
-                'items.product:id,name,product_category_id',
+                'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,line_total,product_name_snapshot,prep_status,started_at,ready_at,delivered_at',
+                'items.product:id,name,product_category_id,kitchen_id',
                 'items.product.images:id,product_id,path,sort_order',
                 'items.productSize:id,name',
                 'items.kitchen:id,name',
