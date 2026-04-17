@@ -29,8 +29,9 @@ import {
     BreadcrumbItem,
     Order,
     Product,
+    SharedData,
 } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     Armchair,
     Bike,
@@ -212,7 +213,9 @@ export default function OperationsPage({
     reportDate = '',
 }: OperationsPageProps) {
     const { locale, t } = useLocalization();
-    const { can } = useAuthorization();
+    const { can, isSuperAdmin } = useAuthorization();
+    const { auth } = usePage<SharedData>().props;
+    const currentUserId = auth.user?.id ?? null;
     const isKitchenMode = mode === 'kitchen';
     const isOrderTakerMode = mode === 'order-taker';
     const breadcrumbs = useMemo<BreadcrumbItem[]>(
