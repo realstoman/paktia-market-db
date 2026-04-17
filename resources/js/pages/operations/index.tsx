@@ -106,13 +106,6 @@ interface CartLine {
     quantity: number;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
-
 const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
     { value: 'cash', label: 'Cash' },
     { value: 'credit_card', label: 'Card' },
@@ -218,10 +211,19 @@ export default function OperationsPage({
     },
     reportDate = '',
 }: OperationsPageProps) {
-    const { locale } = useLocalization();
+    const { locale, t } = useLocalization();
     const { can } = useAuthorization();
     const isKitchenMode = mode === 'kitchen';
     const isOrderTakerMode = mode === 'order-taker';
+    const breadcrumbs = useMemo<BreadcrumbItem[]>(
+        () => [
+            {
+                title: t('dashboard.title', 'Dashboard'),
+                href: '/dashboard',
+            },
+        ],
+        [t],
+    );
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
     const [selectedChannel, setSelectedChannel] = useState<Channel>(
         channels[0],

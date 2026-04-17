@@ -270,7 +270,7 @@ export function KitchenDashboard({
     };
 
     const printDailyReport = () => {
-        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        const printWindow = window.open('', '_blank', 'width=420,height=720');
 
         if (!printWindow) {
             toast.error(
@@ -297,18 +297,30 @@ export function KitchenDashboard({
             'Daily Kitchen Report',
         );
         const tableLabel = t('orders.form.tableNumber', 'Table Number');
+        const logoSrc = brand.logoFull || brand.logo;
+        const kitchenReportTitle = `${kitchenName ?? kitchenLabel} ${dailyReportTitle}`;
 
         const ticketsHtml = kitchenDailyReport
             .map(
                 (ticket) => `
-                    <section style="margin-bottom: 18px;">
-                        <h3 style="margin: 0 0 6px;">${orderLabel} #${ticket.order_id}</h3>
-                        <p style="margin: 0 0 8px; color: #666; font-size: 12px;">
+                    <section style="margin-bottom: 12px;">
+                        <h3 style="margin: 0 0 4px; font-size: 14px;">${orderLabel} #${ticket.order_id}</h3>
+                        <p style="margin: 0 0 6px; color: #666; font-size: 11px;">
                             ${t(`dashboard.${ticket.order_type === 'dine_in' ? 'dineIn' : ticket.order_type}`, ticket.order_type.replace('_', ' '))}${ticket.table_number ? ` • ${tableLabel} ${ticket.table_number}` : ''}${ticket.customer_name ? ` • ${ticket.customer_name}` : ''}
                         </p>
-                        <ul style="margin: 0; padding-left: 18px;">
-                            ${ticket.items.map((item) => `<li>${resolveItemName(item)} x${item.quantity}</li>`).join('')}
-                        </ul>
+                        <div style="display: grid; gap: 4px;">
+                            ${ticket.items
+                                .map(
+                                    (item) => `
+                                        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px;">
+                                            <span>${resolveItemName(item)}</span>
+                                            <span>x${item.quantity}</span>
+                                        </div>
+                                    `,
+                                )
+                                .join('')}
+                        </div>
+                        <div style="border-top: 1px dashed #999; margin-top: 10px;"></div>
                     </section>
                 `,
             )
@@ -317,23 +329,27 @@ export function KitchenDashboard({
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>${kitchenName ?? kitchenLabel} ${dailyReportTitle}</title>
+                    <title>${kitchenReportTitle}</title>
                     <style>
-                        body { font-family: Manrope, sans-serif; padding: 24px; color: #111; }
-                        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-                        .muted { color: #666; font-size: 13px; }
+                        body { font-family: Manrope, sans-serif; margin: 0; padding: 12px; color: #111; }
+                        .wrap { width: 72mm; margin: 0 auto; }
+                        .center { text-align: center; }
+                        .muted { color: #666; font-size: 12px; }
+                        .divider { border-top: 1px dashed #999; margin: 10px 0; }
+                        h1, h2, h3, p { margin: 0; }
                     </style>
                 </head>
                 <body onload="window.print(); window.close();">
-                    <div class="header">
-                        <div>
-                            <h1 style="margin: 0;">${kitchenName ?? kitchenLabel} ${dailyReportTitle}</h1>
+                    <div class="wrap">
+                        <div class="center">
+                            <img src="${logoSrc}" alt="${brand.name}" style="max-width: 160px; max-height: 60px; object-fit: contain;" />
+                            <h3 style="margin-top: 8px;">${kitchenReportTitle}</h3>
                             <p class="muted">${dateLabel}: ${reportDate}</p>
                             <p class="muted">${completedTicketsLabel}: ${formatNumber(kitchenDailyReport.length)}</p>
                         </div>
-                        <img src="${brand.logoFull || brand.logo}" alt="${brand.name}" style="max-width: 180px; max-height: 68px; object-fit: contain;" />
+                        <div class="divider"></div>
+                        ${ticketsHtml || `<p class="muted">${noCompletedForDateLabel}</p>`}
                     </div>
-                    ${ticketsHtml || `<p>${noCompletedForDateLabel}</p>`}
                 </body>
             </html>
         `);
