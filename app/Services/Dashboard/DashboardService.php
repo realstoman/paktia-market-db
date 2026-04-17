@@ -9,7 +9,6 @@ use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Product\TopOrderedDishService;
-use App\Services\Projection\BranchDailyMetricReader;
 use App\Services\Projection\ProjectionHealthService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +17,6 @@ use Illuminate\Support\Facades\Schema;
 class DashboardService
 {
     public function __construct(
-        private readonly BranchDailyMetricReader $branchDailyMetricReader,
         private readonly ProjectionHealthService $projectionHealthService,
         private readonly TopOrderedDishService $topOrderedDishService,
     ) {}
@@ -208,25 +206,13 @@ class DashboardService
 
     private function buildFinanceSummary(array $orderStats): array
     {
-        $metricDateRange = BranchDailyMetric::query()
-            ->selectRaw('MIN(metric_date) as min_metric_date, MAX(metric_date) as max_metric_date')
-            ->first();
-        $projectedStartDate = $metricDateRange?->min_metric_date
-            ? Carbon::parse($metricDateRange->min_metric_date)->startOfDay()
-            : null;
-        $projectedEndDate = $metricDateRange?->max_metric_date
-            ? Carbon::parse($metricDateRange->max_metric_date)->endOfDay()
-            : null;
+        // The dashboard should feel immediate. Use live totals here so
+        // recently completed sales appear even when projections are stale.
+        $dashboardSalesTotal = (float) Order::query()
+            ->where('status', 'completed')
+            ->sum('total_amount');
 
-        $dashboardSalesTotal = $projectedStartDate && $projectedEndDate
-            ? $this->branchDailyMetricReader->sumCompletedSales($projectedStartDate, $projectedEndDate)
-            : (float) Order::query()
-                ->where('status', 'completed')
-                ->sum('total_amount');
-
-        $dashboardExpensesTotal = $projectedStartDate && $projectedEndDate
-            ? $this->branchDailyMetricReader->sumExpenses($projectedStartDate, $projectedEndDate)
-            : (float) Expense::query()->sum('amount');
+        $dashboardExpensesTotal = (float) Expense::query()->sum('amount');
 
         $dashboardCashSales = Schema::hasTable('payments')
             ? (float) DB::table('payments')

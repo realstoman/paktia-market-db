@@ -94,3 +94,52 @@ test('dashboard order status overview filters stats by selected date', function 
 
     Carbon::setTestNow();
 });
+
+test('dashboard finance snapshot uses live totals for net profit', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    $user = User::factory()->create();
+    $user->assignRole('super-admin');
+
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'name' => 'Baba Main',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'is_active' => true,
+    ]);
+
+    DB::table('orders')->insert([
+        'branch_id' => $branch->id,
+        'user_id' => $user->id,
+        'order_type' => 'dine_in',
+        'base_currency' => 'AFN',
+        'total_amount' => 500,
+        'paid_amount' => 500,
+        'change_amount' => 0,
+        'status' => 'completed',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('data.finance.netProfit', 500)
+            ->where('data.finance.expenses', 0)
+        );
+});
