@@ -4,6 +4,7 @@ namespace App\Services\Order;
 
 use App\Enums\OrderItemPrepStatus;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Collection;
 
