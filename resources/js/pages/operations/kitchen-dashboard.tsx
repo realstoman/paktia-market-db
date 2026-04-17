@@ -38,6 +38,7 @@ interface KitchenTicketItem {
 }
 
 interface KitchenTicket {
+    ticket_key?: string;
     order_id: number;
     kitchen_id: number;
     kitchen_name?: string | null;
@@ -479,7 +480,10 @@ export function KitchenDashboard({
                                             <div className="space-y-3">
                                                 {column.tickets.map((ticket) => (
                                                     <div
-                                                        key={`${ticket.order_id}-${ticket.ticket_status}`}
+                                                        key={
+                                                            ticket.ticket_key ??
+                                                            `${ticket.order_id}-${ticket.ticket_status}`
+                                                        }
                                                         className={`rounded-2xl border p-4 ${ticketTone(ticket.ticket_status)}`}
                                                     >
                                                         <div className="flex items-start justify-between gap-3">
