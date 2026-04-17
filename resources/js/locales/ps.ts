@@ -437,6 +437,47 @@ const ps = {
             price: 'بیه',
             total: 'ټولټال',
         },
+        kitchenDashboard: {
+            kitchen: 'پخلنځی',
+            unassignedKitchen: 'ناټاکل شوی پخلنځی',
+            unassignedDescription:
+                'دا د پخلنځي حساب لا تر اوسه کوم پخلنځي ته نه دی ټاکل شوی. د ټکټونو د ترلاسه کولو لپاره د کاروونکو له برخې څخه ورته پخلنځی وټاکئ.',
+            newTickets: 'نوي ټکټونه',
+            deliveredToday: 'د نن سپارل شوي',
+            dailyReportTitle: 'د پخلنځي ورځنی راپور',
+            completedTickets: 'بشپړ شوي ټکټونه',
+            reportDate: 'د راپور نېټه',
+            preparedAt: 'چمتو شوی په',
+            completedAndDelivered: 'بشپړ او سپارل شوی',
+            note: 'یادښت',
+            by: 'له خوا',
+            now: 'همدا اوس',
+            status: {
+                new: 'نوی',
+                preparing: 'د چمتو کېدو په حال کې',
+                ready: 'چمتو',
+                delivered: 'سپارل شوی',
+            },
+            actions: {
+                start: 'پیل',
+                markReady: 'د چمتو په توګه نښه کول',
+                markDelivered: 'د سپارل شوي په توګه نښه کول',
+                printChit: 'چیت چاپ',
+                printReport: 'راپور چاپ',
+            },
+            empty: {
+                column: 'اوس مهال په دې ستون کې هېڅ ټکټ نشته.',
+                dailyReport:
+                    'د دې نېټې لپاره هېڅ بشپړ شوی د پخلنځي ټکټ ونه موندل شو.',
+            },
+            messages: {
+                newTicketReceived: 'د پخلنځي نوی ټکټ ترلاسه شو.',
+                printWindowBlocked: 'د چاپ کړکۍ پرانیستل ممکن نه دي.',
+            },
+            print: {
+                ticketTitle: 'د پخلنځي ټکټ',
+            },
+        },
         messages: {
             orderCreated: 'امر په بریالیتوب سره جوړ شو.',
             orderUpdated: 'امر په بریالیتوب سره تازه شو.',

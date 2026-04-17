@@ -172,7 +172,7 @@ export function KitchenDashboard({
         }
 
         previousQueueRef.current = currentPendingIds;
-    }, [groupedQueue.pending]);
+    }, [groupedQueue.pending, t]);
 
     const resolveItemName = (item: KitchenTicketItem) => {
         if (locale === 'ps') {
