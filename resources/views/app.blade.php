@@ -14,6 +14,75 @@
                 const appearance = '{{ $appearance ?? "system" }}';
                 window.__APP_BRANDING__ = @json($branding);
 
+                const normalizeHex = (value, fallback = '#102F33') => {
+                    if (typeof value !== 'string') {
+                        return fallback;
+                    }
+
+                    const normalized = value.trim().toUpperCase();
+                    return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : fallback;
+                };
+
+                const hexToHslChannels = (hex) => {
+                    const normalized = normalizeHex(hex).slice(1);
+                    const intValue = parseInt(normalized, 16);
+                    const red = ((intValue >> 16) & 255) / 255;
+                    const green = ((intValue >> 8) & 255) / 255;
+                    const blue = (intValue & 255) / 255;
+
+                    const max = Math.max(red, green, blue);
+                    const min = Math.min(red, green, blue);
+                    const delta = max - min;
+                    const lightness = (max + min) / 2;
+
+                    let hue = 0;
+                    let saturation = 0;
+
+                    if (delta !== 0) {
+                        saturation = delta / (1 - Math.abs(2 * lightness - 1));
+
+                        switch (max) {
+                            case red:
+                                hue = ((green - blue) / delta) % 6;
+                                break;
+                            case green:
+                                hue = (blue - red) / delta + 2;
+                                break;
+                            default:
+                                hue = (red - green) / delta + 4;
+                                break;
+                        }
+                    }
+
+                    return `${Math.round((hue * 60 + 360) % 360)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%`;
+                };
+
+                const getForegroundChannels = (hex) => {
+                    const normalized = normalizeHex(hex).slice(1);
+                    const intValue = parseInt(normalized, 16);
+                    const red = (intValue >> 16) & 255;
+                    const green = (intValue >> 8) & 255;
+                    const blue = intValue & 255;
+                    const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
+
+                    return brightness >= 160 ? '222 47% 11%' : '0 0% 100%';
+                };
+
+                const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#102F33');
+                document.documentElement.style.setProperty('--brand-primary', primaryColor);
+                document.documentElement.style.setProperty(
+                    '--brand-secondary',
+                    normalizeHex(window.__APP_BRANDING__?.secondaryColor, '#CC924B'),
+                );
+                document.documentElement.style.setProperty(
+                    '--brand-tertiary',
+                    normalizeHex(window.__APP_BRANDING__?.tertiaryColor, '#F8FAFD'),
+                );
+                document.documentElement.style.setProperty('--primary', hexToHslChannels(primaryColor));
+                document.documentElement.style.setProperty('--primary-foreground', getForegroundChannels(primaryColor));
+                document.documentElement.style.setProperty('--ring', hexToHslChannels(primaryColor));
+                document.documentElement.style.setProperty('--sidebar-ring', hexToHslChannels(primaryColor));
+
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 

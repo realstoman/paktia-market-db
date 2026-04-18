@@ -33,9 +33,11 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
 
-    Route::get('settings/system-branding', [SystemBrandingController::class, 'edit'])
-        ->name('system-branding.edit');
-    Route::put('settings/system-branding', [SystemBrandingController::class, 'update'])
-        ->name('system-branding.update');
-    Route::post('settings/system-branding', [SystemBrandingController::class, 'update']);
+    Route::middleware('role:super-admin')->group(function () {
+        Route::get('settings/system-branding', [SystemBrandingController::class, 'edit'])
+            ->name('system-branding.edit');
+        Route::put('settings/system-branding', [SystemBrandingController::class, 'update'])
+            ->name('system-branding.update');
+        Route::post('settings/system-branding', [SystemBrandingController::class, 'update']);
+    });
 });
