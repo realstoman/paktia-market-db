@@ -212,7 +212,9 @@ class DashboardService
             ->where('status', 'completed')
             ->sum('total_amount');
 
-        $dashboardExpensesTotal = (float) Expense::query()->sum('amount');
+        $dashboardExpensesTotal = (float) Expense::query()
+            ->where('approval_status', 'approved')
+            ->sum('amount');
 
         $dashboardCashSales = Schema::hasTable('payments')
             ? (float) DB::table('payments')
@@ -225,6 +227,7 @@ class DashboardService
         $dashboardCashExpenses = Schema::hasColumn('expenses', 'payment_method')
             ? (float) DB::table('expenses')
                 ->where('payment_method', 'cash')
+                ->where('approval_status', 'approved')
                 ->sum('amount')
             : 0.0;
 
@@ -260,6 +263,7 @@ class DashboardService
             ->map(fn ($orders) => (float) $orders->sum('total_amount'));
 
         $monthlyExpenses = Expense::query()
+            ->where('approval_status', 'approved')
             ->whereBetween('expense_date', [
                 $monthlyStartDate->toDateString(),
                 $monthlyEndDate->toDateString(),

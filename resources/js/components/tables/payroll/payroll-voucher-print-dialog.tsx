@@ -21,19 +21,6 @@ interface PayrollVoucherPrintDialogProps {
     branch: Branch | null;
 }
 
-const formatDateTime = (value?: string | null) => {
-    if (!value) {
-        return '-';
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleString();
-};
-
 const escapeHtml = (value: string) =>
     value
         .replaceAll('&', '&amp;')
@@ -291,7 +278,7 @@ export function PayrollVoucherPrintDialog({
                                         </p>
                                         <p className="text-muted-foreground">
                                             Created:{' '}
-                                            {formatDateTime(run.created_at)}
+                                            {formatAfghanDate(run.created_at)}
                                         </p>
                                     </div>
                                 </div>

@@ -45,6 +45,10 @@ import {
     EmployeeContractPaymentSchedule,
     PayrollRun,
 } from '@/types';
+import {
+    formatAfghanDate,
+    formatAfghanMonthLabel,
+} from '@/utils/afghan-calendar';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -192,6 +196,19 @@ function payrollItemEmployeeName(item: {
     }
 
     return `Employee #${item.employee_id}`;
+}
+
+function payrollCoveredMonths(item: {
+    covered_period_dates?: string[];
+    payment_date?: string | null;
+}) {
+    const dates = item.covered_period_dates ?? [];
+
+    if (dates.length > 0) {
+        return dates.map((date) => formatAfghanMonthLabel(date));
+    }
+
+    return item.payment_date ? [formatAfghanMonthLabel(item.payment_date)] : [];
 }
 
 function statusTone(status?: string) {
@@ -1102,7 +1119,7 @@ export function PayrollClient({
                             </CardTitle>
                             <CardDescription>
                                 {selectedRun
-                                    ? `${selectedRun.period_start} to ${selectedRun.period_end} • ${selectedRun.branch?.name ?? 'All Branches'}`
+                                    ? `${formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? 'All Branches'}`
                                     : 'Select a payroll run to review employee-level payroll items.'}
                             </CardDescription>
                         </CardHeader>
@@ -1197,6 +1214,19 @@ export function PayrollClient({
                                                                     ' ',
                                                                 ) ?? 'cash'}
                                                             </p>
+                                                            {payrollCoveredMonths(
+                                                                item,
+                                                            ).length ? (
+                                                                <p className="mt-1 text-xs text-neutral-500">
+                                                                    Payment for
+                                                                    month{' '}
+                                                                    {payrollCoveredMonths(
+                                                                        item,
+                                                                    ).join(
+                                                                        ', ',
+                                                                    )}
+                                                                </p>
+                                                            ) : null}
                                                         </div>
                                                         <span
                                                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(item.payment_status)}`}
@@ -1243,8 +1273,11 @@ export function PayrollClient({
                                                                 Payment Date
                                                             </p>
                                                             <p className="mt-1 font-semibold">
-                                                                {item.payment_date ??
-                                                                    '-'}
+                                                                {item.payment_date
+                                                                    ? formatAfghanDate(
+                                                                          item.payment_date,
+                                                                      )
+                                                                    : '-'}
                                                             </p>
                                                         </div>
                                                     </div>

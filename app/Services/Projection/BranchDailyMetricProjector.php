@@ -26,6 +26,7 @@ class BranchDailyMetricProjector
         $expensesTotal = DB::table('expenses')
             ->where('branch_id', $branchId)
             ->whereDate('expense_date', $normalizedMetricDate)
+            ->where('approval_status', 'approved')
             ->sum('amount');
 
         BranchDailyMetric::query()->upsert(

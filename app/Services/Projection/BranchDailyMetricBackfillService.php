@@ -63,6 +63,7 @@ class BranchDailyMetricBackfillService
             ->selectRaw('branch_id, DATE(expense_date) as metric_date')
             ->selectRaw('COALESCE(SUM(amount), 0) as expenses_total')
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('approval_status', 'approved')
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->groupBy('branch_id', DB::raw('DATE(expense_date)'))
             ->get();
