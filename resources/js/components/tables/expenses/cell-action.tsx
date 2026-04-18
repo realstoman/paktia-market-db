@@ -9,12 +9,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Expense } from '@/types';
-import { CheckCheck, MoreHorizontal, Pencil, Printer } from 'lucide-react';
+import { Ban, CheckCheck, MoreHorizontal, Pencil, Printer } from 'lucide-react';
 
 interface CellActionProps {
     data: Expense;
     onEdit: (expense: Expense) => void;
     onApprove: (expense: Expense) => void;
+    onCancel: (expense: Expense) => void;
     onPrint: (expense: Expense) => void;
 }
 
@@ -22,6 +23,7 @@ export function CellAction({
     data,
     onEdit,
     onApprove,
+    onCancel,
     onPrint,
 }: CellActionProps) {
     return (
@@ -34,10 +36,13 @@ export function CellAction({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onEdit(data)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                </DropdownMenuItem>
+                {data.approval_status !== 'approved' &&
+                data.approval_status !== 'cancelled' ? (
+                    <DropdownMenuItem onClick={() => onEdit(data)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem onClick={() => onPrint(data)}>
                     <Printer className="mr-2 h-4 w-4" />
                     Print Voucher
@@ -46,6 +51,12 @@ export function CellAction({
                     <DropdownMenuItem onClick={() => onApprove(data)}>
                         <CheckCheck className="mr-2 h-4 w-4" />
                         Approve
+                    </DropdownMenuItem>
+                ) : null}
+                {data.approval_status === 'approved' ? (
+                    <DropdownMenuItem onClick={() => onCancel(data)}>
+                        <Ban className="mr-2 h-4 w-4" />
+                        Cancel Expense
                     </DropdownMenuItem>
                 ) : null}
             </DropdownMenuContent>

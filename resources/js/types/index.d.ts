@@ -214,6 +214,8 @@ export interface PayrollRunItem {
     payment_method?: string | null;
     payment_status: string;
     payment_date?: string | null;
+    covered_period_dates?: string[];
+    covered_month_count?: number;
     [key: string]: unknown;
 }
 

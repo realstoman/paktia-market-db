@@ -9,8 +9,13 @@ use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPaymentSchedule;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use App\Models\FinanceAccount;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Services\Projection\ProjectionDispatchService;
+use App\Support\AfghanCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +27,10 @@ use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
+    public function __construct(
+        private readonly ProjectionDispatchService $projectionDispatchService,
+    ) {}
+
     public function index()
     {
         Gate::authorize(PermissionEnum::PAYROLL_VIEW->value);
@@ -101,6 +110,11 @@ class PayrollController extends Controller
                             'payment_method' => $item->payment_method,
                             'payment_status' => $item->payment_status,
                             'payment_date' => optional($item->payment_date)->toDateString(),
+                            'covered_period_dates' => collect($item->covered_period_dates ?? [])
+                                ->filter()
+                                ->values()
+                                ->all(),
+                            'covered_month_count' => (int) ($item->covered_month_count ?: 1),
                         ];
                     })->values(),
                 ];
@@ -283,8 +297,17 @@ class PayrollController extends Controller
                 /** @var Employee $employee */
                 $employee = $row['employee'];
                 $salaryType = ! empty($employee->salary) ? 'fixed_salary' : 'contract_payment';
+                $coveredPeriods = $salaryType === 'fixed_salary'
+                    ? $this->resolveFixedSalaryPeriods(
+                        employee: $employee,
+                        periodStart: Carbon::parse($validated['period_start']),
+                        periodEnd: Carbon::parse($validated['period_end']),
+                        branchId: $branchId,
+                    )
+                    : [];
+
                 $grossSalary = $salaryType === 'fixed_salary'
-                    ? (float) $row['base_salary']
+                    ? (float) $row['base_salary'] * max(1, count($coveredPeriods))
                     : (Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
                         ? (float) EmployeeContractPaymentSchedule::query()
                             ->whereHas('contract', function ($query) use ($employee, $branchId) {
@@ -299,6 +322,10 @@ class PayrollController extends Controller
                             ->whereIn('status', ['submitted', 'approved'])
                             ->sum('amount')
                         : 0.0);
+
+                if ($salaryType === 'fixed_salary' && count($coveredPeriods) === 0) {
+                    continue;
+                }
 
                 if ($grossSalary <= 0) {
                     continue;
@@ -326,6 +353,10 @@ class PayrollController extends Controller
                     'payment_method' => $validated['payment_method'] ?? PaymentMethod::CASH->value,
                     'payment_status' => 'unpaid',
                     'payment_date' => null,
+                    'covered_period_dates' => $coveredPeriods,
+                    'covered_month_count' => $salaryType === 'fixed_salary'
+                        ? max(1, count($coveredPeriods))
+                        : 1,
                 ]);
             }
         });
@@ -448,6 +479,8 @@ class PayrollController extends Controller
                     'payment_status' => 'paid',
                     'payment_date' => now()->toDateString(),
                 ]);
+
+                $this->recordPayrollExpense($payrollRun, $item);
             }
 
             $payrollRun->update([
@@ -458,7 +491,149 @@ class PayrollController extends Controller
 
         return redirect()
             ->route('finance.payroll.index')
-            ->with('success', 'Payroll run marked as paid.');
+            ->with('success', 'Payroll run marked as paid.')
+            ->with('notification', [
+                'id' => 'payroll-paid-'.$payrollRun->id.'-'.now()->timestamp,
+                'category' => 'salary',
+                'title' => 'Payroll paid',
+                'description' => 'Payroll run #'.$payrollRun->id.' was marked as paid.',
+                'href' => '/finance/payroll',
+                'priority' => 'high',
+                'meta' => 'Net payroll • '.number_format((float) $payrollRun->items->sum('net_salary'), 0).' ؋',
+            ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveFixedSalaryPeriods(
+        Employee $employee,
+        Carbon $periodStart,
+        Carbon $periodEnd,
+        ?int $branchId,
+    ): array {
+        $anchorDay = $periodEnd->day;
+        $periodEndAnchor = $periodEnd->copy()->startOfDay();
+        $employmentStart = $employee->contract_start_date
+            ? Carbon::parse($employee->contract_start_date)->startOfDay()
+            : $periodStart->copy()->startOfDay();
+
+        $startAnchor = $this->alignAnchorDate($employmentStart, $anchorDay);
+
+        if ($startAnchor->gt($periodEndAnchor)) {
+            return [];
+        }
+
+        $existingAnchors = PayrollRunItem::query()
+            ->where('employee_id', $employee->id)
+            ->where('salary_type', 'fixed_salary')
+            ->when(
+                $branchId,
+                fn ($query) => $query->whereHas('payrollRun', fn ($runQuery) => $runQuery->where('branch_id', $branchId)),
+            )
+            ->get(['covered_period_dates', 'payment_date'])
+            ->flatMap(function (PayrollRunItem $item) {
+                $covered = collect($item->covered_period_dates ?? [])->filter()->values();
+
+                if ($covered->isNotEmpty()) {
+                    return $covered;
+                }
+
+                return $item->payment_date ? [$item->payment_date->toDateString()] : [];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $reserved = collect($existingAnchors)
+            ->map(fn ($value) => Carbon::parse($value)->toDateString())
+            ->unique()
+            ->all();
+
+        $periods = [];
+        $cursor = $startAnchor->copy();
+
+        while ($cursor->lte($periodEndAnchor)) {
+            $bucket = $cursor->toDateString();
+
+            if (! in_array($bucket, $reserved, true)) {
+                $periods[] = $bucket;
+            }
+
+            $cursor->addMonthNoOverflow();
+        }
+
+        return $periods;
+    }
+
+    private function alignAnchorDate(Carbon $date, int $anchorDay): Carbon
+    {
+        $anchor = $date->copy()->day(min($anchorDay, $date->copy()->endOfMonth()->day));
+
+        if ($anchor->lt($date)) {
+            $anchor = $anchor->addMonthNoOverflow()
+                ->day(min($anchorDay, $anchor->copy()->endOfMonth()->day));
+        }
+
+        return $anchor->startOfDay();
+    }
+
+    private function recordPayrollExpense(PayrollRun $payrollRun, PayrollRunItem $item): void
+    {
+        $salaryCategory = ExpenseCategory::query()
+            ->where('slug', 'salary')
+            ->first();
+
+        $expenseAccountId = $salaryCategory?->expense_account_id
+            ?: FinanceAccount::query()
+                ->where('status', 'active')
+                ->where('type', 'expense')
+                ->where(function ($query) {
+                    $query->where('code', '6000')
+                        ->orWhereRaw('LOWER(name) LIKE ?', ['%salar%']);
+                })
+                ->value('id');
+
+        $employee = $item->employee()->first();
+        $employeeName = $employee
+            ? trim(($employee->first_name ?? '').' '.($employee->last_name ?? ''))
+            : 'Employee #'.$item->employee_id;
+
+        $periodDates = collect($item->covered_period_dates ?? [])
+            ->filter()
+            ->values();
+
+        $periodLabel = $periodDates->isNotEmpty()
+            ? $periodDates
+                ->map(fn ($date) => AfghanCalendar::formatMonthLabel($date))
+                ->join(', ')
+            : AfghanCalendar::formatMonthLabel($payrollRun->period_end);
+
+        $paymentDate = now()->toDateString();
+
+        $expense = Expense::create([
+            'branch_id' => $payrollRun->branch_id ?? $employee?->branch_id,
+            'vendor_id' => null,
+            'title' => "Salary payment for {$employeeName} ({$periodLabel})",
+            'expense_type' => 'salary',
+            'expense_category_id' => $salaryCategory?->id,
+            'account_id' => $expenseAccountId,
+            'paid_from_account_id' => null,
+            'amount' => (float) $item->net_salary,
+            'payment_method' => $item->payment_method ?: PaymentMethod::CASH->value,
+            'description' => "Payroll run #{$payrollRun->id} • Payment for month {$periodLabel}",
+            'attachments' => null,
+            'expense_date' => $paymentDate,
+            'approval_status' => 'approved',
+            'created_by' => $payrollRun->created_by,
+            'approved_by' => $payrollRun->approved_by,
+            'approved_at' => now(),
+        ]);
+
+        $this->projectionDispatchService->queueBranchDailyMetric(
+            $expense->branch_id,
+            $expense->expense_date,
+        );
     }
 
     public function storeContract(Request $request)

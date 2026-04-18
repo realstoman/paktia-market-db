@@ -104,7 +104,16 @@ class ExpenseController extends Controller
         );
 
         $redirect = redirect()->route('finance.expenses.index')
-            ->with('success', 'Expense created successfully.');
+            ->with('success', 'Expense created successfully.')
+            ->with('notification', [
+                'id' => 'expense-created-'.$expense->id.'-'.now()->timestamp,
+                'category' => 'payments',
+                'title' => 'Expense recorded',
+                'description' => "Expense \"{$expense->title}\" was recorded.",
+                'href' => '/finance/expenses',
+                'priority' => $approvalStatus === 'approved' ? 'high' : 'medium',
+                'meta' => $expense->amount !== null ? 'Amount • '.number_format((float) $expense->amount, 0).' ؋' : null,
+            ]);
 
         if ($approvalStatus === 'submitted') {
             $redirect->with('print_expense_id', $expense->id);
