@@ -15,6 +15,7 @@ use App\Models\PayrollRunItem;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Settings\SystemBrandingService;
+use App\Support\AfghanCalendar;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -295,7 +296,7 @@ class HandleInertiaRequests extends Middleware
                 'meta' => trim(collect([
                     $payrollRun->branch?->name,
                     $payrollRun->period_start && $payrollRun->period_end
-                        ? $payrollRun->period_start->format('M d').' - '.$payrollRun->period_end->format('M d')
+                        ? AfghanCalendar::formatMonthLabel($payrollRun->period_end)
                         : null,
                 ])->filter()->join(' • ')),
                 'priority' => 'high',
@@ -338,6 +339,10 @@ class HandleInertiaRequests extends Middleware
                     'createdAt' => ($item->payment_date ?? $item->updated_at ?? $item->created_at)?->toIso8601String(),
                     'meta' => trim(collect([
                         $item->employee?->branch?->name,
+                        collect($item->covered_period_dates ?? [])
+                            ->filter()
+                            ->map(fn ($date) => AfghanCalendar::formatMonthLabel($date))
+                            ->join(', '),
                         $item->net_salary !== null ? $this->formatAfnMeta((float) $item->net_salary) : null,
                     ])->filter()->join(' • ')),
                     'href' => '/finance/payroll',
@@ -416,23 +421,33 @@ class HandleInertiaRequests extends Middleware
             ->latest('updated_at')
             ->take(4)
             ->get()
-            ->map(fn (Expense $expense) => [
-                'id' => "expense-{$expense->id}-".($expense->updated_at?->timestamp ?? $expense->created_at?->timestamp ?? $expense->id),
-                'category' => 'payments',
-                'title' => 'Expense activity',
-                'description' => $expense->title
-                    ? "Expense \"{$expense->title}\" is ".Str::of((string) ($expense->approval_status ?? 'draft'))->replace('_', ' ')->lower()->value().'.'
-                    : 'An expense entry was updated.',
-                'createdAt' => ($expense->updated_at ?? $expense->created_at)?->toIso8601String(),
-                'meta' => trim(collect([
-                    $expense->branch?->name,
-                    $expense->vendor?->name,
-                    $expense->amount !== null ? $this->formatAfnMeta((float) $expense->amount) : null,
-                ])->filter()->join(' • ')),
-                'href' => '/finance/expenses',
-                'priority' => in_array($expense->approval_status, ['approved', 'rejected'], true) ? 'high' : 'medium',
-                'unread' => ($expense->updated_at ?? $expense->created_at)?->gt(now()->subDay()) ?? false,
-            ]);
+            ->map(function (Expense $expense) {
+                $status = (string) ($expense->approval_status ?? 'draft');
+                $title = match ($status) {
+                    'approved' => 'Expense approved',
+                    'cancelled' => 'Expense cancelled',
+                    'submitted' => 'Expense submitted',
+                    default => 'Expense recorded',
+                };
+
+                return [
+                    'id' => "expense-{$expense->id}-".($expense->updated_at?->timestamp ?? $expense->created_at?->timestamp ?? $expense->id),
+                    'category' => 'payments',
+                    'title' => $title,
+                    'description' => $expense->title
+                        ? "Expense \"{$expense->title}\" is ".Str::of($status)->replace('_', ' ')->lower()->value().'.'
+                        : 'An expense entry was updated.',
+                    'createdAt' => ($expense->updated_at ?? $expense->created_at)?->toIso8601String(),
+                    'meta' => trim(collect([
+                        $expense->branch?->name,
+                        $expense->vendor?->name,
+                        $expense->amount !== null ? $this->formatAfnMeta((float) $expense->amount) : null,
+                    ])->filter()->join(' • ')),
+                    'href' => '/finance/expenses',
+                    'priority' => in_array($status, ['approved', 'cancelled'], true) ? 'high' : 'medium',
+                    'unread' => ($expense->updated_at ?? $expense->created_at)?->gt(now()->subDay()) ?? false,
+                ];
+            });
     }
 
     /**
