@@ -1,4 +1,5 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { applyBrandingToDocument } from '@/config/brand';
 import { SharedData } from '@/types';
 import { setFormattingLocale } from '@/utils/format';
 import { usePage } from '@inertiajs/react';
@@ -15,9 +16,11 @@ export function AppShell({
     variant = 'header',
     defaultSidebarOpen,
 }: AppShellProps) {
-    const { sidebarOpen: isOpen, localization } = usePage<SharedData>().props;
+    const { sidebarOpen: isOpen, localization, branding } =
+        usePage<SharedData>().props;
 
     setFormattingLocale(localization.locale);
+    applyBrandingToDocument(branding);
 
     useEffect(() => {
         document.documentElement.lang = localization.locale;
@@ -25,7 +28,8 @@ export function AppShell({
         document.body.dir = localization.direction;
         document.documentElement.classList.toggle('rtl', localization.isRtl);
         document.body.classList.toggle('rtl', localization.isRtl);
-    }, [localization.direction, localization.isRtl, localization.locale]);
+        applyBrandingToDocument(branding);
+    }, [branding, localization.direction, localization.isRtl, localization.locale]);
 
     if (variant === 'header') {
         return (
