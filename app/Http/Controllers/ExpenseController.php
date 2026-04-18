@@ -115,6 +115,12 @@ class ExpenseController extends Controller
 
     public function update(Request $request, Expense $expense)
     {
+        if (($expense->approval_status ?? 'draft') === 'approved') {
+            return redirect()
+                ->route('finance.expenses.index')
+                ->withErrors(['expense' => 'Approved expenses are locked. Cancel the expense if it should no longer apply.']);
+        }
+
         $this->normalizePaymentMethodInput($request);
         $validated = $this->validateExpense($request);
         $category = ExpenseCategory::findOrFail($validated['expense_category_id']);
@@ -161,7 +167,15 @@ class ExpenseController extends Controller
             $redirect->with('print_expense_id', $expense->id);
         }
 
-        return $redirect;
+        return $redirect->with('notification', [
+            'id' => 'expense-updated-'.$expense->id.'-'.now()->timestamp,
+            'category' => 'payments',
+            'title' => 'Expense updated',
+            'description' => "Expense \"{$expense->title}\" was updated.",
+            'href' => '/finance/expenses',
+            'priority' => 'medium',
+            'meta' => $expense->amount !== null ? 'Amount • '.number_format((float) $expense->amount, 0).' ؋' : null,
+        ]);
     }
 
     public function approve(Request $request, Expense $expense)
@@ -178,13 +192,24 @@ class ExpenseController extends Controller
         );
 
         return redirect()->route('finance.expenses.index')
-            ->with('success', 'Expense approved successfully.');
+            ->with('success', 'Expense approved successfully.')
+            ->with('notification', [
+                'id' => 'expense-approved-'.$expense->id.'-'.now()->timestamp,
+                'category' => 'payments',
+                'title' => 'Expense approved',
+                'description' => "Expense \"{$expense->title}\" was approved and posted to finance.",
+                'href' => '/finance/expenses',
+                'priority' => 'high',
+                'meta' => $expense->amount !== null ? 'Amount • '.number_format((float) $expense->amount, 0).' ؋' : null,
+            ]);
     }
 
     public function reject(Request $request, Expense $expense)
     {
+        $isApproved = ($expense->approval_status ?? 'draft') === 'approved';
+
         $expense->update([
-            'approval_status' => 'draft',
+            'approval_status' => $isApproved ? 'cancelled' : 'draft',
             'approved_by' => null,
             'approved_at' => null,
         ]);
@@ -195,7 +220,18 @@ class ExpenseController extends Controller
         );
 
         return redirect()->route('finance.expenses.index')
-            ->with('success', 'Expense was sent back to draft.');
+            ->with('success', $isApproved ? 'Expense was cancelled successfully.' : 'Expense was sent back to draft.')
+            ->with('notification', [
+                'id' => 'expense-status-'.$expense->id.'-'.now()->timestamp,
+                'category' => 'payments',
+                'title' => $isApproved ? 'Expense cancelled' : 'Expense returned to draft',
+                'description' => $isApproved
+                    ? "Expense \"{$expense->title}\" was cancelled."
+                    : "Expense \"{$expense->title}\" was returned to draft.",
+                'href' => '/finance/expenses',
+                'priority' => $isApproved ? 'high' : 'medium',
+                'meta' => $expense->amount !== null ? 'Amount • '.number_format((float) $expense->amount, 0).' ؋' : null,
+            ]);
     }
 
     protected function validateExpense(Request $request): array
@@ -212,7 +248,7 @@ class ExpenseController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
             'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'expense_date' => ['required', 'date_format:Y-m-d'],
-            'approval_status' => ['nullable', 'in:draft,submitted,approved'],
+            'approval_status' => ['nullable', 'in:draft,submitted,approved,cancelled'],
         ]);
     }
 
