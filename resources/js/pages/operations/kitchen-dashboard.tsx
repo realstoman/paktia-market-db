@@ -88,7 +88,6 @@ export function KitchenDashboard({
     kitchenName,
     kitchenQueue,
     kitchenDailyReport,
-    kitchenSummary,
     reportDate,
 }: KitchenDashboardProps) {
     const { locale, t } = useLocalization();
@@ -96,10 +95,6 @@ export function KitchenDashboard({
     const boardRef = useRef<HTMLDivElement | null>(null);
     const isRtlLocale = locale === 'fa' || locale === 'ps';
     const kitchenLabel = t('orders.kitchenDashboard.kitchen', 'Kitchen');
-    const unassignedKitchenLabel = t(
-        'orders.kitchenDashboard.unassignedKitchen',
-        'Unassigned kitchen',
-    );
 
     const statusLabel = (status: KitchenTicket['ticket_status']) => {
         switch (status) {
