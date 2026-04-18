@@ -29,8 +29,9 @@ import {
     BreadcrumbItem,
     Order,
     Product,
+    SharedData,
 } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     Armchair,
     Bike,
@@ -105,13 +106,6 @@ interface CartLine {
     price: number;
     quantity: number;
 }
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
 
 const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
     { value: 'cash', label: 'Cash' },
@@ -218,10 +212,21 @@ export default function OperationsPage({
     },
     reportDate = '',
 }: OperationsPageProps) {
-    const { locale } = useLocalization();
-    const { can } = useAuthorization();
+    const { locale, t } = useLocalization();
+    const { can, isSuperAdmin } = useAuthorization();
+    const { auth } = usePage<SharedData>().props;
+    const currentUserId = auth.user?.id ?? null;
     const isKitchenMode = mode === 'kitchen';
     const isOrderTakerMode = mode === 'order-taker';
+    const breadcrumbs = useMemo<BreadcrumbItem[]>(
+        () => [
+            {
+                title: t('dashboard.title', 'Dashboard'),
+                href: '/dashboard',
+            },
+        ],
+        [t],
+    );
     const channels = useMemo(() => resolveModeChannels(mode), [mode]);
     const [selectedChannel, setSelectedChannel] = useState<Channel>(
         channels[0],
@@ -451,6 +456,30 @@ export default function OperationsPage({
         });
     }, []);
 
+    useEffect(() => {
+        if (isKitchenMode) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            router.reload({
+                preserveScroll: true,
+                preserveState: true,
+                only: [
+                    'mode',
+                    'branchId',
+                    'products',
+                    'categories',
+                    'tables',
+                    'openOrders',
+                    'summary',
+                ],
+            });
+        }, 10000);
+
+        return () => window.clearInterval(interval);
+    }, [isKitchenMode]);
+
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
         setSelectedOrderId(null);
@@ -486,6 +515,11 @@ export default function OperationsPage({
     };
 
     const adjustQuantity = (product: Product, delta: number) => {
+        if (!canEditComposer) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         const basePrice = Number(product.base_price ?? 0);
 
         setCartLines((current) => {
@@ -538,8 +572,20 @@ export default function OperationsPage({
     const total = subTotal + tax;
     const canTakePayment = can('payments.create') && mode === 'cashier';
     const canManageStatus = can('orders.update');
+    const canManageAnyOrder = isSuperAdmin || can('payments.create');
+    const canManageSelectedOrder =
+        !selectedOrder ||
+        canManageAnyOrder ||
+        (currentUserId !== null &&
+            Number(selectedOrder.user_id ?? 0) === Number(currentUserId));
+    const canEditComposer = !selectedOrder || canManageSelectedOrder;
 
     const submitOrder = () => {
+        if (!canEditComposer) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         if (!branchId) {
             toast.error('Assign a branch to this user before taking orders.');
             return;
@@ -628,6 +674,11 @@ export default function OperationsPage({
     };
 
     const updateStatus = (status: 'in_progress' | 'ready') => {
+        if (!canManageSelectedOrder) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
         if (!selectedOrder) {
             toast.error('Save the order first.');
             return;
@@ -1035,43 +1086,48 @@ export default function OperationsPage({
                                     className="h-12 rounded-2xl pl-9"
                                 />
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                <Button
-                                    variant={
-                                        selectedCategory === 'all'
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    className="rounded-full"
-                                    onClick={() => setSelectedCategory('all')}
-                                >
-                                    All Menu
-                                </Button>
-                                {categories.map((category) => (
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex flex-wrap gap-2">
                                     <Button
-                                        key={category.id}
                                         variant={
-                                            selectedCategory ===
-                                            String(category.id)
+                                            selectedCategory === 'all'
                                                 ? 'default'
                                                 : 'outline'
                                         }
                                         className="rounded-full"
-                                        onClick={() =>
-                                            setSelectedCategory(
-                                                String(category.id),
-                                            )
-                                        }
+                                        onClick={() => setSelectedCategory('all')}
                                     >
-                                        {category.name}
+                                        All Menu
                                     </Button>
-                                ))}
+                                    {categories.map((category) => (
+                                        <Button
+                                            key={category.id}
+                                            variant={
+                                                selectedCategory ===
+                                                String(category.id)
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            className="rounded-full"
+                                            onClick={() =>
+                                                setSelectedCategory(
+                                                    String(category.id),
+                                                )
+                                            }
+                                        >
+                                            {category.name}
+                                        </Button>
+                                    ))}
+                                </div>
+                                <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
+                                    {products.length} products
+                                </p>
                             </div>
                         </CardHeader>
                         <CardContent className="min-h-0 flex-1 p-0">
                             <ScrollArea className="h-full px-4 pb-0">
                                 <div
-                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2' : 'md:grid-cols-2'}`}
+                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
                                 >
                                     {filteredProducts.map((product) => {
                                         const line = cartLines.find(
@@ -1130,6 +1186,7 @@ export default function OperationsPage({
                                                                     variant="outline"
                                                                     size="icon"
                                                                     className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                    disabled={!canEditComposer}
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1146,6 +1203,7 @@ export default function OperationsPage({
                                                                 <Button
                                                                     size="icon"
                                                                     className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                    disabled={!canEditComposer}
                                                                     onClick={() =>
                                                                         adjustQuantity(
                                                                             product,
@@ -1222,6 +1280,7 @@ export default function OperationsPage({
                                                 )
                                             }
                                             placeholder="Customer name (optional)"
+                                            disabled={!canEditComposer}
                                         />
                                     </div>
                                     <div className="grid gap-2">
@@ -1237,6 +1296,7 @@ export default function OperationsPage({
                                                 )
                                             }
                                             placeholder="Phone number (optional)"
+                                            disabled={!canEditComposer}
                                         />
                                     </div>
                                     {selectedChannel === 'delivery' ? (
@@ -1254,17 +1314,18 @@ export default function OperationsPage({
                                                 }
                                                 placeholder="Delivery address"
                                                 required
+                                                disabled={!canEditComposer}
                                             />
                                         </div>
                                     ) : null}
                                 </div>
                             ) : null}
                         </CardHeader>
-                        <CardContent
-                            className={`flex min-h-0 flex-1 flex-col gap-4 ${isOrderTakerMode ? 'overflow-y-auto pr-1 pb-8 md:pb-12' : ''}`}
-                        >
+                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-8 md:pb-12">
                             <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
-                                <div className="space-y-3">
+                                <div
+                                    className="max-h-[260px] space-y-3 overflow-y-auto pr-1"
+                                >
                                     {cartLines.map((line) => (
                                         <div
                                             key={`${line.productId}-${line.productSizeId ?? 'base'}`}
@@ -1324,7 +1385,7 @@ export default function OperationsPage({
                                     <p className="mb-3 text-sm font-semibold text-[#2f1d0f]">
                                         Kitchen Progress
                                     </p>
-                                    <div className="space-y-2">
+                                    <div className="max-h-[196px] space-y-2 overflow-y-auto pr-1">
                                         {selectedOrderKitchenProgress.map((entry) => (
                                             <div
                                                 key={entry.label}
@@ -1409,7 +1470,7 @@ export default function OperationsPage({
                             >
                                 <Button
                                     className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || !canEditComposer}
                                     onClick={submitOrder}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
@@ -1422,7 +1483,9 @@ export default function OperationsPage({
                                           : 'Save order'}
                                 </Button>
 
-                                {selectedOrder && canManageStatus ? (
+                                {selectedOrder &&
+                                canManageStatus &&
+                                canManageSelectedOrder ? (
                                     <div
                                         className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
                                     >

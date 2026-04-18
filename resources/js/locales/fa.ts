@@ -441,6 +441,51 @@ const fa = {
             price: 'قیمت',
             total: 'مجموع',
         },
+        kitchenDashboard: {
+            kitchen: 'آشپزخانه',
+            unassignedKitchen: 'آشپزخانه تعیین‌نشده',
+            unassignedDescription:
+                'این حساب آشپزخانه هنوز به هیچ آشپزخانه‌ای تعیین نشده است. برای شروع دریافت تکت‌ها، از بخش کاربران یک آشپزخانه تعیین کنید.',
+            newTickets: 'تکت‌های جدید',
+            deliveredToday: 'تحویل‌شده‌های امروز',
+            dailyReportTitle: 'گزارش روزانه آشپزخانه',
+            completedTickets: 'تکت‌های تکمیل‌شده',
+            reportDate: 'تاریخ گزارش',
+            preparedAt: 'آماده‌شده در',
+            completedAndDelivered: 'تکمیل و تحویل شد',
+            note: 'یادداشت',
+            by: 'توسط',
+            now: 'همین حالا',
+            status: {
+                new: 'جدید',
+                preparing: 'در حال آماده‌سازی',
+                ready: 'آماده',
+                delivered: 'تحویل‌شده',
+            },
+            actions: {
+                print: 'چاپ',
+                start: 'شروع',
+                startAll: 'شروع همه',
+                markReady: 'علامت‌گذاری به‌عنوان آماده',
+                markAllReady: 'علامت‌گذاری همه به‌عنوان آماده',
+                markDelivered: 'علامت‌گذاری به‌عنوان تحویل‌شده',
+                markAllDelivered: 'علامت‌گذاری همه به‌عنوان تحویل‌شده',
+                printChit: 'چاپ چیت',
+                printReport: 'چاپ گزارش',
+            },
+            empty: {
+                column: 'فعلاً در این ستون هیچ تکتی وجود ندارد.',
+                dailyReport:
+                    'برای این تاریخ هیچ تکت تکمیل‌شده آشپزخانه یافت نشد.',
+            },
+            messages: {
+                newTicketReceived: 'تکت جدید آشپزخانه دریافت شد.',
+                printWindowBlocked: 'باز کردن پنجره چاپ ممکن نیست.',
+            },
+            print: {
+                ticketTitle: 'تکت آشپزخانه',
+            },
+        },
         messages: {
             orderCreated: 'سفارش با موفقیت ایجاد شد.',
             orderUpdated: 'سفارش با موفقیت به‌روزرسانی شد.',

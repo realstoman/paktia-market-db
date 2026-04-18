@@ -50,6 +50,16 @@ export const buildColumns = (
         header: 'Role',
         cell: ({ row }) => {
             const roles = row.original.roles ?? [];
+            const userKitchen =
+                typeof row.original.kitchen === 'string'
+                    ? row.original.kitchen
+                    : row.original.kitchen?.name ?? null;
+            const hasKitchenRole = roles.some((role) =>
+                typeof role === 'string'
+                    ? role === 'kitchen'
+                    : role.name === 'kitchen',
+            );
+
             if (roles.length === 0) {
                 return (
                     <span className="text-xs text-muted-foreground">
@@ -58,18 +68,25 @@ export const buildColumns = (
                 );
             }
             return (
-                <div className="flex flex-wrap gap-1">
-                    {roles.map((role, index) =>
-                        typeof role === 'string' ? (
-                            <Badge key={`${role}-${index}`} variant="secondary">
-                                {role}
-                            </Badge>
-                        ) : (
-                            <Badge key={role.id} variant="secondary">
-                                {role.name}
-                            </Badge>
-                        ),
-                    )}
+                <div className="space-y-1">
+                    <div className="flex flex-wrap gap-1">
+                        {roles.map((role, index) =>
+                            typeof role === 'string' ? (
+                                <Badge key={`${role}-${index}`} variant="secondary">
+                                    {role}
+                                </Badge>
+                            ) : (
+                                <Badge key={role.id} variant="secondary">
+                                    {role.name}
+                                </Badge>
+                            ),
+                        )}
+                    </div>
+                    {hasKitchenRole && userKitchen ? (
+                        <p className="text-xs text-muted-foreground">
+                            {userKitchen}
+                        </p>
+                    ) : null}
                 </div>
             );
         },

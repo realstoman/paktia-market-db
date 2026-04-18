@@ -40,12 +40,12 @@ import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     CookingPot,
-    Edit,
     Eye,
     MapPin,
     MapPinOff,
     MoreHorizontal,
     Save,
+    SquarePen,
     Trash,
     Trash2,
     X,
@@ -243,7 +243,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             setIsEditOpen(true);
                         }}
                     >
-                        <Edit className="mr-2 h-4 w-4" />
+                        <SquarePen className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={openKitchenAssign}>

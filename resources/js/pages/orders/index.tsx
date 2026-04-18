@@ -1,6 +1,5 @@
 'use client';
 
-import { brand } from '@/config/brand';
 import InputError from '@/components/input-error';
 import { OrderStatusStatCard } from '@/components/shared/order-status-stat-card';
 import { OrdersClient } from '@/components/tables/orders/client';
@@ -32,6 +31,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { brand } from '@/config/brand';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
@@ -45,13 +45,13 @@ import {
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
+    CalendarIcon,
     CheckCircle2,
     CircleX,
     Clock3,
     CookingPot,
-    FilterX,
-    CalendarIcon,
     Download,
+    FilterX,
     type LucideIcon,
     PackageCheck,
     Printer,
@@ -367,7 +367,14 @@ export default function OrdersPage({
             'End of Day Orders Report',
             ...summaryRows.map((row) => row.map(escapeCsv).join(',')),
             '',
-            ['User', 'Total Orders', 'Completed', 'Cancelled', 'Revenue', 'Payments']
+            [
+                'User',
+                'Total Orders',
+                'Completed',
+                'Cancelled',
+                'Revenue',
+                'Payments',
+            ]
                 .map(escapeCsv)
                 .join(','),
             ...userRows.map((row) => row.map(escapeCsv).join(',')),
@@ -587,7 +594,11 @@ export default function OrdersPage({
                                         }}
                                     />
                                     <InputGroupAddon
-                                        align={isRtl ? 'inline-start' : 'inline-end'}
+                                        align={
+                                            isRtl
+                                                ? 'inline-start'
+                                                : 'inline-end'
+                                        }
                                     >
                                         <Popover
                                             open={isDatePickerOpen}

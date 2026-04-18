@@ -27,22 +27,19 @@ import { useLocalization } from '@/lib/localization';
 import { BranchTable, Order, SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import {
-    Edit3,
     Eye,
+    FilePenLine,
     MoreHorizontal,
     Plus,
     Printer,
     Save,
+    SquarePen,
+    Utensils,
     X,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-const ORDER_STATUSES = [
-    'pending',
-    'in_progress',
-    'ready',
-    'cancelled',
-];
+const ORDER_STATUSES = ['pending', 'in_progress', 'ready', 'cancelled'];
 
 interface OrderRowActionsProps {
     order: Order;
@@ -152,7 +149,9 @@ export function OrderRowActions({
         if (!canAssignOrderTable) {
             return;
         }
-        setBranchTableId(order.branch_table_id ? String(order.branch_table_id) : '');
+        setBranchTableId(
+            order.branch_table_id ? String(order.branch_table_id) : '',
+        );
         setError('');
         setIsAssignTableOpen(true);
     };
@@ -183,7 +182,9 @@ export function OrderRowActions({
                 onClick={handleEdit}
                 disabled={!canEditOrder}
             >
-                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                <SquarePen
+                    className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                />
                 {t('orders.rowActions.editOrder', 'Edit Order')}
             </Button>
             <Button
@@ -213,7 +214,7 @@ export function OrderRowActions({
                 onClick={handleAssignOpen}
                 disabled={!canAssignOrderTable}
             >
-                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                <Utensils className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                 {t('orders.rowActions.assignTable', 'Assign Table')}
             </Button>
             <Button
@@ -223,7 +224,9 @@ export function OrderRowActions({
                 onClick={handleStatusOpen}
                 disabled={!canUpdateStatus}
             >
-                <Edit3 className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                <FilePenLine
+                    className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                />
                 {t('orders.rowActions.updateStatus', 'Update Status')}
             </Button>
         </>
@@ -249,7 +252,9 @@ export function OrderRowActions({
                         align={isRtl ? 'start' : 'end'}
                         className={isRtl ? 'text-right' : ''}
                     >
-                        <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        <DropdownMenuLabel
+                            className={isRtl ? 'text-right' : ''}
+                        >
                             {t('orders.rowActions.actions', 'Actions')}
                         </DropdownMenuLabel>
                         <DropdownMenuItem onClick={handleView}>
@@ -260,7 +265,7 @@ export function OrderRowActions({
                             onClick={handleEdit}
                             disabled={!canEditOrder}
                         >
-                            <Edit3 className="mr-2 h-4 w-4" />
+                            <SquarePen className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.editOrder', 'Edit Order')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -275,21 +280,27 @@ export function OrderRowActions({
                             disabled={!canPrintReceipt}
                         >
                             <Printer className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.printReceipt', 'Print Receipt')}
+                            {t(
+                                'orders.rowActions.printReceipt',
+                                'Print Receipt',
+                            )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleAssignOpen}
                             disabled={!canAssignOrderTable}
                         >
-                            <Edit3 className="mr-2 h-4 w-4" />
+                            <Utensils className="mr-2 h-4 w-4" />
                             {t('orders.rowActions.assignTable', 'Assign Table')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleStatusOpen}
                             disabled={!canUpdateStatus}
                         >
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.updateStatus', 'Update Status')}
+                            <FilePenLine className="mr-2 h-4 w-4" />
+                            {t(
+                                'orders.rowActions.updateStatus',
+                                'Update Status',
+                            )}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

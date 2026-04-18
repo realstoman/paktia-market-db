@@ -6,6 +6,7 @@ use App\Models\OrderItem;
 use App\Services\Kitchen\KitchenDashboardService;
 use App\Services\Kitchen\KitchenWorkflowService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class KitchenOrderItemController extends Controller
@@ -37,5 +38,44 @@ class KitchenOrderItemController extends Controller
         $this->workflowService->markDelivered($orderItem, $request->user());
 
         return redirect()->back()->with('success', 'Kitchen item delivered.');
+    }
+
+    public function startBulk(Request $request): RedirectResponse|JsonResponse
+    {
+        return $this->bulkUpdate($request, 'start');
+    }
+
+    public function readyBulk(Request $request): RedirectResponse|JsonResponse
+    {
+        return $this->bulkUpdate($request, 'ready');
+    }
+
+    public function deliveredBulk(Request $request): RedirectResponse|JsonResponse
+    {
+        return $this->bulkUpdate($request, 'delivered');
+    }
+
+    private function bulkUpdate(Request $request, string $action): RedirectResponse|JsonResponse
+    {
+        $this->dashboardService->assertAssignedKitchen($request->user());
+
+        $validated = $request->validate([
+            'item_ids' => ['required', 'array', 'min:1'],
+            'item_ids.*' => ['integer', 'exists:order_items,id'],
+        ]);
+
+        $items = OrderItem::query()
+            ->whereIn('id', $validated['item_ids'])
+            ->get();
+
+        foreach ($items as $item) {
+            match ($action) {
+                'start' => $this->workflowService->markInProgress($item, $request->user()),
+                'ready' => $this->workflowService->markReady($item, $request->user()),
+                'delivered' => $this->workflowService->markDelivered($item, $request->user()),
+            };
+        }
+
+        return redirect()->back()->with('success', 'Kitchen items updated.');
     }
 }

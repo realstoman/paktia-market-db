@@ -78,3 +78,121 @@ test('cashier sees operations dashboard instead of analytics dashboard', functio
             ->has('openOrders', 1)
         );
 });
+
+test('operations dashboard includes active products without a kitchen assignment', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'name' => 'Main Branch',
+        'address' => 'Kabul',
+        'description' => 'HQ',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create(['branch_id' => $branch->id]);
+    $user->assignRole('cashier');
+
+    $category = ProductCategory::create(['name' => 'Drinks']);
+
+    $drink = Product::create([
+        'name' => 'Cola',
+        'product_category_id' => $category->id,
+        'base_price' => 60,
+        'is_active' => true,
+        'kitchen_id' => null,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('operations/index')
+            ->where('products.0.id', $drink->id)
+        );
+});
+
+test('operations dashboard includes active products from every kitchen assignment', function () {
+    $this->seed(RolePermissionSeeder::class);
+
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'name' => 'Main Branch',
+        'address' => 'Kabul',
+        'description' => 'HQ',
+        'is_active' => true,
+    ]);
+
+    $otherBranch = Branch::create([
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'name' => 'Second Branch',
+        'address' => 'Herat',
+        'description' => 'Second',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create(['branch_id' => $branch->id]);
+    $user->assignRole('order-taker');
+
+    $category = ProductCategory::create(['name' => 'Main']);
+
+    $otherBranchKitchen = \App\Models\Kitchen::create([
+        'branch_id' => $otherBranch->id,
+        'name' => 'Other Branch Kitchen',
+        'is_active' => true,
+    ]);
+
+    $localProduct = Product::create([
+        'name' => 'Kabuli Palaw',
+        'product_category_id' => $category->id,
+        'base_price' => 350,
+        'is_active' => true,
+    ]);
+
+    $otherKitchenProduct = Product::create([
+        'name' => 'Fresh Juice',
+        'product_category_id' => $category->id,
+        'kitchen_id' => $otherBranchKitchen->id,
+        'base_price' => 120,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('operations/index')
+            ->has('products', 2)
+            ->where('products.0.id', $otherKitchenProduct->id)
+            ->where('products.1.id', $localProduct->id)
+        );
+});

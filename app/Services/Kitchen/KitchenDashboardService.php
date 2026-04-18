@@ -114,17 +114,22 @@ class KitchenDashboardService
     private function mapTickets(Collection $items): Collection
     {
         return $items
-            ->groupBy('order_id')
+            ->groupBy(fn (OrderItem $item) => implode(':', [
+                $item->order_id,
+                (string) ($item->prep_status?->value ?? $item->prep_status ?? OrderItemPrepStatus::PENDING->value),
+            ]))
             ->map(function (Collection $group) {
                 /** @var OrderItem $first */
                 $first = $group->first();
                 $order = $first->order;
-                $statusCounts = $group
-                    ->groupBy(fn (OrderItem $item) => (string) ($item->prep_status?->value ?? $item->prep_status))
-                    ->map->count();
+                $ticketStatus = (string) ($first->prep_status?->value ?? $first->prep_status ?? OrderItemPrepStatus::PENDING->value);
 
                 return [
                     'order_id' => $order?->id,
+                    'ticket_key' => implode('-', [
+                        $order?->id,
+                        $ticketStatus,
+                    ]),
                     'kitchen_id' => $first->kitchen_id,
                     'kitchen_name' => $first->kitchen?->name,
                     'order_type' => (string) ($order?->order_type?->value ?? $order?->order_type ?? ''),
@@ -139,7 +144,7 @@ class KitchenDashboardService
                     'elapsed_label' => $order?->created_at
                         ? Carbon::parse($order->created_at)->diffForHumans(now(), true)
                         : null,
-                    'ticket_status' => $this->resolveTicketStatus($statusCounts),
+                    'ticket_status' => $ticketStatus,
                     'items' => $group->map(function (OrderItem $item) {
                         return [
                             'id' => $item->id,
@@ -161,29 +166,5 @@ class KitchenDashboardService
                     })->values()->all(),
                 ];
             });
-    }
-
-    private function resolveTicketStatus(Collection $statusCounts): string
-    {
-        if (($statusCounts[OrderItemPrepStatus::IN_PROGRESS->value] ?? 0) > 0) {
-            return OrderItemPrepStatus::IN_PROGRESS->value;
-        }
-
-        if (($statusCounts[OrderItemPrepStatus::PENDING->value] ?? 0) > 0
-            && (($statusCounts[OrderItemPrepStatus::READY->value] ?? 0) > 0
-                || ($statusCounts[OrderItemPrepStatus::DELIVERED->value] ?? 0) > 0)
-        ) {
-            return OrderItemPrepStatus::IN_PROGRESS->value;
-        }
-
-        if (($statusCounts[OrderItemPrepStatus::PENDING->value] ?? 0) > 0) {
-            return OrderItemPrepStatus::PENDING->value;
-        }
-
-        if (($statusCounts[OrderItemPrepStatus::READY->value] ?? 0) > 0) {
-            return OrderItemPrepStatus::READY->value;
-        }
-
-        return OrderItemPrepStatus::DELIVERED->value;
     }
 }

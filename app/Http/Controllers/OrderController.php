@@ -13,8 +13,17 @@ use Inertia\Inertia;
 
 class OrderController extends Controller
 {
+    protected function ensureKitchenCannotUseOrders(Request $request): void
+    {
+        abort_if($request->user()?->hasRole('kitchen'), 403);
+    }
+
     public function index(Request $request, OrderService $service)
     {
+        if ($request->user()?->hasRole('kitchen')) {
+            return redirect()->route('dashboard');
+        }
+
         $validated = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
             'all_time' => ['nullable', 'boolean'],
@@ -32,6 +41,8 @@ class OrderController extends Controller
 
     public function store(Request $request, OrderService $service)
     {
+        $this->ensureKitchenCannotUseOrders($request);
+
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'order_type' => ['required', Rule::in(OrderType::values())],
@@ -55,6 +66,8 @@ class OrderController extends Controller
 
     public function update(Request $request, OrderService $service, Order $order)
     {
+        $this->ensureKitchenCannotUseOrders($request);
+
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'order_type' => ['required', Rule::in(OrderType::values())],
@@ -78,6 +91,8 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, OrderService $service, Order $order)
     {
+        $this->ensureKitchenCannotUseOrders($request);
+
         $validated = $request->validate([
             'status' => ['required', Rule::in(OrderStatus::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
@@ -98,6 +113,8 @@ class OrderController extends Controller
 
     public function updateTable(Request $request, OrderService $service, Order $order)
     {
+        $this->ensureKitchenCannotUseOrders($request);
+
         $validated = $request->validate([
             'branch_table_id' => ['required', 'exists:branch_tables,id'],
         ]);
@@ -110,6 +127,8 @@ class OrderController extends Controller
 
     public function addItems(Request $request, OrderService $service, Order $order)
     {
+        $this->ensureKitchenCannotUseOrders($request);
+
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

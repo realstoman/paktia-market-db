@@ -44,8 +44,8 @@ import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
     ArrowRight,
-    CircleAlert,
     CalendarIcon,
+    CircleAlert,
     Dot,
     Flame,
     ShieldAlert,
@@ -446,19 +446,25 @@ export default function Dashboard({ data }: DashboardProps) {
     const orderAnalyticsData = data?.orderAnalytics ?? [];
     const recentOrders = data?.recentOrders ?? [];
     const topOrderedDishes = data?.topOrderedDishes ?? [];
-    const getLocalizedDashboardProductName = (
-        item: {
-            product_name: string;
-            product_name_fa?: string | null;
-            product_name_ps?: string | null;
-        },
-    ) => {
+    const getLocalizedDashboardProductName = (item: {
+        product_name: string;
+        product_name_fa?: string | null;
+        product_name_ps?: string | null;
+    }) => {
         if (locale === 'ps') {
-            return item.product_name_ps || item.product_name_fa || item.product_name;
+            return (
+                item.product_name_ps ||
+                item.product_name_fa ||
+                item.product_name
+            );
         }
 
         if (locale === 'fa') {
-            return item.product_name_fa || item.product_name_ps || item.product_name;
+            return (
+                item.product_name_fa ||
+                item.product_name_ps ||
+                item.product_name
+            );
         }
 
         return item.product_name;
@@ -534,8 +540,18 @@ export default function Dashboard({ data }: DashboardProps) {
                                         isRtl && 'md:flex-row-reverse',
                                     )}
                                 >
-                                    <div className={cn('space-y-1', isRtl && 'text-right')}>
-                                        <div className={cn('flex items-center gap-2', isRtl && 'justify-end')}>
+                                    <div
+                                        className={cn(
+                                            'space-y-1',
+                                            isRtl && 'text-right',
+                                        )}
+                                    >
+                                        <div
+                                            className={cn(
+                                                'flex items-center gap-2',
+                                                isRtl && 'justify-end',
+                                            )}
+                                        >
                                             <span
                                                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
                                                     financeStats
@@ -543,15 +559,16 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         .status,
                                                 )}`}
                                             >
-                                                {t('dashboard.projection', 'Projection')}{' '}
-                                                {
-                                                    t(
-                                                        `dashboard.${financeStats.projectionHealth.status}`,
-                                                        financeStats
-                                                            .projectionHealth
-                                                            .status,
-                                                    )
-                                                }
+                                                {t(
+                                                    'dashboard.projection',
+                                                    'Projection',
+                                                )}{' '}
+                                                {t(
+                                                    `dashboard.${financeStats.projectionHealth.status}`,
+                                                    financeStats
+                                                        .projectionHealth
+                                                        .status,
+                                                )}
                                             </span>
                                             <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase dark:text-neutral-400">
                                                 {t(
@@ -567,9 +584,12 @@ export default function Dashboard({ data }: DashboardProps) {
                                             }
                                         </p>
                                     </div>
-                                        <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
-                                            <StatusPill
-                                            label={t('dashboard.healthy', 'Healthy')}
+                                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
+                                        <StatusPill
+                                            label={t(
+                                                'dashboard.healthy',
+                                                'Healthy',
+                                            )}
                                             value={formatNumber(
                                                 Math.max(
                                                     0,
@@ -584,36 +604,45 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             .criticalBranchCount,
                                                 ),
                                             )}
-                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                                isRtl={isRtl}
-                                            />
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                            isRtl={isRtl}
+                                        />
                                         <StatusPill
-                                            label={t('dashboard.warning', 'Warning')}
+                                            label={t(
+                                                'dashboard.warning',
+                                                'Warning',
+                                            )}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .warningBranchCount,
                                             )}
-                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                                isRtl={isRtl}
-                                            />
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                            isRtl={isRtl}
+                                        />
                                         <StatusPill
-                                            label={t('dashboard.critical', 'Critical')}
+                                            label={t(
+                                                'dashboard.critical',
+                                                'Critical',
+                                            )}
                                             value={formatNumber(
                                                 financeStats.projectionHealth
                                                     .criticalBranchCount,
                                             )}
-                                                className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                                isRtl={isRtl}
-                                            />
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
+                                            isRtl={isRtl}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
                         ) : null}
 
                         <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
                             {canViewFinance ? (
                                 <DashboardSurface
-                                    title={t('dashboard.financeSnapshot', 'Finance Snapshot')}
+                                    title={t(
+                                        'dashboard.financeSnapshot',
+                                        'Finance Snapshot',
+                                    )}
                                     description={t(
                                         'dashboard.financeSnapshotDescription',
                                         'A clean read of profitability and cash health.',
@@ -622,7 +651,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                 >
                                     <div className="divide-y divide-neutral-200/70 dark:divide-neutral-800/80">
                                         <MetricInline
-                                            label={t('dashboard.netProfit', 'Net Profit')}
+                                            label={t(
+                                                'dashboard.netProfit',
+                                                'Net Profit',
+                                            )}
                                             value={`${formatPrice(
                                                 financeStats?.netProfit ?? 0,
                                             )} ؋`}
@@ -634,7 +666,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                             )}
                                         />
                                         <MetricInline
-                                            label={t('dashboard.expenses', 'Expenses')}
+                                            label={t(
+                                                'dashboard.expenses',
+                                                'Expenses',
+                                            )}
                                             value={`${formatPrice(
                                                 financeStats?.expenses ?? 0,
                                             )} ؋`}
@@ -666,8 +701,14 @@ export default function Dashboard({ data }: DashboardProps) {
                                     <div className="mt-4 rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
                                         <BarChartDefault
                                             data={financeMiniTrend}
-                                            title={t('dashboard.netProfitTrend', 'Net Profit Trend')}
-                                            description={t('dashboard.past4Months', 'Past 4 months')}
+                                            title={t(
+                                                'dashboard.netProfitTrend',
+                                                'Net Profit Trend',
+                                            )}
+                                            description={t(
+                                                'dashboard.past4Months',
+                                                'Past 4 months',
+                                            )}
                                             footerNote={t(
                                                 'dashboard.compactMonthlyNetProfitView',
                                                 'Compact monthly net profit view',
@@ -675,13 +716,22 @@ export default function Dashboard({ data }: DashboardProps) {
                                             locale={intlLocale}
                                             isRtl={isRtl}
                                             labels={{
-                                                netProfit: t('dashboard.netProfit', 'Net Profit'),
+                                                netProfit: t(
+                                                    'dashboard.netProfit',
+                                                    'Net Profit',
+                                                ),
                                                 noComparison: t(
                                                     'dashboard.noPercentageComparison',
                                                     'No percentage comparison available',
                                                 ),
-                                                trendUp: t('dashboard.trendUpBy', 'Up by'),
-                                                trendDown: t('dashboard.trendDownBy', 'Down by'),
+                                                trendUp: t(
+                                                    'dashboard.trendUpBy',
+                                                    'Up by',
+                                                ),
+                                                trendDown: t(
+                                                    'dashboard.trendDownBy',
+                                                    'Down by',
+                                                ),
                                                 fromLastMonth: t(
                                                     'dashboard.fromLastMonth',
                                                     'from last month',
@@ -695,7 +745,10 @@ export default function Dashboard({ data }: DashboardProps) {
 
                             {canViewOrders ? (
                                 <DashboardSurface
-                                    title={t('dashboard.orderFlow', 'Order Flow')}
+                                    title={t(
+                                        'dashboard.orderFlow',
+                                        'Order Flow',
+                                    )}
                                     description={t(
                                         'dashboard.operationalViewFor',
                                         'Operational view for :date.',
@@ -812,11 +865,26 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 locale={intlLocale}
                                                 isRtl={isRtl}
                                                 labels={{
-                                                    pending: t('dashboard.pending', 'Pending'),
-                                                    preparing: t('dashboard.preparing', 'Preparing'),
-                                                    ready: t('dashboard.ready', 'Ready'),
-                                                    completed: t('dashboard.completed', 'Completed'),
-                                                    cancelled: t('dashboard.cancelled', 'Cancelled'),
+                                                    pending: t(
+                                                        'dashboard.pending',
+                                                        'Pending',
+                                                    ),
+                                                    preparing: t(
+                                                        'dashboard.preparing',
+                                                        'Preparing',
+                                                    ),
+                                                    ready: t(
+                                                        'dashboard.ready',
+                                                        'Ready',
+                                                    ),
+                                                    completed: t(
+                                                        'dashboard.completed',
+                                                        'Completed',
+                                                    ),
+                                                    cancelled: t(
+                                                        'dashboard.cancelled',
+                                                        'Cancelled',
+                                                    ),
                                                 }}
                                             />
                                         </div>
@@ -906,7 +974,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </div>
                                         <div className="grid grid-cols-2 gap-2.5">
                                             <StatusPill
-                                                label={t('dashboard.totalItems', 'Total Items')}
+                                                label={t(
+                                                    'dashboard.totalItems',
+                                                    'Total Items',
+                                                )}
                                                 value={formatNumber(
                                                     inventoryStats?.totalItems ??
                                                         0,
@@ -926,7 +997,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 valueClassName="text-lg sm:text-xl break-words"
                                             />
                                             <StatusPill
-                                                label={t('dashboard.usable', 'Usable')}
+                                                label={t(
+                                                    'dashboard.usable',
+                                                    'Usable',
+                                                )}
                                                 value={formatNumber(
                                                     inventoryStats?.totalUsableItems ??
                                                         0,
@@ -934,7 +1008,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 isRtl={isRtl}
                                             />
                                             <StatusPill
-                                                label={t('dashboard.fixed', 'Fixed')}
+                                                label={t(
+                                                    'dashboard.fixed',
+                                                    'Fixed',
+                                                )}
                                                 value={formatNumber(
                                                     inventoryStats?.totalFixedItems ??
                                                         0,
@@ -944,13 +1021,27 @@ export default function Dashboard({ data }: DashboardProps) {
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="rounded-xl border border-amber-200/70 bg-amber-50/90 p-3 dark:border-amber-900/70 dark:bg-amber-950/30">
-                                                    <div className={cn('flex items-center gap-2 text-amber-700 dark:text-amber-300', isRtl && 'flex-row-reverse justify-end')}>
+                                                <div
+                                                    className={cn(
+                                                        'flex items-center gap-2 text-amber-700 dark:text-amber-300',
+                                                        isRtl &&
+                                                            'flex-row-reverse justify-end',
+                                                    )}
+                                                >
                                                     <Flame className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
-                                                        {t('dashboard.lowStock', 'Low stock')}
+                                                        {t(
+                                                            'dashboard.lowStock',
+                                                            'Low stock',
+                                                        )}
                                                     </span>
                                                 </div>
-                                                <p className={cn('mt-2 text-2xl font-semibold text-foreground', isRtl && 'text-right')}>
+                                                <p
+                                                    className={cn(
+                                                        'mt-2 text-2xl font-semibold text-foreground',
+                                                        isRtl && 'text-right',
+                                                    )}
+                                                >
                                                     {formatNumber(
                                                         inventoryStats?.lowStockItems ??
                                                             0,
@@ -958,7 +1049,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 </p>
                                             </div>
                                             <div className="rounded-xl border border-red-200/70 bg-red-50/90 p-3 dark:border-red-900/70 dark:bg-red-950/30">
-                                                    <div className={cn('flex items-center gap-2 text-red-700 dark:text-red-300', isRtl && 'flex-row-reverse justify-end')}>
+                                                <div
+                                                    className={cn(
+                                                        'flex items-center gap-2 text-red-700 dark:text-red-300',
+                                                        isRtl &&
+                                                            'flex-row-reverse justify-end',
+                                                    )}
+                                                >
                                                     <ShieldAlert className="h-4 w-4" />
                                                     <span className="text-sm font-medium">
                                                         {t(
@@ -967,7 +1064,12 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         )}
                                                     </span>
                                                 </div>
-                                                <p className={cn('mt-2 text-2xl font-semibold text-foreground', isRtl && 'text-right')}>
+                                                <p
+                                                    className={cn(
+                                                        'mt-2 text-2xl font-semibold text-foreground',
+                                                        isRtl && 'text-right',
+                                                    )}
+                                                >
                                                     {formatNumber(
                                                         inventoryStats?.outOfStockItems ??
                                                             0,
@@ -999,8 +1101,20 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 key={`${item.title}-${index}`}
                                                 className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                             >
-                                                <div className={cn('flex items-start justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
-                                                    <div className={cn('space-y-1', isRtl && 'text-right')}>
+                                                <div
+                                                    className={cn(
+                                                        'flex items-start justify-between gap-3',
+                                                        isRtl &&
+                                                            'flex-row-reverse text-right',
+                                                    )}
+                                                >
+                                                    <div
+                                                        className={cn(
+                                                            'space-y-1',
+                                                            isRtl &&
+                                                                'text-right',
+                                                        )}
+                                                    >
                                                         <p className="text-sm font-medium text-foreground">
                                                             {item.title}
                                                         </p>
@@ -1013,11 +1127,11 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             item.level,
                                                         )}`}
                                                     >
-                                                            {t(
-                                                                `dashboard.${item.level}`,
-                                                                item.level,
-                                                            )}
-                                                        </span>
+                                                        {t(
+                                                            `dashboard.${item.level}`,
+                                                            item.level,
+                                                        )}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))
@@ -1055,16 +1169,34 @@ export default function Dashboard({ data }: DashboardProps) {
                                                     key={branch.branchId}
                                                     className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                                 >
-                                                    <div className={cn('flex items-center justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
+                                                    <div
+                                                        className={cn(
+                                                            'flex items-center justify-between gap-3',
+                                                            isRtl &&
+                                                                'flex-row-reverse text-right',
+                                                        )}
+                                                    >
                                                         <div>
                                                             <p className="text-sm font-medium text-foreground">
-                                                                {branch.branchName}
+                                                                {
+                                                                    branch.branchName
+                                                                }
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {t('dashboard.rank', 'Rank')} #{index + 1}
+                                                                {t(
+                                                                    'dashboard.rank',
+                                                                    'Rank',
+                                                                )}{' '}
+                                                                #{index + 1}
                                                             </p>
                                                         </div>
-                                                        <div className={cn(isRtl ? 'text-left' : 'text-right')}>
+                                                        <div
+                                                            className={cn(
+                                                                isRtl
+                                                                    ? 'text-left'
+                                                                    : 'text-right',
+                                                            )}
+                                                        >
                                                             <p className="text-lg font-semibold text-foreground">
                                                                 {formatPrice(
                                                                     branch.revenue,
@@ -1072,14 +1204,20 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                 ؋
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                {t('dashboard.revenue', 'Revenue')}
+                                                                {t(
+                                                                    'dashboard.revenue',
+                                                                    'Revenue',
+                                                                )}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-3 grid grid-cols-2 gap-2">
                                                         <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
-                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                                                                {t('dashboard.orders', 'Orders')}
+                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+                                                                {t(
+                                                                    'dashboard.orders',
+                                                                    'Orders',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 text-base font-semibold text-foreground">
                                                                 {formatNumber(
@@ -1088,7 +1226,7 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             </p>
                                                         </div>
                                                         <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
-                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
                                                                 {t(
                                                                     'dashboard.netProfit',
                                                                     'Net Profit',
@@ -1128,14 +1266,21 @@ export default function Dashboard({ data }: DashboardProps) {
                                 className="xl:col-span-4"
                             >
                                 <div className="space-y-3">
-                                    {inventoryStats?.lowStockQuickList?.length ? (
+                                    {inventoryStats?.lowStockQuickList
+                                        ?.length ? (
                                         inventoryStats.lowStockQuickList.map(
                                             (item) => (
                                                 <div
                                                     key={item.id}
                                                     className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
                                                 >
-                                                    <div className={cn('flex items-start justify-between gap-3', isRtl && 'flex-row-reverse text-right')}>
+                                                    <div
+                                                        className={cn(
+                                                            'flex items-start justify-between gap-3',
+                                                            isRtl &&
+                                                                'flex-row-reverse text-right',
+                                                        )}
+                                                    >
                                                         <div className="space-y-1">
                                                             <p className="text-sm font-medium text-foreground">
                                                                 {item.name}
@@ -1164,9 +1309,15 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                   )}
                                                         </span>
                                                     </div>
-                                                    <div className={cn('mt-3 flex items-end justify-between gap-3', isRtl && 'flex-row-reverse')}>
+                                                    <div
+                                                        className={cn(
+                                                            'mt-3 flex items-end justify-between gap-3',
+                                                            isRtl &&
+                                                                'flex-row-reverse',
+                                                        )}
+                                                    >
                                                         <div>
-                                                            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
                                                                 {t(
                                                                     'dashboard.quantity',
                                                                     'Quantity',
@@ -1176,7 +1327,8 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                 {formatNumber(
                                                                     item.quantity,
                                                                 )}{' '}
-                                                                {item.unit ?? ''}
+                                                                {item.unit ??
+                                                                    ''}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -1217,38 +1369,56 @@ export default function Dashboard({ data }: DashboardProps) {
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="space-y-3.5">
-                                                {topOrderedDishes.map((item, index) => (
-                                                    <div
-                                                        key={`${item.product_name}-${index}`}
-                                                        className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
-                                                    >
-                                                        <div className={cn('flex items-center gap-3', isRtl && 'flex-row-reverse')}>
-                                                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                                <Dot className="h-5 w-5" />
-                                                            </div>
-                                                            <div className={cn(isRtl && 'text-right')}>
-                                                                <p className="text-sm font-medium tracking-tight">
-                                                                    {getLocalizedDashboardProductName(item)}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {item.category_name}{' '}
-                                                                    •{' '}
-                                                                    {formatNumber(
-                                                                        item.total_quantity,
-                                                                    )}{' '}
-                                                                    {t(
-                                                                        'dashboard.allTimeOrdersSuffix',
-                                                                        'orders',
+                                                {topOrderedDishes.map(
+                                                    (item, index) => (
+                                                        <div
+                                                            key={`${item.product_name}-${index}`}
+                                                            className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
+                                                        >
+                                                            <div
+                                                                className={cn(
+                                                                    'flex items-center gap-3',
+                                                                    isRtl &&
+                                                                        'flex-row-reverse',
+                                                                )}
+                                                            >
+                                                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                                                                    <Dot className="h-5 w-5" />
+                                                                </div>
+                                                                <div
+                                                                    className={cn(
+                                                                        isRtl &&
+                                                                            'text-right',
                                                                     )}
-                                                                </p>
+                                                                >
+                                                                    <p className="text-sm font-medium tracking-tight">
+                                                                        {getLocalizedDashboardProductName(
+                                                                            item,
+                                                                        )}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {
+                                                                            item.category_name
+                                                                        }{' '}
+                                                                        •{' '}
+                                                                        {formatNumber(
+                                                                            item.total_quantity,
+                                                                        )}{' '}
+                                                                        {t(
+                                                                            'dashboard.allTimeOrdersSuffix',
+                                                                            'orders',
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
+                                                                #{index + 1}
                                                             </div>
                                                         </div>
-                                                        <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                            #{index + 1}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {topOrderedDishes.length === 0 ? (
+                                                    ),
+                                                )}
+                                                {topOrderedDishes.length ===
+                                                0 ? (
                                                     <p className="text-sm text-muted-foreground">
                                                         {t(
                                                             'dashboard.noOrderDataYet',
@@ -1283,12 +1453,21 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         isRtl && 'text-right',
                                                     )}
                                                 >
-                                                    {t('dashboard.viewAll', 'View all')}
+                                                    {t(
+                                                        'dashboard.viewAll',
+                                                        'View all',
+                                                    )}
                                                 </a>
                                             </CardHeader>
-                                            <CardContent className="max-h-[28rem] overflow-y-auto">
+                                            <CardContent className="max-h-[31rem] overflow-y-auto">
                                                 <div className="min-w-0 overflow-x-auto">
-                                                    <Table dir={isRtl ? 'rtl' : 'ltr'}>
+                                                    <Table
+                                                        dir={
+                                                            isRtl
+                                                                ? 'rtl'
+                                                                : 'ltr'
+                                                        }
+                                                    >
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>
@@ -1298,7 +1477,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     )}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    {t('dashboard.type', 'Type')}
+                                                                    {t(
+                                                                        'dashboard.type',
+                                                                        'Type',
+                                                                    )}
                                                                 </TableHead>
                                                                 <TableHead>
                                                                     {t(
@@ -1307,7 +1489,10 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                     )}
                                                                 </TableHead>
                                                                 <TableHead>
-                                                                    {t('dashboard.qty', 'QTY')}
+                                                                    {t(
+                                                                        'dashboard.qty',
+                                                                        'QTY',
+                                                                    )}
                                                                 </TableHead>
                                                                 <TableHead>
                                                                     {t(
@@ -1315,7 +1500,13 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                         'Status',
                                                                     )}
                                                                 </TableHead>
-                                                                <TableHead className={cn(isRtl ? 'text-left' : 'text-right')}>
+                                                                <TableHead
+                                                                    className={cn(
+                                                                        isRtl
+                                                                            ? 'text-left'
+                                                                            : 'text-right',
+                                                                    )}
+                                                                >
                                                                     {t(
                                                                         'dashboard.total',
                                                                         'Total',
@@ -1404,7 +1595,14 @@ export default function Dashboard({ data }: DashboardProps) {
                                                                                 )}
                                                                             </span>
                                                                         </TableCell>
-                                                                        <TableCell className={cn('font-medium', isRtl ? 'text-left' : 'text-right')}>
+                                                                        <TableCell
+                                                                            className={cn(
+                                                                                'font-medium',
+                                                                                isRtl
+                                                                                    ? 'text-left'
+                                                                                    : 'text-right',
+                                                                            )}
+                                                                        >
                                                                             {formatPrice(
                                                                                 order.total_amount,
                                                                             )}{' '}
@@ -1416,13 +1614,20 @@ export default function Dashboard({ data }: DashboardProps) {
                                                         </TableBody>
                                                     </Table>
                                                 </div>
-                                                <div className={cn('mt-4', isRtl ? 'text-left' : 'text-right')}>
+                                                <div
+                                                    className={cn(
+                                                        'mt-4',
+                                                        isRtl
+                                                            ? 'text-left'
+                                                            : 'text-right',
+                                                    )}
+                                                >
                                                     <a
                                                         href="/orders"
                                                         className={cn(
                                                             'flex gap-2 text-sm font-medium text-primary hover:underline',
                                                             isRtl
-                                                                ? 'justify-start flex-row-reverse'
+                                                                ? 'flex-row-reverse justify-start'
                                                                 : 'justify-end',
                                                         )}
                                                     >
