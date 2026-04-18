@@ -12,6 +12,7 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Services\Finance\PayrollExpenseSyncService;
 use App\Services\Projection\BranchDailyMetricReader;
 use App\Services\Projection\ProjectionHealthService;
 use App\Services\Projection\ProjectionDispatchService;
@@ -30,10 +31,13 @@ class FinanceController extends Controller
         private readonly ProjectionDispatchService $projectionDispatchService,
         private readonly BranchDailyMetricReader $branchDailyMetricReader,
         private readonly ProjectionHealthService $projectionHealthService,
+        private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
     public function index(Request $request)
     {
+        $this->payrollExpenseSyncService->syncMissingPaidItems();
+
         $validated = $request->validate([
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],

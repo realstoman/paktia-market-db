@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
+use App\Services\Finance\PayrollExpenseSyncService;
 use App\Services\Projection\ProjectionDispatchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +19,13 @@ class ExpenseController extends Controller
 {
     public function __construct(
         private readonly ProjectionDispatchService $projectionDispatchService,
+        private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
     public function index()
     {
+        $this->payrollExpenseSyncService->syncMissingPaidItems();
+
         $paidFromAccounts = FinanceAccount::query()
             ->where('status', 'active')
             ->where('is_postable', true)

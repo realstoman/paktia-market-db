@@ -9,11 +9,9 @@ use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPaymentSchedule;
-use App\Models\Expense;
-use App\Models\ExpenseCategory;
-use App\Models\FinanceAccount;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Services\Finance\PayrollExpenseSyncService;
 use App\Services\Projection\ProjectionDispatchService;
 use App\Support\AfghanCalendar;
 use Illuminate\Http\Request;
@@ -29,6 +27,7 @@ class PayrollController extends Controller
 {
     public function __construct(
         private readonly ProjectionDispatchService $projectionDispatchService,
+        private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
     public function index()
@@ -480,7 +479,10 @@ class PayrollController extends Controller
                     'payment_date' => now()->toDateString(),
                 ]);
 
-                $this->recordPayrollExpense($payrollRun, $item);
+                $this->payrollExpenseSyncService->syncPaidItem(
+                    $payrollRun,
+                    $item,
+                );
             }
 
             $payrollRun->update([
@@ -576,64 +578,6 @@ class PayrollController extends Controller
         }
 
         return $anchor->startOfDay();
-    }
-
-    private function recordPayrollExpense(PayrollRun $payrollRun, PayrollRunItem $item): void
-    {
-        $salaryCategory = ExpenseCategory::query()
-            ->where('slug', 'salary')
-            ->first();
-
-        $expenseAccountId = $salaryCategory?->expense_account_id
-            ?: FinanceAccount::query()
-                ->where('status', 'active')
-                ->where('type', 'expense')
-                ->where(function ($query) {
-                    $query->where('code', '6000')
-                        ->orWhereRaw('LOWER(name) LIKE ?', ['%salar%']);
-                })
-                ->value('id');
-
-        $employee = $item->employee()->first();
-        $employeeName = $employee
-            ? trim(($employee->first_name ?? '').' '.($employee->last_name ?? ''))
-            : 'Employee #'.$item->employee_id;
-
-        $periodDates = collect($item->covered_period_dates ?? [])
-            ->filter()
-            ->values();
-
-        $periodLabel = $periodDates->isNotEmpty()
-            ? $periodDates
-                ->map(fn ($date) => AfghanCalendar::formatMonthLabel($date))
-                ->join(', ')
-            : AfghanCalendar::formatMonthLabel($payrollRun->period_end);
-
-        $paymentDate = now()->toDateString();
-
-        $expense = Expense::create([
-            'branch_id' => $payrollRun->branch_id ?? $employee?->branch_id,
-            'vendor_id' => null,
-            'title' => "Salary payment for {$employeeName} ({$periodLabel})",
-            'expense_type' => 'salary',
-            'expense_category_id' => $salaryCategory?->id,
-            'account_id' => $expenseAccountId,
-            'paid_from_account_id' => null,
-            'amount' => (float) $item->net_salary,
-            'payment_method' => $item->payment_method ?: PaymentMethod::CASH->value,
-            'description' => "Payroll run #{$payrollRun->id} • Payment for month {$periodLabel}",
-            'attachments' => null,
-            'expense_date' => $paymentDate,
-            'approval_status' => 'approved',
-            'created_by' => $payrollRun->created_by,
-            'approved_by' => $payrollRun->approved_by,
-            'approved_at' => now(),
-        ]);
-
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
     }
 
     public function storeContract(Request $request)
