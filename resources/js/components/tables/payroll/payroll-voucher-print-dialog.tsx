@@ -88,7 +88,6 @@ export function PayrollVoucherPrintDialog({
         const advances = formatAfn(Number(item.advances_deducted ?? 0));
         const net = formatAfn(Number(item.net_salary ?? 0));
         const createdAt = formatAfghanDate(run.created_at);
-        const period = `${formatAfghanDate(run.period_start)} to ${formatAfghanDate(run.period_end)}`;
         const monthLabel = coveredMonthLabels(item).join(', ') || formatAfghanMonthLabel(run.period_end);
         const title =
             item.salary_type === 'contract_payment'
