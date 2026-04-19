@@ -8,21 +8,98 @@ use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ChartOfAccountController extends Controller
 {
+    private function authorizeDelete(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole('super-admin') === true, 403);
+    }
+
     public function index()
     {
+        $accounts = FinanceAccount::query()
+            ->with([
+                'parent:id,code,name',
+                'branch:id,name',
+            ])
+            ->orderBy('code')
+            ->orderBy('name')
+            ->get();
+
+        $childCounts = FinanceAccount::query()
+            ->selectRaw('parent_id, COUNT(*) as aggregate')
+            ->whereNotNull('parent_id')
+            ->groupBy('parent_id')
+            ->pluck('aggregate', 'parent_id');
+
+        $expenseCategoryCounts = DB::table('expense_categories')
+            ->selectRaw('expense_account_id, COUNT(*) as aggregate')
+            ->whereNotNull('expense_account_id')
+            ->groupBy('expense_account_id')
+            ->pluck('aggregate', 'expense_account_id');
+
+        $expenseAccountCounts = DB::table('expenses')
+            ->selectRaw('account_id, COUNT(*) as aggregate')
+            ->whereNotNull('account_id')
+            ->groupBy('account_id')
+            ->pluck('aggregate', 'account_id');
+
+        $expensePaymentCounts = DB::table('expenses')
+            ->selectRaw('paid_from_account_id, COUNT(*) as aggregate')
+            ->whereNotNull('paid_from_account_id')
+            ->groupBy('paid_from_account_id')
+            ->pluck('aggregate', 'paid_from_account_id');
+
+        $cashAccountCounts = DB::table('cash_movements')
+            ->selectRaw('account_id, COUNT(*) as aggregate')
+            ->whereNotNull('account_id')
+            ->groupBy('account_id')
+            ->pluck('aggregate', 'account_id');
+
+        $cashCounterpartyCounts = DB::table('cash_movements')
+            ->selectRaw('counterparty_account_id, COUNT(*) as aggregate')
+            ->whereNotNull('counterparty_account_id')
+            ->groupBy('counterparty_account_id')
+            ->pluck('aggregate', 'counterparty_account_id');
+
+        $journalCounts = DB::table('finance_journal_lines')
+            ->selectRaw('account_id, COUNT(*) as aggregate')
+            ->whereNotNull('account_id')
+            ->groupBy('account_id')
+            ->pluck('aggregate', 'account_id');
+
+        $mappingCounts = DB::table('finance_account_mappings')
+            ->selectRaw('account_id, COUNT(*) as aggregate')
+            ->whereNotNull('account_id')
+            ->groupBy('account_id')
+            ->pluck('aggregate', 'account_id');
+
+        $accounts->each(function (FinanceAccount $account) use (
+            $childCounts,
+            $expenseCategoryCounts,
+            $expenseAccountCounts,
+            $expensePaymentCounts,
+            $cashAccountCounts,
+            $cashCounterpartyCounts,
+            $journalCounts,
+            $mappingCounts,
+        ) {
+            $account->dependency_count =
+                (int) ($childCounts[$account->id] ?? 0) +
+                (int) ($expenseCategoryCounts[$account->id] ?? 0) +
+                (int) ($expenseAccountCounts[$account->id] ?? 0) +
+                (int) ($expensePaymentCounts[$account->id] ?? 0) +
+                (int) ($cashAccountCounts[$account->id] ?? 0) +
+                (int) ($cashCounterpartyCounts[$account->id] ?? 0) +
+                (int) ($journalCounts[$account->id] ?? 0) +
+                (int) ($mappingCounts[$account->id] ?? 0);
+        });
+
         return Inertia::render('finance/chart-of-accounts/index', [
-            'accounts' => FinanceAccount::query()
-                ->with([
-                    'parent:id,code,name',
-                    'branch:id,name',
-                ])
-                ->orderBy('code')
-                ->orderBy('name')
-                ->get(),
+            'accounts' => $accounts,
             'branches' => Branch::query()
                 ->orderBy('name')
                 ->get(['id', 'name']),
@@ -86,8 +163,10 @@ class ChartOfAccountController extends Controller
             ->with('success', 'Ledger account updated successfully.');
     }
 
-    public function destroy(FinanceAccount $financeAccount)
+    public function destroy(Request $request, FinanceAccount $financeAccount)
     {
+        $this->authorizeDelete($request);
+
         if ($financeAccount->is_system) {
             return redirect()
                 ->route('finance.chart-of-accounts.index')
@@ -95,11 +174,63 @@ class ChartOfAccountController extends Controller
         }
 
         if ($this->hasDependencies($financeAccount)) {
-            $financeAccount->update(['status' => 'inactive']);
+            $replacementAccountId = $request->integer('replacement_account_id');
+
+            if (! $replacementAccountId || $replacementAccountId === $financeAccount->id) {
+                throw ValidationException::withMessages([
+                    'replacement_account_id' => 'Select another ledger account before deleting this one.',
+                ]);
+            }
+
+            $replacementAccount = FinanceAccount::query()
+                ->whereKeyNot($financeAccount->id)
+                ->find($replacementAccountId);
+
+            if (! $replacementAccount) {
+                throw ValidationException::withMessages([
+                    'replacement_account_id' => 'Create or select another ledger account before deleting this one.',
+                ]);
+            }
+
+            DB::transaction(function () use ($financeAccount, $replacementAccount) {
+                FinanceAccount::query()
+                    ->where('parent_id', $financeAccount->id)
+                    ->update(['parent_id' => $replacementAccount->id]);
+
+                DB::table('expense_categories')
+                    ->where('expense_account_id', $financeAccount->id)
+                    ->update(['expense_account_id' => $replacementAccount->id]);
+
+                DB::table('expenses')
+                    ->where('account_id', $financeAccount->id)
+                    ->update(['account_id' => $replacementAccount->id]);
+
+                DB::table('expenses')
+                    ->where('paid_from_account_id', $financeAccount->id)
+                    ->update(['paid_from_account_id' => $replacementAccount->id]);
+
+                DB::table('cash_movements')
+                    ->where('account_id', $financeAccount->id)
+                    ->update(['account_id' => $replacementAccount->id]);
+
+                DB::table('cash_movements')
+                    ->where('counterparty_account_id', $financeAccount->id)
+                    ->update(['counterparty_account_id' => $replacementAccount->id]);
+
+                DB::table('finance_journal_lines')
+                    ->where('account_id', $financeAccount->id)
+                    ->update(['account_id' => $replacementAccount->id]);
+
+                DB::table('finance_account_mappings')
+                    ->where('account_id', $financeAccount->id)
+                    ->update(['account_id' => $replacementAccount->id]);
+
+                $financeAccount->delete();
+            });
 
             return redirect()
                 ->route('finance.chart-of-accounts.index')
-                ->with('success', 'Account was deactivated because it is already in use.');
+                ->with('success', 'Ledger account reassigned and deleted successfully.');
         }
 
         $financeAccount->delete();

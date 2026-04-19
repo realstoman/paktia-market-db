@@ -310,6 +310,7 @@ export interface FinanceAccount {
     currency_code?: string | null;
     is_postable?: boolean;
     is_system?: boolean;
+    dependency_count?: number;
     status?: string;
     description?: string | null;
     created_at?: string;
@@ -397,6 +398,7 @@ export interface CashMovementType {
     requires_counterparty?: boolean;
     is_active?: boolean;
     sort_order?: number;
+    movement_count?: number;
     description?: string | null;
     created_at?: string;
     updated_at?: string;

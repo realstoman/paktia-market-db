@@ -16,11 +16,13 @@ function statusTone(isActive?: boolean) {
 interface BuildColumnsProps {
     onEdit: (movementType: CashMovementType) => void;
     onDelete: (movementType: CashMovementType) => void;
+    canDelete: boolean;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<CashMovementType>[] {
     return [
         {
@@ -79,6 +81,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    canDelete={canDelete}
                 />
             ),
         },

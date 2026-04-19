@@ -11,11 +11,13 @@ function statusTone(isActive?: boolean) {
 interface BuildColumnsProps {
     onEdit: (category: ExpenseCategory) => void;
     onDelete: (category: ExpenseCategory) => void;
+    canDelete: boolean;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<ExpenseCategory>[] {
     return [
         {
@@ -76,6 +78,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    canDelete={canDelete}
                 />
             ),
         },

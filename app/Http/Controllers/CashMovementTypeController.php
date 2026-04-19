@@ -6,17 +6,33 @@ use App\Models\CashMovement;
 use App\Models\CashMovementType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CashMovementTypeController extends Controller
 {
+    private function authorizeDelete(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole('super-admin') === true, 403);
+    }
+
     public function index()
     {
+        $movementCounts = CashMovement::query()
+            ->selectRaw('movement_type, COUNT(*) as aggregate')
+            ->groupBy('movement_type')
+            ->pluck('aggregate', 'movement_type');
+
+        $movementTypes = CashMovementType::query()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->each(function (CashMovementType $type) use ($movementCounts) {
+                $type->movement_count = (int) ($movementCounts[$type->slug] ?? 0);
+            });
+
         return Inertia::render('finance/cash-movement-types/index', [
-            'movementTypes' => CashMovementType::query()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(),
+            'movementTypes' => $movementTypes,
         ]);
     }
 
@@ -58,14 +74,38 @@ class CashMovementTypeController extends Controller
             ->with('success', 'Movement type updated successfully.');
     }
 
-    public function destroy(CashMovementType $cashMovementType)
+    public function destroy(Request $request, CashMovementType $cashMovementType)
     {
+        $this->authorizeDelete($request);
+
         if (CashMovement::query()->where('movement_type', $cashMovementType->slug)->exists()) {
-            $cashMovementType->update(['is_active' => false]);
+            $replacementTypeId = $request->integer('replacement_movement_type_id');
+
+            if (! $replacementTypeId || $replacementTypeId === $cashMovementType->id) {
+                throw ValidationException::withMessages([
+                    'replacement_movement_type_id' => 'Select another movement type before deleting this one.',
+                ]);
+            }
+
+            $replacementType = CashMovementType::query()
+                ->whereKeyNot($cashMovementType->id)
+                ->find($replacementTypeId);
+
+            if (! $replacementType) {
+                throw ValidationException::withMessages([
+                    'replacement_movement_type_id' => 'Create or select another movement type before deleting this one.',
+                ]);
+            }
+
+            CashMovement::query()
+                ->where('movement_type', $cashMovementType->slug)
+                ->update(['movement_type' => $replacementType->slug]);
+
+            $cashMovementType->delete();
 
             return redirect()
                 ->route('finance.cash-movement-types.index')
-                ->with('success', 'Movement type deactivated because it is already used.');
+                ->with('success', 'Movement type reassigned and deleted successfully.');
         }
 
         $cashMovementType->delete();
