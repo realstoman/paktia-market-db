@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
+import { resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
@@ -131,20 +132,20 @@ const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
 ];
 
 export function AppSidebar() {
-    const { hasRole, isSuperAdmin } = useAuthorization();
+    const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
+    const dashboardHref = resolveUrl(dashboard());
+    const financeHome =
+        !isSuperAdmin && hasRole('finance') && can('finance.view');
+    const homeHref = financeHome ? '/finance' : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
             .filter((item) => {
-                if (item.href === '/orders' && hasRole('kitchen')) {
+                if (resolveUrl(item.href) === '/orders' && hasRole('kitchen')) {
                     return false;
                 }
 
-                if (
-                    item.href === dashboard() &&
-                    hasRole('finance') &&
-                    !isSuperAdmin
-                ) {
+                if (resolveUrl(item.href) === dashboardHref && financeHome) {
                     return false;
                 }
 
@@ -183,7 +184,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()}>
+                            <Link href={homeHref}>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
