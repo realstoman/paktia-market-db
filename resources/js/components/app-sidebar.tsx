@@ -137,7 +137,13 @@ export function AppSidebar() {
     const dashboardHref = resolveUrl(dashboard());
     const financeHome =
         !isSuperAdmin && hasRole('finance') && can('finance.view');
-    const homeHref = financeHome ? '/finance' : dashboard();
+    const inventoryHome =
+        !isSuperAdmin && hasRole('inventory') && can('inventory.view');
+    const homeHref = financeHome
+        ? '/finance'
+        : inventoryHome
+          ? '/inventory'
+          : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
             .filter((item) => {
@@ -145,7 +151,10 @@ export function AppSidebar() {
                     return false;
                 }
 
-                if (resolveUrl(item.href) === dashboardHref && financeHome) {
+                if (
+                    resolveUrl(item.href) === dashboardHref &&
+                    (financeHome || inventoryHome)
+                ) {
                     return false;
                 }
 

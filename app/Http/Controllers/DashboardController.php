@@ -44,6 +44,10 @@ class DashboardController extends Controller
             return redirect()->route('finance.index');
         }
 
+        if ($user->hasRole('inventory') && ! $user->hasRole('super-admin')) {
+            return redirect('/inventory');
+        }
+
         $validated = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
