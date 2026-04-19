@@ -39,9 +39,9 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem, type Order } from '@/types';
+import { type BreadcrumbItem, type Order, type SharedData } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarIcon,
@@ -398,6 +398,7 @@ function StatusPill({
 
 export default function Dashboard({ data }: DashboardProps) {
     const { t, locale, isRtl } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
     const intlLocale =
         locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
     const selectedDateValue = data?.selectedDate ?? null;
@@ -532,7 +533,8 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
                 {hasAnySection ? (
                     <>
-                        {financeStats?.projectionHealth ? (
+                        {auth.is_super_admin &&
+                        financeStats?.projectionHealth ? (
                             <Card className="rounded-2xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
                                 <CardContent
                                     className={cn(

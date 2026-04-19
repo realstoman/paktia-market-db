@@ -17,9 +17,9 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { Branch, BreadcrumbItem } from '@/types';
+import { Branch, BreadcrumbItem, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -359,6 +359,7 @@ export default function FinancePage({
     projectionHealth,
     dashboard,
 }: FinancePageProps) {
+    const { auth } = usePage<SharedData>().props;
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
@@ -430,39 +431,41 @@ export default function FinancePage({
                         </div>
                     </div>
 
-                    <div
-                        className={`mt-6 rounded-2xl border px-4 py-3 ${projectionTone(projectionHealth.status)}`}
-                    >
-                        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                            <div>
-                                <p className="text-xs font-medium tracking-[0.22em] uppercase">
-                                    Projection Health
-                                </p>
-                                <p className="mt-1 text-sm">
-                                    {projectionHealth.usesProjectionData
-                                        ? projectionHealth.message
-                                        : 'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.'}
-                                </p>
+                    {auth.is_super_admin ? (
+                        <div
+                            className={`mt-6 rounded-2xl border px-4 py-3 ${projectionTone(projectionHealth.status)}`}
+                        >
+                            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <p className="text-xs font-medium tracking-[0.22em] uppercase">
+                                        Projection Health
+                                    </p>
+                                    <p className="mt-1 text-sm">
+                                        {projectionHealth.usesProjectionData
+                                            ? projectionHealth.message
+                                            : 'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.'}
+                                    </p>
+                                </div>
+                                <div className="text-sm">
+                                    {projectionHealth.latestProjectionAt
+                                        ? `Last projected at ${new Date(projectionHealth.latestProjectionAt).toLocaleString()}`
+                                        : 'No projection timestamp recorded yet'}
+                                </div>
                             </div>
-                            <div className="text-sm">
-                                {projectionHealth.latestProjectionAt
-                                    ? `Last projected at ${new Date(projectionHealth.latestProjectionAt).toLocaleString()}`
-                                    : 'No projection timestamp recorded yet'}
-                            </div>
+                            {projectionHealth.branches.length > 0 ? (
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                                    {projectionHealth.branches.map((branch) => (
+                                        <div
+                                            key={branch.branchId}
+                                            className="rounded-full border border-current/20 px-3 py-1"
+                                        >
+                                            {branch.branchName}: {branch.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
-                        {projectionHealth.branches.length > 0 ? (
-                            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                                {projectionHealth.branches.map((branch) => (
-                                    <div
-                                        key={branch.branchId}
-                                        className="rounded-full border border-current/20 px-3 py-1"
-                                    >
-                                        {branch.branchName}: {branch.message}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null}
-                    </div>
+                    ) : null}
                 </section>
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
