@@ -31,11 +31,12 @@ import {
     InventoryCategory,
     InventoryItem,
     InventoryType,
+    SharedData,
     Unit,
     Vendor,
 } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     Clock,
     ImagePlus,
@@ -67,6 +68,8 @@ interface InventoryClientProps {
     isLoading?: boolean;
 }
 
+type ManagedInventoryDeleteType = 'unit' | 'type' | 'category';
+
 const MAX_IMAGES = 10;
 const VENDOR_NONE = '__none__';
 const DEFAULT_CURRENCY_CODE = 'AFN';
@@ -83,6 +86,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     isLoading = false,
 }) => {
     const { t } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
+    const canDeleteInventoryResources =
+        auth.is_super_admin === true || auth.roles.includes('super-admin');
     interface UsageCycleItem {
         id: string;
         inventoryItemId: string;
@@ -148,6 +154,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
         null,
     );
+    const [deleteTarget, setDeleteTarget] = useState<{
+        type: ManagedInventoryDeleteType;
+        id: number;
+        name: string;
+        dependentCount: number;
+    } | null>(null);
+    const [replacementResourceId, setReplacementResourceId] = useState('');
+    const [deleteResourceErrors, setDeleteResourceErrors] = useState<
+        Record<string, string>
+    >({});
+    const [isDeleteResourceSubmitting, setIsDeleteResourceSubmitting] =
+        useState(false);
     const [selectedBranchFilter, setSelectedBranchFilter] =
         useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
@@ -316,6 +334,32 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         setErrors({});
         setEditingUnitId(unit.id);
         setIsUnitDialogOpen(true);
+    };
+
+    const openDeleteDialog = (
+        type: ManagedInventoryDeleteType,
+        entry: Unit | InventoryType | InventoryCategory,
+    ) => {
+        const dependentCount = data.filter((item) => {
+            if (type === 'unit') {
+                return item.unit_id === entry.id;
+            }
+
+            if (type === 'type') {
+                return item.inventory_type_id === entry.id;
+            }
+
+            return item.category_id === entry.id;
+        }).length;
+
+        setDeleteTarget({
+            type,
+            id: entry.id,
+            name: entry.name,
+            dependentCount,
+        });
+        setReplacementResourceId('');
+        setDeleteResourceErrors({});
     };
 
     const populateTypeForm = (entry: InventoryType) => {
@@ -554,28 +598,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const handleDeleteUnit = (unit: Unit) => {
-        router.delete(`/units/${unit.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    t(
-                        'inventory.unitModal.deleted',
-                        'Unit deleted successfully.',
-                    ),
-                );
-                if (String(unit.id) === unitId) {
-                    setUnitId('');
-                }
-            },
-            onError: () => {
-                toast.error(
-                    t(
-                        'inventory.unitModal.deleteFailed',
-                        'Failed to delete unit.',
-                    ),
-                );
-            },
-        });
+        openDeleteDialog('unit', unit);
     };
 
     const handleSaveType = () => {
@@ -633,28 +656,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const handleDeleteType = (entry: InventoryType) => {
-        router.delete(`/inventory-types/${entry.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    t(
-                        'inventory.typeModal.deleted',
-                        'Inventory type deleted successfully.',
-                    ),
-                );
-                if (String(entry.id) === inventoryTypeId) {
-                    setInventoryTypeId('');
-                }
-            },
-            onError: () => {
-                toast.error(
-                    t(
-                        'inventory.typeModal.deleteFailed',
-                        'Failed to delete inventory type.',
-                    ),
-                );
-            },
-        });
+        openDeleteDialog('type', entry);
     };
 
     const handleSaveCategory = () => {
@@ -712,28 +714,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     const handleDeleteCategory = (category: InventoryCategory) => {
-        router.delete(`/inventory-categories/${category.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    t(
-                        'inventory.categoryModal.deleted',
-                        'Category deleted successfully.',
-                    ),
-                );
-                if (String(category.id) === categoryId) {
-                    setCategoryId('');
-                }
-            },
-            onError: () => {
-                toast.error(
-                    t(
-                        'inventory.categoryModal.deleteFailed',
-                        'Failed to delete category.',
-                    ),
-                );
-            },
-        });
+        openDeleteDialog('category', category);
     };
 
     const handleCreate = () => {
@@ -977,6 +958,132 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
         return outstandingByVendor;
     }, [data]);
+
+    const deleteTargetReplacementOptions = useMemo(() => {
+        if (!deleteTarget) return [];
+
+        if (deleteTarget.type === 'unit') {
+            return units
+                .filter((entry) => entry.id !== deleteTarget.id)
+                .map((entry) => ({
+                    id: entry.id,
+                    label: `${entry.name} (${entry.symbol})`,
+                }));
+        }
+
+        if (deleteTarget.type === 'type') {
+            return inventoryTypes
+                .filter((entry) => entry.id !== deleteTarget.id)
+                .map((entry) => ({
+                    id: entry.id,
+                    label: entry.name,
+                }));
+        }
+
+        return categories
+            .filter((entry) => entry.id !== deleteTarget.id)
+            .map((entry) => ({
+                id: entry.id,
+                label: entry.name,
+            }));
+    }, [categories, deleteTarget, inventoryTypes, units]);
+
+    const handleConfirmManagedDelete = () => {
+        if (!deleteTarget || isDeleteResourceSubmitting) {
+            return;
+        }
+
+        setIsDeleteResourceSubmitting(true);
+        setDeleteResourceErrors({});
+
+        const payload: Record<string, number> = {};
+        let url = '';
+        let successMessage = '';
+        let failureMessage = '';
+
+        if (deleteTarget.type === 'unit') {
+            url = `/units/${deleteTarget.id}`;
+            successMessage = t(
+                'inventory.unitModal.deleted',
+                'Unit deleted successfully.',
+            );
+            failureMessage = t(
+                'inventory.unitModal.deleteFailed',
+                'Failed to delete unit.',
+            );
+
+            if (deleteTarget.dependentCount > 0 && replacementResourceId) {
+                payload.replacement_unit_id = Number(replacementResourceId);
+            }
+        } else if (deleteTarget.type === 'type') {
+            url = `/inventory-types/${deleteTarget.id}`;
+            successMessage = t(
+                'inventory.typeModal.deleted',
+                'Inventory type deleted successfully.',
+            );
+            failureMessage = t(
+                'inventory.typeModal.deleteFailed',
+                'Failed to delete inventory type.',
+            );
+
+            if (deleteTarget.dependentCount > 0 && replacementResourceId) {
+                payload.replacement_type_id = Number(replacementResourceId);
+            }
+        } else {
+            url = `/inventory-categories/${deleteTarget.id}`;
+            successMessage = t(
+                'inventory.categoryModal.deleted',
+                'Category deleted successfully.',
+            );
+            failureMessage = t(
+                'inventory.categoryModal.deleteFailed',
+                'Failed to delete category.',
+            );
+
+            if (deleteTarget.dependentCount > 0 && replacementResourceId) {
+                payload.replacement_category_id = Number(replacementResourceId);
+            }
+        }
+
+        router.delete(url, {
+            data: payload,
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(successMessage);
+
+                if (deleteTarget.type === 'unit' && String(deleteTarget.id) === unitId) {
+                    setUnitId(replacementResourceId || '');
+                }
+
+                if (
+                    deleteTarget.type === 'type' &&
+                    String(deleteTarget.id) === inventoryTypeId
+                ) {
+                    setInventoryTypeId(replacementResourceId || '');
+                }
+
+                if (
+                    deleteTarget.type === 'category' &&
+                    String(deleteTarget.id) === categoryId
+                ) {
+                    setCategoryId(replacementResourceId || '');
+                }
+
+                setDeleteTarget(null);
+                setReplacementResourceId('');
+                setDeleteResourceErrors({});
+            },
+            onError: (validationErrors) => {
+                setDeleteResourceErrors(validationErrors);
+                toast.error(
+                    Object.values(validationErrors)[0] || failureMessage,
+                );
+            },
+            onFinish: () => {
+                setIsDeleteResourceSubmitting(false);
+            },
+        });
+    };
 
     return (
         <div className="space-y-4">
