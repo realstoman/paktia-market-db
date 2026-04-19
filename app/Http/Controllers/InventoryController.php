@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PermissionEnum;
 use App\Services\Caching\CatalogCacheService;
 use App\Models\Branch;
 use App\Models\Currency;
@@ -22,13 +21,7 @@ class InventoryController extends Controller
 {
     private function authorizeInventoryDeletion(Request $request): void
     {
-        $user = $request->user();
-
-        abort_unless(
-            $user?->hasRole('super-admin') === true
-                || $user?->can(PermissionEnum::INVENTORY_DELETE->value) === true,
-            403,
-        );
+        abort_unless($request->user()?->hasRole('super-admin') === true, 403);
     }
 
     private function validateReplacementTarget(

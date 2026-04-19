@@ -1826,19 +1826,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             <Pencil className="mr-1 h-3 w-3" />
                                             {t('inventory.common.edit', 'Edit')}
                                         </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                handleDeleteUnit(entry)
-                                            }
-                                        >
-                                            <Trash2 className="mr-1 h-3 w-3" />
-                                            {t(
-                                                'inventory.common.delete',
-                                                'Delete',
-                                            )}
-                                        </Button>
+                                        {canDeleteInventoryResources ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteUnit(entry)
+                                                }
+                                            >
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                {t(
+                                                    'inventory.common.delete',
+                                                    'Delete',
+                                                )}
+                                            </Button>
+                                        ) : null}
                                     </div>
                                 </div>
                             ))
@@ -1953,19 +1955,21 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             <Pencil className="mr-1 h-3 w-3" />
                                             {t('inventory.common.edit', 'Edit')}
                                         </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                handleDeleteType(entry)
-                                            }
-                                        >
-                                            <Trash2 className="mr-1 h-3 w-3" />
-                                            {t(
-                                                'inventory.common.delete',
-                                                'Delete',
-                                            )}
-                                        </Button>
+                                        {canDeleteInventoryResources ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteType(entry)
+                                                }
+                                            >
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                {t(
+                                                    'inventory.common.delete',
+                                                    'Delete',
+                                                )}
+                                            </Button>
+                                        ) : null}
                                     </div>
                                 </div>
                             ))
@@ -2086,24 +2090,203 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                             <Pencil className="mr-1 h-3 w-3" />
                                             {t('inventory.common.edit', 'Edit')}
                                         </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                                handleDeleteCategory(entry)
-                                            }
-                                        >
-                                            <Trash2 className="mr-1 h-3 w-3" />
-                                            {t(
-                                                'inventory.common.delete',
-                                                'Delete',
-                                            )}
-                                        </Button>
+                                        {canDeleteInventoryResources ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    handleDeleteCategory(entry)
+                                                }
+                                            >
+                                                <Trash2 className="mr-1 h-3 w-3" />
+                                                {t(
+                                                    'inventory.common.delete',
+                                                    'Delete',
+                                                )}
+                                            </Button>
+                                        ) : null}
                                     </div>
                                 </div>
                             ))
                         )}
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteTarget(null);
+                        setReplacementResourceId('');
+                        setDeleteResourceErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {deleteTarget?.type === 'unit'
+                                ? t(
+                                      'inventory.unitModal.deleteTitle',
+                                      'Delete Unit?',
+                                  )
+                                : deleteTarget?.type === 'type'
+                                  ? t(
+                                        'inventory.typeModal.deleteTitle',
+                                        'Delete Inventory Type?',
+                                    )
+                                  : t(
+                                        'inventory.categoryModal.deleteTitle',
+                                        'Delete Category?',
+                                    )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {deleteTarget?.dependentCount
+                                ? t(
+                                      'inventory.common.deleteReassignDescription',
+                                      'This item is assigned to inventory records. Choose a replacement before deleting it.',
+                                  )
+                                : t(
+                                      'inventory.common.deleteConfirmDescription',
+                                      'This action will permanently remove this record.',
+                                  )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {deleteTarget ? (
+                        <div className="space-y-4">
+                            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                                <div className="font-medium text-foreground">
+                                    {deleteTarget.name}
+                                </div>
+                                <div className="mt-1 text-muted-foreground">
+                                    {deleteTarget.dependentCount > 0
+                                        ? t(
+                                              'inventory.common.assignedItemCount',
+                                              ':count inventory items will be reassigned before deletion.',
+                                          ).replace(
+                                              ':count',
+                                              formatNumber(
+                                                  deleteTarget.dependentCount,
+                                              ),
+                                          )
+                                        : t(
+                                              'inventory.common.noAssignments',
+                                              'No inventory items are assigned to this record.',
+                                          )}
+                                </div>
+                            </div>
+
+                            {deleteTarget.dependentCount > 0 ? (
+                                <div className="grid gap-2">
+                                    <Label>
+                                        {deleteTarget.type === 'unit'
+                                            ? t(
+                                                  'inventory.unitModal.reassignLabel',
+                                                  'Reassign items to another unit',
+                                              )
+                                            : deleteTarget.type === 'type'
+                                              ? t(
+                                                    'inventory.typeModal.reassignLabel',
+                                                    'Reassign items to another inventory type',
+                                                )
+                                              : t(
+                                                    'inventory.categoryModal.reassignLabel',
+                                                    'Reassign items to another category',
+                                                )}
+                                    </Label>
+                                    <Select
+                                        value={replacementResourceId}
+                                        onValueChange={setReplacementResourceId}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'inventory.common.selectReplacement',
+                                                    'Select a replacement',
+                                                )}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {deleteTargetReplacementOptions.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.id}
+                                                        value={String(
+                                                            option.id,
+                                                        )}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError
+                                        message={
+                                            deleteResourceErrors[
+                                                deleteTarget.type === 'unit'
+                                                    ? 'replacement_unit_id'
+                                                    : deleteTarget.type ===
+                                                        'type'
+                                                      ? 'replacement_type_id'
+                                                      : 'replacement_category_id'
+                                            ]
+                                        }
+                                    />
+                                    {deleteTargetReplacementOptions.length ===
+                                    0 ? (
+                                        <p className="text-xs text-amber-600">
+                                            {deleteTarget.type === 'unit'
+                                                ? t(
+                                                      'inventory.unitModal.noReplacement',
+                                                      'Create another unit before deleting this one.',
+                                                  )
+                                                : deleteTarget.type === 'type'
+                                                  ? t(
+                                                        'inventory.typeModal.noReplacement',
+                                                        'Create another inventory type before deleting this one.',
+                                                    )
+                                                  : t(
+                                                        'inventory.categoryModal.noReplacement',
+                                                        'Create another category before deleting this one.',
+                                                    )}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setReplacementResourceId('');
+                                setDeleteResourceErrors({});
+                            }}
+                            disabled={isDeleteResourceSubmitting}
+                        >
+                            {t('inventory.common.cancel', 'Cancel')}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleConfirmManagedDelete}
+                            disabled={
+                                isDeleteResourceSubmitting ||
+                                (deleteTarget?.dependentCount
+                                    ? !replacementResourceId ||
+                                      deleteTargetReplacementOptions.length ===
+                                          0
+                                    : false)
+                            }
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {t('inventory.common.delete', 'Delete')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
