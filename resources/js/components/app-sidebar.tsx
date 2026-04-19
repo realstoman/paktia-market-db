@@ -135,7 +135,21 @@ export function AppSidebar() {
     const { isRtl, t } = useLocalization();
     const navigationItems: NavItem[] = [
         ...mainNavItems
-            .filter((item) => item.href !== '/orders' || !hasRole('kitchen'))
+            .filter((item) => {
+                if (item.href === '/orders' && hasRole('kitchen')) {
+                    return false;
+                }
+
+                if (
+                    item.href === dashboard() &&
+                    hasRole('finance') &&
+                    !isSuperAdmin
+                ) {
+                    return false;
+                }
+
+                return true;
+            })
             .map((item) => ({
                 title: t(item.titleKey, item.fallbackTitle),
                 href: item.href,

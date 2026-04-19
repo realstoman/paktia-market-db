@@ -52,17 +52,6 @@ import {
     YAxis,
 } from 'recharts';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Finance',
-        href: '/finance',
-    },
-];
-
 const RANGE_OPTIONS = [
     { value: 'today', label: 'Today' },
     { value: 'yesterday', label: 'Yesterday' },
@@ -360,6 +349,24 @@ export default function FinancePage({
     dashboard,
 }: FinancePageProps) {
     const { auth } = usePage<SharedData>().props;
+    const breadcrumbs: BreadcrumbItem[] =
+        auth.is_super_admin || !auth.roles.includes('finance')
+            ? [
+                  {
+                      title: 'Dashboard',
+                      href: '/dashboard',
+                  },
+                  {
+                      title: 'Finance',
+                      href: '/finance',
+                  },
+              ]
+            : [
+                  {
+                      title: 'Finance',
+                      href: '/finance',
+                  },
+              ];
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
