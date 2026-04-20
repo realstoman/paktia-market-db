@@ -46,4 +46,12 @@ return [
         'audit_archive_disk' => env('POS_AUDIT_ARCHIVE_DISK', 'local'),
         'audit_archive_path' => env('POS_AUDIT_ARCHIVE_PATH', 'audit-archive'),
     ],
+
+    'audit' => [
+        // When true, audit log writes are dispatched to the "audit" queue and
+        // require a queue worker to consume them. Leave false (default) to
+        // persist synchronously, which is the safest choice without a worker.
+        'use_queue' => (bool) env('POS_AUDIT_USE_QUEUE', false),
+        'queue' => env('POS_AUDIT_QUEUE', 'audit'),
+    ],
 ];
