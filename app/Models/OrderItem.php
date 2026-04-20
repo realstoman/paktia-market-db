@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\OrderItemPrepStatus;
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'order_id',
         'product_id',

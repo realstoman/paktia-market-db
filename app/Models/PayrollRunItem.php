@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayrollRunItem extends Model
 {
+    use Auditable;
     use HasFactory;
 
     protected $fillable = [

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Kitchen extends Model
 {
     use \Illuminate\Database\Eloquent\Factories\HasFactory;
+    use Auditable;
 
     protected $fillable = [
         'branch_id',

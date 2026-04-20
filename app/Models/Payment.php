@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'order_id',
         'currency',
