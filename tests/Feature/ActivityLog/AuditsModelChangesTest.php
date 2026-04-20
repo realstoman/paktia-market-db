@@ -6,14 +6,9 @@ use App\Models\Branch;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
-use Illuminate\Support\Facades\Queue;
 
-test('creating an audited model dispatches a WriteAuditLogJob', function () {
-    Queue::fake();
-
-    $user = User::factory()->withoutTwoFactor()->create();
-    $this->actingAs($user);
-
+function createTestBranch(string $name = 'Central'): Branch
+{
     $country = Country::query()->create([
         'name' => 'Testland',
         'code' => 'TL',
@@ -27,58 +22,51 @@ test('creating an audited model dispatches a WriteAuditLogJob', function () {
         'country_id' => $country->id,
     ]);
 
-    Branch::query()->create([
-        'name' => 'Central',
+    return Branch::query()->create([
+        'name' => $name,
         'country_id' => $country->id,
         'province_id' => $province->id,
         'address' => '1 Main St',
         'description' => 'Main branch',
         'is_active' => true,
     ]);
+}
 
-    Queue::assertPushedOn('audit', WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'created'
-            && $job->attributes['auditable_type'] === Branch::class;
-    });
-});
-
-test('updating an audited model records old/new values excluding hidden fields', function () {
-    Queue::fake();
-
+test('creating an audited model writes a created audit log', function () {
     $user = User::factory()->withoutTwoFactor()->create();
     $this->actingAs($user);
 
-    $country = Country::query()->create([
-        'name' => 'Testland',
-        'code' => 'TL',
-        'currency_code' => 'TLC',
-        'currency_symbol' => 'T',
-        'is_active' => true,
-    ]);
+    $branch = createTestBranch();
 
-    $province = Province::query()->create([
-        'name' => 'Northern',
-        'country_id' => $country->id,
-    ]);
+    $log = AuditLog::query()
+        ->where('auditable_type', Branch::class)
+        ->where('auditable_id', $branch->id)
+        ->where('action', 'created')
+        ->first();
 
-    $branch = Branch::query()->create([
-        'name' => 'Original',
-        'country_id' => $country->id,
-        'province_id' => $province->id,
-        'address' => '1 Main St',
-        'description' => 'First',
-        'is_active' => true,
-    ]);
+    expect($log)->not->toBeNull()
+        ->and($log->user_id)->toBe($user->id)
+        ->and($log->new_values['name'] ?? null)->toBe('Central');
+});
 
-    Queue::fake(); // reset assertions between create and update
+test('updating an audited model records old/new values excluding hidden fields', function () {
+    $user = User::factory()->withoutTwoFactor()->create();
+    $this->actingAs($user);
+
+    $branch = createTestBranch('Original');
 
     $branch->update(['name' => 'Renamed']);
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'updated'
-            && ($job->attributes['old_values']['name'] ?? null) === 'Original'
-            && ($job->attributes['new_values']['name'] ?? null) === 'Renamed';
-    });
+    $log = AuditLog::query()
+        ->where('auditable_type', Branch::class)
+        ->where('auditable_id', $branch->id)
+        ->where('action', 'updated')
+        ->latest('id')
+        ->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->old_values['name'] ?? null)->toBe('Original')
+        ->and($log->new_values['name'] ?? null)->toBe('Renamed');
 });
 
 test('the WriteAuditLogJob persists to the audit_logs table', function () {
@@ -93,7 +81,9 @@ test('the WriteAuditLogJob persists to the audit_logs table', function () {
         'batch_uuid' => '11111111-1111-1111-1111-111111111111',
     ]))->handle();
 
-    $log = AuditLog::query()->latest()->first();
+    $log = AuditLog::query()
+        ->where('batch_uuid', '11111111-1111-1111-1111-111111111111')
+        ->first();
 
     expect($log)->not->toBeNull()
         ->and($log->action)->toBe('created')
@@ -101,22 +91,24 @@ test('the WriteAuditLogJob persists to the audit_logs table', function () {
 });
 
 test('user password and two factor fields are masked in audit logs', function () {
-    Queue::fake();
-
     $user = User::factory()->withoutTwoFactor()->create();
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        if ($job->attributes['auditable_type'] !== User::class) {
-            return false;
-        }
+    $log = AuditLog::query()
+        ->where('auditable_type', User::class)
+        ->where('auditable_id', $user->id)
+        ->where('action', 'created')
+        ->first();
 
-        $newValues = $job->attributes['new_values'] ?? [];
+    expect($log)->not->toBeNull();
 
-        // Password should either be absent (ignored) or masked — never cleartext hash.
-        if (array_key_exists('password', $newValues)) {
-            expect($newValues['password'])->toBe('***');
-        }
+    $newValues = $log->new_values ?? [];
 
-        return true;
-    });
+    // Password should either be absent (ignored) or masked — never cleartext hash.
+    if (array_key_exists('password', $newValues)) {
+        expect($newValues['password'])->toBe('***');
+    }
+
+    if (array_key_exists('two_factor_secret', $newValues)) {
+        expect($newValues['two_factor_secret'])->toBe('***');
+    }
 });

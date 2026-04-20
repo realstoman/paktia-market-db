@@ -1,55 +1,48 @@
 <?php
 
-use App\Jobs\WriteAuditLogJob;
 use App\Listeners\LogAuthActivity;
+use App\Models\AuditLog;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Support\Facades\Queue;
 
-test('login event dispatches an auth.login audit log', function () {
-    Queue::fake();
-
+test('login event writes an auth.login audit log', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     app(LogAuthActivity::class)->handleLogin(new Login('web', $user, false));
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'auth.login';
-    });
+    $log = AuditLog::query()->where('action', 'auth.login')->latest('id')->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->user_id)->toBe($user->id);
 });
 
-test('logout event dispatches an auth.logout audit log', function () {
-    Queue::fake();
-
+test('logout event writes an auth.logout audit log', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     app(LogAuthActivity::class)->handleLogout(new Logout('web', $user));
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'auth.logout';
-    });
+    $log = AuditLog::query()->where('action', 'auth.logout')->latest('id')->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->user_id)->toBe($user->id);
 });
 
-test('failed login event dispatches an auth.login_failed audit log with email meta', function () {
-    Queue::fake();
-
+test('failed login event writes an auth.login_failed audit log with email meta', function () {
     app(LogAuthActivity::class)->handleFailed(new Failed('web', null, [
         'email' => 'hacker@example.com',
         'password' => 'secret',
     ]));
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'auth.login_failed'
-            && ($job->attributes['meta']['email'] ?? null) === 'hacker@example.com';
-    });
+    $log = AuditLog::query()->where('action', 'auth.login_failed')->latest('id')->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->meta['email'] ?? null)->toBe('hacker@example.com');
 });
 
-test('audit logger records request context fields when a request is bound', function () {
-    Queue::fake();
-
+test('audit logger records a batch uuid for every event', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     app(AuditLogger::class)->log(
@@ -58,8 +51,8 @@ test('audit logger records request context fields when a request is bound', func
         meta: ['note' => 'context-capture'],
     );
 
-    Queue::assertPushed(WriteAuditLogJob::class, function (WriteAuditLogJob $job) {
-        return $job->attributes['action'] === 'test.action'
-            && $job->attributes['batch_uuid'] !== null;
-    });
+    $log = AuditLog::query()->where('action', 'test.action')->latest('id')->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->batch_uuid)->not->toBeNull();
 });
