@@ -1349,18 +1349,20 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    setCategoryToDelete(
-                                                        category,
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
-                                            </Button>
+                                            {canDelete ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setCategoryToDelete(
+                                                            category,
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            ) : null}
                                         </div>
                                     </div>
                                 ))}
@@ -1576,16 +1578,20 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             >
                                                 <Edit3 className="h-4 w-4 text-blue-600" />
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    setTypeToDelete(productType)
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
-                                            </Button>
+                                            {canDelete ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setTypeToDelete(
+                                                            productType,
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                </Button>
+                                            ) : null}
                                         </div>
                                     </div>
                                 ))}

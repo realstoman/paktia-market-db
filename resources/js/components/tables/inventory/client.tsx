@@ -1680,21 +1680,23 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     'Edit',
                                                 )}
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleDeleteCurrency(
-                                                        currency,
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="mr-1 h-3 w-3" />
-                                                {t(
-                                                    'inventory.common.delete',
-                                                    'Delete',
-                                                )}
-                                            </Button>
+                                            {canDeleteInventoryResources ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleDeleteCurrency(
+                                                            currency,
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="mr-1 h-3 w-3" />
+                                                    {t(
+                                                        'inventory.common.delete',
+                                                        'Delete',
+                                                    )}
+                                                </Button>
+                                            ) : null}
                                         </div>
                                     </div>
                                 ))

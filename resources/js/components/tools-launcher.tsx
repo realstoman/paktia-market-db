@@ -49,6 +49,7 @@ import {
     SharedData,
     Vendor,
 } from '@/types';
+import { usePage } from '@inertiajs/react';
 import {
     Building2,
     ChefHat,
@@ -90,6 +91,8 @@ function getCsrfToken() {
 
 export function ToolsLauncher() {
     const { t } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
+    const canDeleteTools = auth.is_super_admin === true;
     const [toolData, setToolData] = useState<ToolReferenceData>(
         emptyToolReferenceData,
     );
@@ -867,21 +870,23 @@ export function ToolsLauncher() {
                                         <Pencil className="mr-1 h-3 w-3" />
                                         Edit
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            setDeleteDialog({
-                                                type: 'country',
-                                                id: country.id,
-                                                name: country.name,
-                                            })
-                                        }
-                                    >
-                                        <Trash2 className="mr-1 h-3 w-3" />
-                                        Delete
-                                    </Button>
+                                    {canDeleteTools ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeleteDialog({
+                                                    type: 'country',
+                                                    id: country.id,
+                                                    name: country.name,
+                                                })
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    ) : null}
                                 </div>
                             </div>
                         ))}
@@ -1000,21 +1005,23 @@ export function ToolsLauncher() {
                                                 <Pencil className="mr-1 h-3 w-3" />
                                                 Edit
                                             </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    setDeleteDialog({
-                                                        type: 'province',
-                                                        id: province.id,
-                                                        name: province.name,
-                                                    })
-                                                }
-                                            >
-                                                <Trash2 className="mr-1 h-3 w-3" />
-                                                Delete
-                                            </Button>
+                                            {canDeleteTools ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setDeleteDialog({
+                                                            type: 'province',
+                                                            id: province.id,
+                                                            name: province.name,
+                                                        })
+                                                    }
+                                                >
+                                                    <Trash2 className="mr-1 h-3 w-3" />
+                                                    Delete
+                                                </Button>
+                                            ) : null}
                                         </div>
                                     </div>
                                 ))}
@@ -1118,21 +1125,23 @@ export function ToolsLauncher() {
                                         <Pencil className="mr-1 h-3 w-3" />
                                         Edit
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            setDeleteDialog({
-                                                type: 'currency',
-                                                id: currency.id,
-                                                name: currency.name,
-                                            })
-                                        }
-                                    >
-                                        <Trash2 className="mr-1 h-3 w-3" />
-                                        Delete
-                                    </Button>
+                                    {canDeleteTools ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeleteDialog({
+                                                    type: 'currency',
+                                                    id: currency.id,
+                                                    name: currency.name,
+                                                })
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    ) : null}
                                 </div>
                             </div>
                         ))}
@@ -1274,21 +1283,23 @@ export function ToolsLauncher() {
                                         <Pencil className="mr-1 h-3 w-3" />
                                         Edit
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            setDeleteDialog({
-                                                type: 'vendor',
-                                                id: vendor.id,
-                                                name: vendor.name,
-                                            })
-                                        }
-                                    >
-                                        <Trash2 className="mr-1 h-3 w-3" />
-                                        Delete
-                                    </Button>
+                                    {canDeleteTools ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeleteDialog({
+                                                    type: 'vendor',
+                                                    id: vendor.id,
+                                                    name: vendor.name,
+                                                })
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    ) : null}
                                 </div>
                             </div>
                         ))}
@@ -1598,21 +1609,23 @@ export function ToolsLauncher() {
                                         <Pencil className="mr-1 h-3 w-3" />
                                         Edit
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            setDeleteDialog({
-                                                type: 'banner',
-                                                id: banner.id,
-                                                name: banner.title,
-                                            })
-                                        }
-                                    >
-                                        <Trash2 className="mr-1 h-3 w-3" />
-                                        Delete
-                                    </Button>
+                                    {canDeleteTools ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeleteDialog({
+                                                    type: 'banner',
+                                                    id: banner.id,
+                                                    name: banner.title,
+                                                })
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    ) : null}
                                 </div>
                             </div>
                         ))}
