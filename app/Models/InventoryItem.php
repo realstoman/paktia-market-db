@@ -88,7 +88,7 @@ class InventoryItem extends Model
 
     public function getReceiptUrlAttribute(): ?string
     {
-        if (!$this->receipt_path) {
+        if (! $this->receipt_path) {
             return null;
         }
 

@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kitchen extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory;
     use Auditable;
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
 
     protected $fillable = [
         'branch_id',

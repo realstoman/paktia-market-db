@@ -4,27 +4,34 @@ use App\Models\AuditLog;
 use App\Models\AuditLogArchive;
 use Illuminate\Support\Facades\Storage;
 
+function createAuditLog(array $attributes, \Carbon\CarbonInterface $createdAt): AuditLog
+{
+    $log = AuditLog::query()->create($attributes);
+    $log->forceFill([
+        'created_at' => $createdAt,
+        'updated_at' => $createdAt,
+    ])->save();
+
+    return $log;
+}
+
 test('pos:archive-audit-logs archives old rows and prunes them', function () {
     Storage::fake('local');
 
-    AuditLog::query()->create([
+    createAuditLog([
         'action' => 'created',
         'auditable_type' => 'App\\Models\\Branch',
         'auditable_id' => 1,
         'new_values' => ['name' => 'A'],
-        'created_at' => now()->subMonths(3)->startOfMonth()->addDays(5),
-        'updated_at' => now()->subMonths(3)->startOfMonth()->addDays(5),
-    ]);
+    ], now()->subMonths(3)->startOfMonth()->addDays(5));
 
-    AuditLog::query()->create([
+    createAuditLog([
         'action' => 'updated',
         'auditable_type' => 'App\\Models\\Branch',
         'auditable_id' => 1,
         'old_values' => ['name' => 'A'],
         'new_values' => ['name' => 'B'],
-        'created_at' => now()->subMonths(3)->startOfMonth()->addDays(10),
-        'updated_at' => now()->subMonths(3)->startOfMonth()->addDays(10),
-    ]);
+    ], now()->subMonths(3)->startOfMonth()->addDays(10));
 
     // Recent row that should NOT be archived.
     AuditLog::query()->create([
@@ -72,14 +79,12 @@ test('pos:archive-audit-logs is a no-op when no rows qualify', function () {
 test('dry-run does not delete records', function () {
     Storage::fake('local');
 
-    AuditLog::query()->create([
+    createAuditLog([
         'action' => 'created',
         'auditable_type' => 'App\\Models\\Branch',
         'auditable_id' => 1,
         'new_values' => ['name' => 'A'],
-        'created_at' => now()->subMonths(4)->startOfMonth(),
-        'updated_at' => now()->subMonths(4)->startOfMonth(),
-    ]);
+    ], now()->subMonths(4)->startOfMonth());
 
     $this->artisan('pos:archive-audit-logs', ['--days' => 30, '--disk' => 'local', '--dry-run' => true])
         ->assertExitCode(0);

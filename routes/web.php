@@ -10,25 +10,25 @@ use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeAdvanceController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\KitchenOrderItemController;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Location\BranchController;
+use App\Http\Controllers\Location\BranchTableController;
+use App\Http\Controllers\Location\CountryController;
+use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ToolReferenceController;
-use App\Http\Controllers\Location\BranchController;
-use App\Http\Controllers\Location\BranchTableController;
-use App\Http\Controllers\Location\CountryController;
-use App\Http\Controllers\Location\ProvinceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -82,15 +82,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{user}/block', [UserController::class, 'toggleBlock'])->name('users.block');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    // Route::post('users/{user}/permissions', [UserPermissionController::class, 'store']);
-    // Route::delete('users/{user}/permissions', [UserPermissionController::class, 'destroy']);
+        // Route::post('users/{user}/permissions', [UserPermissionController::class, 'store']);
+        // Route::delete('users/{user}/permissions', [UserPermissionController::class, 'destroy']);
 
-    // Roles & Permissions
+        // Roles & Permissions
         Route::resource('roles', RoleController::class);
         Route::get('permissions', [PermissionController::class, 'index']);
         Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
 
-    // Locations
+        // Locations
         Route::resource('countries', CountryController::class);
         Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
         Route::resource('provinces', ProvinceController::class);
@@ -293,7 +293,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
-
 
 /*
 |--------------------------------------------------------------------------
