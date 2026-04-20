@@ -16,6 +16,7 @@ use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -79,6 +80,22 @@ class UserController extends Controller
             'kitchen_id' => 'nullable|exists:kitchens,id',
         ]);
 
+        $selectedRoles = Role::query()
+            ->whereIn('id', $validated['roles'] ?? [])
+            ->pluck('name');
+
+        $isKitchenRole = $selectedRoles->contains('kitchen');
+
+        if ($isKitchenRole && empty($validated['kitchen_id'])) {
+            throw ValidationException::withMessages([
+                'kitchen_id' => 'Kitchen users must be assigned to a kitchen.',
+            ]);
+        }
+
+        if (! $isKitchenRole) {
+            $validated['kitchen_id'] = null;
+        }
+
         $user = $this->userService->create($validated);
 
         return redirect()->route('users.index')
@@ -122,6 +139,22 @@ class UserController extends Controller
             'kitchen_id' => 'nullable|exists:kitchens,id',
             'is_active' => 'boolean',
         ]);
+
+        $selectedRoles = Role::query()
+            ->whereIn('id', $validated['roles'] ?? [])
+            ->pluck('name');
+
+        $isKitchenRole = $selectedRoles->contains('kitchen');
+
+        if ($isKitchenRole && empty($validated['kitchen_id'])) {
+            throw ValidationException::withMessages([
+                'kitchen_id' => 'Kitchen users must be assigned to a kitchen.',
+            ]);
+        }
+
+        if (! $isKitchenRole) {
+            $validated['kitchen_id'] = null;
+        }
 
         // Remove password if empty
         if (empty($validated['password'])) {

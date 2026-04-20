@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Branch extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'name',
         'country_id',

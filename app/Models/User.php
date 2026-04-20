@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * @method bool can(string $ability, array $arguments = [])
  */
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles;
+    use Auditable, HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Mass assignable attributes

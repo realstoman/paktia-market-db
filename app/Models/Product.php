@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'product_category_id',
         'kitchen_id',

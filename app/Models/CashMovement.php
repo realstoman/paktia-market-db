@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CashMovement extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'branch_id',
         'movement_type',

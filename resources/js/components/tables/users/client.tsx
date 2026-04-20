@@ -74,6 +74,11 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const selectedCreateRole = useMemo(
+        () => roles.find((role) => String(role.id) === roleId) ?? null,
+        [roleId, roles],
+    );
+    const isCreateKitchenRole = selectedCreateRole?.name === 'kitchen';
 
     const resetForm = () => {
         setName('');
@@ -107,7 +112,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 country_id: countryId ? Number(countryId) : null,
                 province_id: provinceId ? Number(provinceId) : null,
                 branch_id: branchId ? Number(branchId) : null,
-                kitchen_id: kitchenId !== 'none' ? Number(kitchenId) : null,
+                kitchen_id:
+                    isCreateKitchenRole && kitchenId !== 'none'
+                        ? Number(kitchenId)
+                        : null,
             },
             {
                 preserveScroll: true,
@@ -471,7 +479,20 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>Role</Label>
-                            <Select value={roleId} onValueChange={setRoleId}>
+                            <Select
+                                value={roleId}
+                                onValueChange={(value) => {
+                                    setRoleId(value);
+
+                                    const selectedRole = roles.find(
+                                        (role) => String(role.id) === value,
+                                    );
+
+                                    if (selectedRole?.name !== 'kitchen') {
+                                        setKitchenId('none');
+                                    }
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select role" />
                                 </SelectTrigger>
@@ -488,6 +509,31 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             </Select>
                             <InputError message={createRoleError} />
                         </div>
+                        {isCreateKitchenRole ? (
+                            <div className="grid gap-2">
+                                <Label>Kitchen</Label>
+                                <Select
+                                    value={kitchenId}
+                                    onValueChange={setKitchenId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select kitchen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kitchens.map((kitchen) => (
+                                            <SelectItem
+                                                key={kitchen.id}
+                                                value={String(kitchen.id)}
+                                            >
+                                                {kitchen.name ??
+                                                    `Kitchen #${kitchen.id}`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.kitchen_id} />
+                            </div>
+                        ) : null}
                         <div className="grid gap-2">
                             <Label>Country</Label>
                             <Select
@@ -564,26 +610,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={createErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Kitchen</Label>
-                            <Select value={kitchenId} onValueChange={setKitchenId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select kitchen" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">No kitchen assignment</SelectItem>
-                                    {kitchens.map((kitchen) => (
-                                        <SelectItem
-                                            key={kitchen.id}
-                                            value={String(kitchen.id)}
-                                        >
-                                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.kitchen_id} />
                         </div>
                     </div>
 

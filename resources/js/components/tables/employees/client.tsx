@@ -1,6 +1,16 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -150,6 +160,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [editingShiftId, setEditingShiftId] = useState<number | null>(null);
     const [shiftErrors, setShiftErrors] = useState<Record<string, string>>({});
     const [isShiftSubmitting, setIsShiftSubmitting] = useState(false);
+    const [deletePositionTarget, setDeletePositionTarget] =
+        useState<EmployeePosition | null>(null);
+    const [deleteEmploymentTypeTarget, setDeleteEmploymentTypeTarget] =
+        useState<EmploymentType | null>(null);
+    const [deleteShiftTarget, setDeleteShiftTarget] = useState<Shift | null>(
+        null,
+    );
     const [selectedBranchFilter, setSelectedBranchFilter] =
         useState(FILTER_ALL);
     const [selectedEmploymentTypeFilter, setSelectedEmploymentTypeFilter] =
@@ -361,15 +378,24 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             return;
         }
 
+        setDeletePositionTarget(position);
+    };
+
+    const confirmDeletePosition = () => {
+        if (!deletePositionTarget || isPositionSubmitting) {
+            return;
+        }
+
         setIsPositionSubmitting(true);
 
-        router.delete(`/employee-positions/${position.id}`, {
+        router.delete(`/employee-positions/${deletePositionTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Employee position deleted.');
-                if (editingPositionId === position.id) {
+                if (editingPositionId === deletePositionTarget.id) {
                     resetPositionForm();
                 }
+                setDeletePositionTarget(null);
             },
             onFinish: () => {
                 setIsPositionSubmitting(false);
@@ -445,15 +471,26 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             return;
         }
 
+        setDeleteEmploymentTypeTarget(type);
+    };
+
+    const confirmDeleteEmploymentType = () => {
+        if (!deleteEmploymentTypeTarget || isEmploymentTypeSubmitting) {
+            return;
+        }
+
         setIsEmploymentTypeSubmitting(true);
 
-        router.delete(`/employment-types/${type.id}`, {
+        router.delete(`/employment-types/${deleteEmploymentTypeTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Employment type deleted.');
-                if (editingEmploymentTypeId === type.id) {
+                if (
+                    editingEmploymentTypeId === deleteEmploymentTypeTarget.id
+                ) {
                     resetEmploymentTypeForm();
                 }
+                setDeleteEmploymentTypeTarget(null);
             },
             onFinish: () => {
                 setIsEmploymentTypeSubmitting(false);
@@ -531,15 +568,24 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             return;
         }
 
+        setDeleteShiftTarget(shift);
+    };
+
+    const confirmDeleteShift = () => {
+        if (!deleteShiftTarget || isShiftSubmitting) {
+            return;
+        }
+
         setIsShiftSubmitting(true);
 
-        router.delete(`/shifts/${shift.id}`, {
+        router.delete(`/shifts/${deleteShiftTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Shift deleted.');
-                if (editingShiftId === shift.id) {
+                if (editingShiftId === deleteShiftTarget.id) {
                     resetShiftForm();
                 }
+                setDeleteShiftTarget(null);
             },
             onFinish: () => {
                 setIsShiftSubmitting(false);
@@ -1641,6 +1687,95 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <AlertDialog
+                open={deleteEmploymentTypeTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteEmploymentTypeTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete employment type</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteEmploymentTypeTarget
+                                ? `This will permanently delete ${deleteEmploymentTypeTarget.name}.`
+                                : 'This will permanently delete the selected employment type.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            disabled={isEmploymentTypeSubmitting}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteEmploymentType}
+                            disabled={isEmploymentTypeSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog
+                open={deleteShiftTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteShiftTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete shift</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteShiftTarget
+                                ? `This will permanently delete ${deleteShiftTarget.name}.`
+                                : 'This will permanently delete the selected shift.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isShiftSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteShift}
+                            disabled={isShiftSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog
+                open={deletePositionTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeletePositionTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete position</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deletePositionTarget
+                                ? `This will permanently delete ${deletePositionTarget.name}.`
+                                : 'This will permanently delete the selected position.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isPositionSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeletePosition}
+                            disabled={isPositionSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

@@ -1,6 +1,16 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -72,6 +82,8 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     const [editTableErrors, setEditTableErrors] = useState<
         Record<string, string>
     >({});
+    const [deleteTableTarget, setDeleteTableTarget] =
+        useState<BranchTable | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
@@ -260,16 +272,25 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         );
     };
 
-    const handleDeleteTable = (tableId: number) => {
+    const handleDeleteTable = (branchTable: BranchTable) => {
         if (isSubmitting) {
             return;
         }
 
+        setDeleteTableTarget(branchTable);
+    };
+
+    const confirmDeleteTable = () => {
+        if (!deleteTableTarget || isSubmitting) {
+            return;
+        }
+
         setIsSubmitting(true);
-        router.delete(`/branch-tables/${tableId}`, {
+        router.delete(`/branch-tables/${deleteTableTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Table number deleted successfully.');
+                setDeleteTableTarget(null);
             },
             onFinish: () => {
                 setIsSubmitting(false);
@@ -602,7 +623,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                                         className="text-red-600"
                                                         onClick={() =>
                                                             handleDeleteTable(
-                                                                table.id,
+                                                                table,
                                                             )
                                                         }
                                                     >
@@ -690,6 +711,37 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <AlertDialog
+                open={deleteTableTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteTableTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete table</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteTableTarget
+                                ? `This will permanently delete table ${deleteTableTarget.table_number}${deleteTableTarget.title ? ` (${deleteTableTarget.title})` : ''}.`
+                                : 'This will permanently delete the selected table.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteTable}
+                            disabled={isSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
+use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'branch_id',
         'branch_table_id',

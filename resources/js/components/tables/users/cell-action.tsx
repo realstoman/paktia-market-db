@@ -103,6 +103,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         Record<string, string>
     >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const selectedEditRole =
+        roles.find((role) => String(role.id) === editRoleId) ?? null;
+    const isEditKitchenRole = selectedEditRole?.name === 'kitchen';
     const canToggleBlock = auth.user.id !== data.id;
     const canDeleteUser = auth.user.id !== data.id;
     const canResetPassword =
@@ -139,7 +142,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                 country_id: editCountryId ? Number(editCountryId) : null,
                 province_id: editProvinceId ? Number(editProvinceId) : null,
                 branch_id: editBranchId ? Number(editBranchId) : null,
-                kitchen_id: editKitchenId !== 'none' ? Number(editKitchenId) : null,
+                kitchen_id:
+                    isEditKitchenRole && editKitchenId !== 'none'
+                        ? Number(editKitchenId)
+                        : null,
             },
             {
                 preserveScroll: true,
@@ -366,7 +372,17 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Label>Role</Label>
                             <Select
                                 value={editRoleId}
-                                onValueChange={setEditRoleId}
+                                onValueChange={(value) => {
+                                    setEditRoleId(value);
+
+                                    const selectedRole = roles.find(
+                                        (role) => String(role.id) === value,
+                                    );
+
+                                    if (selectedRole?.name !== 'kitchen') {
+                                        setEditKitchenId('none');
+                                    }
+                                }}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select role" />
@@ -384,6 +400,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </Select>
                             <InputError message={editRoleError} />
                         </div>
+                        {isEditKitchenRole ? (
+                            <div className="grid gap-2">
+                                <Label>Kitchen</Label>
+                                <Select
+                                    value={editKitchenId}
+                                    onValueChange={setEditKitchenId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select kitchen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kitchens.map((kitchen) => (
+                                            <SelectItem
+                                                key={kitchen.id}
+                                                value={String(kitchen.id)}
+                                            >
+                                                {kitchen.name ??
+                                                    `Kitchen #${kitchen.id}`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.kitchen_id} />
+                            </div>
+                        ) : null}
                         <div className="grid gap-2">
                             <Label>Country</Label>
                             <Select
@@ -454,32 +495,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </SelectContent>
                             </Select>
                             <InputError message={editErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Kitchen</Label>
-                            <Select
-                                value={editKitchenId}
-                                onValueChange={setEditKitchenId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select kitchen" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">
-                                        No kitchen assignment
-                                    </SelectItem>
-                                    {kitchens.map((kitchen) => (
-                                        <SelectItem
-                                            key={kitchen.id}
-                                            value={String(kitchen.id)}
-                                        >
-                                            {kitchen.name ??
-                                                `Kitchen #${kitchen.id}`}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editErrors.kitchen_id} />
                         </div>
                     </div>
 
