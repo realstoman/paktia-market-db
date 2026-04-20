@@ -1,5 +1,15 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -102,6 +112,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     const [kitchenCategoryErrors, setKitchenCategoryErrors] = useState<
         Record<string, string>
     >({});
+    const [deleteKitchenTypeTarget, setDeleteKitchenTypeTarget] =
+        useState<KitchenType | null>(null);
+    const [deleteCuisineTarget, setDeleteCuisineTarget] =
+        useState<Cuisine | null>(null);
+    const [deleteKitchenCategoryTarget, setDeleteKitchenCategoryTarget] =
+        useState<KitchenCategory | null>(null);
 
     const resetForm = () => {
         setName('');
@@ -224,15 +240,24 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             return;
         }
 
+        setDeleteKitchenTypeTarget(entry);
+    };
+
+    const confirmDeleteKitchenType = () => {
+        if (!deleteKitchenTypeTarget || isSubmitting) {
+            return;
+        }
+
         setIsSubmitting(true);
 
-        router.delete(`/kitchen-types/${entry.id}`, {
+        router.delete(`/kitchen-types/${deleteKitchenTypeTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Kitchen type deleted successfully.');
-                if (editingKitchenTypeId === entry.id) {
+                if (editingKitchenTypeId === deleteKitchenTypeTarget.id) {
                     resetKitchenTypeForm();
                 }
+                setDeleteKitchenTypeTarget(null);
             },
             onError: (errors) => {
                 setKitchenTypeErrors(errors);
@@ -285,15 +310,24 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             return;
         }
 
+        setDeleteCuisineTarget(entry);
+    };
+
+    const confirmDeleteCuisine = () => {
+        if (!deleteCuisineTarget || isSubmitting) {
+            return;
+        }
+
         setIsSubmitting(true);
 
-        router.delete(`/cuisines/${entry.id}`, {
+        router.delete(`/cuisines/${deleteCuisineTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Cuisine deleted successfully.');
-                if (editingCuisineId === entry.id) {
+                if (editingCuisineId === deleteCuisineTarget.id) {
                     resetCuisineForm();
                 }
+                setDeleteCuisineTarget(null);
             },
             onError: (errors) => {
                 setCuisineErrors(errors);
@@ -348,15 +382,24 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             return;
         }
 
+        setDeleteKitchenCategoryTarget(entry);
+    };
+
+    const confirmDeleteKitchenCategory = () => {
+        if (!deleteKitchenCategoryTarget || isSubmitting) {
+            return;
+        }
+
         setIsSubmitting(true);
 
-        router.delete(`/kitchen-categories/${entry.id}`, {
+        router.delete(`/kitchen-categories/${deleteKitchenCategoryTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Kitchen category deleted successfully.');
-                if (editingKitchenCategoryId === entry.id) {
+                if (editingKitchenCategoryId === deleteKitchenCategoryTarget.id) {
                     resetKitchenCategoryForm();
                 }
+                setDeleteKitchenCategoryTarget(null);
             },
             onError: (errors) => {
                 setKitchenCategoryErrors(errors);
@@ -577,6 +620,36 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={deleteKitchenCategoryTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteKitchenCategoryTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete kitchen category</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteKitchenCategoryTarget
+                                ? `This will permanently delete ${deleteKitchenCategoryTarget.name}.`
+                                : 'This will permanently delete the selected kitchen category.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteKitchenCategory}
+                            disabled={isSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <Dialog
                 open={isKitchenCategoriesOpen}
@@ -843,6 +916,36 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                 </DialogContent>
             </Dialog>
 
+            <AlertDialog
+                open={deleteKitchenTypeTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteKitchenTypeTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete kitchen type</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteKitchenTypeTarget
+                                ? `This will permanently delete ${deleteKitchenTypeTarget.name}.`
+                                : 'This will permanently delete the selected kitchen type.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteKitchenType}
+                            disabled={isSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <Dialog
                 open={isCuisinesOpen}
                 onOpenChange={(open) => {
@@ -966,6 +1069,36 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog
+                open={deleteCuisineTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteCuisineTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete cuisine</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteCuisineTarget
+                                ? `This will permanently delete ${deleteCuisineTarget.name}.`
+                                : 'This will permanently delete the selected cuisine.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteCuisine}
+                            disabled={isSubmitting}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

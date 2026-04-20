@@ -70,6 +70,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
         null,
     );
+    const [deleteProvinceTarget, setDeleteProvinceTarget] = useState<{
+        id: number;
+        name: string;
+    } | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const onView = () => {
@@ -193,17 +197,26 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         );
     };
 
-    const handleDeleteProvince = (provinceId: number) => {
+    const handleDeleteProvince = (provinceId: number, provinceName: string) => {
         if (isSubmitting) {
+            return;
+        }
+
+        setDeleteProvinceTarget({ id: provinceId, name: provinceName });
+    };
+
+    const confirmDeleteProvince = () => {
+        if (!deleteProvinceTarget || isSubmitting) {
             return;
         }
 
         setIsSubmitting(true);
 
-        router.delete(`/provinces/${provinceId}`, {
+        router.delete(`/provinces/${deleteProvinceTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Province deleted successfully.');
+                setDeleteProvinceTarget(null);
             },
             onFinish: () => {
                 setIsSubmitting(false);
@@ -386,6 +399,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                                                 onClick={() =>
                                                     handleDeleteProvince(
                                                         province.id,
+                                                        province.name,
                                                     )
                                                 }
                                                 disabled={isSubmitting}
@@ -496,6 +510,37 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-5 w-5" />
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog
+                open={deleteProvinceTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteProvinceTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete province</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteProvinceTarget
+                                ? `This will permanently delete ${deleteProvinceTarget.name}.`
+                                : 'This will permanently delete the selected province.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isSubmitting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={confirmDeleteProvince}
+                            disabled={isSubmitting}
+                        >
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
