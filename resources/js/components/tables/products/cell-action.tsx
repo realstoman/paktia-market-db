@@ -46,9 +46,10 @@ import {
     ProductImage,
     ProductSize,
     ProductType,
+    SharedData,
 } from '@/types';
 import { formatAfn } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     Edit,
     Eye,
@@ -73,6 +74,7 @@ interface CellActionProps {
     types: ProductType[];
     kitchens: Kitchen[];
     sizes: ProductSize[];
+    canDelete: boolean;
 }
 
 const MAX_IMAGES = 10;
@@ -120,8 +122,11 @@ export const CellAction: React.FC<CellActionProps> = ({
     types,
     kitchens,
     sizes,
+    canDelete,
 }) => {
     const { t, isRtl } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
+    const canDeleteProduct = canDelete && auth.is_super_admin === true;
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -389,10 +394,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Edit className="mr-2 h-4 w-4" />
                         {t('products.actions.edit', 'Edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                        {t('products.actions.delete', 'Delete')}
-                    </DropdownMenuItem>
+                    {canDeleteProduct ? (
+                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                            <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                            {t('products.actions.delete', 'Delete')}
+                        </DropdownMenuItem>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -1014,38 +1021,40 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {t(
-                                'products.messages.productDeleteTitle',
-                                'Delete Product',
-                            )}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t(
-                                'products.messages.productDeleteDescription',
-                                'This will permanently remove the product and all its images.',
-                            )}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-5 w-5" />
-                            {t('products.actions.cancel', 'Cancel')}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={isSubmitting}
-                        >
-                            <Trash2 className="mr-2 h-5 w-5" />
-                            {t('products.actions.delete', 'Delete')}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {canDeleteProduct ? (
+                <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t(
+                                    'products.messages.productDeleteTitle',
+                                    'Delete Product',
+                                )}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t(
+                                    'products.messages.productDeleteDescription',
+                                    'This will permanently remove the product and all its images.',
+                                )}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isSubmitting}>
+                                <X className="mr-2 h-5 w-5" />
+                                {t('products.actions.cancel', 'Cancel')}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={isSubmitting}
+                            >
+                                <Trash2 className="mr-2 h-5 w-5" />
+                                {t('products.actions.delete', 'Delete')}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            ) : null}
         </>
     );
 };

@@ -42,9 +42,10 @@ import {
     ProductCategory,
     ProductSize,
     ProductType,
+    SharedData,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     Edit3,
     ImagePlus,
@@ -89,6 +90,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     isLoading = false,
 }) => {
     const { t } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
+    const canDelete = auth.is_super_admin === true;
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
     const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
@@ -545,8 +548,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     }, [types]);
 
     const tableColumns = useMemo(
-        () => buildColumns(categories, types, kitchens, sizes, t),
-        [categories, kitchens, sizes, t, types],
+        () => buildColumns(categories, types, kitchens, sizes, t, canDelete),
+        [canDelete, categories, kitchens, sizes, t, types],
     );
 
     const filteredData = useMemo(() => {
