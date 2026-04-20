@@ -43,6 +43,7 @@ import {
     Currency,
     InventoryCategory,
     InventoryItem,
+    InventoryItemImage,
     InventoryType,
     SharedData,
     Unit,
@@ -80,6 +81,27 @@ interface PendingImage {
 }
 
 const MAX_EDIT_IMAGES = 10;
+
+const resolveImageUrl = (image: InventoryItemImage) => {
+    const urlCandidate = image.url ?? image.path ?? '';
+    if (!urlCandidate) return '';
+    if (
+        urlCandidate.startsWith('http://') ||
+        urlCandidate.startsWith('https://')
+    ) {
+        return urlCandidate;
+    }
+    if (urlCandidate.startsWith('/storage/')) {
+        return urlCandidate;
+    }
+    if (urlCandidate.startsWith('storage/')) {
+        return `/${urlCandidate}`;
+    }
+    if (urlCandidate.startsWith('/')) {
+        return urlCandidate;
+    }
+    return `/storage/${urlCandidate}`;
+};
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
@@ -146,6 +168,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editUsable, setEditUsable] = useState(!!data.is_usable);
     const [editReceipt, setEditReceipt] = useState<File | null>(null);
     const [editImages, setEditImages] = useState<PendingImage[]>([]);
+    const [removedExistingImageIds, setRemovedExistingImageIds] = useState<
+        number[]
+    >([]);
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isEditSubmitting, setIsEditSubmitting] = useState(false);
     const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
@@ -154,6 +179,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         () => (data.transactions ?? []).slice(0, 5),
         [data.transactions],
     );
+    const existingImages = useMemo(() => data.images ?? [], [data.images]);
     const usageTransactions = useMemo(
         () =>
             (data.transactions ?? []).filter(
@@ -208,6 +234,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditDescription(data.description ?? '');
         setEditUsable(!!data.is_usable);
         setEditReceipt(null);
+        setRemovedExistingImageIds([]);
         editImages.forEach((image) => URL.revokeObjectURL(image.preview));
         setEditImages([]);
         setEditErrors({});
@@ -217,7 +244,10 @@ export const CellAction: React.FC<CellActionProps> = ({
         if (!files) return;
 
         setEditImages((prev) => {
-            const remainingSlots = MAX_EDIT_IMAGES - prev.length;
+            const remainingSlots =
+                MAX_EDIT_IMAGES -
+                (existingImages.length - removedExistingImageIds.length) -
+                prev.length;
             const nextFiles = Array.from(files).slice(0, remainingSlots);
             return [
                 ...prev,
@@ -228,6 +258,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                 })),
             ];
         });
+    };
+
+    const toggleExistingImageRemoval = (imageId: number) => {
+        setRemovedExistingImageIds((prev) =>
+            prev.includes(imageId)
+                ? prev.filter((id) => id !== imageId)
+                : [...prev, imageId],
+        );
     };
 
     const removeEditImage = (id: string) => {
@@ -336,6 +374,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 description: editDescription.trim() || null,
                 is_usable: editUsable,
                 receipt: editReceipt,
+                remove_image_ids: removedExistingImageIds,
                 images: editImages.map((image) => image.file),
             },
             {
@@ -839,6 +878,73 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     </p>
                                 ) : null}
                                 <InputError message={editErrors.receipt} />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    {t(
+                                        'inventory.rowActions.currentImages',
+                                        'Current Images',
+                                    )}
+                                </Label>
+                                <div className="rounded-lg border p-4">
+                                    {existingImages.length === 0 ? (
+                                        <span className="text-sm text-muted-foreground">
+                                            {t(
+                                                'inventory.rowActions.noCurrentImages',
+                                                'No current images available.',
+                                            )}
+                                        </span>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {existingImages.map((image) => {
+                                                const markedForRemoval =
+                                                    removedExistingImageIds.includes(
+                                                        image.id,
+                                                    );
+
+                                                return (
+                                                    <div
+                                                        key={image.id}
+                                                        className="relative h-20 w-20 overflow-hidden rounded-md border"
+                                                    >
+                                                        <img
+                                                            src={resolveImageUrl(
+                                                                image,
+                                                            )}
+                                                            alt={t(
+                                                                'inventory.rowActions.imageAlt',
+                                                                'Inventory image',
+                                                            )}
+                                                            className={`h-full w-full object-cover ${markedForRemoval ? 'opacity-35' : ''}`}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                            onClick={() =>
+                                                                toggleExistingImageRemoval(
+                                                                    image.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                <InputError
+                                    message={
+                                        editErrors.remove_image_ids ??
+                                        Object.entries(editErrors).find(
+                                            ([key]) =>
+                                                key.startsWith(
+                                                    'remove_image_ids.',
+                                                ),
+                                        )?.[1]
+                                    }
+                                />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>

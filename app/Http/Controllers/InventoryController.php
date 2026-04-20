@@ -317,7 +317,22 @@ class InventoryController extends Controller
             'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             'images' => 'nullable|array|max:10',
             'images.*' => self::IMAGE_RULE,
+            'remove_image_ids' => 'nullable|array',
+            'remove_image_ids.*' => 'integer|exists:inventory_item_images,id',
         ]);
+
+        $removeImageIds = collect($validated['remove_image_ids'] ?? []);
+        if ($removeImageIds->isNotEmpty()) {
+            $validCount = $inventory->images()
+                ->whereIn('id', $removeImageIds)
+                ->count();
+
+            if ($validCount !== $removeImageIds->count()) {
+                throw ValidationException::withMessages([
+                    'remove_image_ids' => 'One or more images do not belong to this inventory item.',
+                ]);
+            }
+        }
 
         $total = (float) $validated['quantity'] * (float) $validated['unit_price'];
         if ((float) $validated['paid_amount'] > $total) {
@@ -326,7 +341,17 @@ class InventoryController extends Controller
             ])->withInput();
         }
 
-        DB::transaction(function () use ($inventory, $validated, $request) {
+        $remainingImageCount = $inventory->images()
+            ->whereNotIn('id', $removeImageIds->all())
+            ->count();
+        $newImages = $request->file('images', []);
+        if (($remainingImageCount + count($newImages)) > 10) {
+            throw ValidationException::withMessages([
+                'images' => 'An inventory item can have at most 10 images.',
+            ]);
+        }
+
+        DB::transaction(function () use ($inventory, $validated, $request, $removeImageIds) {
             $currency = Currency::where(
                 'code',
                 strtoupper($validated['currency_code']),
@@ -365,6 +390,15 @@ class InventoryController extends Controller
             }
 
             $inventory->update($payload);
+
+            if ($removeImageIds->isNotEmpty()) {
+                $imagesToRemove = $inventory->images()
+                    ->whereIn('id', $removeImageIds)
+                    ->get();
+
+                Storage::disk('public')->delete($imagesToRemove->pluck('path')->all());
+                $inventory->images()->whereIn('id', $removeImageIds)->delete();
+            }
 
             $existingImageCount = $inventory->images()->count();
             $newImages = $request->file('images', []);
