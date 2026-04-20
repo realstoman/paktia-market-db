@@ -8,7 +8,6 @@ use App\Http\Resources\ActivityLogResource;
 use App\Models\AuditLog;
 use App\Models\AuditLogArchive;
 use App\Models\Branch;
-use App\Models\Branch as BranchModel;
 use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
@@ -88,7 +87,7 @@ class ActivityLogController extends Controller
                     ->select('id', 'name', 'email')
                     ->orderBy('name')
                     ->get(),
-                'branches' => BranchModel::query()
+                'branches' => Branch::query()
                     ->select('id', 'name')
                     ->orderBy('name')
                     ->get(),
@@ -156,7 +155,7 @@ class ActivityLogController extends Controller
             PayrollRun::class,
             PayrollRunItem::class,
             Product::class,
-            BranchModel::class,
+            Branch::class,
             Kitchen::class,
             User::class,
             SystemSetting::class,
