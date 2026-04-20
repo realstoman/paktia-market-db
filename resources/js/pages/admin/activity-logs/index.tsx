@@ -1,6 +1,7 @@
 'use client';
 
 import { ActivityLogDiff } from '@/components/activity-log-diff';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,13 +13,6 @@ import {
 } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { BreadcrumbItem } from '@/types';
@@ -225,78 +219,78 @@ export default function ActivityLogsIndexPage({
                         </div>
                         <div className="space-y-1">
                             <Label>Action</Label>
-                            <Select
-                                value={state.action || 'all'}
+                            <SearchableDropdown
+                                value={state.action}
+                                options={[
+                                    { value: '', label: 'All actions' },
+                                    ...referenceData.actions.map((action) => ({
+                                        value: action,
+                                        label: action,
+                                    })),
+                                ]}
                                 onValueChange={(value) =>
-                                    setState((s) => ({
-                                        ...s,
-                                        action: value === 'all' ? '' : value,
-                                    }))
+                                    setState((s) => ({ ...s, action: value }))
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All actions" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All actions</SelectItem>
-                                    {referenceData.actions.map((action) => (
-                                        <SelectItem key={action} value={action}>
-                                            {action}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                placeholder="All actions"
+                                searchPlaceholder="Search actions…"
+                            />
                         </div>
                         <div className="space-y-1">
                             <Label>Entity</Label>
-                            <Select
-                                value={state.auditable_type || 'all'}
+                            <SearchableDropdown
+                                value={state.auditable_type}
+                                options={[
+                                    { value: '', label: 'All entities' },
+                                    ...referenceData.auditableTypes.map((type) => ({
+                                        value: type.value,
+                                        label: type.label,
+                                    })),
+                                ]}
                                 onValueChange={(value) =>
                                     setState((s) => ({
                                         ...s,
-                                        auditable_type: value === 'all' ? '' : value,
+                                        auditable_type: value,
                                     }))
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All entities" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All entities</SelectItem>
-                                    {referenceData.auditableTypes.map((type) => (
-                                        <SelectItem key={type.value} value={type.value}>
-                                            {type.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                placeholder="All entities"
+                                searchPlaceholder="Search entities…"
+                            />
                         </div>
                         <div className="space-y-1">
                             <Label>User</Label>
-                            <Select
-                                value={state.user_id || 'all'}
+                            <SearchableDropdown
+                                value={state.user_id}
+                                options={[
+                                    { value: '', label: 'All users' },
+                                    ...referenceData.users.map((user) => ({
+                                        value: user.id.toString(),
+                                        label: `${user.name} (${user.email})`,
+                                    })),
+                                ]}
                                 onValueChange={(value) =>
-                                    setState((s) => ({
-                                        ...s,
-                                        user_id: value === 'all' ? '' : value,
-                                    }))
+                                    setState((s) => ({ ...s, user_id: value }))
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All users" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All users</SelectItem>
-                                    {referenceData.users.map((user) => (
-                                        <SelectItem
-                                            key={user.id}
-                                            value={user.id.toString()}
-                                        >
-                                            {user.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                placeholder="All users"
+                                searchPlaceholder="Search by name or email…"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label>Branch</Label>
+                            <SearchableDropdown
+                                value={state.branch_id}
+                                options={[
+                                    { value: '', label: 'All branches' },
+                                    ...referenceData.branches.map((branch) => ({
+                                        value: branch.id.toString(),
+                                        label: branch.name,
+                                    })),
+                                ]}
+                                onValueChange={(value) =>
+                                    setState((s) => ({ ...s, branch_id: value }))
+                                }
+                                placeholder="All branches"
+                                searchPlaceholder="Search branches…"
+                            />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="al-from">From</Label>
