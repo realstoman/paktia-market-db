@@ -42,5 +42,8 @@ return [
         'idempotency_days' => (int) env('POS_RETENTION_IDEMPOTENCY_DAYS', 2),
         'sync_credentials_days' => (int) env('POS_RETENTION_SYNC_CREDENTIAL_DAYS', 90),
         'projection_days' => (int) env('POS_RETENTION_PROJECTION_DAYS', 400),
+        'audit_days' => (int) env('POS_RETENTION_AUDIT_DAYS', 30),
+        'audit_archive_disk' => env('POS_AUDIT_ARCHIVE_DISK', 'local'),
+        'audit_archive_path' => env('POS_AUDIT_ARCHIVE_PATH', 'audit-archive'),
     ],
 ];
