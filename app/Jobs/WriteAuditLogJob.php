@@ -27,12 +27,7 @@ class WriteAuditLogJob implements ShouldQueue
 
     public function handle(): void
     {
-        try {
-            AuditLog::query()->create($this->attributes);
-        } catch (Throwable $e) {
-            // Never let audit failures break the queue worker beyond this job.
-            report($e);
-        }
+        AuditLog::query()->create($this->attributes);
     }
 
     public function failed(Throwable $exception): void
