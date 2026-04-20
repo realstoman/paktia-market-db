@@ -9,5 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('pos:prune-runtime-data')->dailyAt('02:30');
+Schedule::command('pos:archive-audit-logs')->dailyAt('02:45');
 Schedule::command('projection:refresh-recent-branch-daily-metrics --hours=36')->everyThirtyMinutes();
 Schedule::command('projection:health-check')->hourly();
