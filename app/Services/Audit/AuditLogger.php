@@ -47,7 +47,13 @@ class AuditLogger
             'meta' => $meta,
         ];
 
-        WriteAuditLogJob::dispatch($attributes);
+        if (config('pos.audit.use_queue', false)) {
+            WriteAuditLogJob::dispatch($attributes);
+
+            return;
+        }
+
+        WriteAuditLogJob::dispatchSync($attributes);
     }
 
     /**

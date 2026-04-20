@@ -22,7 +22,7 @@ class WriteAuditLogJob implements ShouldQueue
      */
     public function __construct(public array $attributes)
     {
-        $this->onQueue('audit');
+        $this->onQueue(config('pos.audit.queue', 'audit'));
     }
 
     public function handle(): void
