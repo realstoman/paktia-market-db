@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\AuditLog;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Throwable;
+
+class WriteAuditLogJob implements ShouldQueue
+{
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function __construct(public array $attributes)
+    {
+        $this->onQueue('audit');
+    }
+
+    public function handle(): void
+    {
+        try {
+            AuditLog::query()->create($this->attributes);
+        } catch (Throwable $e) {
+            // Never let audit failures break the queue worker beyond this job.
+            report($e);
+        }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        report($exception);
+    }
+}
