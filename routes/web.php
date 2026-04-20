@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\PermissionEnum;
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -111,6 +112,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'updateKitchenCategory'])->name('kitchen-categories.update');
         Route::delete('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'destroyKitchenCategory'])->name('kitchen-categories.destroy');
         Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
+
+        // Activity / Audit Logs
+        Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])
+            ->name('admin.activity-logs.index');
+        Route::get('admin/activity-logs/archives/{archive}/download', [ActivityLogController::class, 'downloadArchive'])
+            ->name('admin.activity-logs.archives.download');
+        Route::get('admin/activity-logs/{auditLog}', [ActivityLogController::class, 'show'])
+            ->name('admin.activity-logs.show');
     });
 
     // Products & Orders
