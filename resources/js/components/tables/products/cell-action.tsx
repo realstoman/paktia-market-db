@@ -886,17 +886,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                         )}
                                                         className={`h-full w-full object-cover ${marked ? 'opacity-35' : ''}`}
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleRemoveExistingImage(
-                                                                image.id,
-                                                            )
-                                                        }
-                                                        className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </button>
+                                                    {canDeleteProduct ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleRemoveExistingImage(
+                                                                    image.id,
+                                                                )
+                                                            }
+                                                            className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
+                                                    ) : null}
                                                 </div>
                                             );
                                         })

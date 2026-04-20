@@ -22,6 +22,7 @@ interface BuildColumnsProps {
     onViewAttachment: (schedule: EmployeeContractPaymentSchedule) => void;
     onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
     canApprove: boolean;
+    canDelete: boolean;
 }
 
 export function buildColumns({
@@ -31,6 +32,7 @@ export function buildColumns({
     onViewAttachment,
     onReviewApproval,
     canApprove,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<EmployeeContractPaymentSchedule>[] {
     return [
         {
@@ -135,6 +137,7 @@ export function buildColumns({
                     onPrint={onPrint}
                     onReviewApproval={onReviewApproval}
                     canApprove={canApprove}
+                    canDelete={canDelete}
                 />
             ),
         },

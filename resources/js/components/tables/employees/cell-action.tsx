@@ -51,9 +51,10 @@ import {
     Employee,
     EmployeePosition,
     EmploymentType,
+    SharedData,
     Shift,
 } from '@/types';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
     CheckCircle,
@@ -77,6 +78,7 @@ interface CellActionProps {
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
     shifts: Shift[];
+    canDelete: boolean;
 }
 
 interface SelectedAttachment {
@@ -131,7 +133,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     employmentTypes,
     employeePositions,
     shifts,
+    canDelete,
 }) => {
+    const { auth } = usePage<SharedData>().props;
+    const canDeleteEmployee = canDelete && auth.is_super_admin === true;
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -484,10 +489,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <Ban className="mr-2 h-4 w-4" />
                         {data.is_active ? 'Mark Inactive' : 'Mark Active'}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
-                    </DropdownMenuItem>
+                    {canDeleteEmployee ? (
+                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                            <Trash className="mr-2 h-4 w-4 text-red-600" />
+                            Delete
+                        </DropdownMenuItem>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -1286,30 +1293,32 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </AlertDialogContent>
             </AlertDialog>
 
-            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete employee</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will permanently remove the employee record.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-4 w-4" />
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={isSubmitting}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete employee
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {canDeleteEmployee ? (
+                <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete employee</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will permanently remove the employee record.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isSubmitting}>
+                                <X className="mr-2 h-4 w-4" />
+                                Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={isSubmitting}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete employee
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            ) : null}
         </>
     );
 };

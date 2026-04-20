@@ -28,10 +28,11 @@ import {
     Employee,
     EmployeePosition,
     EmploymentType,
+    SharedData,
     Shift,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     BriefcaseBusiness,
     Clock3,
@@ -95,6 +96,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     shifts,
     isLoading = false,
 }) => {
+    const { auth } = usePage<SharedData>().props;
+    const canDelete = auth.is_super_admin === true;
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -546,8 +549,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
 
     const tableColumns = useMemo(
         () =>
-            buildColumns(branches, employmentTypes, employeePositions, shifts),
-        [branches, employmentTypes, employeePositions, shifts],
+            buildColumns(
+                branches,
+                employmentTypes,
+                employeePositions,
+                shifts,
+                canDelete,
+            ),
+        [branches, canDelete, employmentTypes, employeePositions, shifts],
     );
 
     const attachmentError =
@@ -849,21 +858,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDeleteEmploymentType(
-                                                            type,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        isEmploymentTypeSubmitting
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
+                                                {canDelete ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDeleteEmploymentType(
+                                                                type,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            isEmploymentTypeSubmitting
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                                    </Button>
+                                                ) : null}
                                             </div>
                                         </div>
                                     ))
@@ -1006,17 +1017,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDeleteShift(shift)
-                                                    }
-                                                    disabled={isShiftSubmitting}
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
+                                                {canDelete ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDeleteShift(
+                                                                shift,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            isShiftSubmitting
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                                    </Button>
+                                                ) : null}
                                             </div>
                                         </div>
                                     ))
@@ -1142,21 +1159,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        handleDeletePosition(
-                                                            position,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        isPositionSubmitting
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
+                                                {canDelete ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            handleDeletePosition(
+                                                                position,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            isPositionSubmitting
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                                    </Button>
+                                                ) : null}
                                             </div>
                                         </div>
                                     ))
