@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
@@ -22,10 +23,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { CashMovementType } from '@/types';
+import { CashMovementType, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Link, router } from '@inertiajs/react';
-import { Plus, Tags } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Plus, Tags, Trash2 } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
 
@@ -62,11 +63,20 @@ interface CashMovementTypeClientProps {
 export function CashMovementTypeClient({
     movementTypes,
 }: CashMovementTypeClientProps) {
+    const { auth } = usePage<SharedData>().props;
+    const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingType, setEditingType] =
         React.useState<CashMovementType | null>(null);
     const [form, setForm] = React.useState<MovementTypeFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
+    const [deleteTarget, setDeleteTarget] =
+        React.useState<CashMovementType | null>(null);
+    const [replacementTypeId, setReplacementTypeId] = React.useState('');
+    const [deleteErrors, setDeleteErrors] = React.useState<
+        Record<string, string>
+    >({});
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = React.useState(false);
 
     const openCreate = React.useCallback(() => {
         setEditingType(null);
@@ -118,10 +128,47 @@ export function CashMovementTypeClient({
     }, [editingType, form]);
 
     const remove = React.useCallback((movementType: CashMovementType) => {
-        router.delete(`/finance/cash-movement-types/${movementType.id}`, {
-            preserveScroll: true,
-        });
+        setDeleteTarget(movementType);
+        setReplacementTypeId('');
+        setDeleteErrors({});
     }, []);
+
+    const replacementMovementOptions = React.useMemo(
+        () =>
+            movementTypes
+                .filter((movementType) => movementType.id !== deleteTarget?.id)
+                .map((movementType) => ({
+                    value: String(movementType.id),
+                    label: movementType.name,
+                })),
+        [deleteTarget?.id, movementTypes],
+    );
+
+    const confirmDelete = React.useCallback(() => {
+        if (!deleteTarget || isDeleteSubmitting) {
+            return;
+        }
+
+        setIsDeleteSubmitting(true);
+        setDeleteErrors({});
+
+        router.delete(`/finance/cash-movement-types/${deleteTarget.id}`, {
+            preserveScroll: true,
+            data: replacementTypeId
+                ? { replacement_movement_type_id: Number(replacementTypeId) }
+                : {},
+            onSuccess: () => {
+                setDeleteTarget(null);
+                setReplacementTypeId('');
+            },
+            onError: (errors) => {
+                setDeleteErrors(errors);
+            },
+            onFinish: () => {
+                setIsDeleteSubmitting(false);
+            },
+        });
+    }, [deleteTarget, isDeleteSubmitting, replacementTypeId]);
 
     const filteredMovementTypes = React.useMemo(() => {
         return movementTypes.filter((movementType) => {
@@ -139,8 +186,9 @@ export function CashMovementTypeClient({
             buildColumns({
                 onEdit: openEdit,
                 onDelete: remove,
+                canDelete,
             }),
-        [openEdit, remove],
+        [canDelete, openEdit, remove],
     );
 
     const toolbar = (
@@ -344,6 +392,93 @@ export function CashMovementTypeClient({
                         </Button>
                         <Button onClick={submit}>
                             {editingType ? 'Update Type' : 'Create Type'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteTarget(null);
+                        setReplacementTypeId('');
+                        setDeleteErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Delete Movement Type</DialogTitle>
+                        <DialogDescription>
+                            {deleteTarget?.movement_count
+                                ? 'This movement type is already assigned to cash movement records. Reassign those records before deleting it.'
+                                : 'This will permanently remove the selected movement type.'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {deleteTarget ? (
+                        <div className="space-y-4">
+                            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                                <div className="font-medium">
+                                    {deleteTarget.name}
+                                </div>
+                                <div className="mt-1 text-muted-foreground">
+                                    {deleteTarget.movement_count
+                                        ? `${formatNumber(deleteTarget.movement_count)} movement records will be moved to another type.`
+                                        : 'No cash movement records are currently assigned to this type.'}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Replacement Movement Type</Label>
+                                <SearchableDropdown
+                                    value={replacementTypeId}
+                                    options={replacementMovementOptions}
+                                    onValueChange={setReplacementTypeId}
+                                    placeholder="Select replacement movement type"
+                                    searchPlaceholder="Search movement types..."
+                                    emptyText="No replacement movement type found."
+                                />
+                                <InputError
+                                    message={
+                                        deleteErrors.replacement_movement_type_id
+                                    }
+                                />
+                                {deleteTarget.movement_count &&
+                                replacementMovementOptions.length === 0 ? (
+                                    <p className="text-xs text-amber-600">
+                                        Create another movement type before
+                                        deleting this one.
+                                    </p>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
+
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setReplacementTypeId('');
+                                setDeleteErrors({});
+                            }}
+                            disabled={isDeleteSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={
+                                isDeleteSubmitting ||
+                                (Boolean(deleteTarget?.movement_count) &&
+                                    !replacementTypeId)
+                            }
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
                         </Button>
                     </div>
                 </DialogContent>

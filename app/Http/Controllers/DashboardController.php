@@ -6,6 +6,7 @@ use App\Enums\PermissionEnum;
 use App\Services\Dashboard\DashboardService;
 use App\Services\Kitchen\KitchenDashboardService;
 use App\Services\Operations\OperationsDashboardService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +19,7 @@ class DashboardController extends Controller
         private readonly KitchenDashboardService $kitchenDashboardService,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
 
@@ -37,6 +38,14 @@ class DashboardController extends Controller
                 user: $user,
                 reportDate: $validated['report_date'] ?? null,
             ));
+        }
+
+        if ($user->hasRole('finance') && ! $user->hasRole('super-admin')) {
+            return redirect()->route('finance.index');
+        }
+
+        if ($user->hasRole('inventory') && ! $user->hasRole('super-admin')) {
+            return redirect('/inventory');
         }
 
         $validated = $request->validate([

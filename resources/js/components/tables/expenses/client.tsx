@@ -66,6 +66,7 @@ const APPROVAL_OPTIONS = [
     { value: 'draft', label: 'Draft' },
     { value: 'submitted', label: 'Submitted' },
     { value: 'approved', label: 'Approved' },
+    { value: 'cancelled', label: 'Cancelled' },
 ];
 
 interface ExpenseFormState {
@@ -358,13 +359,14 @@ export function ExpenseClient({
             buildColumns({
                 onEdit: openEdit,
                 onApprove: setApprovalTarget,
+                onCancel: reject,
                 onViewAttachment: setAttachmentPath,
                 onPrint: (expense) => {
                     setPrintExpense(expense);
                     setIsPrintOpen(true);
                 },
             }),
-        [openEdit],
+        [openEdit, reject],
     );
 
     const toolbar = (
@@ -644,6 +646,10 @@ export function ExpenseClient({
                                         approval_status: value,
                                     }))
                                 }
+                                disabled={
+                                    editingExpense?.approval_status ===
+                                    'approved'
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select approval status" />
@@ -760,7 +766,8 @@ export function ExpenseClient({
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             Confirm whether you want to approve this expense or
-                            send it back to draft for correction.
+                            send it back for correction. Approved expenses can
+                            later be cancelled, but not edited.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

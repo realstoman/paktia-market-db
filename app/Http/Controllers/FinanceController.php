@@ -12,6 +12,7 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Services\Finance\PayrollExpenseSyncService;
 use App\Services\Projection\BranchDailyMetricReader;
 use App\Services\Projection\ProjectionHealthService;
 use App\Services\Projection\ProjectionDispatchService;
@@ -30,10 +31,13 @@ class FinanceController extends Controller
         private readonly ProjectionDispatchService $projectionDispatchService,
         private readonly BranchDailyMetricReader $branchDailyMetricReader,
         private readonly ProjectionHealthService $projectionHealthService,
+        private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
     public function index(Request $request)
     {
+        $this->payrollExpenseSyncService->syncMissingPaidItems();
+
         $validated = $request->validate([
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
@@ -70,6 +74,7 @@ class FinanceController extends Controller
             : (float) Expense::query()
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+                ->where('approval_status', 'approved')
                 ->whereBetween('expense_date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
@@ -115,6 +120,7 @@ class FinanceController extends Controller
             ? (float) DB::table('expenses')
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->where('payment_method', 'cash')
+                ->where('approval_status', 'approved')
                 ->sum('amount')
             : 0.0;
 
@@ -258,6 +264,7 @@ class FinanceController extends Controller
             $expenseTrend = Expense::query()
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+                ->where('approval_status', 'approved')
                 ->whereBetween('expense_date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
@@ -315,6 +322,7 @@ class FinanceController extends Controller
             ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->when($category, fn ($query) => $query->where('expenses.expense_category_id', $category))
+            ->where('expenses.approval_status', 'approved')
             ->whereBetween('expense_date', [
                 $startDate->toDateString(),
                 $endDate->toDateString(),

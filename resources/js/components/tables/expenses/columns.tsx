@@ -41,6 +41,10 @@ function badgeTone(status?: string) {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
     }
 
+    if (status === 'cancelled') {
+        return 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200';
+    }
+
     if (status === 'submitted') {
         return 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200';
     }
@@ -51,6 +55,7 @@ function badgeTone(status?: string) {
 interface BuildColumnsProps {
     onEdit: (expense: Expense) => void;
     onApprove: (expense: Expense) => void;
+    onCancel: (expense: Expense) => void;
     onViewAttachment: (path: string) => void;
     onPrint: (expense: Expense) => void;
 }
@@ -58,6 +63,7 @@ interface BuildColumnsProps {
 export function buildColumns({
     onEdit,
     onApprove,
+    onCancel,
     onViewAttachment,
     onPrint,
 }: BuildColumnsProps): ColumnDef<Expense>[] {
@@ -162,6 +168,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onApprove={onApprove}
+                    onCancel={onCancel}
                     onPrint={onPrint}
                 />
             ),

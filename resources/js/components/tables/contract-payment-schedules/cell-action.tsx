@@ -26,6 +26,7 @@ interface CellActionProps {
     onViewAttachment: (schedule: EmployeeContractPaymentSchedule) => void;
     onReviewApproval: (schedule: EmployeeContractPaymentSchedule) => void;
     canApprove: boolean;
+    canDelete: boolean;
 }
 
 export function CellAction({
@@ -36,6 +37,7 @@ export function CellAction({
     onViewAttachment,
     onReviewApproval,
     canApprove,
+    canDelete,
 }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
@@ -69,10 +71,12 @@ export function CellAction({
                         Review Approval
                     </DropdownMenuItem>
                 ) : null}
-                <DropdownMenuItem onClick={() => onDelete(data)}>
-                    <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                    Delete
-                </DropdownMenuItem>
+                {canDelete ? (
+                    <DropdownMenuItem onClick={() => onDelete(data)}>
+                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                        Delete
+                    </DropdownMenuItem>
+                ) : null}
             </DropdownMenuContent>
         </DropdownMenu>
     );

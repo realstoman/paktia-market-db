@@ -8,6 +8,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -148,6 +158,7 @@ export function ReceiptPreviewDialog({
     const [discount, setDiscount] = useState(
         String(Number(order?.discount_amount ?? 0) || 0),
     );
+    const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
     const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
     const canFinalizePayment =
         !!order &&
@@ -303,21 +314,11 @@ export function ReceiptPreviewDialog({
             return;
         }
 
-        const confirmed = window.confirm(
-            t(
-                'orders.receipt.confirmPaymentCompletion',
-                'Confirm payment completion and post this order to finance?',
-            ),
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
         onCompletePayment(order, {
             discountAmount: discountValue,
             paymentMethod,
         });
+        setIsConfirmPaymentOpen(false);
     };
 
     return (
@@ -326,6 +327,7 @@ export function ReceiptPreviewDialog({
             onOpenChange={(nextOpen) => {
                 if (!nextOpen) {
                     setDiscount('0');
+                    setIsConfirmPaymentOpen(false);
                 }
                 onOpenChange(nextOpen);
             }}
@@ -439,7 +441,9 @@ export function ReceiptPreviewDialog({
 
                             {canFinalizePayment ? (
                                 <Button
-                                    onClick={handleCompletePayment}
+                                    onClick={() =>
+                                        setIsConfirmPaymentOpen(true)
+                                    }
                                     className="gap-2"
                                     disabled={
                                         isCompletingPayment ||
@@ -675,6 +679,44 @@ export function ReceiptPreviewDialog({
                     </div>
                 ) : null}
             </DialogContent>
+
+            <AlertDialog
+                open={isConfirmPaymentOpen}
+                onOpenChange={setIsConfirmPaymentOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {t(
+                                'orders.receipt.confirmPaymentCompletionTitle',
+                                'Complete payment?',
+                            )}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                'orders.receipt.confirmPaymentCompletion',
+                                'Confirm payment completion and post this order to finance?',
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {t('common.cancel', 'Cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleCompletePayment}
+                            disabled={isCompletingPayment || !canFinalizePayment}
+                        >
+                            {isCompletingPayment
+                                ? t('common.processing', 'Processing...')
+                                : t(
+                                      'orders.receipt.markPaymentCompleted',
+                                      'Payment Completed',
+                                  )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Dialog>
     );
 }

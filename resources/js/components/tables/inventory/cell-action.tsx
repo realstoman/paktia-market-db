@@ -44,11 +44,12 @@ import {
     InventoryCategory,
     InventoryItem,
     InventoryType,
+    SharedData,
     Unit,
     Vendor,
 } from '@/types';
 import { formatPrice } from '@/utils/format';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
     CalendarClock,
     Eye,
@@ -90,7 +91,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     inventoryTypes,
 }) => {
     const { t, locale } = useLocalization();
+    const { auth } = usePage<SharedData>().props;
     const VENDOR_NONE = '__none__';
+    const canDeleteInventoryItem =
+        auth.is_super_admin === true || auth.roles.includes('super-admin');
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
@@ -436,69 +440,74 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <PackagePlus className="mr-2 h-4 w-4" />
                         {t('inventory.rowActions.restock', 'Restock')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => setIsDeleteOpen(true)}
-                        className="text-red-600 focus:text-red-600"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {t('inventory.common.delete', 'Delete')}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-            <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {t(
-                                'inventory.rowActions.deleteTitle',
-                                'Delete Inventory Item?',
-                            )}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t(
-                                'inventory.rowActions.deleteDescription',
-                                'This will permanently delete ":name" and cascade related records (images and transactions).',
-                            ).replace(':name', data.name)}
-                            <br />
-                            <br />
-                            {t(
-                                'inventory.rowActions.currentStock',
-                                'Current stock',
-                            )}
-                            : {Number(data.quantity || 0)}{' '}
-                            {data.unit ?? t('inventory.common.unit', 'unit')}
-                            <br />
-                            {t(
-                                'inventory.rowActions.paymentDue',
-                                'Payment due',
-                            )}
-                            : {data.currency_symbol ?? ''}
-                            {formatPrice(
-                                Math.max(
-                                    0,
-                                    Number(data.outstanding_amount ?? 0),
-                                ),
-                            )}
-                            {data.vendor?.name
-                                ? ` (Vendor: ${data.vendor.name})`
-                                : ''}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleteSubmitting}>
-                            {t('inventory.common.cancel', 'Cancel')}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleteSubmitting}
+                    {canDeleteInventoryItem ? (
+                        <DropdownMenuItem
+                            onClick={() => setIsDeleteOpen(true)}
+                            className="text-red-600 focus:text-red-600"
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
                             {t('inventory.common.delete', 'Delete')}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                        </DropdownMenuItem>
+                    ) : null}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            {canDeleteInventoryItem ? (
+                <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t(
+                                    'inventory.rowActions.deleteTitle',
+                                    'Delete Inventory Item?',
+                                )}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t(
+                                    'inventory.rowActions.deleteDescription',
+                                    'This will permanently delete ":name" and cascade related records (images and transactions).',
+                                ).replace(':name', data.name)}
+                                <br />
+                                <br />
+                                {t(
+                                    'inventory.rowActions.currentStock',
+                                    'Current stock',
+                                )}
+                                : {Number(data.quantity || 0)}{' '}
+                                {data.unit ??
+                                    t('inventory.common.unit', 'unit')}
+                                <br />
+                                {t(
+                                    'inventory.rowActions.paymentDue',
+                                    'Payment due',
+                                )}
+                                : {data.currency_symbol ?? ''}
+                                {formatPrice(
+                                    Math.max(
+                                        0,
+                                        Number(data.outstanding_amount ?? 0),
+                                    ),
+                                )}
+                                {data.vendor?.name
+                                    ? ` (Vendor: ${data.vendor.name})`
+                                    : ''}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isDeleteSubmitting}>
+                                {t('inventory.common.cancel', 'Cancel')}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleDelete}
+                                disabled={isDeleteSubmitting}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('inventory.common.delete', 'Delete')}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            ) : null}
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-3xl">

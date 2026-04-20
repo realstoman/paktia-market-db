@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import InputError from '@/components/input-error';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,10 +22,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Currency, FinanceAccount } from '@/types';
+import { Branch, Currency, FinanceAccount, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Link, router } from '@inertiajs/react';
-import { BookOpenText, Plus } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { BookOpenText, Plus, Trash2 } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
 
@@ -79,6 +80,8 @@ export function ChartOfAccountsClient({
     branches,
     currencies,
 }: ChartOfAccountsClientProps) {
+    const { auth } = usePage<SharedData>().props;
+    const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingAccount, setEditingAccount] =
         React.useState<FinanceAccount | null>(null);
@@ -86,6 +89,14 @@ export function ChartOfAccountsClient({
     const [typeFilter, setTypeFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [branchFilter, setBranchFilter] = React.useState('all');
+    const [deleteTarget, setDeleteTarget] =
+        React.useState<FinanceAccount | null>(null);
+    const [replacementAccountId, setReplacementAccountId] =
+        React.useState('');
+    const [deleteErrors, setDeleteErrors] = React.useState<
+        Record<string, string>
+    >({});
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = React.useState(false);
 
     const branchOptions = React.useMemo(
         () =>
@@ -215,10 +226,51 @@ export function ChartOfAccountsClient({
     }, [editingAccount, form]);
 
     const remove = React.useCallback((account: FinanceAccount) => {
-        router.delete(`/finance/chart-of-accounts/${account.id}`, {
-            preserveScroll: true,
-        });
+        setDeleteTarget(account);
+        setReplacementAccountId('');
+        setDeleteErrors({});
     }, []);
+
+    const replacementAccountOptions = React.useMemo(
+        () =>
+            parentAccounts
+                .filter(
+                    (account) =>
+                        account.id !== deleteTarget?.id &&
+                        account.type === deleteTarget?.type,
+                )
+                .map((account) => ({
+                    value: String(account.id),
+                    label: `${account.code} - ${account.name}`,
+                })),
+        [deleteTarget?.id, deleteTarget?.type, parentAccounts],
+    );
+
+    const confirmDelete = React.useCallback(() => {
+        if (!deleteTarget || isDeleteSubmitting) {
+            return;
+        }
+
+        setIsDeleteSubmitting(true);
+        setDeleteErrors({});
+
+        router.delete(`/finance/chart-of-accounts/${deleteTarget.id}`, {
+            preserveScroll: true,
+            data: replacementAccountId
+                ? { replacement_account_id: Number(replacementAccountId) }
+                : {},
+            onSuccess: () => {
+                setDeleteTarget(null);
+                setReplacementAccountId('');
+            },
+            onError: (errors) => {
+                setDeleteErrors(errors);
+            },
+            onFinish: () => {
+                setIsDeleteSubmitting(false);
+            },
+        });
+    }, [deleteTarget, isDeleteSubmitting, replacementAccountId]);
 
     const filteredAccounts = React.useMemo(() => {
         return accounts.filter((account) => {
@@ -249,8 +301,9 @@ export function ChartOfAccountsClient({
             buildColumns({
                 onEdit: openEdit,
                 onDelete: remove,
+                canDelete,
             }),
-        [openEdit, remove],
+        [canDelete, openEdit, remove],
     );
 
     const toolbar = (
@@ -542,6 +595,94 @@ export function ChartOfAccountsClient({
                             {editingAccount
                                 ? 'Update Ledger Account'
                                 : 'Create Ledger Account'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteTarget(null);
+                        setReplacementAccountId('');
+                        setDeleteErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Delete Ledger Account</DialogTitle>
+                        <DialogDescription>
+                            {deleteTarget?.is_system
+                                ? 'System accounts cannot be deleted.'
+                                : deleteTarget?.dependency_count
+                                  ? 'This account is already used in finance records. Reassign those records before deleting it.'
+                                  : 'This will permanently remove the selected ledger account.'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {deleteTarget ? (
+                        <div className="space-y-4">
+                            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                                <div className="font-medium">
+                                    {deleteTarget.code} - {deleteTarget.name}
+                                </div>
+                                <div className="mt-1 text-muted-foreground">
+                                    {deleteTarget.dependency_count
+                                        ? `${formatNumber(deleteTarget.dependency_count)} linked finance records need reassignment.`
+                                        : 'No linked finance records were detected for this account.'}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Replacement Account</Label>
+                                <SearchableDropdown
+                                    value={replacementAccountId}
+                                    options={replacementAccountOptions}
+                                    onValueChange={setReplacementAccountId}
+                                    placeholder="Select replacement account"
+                                    searchPlaceholder="Search accounts..."
+                                    emptyText="No replacement account found."
+                                />
+                                <InputError
+                                    message={deleteErrors.replacement_account_id}
+                                />
+                                {deleteTarget.dependency_count &&
+                                replacementAccountOptions.length === 0 ? (
+                                    <p className="text-xs text-amber-600">
+                                        Create another {deleteTarget.type}{' '}
+                                        account before deleting this one.
+                                    </p>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
+
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setReplacementAccountId('');
+                                setDeleteErrors({});
+                            }}
+                            disabled={isDeleteSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={
+                                isDeleteSubmitting ||
+                                deleteTarget?.is_system === true ||
+                                (Boolean(deleteTarget?.dependency_count) &&
+                                    !replacementAccountId)
+                            }
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
                         </Button>
                     </div>
                 </DialogContent>

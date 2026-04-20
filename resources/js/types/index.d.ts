@@ -214,6 +214,8 @@ export interface PayrollRunItem {
     payment_method?: string | null;
     payment_status: string;
     payment_date?: string | null;
+    covered_period_dates?: string[];
+    covered_month_count?: number;
     [key: string]: unknown;
 }
 
@@ -308,6 +310,7 @@ export interface FinanceAccount {
     currency_code?: string | null;
     is_postable?: boolean;
     is_system?: boolean;
+    dependency_count?: number;
     status?: string;
     description?: string | null;
     created_at?: string;
@@ -395,6 +398,7 @@ export interface CashMovementType {
     requires_counterparty?: boolean;
     is_active?: boolean;
     sort_order?: number;
+    movement_count?: number;
     description?: string | null;
     created_at?: string;
     updated_at?: string;

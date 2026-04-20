@@ -50,6 +50,7 @@ export const buildColumns = (
     kitchens: Kitchen[],
     sizes: ProductSize[],
     t: (key: string, fallback?: string) => string,
+    canDelete: boolean,
 ): ColumnDef<Product>[] => {
     const categoryById = new Map(
         categories.map((category) => [category.id, category]),
@@ -229,6 +230,7 @@ export const buildColumns = (
                     types={types}
                     kitchens={kitchens}
                     sizes={sizes}
+                    canDelete={canDelete}
                 />
             ),
         },

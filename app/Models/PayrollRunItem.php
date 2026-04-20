@@ -23,6 +23,8 @@ class PayrollRunItem extends Model
         'payment_method',
         'payment_status',
         'payment_date',
+        'covered_period_dates',
+        'covered_month_count',
     ];
 
     protected $casts = [
@@ -33,6 +35,8 @@ class PayrollRunItem extends Model
         'overtime_amount' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'payment_date' => 'date',
+        'covered_period_dates' => 'array',
+        'covered_month_count' => 'integer',
     ];
 
     public function payrollRun(): BelongsTo

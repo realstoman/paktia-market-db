@@ -28,9 +28,10 @@ import {
     InventoryType,
     Unit,
     Vendor,
+    SharedData,
 } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Boxes,
@@ -60,16 +61,25 @@ export default function InventoryPage({
     inventoryTypes,
 }: InventoryPageProps) {
     const { t, locale } = useLocalization();
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: t('navigation.dashboard', 'Dashboard'),
-            href: '/dashboard',
-        },
-        {
-            title: t('navigation.inventory', 'Inventory'),
-            href: '/inventory',
-        },
-    ];
+    const { auth } = usePage<SharedData>().props;
+    const breadcrumbs: BreadcrumbItem[] =
+        auth.is_super_admin || !auth.roles.includes('inventory')
+            ? [
+                  {
+                      title: t('navigation.dashboard', 'Dashboard'),
+                      href: '/dashboard',
+                  },
+                  {
+                      title: t('navigation.inventory', 'Inventory'),
+                      href: '/inventory',
+                  },
+              ]
+            : [
+                  {
+                      title: t('navigation.inventory', 'Inventory'),
+                      href: '/inventory',
+                  },
+              ];
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);

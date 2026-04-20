@@ -33,6 +33,7 @@ export const buildColumns = (
     employmentTypes: EmploymentType[],
     employeePositions: EmployeePosition[],
     shifts: Shift[],
+    canDelete: boolean,
 ): ColumnDef<Employee>[] => [
     {
         id: 'select',
@@ -202,6 +203,7 @@ export const buildColumns = (
                 employmentTypes={employmentTypes}
                 employeePositions={employeePositions}
                 shifts={shifts}
+                canDelete={canDelete}
             />
         ),
     },

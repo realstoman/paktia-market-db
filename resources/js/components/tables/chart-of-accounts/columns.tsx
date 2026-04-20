@@ -19,11 +19,13 @@ function statusTone(status?: string) {
 interface BuildColumnsProps {
     onEdit: (account: FinanceAccount) => void;
     onDelete: (account: FinanceAccount) => void;
+    canDelete: boolean;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<FinanceAccount>[] {
     return [
         {
@@ -92,6 +94,7 @@ export function buildColumns({
                     data={row.original}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    canDelete={canDelete && !row.original.is_system}
                 />
             ),
         },

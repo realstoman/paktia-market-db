@@ -122,7 +122,9 @@ class ProductController extends Controller
             'images.*' => self::GALLERY_IMAGE_RULE,
         ]);
 
-        $removeImageIds = collect($validated['remove_image_ids'] ?? []);
+        $removeImageIds = $request->user()?->hasRole('super-admin')
+            ? collect($validated['remove_image_ids'] ?? [])
+            : collect();
         if ($removeImageIds->isNotEmpty()) {
             $validCount = $product->images()
                 ->whereIn('id', $removeImageIds)
@@ -170,7 +172,9 @@ class ProductController extends Controller
                 $product->sizes()->sync($syncData);
             }
 
-            $removeImageIds = $validated['remove_image_ids'] ?? [];
+            $removeImageIds = $request->user()?->hasRole('super-admin')
+                ? ($validated['remove_image_ids'] ?? [])
+                : [];
             if (!empty($removeImageIds)) {
                 $imagesToRemove = $product->images()
                     ->whereIn('id', $removeImageIds)

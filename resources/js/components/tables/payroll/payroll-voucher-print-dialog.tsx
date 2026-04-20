@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Branch, PayrollRun, PayrollRunItem } from '@/types';
+import { formatAfghanDate, formatAfghanMonthLabel } from '@/utils/afghan-calendar';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -19,19 +20,6 @@ interface PayrollVoucherPrintDialogProps {
     item: PayrollRunItem | null;
     branch: Branch | null;
 }
-
-const formatDateTime = (value?: string | null) => {
-    if (!value) {
-        return '-';
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return date.toLocaleString();
-};
 
 const escapeHtml = (value: string) =>
     value
@@ -65,6 +53,16 @@ function paymentMethodLabel(value?: string | null) {
         : '-';
 }
 
+function coveredMonthLabels(item: PayrollRunItem) {
+    const dates = item.covered_period_dates ?? [];
+
+    if (!dates.length) {
+        return [];
+    }
+
+    return dates.map((date) => formatAfghanMonthLabel(date));
+}
+
 export function PayrollVoucherPrintDialog({
     open,
     onOpenChange,
@@ -72,6 +70,12 @@ export function PayrollVoucherPrintDialog({
     item,
     branch,
 }: PayrollVoucherPrintDialogProps) {
+    const monthLabel =
+        item && run
+            ? coveredMonthLabels(item).join(', ') ||
+              formatAfghanMonthLabel(run.period_end)
+            : '-';
+
     const printVoucher = () => {
         if (!run || !item) {
             return;
@@ -89,8 +93,7 @@ export function PayrollVoucherPrintDialog({
         const gross = formatAfn(Number(item.gross_salary ?? 0));
         const advances = formatAfn(Number(item.advances_deducted ?? 0));
         const net = formatAfn(Number(item.net_salary ?? 0));
-        const createdAt = formatDateTime(run.created_at);
-        const period = `${run.period_start} to ${run.period_end}`;
+        const createdAt = formatAfghanDate(run.created_at);
         const title =
             item.salary_type === 'contract_payment'
                 ? 'Contract Payment Voucher'
@@ -145,7 +148,7 @@ export function PayrollVoucherPrintDialog({
                             <div class="header-left">
                                 <p class="header-label">Voucher</p>
                                 <p class="header-value"><strong>No:</strong> ${escapeHtml(voucherNo)}</p>
-                                <p class="header-value"><strong>Period:</strong> ${escapeHtml(period)}</p>
+                                <p class="header-value"><strong>Payment Month:</strong> ${escapeHtml(monthLabel)}</p>
                             </div>
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
@@ -175,7 +178,7 @@ export function PayrollVoucherPrintDialog({
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>${escapeHtml(title)} for ${escapeHtml(period)}</td>
+                                            <td>${escapeHtml(title)} for month ${escapeHtml(monthLabel)}</td>
                                             <td>${escapeHtml(branch?.name ?? 'All Branches')}</td>
                                             <td class="right">${escapeHtml(net)}</td>
                                         </tr>
@@ -249,8 +252,7 @@ export function PayrollVoucherPrintDialog({
                                             No: PAY-{run.id}-{item.id}
                                         </p>
                                         <p className="text-muted-foreground">
-                                            Period: {run.period_start} to{' '}
-                                            {run.period_end}
+                                            Payment Month: {monthLabel}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -280,7 +282,7 @@ export function PayrollVoucherPrintDialog({
                                         </p>
                                         <p className="text-muted-foreground">
                                             Created:{' '}
-                                            {formatDateTime(run.created_at)}
+                                            {formatAfghanDate(run.created_at)}
                                         </p>
                                     </div>
                                 </div>
@@ -336,8 +338,7 @@ export function PayrollVoucherPrintDialog({
                                                     'contract_payment'
                                                         ? 'Contract payment voucher'
                                                         : 'Salary payment voucher'}{' '}
-                                                    for {run.period_start} to{' '}
-                                                    {run.period_end}
+                                                    for month {monthLabel}
                                                 </td>
                                                 <td className="px-2 py-4">
                                                     {branch?.name ??

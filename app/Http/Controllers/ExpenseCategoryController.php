@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ExpenseCategoryController extends Controller
 {
+    private function authorizeDelete(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole('super-admin') === true, 403);
+    }
+
     public function index()
     {
         return Inertia::render('finance/expense-categories/index', [
@@ -76,13 +83,50 @@ class ExpenseCategoryController extends Controller
             ->with('success', 'Expense category updated successfully.');
     }
 
-    public function destroy(ExpenseCategory $expenseCategory)
+    public function destroy(Request $request, ExpenseCategory $expenseCategory)
     {
+        $this->authorizeDelete($request);
+
         if ($expenseCategory->expenses()->exists()) {
-            $expenseCategory->update(['is_active' => false]);
+            $replacementCategoryId = $request->integer(
+                'replacement_category_id',
+            );
+
+            if (
+                ! $replacementCategoryId ||
+                $replacementCategoryId === $expenseCategory->id
+            ) {
+                throw ValidationException::withMessages([
+                    'replacement_category_id' => 'Select another expense category before deleting this one.',
+                ]);
+            }
+
+            $replacementCategory = ExpenseCategory::query()
+                ->whereKeyNot($expenseCategory->id)
+                ->find($replacementCategoryId);
+
+            if (! $replacementCategory) {
+                throw ValidationException::withMessages([
+                    'replacement_category_id' => 'Create or select another expense category before deleting this one.',
+                ]);
+            }
+
+            DB::transaction(function () use (
+                $expenseCategory,
+                $replacementCategory,
+            ) {
+                DB::table('expenses')
+                    ->where('expense_category_id', $expenseCategory->id)
+                    ->update([
+                        'expense_category_id' => $replacementCategory->id,
+                        'expense_type' => $replacementCategory->slug,
+                    ]);
+
+                $expenseCategory->delete();
+            });
 
             return redirect()->route('finance.expense-categories.index')
-                ->with('success', 'Expense category was deactivated because it is already used in expenses.');
+                ->with('success', 'Expense category reassigned and deleted successfully.');
         }
 
         $expenseCategory->delete();

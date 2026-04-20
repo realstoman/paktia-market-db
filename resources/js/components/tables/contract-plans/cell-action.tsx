@@ -16,6 +16,7 @@ interface CellActionProps {
     onEdit: (contract: EmployeeContract) => void;
     onDelete: (contract: EmployeeContract) => void;
     onPrint: (contract: EmployeeContract) => void;
+    canDelete: boolean;
 }
 
 export function CellAction({
@@ -23,6 +24,7 @@ export function CellAction({
     onEdit,
     onDelete,
     onPrint,
+    canDelete,
 }: CellActionProps) {
     return (
         <DropdownMenu modal={false}>
@@ -42,10 +44,12 @@ export function CellAction({
                     <FileText className="mr-2 h-4 w-4" />
                     Print Summary
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(data)}>
-                    <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                    Delete
-                </DropdownMenuItem>
+                {canDelete ? (
+                    <DropdownMenuItem onClick={() => onDelete(data)}>
+                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                        Delete
+                    </DropdownMenuItem>
+                ) : null}
             </DropdownMenuContent>
         </DropdownMenu>
     );

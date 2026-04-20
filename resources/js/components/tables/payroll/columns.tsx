@@ -1,4 +1,5 @@
 import { PayrollRun } from '@/types';
+import { formatAfghanMonthLabel } from '@/utils/afghan-calendar';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
@@ -41,6 +42,7 @@ export function buildColumns({
                         {row.original.period_start} to {row.original.period_end}
                     </p>
                     <p className="text-xs text-muted-foreground">
+                        {formatAfghanMonthLabel(row.original.period_end)} •{' '}
                         {row.original.branch?.name ?? 'All Branches'}
                     </p>
                 </div>

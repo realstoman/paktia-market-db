@@ -19,12 +19,14 @@ interface BuildColumnsProps {
     onEdit: (contract: EmployeeContract) => void;
     onDelete: (contract: EmployeeContract) => void;
     onPrint: (contract: EmployeeContract) => void;
+    canDelete: boolean;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
     onPrint,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<EmployeeContract>[] {
     return [
         {
@@ -136,6 +138,7 @@ export function buildColumns({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onPrint={onPrint}
+                    canDelete={canDelete}
                 />
             ),
         },

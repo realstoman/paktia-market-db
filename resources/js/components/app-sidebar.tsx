@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
+import { resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
@@ -131,11 +132,34 @@ const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
 ];
 
 export function AppSidebar() {
-    const { hasRole, isSuperAdmin } = useAuthorization();
+    const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
+    const dashboardHref = resolveUrl(dashboard());
+    const financeHome =
+        !isSuperAdmin && hasRole('finance') && can('finance.view');
+    const inventoryHome =
+        !isSuperAdmin && hasRole('inventory') && can('inventory.view');
+    const homeHref = financeHome
+        ? '/finance'
+        : inventoryHome
+          ? '/inventory'
+          : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
-            .filter((item) => item.href !== '/orders' || !hasRole('kitchen'))
+            .filter((item) => {
+                if (resolveUrl(item.href) === '/orders' && hasRole('kitchen')) {
+                    return false;
+                }
+
+                if (
+                    resolveUrl(item.href) === dashboardHref &&
+                    (financeHome || inventoryHome)
+                ) {
+                    return false;
+                }
+
+                return true;
+            })
             .map((item) => ({
                 title: t(item.titleKey, item.fallbackTitle),
                 href: item.href,
@@ -169,7 +193,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()}>
+                            <Link href={homeHref}>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

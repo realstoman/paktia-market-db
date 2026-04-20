@@ -52,6 +52,7 @@ enum PermissionEnum: string
     // Inventory
     case INVENTORY_VIEW = 'inventory.view';
     case INVENTORY_ADJUST = 'inventory.adjust';
+    case INVENTORY_DELETE = 'inventory.delete';
 
     // Employees
     case EMPLOYEES_VIEW = 'employees.view';

@@ -19,6 +19,32 @@ use Inertia\Inertia;
 
 class InventoryController extends Controller
 {
+    private function authorizeInventoryDeletion(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole('super-admin') === true, 403);
+    }
+
+    private function validateReplacementTarget(
+        string $field,
+        string $resourceName,
+        int $currentId,
+        ?int $replacementId,
+    ): int {
+        if (! $replacementId) {
+            throw ValidationException::withMessages([
+                $field => "This {$resourceName} is assigned to inventory items. Assign those items to another {$resourceName} before deleting it.",
+            ]);
+        }
+
+        if ($replacementId === $currentId) {
+            throw ValidationException::withMessages([
+                $field => "Choose a different {$resourceName} before deleting the current one.",
+            ]);
+        }
+
+        return $replacementId;
+    }
+
     private function redirectToToolbarOrigin(Request $request)
     {
         $referer = $request->headers->get('referer');
@@ -365,8 +391,10 @@ class InventoryController extends Controller
             ->with('success', 'Inventory item updated successfully.');
     }
 
-    public function destroy(InventoryItem $inventory)
+    public function destroy(Request $request, InventoryItem $inventory)
     {
+        $this->authorizeInventoryDeletion($request);
+
         $itemName = $inventory->name;
         $branchName = $inventory->branch?->name;
 
@@ -523,9 +551,43 @@ class InventoryController extends Controller
             ->with('success', 'Unit updated successfully.');
     }
 
-    public function destroyUnit(Unit $unit)
+    public function destroyUnit(Request $request, Unit $unit)
     {
-        $unit->delete();
+        $this->authorizeInventoryDeletion($request);
+
+        $replacementUnitId = $request->filled('replacement_unit_id')
+            ? (int) $request->input('replacement_unit_id')
+            : null;
+
+        DB::transaction(function () use ($unit, $replacementUnitId) {
+            $itemsQuery = InventoryItem::query()->where('unit_id', $unit->id);
+
+            if ($itemsQuery->exists()) {
+                $replacementId = $this->validateReplacementTarget(
+                    'replacement_unit_id',
+                    'unit',
+                    $unit->id,
+                    $replacementUnitId,
+                );
+
+                $replacementUnit = Unit::query()
+                    ->whereKeyNot($unit->id)
+                    ->find($replacementId);
+
+                if (! $replacementUnit) {
+                    throw ValidationException::withMessages([
+                        'replacement_unit_id' => 'Create or select another unit before deleting this one.',
+                    ]);
+                }
+
+                $itemsQuery->update([
+                    'unit_id' => $replacementUnit->id,
+                    'unit' => $replacementUnit->symbol,
+                ]);
+            }
+
+            $unit->delete();
+        });
 
         return redirect()->back()
             ->with('success', 'Unit deleted successfully.');
@@ -561,9 +623,46 @@ class InventoryController extends Controller
             ->with('success', 'Inventory type updated successfully.');
     }
 
-    public function destroyInventoryType(InventoryType $inventoryType)
+    public function destroyInventoryType(Request $request, InventoryType $inventoryType)
     {
-        $inventoryType->delete();
+        $this->authorizeInventoryDeletion($request);
+
+        $replacementTypeId = $request->filled('replacement_type_id')
+            ? (int) $request->input('replacement_type_id')
+            : null;
+
+        DB::transaction(function () use ($inventoryType, $replacementTypeId) {
+            $itemsQuery = InventoryItem::query()->where(
+                'inventory_type_id',
+                $inventoryType->id,
+            );
+
+            if ($itemsQuery->exists()) {
+                $replacementId = $this->validateReplacementTarget(
+                    'replacement_type_id',
+                    'type',
+                    $inventoryType->id,
+                    $replacementTypeId,
+                );
+
+                $replacementType = InventoryType::query()
+                    ->whereKeyNot($inventoryType->id)
+                    ->find($replacementId);
+
+                if (! $replacementType) {
+                    throw ValidationException::withMessages([
+                        'replacement_type_id' => 'Create or select another inventory type before deleting this one.',
+                    ]);
+                }
+
+                $itemsQuery->update([
+                    'inventory_type_id' => $replacementType->id,
+                    'type' => strtolower(trim($replacementType->name)),
+                ]);
+            }
+
+            $inventoryType->delete();
+        });
 
         return redirect()->back()
             ->with('success', 'Inventory type deleted successfully.');
@@ -599,9 +698,48 @@ class InventoryController extends Controller
             ->with('success', 'Category updated successfully.');
     }
 
-    public function destroyInventoryCategory(InventoryCategory $inventoryCategory)
-    {
-        $inventoryCategory->delete();
+    public function destroyInventoryCategory(
+        Request $request,
+        InventoryCategory $inventoryCategory,
+    ) {
+        $this->authorizeInventoryDeletion($request);
+
+        $replacementCategoryId = $request->filled('replacement_category_id')
+            ? (int) $request->input('replacement_category_id')
+            : null;
+
+        DB::transaction(function () use (
+            $inventoryCategory,
+            $replacementCategoryId,
+        ) {
+            $itemsQuery = InventoryItem::query()
+                ->where('category_id', $inventoryCategory->id);
+
+            if ($itemsQuery->exists()) {
+                $replacementId = $this->validateReplacementTarget(
+                    'replacement_category_id',
+                    'category',
+                    $inventoryCategory->id,
+                    $replacementCategoryId,
+                );
+
+                $replacementCategory = InventoryCategory::query()
+                    ->whereKeyNot($inventoryCategory->id)
+                    ->find($replacementId);
+
+                if (! $replacementCategory) {
+                    throw ValidationException::withMessages([
+                        'replacement_category_id' => 'Create or select another category before deleting this one.',
+                    ]);
+                }
+
+                $itemsQuery->update([
+                    'category_id' => $replacementCategory->id,
+                ]);
+            }
+
+            $inventoryCategory->delete();
+        });
 
         return redirect()->back()
             ->with('success', 'Category deleted successfully.');

@@ -1,6 +1,7 @@
 'use client';
 
 import Heading from '@/components/shared/heading';
+import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
@@ -22,10 +23,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { ExpenseCategory, FinanceAccount } from '@/types';
+import { ExpenseCategory, FinanceAccount, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Link, router } from '@inertiajs/react';
-import { Plus, Tags } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Plus, Tags, Trash2 } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
 
@@ -56,12 +57,22 @@ export function ExpenseCategoryClient({
     expenseCategories,
     financeAccounts,
 }: ExpenseCategoryClientProps) {
+    const { auth } = usePage<SharedData>().props;
+    const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingCategory, setEditingCategory] =
         React.useState<ExpenseCategory | null>(null);
     const [form, setForm] = React.useState<ExpenseCategoryFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [mappingFilter, setMappingFilter] = React.useState('all');
+    const [deleteTarget, setDeleteTarget] =
+        React.useState<ExpenseCategory | null>(null);
+    const [replacementCategoryId, setReplacementCategoryId] =
+        React.useState('');
+    const [deleteErrors, setDeleteErrors] = React.useState<
+        Record<string, string>
+    >({});
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = React.useState(false);
 
     const accountOptions = React.useMemo(
         () =>
@@ -122,10 +133,49 @@ export function ExpenseCategoryClient({
     }, [editingCategory, form]);
 
     const remove = React.useCallback((category: ExpenseCategory) => {
-        router.delete(`/finance/expense-categories/${category.id}`, {
-            preserveScroll: true,
-        });
+        setDeleteTarget(category);
+        setReplacementCategoryId('');
+        setDeleteErrors({});
     }, []);
+
+    const replacementCategoryOptions = React.useMemo(
+        () =>
+            expenseCategories
+                .filter((category) => category.id !== deleteTarget?.id)
+                .map((category) => ({
+                    value: String(category.id),
+                    label: category.name,
+                })),
+        [deleteTarget?.id, expenseCategories],
+    );
+
+    const confirmDelete = React.useCallback(() => {
+        if (!deleteTarget || isDeleteSubmitting) {
+            return;
+        }
+
+        setIsDeleteSubmitting(true);
+        setDeleteErrors({});
+
+        router.delete(`/finance/expense-categories/${deleteTarget.id}`, {
+            preserveScroll: true,
+            data: replacementCategoryId
+                ? {
+                      replacement_category_id: Number(replacementCategoryId),
+                  }
+                : {},
+            onSuccess: () => {
+                setDeleteTarget(null);
+                setReplacementCategoryId('');
+            },
+            onError: (errors) => {
+                setDeleteErrors(errors);
+            },
+            onFinish: () => {
+                setIsDeleteSubmitting(false);
+            },
+        });
+    }, [deleteTarget, isDeleteSubmitting, replacementCategoryId]);
 
     const filteredCategories = React.useMemo(() => {
         return expenseCategories.filter((category) => {
@@ -153,8 +203,9 @@ export function ExpenseCategoryClient({
             buildColumns({
                 onEdit: openEdit,
                 onDelete: remove,
+                canDelete,
             }),
-        [openEdit, remove],
+        [canDelete, openEdit, remove],
     );
 
     const toolbar = (
@@ -366,6 +417,93 @@ export function ExpenseCategoryClient({
                             {editingCategory
                                 ? 'Update Category'
                                 : 'Create Category'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleteTarget(null);
+                        setReplacementCategoryId('');
+                        setDeleteErrors({});
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Delete Expense Category</DialogTitle>
+                        <DialogDescription>
+                            {deleteTarget?.expenses_count
+                                ? 'This category is already assigned to expenses. Reassign those records before deleting it.'
+                                : 'This will permanently remove the selected expense category.'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {deleteTarget ? (
+                        <div className="space-y-4">
+                            <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                                <div className="font-medium">
+                                    {deleteTarget.name}
+                                </div>
+                                <div className="mt-1 text-muted-foreground">
+                                    {deleteTarget.expenses_count
+                                        ? `${formatNumber(deleteTarget.expenses_count)} expenses will be moved to another category.`
+                                        : 'No expenses are currently assigned to this category.'}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>Replacement Category</Label>
+                                <SearchableDropdown
+                                    value={replacementCategoryId}
+                                    options={replacementCategoryOptions}
+                                    onValueChange={setReplacementCategoryId}
+                                    placeholder="Select replacement category"
+                                    searchPlaceholder="Search categories..."
+                                    emptyText="No replacement category found."
+                                />
+                                <InputError
+                                    message={
+                                        deleteErrors.replacement_category_id
+                                    }
+                                />
+                                {deleteTarget.expenses_count &&
+                                replacementCategoryOptions.length === 0 ? (
+                                    <p className="text-xs text-amber-600">
+                                        Create another category before deleting
+                                        this one.
+                                    </p>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
+
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setReplacementCategoryId('');
+                                setDeleteErrors({});
+                            }}
+                            disabled={isDeleteSubmitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={
+                                isDeleteSubmitting ||
+                                (Boolean(deleteTarget?.expenses_count) &&
+                                    !replacementCategoryId)
+                            }
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
                         </Button>
                     </div>
                 </DialogContent>
