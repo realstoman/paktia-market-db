@@ -16,9 +16,10 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { BreadcrumbItem } from '@/types';
+import { cn } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
-import { Download, RefreshCcw } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Download, RefreshCcw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ActivityLogEntry {
     id: number;
@@ -145,21 +146,45 @@ export default function ActivityLogsIndexPage({
         to: initial.to ?? '',
     });
     const [selected, setSelected] = useState<ActivityLogEntry | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const didMount = useRef(false);
 
-    const totalLabel = useMemo(
-        () =>
-            `${logs.meta.total} record${logs.meta.total === 1 ? '' : 's'} · page ${logs.meta.current_page}/${logs.meta.last_page}`,
-        [logs.meta],
+    const perPage = logs.meta.per_page;
+    const startIndex = logs.meta.total === 0
+        ? 0
+        : (logs.meta.current_page - 1) * perPage + 1;
+    const endIndex = Math.min(
+        logs.meta.current_page * perPage,
+        logs.meta.total,
     );
 
-    function applyFilters() {
-        const payload: Record<string, string> = {};
+    const paginationLabel = useMemo(() => {
+        if (logs.meta.total === 0) {
+            return 'No records';
+        }
+
+        return `Showing ${startIndex.toLocaleString()}\u2013${endIndex.toLocaleString()} of ${logs.meta.total.toLocaleString()} records · page ${logs.meta.current_page} of ${logs.meta.last_page}`;
+    }, [logs.meta, startIndex, endIndex]);
+
+    function buildPayload(
+        overrides: Record<string, string | number> = {},
+    ): Record<string, string | number> {
+        const payload: Record<string, string | number> = { ...overrides };
         Object.entries(state).forEach(([key, value]) => {
             if (value !== '') {
                 payload[`filter[${key}]`] = value;
             }
         });
-        router.get('/admin/activity-logs', payload, { preserveState: true });
+
+        return payload;
+    }
+
+    function applyFilters() {
+        router.get('/admin/activity-logs', buildPayload(), {
+            preserveState: true,
+            preserveScroll: true,
+        });
     }
 
     function resetFilters() {
@@ -176,14 +201,55 @@ export default function ActivityLogsIndexPage({
     }
 
     function goToPage(page: number) {
-        const payload: Record<string, string | number> = { page };
-        Object.entries(state).forEach(([key, value]) => {
-            if (value !== '') {
-                payload[`filter[${key}]`] = value;
-            }
+        router.get('/admin/activity-logs', buildPayload({ page }), {
+            preserveState: true,
+            preserveScroll: true,
         });
-        router.get('/admin/activity-logs', payload, { preserveState: true });
     }
+
+    function handleRefresh() {
+        if (isRefreshing) return;
+
+        setIsRefreshing(true);
+        const minSpinAt = Date.now() + 2000;
+
+        router.reload({
+            onFinish: () => {
+                const remaining = Math.max(0, minSpinAt - Date.now());
+                setTimeout(() => setIsRefreshing(false), remaining);
+            },
+        });
+    }
+
+    // Debounced server-side search: fire a request 400ms after the user stops
+    // typing in the search box. Skip on initial mount so we don't replay the
+    // inbound query string as a new request.
+    useEffect(() => {
+        if (!didMount.current) {
+            didMount.current = true;
+
+            return;
+        }
+
+        if (searchTimer.current) {
+            clearTimeout(searchTimer.current);
+        }
+
+        searchTimer.current = setTimeout(() => {
+            router.get('/admin/activity-logs', buildPayload(), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 400);
+
+        return () => {
+            if (searchTimer.current) {
+                clearTimeout(searchTimer.current);
+            }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state.q]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -195,12 +261,20 @@ export default function ActivityLogsIndexPage({
                         <div>
                             <h2 className="text-lg font-semibold">Activity Logs</h2>
                             <p className="text-sm text-muted-foreground">
-                                Showing the last {logs.meta.total} activities (retention: 30 days).
-                                Older data is available in the monthly archives below.
+                                Retained for 30 days. Older data is available in the monthly archives below.
                             </p>
                         </div>
-                        <Button variant="outline" onClick={() => router.reload()}>
-                            <RefreshCcw className="me-2 size-4" />
+                        <Button
+                            variant="outline"
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                        >
+                            <RefreshCcw
+                                className={cn(
+                                    'me-2 size-4 transition-transform',
+                                    isRefreshing && 'animate-spin',
+                                )}
+                            />
                             Refresh
                         </Button>
                     </div>
@@ -326,7 +400,9 @@ export default function ActivityLogsIndexPage({
 
                 <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
                     <div className="mb-3 flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{totalLabel}</span>
+                        <span className="text-sm text-muted-foreground">
+                            {paginationLabel}
+                        </span>
                     </div>
                     <div className="overflow-x-auto rounded-md border border-border">
                         <table className="w-full text-sm">
@@ -418,23 +494,34 @@ export default function ActivityLogsIndexPage({
                     </div>
 
                     {logs.meta.last_page > 1 && (
-                        <div className="mt-4 flex items-center justify-end gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={logs.meta.current_page <= 1}
-                                onClick={() => goToPage(logs.meta.current_page - 1)}
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={logs.meta.current_page >= logs.meta.last_page}
-                                onClick={() => goToPage(logs.meta.current_page + 1)}
-                            >
-                                Next
-                            </Button>
+                        <div className="mt-4 flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">
+                                {paginationLabel}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={logs.meta.current_page <= 1}
+                                    onClick={() => goToPage(logs.meta.current_page - 1)}
+                                >
+                                    <ChevronLeft className="me-1 size-4" />
+                                    Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={
+                                        logs.meta.current_page >= logs.meta.last_page
+                                    }
+                                    onClick={() =>
+                                    goToPage(logs.meta.current_page + 1)
+                                    }
+                                >
+                                    Next
+                                    <ChevronRight className="ms-1 size-4" />
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
