@@ -127,7 +127,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('products/categories/{category}', [ProductController::class, 'updateCategory'])->name('products.categories.update');
         Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
     });
-    Route::middleware('can:'.PermissionEnum::PRODUCTS_DELETE->value)->group(function () {
+    Route::middleware([
+        'can:'.PermissionEnum::PRODUCTS_DELETE->value,
+        'role:super-admin',
+    ])->group(function () {
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::delete('products/categories/{category}', [ProductController::class, 'destroyCategory'])->name('products.categories.destroy');
         Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
@@ -161,26 +164,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:'.PermissionEnum::INVENTORY_ADJUST->value)->group(function () {
         Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
         Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
-        Route::delete('inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
         Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
         Route::post('inventory/usage-cycle', [InventoryController::class, 'storeUsageCycle'])->name('inventory.usage-cycle.store');
         Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
         Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');
-        Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
         Route::post('banners', [BannerController::class, 'store'])->name('banners.store');
         Route::put('banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
-        Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
         Route::post('currencies', [InventoryController::class, 'storeCurrency'])->name('currencies.store');
         Route::put('currencies/{currency}', [InventoryController::class, 'updateCurrency'])->name('currencies.update');
-        Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
         Route::post('units', [InventoryController::class, 'storeUnit'])->name('units.store');
         Route::put('units/{unit}', [InventoryController::class, 'updateUnit'])->name('units.update');
-        Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
         Route::post('inventory-types', [InventoryController::class, 'storeInventoryType'])->name('inventory-types.store');
         Route::put('inventory-types/{inventoryType}', [InventoryController::class, 'updateInventoryType'])->name('inventory-types.update');
-        Route::delete('inventory-types/{inventoryType}', [InventoryController::class, 'destroyInventoryType'])->name('inventory-types.destroy');
         Route::post('inventory-categories', [InventoryController::class, 'storeInventoryCategory'])->name('inventory-categories.store');
         Route::put('inventory-categories/{inventoryCategory}', [InventoryController::class, 'updateInventoryCategory'])->name('inventory-categories.update');
+    });
+    Route::middleware([
+        'can:'.PermissionEnum::INVENTORY_ADJUST->value,
+        'role:super-admin',
+    ])->group(function () {
+        Route::delete('inventory/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::delete('vendors/{vendor}', [InventoryController::class, 'destroyVendor'])->name('vendors.destroy');
+        Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
+        Route::delete('currencies/{currency}', [InventoryController::class, 'destroyCurrency'])->name('currencies.destroy');
+        Route::delete('units/{unit}', [InventoryController::class, 'destroyUnit'])->name('units.destroy');
+        Route::delete('inventory-types/{inventoryType}', [InventoryController::class, 'destroyInventoryType'])->name('inventory-types.destroy');
         Route::delete('inventory-categories/{inventoryCategory}', [InventoryController::class, 'destroyInventoryCategory'])->name('inventory-categories.destroy');
     });
     Route::middleware('can:'.PermissionEnum::FINANCE_VIEW->value)->group(function () {
@@ -196,12 +204,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('finance/payroll', [PayrollController::class, 'store'])->name('finance.payroll.store');
         Route::post('finance/payroll/contracts', [PayrollController::class, 'storeContract'])->name('finance.payroll.contracts.store');
         Route::put('finance/payroll/contracts/{contract}', [PayrollController::class, 'updateContract'])->name('finance.payroll.contracts.update');
-        Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
         Route::post('finance/payroll/contract-schedules', [PayrollController::class, 'storeSchedule'])->name('finance.payroll.contract-schedules.store');
         Route::put('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'updateSchedule'])->name('finance.payroll.contract-schedules.update');
-        Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
         Route::post('finance/employee-advances', [EmployeeAdvanceController::class, 'store'])->name('finance.employee-advances.store');
         Route::put('finance/employee-advances/{employeeAdvance}', [EmployeeAdvanceController::class, 'update'])->name('finance.employee-advances.update');
+    });
+    Route::middleware([
+        'can:'.PermissionEnum::PAYROLL_CREATE->value,
+        'role:super-admin',
+    ])->group(function () {
+        Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
+        Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
     });
     Route::middleware('can:'.PermissionEnum::PAYROLL_APPROVE->value)->group(function () {
         Route::post('finance/payroll/contract-schedules/{schedule}/approve', [PayrollController::class, 'approveSchedule'])->name('finance.payroll.contract-schedules.approve');
@@ -227,7 +240,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
         Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
         Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
-        Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
         Route::get('finance/cash-bank', [CashBankController::class, 'index'])->name('finance.cash-bank.index');
         Route::post('finance/cash-bank', [CashBankController::class, 'store'])->name('finance.cash-bank.store');
         Route::put('finance/cash-bank/{cashMovement}', [CashBankController::class, 'update'])->name('finance.cash-bank.update');
@@ -236,10 +248,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance/cash-movement-types', [CashMovementTypeController::class, 'index'])->name('finance.cash-movement-types.index');
         Route::post('finance/cash-movement-types', [CashMovementTypeController::class, 'store'])->name('finance.cash-movement-types.store');
         Route::put('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'update'])->name('finance.cash-movement-types.update');
-        Route::delete('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'destroy'])->name('finance.cash-movement-types.destroy');
         Route::get('finance/expense-categories', [ExpenseCategoryController::class, 'index'])->name('finance.expense-categories.index');
         Route::post('finance/expense-categories', [ExpenseCategoryController::class, 'store'])->name('finance.expense-categories.store');
         Route::put('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update'])->name('finance.expense-categories.update');
+    });
+    Route::middleware([
+        'can:'.PermissionEnum::FINANCE_MANAGE->value,
+        'role:super-admin',
+    ])->group(function () {
+        Route::delete('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'destroy'])->name('finance.chart-of-accounts.destroy');
+        Route::delete('finance/cash-movement-types/{cashMovementType}', [CashMovementTypeController::class, 'destroy'])->name('finance.cash-movement-types.destroy');
         Route::delete('finance/expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])->name('finance.expense-categories.destroy');
     });
 
@@ -248,16 +266,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
     Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
     Route::post('employees/{employee}/toggle-active', [EmployeeController::class, 'toggleActive'])->name('employees.toggle-active');
-    Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
     Route::post('employee-positions', [EmployeeController::class, 'storePosition'])->name('employee-positions.store');
     Route::put('employee-positions/{employeePosition}', [EmployeeController::class, 'updatePosition'])->name('employee-positions.update');
-    Route::delete('employee-positions/{employeePosition}', [EmployeeController::class, 'destroyPosition'])->name('employee-positions.destroy');
     Route::post('employment-types', [EmployeeController::class, 'storeEmploymentType'])->name('employment-types.store');
     Route::put('employment-types/{employmentType}', [EmployeeController::class, 'updateEmploymentType'])->name('employment-types.update');
-    Route::delete('employment-types/{employmentType}', [EmployeeController::class, 'destroyEmploymentType'])->name('employment-types.destroy');
     Route::post('shifts', [EmployeeController::class, 'storeShift'])->name('shifts.store');
     Route::put('shifts/{shift}', [EmployeeController::class, 'updateShift'])->name('shifts.update');
-    Route::delete('shifts/{shift}', [EmployeeController::class, 'destroyShift'])->name('shifts.destroy');
+    Route::middleware('role:super-admin')->group(function () {
+        Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+        Route::delete('employee-positions/{employeePosition}', [EmployeeController::class, 'destroyPosition'])->name('employee-positions.destroy');
+        Route::delete('employment-types/{employmentType}', [EmployeeController::class, 'destroyEmploymentType'])->name('employment-types.destroy');
+        Route::delete('shifts/{shift}', [EmployeeController::class, 'destroyShift'])->name('shifts.destroy');
+    });
 
     // API helpers
     Route::get('countries/{country}/provinces', [ProvinceController::class, 'byCountry']);
