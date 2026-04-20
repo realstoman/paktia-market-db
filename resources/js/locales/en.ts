@@ -81,6 +81,7 @@ const en = {
         reports: 'Reports',
         tools: 'Tools',
         runtimeHealth: 'Runtime Health',
+        activityLogs: 'Activity Logs',
         mobileApp: 'Mobile App',
         website: 'Website',
     },
