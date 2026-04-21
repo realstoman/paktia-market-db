@@ -196,7 +196,7 @@ export const buildColumns = ({
                                         +{hiddenNames.length} more
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
+                                <TooltipContent className="max-w-xs border border-neutral-200 bg-white text-neutral-900 shadow-md dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100">
                                     <div className="space-y-1">
                                         {hiddenNames.map((name) => (
                                             <p key={name}>{name}</p>
