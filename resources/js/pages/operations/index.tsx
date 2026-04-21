@@ -56,6 +56,7 @@ import { toast } from 'sonner';
 type OperationMode = 'cashier' | 'server' | 'order-taker' | 'kitchen' | 'general';
 type Channel = 'dine_in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'credit_card' | 'bank_transfer' | 'other';
+type KitchenBulkAction = 'start' | 'ready' | 'delivered';
 
 interface CategoryOption {
     id: number;
@@ -320,7 +321,13 @@ export default function OperationsPage({
 
         const grouped = new Map<
             string,
-            { label: string; ready: number; total: number; status: string }
+            {
+                label: string;
+                ready: number;
+                total: number;
+                status: string;
+                itemIds: number[];
+            }
         >();
 
         (selectedOrder.items ?? []).forEach((item) => {
@@ -338,9 +345,11 @@ export default function OperationsPage({
                 ready: 0,
                 total: 0,
                 status: 'pending',
+                itemIds: [],
             };
 
             current.total += 1;
+            current.itemIds.push(Number(item.id));
 
             if (status === 'ready' || status === 'delivered') {
                 current.ready += 1;
@@ -462,6 +471,10 @@ export default function OperationsPage({
         }
 
         const interval = window.setInterval(() => {
+            if (document.visibilityState === 'hidden') {
+                return;
+            }
+
             router.reload({
                 preserveScroll: true,
                 preserveState: true,
@@ -475,10 +488,51 @@ export default function OperationsPage({
                     'summary',
                 ],
             });
-        }, 10000);
+        }, 4000);
 
         return () => window.clearInterval(interval);
     }, [isKitchenMode]);
+
+    const handleKitchenProgressAction = (
+        itemIds: number[],
+        action: KitchenBulkAction,
+    ) => {
+        if (itemIds.length === 0 || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/kitchen/order-items/bulk/${action}`,
+            { item_ids: itemIds },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    const messages: Record<KitchenBulkAction, string> = {
+                        start: t(
+                            'orders.kitchenProgress.messages.started',
+                            'Kitchen items started.',
+                        ),
+                        ready: t(
+                            'orders.kitchenProgress.messages.ready',
+                            'Kitchen items marked ready.',
+                        ),
+                        delivered: t(
+                            'orders.kitchenProgress.messages.delivered',
+                            'Kitchen items marked delivered.',
+                        ),
+                    };
+
+                    toast.success(messages[action]);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
 
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
@@ -573,6 +627,8 @@ export default function OperationsPage({
     const canTakePayment = can('payments.create') && mode === 'cashier';
     const canManageStatus = can('orders.update');
     const canManageAnyOrder = isSuperAdmin || can('payments.create');
+    const canManageKitchenProgress =
+        isSuperAdmin || mode === 'cashier' || mode === 'order-taker';
     const canManageSelectedOrder =
         !selectedOrder ||
         canManageAnyOrder ||
@@ -1382,30 +1438,130 @@ export default function OperationsPage({
 
                             {selectedOrderKitchenProgress.length > 0 ? (
                                 <div className="rounded-[1.4rem] border border-neutral-200 bg-white p-4">
-                                    <p className="mb-3 text-sm font-semibold text-[#2f1d0f]">
-                                        Kitchen Progress
-                                    </p>
+                                    <div className="mb-3 flex items-center justify-between gap-3">
+                                        <p className="text-sm font-semibold text-[#2f1d0f]">
+                                            Kitchen Progress
+                                        </p>
+                                        {canManageKitchenProgress ? (
+                                            <span className="text-xs text-muted-foreground">
+                                                {t(
+                                                    'orders.kitchenProgress.supportNote',
+                                                    'You can help move kitchen items forward if the station is delayed.',
+                                                )}
+                                            </span>
+                                        ) : null}
+                                    </div>
                                     <div className="max-h-[196px] space-y-2 overflow-y-auto pr-1">
-                                        {selectedOrderKitchenProgress.map((entry) => (
-                                            <div
-                                                key={entry.label}
-                                                className="flex items-center justify-between rounded-2xl bg-[#f8f5ef] px-3 py-2"
-                                            >
-                                                <div>
-                                                    <p className="text-sm font-medium text-[#2f1d0f]">
-                                                        {entry.label}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {entry.ready}/{entry.total} items ready
-                                                    </p>
-                                                </div>
-                                                <Badge
-                                                    className={`border ${getStatusTone(entry.status)}`}
+                                        {selectedOrderKitchenProgress.map((entry) => {
+                                            const itemsForKitchen = (selectedOrder?.items ?? []).filter(
+                                                (item) =>
+                                                    entry.itemIds.includes(Number(item.id)),
+                                            );
+                                            const startableIds = itemsForKitchen
+                                                .filter(
+                                                    (item) =>
+                                                        (item.prep_status ?? 'pending') ===
+                                                        'pending',
+                                                )
+                                                .map((item) => Number(item.id));
+                                            const readyIds = itemsForKitchen
+                                                .filter((item) =>
+                                                    ['pending', 'in_progress'].includes(
+                                                        item.prep_status ?? 'pending',
+                                                    ),
+                                                )
+                                                .map((item) => Number(item.id));
+                                            const deliveredIds = itemsForKitchen
+                                                .filter(
+                                                    (item) =>
+                                                        (item.prep_status ?? 'pending') ===
+                                                        'ready',
+                                                )
+                                                .map((item) => Number(item.id));
+
+                                            return (
+                                                <div
+                                                    key={entry.label}
+                                                    className="rounded-2xl bg-[#f8f5ef] px-3 py-3"
                                                 >
-                                                    {entry.status.replace('_', ' ')}
-                                                </Badge>
-                                            </div>
-                                        ))}
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-[#2f1d0f]">
+                                                                {entry.label}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {entry.ready}/{entry.total} items ready
+                                                            </p>
+                                                        </div>
+                                                        <Badge
+                                                            className={`border ${getStatusTone(entry.status)}`}
+                                                        >
+                                                            {entry.status.replace('_', ' ')}
+                                                        </Badge>
+                                                    </div>
+                                                    {canManageKitchenProgress ? (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {startableIds.length > 0 ? (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        handleKitchenProgressAction(
+                                                                            startableIds,
+                                                                            'start',
+                                                                        )
+                                                                    }
+                                                                    disabled={isSubmitting}
+                                                                >
+                                                                    {t(
+                                                                        'orders.kitchenProgress.actions.start',
+                                                                        'Start',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
+                                                            {readyIds.length > 0 ? (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        handleKitchenProgressAction(
+                                                                            readyIds,
+                                                                            'ready',
+                                                                        )
+                                                                    }
+                                                                    disabled={isSubmitting}
+                                                                >
+                                                                    {t(
+                                                                        'orders.kitchenProgress.actions.ready',
+                                                                        'Mark Ready',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
+                                                            {deliveredIds.length > 0 ? (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="secondary"
+                                                                    onClick={() =>
+                                                                        handleKitchenProgressAction(
+                                                                            deliveredIds,
+                                                                            'delivered',
+                                                                        )
+                                                                    }
+                                                                    disabled={isSubmitting}
+                                                                >
+                                                                    {t(
+                                                                        'orders.kitchenProgress.actions.delivered',
+                                                                        'Mark Delivered',
+                                                                    )}
+                                                                </Button>
+                                                            ) : null}
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ) : null}

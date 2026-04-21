@@ -107,9 +107,14 @@ class KitchenWorkflowService
 
     private function assertKitchenAccess(OrderItem $item, User $actor): void
     {
-        if (! $actor->hasRole('kitchen') && ! $actor->hasRole('super-admin')) {
+        $isKitchen = $actor->hasRole('kitchen');
+        $canSupportKitchenFlow = $actor->hasRole('super-admin')
+            || $actor->hasRole('cashier')
+            || $actor->hasRole('order-taker');
+
+        if (! $isKitchen && ! $canSupportKitchenFlow) {
             throw ValidationException::withMessages([
-                'order_item' => 'Only kitchen staff can update kitchen item status.',
+                'order_item' => 'You are not allowed to update kitchen item status.',
             ]);
         }
 
@@ -123,9 +128,19 @@ class KitchenWorkflowService
             return;
         }
 
-        if (! $actor->kitchen_id || (int) $actor->kitchen_id !== (int) $item->kitchen_id) {
+        if ($isKitchen) {
+            if (! $actor->kitchen_id || (int) $actor->kitchen_id !== (int) $item->kitchen_id) {
+                throw ValidationException::withMessages([
+                    'order_item' => 'This kitchen account can only manage its assigned kitchen items.',
+                ]);
+            }
+
+            return;
+        }
+
+        if (! $actor->branch_id || (int) $actor->branch_id !== (int) $item->order?->branch_id) {
             throw ValidationException::withMessages([
-                'order_item' => 'This kitchen account can only manage its assigned kitchen items.',
+                'order_item' => 'You can only update kitchen items for your assigned branch.',
             ]);
         }
     }

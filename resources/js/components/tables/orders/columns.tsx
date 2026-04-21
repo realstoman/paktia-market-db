@@ -1,5 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { BranchTable, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
@@ -157,13 +163,50 @@ export const buildColumns = ({
                         .filter(Boolean),
                 ),
             );
+            const visibleNames = names.slice(0, 2);
+            const hiddenNames = names.slice(2);
+
+            if (names.length === 0) {
+                return (
+                    <span className="text-sm text-muted-foreground">
+                        {t('orders.columns.unassigned', 'Unassigned')}
+                    </span>
+                );
+            }
 
             return (
-                <span className="text-sm text-muted-foreground">
-                    {names.length > 0
-                        ? names.join(', ')
-                        : t('orders.columns.unassigned', 'Unassigned')}
-                </span>
+                <div className="max-w-[170px] space-y-1">
+                    {visibleNames.map((name) => (
+                        <div
+                            key={name}
+                            className="truncate text-sm text-muted-foreground"
+                            title={name}
+                        >
+                            {name}
+                        </div>
+                    ))}
+                    {hiddenNames.length > 0 ? (
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        className="text-xs font-medium text-primary hover:underline"
+                                    >
+                                        +{hiddenNames.length} more
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                    <div className="space-y-1">
+                                        {hiddenNames.map((name) => (
+                                            <p key={name}>{name}</p>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : null}
+                </div>
             );
         },
     },

@@ -18,7 +18,6 @@ class KitchenOrderItemController extends Controller
 
     public function start(Request $request, OrderItem $orderItem): RedirectResponse
     {
-        $this->dashboardService->assertAssignedKitchen($request->user());
         $this->workflowService->markInProgress($orderItem, $request->user());
 
         return redirect()->back()->with('success', 'Kitchen item started.');
@@ -26,7 +25,6 @@ class KitchenOrderItemController extends Controller
 
     public function ready(Request $request, OrderItem $orderItem): RedirectResponse
     {
-        $this->dashboardService->assertAssignedKitchen($request->user());
         $this->workflowService->markReady($orderItem, $request->user());
 
         return redirect()->back()->with('success', 'Kitchen item marked ready.');
@@ -34,7 +32,6 @@ class KitchenOrderItemController extends Controller
 
     public function delivered(Request $request, OrderItem $orderItem): RedirectResponse
     {
-        $this->dashboardService->assertAssignedKitchen($request->user());
         $this->workflowService->markDelivered($orderItem, $request->user());
 
         return redirect()->back()->with('success', 'Kitchen item delivered.');
@@ -57,8 +54,6 @@ class KitchenOrderItemController extends Controller
 
     private function bulkUpdate(Request $request, string $action): RedirectResponse|JsonResponse
     {
-        $this->dashboardService->assertAssignedKitchen($request->user());
-
         $validated = $request->validate([
             'item_ids' => ['required', 'array', 'min:1'],
             'item_ids.*' => ['integer', 'exists:order_items,id'],
