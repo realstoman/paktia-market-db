@@ -110,6 +110,31 @@ export const CellAction: React.FC<CellActionProps> = ({
     const canDeleteUser = auth.user.id !== data.id;
     const canResetPassword =
         auth.is_super_admin === true && auth.user.id !== data.id;
+    const editProvinceOptions = useMemo(
+        () =>
+            provinces.filter((province) => {
+                if (!editCountryId) {
+                    return true;
+                }
+
+                return String(province.country_id ?? '') === editCountryId;
+            }),
+        [provinces, editCountryId],
+    );
+    const editBranchOptions = useMemo(
+        () =>
+            branches.filter((branch) => {
+                const matchesCountry = editCountryId
+                    ? String(branch.country_id ?? '') === editCountryId
+                    : true;
+                const matchesProvince = editProvinceId
+                    ? String(branch.province_id ?? '') === editProvinceId
+                    : true;
+
+                return matchesCountry && matchesProvince;
+            }),
+        [branches, editCountryId, editProvinceId],
+    );
 
     const resetEdit = () => {
         setEditName(data.name);
@@ -433,6 +458,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     setEditCountryId(value);
                                     if (value !== editCountryId) {
                                         setEditProvinceId('');
+                                        setEditBranchId('');
                                     }
                                 }}
                             >
@@ -456,13 +482,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Label>Province</Label>
                             <Select
                                 value={editProvinceId}
-                                onValueChange={setEditProvinceId}
+                                onValueChange={(value) => {
+                                    setEditProvinceId(value);
+                                    if (value !== editProvinceId) {
+                                        setEditBranchId('');
+                                    }
+                                }}
+                                disabled={
+                                    !!editCountryId &&
+                                    editProvinceOptions.length === 0
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select province" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
+                                    {editProvinceOptions.map((province) => (
                                         <SelectItem
                                             key={province.id}
                                             value={String(province.id)}
@@ -479,12 +514,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Select
                                 value={editBranchId}
                                 onValueChange={setEditBranchId}
+                                disabled={editBranchOptions.length === 0}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select branch" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {branches.map((branch) => (
+                                    {editBranchOptions.map((branch) => (
                                         <SelectItem
                                             key={branch.id}
                                             value={String(branch.id)}

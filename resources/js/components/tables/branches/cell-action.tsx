@@ -92,6 +92,17 @@ export const CellAction: React.FC<CellActionProps> = ({
             ),
         [kitchens],
     );
+    const editProvinceOptions = useMemo(
+        () =>
+            provinces.filter((province) => {
+                if (!countryId) {
+                    return true;
+                }
+
+                return String(province.country_id ?? '') === countryId;
+            }),
+        [provinces, countryId],
+    );
 
     const resetEdit = () => {
         setName(data.name);
@@ -320,12 +331,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Select
                                 value={provinceId}
                                 onValueChange={setProvinceId}
+                                disabled={
+                                    !!countryId &&
+                                    editProvinceOptions.length === 0
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select province" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
+                                    {editProvinceOptions.map((province) => (
                                         <SelectItem
                                             key={province.id}
                                             value={String(province.id)}
