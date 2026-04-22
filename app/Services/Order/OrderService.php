@@ -331,6 +331,18 @@ class OrderService
         }
 
         if (($data['order_type'] ?? null) === OrderType::DELIVERY->value) {
+            if (empty(trim((string) ($data['customer_name'] ?? '')))) {
+                throw ValidationException::withMessages([
+                    'customer_name' => 'Customer name is required for delivery orders.',
+                ]);
+            }
+
+            if (empty(trim((string) ($data['customer_phone'] ?? '')))) {
+                throw ValidationException::withMessages([
+                    'customer_phone' => 'Customer phone is required for delivery orders.',
+                ]);
+            }
+
             if (empty(trim((string) ($data['delivery_address'] ?? '')))) {
                 throw ValidationException::withMessages([
                     'delivery_address' => 'Delivery address is required for delivery orders.',
