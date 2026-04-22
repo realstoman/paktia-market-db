@@ -30,11 +30,7 @@ import { useLocalization } from '@/lib/localization';
 import { DiscountCard, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import {
-    IconBrandFacebook,
-    IconBrandInstagram,
-    IconBrandTiktok,
     IconBrandWhatsapp,
-    IconBrandYoutube,
     IconMail,
     IconMapPin,
     IconPhone,
@@ -69,7 +65,11 @@ const RESTAURANT_CONTACT = {
     whatsapp: ['+93 780 59 59 59'],
     phones: ['+93 796 85 85 85', '+93 749 59 59 49'],
     emails: ['info@babataste.com', 'reservations@babataste.com'],
-    socialHandle: 'Baba Restaurant',
+};
+
+const RECEIPT_FOOTER_NOTE = {
+    title: 'Thank you for dining with us.',
+    message: 'We appreciate your visit and look forward to serving you again.',
 };
 
 const BRAND_COLORS = {
@@ -102,34 +102,6 @@ const printIcons = {
         1.5,
     ),
 };
-
-const createPrintBrandIcon = (content: string) =>
-    `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;color:${BRAND_COLORS.primary};">${content}</svg>`;
-
-const printBrandIcons = {
-    facebook: createPrintBrandIcon(
-        '<path d="M15 3H18V7H15C14.4477 7 14 7.44772 14 8V10H18L17.2 14H14V21H10V14H7V10H10V7.5C10 5.01472 12.0147 3 14.5 3H15Z" fill="currentColor"/>',
-    ),
-    instagram: createPrintBrandIcon(
-        '<rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.8" r="1.1" fill="currentColor"/>',
-    ),
-    tiktok: createPrintBrandIcon(
-        '<path d="M14 4C14.7 6.1 16.2 7.6 18.5 8V11C17.1 10.95 15.9 10.55 14.8 9.8V15.1C14.8 18.1 12.4 20.4 9.45 20.4C6.55 20.4 4.2 18.05 4.2 15.15C4.2 12.25 6.55 9.9 9.45 9.9C9.8 9.9 10.1 9.93 10.6 10.05V13.05C10.25 12.85 9.9 12.75 9.45 12.75C8.15 12.75 7.1 13.8 7.1 15.1C7.1 16.4 8.15 17.45 9.45 17.45C10.75 17.45 11.8 16.4 11.8 15.1V4H14Z" fill="currentColor"/>',
-    ),
-    youtube: createPrintBrandIcon(
-        '<path d="M21.2 8.4C21 7.6 20.4 7 19.6 6.8C18.1 6.4 12 6.4 12 6.4C12 6.4 5.9 6.4 4.4 6.8C3.6 7 3 7.6 2.8 8.4C2.4 9.9 2.4 12 2.4 12C2.4 12 2.4 14.1 2.8 15.6C3 16.4 3.6 17 4.4 17.2C5.9 17.6 12 17.6 12 17.6C12 17.6 18.1 17.6 19.6 17.2C20.4 17 21 16.4 21.2 15.6C21.6 14.1 21.6 12 21.6 12C21.6 12 21.6 9.9 21.2 8.4ZM10 14.6V9.4L14.8 12L10 14.6Z" fill="currentColor"/>',
-    ),
-};
-
-const socialBadgesHtml = `
-    <div style="display:flex;justify-content:center;gap:8px;align-items:center;margin-top:8px;">
-        ${printBrandIcons.facebook}
-        ${printBrandIcons.instagram}
-        ${printBrandIcons.tiktok}
-        ${printBrandIcons.youtube}
-        <span style="font-size:10px;color:${BRAND_COLORS.dark};font-weight:600;">/ ${RESTAURANT_CONTACT.socialHandle}</span>
-    </div>
-`;
 
 const escapeHtml = (value: string) =>
     value
@@ -327,7 +299,11 @@ export function ReceiptPreviewDialog({
                             <div class="footer-row"><span class="footer-icon">${printIcons.mail}</span><span>${escapeHtml(RESTAURANT_CONTACT.emails.join(' - '))}</span></div>
                             <div class="footer-row"><span class="footer-icon">${printIcons.globe}</span><span>${escapeHtml(RESTAURANT_CONTACT.website)}</span></div>
                         </div>
-                        ${socialBadgesHtml}
+                        <hr />
+                        <div class="center" style="font-size:10px;line-height:1.5;">
+                            <div style="font-weight:700;color:${BRAND_COLORS.primary};">${escapeHtml(RECEIPT_FOOTER_NOTE.title)}</div>
+                            <div class="muted">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
+                        </div>
                     </div>
                     <script>
                         window.onload = function () {
@@ -732,29 +708,13 @@ export function ReceiptPreviewDialog({
                                                 {RESTAURANT_CONTACT.website}
                                             </span>
                                         </p>
-                                        <div className="flex items-center gap-1 pt-1 text-[#102F33]">
-                                            <IconBrandFacebook
-                                                className="h-3.5 w-3.5"
-                                                stroke={1.8}
-                                            />
-                                            <IconBrandInstagram
-                                                className="h-3.5 w-3.5"
-                                                stroke={1.8}
-                                            />
-                                            <IconBrandTiktok
-                                                className="h-3.5 w-3.5"
-                                                stroke={1.8}
-                                            />
-                                            <IconBrandYoutube
-                                                className="h-3.5 w-3.5"
-                                                stroke={1.8}
-                                            />
-                                            <span className="pl-1 text-[10px] font-medium">
-                                                /{' '}
-                                                {
-                                                    RESTAURANT_CONTACT.socialHandle
-                                                }
-                                            </span>
+                                        <div className="mt-2 border-t border-dashed pt-2 text-center">
+                                            <p className="text-[10px] font-semibold text-[#102F33]">
+                                                {RECEIPT_FOOTER_NOTE.title}
+                                            </p>
+                                            <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
+                                                {RECEIPT_FOOTER_NOTE.message}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

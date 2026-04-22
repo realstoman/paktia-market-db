@@ -1606,6 +1606,9 @@ export default function OperationsPage({
                                                                             disabled={
                                                                                 isSubmitting
                                                                             }
+                                                                            variant={
+                                                                                'outline'
+                                                                            }
                                                                         >
                                                                             {t(
                                                                                 'orders.kitchenProgress.actions.ready',
