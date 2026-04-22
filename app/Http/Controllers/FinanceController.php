@@ -86,6 +86,24 @@ class FinanceController extends Controller
                 ->sum('payments.amount')
             : 0.0;
 
+        $coverageComparison = collect([
+            [
+                'label' => 'Sales',
+                'amount' => (float) $salesTotal,
+                'tone' => 'sales',
+            ],
+            [
+                'label' => 'Employee Covered',
+                'amount' => (float) $employeeCoveredTotal,
+                'tone' => 'employee',
+            ],
+            [
+                'label' => 'House Comp',
+                'amount' => (float) $houseCompTotal,
+                'tone' => 'house',
+            ],
+        ])->values();
+
         $expensesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
             : (float) Expense::query()
@@ -618,6 +636,7 @@ class FinanceController extends Controller
                 'branchRevenue' => $branchRevenue,
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => $paymentBreakdown,
+                'coverageComparison' => $coverageComparison,
                 'ledgerStats' => $ledgerStats,
                 'generalLedger' => $generalLedger,
                 'generalLedgerPreview' => $generalLedger->take(5)->values(),

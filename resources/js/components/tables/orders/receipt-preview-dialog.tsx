@@ -10,6 +10,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -26,6 +27,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
 import { DiscountCard, Employee, Order } from '@/types';
@@ -33,7 +35,6 @@ import { formatAfn } from '@/utils/format';
 import { IconMapPin } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Textarea } from '@/components/ui/textarea';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
@@ -126,16 +127,21 @@ export function ReceiptPreviewDialog({
         order?.discount_card_id ? String(order.discount_card_id) : '',
     );
     const [selectedSponsorEmployeeId, setSelectedSponsorEmployeeId] = useState(
-        order?.covered_by_employee_id ? String(order.covered_by_employee_id) : '',
+        order?.covered_by_employee_id
+            ? String(order.covered_by_employee_id)
+            : '',
     );
     const [coveredByType, setCoveredByType] = useState<
         'customer' | 'employee' | 'house'
     >(
-        order?.covered_by_type === 'employee' || order?.covered_by_type === 'house'
+        order?.covered_by_type === 'employee' ||
+            order?.covered_by_type === 'house'
             ? order.covered_by_type
             : 'customer',
     );
-    const [sponsorNote, setSponsorNote] = useState(order?.covered_by_note ?? '');
+    const [sponsorNote, setSponsorNote] = useState(
+        order?.covered_by_note ?? '',
+    );
     const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
     const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
     const canFinalizePayment =
@@ -174,7 +180,8 @@ export function ReceiptPreviewDialog({
 
         return sponsorEmployees.filter(
             (employee) =>
-                employee.branch_id === null || employee.branch_id === orderBranchId,
+                employee.branch_id === null ||
+                employee.branch_id === orderBranchId,
         );
     }, [orderBranchId, sponsorEmployees]);
     const sponsorEmployeeOptions = useMemo(
@@ -183,7 +190,9 @@ export function ReceiptPreviewDialog({
                 value: String(employee.id),
                 label:
                     employee.full_name?.trim() ||
-                    [employee.first_name, employee.last_name].filter(Boolean).join(' '),
+                    [employee.first_name, employee.last_name]
+                        .filter(Boolean)
+                        .join(' '),
             })),
         [availableSponsorEmployees],
     );
@@ -528,7 +537,10 @@ export function ReceiptPreviewDialog({
                                     onValueChange={(value) =>
                                         onPaymentMethodChange?.(value)
                                     }
-                                    disabled={isPaymentCompleted || coveredByType === 'house'}
+                                    disabled={
+                                        isPaymentCompleted ||
+                                        coveredByType === 'house'
+                                    }
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -572,47 +584,51 @@ export function ReceiptPreviewDialog({
 
                             {coveredByType === 'employee' ? (
                                 <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    {t(
-                                        'orders.receipt.coveredByEmployee',
-                                        'Covered By Employee',
-                                    )}
-                                </label>
-                                <SearchableDropdown
-                                    value={selectedSponsorEmployeeId}
-                                    options={sponsorEmployeeOptions}
-                                    onValueChange={setSelectedSponsorEmployeeId}
-                                    placeholder={t(
-                                        'orders.receipt.coveredByEmployeePlaceholder',
-                                        'Select employee if this order is being covered',
-                                    )}
-                                    searchPlaceholder={t(
-                                        'orders.receipt.coveredByEmployeeSearch',
-                                        'Search employees...',
-                                    )}
-                                    emptyText={t(
-                                        'orders.receipt.coveredByEmployeeEmpty',
-                                        'No active employee found.',
-                                    )}
-                                    className="w-full"
-                                />
-                                {selectedSponsorEmployee ? (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        className="h-auto justify-start px-0 text-xs text-muted-foreground"
-                                        onClick={() => {
-                                            setSelectedSponsorEmployeeId('');
-                                            setSponsorNote('');
-                                        }}
-                                        disabled={isPaymentCompleted}
-                                    >
+                                    <label className="text-sm font-medium">
                                         {t(
-                                            'orders.receipt.clearCoveredByEmployee',
-                                            'Clear employee coverage',
+                                            'orders.receipt.coveredByEmployee',
+                                            'Covered By Employee',
                                         )}
-                                    </Button>
-                                ) : null}
+                                    </label>
+                                    <SearchableDropdown
+                                        value={selectedSponsorEmployeeId}
+                                        options={sponsorEmployeeOptions}
+                                        onValueChange={
+                                            setSelectedSponsorEmployeeId
+                                        }
+                                        placeholder={t(
+                                            'orders.receipt.coveredByEmployeePlaceholder',
+                                            'Select employee if this order is being covered',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'orders.receipt.coveredByEmployeeSearch',
+                                            'Search employees...',
+                                        )}
+                                        emptyText={t(
+                                            'orders.receipt.coveredByEmployeeEmpty',
+                                            'No active employee found.',
+                                        )}
+                                        className="w-full"
+                                    />
+                                    {selectedSponsorEmployee ? (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            className="h-auto justify-start px-0 text-xs text-muted-foreground"
+                                            onClick={() => {
+                                                setSelectedSponsorEmployeeId(
+                                                    '',
+                                                );
+                                                setSponsorNote('');
+                                            }}
+                                            disabled={isPaymentCompleted}
+                                        >
+                                            {t(
+                                                'orders.receipt.clearCoveredByEmployee',
+                                                'Clear employee coverage',
+                                            )}
+                                        </Button>
+                                    ) : null}
                                 </div>
                             ) : null}
 
@@ -646,6 +662,54 @@ export function ReceiptPreviewDialog({
                                 </div>
                             ) : null}
 
+                            <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-neutral-200 bg-white/80 px-3 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-950/60">
+                                {coveredByType === 'employee' ? (
+                                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                                        {t(
+                                            'orders.columns.employeeCover',
+                                            'Employee cover',
+                                        )}
+                                    </Badge>
+                                ) : coveredByType === 'house' ? (
+                                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                                        {t(
+                                            'orders.columns.houseComp',
+                                            'House comp',
+                                        )}
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                        {t(
+                                            'orders.columns.customerPayment',
+                                            'Customer payment',
+                                        )}
+                                    </Badge>
+                                )}
+                                <span className="text-muted-foreground">
+                                    {coveredByType === 'employee'
+                                        ? (selectedSponsorEmployee?.full_name ??
+                                          ([
+                                              selectedSponsorEmployee?.first_name,
+                                              selectedSponsorEmployee?.last_name,
+                                          ]
+                                              .filter(Boolean)
+                                              .join(' ') ||
+                                              t(
+                                                  'orders.receipt.coveredByEmployee',
+                                                  'Covered By Employee',
+                                              )))
+                                        : coveredByType === 'house'
+                                          ? t(
+                                                'orders.receipt.coveredByTypeHouse',
+                                                'House Hospitality / Comp',
+                                            )
+                                          : t(
+                                                'orders.receipt.coveredByTypeCustomer',
+                                                'Customer Payment',
+                                            )}
+                                </span>
+                            </div>
+
                             <div className="text-sm">
                                 <p className="flex items-center justify-between">
                                     <span>
@@ -674,13 +738,16 @@ export function ReceiptPreviewDialog({
                                     </span>
                                     <span>{formatAfn(finalTotal)}</span>
                                 </p>
-                                {coveredByType === 'employee' && selectedSponsorEmployee ? (
+                                {coveredByType === 'employee' &&
+                                selectedSponsorEmployee ? (
                                     <div className="mt-3 rounded-md border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-muted-foreground dark:border-neutral-800 dark:bg-neutral-900/50">
                                         <p className="font-medium text-neutral-900 dark:text-neutral-100">
                                             {`${t('orders.receipt.coveredByEmployeeSummary', 'This order is being covered by')} ${selectedSponsorEmployee.full_name ?? [selectedSponsorEmployee.first_name, selectedSponsorEmployee.last_name].filter(Boolean).join(' ')}`}
                                         </p>
                                         {sponsorNote.trim() ? (
-                                            <p className="mt-1">{sponsorNote.trim()}</p>
+                                            <p className="mt-1">
+                                                {sponsorNote.trim()}
+                                            </p>
                                         ) : null}
                                     </div>
                                 ) : null}
@@ -693,7 +760,9 @@ export function ReceiptPreviewDialog({
                                             )}
                                         </p>
                                         {sponsorNote.trim() ? (
-                                            <p className="mt-1">{sponsorNote.trim()}</p>
+                                            <p className="mt-1">
+                                                {sponsorNote.trim()}
+                                            </p>
                                         ) : null}
                                     </div>
                                 ) : null}

@@ -189,6 +189,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [orderTypeFilter, setOrderTypeFilter] = useState('all');
     const [kitchenFilter, setKitchenFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [coverageFilter, setCoverageFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
     const isOrderTaker = auth.roles.includes('order-taker');
     const [isCompactViewport, setIsCompactViewport] = useState(false);
@@ -869,6 +870,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             }
 
             if (
+                coverageFilter !== 'all' &&
+                (order.covered_by_type ?? 'customer') !== coverageFilter
+            ) {
+                return false;
+            }
+
+            if (
                 sourceFilter !== 'all' &&
                 (order.source ?? 'pos') !== sourceFilter
             ) {
@@ -978,6 +986,28 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         [t],
     );
 
+    const coverageFilterOptions = useMemo(
+        () => [
+            {
+                value: 'all',
+                label: t('orders.filters.allCoverage', 'All Coverage'),
+            },
+            {
+                value: 'customer',
+                label: t('orders.columns.customerPayment', 'Customer payment'),
+            },
+            {
+                value: 'employee',
+                label: t('orders.columns.employeeCover', 'Employee cover'),
+            },
+            {
+                value: 'house',
+                label: t('orders.columns.houseComp', 'House comp'),
+            },
+        ],
+        [t],
+    );
+
     const tableToolbar = (
         <div
             className={`flex w-full flex-wrap gap-2 xl:flex-nowrap ${
@@ -1062,6 +1092,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search statuses...',
                 )}
                 emptyText={t('orders.filters.noStatuses', 'No statuses found.')}
+                className={
+                    locale === 'fa' || locale === 'ps'
+                        ? 'w-full md:min-w-[170px]'
+                        : 'w-[170px]'
+                }
+            />
+            <SearchableDropdown
+                value={coverageFilter}
+                options={coverageFilterOptions}
+                onValueChange={setCoverageFilter}
+                placeholder={t('orders.filters.coverage', 'Coverage')}
+                searchPlaceholder={t(
+                    'orders.filters.searchCoverage',
+                    'Search coverage...',
+                )}
+                emptyText={t('orders.filters.noCoverage', 'No coverage found.')}
                 className={
                     locale === 'fa' || locale === 'ps'
                         ? 'w-full md:min-w-[170px]'
@@ -2041,6 +2087,33 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         selectedOrder.source ?? 'pos',
                                     )}
                                 </Badge>
+                                {(selectedOrder.covered_by_type ?? 'customer') ===
+                                'employee' ? (
+                                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                                        {t(
+                                            'orders.columns.employeeCover',
+                                            'Employee cover',
+                                        )}
+                                        {selectedOrder.coveredByEmployee?.full_name
+                                            ? ` • ${selectedOrder.coveredByEmployee.full_name}`
+                                            : ''}
+                                    </Badge>
+                                ) : (selectedOrder.covered_by_type ?? 'customer') ===
+                                  'house' ? (
+                                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                                        {t(
+                                            'orders.columns.houseComp',
+                                            'House comp',
+                                        )}
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                        {t(
+                                            'orders.columns.customerPayment',
+                                            'Customer payment',
+                                        )}
+                                    </Badge>
+                                )}
                                 {selectedOrder.client?.name ? (
                                     <Badge variant="secondary">
                                         {t(
@@ -2133,8 +2206,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
                             {(selectedOrder.client?.email ||
                                 selectedOrder.client?.phone ||
-                                selectedOrder.customer_note) && (
-                                <div className="grid gap-4 rounded-md border border-neutral-200/70 p-4 sm:grid-cols-3 dark:border-neutral-800">
+                                selectedOrder.customer_note ||
+                                selectedOrder.covered_by_note) && (
+                                <div className="grid gap-4 rounded-md border border-neutral-200/70 p-4 sm:grid-cols-4 dark:border-neutral-800">
                                     <div>
                                         <p className="text-xs text-muted-foreground">
                                             {t(
@@ -2168,6 +2242,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         </p>
                                         <p className="font-medium">
                                             {selectedOrder.customer_note ?? '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t(
+                                                'orders.detailsModal.coverageNote',
+                                                'Coverage Note',
+                                            )}
+                                        </p>
+                                        <p className="font-medium">
+                                            {selectedOrder.covered_by_note ?? '-'}
                                         </p>
                                     </div>
                                 </div>

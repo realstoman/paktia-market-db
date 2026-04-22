@@ -118,6 +118,11 @@ interface FinanceDashboardData {
         method: string;
         amount: number;
     }>;
+    coverageComparison: Array<{
+        label: string;
+        amount: number;
+        tone: 'sales' | 'employee' | 'house' | string;
+    }>;
     ledgerStats: {
         accounts: number;
         journals: number;
@@ -308,6 +313,18 @@ function ledgerStatusTone(status: string) {
     }
 
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
+}
+
+function coverageChartColor(tone: string) {
+    if (tone === 'employee') {
+        return '#2563eb';
+    }
+
+    if (tone === 'house') {
+        return '#d97706';
+    }
+
+    return '#14532d';
 }
 
 function SummaryCard({
@@ -823,48 +840,6 @@ export default function FinancePage({
                         </CardContent>
                     </Card>
 
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader>
-                            <CardTitle>Payment Breakdown</CardTitle>
-                            <CardDescription>
-                                Collected payment volume by recorded payment
-                                method. Orders without payment rows are shown as
-                                unassigned.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {dashboard.paymentBreakdown.length ? (
-                                dashboard.paymentBreakdown.map((item) => (
-                                    <div
-                                        key={item.method}
-                                        className="flex items-center justify-between rounded-2xl border border-neutral-200/80 px-4 py-3 dark:border-neutral-800"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-xl bg-neutral-950 p-2 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                                <Coins className="h-4 w-4" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                                                    {item.method}
-                                                </p>
-                                                <p className="text-xs text-neutral-500">
-                                                    Payment source
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-                                            {formatAfn(item.amount)}
-                                        </p>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                    No payment data is available for the
-                                    selected filters.
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
