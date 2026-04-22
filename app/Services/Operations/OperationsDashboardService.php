@@ -5,6 +5,8 @@ namespace App\Services\Operations;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\BranchTable;
+use App\Models\Customer;
+use App\Models\DiscountCard;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -130,6 +132,15 @@ class OperationsDashboardService
             'mode' => $roleMode,
             'branchId' => $branchId,
             'products' => $products,
+            'customers' => Customer::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->orderBy('phone')
+                ->get(['id', 'name', 'phone', 'email']),
+            'discountCards' => DiscountCard::query()
+                ->active()
+                ->orderBy('name')
+                ->get(),
             'categories' => $categoryOptions,
             'tables' => $tables,
             'openOrders' => $openOrders->values(),

@@ -27,6 +27,7 @@ import { useAuthorization } from '@/lib/permissions';
 import {
     BranchTable,
     BreadcrumbItem,
+    DiscountCard,
     Order,
     Product,
     SharedData,
@@ -77,6 +78,7 @@ interface OperationsPageProps {
     mode: OperationMode;
     branchId: number | null;
     products?: Product[];
+    discountCards?: DiscountCard[];
     categories?: CategoryOption[];
     tables?: TableCard[];
     openOrders?: Order[];
@@ -192,6 +194,7 @@ export default function OperationsPage({
     mode,
     branchId,
     products = [],
+    discountCards = [],
     categories = [],
     tables = [],
     openOrders = [],
@@ -812,7 +815,11 @@ export default function OperationsPage({
 
     const handleCompletePayment = (
         order: Order,
-        payload: { discountAmount: number; paymentMethod: string },
+        payload: {
+            discountAmount: number;
+            paymentMethod: string;
+            discountCardId?: number | null;
+        },
     ) => {
         const subtotal = Number(
             order.sub_total_amount ?? order.total_amount ?? 0,
@@ -827,6 +834,7 @@ export default function OperationsPage({
                 status: 'completed',
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
+                discount_card_id: payload.discountCardId ?? null,
             },
             {
                 preserveScroll: true,
@@ -838,6 +846,8 @@ export default function OperationsPage({
                     setSelectedReceiptOrder({
                         ...order,
                         status: 'completed',
+                        discount_card_id:
+                            payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
                         total_amount: finalTotal,
                         paid_amount: finalTotal,
@@ -1775,6 +1785,7 @@ export default function OperationsPage({
                     onPaymentMethodChange={(value) =>
                         setPaymentMethod(value as PaymentMethod)
                     }
+                    discountCards={discountCards}
                     onCompletePayment={handleCompletePayment}
                     isCompletingPayment={isCompletingPayment}
                 />

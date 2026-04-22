@@ -1,9 +1,7 @@
 import InputError from '@/components/input-error';
-import { useLocalization } from '@/lib/localization';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { KitchensClient } from '@/components/tables/kitchens/client';
-import { formatNumber } from '@/utils/format';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -44,6 +42,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useLocalization } from '@/lib/localization';
 import {
     Banner,
     Country,
@@ -58,6 +57,7 @@ import {
     SharedData,
     Vendor,
 } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { usePage } from '@inertiajs/react';
 import {
     BadgePercent,
@@ -239,8 +239,7 @@ export function ToolsLauncher() {
 
         try {
             const isFormData = payload instanceof FormData;
-            const requestMethod =
-                method === 'POST' ? 'POST' : 'POST';
+            const requestMethod = method === 'POST' ? 'POST' : 'POST';
             const normalizedPayload =
                 method === 'POST'
                     ? payload
@@ -289,7 +288,9 @@ export function ToolsLauncher() {
             }
 
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
+                throw new Error(
+                    `Request failed with status ${response.status}`,
+                );
             }
 
             const responseData = response.headers
@@ -379,7 +380,9 @@ export function ToolsLauncher() {
                 throw new Error(`Failed to load tools (${response.status})`);
             }
 
-            const payload = (await response.json()) as { data?: ToolReferenceData };
+            const payload = (await response.json()) as {
+                data?: ToolReferenceData;
+            };
             setToolData(payload.data ?? emptyToolReferenceData());
             setHasLoadedTools(true);
         } catch (error) {
@@ -743,7 +746,10 @@ export function ToolsLauncher() {
                             <PopoverTrigger asChild className="cursor-pointer">
                                 <SidebarMenuButton
                                     tooltip={{
-                                        children: t('navigation.tools', 'Tools'),
+                                        children: t(
+                                            'navigation.tools',
+                                            'Tools',
+                                        ),
                                     }}
                                 >
                                     <LayoutDashboard />
@@ -839,7 +845,7 @@ export function ToolsLauncher() {
                                     >
                                         <BadgePercent className="h-5 w-5" />
                                         <span className="text-xs">
-                                            Discount Cards
+                                            Discount <br /> Cards
                                         </span>
                                     </Button>
                                     <Button
@@ -1329,9 +1335,7 @@ export function ToolsLauncher() {
                                 value={discountCardMaxAmount}
                                 onValueChange={setDiscountCardMaxAmount}
                             />
-                            <InputError
-                                message={errors.max_discount_amount}
-                            />
+                            <InputError message={errors.max_discount_amount} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label>Description</Label>
@@ -1355,6 +1359,7 @@ export function ToolsLauncher() {
                             Clear
                         </Button>
                         <Button
+                            variant={'outline'}
                             onClick={submitDiscountCard}
                             disabled={
                                 isSubmitting ||
@@ -1384,9 +1389,8 @@ export function ToolsLauncher() {
                                         {card.discount_type === 'percentage'
                                             ? `${Number(card.discount_value) || 0}%`
                                             : formatNumber(
-                                                  Number(
-                                                      card.discount_value,
-                                                  ) || 0,
+                                                  Number(card.discount_value) ||
+                                                      0,
                                               )}{' '}
                                         {card.discount_type === 'fixed'
                                             ? 'AFN'
@@ -1635,10 +1639,12 @@ export function ToolsLauncher() {
                                 ? 'City'
                                 : deleteDialog?.type === 'discountCard'
                                   ? 'Discount Card'
-                                : deleteDialog?.type
-                                      ? deleteDialog.type.charAt(0).toUpperCase() +
-                                        deleteDialog.type.slice(1)
-                                      : 'Item'}
+                                  : deleteDialog?.type
+                                    ? deleteDialog.type
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                      deleteDialog.type.slice(1)
+                                    : 'Item'}
                             ?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
@@ -1646,8 +1652,7 @@ export function ToolsLauncher() {
                                 ? `This will permanently remove ${deleteDialog.name} from the ${
                                       deleteDialog.type === 'province'
                                           ? 'cities'
-                                          : deleteDialog.type ===
-                                              'discountCard'
+                                          : deleteDialog.type === 'discountCard'
                                             ? 'discount cards'
                                             : `${deleteDialog.type}s`
                                   } list.`
