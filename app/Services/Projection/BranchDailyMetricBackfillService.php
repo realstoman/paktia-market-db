@@ -35,7 +35,7 @@ class BranchDailyMetricBackfillService
             ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed_orders_total", [OrderStatus::COMPLETED->value])
             ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled_orders_total", [OrderStatus::CANCELLED->value])
             ->selectRaw('COALESCE(SUM(total_amount), 0) as gross_sales_total')
-            ->selectRaw("COALESCE(SUM(CASE WHEN status = ? THEN total_amount ELSE 0 END), 0) as completed_sales_total", [OrderStatus::COMPLETED->value])
+            ->selectRaw("COALESCE(SUM(CASE WHEN status = ? AND (covered_by_type IS NULL OR covered_by_type != 'house') THEN total_amount ELSE 0 END), 0) as completed_sales_total", [OrderStatus::COMPLETED->value])
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
             ->groupBy('branch_id', DB::raw('DATE(created_at)'))

@@ -911,6 +911,7 @@ class FinanceController extends Controller
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
             })
             ->where('status', OrderStatus::COMPLETED->value)
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderByDesc('created_at')
             ->when($limit, fn ($query) => $query->limit($limit))
@@ -924,6 +925,27 @@ class FinanceController extends Controller
                 'description' => 'Completed '.$order->order_type?->value.' order',
                 'debit' => 0.0,
                 'credit' => (float) $order->total_amount,
+                'status' => 'Posted',
+            ]);
+
+        $houseCompEntries = Order::query()
+            ->with(['branch:id,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->where('covered_by_type', 'house')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderByDesc('created_at')
+            ->when($limit, fn ($query) => $query->limit($limit))
+            ->get()
+            ->map(fn (Order $order) => [
+                'date' => optional($order->created_at)?->toDateTimeString(),
+                'reference' => 'Order #'.$order->id,
+                'type' => 'House Comp',
+                'branch' => $order->branch?->name ?? 'All Branches',
+                'account' => 'Hospitality / Comp',
+                'description' => $order->covered_by_note ?: 'Completed hospitality order',
+                'debit' => (float) $order->total_amount,
+                'credit' => 0.0,
                 'status' => 'Posted',
             ]);
 

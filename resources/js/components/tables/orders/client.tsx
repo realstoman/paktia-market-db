@@ -570,6 +570,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             order.sub_total_amount ?? order.total_amount ?? 0,
         );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
+        const isHouseComp = payload.coveredByType === 'house';
 
         setIsCompletingPayment(true);
 
@@ -614,15 +615,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     payload.coveredByEmployeeId,
                             ) ?? order.coveredByEmployee,
                         total_amount: finalTotal,
-                        paid_amount: finalTotal,
-                        payments: [
-                            {
-                                ...(order.payments?.[0] ?? {}),
-                                method: payload.paymentMethod,
-                                amount: finalTotal,
-                                status: 'paid',
-                            },
-                        ],
+                        paid_amount: isHouseComp ? 0 : finalTotal,
+                        payments: isHouseComp
+                            ? []
+                            : [
+                                  {
+                                      ...(order.payments?.[0] ?? {}),
+                                      method: payload.paymentMethod,
+                                      amount: finalTotal,
+                                      status:
+                                          payload.coveredByType === 'employee'
+                                              ? 'covered_by_employee'
+                                              : 'paid',
+                                  },
+                              ],
                     });
                 },
                 onError: (errors) => {
