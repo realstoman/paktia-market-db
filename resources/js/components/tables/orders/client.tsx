@@ -31,6 +31,7 @@ import {
     BranchTable,
     Customer,
     DiscountCard,
+    Employee,
     Order,
     Product,
     SharedData,
@@ -72,6 +73,7 @@ interface OrdersClientProps {
     branchTables: BranchTable[];
     customers: Customer[];
     discountCards: DiscountCard[];
+    sponsorEmployees: Employee[];
     isLoading?: boolean;
 }
 
@@ -99,6 +101,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     branchTables,
     customers,
     discountCards,
+    sponsorEmployees,
     isLoading = false,
 }) => {
     const { auth } = usePage<SharedData>().props;
@@ -558,6 +561,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
+            coveredByEmployeeId?: number | null;
+            coveredByNote?: string | null;
         },
     ) => {
         const subtotal = Number(
@@ -574,6 +579,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
                 discount_card_id: payload.discountCardId ?? null,
+                covered_by_employee_id: payload.coveredByEmployeeId ?? null,
+                covered_by_note: payload.coveredByNote ?? null,
             },
             {
                 preserveScroll: true,
@@ -591,6 +598,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         discount_card_id:
                             payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
+                        covered_by_employee_id:
+                            payload.coveredByEmployeeId ??
+                            order.covered_by_employee_id,
+                        covered_by_note:
+                            payload.coveredByNote ?? order.covered_by_note,
+                        coveredByEmployee:
+                            sponsorEmployees.find(
+                                (employee) =>
+                                    employee.id ===
+                                    payload.coveredByEmployeeId,
+                            ) ?? order.coveredByEmployee,
                         total_amount: finalTotal,
                         paid_amount: finalTotal,
                         payments: [
@@ -2592,6 +2610,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 paymentMethod={paymentMethod}
                 onPaymentMethodChange={setPaymentMethod}
                 discountCards={discountCards}
+                sponsorEmployees={sponsorEmployees}
                 onCompletePayment={handleCompletePayment}
                 isCompletingPayment={isCompletingPayment}
             />

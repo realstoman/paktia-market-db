@@ -28,6 +28,7 @@ import {
     BranchTable,
     BreadcrumbItem,
     DiscountCard,
+    Employee,
     Order,
     Product,
     SharedData,
@@ -84,6 +85,7 @@ interface OperationsPageProps {
     branchId: number | null;
     products?: Product[];
     discountCards?: DiscountCard[];
+    sponsorEmployees?: Employee[];
     categories?: CategoryOption[];
     tables?: TableCard[];
     openOrders?: Order[];
@@ -200,6 +202,7 @@ export default function OperationsPage({
     branchId,
     products = [],
     discountCards = [],
+    sponsorEmployees = [],
     categories = [],
     tables = [],
     openOrders = [],
@@ -823,6 +826,8 @@ export default function OperationsPage({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
+            coveredByEmployeeId?: number | null;
+            coveredByNote?: string | null;
         },
     ) => {
         const subtotal = Number(
@@ -839,6 +844,8 @@ export default function OperationsPage({
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
                 discount_card_id: payload.discountCardId ?? null,
+                covered_by_employee_id: payload.coveredByEmployeeId ?? null,
+                covered_by_note: payload.coveredByNote ?? null,
             },
             {
                 preserveScroll: true,
@@ -853,6 +860,17 @@ export default function OperationsPage({
                         discount_card_id:
                             payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
+                        covered_by_employee_id:
+                            payload.coveredByEmployeeId ??
+                            order.covered_by_employee_id,
+                        covered_by_note:
+                            payload.coveredByNote ?? order.covered_by_note,
+                        coveredByEmployee:
+                            sponsorEmployees.find(
+                                (employee) =>
+                                    employee.id ===
+                                    payload.coveredByEmployeeId,
+                            ) ?? order.coveredByEmployee,
                         total_amount: finalTotal,
                         paid_amount: finalTotal,
                         payments: [
@@ -1865,6 +1883,7 @@ export default function OperationsPage({
                             setPaymentMethod(value as PaymentMethod)
                         }
                         discountCards={discountCards}
+                        sponsorEmployees={sponsorEmployees}
                         onCompletePayment={handleCompletePayment}
                         isCompletingPayment={isCompletingPayment}
                     />

@@ -23,6 +23,8 @@ class Order extends Model
         'customer_phone',
         'delivery_address',
         'customer_note',
+        'covered_by_employee_id',
+        'covered_by_note',
         'discount_card_id',
         'discount_type',
         'discount_value',
@@ -77,6 +79,11 @@ class Order extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function coveredByEmployee()
+    {
+        return $this->belongsTo(Employee::class, 'covered_by_employee_id');
     }
 
     public function branchTable()

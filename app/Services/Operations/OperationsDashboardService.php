@@ -7,6 +7,7 @@ use App\Enums\OrderType;
 use App\Models\BranchTable;
 use App\Models\Customer;
 use App\Models\DiscountCard;
+use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -51,6 +52,8 @@ class OperationsDashboardService
                 'customer_name',
                 'customer_phone',
                 'delivery_address',
+                'covered_by_employee_id',
+                'covered_by_note',
                 'sub_total_amount',
                 'total_amount',
                 'paid_amount',
@@ -61,6 +64,7 @@ class OperationsDashboardService
                 'branch:id,name',
                 'branchTable:id,branch_id,table_number,title,description,is_active',
                 'user:id,name',
+                'coveredByEmployee:id,branch_id,first_name,last_name,phone',
                 'payments:id,order_id,method,amount,currency,payment_date',
                 'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,line_total,product_name_snapshot,prep_status,started_at,ready_at,delivered_at',
                 'items.product:id,name,product_category_id,kitchen_id',
@@ -141,6 +145,27 @@ class OperationsDashboardService
                 ->active()
                 ->orderBy('name')
                 ->get(),
+            'sponsorEmployees' => Employee::query()
+                ->where('is_active', true)
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get([
+                    'id',
+                    'branch_id',
+                    'first_name',
+                    'last_name',
+                    'phone',
+                ])
+                ->map(fn (Employee $employee) => [
+                    'id' => $employee->id,
+                    'branch_id' => $employee->branch_id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'full_name' => trim($employee->first_name.' '.$employee->last_name),
+                    'phone' => $employee->phone,
+                ])
+                ->values(),
             'categories' => $categoryOptions,
             'tables' => $tables,
             'openOrders' => $openOrders->values(),

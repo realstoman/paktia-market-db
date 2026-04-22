@@ -10,6 +10,7 @@ use App\Models\Branch;
 use App\Models\BranchTable;
 use App\Models\Customer;
 use App\Models\DiscountCard;
+use App\Models\Employee;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -39,6 +40,7 @@ class OrderService
             'user',
             'client',
             'customer',
+            'coveredByEmployee',
             'discountCard',
             'payments',
             'items' => fn ($query) => $query
@@ -88,6 +90,27 @@ class OrderService
                 ->active()
                 ->orderBy('name')
                 ->get(),
+            'sponsorEmployees' => Employee::query()
+                ->where('is_active', true)
+                ->when($allowedBranchId, fn ($query) => $query->where('branch_id', $allowedBranchId))
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get([
+                    'id',
+                    'branch_id',
+                    'first_name',
+                    'last_name',
+                    'phone',
+                ])
+                ->map(fn (Employee $employee) => [
+                    'id' => $employee->id,
+                    'branch_id' => $employee->branch_id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'full_name' => trim($employee->first_name.' '.$employee->last_name),
+                    'phone' => $employee->phone,
+                ])
+                ->values(),
             'selectedDate' => $selectedDate,
             'isAllTime' => $isAllTime,
             'restaurantStartDate' => $restaurantStartDate,
@@ -123,6 +146,8 @@ class OrderService
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'covered_by_employee_id' => null,
+                'covered_by_note' => null,
                 'discount_card_id' => $data['discount_card_id'] ?? null,
                 'discount_type' => null,
                 'discount_value' => null,
@@ -224,12 +249,18 @@ class OrderService
         ?string $paymentMethod = null,
         ?float $discountAmount = null,
         ?int $discountCardId = null,
+        ?int $coveredByEmployeeId = null,
+        ?string $coveredByNote = null,
         ?User $actor = null,
     ): void
     {
         $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod);
 
-        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $actor) {
+        if ($coveredByEmployeeId) {
+            $this->assertCoveredEmployeeBelongsToBranch($coveredByEmployeeId, $order->branch_id);
+        }
+
+        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $coveredByEmployeeId, $coveredByNote, $actor) {
             if ($status === OrderStatus::COMPLETED->value) {
                 $subTotal = (float) ($order->sub_total_amount ?? 0);
                 $discountDetails = $this->resolveDiscountDetails(
@@ -239,7 +270,12 @@ class OrderService
                     discountCardId: $discountCardId,
                 );
 
-                $order->update($discountDetails);
+                $order->update(array_merge($discountDetails, [
+                    'covered_by_employee_id' => $coveredByEmployeeId,
+                    'covered_by_note' => $coveredByEmployeeId
+                        ? trim((string) $coveredByNote) ?: null
+                        : null,
+                ]));
 
                 $this->syncOrderAmounts($order, $subTotal);
             }
@@ -365,6 +401,20 @@ class OrderService
         if (! $belongsToBranch) {
             throw ValidationException::withMessages([
                 $errorKey => $errorMessage,
+            ]);
+        }
+    }
+
+    private function assertCoveredEmployeeBelongsToBranch(int $employeeId, int $branchId): void
+    {
+        $belongsToBranch = Employee::query()
+            ->whereKey($employeeId)
+            ->where('branch_id', $branchId)
+            ->exists();
+
+        if (! $belongsToBranch) {
+            throw ValidationException::withMessages([
+                'covered_by_employee_id' => 'Selected employee does not belong to the order branch.',
             ]);
         }
     }
