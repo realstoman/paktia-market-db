@@ -114,8 +114,7 @@ const en = {
         systemBrandingHelp:
             'Save and reload to apply the updated branding across the system.',
         systemBrandingUpdated: 'Branding settings updated successfully.',
-        systemBrandingUpdateFailed:
-            'Unable to update branding settings.',
+        systemBrandingUpdateFailed: 'Unable to update branding settings.',
         confirmBrandingUpdateTitle: 'Apply branding changes?',
         confirmBrandingUpdateDescription:
             'This will update the shared restaurant name, logo, and colors across the system after reload.',
@@ -160,7 +159,8 @@ const en = {
         },
         emptyCategory: {
             title: 'No items in this category',
-            description: 'Choose another badge above to see more recent updates.',
+            description:
+                'Choose another badge above to see more recent updates.',
         },
     },
     footer: {
@@ -340,8 +340,8 @@ const en = {
             orderTypePlaceholder: 'Select type',
             paymentMethod: 'Payment Method',
             paymentMethodPlaceholder: 'Select payment method',
-            tableNumber: 'Table Number',
-            tableNumberPlaceholder: 'Select table number',
+            tableNumber: 'Table',
+            tableNumberPlaceholder: 'Select table',
             customerName: 'Customer Name',
             customerPhone: 'Customer Phone',
             deliveryAddress: 'Delivery Address',
@@ -386,7 +386,7 @@ const en = {
         columns: {
             orderId: 'Order ID',
             branch: 'Branch',
-            tableNumber: 'Table Number',
+            tableNumber: 'Table',
             createdBy: 'Created By',
             source: 'Source',
             customer: 'Customer',
@@ -475,7 +475,8 @@ const en = {
             },
             empty: {
                 column: 'No tickets in this column right now.',
-                dailyReport: 'No completed kitchen tickets found for this date.',
+                dailyReport:
+                    'No completed kitchen tickets found for this date.',
             },
             messages: {
                 newTicketReceived: 'New kitchen ticket received.',
@@ -507,7 +508,8 @@ const en = {
             allBranches: 'All Branches',
             stats: {
                 totalValue: 'Total Inventory Value',
-                totalValueDescription: 'Current value from quantity x single price.',
+                totalValueDescription:
+                    'Current value from quantity x single price.',
                 totalItems: 'Total Items',
                 totalItemsDescription: 'Inventory records currently tracked.',
                 totalOwed: 'Amount Owed to Vendors',
@@ -516,11 +518,13 @@ const en = {
                 lowStock: 'Low Stock Items',
                 lowStockDescription: 'Quantity ≤ :count.',
                 outOfStock: 'Out of Stock Items',
-                outOfStockDescription: 'Items that currently have zero quantity.',
+                outOfStockDescription:
+                    'Items that currently have zero quantity.',
             },
             vendorOwed: {
                 title: 'Amount Owed to Vendors',
-                description: 'Outstanding payable amounts grouped by vendor and last payment date.',
+                description:
+                    'Outstanding payable amounts grouped by vendor and last payment date.',
                 vendor: 'Vendor',
                 amount: 'Amount Owed',
                 lastPaid: 'Last Paid',
@@ -531,7 +535,8 @@ const en = {
         },
         toolbar: {
             title: 'Inventory Items: :count',
-            description: 'Manage grocery, food supplies, and other usable/non-usable inventory.',
+            description:
+                'Manage grocery, food supplies, and other usable/non-usable inventory.',
             usage: 'Usage',
             categories: 'Categories',
             units: 'Units',
@@ -631,7 +636,8 @@ const en = {
         vendorModal: {
             title: 'Manage Vendors',
             editTitle: 'Edit Vendor',
-            description: 'Create and update vendors/wholesale stores you buy inventory from.',
+            description:
+                'Create and update vendors/wholesale stores you buy inventory from.',
             storeName: 'Store Name',
             category: 'Category',
             categoryPlaceholder: 'Butcher, Grocery, Furniture...',
@@ -651,7 +657,8 @@ const en = {
         currencyModal: {
             title: 'Manage Currencies',
             editTitle: 'Edit Currency',
-            description: 'Add, update, and remove currencies by name and symbol.',
+            description:
+                'Add, update, and remove currencies by name and symbol.',
             code: 'Code',
             symbol: 'Symbol',
             save: 'Save Currency',
@@ -667,7 +674,8 @@ const en = {
         unitModal: {
             title: 'Manage Units',
             editTitle: 'Edit Unit',
-            description: 'Add, update, and remove units used in inventory items.',
+            description:
+                'Add, update, and remove units used in inventory items.',
             symbol: 'Symbol',
             save: 'Save Unit',
             update: 'Update Unit',
@@ -706,7 +714,8 @@ const en = {
         },
         createModal: {
             title: 'Create Inventory Item',
-            description: 'Add a new item with stock quantity, price, receipt/bill, and images.',
+            description:
+                'Add a new item with stock quantity, price, receipt/bill, and images.',
             vendorOptional: 'Vendor (optional)',
             initialQuantity: 'Initial Quantity',
             imagesLabel: 'Images (up to :count)',
@@ -735,19 +744,22 @@ const en = {
             usageHistory: 'Usage History',
             restock: 'Restock',
             editTitle: 'Edit Inventory Item',
-            editDescription: 'Update item details, price, quantity, and receipt.',
+            editDescription:
+                'Update item details, price, quantity, and receipt.',
             replaceReceipt: 'Replace Receipt/Bill (optional)',
             addNewImages: 'Add New Images (optional)',
             uploadAdditionalImages: 'Upload additional images for this item.',
             deleteTitle: 'Delete Inventory Item?',
-            deleteDescription: 'This will permanently delete ":name" and cascade related records (images and transactions).',
+            deleteDescription:
+                'This will permanently delete ":name" and cascade related records (images and transactions).',
             currentStock: 'Current stock',
             paymentDue: 'Payment due',
             quantityToAdd: 'Quantity to add',
             applyNewPrice: 'Apply new price to all stock',
             newSinglePrice: 'New Single Price',
             uploadReceipt: 'Upload Receipt/Bill (optional)',
-            restockDescription: 'Increase stock quantity for this inventory item.',
+            restockDescription:
+                'Increase stock quantity for this inventory item.',
             saveRestock: 'Save Restock',
             updated: 'Inventory item updated successfully.',
             updateFailed: 'Failed to update inventory item.',
@@ -786,8 +798,7 @@ const en = {
         totalCategoriesDescription:
             'Categories available for organizing products.',
         headingTitle: 'Products:',
-        headingDescription:
-            'Manage menu items, categories, types, and pricing',
+        headingDescription: 'Manage menu items, categories, types, and pricing',
         manageCategories: 'Manage Categories',
         manageTypes: 'Manage Types',
         addNewProduct: 'Add New Product',
@@ -862,15 +873,13 @@ const en = {
             pashtoPlaceholder: 'Pashto title (optional)',
             dariPlaceholder: 'Dari title (optional)',
             descriptionPlaceholder: 'Category description (optional)',
-            pashtoDescriptionPlaceholder:
-                'Pashto description (optional)',
+            pashtoDescriptionPlaceholder: 'Pashto description (optional)',
             dariDescriptionPlaceholder: 'Dari description (optional)',
             add: 'Add Category',
             update: 'Update Category',
             cancelEdit: 'Cancel Edit',
             deleteTitle: 'Delete Category',
-            deleteDescription:
-                'Are you sure you want to delete this category?',
+            deleteDescription: 'Are you sure you want to delete this category?',
         },
         typeMeta: {
             title: 'Manage Types',
@@ -885,8 +894,7 @@ const en = {
             update: 'Update Type',
             cancelEdit: 'Cancel Edit',
             deleteTitle: 'Delete Type',
-            deleteDescription:
-                'Are you sure you want to delete this type?',
+            deleteDescription: 'Are you sure you want to delete this type?',
         },
         columns: {
             product: 'Product',

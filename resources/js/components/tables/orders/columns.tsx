@@ -6,7 +6,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { BranchTable, Order } from '@/types';
+import type { BranchTable, Employee, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';
@@ -98,7 +98,7 @@ export const buildColumns = ({
     {
         id: 'branch_table.table_number',
         accessorFn: (row) => row.branch_table?.table_number ?? '-',
-        header: t('orders.columns.tableNumber', 'Table Number'),
+        header: t('orders.columns.tableNumber', 'Table'),
     },
     {
         id: 'user.name',
@@ -156,16 +156,17 @@ export const buildColumns = ({
             const coverageType = order.covered_by_type ?? 'customer';
             const coveredEmployee =
                 order.coveredByEmployee ??
-                ((order as typeof order & { covered_by_employee?: Employee | null })
-                    .covered_by_employee ?? null);
+                (
+                    order as typeof order & {
+                        covered_by_employee?: Employee | null;
+                    }
+                ).covered_by_employee ??
+                null;
 
             if (coverageType === 'employee') {
                 const employeeName =
                     coveredEmployee?.full_name ??
-                    ([
-                        coveredEmployee?.first_name,
-                        coveredEmployee?.last_name,
-                    ]
+                    ([coveredEmployee?.first_name, coveredEmployee?.last_name]
                         .filter(Boolean)
                         .join(' ') ||
                         t('orders.columns.employeeCover', 'Employee cover'));
@@ -173,10 +174,7 @@ export const buildColumns = ({
                 return (
                     <div className="space-y-1">
                         <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
-                            {t(
-                                'orders.columns.employeeCover',
-                                'Employee cover',
-                            )}
+                            {t('orders.columns.employeeShort', 'Employee')}
                         </Badge>
                         <p
                             className="max-w-[170px] truncate text-xs font-medium text-foreground"
@@ -191,14 +189,14 @@ export const buildColumns = ({
             if (coverageType === 'house') {
                 return (
                     <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                        {t('orders.columns.houseComp', 'House comp')}
+                        {t('orders.columns.houseShort', 'House')}
                     </Badge>
                 );
             }
 
             return (
                 <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                    {t('orders.columns.customerPayment', 'Customer payment')}
+                    {t('orders.columns.customerShort', 'Customer')}
                 </Badge>
             );
         },
