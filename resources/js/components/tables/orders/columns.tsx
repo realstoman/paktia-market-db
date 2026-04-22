@@ -154,13 +154,17 @@ export const buildColumns = ({
         cell: ({ row }) => {
             const order = row.original;
             const coverageType = order.covered_by_type ?? 'customer';
+            const coveredEmployee =
+                order.coveredByEmployee ??
+                ((order as typeof order & { covered_by_employee?: Employee | null })
+                    .covered_by_employee ?? null);
 
             if (coverageType === 'employee') {
                 const employeeName =
-                    order.coveredByEmployee?.full_name ??
+                    coveredEmployee?.full_name ??
                     ([
-                        order.coveredByEmployee?.first_name,
-                        order.coveredByEmployee?.last_name,
+                        coveredEmployee?.first_name,
+                        coveredEmployee?.last_name,
                     ]
                         .filter(Boolean)
                         .join(' ') ||
@@ -169,9 +173,15 @@ export const buildColumns = ({
                 return (
                     <div className="space-y-1">
                         <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
-                            {t('orders.columns.employeeCover', 'Employee cover')}
+                            {t(
+                                'orders.columns.employeeCover',
+                                'Employee cover',
+                            )}
                         </Badge>
-                        <p className="max-w-[150px] truncate text-xs text-muted-foreground" title={employeeName}>
+                        <p
+                            className="max-w-[170px] truncate text-xs font-medium text-foreground"
+                            title={employeeName}
+                        >
                             {employeeName}
                         </p>
                     </div>

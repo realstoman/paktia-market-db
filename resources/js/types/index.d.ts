@@ -807,6 +807,7 @@ export interface Order {
     } | null;
     customer?: Customer | null;
     coveredByEmployee?: Employee | null;
+    covered_by_employee?: Employee | null;
     discountCard?: DiscountCard | null;
     branch?: Branch | null;
     branch_table?: BranchTable | null;
