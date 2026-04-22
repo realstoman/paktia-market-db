@@ -23,6 +23,7 @@ class Order extends Model
         'customer_phone',
         'delivery_address',
         'customer_note',
+        'covered_by_type',
         'covered_by_employee_id',
         'covered_by_note',
         'discount_card_id',

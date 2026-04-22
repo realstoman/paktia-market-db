@@ -793,6 +793,7 @@ export interface Order {
     user_id?: number | null;
     client_id?: number | null;
     customer_id?: number | null;
+    covered_by_type?: 'customer' | 'employee' | 'house' | string | null;
     covered_by_employee_id?: number | null;
     covered_by_note?: string | null;
     discount_card_id?: number | null;

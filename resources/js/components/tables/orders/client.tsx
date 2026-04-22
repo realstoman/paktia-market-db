@@ -561,6 +561,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
+            coveredByType?: 'customer' | 'employee' | 'house';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -579,6 +580,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
                 discount_card_id: payload.discountCardId ?? null,
+                covered_by_type: payload.coveredByType ?? 'customer',
                 covered_by_employee_id: payload.coveredByEmployeeId ?? null,
                 covered_by_note: payload.coveredByNote ?? null,
             },
@@ -598,6 +600,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         discount_card_id:
                             payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
+                        covered_by_type:
+                            payload.coveredByType ?? order.covered_by_type,
                         covered_by_employee_id:
                             payload.coveredByEmployeeId ??
                             order.covered_by_employee_id,

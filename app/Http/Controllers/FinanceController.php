@@ -69,6 +69,23 @@ class FinanceController extends Controller
             : (float) $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
                 ->sum('total_amount');
 
+        $houseCompTotal = (float) Order::query()
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->where('covered_by_type', 'house')
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('total_amount');
+
+        $employeeCoveredTotal = Schema::hasTable('payments')
+            ? (float) DB::table('payments')
+                ->join('orders', 'orders.id', '=', 'payments.order_id')
+                ->where('orders.status', OrderStatus::COMPLETED->value)
+                ->where('payments.status', 'covered_by_employee')
+                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->sum('payments.amount')
+            : 0.0;
+
         $expensesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
             : (float) Expense::query()
@@ -349,16 +366,26 @@ class FinanceController extends Controller
                 ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
                 ->select('payments.method')
+                ->select('payments.status')
                 ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
-                ->groupBy('payments.method')
+                ->groupBy('payments.method', 'payments.status')
                 ->orderByDesc('total')
                 ->get()
                 ->map(fn ($row) => [
-                    'method' => str($row->method)->replace('_', ' ')->title()->toString(),
+                    'method' => $row->status === 'covered_by_employee'
+                        ? 'Employee Cover · '.str($row->method)->replace('_', ' ')->title()->toString()
+                        : str($row->method)->replace('_', ' ')->title()->toString(),
                     'amount' => (float) $row->total,
                 ])
                 ->values()
             : collect();
+
+        if ($houseCompTotal > 0) {
+            $paymentBreakdown->push([
+                'method' => 'House Comp',
+                'amount' => $houseCompTotal,
+            ]);
+        }
 
         $unassignedPaymentAmount = Order::query()
             ->where('orders.status', OrderStatus::COMPLETED->value)
@@ -600,6 +627,8 @@ class FinanceController extends Controller
                         : 'Gross profit is using posted inventory cost movements.',
                     'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
                 ],
+                'houseCompTotal' => $houseCompTotal,
+                'employeeCoveredTotal' => $employeeCoveredTotal,
             ],
         ]);
     }
@@ -857,6 +886,7 @@ class FinanceController extends Controller
     ) {
         return Order::query()
             ->where('status', OrderStatus::COMPLETED->value)
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->when($paymentMethod, function ($query, $method) {
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));

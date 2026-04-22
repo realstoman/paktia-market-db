@@ -49,6 +49,7 @@ interface ReceiptPreviewDialogProps {
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
+            coveredByType?: 'customer' | 'employee' | 'house';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -126,6 +127,13 @@ export function ReceiptPreviewDialog({
     );
     const [selectedSponsorEmployeeId, setSelectedSponsorEmployeeId] = useState(
         order?.covered_by_employee_id ? String(order.covered_by_employee_id) : '',
+    );
+    const [coveredByType, setCoveredByType] = useState<
+        'customer' | 'employee' | 'house'
+    >(
+        order?.covered_by_type === 'employee' || order?.covered_by_type === 'house'
+            ? order.covered_by_type
+            : 'customer',
     );
     const [sponsorNote, setSponsorNote] = useState(order?.covered_by_note ?? '');
     const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
@@ -358,6 +366,7 @@ export function ReceiptPreviewDialog({
             discountCardId: selectedDiscountCard
                 ? Number(selectedDiscountCard.id)
                 : null,
+            coveredByType,
             coveredByEmployeeId: selectedSponsorEmployee
                 ? Number(selectedSponsorEmployee.id)
                 : null,
@@ -375,6 +384,7 @@ export function ReceiptPreviewDialog({
                 if (!nextOpen) {
                     setManualDiscount('0');
                     setSelectedDiscountCardId('');
+                    setCoveredByType('customer');
                     setSelectedSponsorEmployeeId('');
                     setSponsorNote('');
                     setIsConfirmPaymentOpen(false);
@@ -462,6 +472,53 @@ export function ReceiptPreviewDialog({
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
                                     {t(
+                                        'orders.receipt.coveredByType',
+                                        'Settlement Type',
+                                    )}
+                                </label>
+                                <Select
+                                    value={coveredByType}
+                                    onValueChange={(value) => {
+                                        const nextValue = value as
+                                            | 'customer'
+                                            | 'employee'
+                                            | 'house';
+                                        setCoveredByType(nextValue);
+                                        if (nextValue !== 'employee') {
+                                            setSelectedSponsorEmployeeId('');
+                                        }
+                                    }}
+                                    disabled={isPaymentCompleted}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="customer">
+                                            {t(
+                                                'orders.receipt.coveredByTypeCustomer',
+                                                'Customer Payment',
+                                            )}
+                                        </SelectItem>
+                                        <SelectItem value="employee">
+                                            {t(
+                                                'orders.receipt.coveredByTypeEmployee',
+                                                'Employee Cover',
+                                            )}
+                                        </SelectItem>
+                                        <SelectItem value="house">
+                                            {t(
+                                                'orders.receipt.coveredByTypeHouse',
+                                                'House Hospitality / Comp',
+                                            )}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium">
+                                    {t(
                                         'orders.form.paymentMethod',
                                         'Payment Method',
                                     )}
@@ -471,7 +528,7 @@ export function ReceiptPreviewDialog({
                                     onValueChange={(value) =>
                                         onPaymentMethodChange?.(value)
                                     }
-                                    disabled={isPaymentCompleted}
+                                    disabled={isPaymentCompleted || coveredByType === 'house'}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -503,9 +560,18 @@ export function ReceiptPreviewDialog({
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {coveredByType === 'house' ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t(
+                                            'orders.receipt.houseCompNote',
+                                            'House hospitality completes the order without recording a payment collection.',
+                                        )}
+                                    </p>
+                                ) : null}
                             </div>
 
-                            <div className="grid gap-2">
+                            {coveredByType === 'employee' ? (
+                                <div className="grid gap-2">
                                 <label className="text-sm font-medium">
                                     {t(
                                         'orders.receipt.coveredByEmployee',
@@ -547,9 +613,10 @@ export function ReceiptPreviewDialog({
                                         )}
                                     </Button>
                                 ) : null}
-                            </div>
+                                </div>
+                            ) : null}
 
-                            {selectedSponsorEmployee ? (
+                            {coveredByType !== 'customer' ? (
                                 <div className="grid gap-2">
                                     <label className="text-sm font-medium">
                                         {t(
@@ -562,10 +629,17 @@ export function ReceiptPreviewDialog({
                                         onChange={(event) =>
                                             setSponsorNote(event.target.value)
                                         }
-                                        placeholder={t(
-                                            'orders.receipt.coveredByNotePlaceholder',
-                                            'Optional note such as owner guest, manager guest, or hospitality.',
-                                        )}
+                                        placeholder={
+                                            coveredByType === 'house'
+                                                ? t(
+                                                      'orders.receipt.coveredByNoteHousePlaceholder',
+                                                      'Optional note such as owner hospitality, manager guest, or house comp reason.',
+                                                  )
+                                                : t(
+                                                      'orders.receipt.coveredByNotePlaceholder',
+                                                      'Optional note such as owner guest, manager guest, or hospitality.',
+                                                  )
+                                        }
                                         disabled={isPaymentCompleted}
                                         rows={3}
                                     />
@@ -600,10 +674,23 @@ export function ReceiptPreviewDialog({
                                     </span>
                                     <span>{formatAfn(finalTotal)}</span>
                                 </p>
-                                {selectedSponsorEmployee ? (
+                                {coveredByType === 'employee' && selectedSponsorEmployee ? (
                                     <div className="mt-3 rounded-md border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-muted-foreground dark:border-neutral-800 dark:bg-neutral-900/50">
                                         <p className="font-medium text-neutral-900 dark:text-neutral-100">
                                             {`${t('orders.receipt.coveredByEmployeeSummary', 'This order is being covered by')} ${selectedSponsorEmployee.full_name ?? [selectedSponsorEmployee.first_name, selectedSponsorEmployee.last_name].filter(Boolean).join(' ')}`}
+                                        </p>
+                                        {sponsorNote.trim() ? (
+                                            <p className="mt-1">{sponsorNote.trim()}</p>
+                                        ) : null}
+                                    </div>
+                                ) : null}
+                                {coveredByType === 'house' ? (
+                                    <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                                        <p className="font-medium">
+                                            {t(
+                                                'orders.receipt.houseCompSummary',
+                                                'This order will be recorded as house hospitality / comp.',
+                                            )}
                                         </p>
                                         {sponsorNote.trim() ? (
                                             <p className="mt-1">{sponsorNote.trim()}</p>

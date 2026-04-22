@@ -52,6 +52,7 @@ class OrderController extends Controller
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
             'delivery_address' => 'nullable|string|max:2000',
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house'])],
             'covered_by_employee_id' => 'nullable|exists:employees,id',
             'covered_by_note' => 'nullable|string|max:1000',
             'discount_card_id' => [
@@ -84,6 +85,7 @@ class OrderController extends Controller
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
             'delivery_address' => 'nullable|string|max:2000',
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house'])],
             'covered_by_employee_id' => 'nullable|exists:employees,id',
             'covered_by_note' => 'nullable|string|max:1000',
             'discount_card_id' => [
@@ -111,6 +113,7 @@ class OrderController extends Controller
             'status' => ['required', Rule::in(OrderStatus::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house'])],
             'covered_by_employee_id' => 'nullable|exists:employees,id',
             'covered_by_note' => 'nullable|string|max:1000',
             'discount_card_id' => [
@@ -125,6 +128,7 @@ class OrderController extends Controller
             $validated['payment_method'] ?? null,
             isset($validated['discount_amount']) ? (float) $validated['discount_amount'] : null,
             isset($validated['discount_card_id']) ? (int) $validated['discount_card_id'] : null,
+            $validated['covered_by_type'] ?? null,
             isset($validated['covered_by_employee_id']) ? (int) $validated['covered_by_employee_id'] : null,
             $validated['covered_by_note'] ?? null,
             $request->user(),

@@ -146,6 +146,7 @@ class OrderService
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'covered_by_type' => 'customer',
                 'covered_by_employee_id' => null,
                 'covered_by_note' => null,
                 'discount_card_id' => $data['discount_card_id'] ?? null,
@@ -249,18 +250,21 @@ class OrderService
         ?string $paymentMethod = null,
         ?float $discountAmount = null,
         ?int $discountCardId = null,
+        ?string $coveredByType = null,
         ?int $coveredByEmployeeId = null,
         ?string $coveredByNote = null,
         ?User $actor = null,
     ): void
     {
-        $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod);
+        $resolvedCoveredByType = $coveredByType ?? ($order->covered_by_type ?: 'customer');
 
-        if ($coveredByEmployeeId) {
+        $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod, $resolvedCoveredByType);
+
+        if ($resolvedCoveredByType === 'employee' && $coveredByEmployeeId) {
             $this->assertCoveredEmployeeBelongsToBranch($coveredByEmployeeId, $order->branch_id);
         }
 
-        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $coveredByEmployeeId, $coveredByNote, $actor) {
+        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $resolvedCoveredByType, $coveredByEmployeeId, $coveredByNote, $actor) {
             if ($status === OrderStatus::COMPLETED->value) {
                 $subTotal = (float) ($order->sub_total_amount ?? 0);
                 $discountDetails = $this->resolveDiscountDetails(
@@ -271,10 +275,11 @@ class OrderService
                 );
 
                 $order->update(array_merge($discountDetails, [
-                    'covered_by_employee_id' => $coveredByEmployeeId,
-                    'covered_by_note' => $coveredByEmployeeId
-                        ? trim((string) $coveredByNote) ?: null
+                    'covered_by_type' => $resolvedCoveredByType,
+                    'covered_by_employee_id' => $resolvedCoveredByType === 'employee'
+                        ? $coveredByEmployeeId
                         : null,
+                    'covered_by_note' => trim((string) $coveredByNote) ?: null,
                 ]));
 
                 $this->syncOrderAmounts($order, $subTotal);
@@ -291,11 +296,22 @@ class OrderService
             ]);
 
             if ($status === OrderStatus::COMPLETED->value) {
-                $this->syncOrderPayment(
-                    order: $order->fresh(),
-                    paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
-                    receivedBy: $actor?->id ?? $order->user_id,
-                );
+                $refreshedOrder = $order->fresh();
+
+                if ($resolvedCoveredByType === 'house') {
+                    $this->clearOrderPayment($refreshedOrder);
+                    $refreshedOrder->update([
+                        'paid_amount' => 0,
+                        'change_amount' => 0,
+                    ]);
+                } else {
+                    $this->syncOrderPayment(
+                        order: $refreshedOrder,
+                        paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
+                        settlementType: $resolvedCoveredByType,
+                        receivedBy: $actor?->id ?? $order->user_id,
+                    );
+                }
             }
         });
 
@@ -428,7 +444,13 @@ class OrderService
         }
     }
 
-    private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor, ?string $paymentMethod = null): void
+    private function assertStatusCanBeUpdated(
+        Order $order,
+        string $nextStatus,
+        ?User $actor,
+        ?string $paymentMethod = null,
+        string $coveredByType = 'customer',
+    ): void
     {
         $this->assertActorCanManageOrder($order, $actor);
         $currentStatus = (string) ($order->status?->value ?? $order->status);
@@ -451,7 +473,13 @@ class OrderService
                 ]);
             }
 
-            if (! $paymentMethod) {
+            if ($coveredByType === 'employee' && ! $order->branch_id && ! $actor?->hasRole('super-admin')) {
+                throw ValidationException::withMessages([
+                    'covered_by_employee_id' => 'Employee coverage requires a branch-assigned order.',
+                ]);
+            }
+
+            if ($coveredByType !== 'house' && ! $paymentMethod) {
                 throw ValidationException::withMessages([
                     'payment_method' => 'Payment method is required before completing an order.',
                 ]);
@@ -479,7 +507,12 @@ class OrderService
         }
     }
 
-    private function syncOrderPayment(Order $order, string $paymentMethod, ?int $receivedBy = null): void
+    private function syncOrderPayment(
+        Order $order,
+        string $paymentMethod,
+        string $settlementType = 'customer',
+        ?int $receivedBy = null,
+    ): void
     {
         $order->update([
             'paid_amount' => $order->total_amount,
@@ -494,7 +527,7 @@ class OrderService
             'exchange_rate' => $order->exchange_rate,
             'method' => $paymentMethod,
             'payment_date' => now(),
-            'status' => 'paid',
+            'status' => $settlementType === 'employee' ? 'covered_by_employee' : 'paid',
             'received_by' => $receivedBy,
         ];
 
@@ -505,6 +538,11 @@ class OrderService
         }
 
         $order->payments()->create($payload);
+    }
+
+    private function clearOrderPayment(Order $order): void
+    {
+        $order->payments()->delete();
     }
 
     private function syncOrderAmounts(Order $order, float|int $subTotal): void
