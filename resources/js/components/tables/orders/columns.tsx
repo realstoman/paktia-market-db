@@ -158,13 +158,13 @@ export const buildColumns = ({
             if (coverageType === 'employee') {
                 const employeeName =
                     order.coveredByEmployee?.full_name ??
-                    [
+                    ([
                         order.coveredByEmployee?.first_name,
                         order.coveredByEmployee?.last_name,
                     ]
                         .filter(Boolean)
                         .join(' ') ||
-                    t('orders.columns.employeeCover', 'Employee cover');
+                        t('orders.columns.employeeCover', 'Employee cover'));
 
                 return (
                     <div className="space-y-1">
