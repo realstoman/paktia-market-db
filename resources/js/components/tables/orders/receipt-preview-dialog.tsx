@@ -33,7 +33,6 @@ import {
     IconBrandWhatsapp,
     IconMail,
     IconMapPin,
-    IconPhone,
     IconWorldWww,
 } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
@@ -63,13 +62,13 @@ const RESTAURANT_CONTACT = {
         'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
     website: 'www.babataste.com',
     whatsapp: ['+93 780 59 59 59'],
-    phones: ['+93 796 85 85 85', '+93 749 59 59 49'],
-    emails: ['info@babataste.com', 'reservations@babataste.com'],
+    emails: ['info@babataste.com'],
 };
 
 const RECEIPT_FOOTER_NOTE = {
-    title: 'Thank you for dining with us.',
-    message: 'We appreciate your visit and look forward to serving you again.',
+    title: 'Thank You for Choosing Baba Restaurant',
+    message:
+        'We truly appreciate your order and look forward to serving you again soon.',
 };
 
 const BRAND_COLORS = {
@@ -194,9 +193,9 @@ export function ReceiptPreviewDialog({
     const createdAt = order?.created_at
         ? new Date(order.created_at).toLocaleString(dateLocale)
         : '-';
-    const fullLogoSrc = brand.logoFull.startsWith('http')
-        ? brand.logoFull
-        : `${window.location.origin}${brand.logoFull}`;
+    const symbolLogoSrc = brand.logo.startsWith('http')
+        ? brand.logo
+        : `${window.location.origin}${brand.logo}`;
     const orderTypeLabel = order?.order_type
         ? t(
               `orders.orderType.${order.order_type}`,
@@ -246,7 +245,7 @@ export function ReceiptPreviewDialog({
                     <style>
                         @page { size: 80mm auto; margin: 4mm; }
                         body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; direction: ${direction}; }
-                        .receipt { width: 72mm; margin: 0 auto; font-size: 12px; color: ${BRAND_COLORS.dark}; }
+                        .receipt { width: 100%; margin: 0 auto; padding: 0 5mm 0 2mm; box-sizing: border-box; font-size: 12px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
                         .meta p { margin: 3px 0; line-height: 1.35; }
                         .muted { color: ${BRAND_COLORS.dark}; opacity: 0.7; }
@@ -262,7 +261,7 @@ export function ReceiptPreviewDialog({
                 <body>
                     <div class="receipt">
                         <div class="center">
-                            <img src="${fullLogoSrc}" alt="${escapeHtml(brand.name)} Logo" />
+                            <img src="${symbolLogoSrc}" alt="${escapeHtml(brand.name)} Logo" style="width:42px;height:42px;object-fit:contain;" />
                             <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">${escapeHtml(brand.name)}</h3>
                             <p class="muted" style="margin:0;">${escapeHtml(t('orders.receipt.receiptTitle', 'Order Receipt'))}</p>
                         </div>
@@ -292,17 +291,17 @@ export function ReceiptPreviewDialog({
                             <p><strong>${escapeHtml(t('orders.receipt.grandTotal', 'Grand Total'))}</strong><strong>${escapeHtml(formatAfn(finalTotal))}</strong></p>
                         </div>
                         <hr />
+                        <div class="center" style="font-size:10px;line-height:1.5;margin-bottom:8px;">
+                            <div style="font-weight:700;color:${BRAND_COLORS.primary};">${escapeHtml(RECEIPT_FOOTER_NOTE.title)}</div>
+                            <div class="muted">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
+                        </div>
+                        <hr />
                         <div class="muted" style="font-size:10px;">
                             <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
-                            <div class="footer-row"><span class="footer-icon">${printIcons.phone}</span><span>${escapeHtml(RESTAURANT_CONTACT.phones.join(' - '))}</span></div>
+                            <div class="footer-row"><span class="footer-icon">${printIcons.phone}</span><span>$
                             <div class="footer-row"><span class="footer-icon">${printIcons.whatsapp}</span><span>${escapeHtml(RESTAURANT_CONTACT.whatsapp.join(' - '))}</span></div>
                             <div class="footer-row"><span class="footer-icon">${printIcons.mail}</span><span>${escapeHtml(RESTAURANT_CONTACT.emails.join(' - '))}</span></div>
                             <div class="footer-row"><span class="footer-icon">${printIcons.globe}</span><span>${escapeHtml(RESTAURANT_CONTACT.website)}</span></div>
-                        </div>
-                        <hr />
-                        <div class="center" style="font-size:10px;line-height:1.5;">
-                            <div style="font-weight:700;color:${BRAND_COLORS.primary};">${escapeHtml(RECEIPT_FOOTER_NOTE.title)}</div>
-                            <div class="muted">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
                         </div>
                     </div>
                     <script>
@@ -540,14 +539,14 @@ export function ReceiptPreviewDialog({
                         <div className="rounded-md border bg-muted/20 p-3">
                             <ScrollArea className="h-[560px]">
                                 <div
-                                    className="mx-auto rounded-md border bg-white p-3 text-[11px] text-neutral-900"
+                                    className="mx-auto rounded-md border bg-white py-3 pr-5 pl-3 text-[11px] text-neutral-900"
                                     style={{ width: `${RECEIPT_WIDTH_PX}px` }}
                                 >
                                     <div className="text-center">
                                         <img
-                                            src={brand.logoFull}
+                                            src={brand.logo}
                                             alt={`${brand.name} Logo`}
-                                            className="mx-auto h-10 w-auto max-w-[120px] object-contain"
+                                            className="mx-auto h-12 w-auto max-w-[64px] object-contain"
                                         />
                                         <p className="mt-1 text-sm font-semibold">
                                             {brand.name}
@@ -671,7 +670,16 @@ export function ReceiptPreviewDialog({
                                         <span>{formatAfn(finalTotal)}</span>
                                     </p>
                                     <div className="my-2 border-t border-dashed" />
-                                    <div className="space-y-1 text-[10px] text-neutral-600">
+                                    <div className="text-center">
+                                        <p className="text-[10px] font-semibold text-[#102F33]">
+                                            {RECEIPT_FOOTER_NOTE.title}
+                                        </p>
+                                        <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
+                                            {RECEIPT_FOOTER_NOTE.message}
+                                        </p>
+                                    </div>
+                                    <div className="my-2 border-t border-dashed" />
+                                    <div className="mt-2 space-y-1 text-[10px] text-neutral-600">
                                         <p className="flex items-start gap-2">
                                             <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
                                             <span>
@@ -682,14 +690,6 @@ export function ReceiptPreviewDialog({
                                             <IconBrandWhatsapp className="h-3 w-3 shrink-0 text-[#102F33]" />
                                             <span>
                                                 {RESTAURANT_CONTACT.whatsapp.join(
-                                                    ' - ',
-                                                )}
-                                            </span>
-                                        </p>
-                                        <p className="flex items-center gap-2">
-                                            <IconPhone className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>
-                                                {RESTAURANT_CONTACT.phones.join(
                                                     ' - ',
                                                 )}
                                             </span>
@@ -708,14 +708,6 @@ export function ReceiptPreviewDialog({
                                                 {RESTAURANT_CONTACT.website}
                                             </span>
                                         </p>
-                                        <div className="mt-2 border-t border-dashed pt-2 text-center">
-                                            <p className="text-[10px] font-semibold text-[#102F33]">
-                                                {RECEIPT_FOOTER_NOTE.title}
-                                            </p>
-                                            <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
-                                                {RECEIPT_FOOTER_NOTE.message}
-                                            </p>
-                                        </div>
                                     </div>
                                 </div>
                             </ScrollArea>
