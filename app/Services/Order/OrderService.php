@@ -174,6 +174,10 @@ class OrderService
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
                 'discount_card_id' => $data['discount_card_id'] ?? null,
+                'discount_amount' => 0,
+                'discount_type' => null,
+                'discount_value' => null,
+                'discount_label' => null,
             ]);
 
             $this->orderItemService->replaceForOrder($order, $data['items']);

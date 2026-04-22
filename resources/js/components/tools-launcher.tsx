@@ -3,6 +3,7 @@ import { useLocalization } from '@/lib/localization';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { KitchensClient } from '@/components/tables/kitchens/client';
+import { formatNumber } from '@/utils/format';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -824,6 +825,20 @@ export function ToolsLauncher() {
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
                                         disabled={isLoadingTools}
+                                        onClick={() => {
+                                            resetDiscountCardForm();
+                                            setIsDiscountCardsOpen(true);
+                                        }}
+                                    >
+                                        <BadgePercent className="h-5 w-5" />
+                                        <span className="text-xs">
+                                            Discount Cards
+                                        </span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-20 flex-col gap-2"
+                                        disabled={isLoadingTools}
                                         onClick={() => setIsKitchensOpen(true)}
                                     >
                                         <ChefHat className="h-5 w-5" />
@@ -1228,6 +1243,217 @@ export function ToolsLauncher() {
                 </DialogContent>
             </Dialog>
 
+            <Dialog
+                open={isDiscountCardsOpen}
+                onOpenChange={setIsDiscountCardsOpen}
+            >
+                <DialogContent className="sm:max-w-4xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Discount Cards</DialogTitle>
+                        <DialogDescription>
+                            Create flexible discount cards for percentage or
+                            fixed-amount customer benefits.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Name</Label>
+                            <Input
+                                value={discountCardName}
+                                onChange={(event) =>
+                                    setDiscountCardName(event.target.value)
+                                }
+                                placeholder="Platinum"
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Code</Label>
+                            <Input
+                                value={discountCardCode}
+                                onChange={(event) =>
+                                    setDiscountCardCode(event.target.value)
+                                }
+                                placeholder="PLATINUM-15"
+                            />
+                            <InputError message={errors.code} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Discount Type</Label>
+                            <Select
+                                value={discountCardType}
+                                onValueChange={(value) =>
+                                    setDiscountCardType(
+                                        value as 'percentage' | 'fixed',
+                                    )
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="percentage">
+                                        Percentage
+                                    </SelectItem>
+                                    <SelectItem value="fixed">
+                                        Fixed Amount
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.discount_type} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {discountCardType === 'percentage'
+                                    ? 'Percentage'
+                                    : 'Fixed Amount'}
+                            </Label>
+                            <NumericInput
+                                min="0"
+                                value={discountCardValue}
+                                onValueChange={setDiscountCardValue}
+                            />
+                            <InputError message={errors.discount_value} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Max Discount (Optional)</Label>
+                            <NumericInput
+                                min="0"
+                                value={discountCardMaxAmount}
+                                onValueChange={setDiscountCardMaxAmount}
+                            />
+                            <InputError
+                                message={errors.max_discount_amount}
+                            />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>Description</Label>
+                            <Input
+                                value={discountCardDescription}
+                                onChange={(event) =>
+                                    setDiscountCardDescription(
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder="VIP repeat customer card"
+                            />
+                            <InputError message={errors.description} />
+                        </div>
+                    </div>
+                    <DialogFooter className="sm:justify-between">
+                        <Button
+                            variant="outline"
+                            onClick={resetDiscountCardForm}
+                        >
+                            Clear
+                        </Button>
+                        <Button
+                            onClick={submitDiscountCard}
+                            disabled={
+                                isSubmitting ||
+                                !discountCardName.trim() ||
+                                !discountCardCode.trim() ||
+                                !discountCardValue.trim()
+                            }
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {discountCardId
+                                ? 'Update Discount Card'
+                                : 'Save Discount Card'}
+                        </Button>
+                    </DialogFooter>
+                    <div className="max-h-60 space-y-2 overflow-auto rounded-md border p-3">
+                        {discountCards.map((card: DiscountCard) => (
+                            <div
+                                key={card.id}
+                                className="flex items-center justify-between rounded border p-2"
+                            >
+                                <div>
+                                    <p className="text-sm font-medium">
+                                        {card.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {card.code} •{' '}
+                                        {card.discount_type === 'percentage'
+                                            ? `${Number(card.discount_value) || 0}%`
+                                            : formatNumber(
+                                                  Number(
+                                                      card.discount_value,
+                                                  ) || 0,
+                                              )}{' '}
+                                        {card.discount_type === 'fixed'
+                                            ? 'AFN'
+                                            : ''}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setDiscountCardId(card.id);
+                                            setDiscountCardName(card.name);
+                                            setDiscountCardCode(card.code);
+                                            setDiscountCardType(
+                                                card.discount_type === 'fixed'
+                                                    ? 'fixed'
+                                                    : 'percentage',
+                                            );
+                                            setDiscountCardValue(
+                                                String(
+                                                    Number(
+                                                        card.discount_value,
+                                                    ) || 0,
+                                                ),
+                                            );
+                                            setDiscountCardMaxAmount(
+                                                card.max_discount_amount
+                                                    ? String(
+                                                          Number(
+                                                              card.max_discount_amount,
+                                                          ) || 0,
+                                                      )
+                                                    : '',
+                                            );
+                                            setDiscountCardDescription(
+                                                card.description ?? '',
+                                            );
+                                            setErrors({});
+                                        }}
+                                    >
+                                        <Pencil className="mr-1 h-3 w-3" />
+                                        Edit
+                                    </Button>
+                                    {canDeleteTools ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeleteDialog({
+                                                    type: 'discountCard',
+                                                    id: card.id,
+                                                    name: card.name,
+                                                })
+                                            }
+                                        >
+                                            <Trash2 className="mr-1 h-3 w-3" />
+                                            Delete
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ))}
+                        {discountCards.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No discount cards found.
+                            </p>
+                        ) : null}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <Dialog open={isVendorsOpen} onOpenChange={setIsVendorsOpen}>
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
@@ -1400,6 +1626,8 @@ export function ToolsLauncher() {
                             Delete{' '}
                             {deleteDialog?.type === 'province'
                                 ? 'City'
+                                : deleteDialog?.type === 'discountCard'
+                                  ? 'Discount Card'
                                 : deleteDialog?.type
                                       ? deleteDialog.type.charAt(0).toUpperCase() +
                                         deleteDialog.type.slice(1)
@@ -1408,7 +1636,14 @@ export function ToolsLauncher() {
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deleteDialog
-                                ? `This will permanently remove ${deleteDialog.name} from the ${deleteDialog.type === 'province' ? 'cities' : `${deleteDialog.type}s`} list.`
+                                ? `This will permanently remove ${deleteDialog.name} from the ${
+                                      deleteDialog.type === 'province'
+                                          ? 'cities'
+                                          : deleteDialog.type ===
+                                              'discountCard'
+                                            ? 'discount cards'
+                                            : `${deleteDialog.type}s`
+                                  } list.`
                                 : 'This action cannot be undone.'}
                         </AlertDialogDescription>
                     </AlertDialogHeader>

@@ -41,7 +41,7 @@ import {
     IconWorldWww,
 } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
@@ -161,7 +161,7 @@ export function ReceiptPreviewDialog({
 
         return 'en-US';
     }, [locale]);
-    const [discount, setDiscount] = useState(
+    const [manualDiscount, setManualDiscount] = useState(
         String(Number(order?.discount_amount ?? 0) || 0),
     );
     const [selectedDiscountCardId, setSelectedDiscountCardId] = useState(
@@ -190,10 +190,6 @@ export function ReceiptPreviewDialog({
         return Number(order.total_amount) || 0;
     }, [order]);
 
-    const discountValue = Math.max(
-        0,
-        Math.min(subtotal, Number(discount) || 0),
-    );
     const selectedDiscountCard = useMemo(
         () =>
             discountCards.find(
@@ -201,6 +197,27 @@ export function ReceiptPreviewDialog({
             ) ?? null,
         [discountCards, selectedDiscountCardId],
     );
+    const discountValue = useMemo(() => {
+        if (selectedDiscountCard) {
+            const rawValue =
+                selectedDiscountCard.discount_type === 'percentage'
+                    ? subtotal *
+                      ((Number(selectedDiscountCard.discount_value) || 0) / 100)
+                    : Number(selectedDiscountCard.discount_value) || 0;
+            const cappedValue =
+                selectedDiscountCard.max_discount_amount !== undefined &&
+                selectedDiscountCard.max_discount_amount !== null
+                    ? Math.min(
+                          rawValue,
+                          Number(selectedDiscountCard.max_discount_amount) || 0,
+                      )
+                    : rawValue;
+
+            return Math.max(0, Math.min(subtotal, cappedValue));
+        }
+
+        return Math.max(0, Math.min(subtotal, Number(manualDiscount) || 0));
+    }, [manualDiscount, selectedDiscountCard, subtotal]);
     const finalTotal = Math.max(0, subtotal - discountValue);
     const createdAt = order?.created_at
         ? new Date(order.created_at).toLocaleString(dateLocale)
@@ -214,35 +231,6 @@ export function ReceiptPreviewDialog({
               order.order_type.replace('_', ' '),
           )
         : '-';
-
-    useEffect(() => {
-        setDiscount(String(Number(order?.discount_amount ?? 0) || 0));
-        setSelectedDiscountCardId(
-            order?.discount_card_id ? String(order.discount_card_id) : '',
-        );
-    }, [order?.discount_amount, order?.discount_card_id, order?.id]);
-
-    useEffect(() => {
-        if (!selectedDiscountCard) {
-            return;
-        }
-
-        const rawValue =
-            selectedDiscountCard.discount_type === 'percentage'
-                ? subtotal *
-                  ((Number(selectedDiscountCard.discount_value) || 0) / 100)
-                : Number(selectedDiscountCard.discount_value) || 0;
-        const cappedValue =
-            selectedDiscountCard.max_discount_amount !== undefined &&
-            selectedDiscountCard.max_discount_amount !== null
-                ? Math.min(
-                      rawValue,
-                      Number(selectedDiscountCard.max_discount_amount) || 0,
-                  )
-                : rawValue;
-
-        setDiscount(String(Math.max(0, Math.min(subtotal, cappedValue))));
-    }, [selectedDiscountCard, subtotal]);
 
     const printReceipt = () => {
         if (!order) {
@@ -374,7 +362,7 @@ export function ReceiptPreviewDialog({
             open={open}
             onOpenChange={(nextOpen) => {
                 if (!nextOpen) {
-                    setDiscount('0');
+                    setManualDiscount('0');
                     setSelectedDiscountCardId('');
                     setIsConfirmPaymentOpen(false);
                 }
@@ -410,17 +398,6 @@ export function ReceiptPreviewDialog({
                                         const nextValue =
                                             value === '__none__' ? '' : value;
                                         setSelectedDiscountCardId(nextValue);
-
-                                        if (!nextValue) {
-                                            setDiscount(
-                                                String(
-                                                    Number(
-                                                        order.discount_amount ??
-                                                            0,
-                                                    ) || 0,
-                                                ),
-                                            );
-                                        }
                                     }}
                                     disabled={isPaymentCompleted}
                                 >
@@ -458,8 +435,12 @@ export function ReceiptPreviewDialog({
                                 </label>
                                 <NumericInput
                                     min="0"
-                                    value={discount}
-                                    onValueChange={setDiscount}
+                                    value={
+                                        selectedDiscountCard
+                                            ? String(discountValue)
+                                            : manualDiscount
+                                    }
+                                    onValueChange={setManualDiscount}
                                     disabled={
                                         isPaymentCompleted ||
                                         !!selectedDiscountCard

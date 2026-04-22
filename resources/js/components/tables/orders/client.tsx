@@ -368,9 +368,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             },
             ...customers.map((customer) => ({
                 value: String(customer.id),
-                label: [customer.name, customer.phone]
-                    .filter(Boolean)
-                    .join(' • '),
+                label:
+                    [customer.name, customer.phone].filter(Boolean).join(' • ') ||
+                    `Customer #${customer.id}`,
             })),
         ],
         [customers, t],
