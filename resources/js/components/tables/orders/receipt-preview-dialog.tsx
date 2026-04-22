@@ -1,13 +1,4 @@
-import { brand } from '@/config/brand';
 import { NumericInput } from '@/components/shared/numeric-input';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,6 +9,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -26,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
 import { DiscountCard, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
@@ -391,9 +391,7 @@ export function ReceiptPreviewDialog({
                                     Discount Card
                                 </label>
                                 <Select
-                                    value={
-                                        selectedDiscountCardId || '__none__'
-                                    }
+                                    value={selectedDiscountCardId || '__none__'}
                                     onValueChange={(value) => {
                                         const nextValue =
                                             value === '__none__' ? '' : value;
@@ -553,6 +551,7 @@ export function ReceiptPreviewDialog({
                                 onClick={printReceipt}
                                 className="mx-1 gap-2"
                                 disabled={!isPaymentCompleted}
+                                variant={'outline'}
                             >
                                 <Printer className="h-4 w-4" />
                                 {t(
@@ -790,7 +789,10 @@ export function ReceiptPreviewDialog({
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleCompletePayment}
-                            disabled={isCompletingPayment || !canFinalizePayment}
+                            disabled={
+                                isCompletingPayment || !canFinalizePayment
+                            }
+                            variant={'outline'}
                         >
                             {isCompletingPayment
                                 ? t('common.processing', 'Processing...')

@@ -168,7 +168,7 @@ export function OrderRowActions({
         <>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handleView}
             >
@@ -177,7 +177,7 @@ export function OrderRowActions({
             </Button>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handleEdit}
                 disabled={!canEditOrder}
@@ -189,7 +189,7 @@ export function OrderRowActions({
             </Button>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handleAddItems}
                 disabled={!canAddOrderItems}
@@ -199,7 +199,7 @@ export function OrderRowActions({
             </Button>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handlePrint}
                 disabled={!canPrintReceipt}
@@ -209,7 +209,7 @@ export function OrderRowActions({
             </Button>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handleAssignOpen}
                 disabled={!canAssignOrderTable}
@@ -219,7 +219,7 @@ export function OrderRowActions({
             </Button>
             <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 className="h-10 w-full justify-start"
                 onClick={handleStatusOpen}
                 disabled={!canUpdateStatus}
@@ -238,7 +238,7 @@ export function OrderRowActions({
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button
-                            variant="ghost"
+                            variant="outline"
                             className="h-8 w-8 p-0"
                             onClick={(event) => event.stopPropagation()}
                         >
