@@ -660,6 +660,7 @@ export default function OrdersPage({
                             <Button
                                 type="button"
                                 className="h-10 shrink-0"
+                                variant={'outline'}
                                 onClick={handleDateSubmit}
                             >
                                 {t('orders.submit', 'Submit')}

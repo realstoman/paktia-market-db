@@ -55,8 +55,8 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { buildColumns } from './columns';
-import { OrderRowActions } from './row-actions';
 import { ReceiptPreviewDialog } from './receipt-preview-dialog';
+import { OrderRowActions } from './row-actions';
 
 interface OrderItemDraft {
     productId: string;
@@ -364,13 +364,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         () => [
             {
                 value: '',
-                label: t('orders.form.walkInCustomer', 'Walk-in / New customer'),
+                label: t(
+                    'orders.form.walkInCustomer',
+                    'Walk-in / New customer',
+                ),
             },
             ...customers.map((customer) => ({
                 value: String(customer.id),
                 label:
-                    [customer.name, customer.phone].filter(Boolean).join(' • ') ||
-                    `Customer #${customer.id}`,
+                    [customer.name, customer.phone]
+                        .filter(Boolean)
+                        .join(' • ') || `Customer #${customer.id}`,
             })),
         ],
         [customers, t],
@@ -417,9 +421,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             selectedCreateDiscountCard.max_discount_amount !== null
                 ? Math.min(
                       rawValue,
-                      Number(
-                          selectedCreateDiscountCard.max_discount_amount,
-                      ) || 0,
+                      Number(selectedCreateDiscountCard.max_discount_amount) ||
+                          0,
                   )
                 : rawValue;
 
@@ -1072,6 +1075,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         setIsCreateOpen(true);
                     }}
                     className="gap-2"
+                    variant={'outline'}
                 >
                     <Plus className="h-4 w-4" />
                     {t('orders.createOrder', 'Create Order')}
@@ -1141,7 +1145,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     </span>
                                     <Badge className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
                                         {getStatusLabel(
-                                            mobileActionOrder.status ?? 'pending',
+                                            mobileActionOrder.status ??
+                                                'pending',
                                         )}
                                     </Badge>
                                 </div>
@@ -1191,7 +1196,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="max-h-[92vh] sm:max-w-5xl overflow-hidden">
+                <DialogContent className="max-h-[92vh] overflow-hidden sm:max-w-5xl">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ClipboardList className="mr-2 h-5 w-5" />
@@ -1213,310 +1218,523 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     </DialogHeader>
 
                     <ScrollArea className="max-h-[calc(92vh-8rem)] pr-2">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label>{t('orders.form.branch', 'Branch')}</Label>
-                            <Select
-                                value={branchId}
-                                onValueChange={(value) => {
-                                    setBranchId(value);
-                                    setBranchTableId('');
-                                }}
-                                disabled={!canChangeBranch}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'orders.form.branchPlaceholder',
-                                            'Select branch',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {branches.map((branch) => (
-                                        <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
-                                        >
-                                            {branch.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {!canChangeBranch ? (
-                                <p className="text-xs text-muted-foreground">
-                                    {t(
-                                        'orders.form.branchFixed',
-                                        'Your branch is fixed based on your login assignment.',
-                                    )}
-                                </p>
-                            ) : null}
-                            <InputError message={createErrors.branch_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                {t('orders.form.orderType', 'Order Type')}
-                            </Label>
-                            <Select
-                                value={orderType}
-                                onValueChange={(value) => {
-                                    setOrderType(value);
-                                    if (value !== 'dine_in') {
-                                        setBranchTableId('');
-                                    }
-                                    if (value !== 'delivery') {
-                                        setCustomerName('');
-                                        setCustomerPhone('');
-                                        setDeliveryAddress('');
-                                    }
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'orders.form.orderTypePlaceholder',
-                                            'Select type',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="dine_in">
-                                        {getOrderTypeLabel('dine_in')}
-                                    </SelectItem>
-                                    <SelectItem value="takeaway">
-                                        {getOrderTypeLabel('takeaway')}
-                                    </SelectItem>
-                                    <SelectItem value="delivery">
-                                        {getOrderTypeLabel('delivery')}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.order_type} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                {t(
-                                    'orders.form.paymentMethod',
-                                    'Payment Method',
-                                )}
-                            </Label>
-                            <Select
-                                value={paymentMethod}
-                                onValueChange={setPaymentMethod}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'orders.form.paymentMethodPlaceholder',
-                                            'Select payment method',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {paymentMethodOptions.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createErrors.payment_method} />
-                        </div>
-                        {orderType === 'dine_in' ? (
-                            <div className="grid gap-2 sm:col-span-2">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
                                 <Label>
-                                    {t(
-                                        'orders.form.tableNumber',
-                                        'Table Number',
-                                    )}
+                                    {t('orders.form.branch', 'Branch')}
                                 </Label>
                                 <Select
-                                    value={branchTableId}
-                                    onValueChange={setBranchTableId}
-                                    disabled={!branchId}
+                                    value={branchId}
+                                    onValueChange={(value) => {
+                                        setBranchId(value);
+                                        setBranchTableId('');
+                                    }}
+                                    disabled={!canChangeBranch}
                                 >
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'orders.form.tableNumberPlaceholder',
-                                                'Select table number',
+                                                'orders.form.branchPlaceholder',
+                                                'Select branch',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {filteredTablesByBranch.map((table) => (
+                                        {branches.map((branch) => (
                                             <SelectItem
-                                                key={table.id}
-                                                value={String(table.id)}
+                                                key={branch.id}
+                                                value={String(branch.id)}
                                             >
-                                                {table.table_number} -{' '}
-                                                {table.title}
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {!canChangeBranch ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t(
+                                            'orders.form.branchFixed',
+                                            'Your branch is fixed based on your login assignment.',
+                                        )}
+                                    </p>
+                                ) : null}
+                                <InputError message={createErrors.branch_id} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    {t('orders.form.orderType', 'Order Type')}
+                                </Label>
+                                <Select
+                                    value={orderType}
+                                    onValueChange={(value) => {
+                                        setOrderType(value);
+                                        if (value !== 'dine_in') {
+                                            setBranchTableId('');
+                                        }
+                                        if (value !== 'delivery') {
+                                            setCustomerName('');
+                                            setCustomerPhone('');
+                                            setDeliveryAddress('');
+                                        }
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue
+                                            placeholder={t(
+                                                'orders.form.orderTypePlaceholder',
+                                                'Select type',
+                                            )}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="dine_in">
+                                            {getOrderTypeLabel('dine_in')}
+                                        </SelectItem>
+                                        <SelectItem value="takeaway">
+                                            {getOrderTypeLabel('takeaway')}
+                                        </SelectItem>
+                                        <SelectItem value="delivery">
+                                            {getOrderTypeLabel('delivery')}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.order_type} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    {t(
+                                        'orders.form.paymentMethod',
+                                        'Payment Method',
+                                    )}
+                                </Label>
+                                <Select
+                                    value={paymentMethod}
+                                    onValueChange={setPaymentMethod}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue
+                                            placeholder={t(
+                                                'orders.form.paymentMethodPlaceholder',
+                                                'Select payment method',
+                                            )}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {paymentMethodOptions.map((option) => (
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                            >
+                                                {option.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                                 <InputError
-                                    message={createErrors.branch_table_id}
+                                    message={createErrors.payment_method}
                                 />
                             </div>
-                        ) : null}
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>
-                                {t(
-                                    'orders.form.customer',
-                                    'Customer Registration',
-                                )}
-                            </Label>
-                            <SearchableDropdown
-                                value={customerId}
-                                options={customerOptions}
-                                onValueChange={(value) => {
-                                    setCustomerId(value);
-
-                                    const selectedCustomer = customers.find(
-                                        (customer) =>
-                                            String(customer.id) === value,
-                                    );
-
-                                    if (selectedCustomer) {
-                                        setCustomerName(
-                                            selectedCustomer.name ?? '',
-                                        );
-                                        setCustomerPhone(
-                                            selectedCustomer.phone ?? '',
-                                        );
-                                    } else {
-                                        setCustomerName('');
-                                        setCustomerPhone('');
-                                    }
-                                }}
-                                placeholder={t(
-                                    'orders.form.customerPlaceholder',
-                                    'Select an existing customer or keep walk-in',
-                                )}
-                                searchPlaceholder={t(
-                                    'orders.form.customerSearch',
-                                    'Search customers...',
-                                )}
-                                emptyText={t(
-                                    'orders.form.noCustomersFound',
-                                    'No customers found.',
-                                )}
-                            />
-                            <InputError message={createErrors.customer_id} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                {t(
-                                    'orders.form.customerName',
-                                    'Customer Name',
-                                )}
-                            </Label>
-                            <Input
-                                value={customerName}
-                                onChange={(event) => {
-                                    setCustomerId('');
-                                    setCustomerName(event.target.value);
-                                }}
-                            />
-                            <InputError message={createErrors.customer_name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>
-                                {t(
-                                    'orders.form.customerPhone',
-                                    'Customer Phone',
-                                )}
-                            </Label>
-                            <Input
-                                value={customerPhone}
-                                onChange={(event) => {
-                                    setCustomerId('');
-                                    setCustomerPhone(event.target.value);
-                                }}
-                            />
-                            <InputError message={createErrors.customer_phone} />
-                        </div>
-                        <div className="grid gap-2 sm:col-span-2">
-                            <Label>
-                                {t(
-                                    'orders.form.discountCard',
-                                    'Discount Card',
-                                )}
-                            </Label>
-                            <SearchableDropdown
-                                value={discountCardId}
-                                options={discountCardOptions}
-                                onValueChange={setDiscountCardId}
-                                placeholder={t(
-                                    'orders.form.discountCardPlaceholder',
-                                    'Select a discount card',
-                                )}
-                                searchPlaceholder={t(
-                                    'orders.form.discountCardSearch',
-                                    'Search discount cards...',
-                                )}
-                                emptyText={t(
-                                    'orders.form.noDiscountCardsFound',
-                                    'No discount cards found.',
-                                )}
-                            />
-                            <InputError
-                                message={createErrors.discount_card_id}
-                            />
-                            {selectedCreateDiscountCard ? (
-                                <p className="text-xs text-muted-foreground">
-                                    {t(
-                                        'orders.form.discountCardApplied',
-                                        'Estimated discount',
-                                    )}
-                                    : {formatAfn(estimatedDiscountAmount)}
-                                </p>
+                            {orderType === 'dine_in' ? (
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label>
+                                        {t(
+                                            'orders.form.tableNumber',
+                                            'Table Number',
+                                        )}
+                                    </Label>
+                                    <Select
+                                        value={branchTableId}
+                                        onValueChange={setBranchTableId}
+                                        disabled={!branchId}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'orders.form.tableNumberPlaceholder',
+                                                    'Select table number',
+                                                )}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {filteredTablesByBranch.map(
+                                                (table) => (
+                                                    <SelectItem
+                                                        key={table.id}
+                                                        value={String(table.id)}
+                                                    >
+                                                        {table.table_number} -{' '}
+                                                        {table.title}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError
+                                        message={createErrors.branch_table_id}
+                                    />
+                                </div>
                             ) : null}
-                        </div>
-                        {orderType === 'delivery' ? (
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
                                     {t(
-                                        'orders.form.deliveryAddress',
-                                        'Delivery Address',
+                                        'orders.form.customer',
+                                        'Customer Registration',
                                     )}
                                 </Label>
-                                <Textarea
-                                    value={deliveryAddress}
-                                    onChange={(event) =>
-                                        setDeliveryAddress(event.target.value)
-                                    }
+                                <SearchableDropdown
+                                    value={customerId}
+                                    options={customerOptions}
+                                    onValueChange={(value) => {
+                                        setCustomerId(value);
+
+                                        const selectedCustomer = customers.find(
+                                            (customer) =>
+                                                String(customer.id) === value,
+                                        );
+
+                                        if (selectedCustomer) {
+                                            setCustomerName(
+                                                selectedCustomer.name ?? '',
+                                            );
+                                            setCustomerPhone(
+                                                selectedCustomer.phone ?? '',
+                                            );
+                                        } else {
+                                            setCustomerName('');
+                                            setCustomerPhone('');
+                                        }
+                                    }}
+                                    placeholder={t(
+                                        'orders.form.customerPlaceholder',
+                                        'Select an existing customer or keep walk-in',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'orders.form.customerSearch',
+                                        'Search customers...',
+                                    )}
+                                    emptyText={t(
+                                        'orders.form.noCustomersFound',
+                                        'No customers found.',
+                                    )}
                                 />
                                 <InputError
-                                    message={createErrors.delivery_address}
+                                    message={createErrors.customer_id}
                                 />
                             </div>
-                        ) : null}
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                                {t('orders.form.orderItems', 'Order Items')}
-                            </h4>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addDraftItem(setItems)}
-                                className="gap-2"
-                            >
-                                <Plus className="h-4 w-4" />
-                                {t('orders.form.addItem', 'Add Item')}
-                            </Button>
+                            <div className="grid gap-2">
+                                <Label>
+                                    {t(
+                                        'orders.form.customerName',
+                                        'Customer Name',
+                                    )}
+                                </Label>
+                                <Input
+                                    value={customerName}
+                                    onChange={(event) => {
+                                        setCustomerId('');
+                                        setCustomerName(event.target.value);
+                                    }}
+                                />
+                                <InputError
+                                    message={createErrors.customer_name}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    {t(
+                                        'orders.form.customerPhone',
+                                        'Customer Phone',
+                                    )}
+                                </Label>
+                                <Input
+                                    value={customerPhone}
+                                    onChange={(event) => {
+                                        setCustomerId('');
+                                        setCustomerPhone(event.target.value);
+                                    }}
+                                />
+                                <InputError
+                                    message={createErrors.customer_phone}
+                                />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    {t(
+                                        'orders.form.discountCard',
+                                        'Discount Card',
+                                    )}
+                                </Label>
+                                <SearchableDropdown
+                                    value={discountCardId}
+                                    options={discountCardOptions}
+                                    onValueChange={setDiscountCardId}
+                                    placeholder={t(
+                                        'orders.form.discountCardPlaceholder',
+                                        'Select a discount card',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'orders.form.discountCardSearch',
+                                        'Search discount cards...',
+                                    )}
+                                    emptyText={t(
+                                        'orders.form.noDiscountCardsFound',
+                                        'No discount cards found.',
+                                    )}
+                                />
+                                <InputError
+                                    message={createErrors.discount_card_id}
+                                />
+                                {selectedCreateDiscountCard ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t(
+                                            'orders.form.discountCardApplied',
+                                            'Estimated discount',
+                                        )}
+                                        : {formatAfn(estimatedDiscountAmount)}
+                                    </p>
+                                ) : null}
+                            </div>
+                            {orderType === 'delivery' ? (
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label>
+                                        {t(
+                                            'orders.form.deliveryAddress',
+                                            'Delivery Address',
+                                        )}
+                                    </Label>
+                                    <Textarea
+                                        value={deliveryAddress}
+                                        onChange={(event) =>
+                                            setDeliveryAddress(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={createErrors.delivery_address}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
 
-                        {items.length > 2 ? (
-                            <ScrollArea className="h-[320px] rounded-md border border-neutral-200/60 p-1 dark:border-neutral-800">
-                                <div className="space-y-3 p-2">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                                    {t('orders.form.orderItems', 'Order Items')}
+                                </h4>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addDraftItem(setItems)}
+                                    className="gap-2"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    {t('orders.form.addItem', 'Add Item')}
+                                </Button>
+                            </div>
+
+                            {items.length > 2 ? (
+                                <ScrollArea className="h-[320px] rounded-md border border-neutral-200/60 p-1 dark:border-neutral-800">
+                                    <div className="space-y-3 p-2">
+                                        {items.map((item, index) => {
+                                            const product = getProductById(
+                                                item.productId,
+                                            );
+                                            const sizes = product?.sizes ?? [];
+                                            const hasSizes = sizes.length > 0;
+                                            const kitchenName =
+                                                getItemKitchenName(item);
+
+                                            return (
+                                                <div
+                                                    key={`order-item-${index}`}
+                                                    className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
+                                                >
+                                                    <div className="grid gap-2 sm:col-span-2">
+                                                        <Label>
+                                                            {t(
+                                                                'orders.form.product',
+                                                                'Product',
+                                                            )}
+                                                        </Label>
+                                                        <Select
+                                                            value={
+                                                                item.productId
+                                                            }
+                                                            onValueChange={(
+                                                                value,
+                                                            ) =>
+                                                                handleProductChange(
+                                                                    setItems,
+                                                                    items,
+                                                                    index,
+                                                                    value,
+                                                                )
+                                                            }
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue
+                                                                    placeholder={t(
+                                                                        'orders.form.productPlaceholder',
+                                                                        'Select product',
+                                                                    )}
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {products.map(
+                                                                    (entry) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                entry.id
+                                                                            }
+                                                                            value={String(
+                                                                                entry.id,
+                                                                            )}
+                                                                        >
+                                                                            {localizedProductName(
+                                                                                entry,
+                                                                            )}
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    {hasSizes ? (
+                                                        <div className="grid gap-2">
+                                                            <Label>
+                                                                {t(
+                                                                    'orders.form.size',
+                                                                    'Size',
+                                                                )}
+                                                            </Label>
+                                                            <Select
+                                                                value={
+                                                                    item.sizeId
+                                                                }
+                                                                onValueChange={(
+                                                                    value,
+                                                                ) =>
+                                                                    handleSizeChange(
+                                                                        setItems,
+                                                                        items,
+                                                                        index,
+                                                                        value,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue
+                                                                        placeholder={t(
+                                                                            'orders.form.sizePlaceholder',
+                                                                            'Select size',
+                                                                        )}
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {sizes.map(
+                                                                        (
+                                                                            size,
+                                                                        ) => (
+                                                                            <SelectItem
+                                                                                key={
+                                                                                    size.id
+                                                                                }
+                                                                                value={String(
+                                                                                    size.id,
+                                                                                )}
+                                                                            >
+                                                                                {
+                                                                                    size.name
+                                                                                }
+                                                                            </SelectItem>
+                                                                        ),
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    ) : null}
+                                                    <div className="grid gap-2">
+                                                        <Label>
+                                                            {t(
+                                                                'orders.form.qty',
+                                                                'Qty',
+                                                            )}
+                                                        </Label>
+                                                        <NumericInput
+                                                            min="1"
+                                                            value={
+                                                                item.quantity
+                                                            }
+                                                            onValueChange={(
+                                                                value,
+                                                            ) =>
+                                                                handleItemChange(
+                                                                    setItems,
+                                                                    items,
+                                                                    index,
+                                                                    'quantity',
+                                                                    value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <Label>
+                                                            {t(
+                                                                'orders.form.price',
+                                                                'Price',
+                                                            )}
+                                                        </Label>
+                                                        <NumericInput
+                                                            min="0"
+                                                            value={item.price}
+                                                            onValueChange={(
+                                                                value,
+                                                            ) =>
+                                                                handleItemChange(
+                                                                    setItems,
+                                                                    items,
+                                                                    index,
+                                                                    'price',
+                                                                    value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col justify-between gap-2">
+                                                        <Badge variant="secondary">
+                                                            {kitchenName}
+                                                        </Badge>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                removeDraftItem(
+                                                                    setItems,
+                                                                    index,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                items.length ===
+                                                                1
+                                                            }
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            {t(
+                                                                'orders.form.remove',
+                                                                'Remove',
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </ScrollArea>
+                            ) : (
+                                <div className="space-y-3">
                                     {items.map((item, index) => {
                                         const product = getProductById(
                                             item.productId,
@@ -1704,243 +1922,64 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         );
                                     })}
                                 </div>
-                            </ScrollArea>
-                        ) : (
-                            <div className="space-y-3">
-                                {items.map((item, index) => {
-                                    const product = getProductById(
-                                        item.productId,
-                                    );
-                                    const sizes = product?.sizes ?? [];
-                                    const hasSizes = sizes.length > 0;
-                                    const kitchenName =
-                                        getItemKitchenName(item);
+                            )}
 
-                                    return (
-                                        <div
-                                            key={`order-item-${index}`}
-                                            className="grid gap-3 rounded-md border border-neutral-200/60 p-4 sm:grid-cols-6 dark:border-neutral-800"
-                                        >
-                                            <div className="grid gap-2 sm:col-span-2">
-                                                <Label>
-                                                    {t(
-                                                        'orders.form.product',
-                                                        'Product',
-                                                    )}
-                                                </Label>
-                                                <Select
-                                                    value={item.productId}
-                                                    onValueChange={(value) =>
-                                                        handleProductChange(
-                                                            setItems,
-                                                            items,
-                                                            index,
-                                                            value,
-                                                        )
-                                                    }
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue
-                                                            placeholder={t(
-                                                                'orders.form.productPlaceholder',
-                                                                'Select product',
-                                                            )}
-                                                        />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {products.map(
-                                                            (entry) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        entry.id
-                                                                    }
-                                                                    value={String(
-                                                                        entry.id,
-                                                                    )}
-                                                                >
-                                                                    {localizedProductName(
-                                                                        entry,
-                                                                    )}
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            {hasSizes ? (
-                                                <div className="grid gap-2">
-                                                    <Label>
-                                                        {t(
-                                                            'orders.form.size',
-                                                            'Size',
-                                                        )}
-                                                    </Label>
-                                                    <Select
-                                                        value={item.sizeId}
-                                                        onValueChange={(
-                                                            value,
-                                                        ) =>
-                                                            handleSizeChange(
-                                                                setItems,
-                                                                items,
-                                                                index,
-                                                                value,
-                                                            )
-                                                        }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue
-                                                                placeholder={t(
-                                                                    'orders.form.sizePlaceholder',
-                                                                    'Select size',
-                                                                )}
-                                                            />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {sizes.map(
-                                                                (size) => (
-                                                                    <SelectItem
-                                                                        key={
-                                                                            size.id
-                                                                        }
-                                                                        value={String(
-                                                                            size.id,
-                                                                        )}
-                                                                    >
-                                                                        {
-                                                                            size.name
-                                                                        }
-                                                                    </SelectItem>
-                                                                ),
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            ) : null}
-                                            <div className="grid gap-2">
-                                                <Label>
-                                                    {t(
-                                                        'orders.form.qty',
-                                                        'Qty',
-                                                    )}
-                                                </Label>
-                                                <NumericInput
-                                                    min="1"
-                                                    value={item.quantity}
-                                                    onValueChange={(value) =>
-                                                        handleItemChange(
-                                                            setItems,
-                                                            items,
-                                                            index,
-                                                            'quantity',
-                                                            value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label>
-                                                    {t(
-                                                        'orders.form.price',
-                                                        'Price',
-                                                    )}
-                                                </Label>
-                                                <NumericInput
-                                                    min="0"
-                                                    value={item.price}
-                                                    onValueChange={(value) =>
-                                                        handleItemChange(
-                                                            setItems,
-                                                            items,
-                                                            index,
-                                                            'price',
-                                                            value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="flex flex-col justify-between gap-2">
-                                                <Badge variant="secondary">
-                                                    {kitchenName}
-                                                </Badge>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        removeDraftItem(
-                                                            setItems,
-                                                            index,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        items.length === 1
-                                                    }
-                                                    className="text-red-600"
-                                                >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    {t(
-                                                        'orders.form.remove',
-                                                        'Remove',
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>
-                                {t('orders.form.totalAmount', 'Total Amount')}
-                            </span>
-                            <div className="text-right">
-                                {selectedCreateDiscountCard ? (
-                                    <p className="text-xs">
-                                        -{formatAfn(estimatedDiscountAmount)}
-                                    </p>
-                                ) : null}
-                                <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                                    {formatAfn(
-                                        Math.max(
-                                            0,
-                                            createTotal -
-                                                estimatedDiscountAmount,
-                                        ),
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                <span>
+                                    {t(
+                                        'orders.form.totalAmount',
+                                        'Total Amount',
                                     )}
                                 </span>
+                                <div className="text-right">
+                                    {selectedCreateDiscountCard ? (
+                                        <p className="text-xs">
+                                            -
+                                            {formatAfn(estimatedDiscountAmount)}
+                                        </p>
+                                    ) : null}
+                                    <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                                        {formatAfn(
+                                            Math.max(
+                                                0,
+                                                createTotal -
+                                                    estimatedDiscountAmount,
+                                            ),
+                                        )}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <DialogFooter className="mt-4">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsCreateOpen(false)}
-                            disabled={isSubmitting}
-                        >
-                            <X className="mr-2 h-5 w-5" />
-                            {t('orders.form.cancel', 'Cancel')}
-                        </Button>
-                        <Button
-                            onClick={handleCreateSubmit}
-                            disabled={
-                                !branchId ||
-                                items.length === 0 ||
-                                (orderType === 'dine_in' && !branchTableId) ||
-                                (orderType === 'delivery' &&
-                                    (!customerName.trim() ||
-                                        !customerPhone.trim() ||
-                                        !deliveryAddress.trim())) ||
-                                isSubmitting
-                            }
-                        >
-                            <Save className="mr-2 h-5 w-5" />
-                            {editingOrder
-                                ? t('orders.updateOrder', 'Update Order')
-                                : t('orders.createOrder', 'Create Order')}
-                        </Button>
-                    </DialogFooter>
+                        <DialogFooter className="mt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsCreateOpen(false)}
+                                disabled={isSubmitting}
+                            >
+                                <X className="mr-2 h-5 w-5" />
+                                {t('orders.form.cancel', 'Cancel')}
+                            </Button>
+                            <Button
+                                onClick={handleCreateSubmit}
+                                disabled={
+                                    !branchId ||
+                                    items.length === 0 ||
+                                    (orderType === 'dine_in' &&
+                                        !branchTableId) ||
+                                    (orderType === 'delivery' &&
+                                        (!customerName.trim() ||
+                                            !customerPhone.trim() ||
+                                            !deliveryAddress.trim())) ||
+                                    isSubmitting
+                                }
+                            >
+                                <Save className="mr-2 h-5 w-5" />
+                                {editingOrder
+                                    ? t('orders.updateOrder', 'Update Order')
+                                    : t('orders.createOrder', 'Create Order')}
+                            </Button>
+                        </DialogFooter>
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
@@ -2202,10 +2241,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             Prep
                                                         </p>
                                                         <p className="font-medium capitalize">
-                                                            {(item.prep_status ?? 'pending').replace(
-                                                                '_',
-                                                                ' ',
-                                                            )}
+                                                            {(
+                                                                item.prep_status ??
+                                                                'pending'
+                                                            ).replace('_', ' ')}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -2295,10 +2334,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     Prep
                                                 </p>
                                                 <p className="font-medium capitalize">
-                                                    {(item.prep_status ?? 'pending').replace(
-                                                        '_',
-                                                        ' ',
-                                                    )}
+                                                    {(
+                                                        item.prep_status ??
+                                                        'pending'
+                                                    ).replace('_', ' ')}
                                                 </p>
                                             </div>
                                             <div>

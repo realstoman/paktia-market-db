@@ -551,7 +551,7 @@ export function ReceiptPreviewDialog({
                                 onClick={printReceipt}
                                 className="mx-1 gap-2"
                                 disabled={!isPaymentCompleted}
-                                variant={'outline'}
+                                variant="outline"
                             >
                                 <Printer className="h-4 w-4" />
                                 {t(
