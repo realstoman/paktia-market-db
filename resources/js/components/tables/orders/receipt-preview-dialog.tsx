@@ -116,7 +116,7 @@ export function ReceiptPreviewDialog({
     onCompletePayment,
     isCompletingPayment = false,
 }: ReceiptPreviewDialogProps) {
-    const { t, locale, direction, isRtl } = useLocalization();
+    const { t, locale, direction } = useLocalization();
     const dateLocale = useMemo(() => {
         if (locale === 'fa') {
             return 'fa-AF';
@@ -230,12 +230,11 @@ export function ReceiptPreviewDialog({
                 const price = Number(item.price) || 0;
                 const lineTotal = qty * price;
                 return `
-                    <tr>
-                        <td>${escapeHtml(item.product_name ?? item.product_name_snapshot ?? item.product?.name ?? '-')}</td>
-                        <td style="text-align:center">${qty}</td>
-                        <td style="text-align:right">${escapeHtml(formatAfn(price))}</td>
-                        <td style="text-align:right">${escapeHtml(formatAfn(lineTotal))}</td>
-                    </tr>
+                    <div class="item-row">
+                        <p class="item-name">${escapeHtml(item.product_name ?? item.product_name_snapshot ?? item.product?.name ?? '-')}</p>
+                        <p class="item-qty">x${qty}</p>
+                        <p class="item-total">${escapeHtml(formatAfn(lineTotal))}</p>
+                    </div>
                 `;
             })
             .join('');
@@ -256,16 +255,19 @@ export function ReceiptPreviewDialog({
                     <style>
                         @page { size: 80mm auto; margin: 4mm; }
                         body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: ${BRAND_COLORS.dark}; direction: ${direction}; }
-                        .receipt { width: 100%; margin: 0 auto; padding: 0 5mm 0 2mm; box-sizing: border-box; font-size: 12px; color: ${BRAND_COLORS.dark}; }
+                        .receipt { width: 100%; margin: 0 auto; padding: 0 4mm 0 3mm; box-sizing: border-box; font-size: 11px; color: ${BRAND_COLORS.dark}; }
                         .center { text-align: center; }
                         .meta p { margin: 3px 0; line-height: 1.35; }
                         .muted { color: ${BRAND_COLORS.dark}; opacity: 0.7; }
                         hr { border: none; border-top: 1px dashed ${BRAND_COLORS.light}; margin: 8px 0; }
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { font-size: 11px; padding: 3px 0; }
+                        .items { display:flex; flex-direction:column; gap:4px; }
+                        .item-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:start; }
+                        .item-name { margin:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+                        .item-qty { margin:0; }
+                        .item-total { margin:0; text-align:right; }
                         .totals p { display: flex; justify-content: space-between; margin: 3px 0; }
                         img { width: 34px; height: 34px; object-fit: contain; }
-                        .footer-wrap { display:grid; grid-template-columns:1fr 64px; gap:10px; align-items:start; }
+                        .footer-wrap { display:grid; grid-template-columns:1fr 68px; gap:12px; align-items:start; }
                         .footer-row { display:flex; gap:6px; align-items:flex-start; margin:4px 0; }
                         .footer-icon { width:14px; min-width:14px; height:14px; display:flex; align-items:center; justify-content:center; }
                         .footer-qr { text-align:center; }
@@ -275,7 +277,7 @@ export function ReceiptPreviewDialog({
                 <body>
                     <div class="receipt">
                         <div class="center">
-                            <img src="${symbolLogoSrc}" alt="${escapeHtml(brand.name)} Logo" style="width:42px;height:42px;object-fit:contain;" />
+                            <img src="${symbolLogoSrc}" alt="${escapeHtml(brand.name)} Logo" style="width:48px;height:48px;object-fit:contain;" />
                             <h3 style="margin:6px 0 2px;color:${BRAND_COLORS.primary};">${escapeHtml(brand.name)}</h3>
                             <p class="muted" style="margin:0;">${escapeHtml(t('orders.receipt.receiptTitle', 'Order Receipt'))}</p>
                         </div>
@@ -287,17 +289,7 @@ export function ReceiptPreviewDialog({
                             ${deliveryDetails}
                         </div>
                         <hr />
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="text-align:${isRtl ? 'right' : 'left'};">${escapeHtml(t('orders.receipt.item', 'Item'))}</th>
-                                    <th style="text-align:center;">${escapeHtml(t('orders.receipt.qty', 'Qty'))}</th>
-                                    <th style="text-align:right;">${escapeHtml(t('orders.receipt.price', 'Price'))}</th>
-                                    <th style="text-align:right;">${escapeHtml(t('orders.receipt.total', 'Total'))}</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
+                        <div class="items">${rows}</div>
                         <hr />
                         <div class="totals">
                             <p><span>${escapeHtml(t('orders.receipt.subtotal', 'Subtotal'))}</span><span>${escapeHtml(formatAfn(subtotal))}</span></p>
@@ -306,13 +298,13 @@ export function ReceiptPreviewDialog({
                         </div>
                         <hr />
                         <div class="center" style="font-size:10px;line-height:1.5;margin-bottom:8px;">
-                            <div style="font-weight:700;color:${BRAND_COLORS.primary};">${escapeHtml(RECEIPT_FOOTER_NOTE.title)}</div>
-                            <div class="muted">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
+                            <div style="font-weight:700;font-size:10px;color:${BRAND_COLORS.primary};">${escapeHtml(RECEIPT_FOOTER_NOTE.title)}</div>
+                            <div class="muted" style="font-size:10px;line-height:1.55;">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
                         </div>
                         <hr />
                         <div class="footer-wrap muted" style="font-size:10px;">
                             <div>
-                                <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
+                                <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span style="font-size:10px;line-height:1.55;">${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
                             </div>
                             <div class="footer-qr">
                                 <img src="${qrCodeSrc}" alt="QR Code" />
@@ -696,7 +688,7 @@ export function ReceiptPreviewDialog({
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
                                     <div className="mt-2 grid grid-cols-[1fr_68px] gap-3 text-[10px] text-neutral-600">
-                                        <div className="flex items-start space-y-1 pt-1">
+                                        <div className="pt-1">
                                             <p className="flex items-start gap-2">
                                                 <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
                                                 <span className="text-[10px]">
