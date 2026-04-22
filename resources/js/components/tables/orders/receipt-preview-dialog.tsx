@@ -27,7 +27,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useLocalization } from '@/lib/localization';
-import { Order } from '@/types';
+import { DiscountCard, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import {
     IconBrandFacebook,
@@ -41,7 +41,7 @@ import {
     IconWorldWww,
 } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ReceiptPreviewDialogProps {
     order: Order | null;
@@ -49,9 +49,14 @@ interface ReceiptPreviewDialogProps {
     onOpenChange: (open: boolean) => void;
     paymentMethod?: string;
     onPaymentMethodChange?: (value: string) => void;
+    discountCards?: DiscountCard[];
     onCompletePayment?: (
         order: Order,
-        payload: { discountAmount: number; paymentMethod: string },
+        payload: {
+            discountAmount: number;
+            paymentMethod: string;
+            discountCardId?: number | null;
+        },
     ) => void;
     isCompletingPayment?: boolean;
 }
@@ -140,6 +145,7 @@ export function ReceiptPreviewDialog({
     onOpenChange,
     paymentMethod = 'cash',
     onPaymentMethodChange,
+    discountCards = [],
     onCompletePayment,
     isCompletingPayment = false,
 }: ReceiptPreviewDialogProps) {
@@ -157,6 +163,9 @@ export function ReceiptPreviewDialog({
     }, [locale]);
     const [discount, setDiscount] = useState(
         String(Number(order?.discount_amount ?? 0) || 0),
+    );
+    const [selectedDiscountCardId, setSelectedDiscountCardId] = useState(
+        order?.discount_card_id ? String(order.discount_card_id) : '',
     );
     const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
     const isPaymentCompleted = (order?.status ?? 'pending') === 'completed';
@@ -185,6 +194,13 @@ export function ReceiptPreviewDialog({
         0,
         Math.min(subtotal, Number(discount) || 0),
     );
+    const selectedDiscountCard = useMemo(
+        () =>
+            discountCards.find(
+                (card) => String(card.id) === selectedDiscountCardId,
+            ) ?? null,
+        [discountCards, selectedDiscountCardId],
+    );
     const finalTotal = Math.max(0, subtotal - discountValue);
     const createdAt = order?.created_at
         ? new Date(order.created_at).toLocaleString(dateLocale)
@@ -198,6 +214,35 @@ export function ReceiptPreviewDialog({
               order.order_type.replace('_', ' '),
           )
         : '-';
+
+    useEffect(() => {
+        setDiscount(String(Number(order?.discount_amount ?? 0) || 0));
+        setSelectedDiscountCardId(
+            order?.discount_card_id ? String(order.discount_card_id) : '',
+        );
+    }, [order?.discount_amount, order?.discount_card_id, order?.id]);
+
+    useEffect(() => {
+        if (!selectedDiscountCard) {
+            return;
+        }
+
+        const rawValue =
+            selectedDiscountCard.discount_type === 'percentage'
+                ? subtotal *
+                  ((Number(selectedDiscountCard.discount_value) || 0) / 100)
+                : Number(selectedDiscountCard.discount_value) || 0;
+        const cappedValue =
+            selectedDiscountCard.max_discount_amount !== undefined &&
+            selectedDiscountCard.max_discount_amount !== null
+                ? Math.min(
+                      rawValue,
+                      Number(selectedDiscountCard.max_discount_amount) || 0,
+                  )
+                : rawValue;
+
+        setDiscount(String(Math.max(0, Math.min(subtotal, cappedValue))));
+    }, [selectedDiscountCard, subtotal]);
 
     const printReceipt = () => {
         if (!order) {
@@ -317,6 +362,9 @@ export function ReceiptPreviewDialog({
         onCompletePayment(order, {
             discountAmount: discountValue,
             paymentMethod,
+            discountCardId: selectedDiscountCard
+                ? Number(selectedDiscountCard.id)
+                : null,
         });
         setIsConfirmPaymentOpen(false);
     };
@@ -327,6 +375,7 @@ export function ReceiptPreviewDialog({
             onOpenChange={(nextOpen) => {
                 if (!nextOpen) {
                     setDiscount('0');
+                    setSelectedDiscountCardId('');
                     setIsConfirmPaymentOpen(false);
                 }
                 onOpenChange(nextOpen);
@@ -351,6 +400,57 @@ export function ReceiptPreviewDialog({
                         <div className="space-y-3 rounded-md border p-4">
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
+                                    Discount Card
+                                </label>
+                                <Select
+                                    value={
+                                        selectedDiscountCardId || '__none__'
+                                    }
+                                    onValueChange={(value) => {
+                                        const nextValue =
+                                            value === '__none__' ? '' : value;
+                                        setSelectedDiscountCardId(nextValue);
+
+                                        if (!nextValue) {
+                                            setDiscount(
+                                                String(
+                                                    Number(
+                                                        order.discount_amount ??
+                                                            0,
+                                                    ) || 0,
+                                                ),
+                                            );
+                                        }
+                                    }}
+                                    disabled={isPaymentCompleted}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select discount card" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="__none__">
+                                            No discount card
+                                        </SelectItem>
+                                        {discountCards.map((card) => (
+                                            <SelectItem
+                                                key={card.id}
+                                                value={String(card.id)}
+                                            >
+                                                {card.name} •{' '}
+                                                {card.discount_type ===
+                                                'percentage'
+                                                    ? `${Number(card.discount_value) || 0}%`
+                                                    : formatAfn(
+                                                          card.discount_value ??
+                                                              0,
+                                                      )}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium">
                                     {t(
                                         'orders.receipt.discount',
                                         'Discount (AFN)',
@@ -360,6 +460,10 @@ export function ReceiptPreviewDialog({
                                     min="0"
                                     value={discount}
                                     onValueChange={setDiscount}
+                                    disabled={
+                                        isPaymentCompleted ||
+                                        !!selectedDiscountCard
+                                    }
                                 />
                             </div>
 

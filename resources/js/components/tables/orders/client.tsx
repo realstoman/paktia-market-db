@@ -2552,6 +2552,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 onOpenChange={setIsReceiptPreviewOpen}
                 paymentMethod={paymentMethod}
                 onPaymentMethodChange={setPaymentMethod}
+                discountCards={discountCards}
                 onCompletePayment={handleCompletePayment}
                 isCompletingPayment={isCompletingPayment}
             />
