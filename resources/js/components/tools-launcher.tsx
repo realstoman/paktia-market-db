@@ -41,6 +41,7 @@ import {
     Country,
     Cuisine,
     Currency,
+    DiscountCard,
     Kitchen,
     KitchenCategory,
     KitchenType,
@@ -51,6 +52,7 @@ import {
 } from '@/types';
 import { usePage } from '@inertiajs/react';
 import {
+    BadgePercent,
     Building2,
     ChefHat,
     Coins,
@@ -66,12 +68,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 type ToolReferenceData = NonNullable<SharedData['tools']>;
-type DeleteResourceType = 'country' | 'province' | 'currency' | 'vendor' | 'banner';
+type DeleteResourceType =
+    | 'country'
+    | 'province'
+    | 'currency'
+    | 'vendor'
+    | 'banner'
+    | 'discountCard';
 
 const emptyToolReferenceData = (): ToolReferenceData => ({
     countries: [],
     provinces: [],
     currencies: [],
+    discountCards: [],
     vendors: [],
     banners: [],
     kitchens: [],
@@ -101,6 +110,10 @@ export function ToolsLauncher() {
     const [hasLoadedTools, setHasLoadedTools] = useState(false);
     const countries = useMemo(() => toolData.countries ?? [], [toolData]);
     const currencies = useMemo(() => toolData.currencies ?? [], [toolData]);
+    const discountCards = useMemo(
+        () => toolData.discountCards ?? [],
+        [toolData],
+    );
     const provinces = useMemo(() => toolData.provinces ?? [], [toolData]);
     const vendors = useMemo(() => toolData.vendors ?? [], [toolData]);
     const banners = useMemo(() => toolData.banners ?? [], [toolData]);
@@ -116,6 +129,7 @@ export function ToolsLauncher() {
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
     const [isCitiesOpen, setIsCitiesOpen] = useState(false);
     const [isCurrenciesOpen, setIsCurrenciesOpen] = useState(false);
+    const [isDiscountCardsOpen, setIsDiscountCardsOpen] = useState(false);
     const [isVendorsOpen, setIsVendorsOpen] = useState(false);
     const [isBannersOpen, setIsBannersOpen] = useState(false);
     const [isKitchensOpen, setIsKitchensOpen] = useState(false);
@@ -146,6 +160,15 @@ export function ToolsLauncher() {
         id: number;
         name: string;
     } | null>(null);
+    const [discountCardId, setDiscountCardId] = useState<number | null>(null);
+    const [discountCardName, setDiscountCardName] = useState('');
+    const [discountCardCode, setDiscountCardCode] = useState('');
+    const [discountCardType, setDiscountCardType] = useState<
+        'percentage' | 'fixed'
+    >('percentage');
+    const [discountCardValue, setDiscountCardValue] = useState('');
+    const [discountCardMaxAmount, setDiscountCardMaxAmount] = useState('');
+    const [discountCardDescription, setDiscountCardDescription] = useState('');
 
     const handleDeleteVendor = (vendor: Vendor) => {
         void deleteToolResource({
@@ -403,6 +426,16 @@ export function ToolsLauncher() {
                     },
                 });
                 break;
+            case 'discountCard':
+                void deleteToolResource({
+                    url: `/discount-cards/${id}`,
+                    successMessage: 'Discount card deleted successfully.',
+                    onSuccess: () => {
+                        if (discountCardId === id) resetDiscountCardForm();
+                        setDeleteDialog(null);
+                    },
+                });
+                break;
             case 'vendor': {
                 const vendor = vendors.find((item) => item.id === id);
                 if (vendor) {
@@ -439,6 +472,17 @@ export function ToolsLauncher() {
         setCurrencyName('');
         setCurrencyCode('');
         setCurrencySymbol('');
+        setErrors({});
+    };
+
+    const resetDiscountCardForm = () => {
+        setDiscountCardId(null);
+        setDiscountCardName('');
+        setDiscountCardCode('');
+        setDiscountCardType('percentage');
+        setDiscountCardValue('');
+        setDiscountCardMaxAmount('');
+        setDiscountCardDescription('');
         setErrors({});
     };
 
@@ -574,6 +618,41 @@ export function ToolsLauncher() {
                 : 'Currency created successfully.',
             onSuccess: () => {
                 resetCurrencyForm();
+            },
+        });
+    };
+
+    const submitDiscountCard = () => {
+        if (
+            !discountCardName.trim() ||
+            !discountCardCode.trim() ||
+            !discountCardValue.trim() ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        void submitJsonRequest({
+            url: discountCardId
+                ? `/discount-cards/${discountCardId}`
+                : '/discount-cards',
+            method: discountCardId ? 'PUT' : 'POST',
+            payload: {
+                name: discountCardName.trim(),
+                code: discountCardCode.trim().toUpperCase(),
+                discount_type: discountCardType,
+                discount_value: Number(discountCardValue),
+                max_discount_amount: discountCardMaxAmount.trim()
+                    ? Number(discountCardMaxAmount)
+                    : null,
+                description: discountCardDescription.trim() || null,
+                is_active: true,
+            },
+            successMessage: discountCardId
+                ? 'Discount card updated successfully.'
+                : 'Discount card created successfully.',
+            onSuccess: () => {
+                resetDiscountCardForm();
             },
         });
     };
