@@ -332,7 +332,7 @@ export function ReceiptPreviewDialog({
                         <hr />
                         <div class="totals">
                             <p><span>${escapeHtml(t('orders.receipt.subtotal', 'Subtotal'))}</span><span>${escapeHtml(formatAfn(subtotal))}</span></p>
-                            <p><span>${escapeHtml(t('orders.receipt.discountShort', 'Discount'))}</span><span>${escapeHtml(formatAfn(discountValue))}</span></p>
+                            ${discountValue > 0 ? `<p><span>${escapeHtml(t('orders.receipt.discountShort', 'Discount'))}</span><span>${escapeHtml(formatAfn(discountValue))}</span></p>` : ''}
                             <p><strong>${escapeHtml(t('orders.receipt.grandTotal', 'Grand Total'))}</strong><strong>${escapeHtml(formatAfn(finalTotal))}</strong></p>
                         </div>
                         <hr />
@@ -401,8 +401,8 @@ export function ReceiptPreviewDialog({
                 onOpenChange(nextOpen);
             }}
         >
-            <DialogContent className="sm:max-w-3xl">
-                <DialogHeader>
+            <DialogContent className="mt-4 mb-4 flex flex-col overflow-hidden sm:max-w-4xl">
+                <DialogHeader className="shrink-0 pt-6 pr-6 pl-6">
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
                         {t('orders.receipt.title', 'Print Receipt Preview')}
@@ -415,566 +415,618 @@ export function ReceiptPreviewDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                {order ? (
-                    <div className="grid gap-4 md:grid-cols-[1fr_320px]">
-                        <div className="space-y-3 rounded-md border p-4">
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    Discount Card
-                                </label>
-                                <Select
-                                    value={selectedDiscountCardId || '__none__'}
-                                    onValueChange={(value) => {
-                                        const nextValue =
-                                            value === '__none__' ? '' : value;
-                                        setSelectedDiscountCardId(nextValue);
-                                    }}
-                                    disabled={isPaymentCompleted}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select discount card" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__none__">
-                                            No discount card
-                                        </SelectItem>
-                                        {discountCards.map((card) => (
-                                            <SelectItem
-                                                key={card.id}
-                                                value={String(card.id)}
-                                            >
-                                                {card.name} •{' '}
-                                                {card.discount_type ===
-                                                'percentage'
-                                                    ? `${Number(card.discount_value) || 0}%`
-                                                    : formatAfn(
-                                                          card.discount_value ??
-                                                              0,
-                                                      )}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    {t(
-                                        'orders.receipt.discount',
-                                        'Discount (AFN)',
-                                    )}
-                                </label>
-                                <NumericInput
-                                    min="0"
-                                    value={
-                                        selectedDiscountCard
-                                            ? String(discountValue)
-                                            : manualDiscount
-                                    }
-                                    onValueChange={setManualDiscount}
-                                    disabled={
-                                        isPaymentCompleted ||
-                                        !!selectedDiscountCard
-                                    }
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    {t(
-                                        'orders.receipt.coveredByType',
-                                        'Settlement Type',
-                                    )}
-                                </label>
-                                <Select
-                                    value={coveredByType}
-                                    onValueChange={(value) => {
-                                        const nextValue = value as
-                                            | 'customer'
-                                            | 'employee'
-                                            | 'house';
-                                        setCoveredByType(nextValue);
-                                        if (nextValue !== 'employee') {
-                                            setSelectedSponsorEmployeeId('');
-                                        }
-                                    }}
-                                    disabled={isPaymentCompleted}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="customer">
-                                            {t(
-                                                'orders.receipt.coveredByTypeCustomer',
-                                                'Customer Payment',
-                                            )}
-                                        </SelectItem>
-                                        <SelectItem value="employee">
-                                            {t(
-                                                'orders.receipt.coveredByTypeEmployee',
-                                                'Employee Cover',
-                                            )}
-                                        </SelectItem>
-                                        <SelectItem value="house">
-                                            {t(
-                                                'orders.receipt.coveredByTypeHouse',
-                                                'House Hospitality / Comp',
-                                            )}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    {t(
-                                        'orders.form.paymentMethod',
-                                        'Payment Method',
-                                    )}
-                                </label>
-                                <Select
-                                    value={paymentMethod}
-                                    onValueChange={(value) =>
-                                        onPaymentMethodChange?.(value)
-                                    }
-                                    disabled={
-                                        isPaymentCompleted ||
-                                        coveredByType === 'house'
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="cash">
-                                            {t(
-                                                'orders.paymentMethod.cash',
-                                                'Cash',
-                                            )}
-                                        </SelectItem>
-                                        <SelectItem value="credit_card">
-                                            {t(
-                                                'orders.paymentMethod.credit_card',
-                                                'Credit Card',
-                                            )}
-                                        </SelectItem>
-                                        <SelectItem value="bank_transfer">
-                                            {t(
-                                                'orders.paymentMethod.bank_transfer',
-                                                'Bank Transfer',
-                                            )}
-                                        </SelectItem>
-                                        <SelectItem value="other">
-                                            {t(
-                                                'orders.paymentMethod.other',
-                                                'Other',
-                                            )}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {coveredByType === 'house' ? (
-                                    <p className="text-xs text-muted-foreground">
-                                        {t(
-                                            'orders.receipt.houseCompNote',
-                                            'House hospitality completes the order without recording a payment collection.',
-                                        )}
-                                    </p>
-                                ) : null}
-                            </div>
-
-                            {coveredByType === 'employee' ? (
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">
-                                        {t(
-                                            'orders.receipt.coveredByEmployee',
-                                            'Covered By Employee',
-                                        )}
-                                    </label>
-                                    <SearchableDropdown
-                                        value={selectedSponsorEmployeeId}
-                                        options={sponsorEmployeeOptions}
-                                        onValueChange={
-                                            setSelectedSponsorEmployeeId
-                                        }
-                                        placeholder={t(
-                                            'orders.receipt.coveredByEmployeePlaceholder',
-                                            'Select employee if this order is being covered',
-                                        )}
-                                        searchPlaceholder={t(
-                                            'orders.receipt.coveredByEmployeeSearch',
-                                            'Search employees...',
-                                        )}
-                                        emptyText={t(
-                                            'orders.receipt.coveredByEmployeeEmpty',
-                                            'No active employee found.',
-                                        )}
-                                        className="w-full"
-                                    />
-                                    {selectedSponsorEmployee ? (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            className="h-auto justify-start px-0 text-xs text-muted-foreground"
-                                            onClick={() => {
-                                                setSelectedSponsorEmployeeId(
-                                                    '',
+                <div className="min-h-0 flex-1 px-6 pb-6">
+                    {order ? (
+                        <div className="grid h-[540px] gap-4 py-1 md:grid-cols-[minmax(0,1fr)_320px]">
+                            <div className="flex h-full min-h-0 flex-col rounded-md border">
+                                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">
+                                            Discount Card
+                                        </label>
+                                        <Select
+                                            value={
+                                                selectedDiscountCardId ||
+                                                '__none__'
+                                            }
+                                            onValueChange={(value) => {
+                                                const nextValue =
+                                                    value === '__none__'
+                                                        ? ''
+                                                        : value;
+                                                setSelectedDiscountCardId(
+                                                    nextValue,
                                                 );
-                                                setSponsorNote('');
                                             }}
                                             disabled={isPaymentCompleted}
                                         >
-                                            {t(
-                                                'orders.receipt.clearCoveredByEmployee',
-                                                'Clear employee coverage',
-                                            )}
-                                        </Button>
-                                    ) : null}
-                                </div>
-                            ) : null}
-
-                            {coveredByType !== 'customer' ? (
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">
-                                        {t(
-                                            'orders.receipt.coveredByNote',
-                                            'Coverage Note',
-                                        )}
-                                    </label>
-                                    <Textarea
-                                        value={sponsorNote}
-                                        onChange={(event) =>
-                                            setSponsorNote(event.target.value)
-                                        }
-                                        placeholder={
-                                            coveredByType === 'house'
-                                                ? t(
-                                                      'orders.receipt.coveredByNoteHousePlaceholder',
-                                                      'Optional note such as owner hospitality, manager guest, or house comp reason.',
-                                                  )
-                                                : t(
-                                                      'orders.receipt.coveredByNotePlaceholder',
-                                                      'Optional note such as owner guest, manager guest, or hospitality.',
-                                                  )
-                                        }
-                                        disabled={isPaymentCompleted}
-                                        rows={3}
-                                    />
-                                </div>
-                            ) : null}
-
-                            <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-neutral-200 bg-white/80 px-3 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-950/60">
-                                {coveredByType === 'employee' ? (
-                                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
-                                        {t(
-                                            'orders.columns.employeeCover',
-                                            'Employee cover',
-                                        )}
-                                    </Badge>
-                                ) : coveredByType === 'house' ? (
-                                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                                        {t(
-                                            'orders.columns.houseComp',
-                                            'House comp',
-                                        )}
-                                    </Badge>
-                                ) : (
-                                    <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                                        {t(
-                                            'orders.columns.customerPayment',
-                                            'Customer payment',
-                                        )}
-                                    </Badge>
-                                )}
-                                <span className="text-muted-foreground">
-                                    {coveredByType === 'employee'
-                                        ? (selectedSponsorEmployee?.full_name ??
-                                          ([
-                                              selectedSponsorEmployee?.first_name,
-                                              selectedSponsorEmployee?.last_name,
-                                          ]
-                                              .filter(Boolean)
-                                              .join(' ') ||
-                                              t(
-                                                  'orders.receipt.coveredByEmployee',
-                                                  'Covered By Employee',
-                                              )))
-                                        : coveredByType === 'house'
-                                          ? t(
-                                                'orders.receipt.coveredByTypeHouse',
-                                                'House Hospitality / Comp',
-                                            )
-                                          : t(
-                                                'orders.receipt.coveredByTypeCustomer',
-                                                'Customer Payment',
-                                            )}
-                                </span>
-                            </div>
-
-                            <div className="text-sm">
-                                <p className="flex items-center justify-between">
-                                    <span>
-                                        {t(
-                                            'orders.receipt.subtotal',
-                                            'Subtotal',
-                                        )}
-                                    </span>
-                                    <span>{formatAfn(subtotal)}</span>
-                                </p>
-                                <p className="flex items-center justify-between">
-                                    <span>
-                                        {t(
-                                            'orders.receipt.discountShort',
-                                            'Discount',
-                                        )}
-                                    </span>
-                                    <span>{formatAfn(discountValue)}</span>
-                                </p>
-                                <p className="mt-2 flex items-center justify-between text-base font-semibold">
-                                    <span>
-                                        {t(
-                                            'orders.receipt.grandTotal',
-                                            'Grand Total',
-                                        )}
-                                    </span>
-                                    <span>{formatAfn(finalTotal)}</span>
-                                </p>
-                                {coveredByType === 'employee' &&
-                                selectedSponsorEmployee ? (
-                                    <div className="mt-3 rounded-md border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-muted-foreground dark:border-neutral-800 dark:bg-neutral-900/50">
-                                        <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                                            {`${t('orders.receipt.coveredByEmployeeSummary', 'This order is being covered by')} ${selectedSponsorEmployee.full_name ?? [selectedSponsorEmployee.first_name, selectedSponsorEmployee.last_name].filter(Boolean).join(' ')}`}
-                                        </p>
-                                        {sponsorNote.trim() ? (
-                                            <p className="mt-1">
-                                                {sponsorNote.trim()}
-                                            </p>
-                                        ) : null}
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select discount card" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">
+                                                    No discount card
+                                                </SelectItem>
+                                                {discountCards.map((card) => (
+                                                    <SelectItem
+                                                        key={card.id}
+                                                        value={String(card.id)}
+                                                    >
+                                                        {card.name} •{' '}
+                                                        {card.discount_type ===
+                                                        'percentage'
+                                                            ? `${Number(card.discount_value) || 0}%`
+                                                            : formatAfn(
+                                                                  card.discount_value ??
+                                                                      0,
+                                                              )}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                ) : null}
-                                {coveredByType === 'house' ? (
-                                    <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-                                        <p className="font-medium">
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">
                                             {t(
-                                                'orders.receipt.houseCompSummary',
-                                                'This order will be recorded as house hospitality / comp.',
+                                                'orders.receipt.discount',
+                                                'Discount (AFN)',
                                             )}
-                                        </p>
-                                        {sponsorNote.trim() ? (
-                                            <p className="mt-1">
-                                                {sponsorNote.trim()}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                ) : null}
-                            </div>
-
-                            {canFinalizePayment ? (
-                                <Button
-                                    onClick={() =>
-                                        setIsConfirmPaymentOpen(true)
-                                    }
-                                    className="gap-2"
-                                    disabled={
-                                        isCompletingPayment ||
-                                        isPaymentCompleted
-                                    }
-                                    variant="outline"
-                                >
-                                    <ReceiptText className="h-4 w-4" />
-                                    {isPaymentCompleted
-                                        ? t(
-                                              'orders.receipt.paymentCompleted',
-                                              'Payment Completed',
-                                          )
-                                        : t(
-                                              'orders.receipt.markPaymentCompleted',
-                                              'Payment Completed',
-                                          )}
-                                </Button>
-                            ) : null}
-
-                            <Button
-                                onClick={printReceipt}
-                                className="mx-1 gap-2"
-                                disabled={!isPaymentCompleted}
-                                variant="outline"
-                            >
-                                <Printer className="h-4 w-4" />
-                                {t(
-                                    'orders.receipt.printReceipt',
-                                    'Print Receipt',
-                                )}
-                            </Button>
-                        </div>
-
-                        <div className="rounded-md border bg-muted/20 p-3">
-                            <ScrollArea className="h-[560px]">
-                                <div
-                                    className="mx-auto rounded-md border bg-white py-3 pr-5 pl-3 text-[11px] text-neutral-900"
-                                    style={{ width: `${RECEIPT_WIDTH_PX}px` }}
-                                >
-                                    <div className="text-center">
-                                        <img
-                                            src={brand.logo}
-                                            alt={`${brand.name} Logo`}
-                                            className="mx-auto h-12 w-auto max-w-[64px] object-contain"
+                                        </label>
+                                        <NumericInput
+                                            min="0"
+                                            value={
+                                                selectedDiscountCard
+                                                    ? String(discountValue)
+                                                    : manualDiscount
+                                            }
+                                            onValueChange={setManualDiscount}
+                                            disabled={
+                                                isPaymentCompleted ||
+                                                !!selectedDiscountCard
+                                            }
                                         />
-                                        <p className="mt-1 text-sm font-semibold">
-                                            {brand.name}
-                                        </p>
-                                        <p className="text-[10px] text-neutral-500">
-                                            {t(
-                                                'orders.receipt.receiptTitle',
-                                                'Order Receipt',
-                                            )}
-                                        </p>
                                     </div>
-                                    <div className="my-2 border-t border-dashed" />
-                                    <p>
-                                        <span className="font-medium">
-                                            {t('orders.receipt.order', 'Order')}
-                                            :
-                                        </span>{' '}
-                                        #{order.id}
-                                    </p>
-                                    <p>
-                                        <span className="font-medium">
-                                            {t('orders.receipt.date', 'Date')}:
-                                        </span>{' '}
-                                        {createdAt}
-                                    </p>
-                                    <p>
-                                        <span className="font-medium">
-                                            {t('orders.receipt.type', 'Type')}:
-                                        </span>{' '}
-                                        {orderTypeLabel}
-                                    </p>
-                                    {order.order_type === 'delivery' ? (
-                                        <>
-                                            <p>
-                                                <span className="font-medium">
-                                                    {t(
-                                                        'orders.receipt.customer',
-                                                        'Customer',
-                                                    )}
-                                                    :
-                                                </span>{' '}
-                                                {order.customer_name ?? '-'}
-                                            </p>
-                                            <p>
-                                                <span className="font-medium">
-                                                    {t(
-                                                        'orders.receipt.phone',
-                                                        'Phone',
-                                                    )}
-                                                    :
-                                                </span>{' '}
-                                                {order.customer_phone ?? '-'}
-                                            </p>
-                                            <p>
-                                                <span className="font-medium">
-                                                    {t(
-                                                        'orders.receipt.address',
-                                                        'Address',
-                                                    )}
-                                                    :
-                                                </span>{' '}
-                                                {order.delivery_address ?? '-'}
-                                            </p>
-                                        </>
-                                    ) : null}
-                                    <div className="my-2 border-t border-dashed" />
-                                    <div className="space-y-1">
-                                        {(order.items ?? []).map((item) => {
-                                            const qty =
-                                                Number(item.quantity) || 0;
-                                            const price =
-                                                Number(item.price) || 0;
-                                            const lineTotal = qty * price;
 
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className="grid grid-cols-[1fr_auto_auto] gap-2"
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">
+                                            {t(
+                                                'orders.receipt.coveredByType',
+                                                'Settlement Type',
+                                            )}
+                                        </label>
+                                        <Select
+                                            value={coveredByType}
+                                            onValueChange={(value) => {
+                                                const nextValue = value as
+                                                    | 'customer'
+                                                    | 'employee'
+                                                    | 'house';
+                                                setCoveredByType(nextValue);
+                                                if (nextValue !== 'employee') {
+                                                    setSelectedSponsorEmployeeId(
+                                                        '',
+                                                    );
+                                                }
+                                            }}
+                                            disabled={isPaymentCompleted}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="customer">
+                                                    {t(
+                                                        'orders.receipt.coveredByTypeCustomer',
+                                                        'Customer Payment',
+                                                    )}
+                                                </SelectItem>
+                                                <SelectItem value="employee">
+                                                    {t(
+                                                        'orders.receipt.coveredByTypeEmployee',
+                                                        'Employee Cover',
+                                                    )}
+                                                </SelectItem>
+                                                <SelectItem value="house">
+                                                    {t(
+                                                        'orders.receipt.coveredByTypeHouse',
+                                                        'House Hospitality / Comp',
+                                                    )}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">
+                                            {t(
+                                                'orders.form.paymentMethod',
+                                                'Payment Method',
+                                            )}
+                                        </label>
+                                        <Select
+                                            value={paymentMethod}
+                                            onValueChange={(value) =>
+                                                onPaymentMethodChange?.(value)
+                                            }
+                                            disabled={
+                                                isPaymentCompleted ||
+                                                coveredByType === 'house'
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="cash">
+                                                    {t(
+                                                        'orders.paymentMethod.cash',
+                                                        'Cash',
+                                                    )}
+                                                </SelectItem>
+                                                <SelectItem value="credit_card">
+                                                    {t(
+                                                        'orders.paymentMethod.credit_card',
+                                                        'Credit Card',
+                                                    )}
+                                                </SelectItem>
+                                                <SelectItem value="bank_transfer">
+                                                    {t(
+                                                        'orders.paymentMethod.bank_transfer',
+                                                        'Bank Transfer',
+                                                    )}
+                                                </SelectItem>
+                                                <SelectItem value="other">
+                                                    {t(
+                                                        'orders.paymentMethod.other',
+                                                        'Other',
+                                                    )}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {coveredByType === 'house' ? (
+                                            <p className="text-xs text-muted-foreground">
+                                                {t(
+                                                    'orders.receipt.houseCompNote',
+                                                    'House hospitality completes the order without recording a payment collection.',
+                                                )}
+                                            </p>
+                                        ) : null}
+                                    </div>
+
+                                    {coveredByType === 'employee' ? (
+                                        <div className="grid gap-2">
+                                            <label className="text-sm font-medium">
+                                                {t(
+                                                    'orders.receipt.coveredByEmployee',
+                                                    'Covered By Employee',
+                                                )}
+                                            </label>
+                                            <SearchableDropdown
+                                                value={
+                                                    selectedSponsorEmployeeId
+                                                }
+                                                options={sponsorEmployeeOptions}
+                                                onValueChange={
+                                                    setSelectedSponsorEmployeeId
+                                                }
+                                                placeholder={t(
+                                                    'orders.receipt.coveredByEmployeePlaceholder',
+                                                    'Select employee if this order is being covered',
+                                                )}
+                                                searchPlaceholder={t(
+                                                    'orders.receipt.coveredByEmployeeSearch',
+                                                    'Search employees...',
+                                                )}
+                                                emptyText={t(
+                                                    'orders.receipt.coveredByEmployeeEmpty',
+                                                    'No active employee found.',
+                                                )}
+                                                className="w-full"
+                                            />
+                                            {selectedSponsorEmployee ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    className="h-auto justify-start px-0 text-xs text-muted-foreground"
+                                                    onClick={() => {
+                                                        setSelectedSponsorEmployeeId(
+                                                            '',
+                                                        );
+                                                        setSponsorNote('');
+                                                    }}
+                                                    disabled={
+                                                        isPaymentCompleted
+                                                    }
                                                 >
-                                                    <p className="truncate">
-                                                        {item.product_name ??
-                                                            item.product_name_snapshot ??
-                                                            item.product
-                                                                ?.name ??
-                                                            '-'}
-                                                    </p>
-                                                    <p>x{qty}</p>
-                                                    <p className="text-right">
-                                                        {formatAfn(lineTotal)}
-                                                    </p>
-                                                </div>
-                                            );
-                                        })}
+                                                    {t(
+                                                        'orders.receipt.clearCoveredByEmployee',
+                                                        'Clear employee coverage',
+                                                    )}
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+
+                                    {coveredByType !== 'customer' ? (
+                                        <div className="grid gap-2">
+                                            <label className="text-sm font-medium">
+                                                {t(
+                                                    'orders.receipt.coveredByNote',
+                                                    'Coverage Note',
+                                                )}
+                                            </label>
+                                            <Textarea
+                                                value={sponsorNote}
+                                                onChange={(event) =>
+                                                    setSponsorNote(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder={
+                                                    coveredByType === 'house'
+                                                        ? t(
+                                                              'orders.receipt.coveredByNoteHousePlaceholder',
+                                                              'Optional note such as owner hospitality, manager guest, or house comp reason.',
+                                                          )
+                                                        : t(
+                                                              'orders.receipt.coveredByNotePlaceholder',
+                                                              'Optional note such as owner guest, manager guest, or hospitality.',
+                                                          )
+                                                }
+                                                disabled={isPaymentCompleted}
+                                                rows={3}
+                                            />
+                                        </div>
+                                    ) : null}
+
+                                    <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-neutral-200 bg-white/80 px-3 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-950/60">
+                                        {coveredByType === 'employee' ? (
+                                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                                                {t(
+                                                    'orders.columns.employeeCover',
+                                                    'Employee cover',
+                                                )}
+                                            </Badge>
+                                        ) : coveredByType === 'house' ? (
+                                            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                                                {t(
+                                                    'orders.columns.houseComp',
+                                                    'House comp',
+                                                )}
+                                            </Badge>
+                                        ) : (
+                                            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                                {t(
+                                                    'orders.columns.customerPayment',
+                                                    'Customer payment',
+                                                )}
+                                            </Badge>
+                                        )}
+                                        <span className="text-muted-foreground">
+                                            {coveredByType === 'employee'
+                                                ? (selectedSponsorEmployee?.full_name ??
+                                                  ([
+                                                      selectedSponsorEmployee?.first_name,
+                                                      selectedSponsorEmployee?.last_name,
+                                                  ]
+                                                      .filter(Boolean)
+                                                      .join(' ') ||
+                                                      t(
+                                                          'orders.receipt.coveredByEmployee',
+                                                          'Covered By Employee',
+                                                      )))
+                                                : coveredByType === 'house'
+                                                  ? t(
+                                                        'orders.receipt.coveredByTypeHouse',
+                                                        'House Hospitality / Comp',
+                                                    )
+                                                  : t(
+                                                        'orders.receipt.coveredByTypeCustomer',
+                                                        'Customer Payment',
+                                                    )}
+                                        </span>
                                     </div>
-                                    <div className="my-2 border-t border-dashed" />
-                                    <p className="flex items-center justify-between">
-                                        <span>
-                                            {t(
-                                                'orders.receipt.subtotal',
-                                                'Subtotal',
-                                            )}
-                                        </span>
-                                        <span>{formatAfn(subtotal)}</span>
-                                    </p>
-                                    <p className="flex items-center justify-between">
-                                        <span>
-                                            {t(
-                                                'orders.receipt.discountShort',
-                                                'Discount',
-                                            )}
-                                        </span>
-                                        <span>{formatAfn(discountValue)}</span>
-                                    </p>
-                                    <p className="flex items-center justify-between font-semibold">
-                                        <span>
-                                            {t(
-                                                'orders.receipt.grandTotal',
-                                                'Grand Total',
-                                            )}
-                                        </span>
-                                        <span>{formatAfn(finalTotal)}</span>
-                                    </p>
-                                    <div className="my-2 border-t border-dashed" />
-                                    <div className="text-center">
-                                        <p className="text-[10px] font-semibold text-[#102F33]">
-                                            {RECEIPT_FOOTER_NOTE.title}
+
+                                    <div className="text-sm">
+                                        <p className="flex items-center justify-between">
+                                            <span>
+                                                {t(
+                                                    'orders.receipt.subtotal',
+                                                    'Subtotal',
+                                                )}
+                                            </span>
+                                            <span>{formatAfn(subtotal)}</span>
                                         </p>
-                                        <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
-                                            {RECEIPT_FOOTER_NOTE.message}
-                                        </p>
-                                    </div>
-                                    <div className="my-2 border-t border-dashed" />
-                                    <div className="mt-2 grid grid-cols-[1fr_68px] gap-3 text-[10px] text-neutral-600">
-                                        <div className="pt-1">
-                                            <p className="flex items-start gap-2">
-                                                <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
-                                                <span className="text-[10px]">
-                                                    {RESTAURANT_CONTACT.address}
+                                        {discountValue > 0 ? (
+                                            <p className="flex items-center justify-between">
+                                                <span>
+                                                    {t(
+                                                        'orders.receipt.discountShort',
+                                                        'Discount',
+                                                    )}
+                                                </span>
+                                                <span>
+                                                    {formatAfn(discountValue)}
                                                 </span>
                                             </p>
-                                        </div>
-                                        <div className="text-center">
-                                            <img
-                                                src={qrCodeSrc}
-                                                alt="QR Code"
-                                                className="mx-auto h-14 w-14 object-contain"
-                                            />
-                                            <p className="mt-1 text-[9px] text-neutral-500">
-                                                {RECEIPT_QR_LABEL}
-                                            </p>
-                                        </div>
+                                        ) : null}
+                                        <p className="mt-2 flex items-center justify-between text-base font-semibold">
+                                            <span>
+                                                {t(
+                                                    'orders.receipt.grandTotal',
+                                                    'Grand Total',
+                                                )}
+                                            </span>
+                                            <span>{formatAfn(finalTotal)}</span>
+                                        </p>
+                                        {coveredByType === 'employee' &&
+                                        selectedSponsorEmployee ? (
+                                            <div className="mt-3 rounded-md border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-muted-foreground dark:border-neutral-800 dark:bg-neutral-900/50">
+                                                <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                                                    {`${t('orders.receipt.coveredByEmployeeSummary', 'This order is being covered by')} ${selectedSponsorEmployee.full_name ?? [selectedSponsorEmployee.first_name, selectedSponsorEmployee.last_name].filter(Boolean).join(' ')}`}
+                                                </p>
+                                                {sponsorNote.trim() ? (
+                                                    <p className="mt-1">
+                                                        {sponsorNote.trim()}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
+                                        {coveredByType === 'house' ? (
+                                            <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                                                <p className="font-medium">
+                                                    {t(
+                                                        'orders.receipt.houseCompSummary',
+                                                        'This order will be recorded as house hospitality / comp.',
+                                                    )}
+                                                </p>
+                                                {sponsorNote.trim() ? (
+                                                    <p className="mt-1">
+                                                        {sponsorNote.trim()}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
-                            </ScrollArea>
+
+                                <div className="shrink-0 border-t bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                                    <div className="flex flex-wrap gap-3">
+                                        {canFinalizePayment ? (
+                                            <Button
+                                                onClick={() =>
+                                                    setIsConfirmPaymentOpen(
+                                                        true,
+                                                    )
+                                                }
+                                                className="gap-2"
+                                                disabled={
+                                                    isCompletingPayment ||
+                                                    isPaymentCompleted
+                                                }
+                                                variant="outline"
+                                            >
+                                                <ReceiptText className="h-4 w-4" />
+                                                {isPaymentCompleted
+                                                    ? t(
+                                                          'orders.receipt.paymentCompleted',
+                                                          'Payment Completed',
+                                                      )
+                                                    : t(
+                                                          'orders.receipt.markPaymentCompleted',
+                                                          'Payment Completed',
+                                                      )}
+                                            </Button>
+                                        ) : null}
+
+                                        <Button
+                                            onClick={printReceipt}
+                                            className="gap-2"
+                                            disabled={!isPaymentCompleted}
+                                            variant="outline"
+                                        >
+                                            <Printer className="h-4 w-4" />
+                                            {t(
+                                                'orders.receipt.printReceipt',
+                                                'Print Receipt',
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-full min-h-0 rounded-md border bg-muted/20 p-3">
+                                <ScrollArea className="h-full">
+                                    <div
+                                        className="mx-auto rounded-md border bg-white py-3 pr-5 pl-3 text-[11px] text-neutral-900"
+                                        style={{
+                                            width: `${RECEIPT_WIDTH_PX}px`,
+                                        }}
+                                    >
+                                        <div className="text-center">
+                                            <img
+                                                src={brand.logo}
+                                                alt={`${brand.name} Logo`}
+                                                className="mx-auto h-12 w-auto max-w-[64px] object-contain"
+                                            />
+                                            <p className="mt-1 text-sm font-semibold">
+                                                {brand.name}
+                                            </p>
+                                            <p className="text-[10px] text-neutral-500">
+                                                {t(
+                                                    'orders.receipt.receiptTitle',
+                                                    'Order Receipt',
+                                                )}
+                                            </p>
+                                        </div>
+                                        <div className="my-2 border-t border-dashed" />
+                                        <p>
+                                            <span className="font-medium">
+                                                {t(
+                                                    'orders.receipt.order',
+                                                    'Order',
+                                                )}
+                                                :
+                                            </span>{' '}
+                                            #{order.id}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">
+                                                {t(
+                                                    'orders.receipt.date',
+                                                    'Date',
+                                                )}
+                                                :
+                                            </span>{' '}
+                                            {createdAt}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">
+                                                {t(
+                                                    'orders.receipt.type',
+                                                    'Type',
+                                                )}
+                                                :
+                                            </span>{' '}
+                                            {orderTypeLabel}
+                                        </p>
+                                        {order.order_type === 'delivery' ? (
+                                            <>
+                                                <p>
+                                                    <span className="font-medium">
+                                                        {t(
+                                                            'orders.receipt.customer',
+                                                            'Customer',
+                                                        )}
+                                                        :
+                                                    </span>{' '}
+                                                    {order.customer_name ?? '-'}
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">
+                                                        {t(
+                                                            'orders.receipt.phone',
+                                                            'Phone',
+                                                        )}
+                                                        :
+                                                    </span>{' '}
+                                                    {order.customer_phone ??
+                                                        '-'}
+                                                </p>
+                                                <p>
+                                                    <span className="font-medium">
+                                                        {t(
+                                                            'orders.receipt.address',
+                                                            'Address',
+                                                        )}
+                                                        :
+                                                    </span>{' '}
+                                                    {order.delivery_address ??
+                                                        '-'}
+                                                </p>
+                                            </>
+                                        ) : null}
+                                        <div className="my-2 border-t border-dashed" />
+                                        <div className="space-y-1">
+                                            {(order.items ?? []).map((item) => {
+                                                const qty =
+                                                    Number(item.quantity) || 0;
+                                                const price =
+                                                    Number(item.price) || 0;
+                                                const lineTotal = qty * price;
+
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        className="grid grid-cols-[1fr_auto_auto] gap-2"
+                                                    >
+                                                        <p className="truncate">
+                                                            {item.product_name ??
+                                                                item.product_name_snapshot ??
+                                                                item.product
+                                                                    ?.name ??
+                                                                '-'}
+                                                        </p>
+                                                        <p>x{qty}</p>
+                                                        <p className="text-right">
+                                                            {formatAfn(
+                                                                lineTotal,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="my-2 border-t border-dashed" />
+                                        <p className="flex items-center justify-between">
+                                            <span>
+                                                {t(
+                                                    'orders.receipt.subtotal',
+                                                    'Subtotal',
+                                                )}
+                                            </span>
+                                            <span>{formatAfn(subtotal)}</span>
+                                        </p>
+                                        {discountValue > 0 ? (
+                                            <p className="flex items-center justify-between">
+                                                <span>
+                                                    {t(
+                                                        'orders.receipt.discountShort',
+                                                        'Discount',
+                                                    )}
+                                                </span>
+                                                <span>
+                                                    {formatAfn(discountValue)}
+                                                </span>
+                                            </p>
+                                        ) : null}
+                                        <p className="flex items-center justify-between font-semibold">
+                                            <span>
+                                                {t(
+                                                    'orders.receipt.grandTotal',
+                                                    'Grand Total',
+                                                )}
+                                            </span>
+                                            <span>{formatAfn(finalTotal)}</span>
+                                        </p>
+                                        <div className="my-2 border-t border-dashed" />
+                                        <div className="text-center">
+                                            <p className="text-[10px] font-semibold text-[#102F33]">
+                                                {RECEIPT_FOOTER_NOTE.title}
+                                            </p>
+                                            <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
+                                                {RECEIPT_FOOTER_NOTE.message}
+                                            </p>
+                                        </div>
+                                        <div className="my-2 border-t border-dashed" />
+                                        <div className="mt-2 grid grid-cols-[1fr_68px] gap-3 text-[10px] text-neutral-600">
+                                            <div className="pt-1">
+                                                <p className="flex items-start gap-2">
+                                                    <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
+                                                    <span className="text-[10px]">
+                                                        {
+                                                            RESTAURANT_CONTACT.address
+                                                        }
+                                                    </span>
+                                                </p>
+                                            </div>
+                                            <div className="text-center">
+                                                <img
+                                                    src={qrCodeSrc}
+                                                    alt="QR Code"
+                                                    className="mx-auto h-14 w-14 object-contain"
+                                                />
+                                                <p className="mt-1 text-[9px] text-neutral-500">
+                                                    {RECEIPT_QR_LABEL}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollArea>
+                            </div>
                         </div>
-                    </div>
-                ) : null}
+                    ) : null}
+                </div>
             </DialogContent>
 
             <AlertDialog
