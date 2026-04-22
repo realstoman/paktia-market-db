@@ -148,6 +148,52 @@ export const buildColumns = ({
         },
     },
     {
+        id: 'coverage',
+        accessorFn: (row) => row.covered_by_type ?? 'customer',
+        header: t('orders.columns.coverage', 'Coverage'),
+        cell: ({ row }) => {
+            const order = row.original;
+            const coverageType = order.covered_by_type ?? 'customer';
+
+            if (coverageType === 'employee') {
+                const employeeName =
+                    order.coveredByEmployee?.full_name ??
+                    [
+                        order.coveredByEmployee?.first_name,
+                        order.coveredByEmployee?.last_name,
+                    ]
+                        .filter(Boolean)
+                        .join(' ') ||
+                    t('orders.columns.employeeCover', 'Employee cover');
+
+                return (
+                    <div className="space-y-1">
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                            {t('orders.columns.employeeCover', 'Employee cover')}
+                        </Badge>
+                        <p className="max-w-[150px] truncate text-xs text-muted-foreground" title={employeeName}>
+                            {employeeName}
+                        </p>
+                    </div>
+                );
+            }
+
+            if (coverageType === 'house') {
+                return (
+                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                        {t('orders.columns.houseComp', 'House comp')}
+                    </Badge>
+                );
+            }
+
+            return (
+                <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                    {t('orders.columns.customerPayment', 'Customer payment')}
+                </Badge>
+            );
+        },
+    },
+    {
         id: 'kitchens',
         header: t('orders.columns.kitchens', 'Kitchens'),
         cell: ({ row }) => {

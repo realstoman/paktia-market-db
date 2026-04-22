@@ -351,26 +351,38 @@ export default function OrdersPage({
             row.payments,
         ]);
 
-        const orderRows = orders.map((order) => [
-            order.id,
-            order.created_at
-                ? new Date(order.created_at).toLocaleString(dateLocale)
-                : '-',
-            order.user?.name ?? 'Unassigned',
-            getOrderTypeLabel(order.order_type),
-            getStatusLabel((order.status ?? 'pending') as OrderStatusKey),
-            order.items_count ?? order.items?.length ?? 0,
-            Number(order.sub_total_amount ?? order.total_amount ?? 0) || 0,
-            Number(order.discount_amount ?? 0) || 0,
-            Number(order.total_amount ?? 0) || 0,
-            Number(order.paid_amount ?? 0) || 0,
-            (order.payments ?? [])
-                .map((payment) => payment.method ?? 'cash')
-                .join(', '),
-            (order.payments ?? [])
-                .map((payment) => Number(payment.amount ?? 0) || 0)
-                .join(', '),
-        ]);
+        const orderRows = orders.map((order) => {
+            const coverageType = order.covered_by_type ?? 'customer';
+            const coverageLabel =
+                coverageType === 'employee'
+                    ? `Employee Cover${order.coveredByEmployee?.full_name ? ` (${order.coveredByEmployee.full_name})` : ''}`
+                    : coverageType === 'house'
+                      ? 'House Comp'
+                      : 'Customer Payment';
+
+            return [
+                order.id,
+                order.created_at
+                    ? new Date(order.created_at).toLocaleString(dateLocale)
+                    : '-',
+                order.user?.name ?? 'Unassigned',
+                getOrderTypeLabel(order.order_type),
+                getStatusLabel((order.status ?? 'pending') as OrderStatusKey),
+                coverageLabel,
+                order.covered_by_note ?? '-',
+                order.items_count ?? order.items?.length ?? 0,
+                Number(order.sub_total_amount ?? order.total_amount ?? 0) || 0,
+                Number(order.discount_amount ?? 0) || 0,
+                Number(order.total_amount ?? 0) || 0,
+                Number(order.paid_amount ?? 0) || 0,
+                (order.payments ?? [])
+                    .map((payment) => payment.method ?? 'cash')
+                    .join(', '),
+                (order.payments ?? [])
+                    .map((payment) => Number(payment.amount ?? 0) || 0)
+                    .join(', '),
+            ];
+        });
 
         const csvLines = [
             'End of Day Orders Report',
@@ -394,6 +406,8 @@ export default function OrdersPage({
                 'Handled By',
                 'Type',
                 'Status',
+                'Coverage',
+                'Coverage Note',
                 'Items',
                 'Subtotal',
                 'Discount',
@@ -449,6 +463,13 @@ export default function OrdersPage({
                     (order.payments ?? [])
                         .map((payment) => formatAfn(payment.amount ?? 0))
                         .join(', ') || '-';
+                const coverageType = order.covered_by_type ?? 'customer';
+                const coverageLabel =
+                    coverageType === 'employee'
+                        ? `Employee Cover${order.coveredByEmployee?.full_name ? ` (${order.coveredByEmployee.full_name})` : ''}`
+                        : coverageType === 'house'
+                          ? 'House Comp'
+                          : 'Customer Payment';
 
                 return `
                     <tr>
@@ -457,6 +478,8 @@ export default function OrdersPage({
                         <td>${order.user?.name ?? 'Unassigned'}</td>
                         <td>${getOrderTypeLabel(order.order_type)}</td>
                         <td>${getStatusLabel((order.status ?? 'pending') as OrderStatusKey)}</td>
+                        <td>${coverageLabel}</td>
+                        <td>${order.covered_by_note ?? '-'}</td>
                         <td>${formatNumber(order.items_count ?? order.items?.length ?? 0)}</td>
                         <td>${formatAfn(order.sub_total_amount ?? order.total_amount ?? 0)}</td>
                         <td>${formatAfn(order.discount_amount ?? 0)}</td>

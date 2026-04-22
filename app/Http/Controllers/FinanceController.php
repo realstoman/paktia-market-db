@@ -612,6 +612,8 @@ class FinanceController extends Controller
                     'unpaidSalaries' => (float) $unpaidSalaries,
                     'inventoryValue' => (float) $inventoryValue,
                     'supplierBalances' => (float) $supplierBalances,
+                    'employeeCoveredTotal' => (float) $employeeCoveredTotal,
+                    'houseCompTotal' => (float) $houseCompTotal,
                 ],
                 'trend' => $trend,
                 'branchRevenue' => $branchRevenue,
@@ -627,8 +629,6 @@ class FinanceController extends Controller
                         : 'Gross profit is using posted inventory cost movements.',
                     'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
                 ],
-                'houseCompTotal' => $houseCompTotal,
-                'employeeCoveredTotal' => $employeeCoveredTotal,
             ],
         ]);
     }

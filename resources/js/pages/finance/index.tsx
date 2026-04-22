@@ -95,6 +95,8 @@ interface FinanceDashboardData {
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
+        employeeCoveredTotal: number;
+        houseCompTotal: number;
     };
     trend: Array<{
         date: string;
@@ -695,6 +697,18 @@ export default function FinancePage({
                         value={formatAfn(dashboard.summary.cashPosition)}
                         subtitle={dashboard.notes.cashPosition}
                         icon={<Wallet className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title="Employee Covered"
+                        value={formatAfn(dashboard.summary.employeeCoveredTotal)}
+                        subtitle="Orders paid by employees on behalf of guests"
+                        icon={<Users className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title="House Comp"
+                        value={formatAfn(dashboard.summary.houseCompTotal)}
+                        subtitle="Hospitality and complimentary orders excluded from sales"
+                        icon={<Coins className="h-5 w-5" />}
                     />
                     <SummaryCard
                         title="Unpaid Salaries"
