@@ -8,6 +8,8 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Branch;
 use App\Models\BranchTable;
+use App\Models\Customer;
+use App\Models\DiscountCard;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -36,6 +38,8 @@ class OrderService
             'branchTable',
             'user',
             'client',
+            'customer',
+            'discountCard',
             'payments',
             'items' => fn ($query) => $query
                 ->when($allowedKitchenId, fn ($itemQuery) => $itemQuery->where('kitchen_id', $allowedKitchenId))
@@ -75,6 +79,15 @@ class OrderService
                 ->orderBy('branch_id')
                 ->orderBy('table_number')
                 ->get(),
+            'customers' => Customer::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->orderBy('phone')
+                ->get(['id', 'name', 'phone', 'email']),
+            'discountCards' => DiscountCard::query()
+                ->active()
+                ->orderBy('name')
+                ->get(),
             'selectedDate' => $selectedDate,
             'isAllTime' => $isAllTime,
             'restaurantStartDate' => $restaurantStartDate,
@@ -97,27 +110,23 @@ class OrderService
 
         DB::transaction(function () use ($data, $userId) {
             $total = $this->orderItemService->calculateTotal($data['items']);
+            $customerPayload = $this->resolveCustomerPayload($data);
 
             $order = Order::create([
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['branch_table_id'] ?? null,
                 'user_id' => $userId,
+                'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
-                'customer_name' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_name'] ?? ''))
-                    : null,
-                'customer_phone' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_phone'] ?? ''))
-                    : null,
+                'customer_name' => $customerPayload['customer_name'],
+                'customer_phone' => $customerPayload['customer_phone'],
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'discount_card_id' => $data['discount_card_id'] ?? null,
+                'discount_type' => null,
+                'discount_value' => null,
+                'discount_label' => null,
                 'sub_total_amount' => $total,
                 'discount_amount' => 0,
                 'tax_amount' => 0,
@@ -150,27 +159,21 @@ class OrderService
         $originalCreatedAt = $order->created_at;
 
         DB::transaction(function () use ($order, $data) {
+            $customerPayload = $this->resolveCustomerPayload($data);
+
             $order->update([
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
                     ? ($data['branch_table_id'] ?? null)
                     : null,
+                'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
-                'customer_name' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_name'] ?? ''))
-                    : null,
-                'customer_phone' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_phone'] ?? ''))
-                    : null,
+                'customer_name' => $customerPayload['customer_name'],
+                'customer_phone' => $customerPayload['customer_phone'],
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'discount_card_id' => $data['discount_card_id'] ?? null,
             ]);
 
             $this->orderItemService->replaceForOrder($order, $data['items']);
@@ -216,21 +219,23 @@ class OrderService
         string $status,
         ?string $paymentMethod = null,
         ?float $discountAmount = null,
+        ?int $discountCardId = null,
         ?User $actor = null,
     ): void
     {
         $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod);
 
-        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $actor) {
+        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $actor) {
             if ($status === OrderStatus::COMPLETED->value) {
                 $subTotal = (float) ($order->sub_total_amount ?? 0);
-                $resolvedDiscount = $discountAmount !== null
-                    ? min(max($discountAmount, 0), $subTotal)
-                    : (float) ($order->discount_amount ?? 0);
+                $discountDetails = $this->resolveDiscountDetails(
+                    order: $order,
+                    subTotal: $subTotal,
+                    manualDiscountAmount: $discountAmount,
+                    discountCardId: $discountCardId,
+                );
 
-                $order->update([
-                    'discount_amount' => $resolvedDiscount,
-                ]);
+                $order->update($discountDetails);
 
                 $this->syncOrderAmounts($order, $subTotal);
             }
@@ -451,5 +456,124 @@ class OrderService
             'change_amount' => 0,
             'refund_amount' => 0,
         ]);
+    }
+
+    private function resolveCustomerPayload(array $data): array
+    {
+        $customerName = trim((string) ($data['customer_name'] ?? ''));
+        $customerPhone = trim((string) ($data['customer_phone'] ?? ''));
+        $customerId = isset($data['customer_id']) && $data['customer_id']
+            ? (int) $data['customer_id']
+            : null;
+
+        if ($customerId) {
+            $customer = Customer::query()->find($customerId);
+
+            if ($customer) {
+                $updated = false;
+
+                if ($customerName !== '' && $customer->name !== $customerName) {
+                    $customer->name = $customerName;
+                    $updated = true;
+                }
+
+                if ($customerPhone !== '' && $customer->phone !== $customerPhone) {
+                    $customer->phone = $customerPhone;
+                    $updated = true;
+                }
+
+                if ($updated) {
+                    $customer->save();
+                }
+
+                return [
+                    'customer_id' => $customer->id,
+                    'customer_name' => $customerName !== '' ? $customerName : $customer->name,
+                    'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+                ];
+            }
+        }
+
+        if ($customerName === '' && $customerPhone === '') {
+            return [
+                'customer_id' => null,
+                'customer_name' => null,
+                'customer_phone' => null,
+            ];
+        }
+
+        $customer = null;
+
+        if ($customerPhone !== '') {
+            $customer = Customer::query()->where('phone', $customerPhone)->first();
+        }
+
+        if ($customer) {
+            $customer->update([
+                'name' => $customerName !== '' ? $customerName : $customer->name,
+                'phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+                'is_active' => true,
+            ]);
+        } else {
+            $customer = Customer::query()->create([
+                'name' => $customerName !== '' ? $customerName : null,
+                'phone' => $customerPhone !== '' ? $customerPhone : null,
+                'is_active' => true,
+            ]);
+        }
+
+        return [
+            'customer_id' => $customer->id,
+            'customer_name' => $customerName !== '' ? $customerName : $customer->name,
+            'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+        ];
+    }
+
+    private function resolveDiscountDetails(
+        Order $order,
+        float $subTotal,
+        ?float $manualDiscountAmount = null,
+        ?int $discountCardId = null,
+    ): array {
+        $resolvedDiscountCardId = $discountCardId ?: $order->discount_card_id;
+
+        if ($resolvedDiscountCardId) {
+            $discountCard = DiscountCard::query()
+                ->active()
+                ->find($resolvedDiscountCardId);
+
+            if ($discountCard) {
+                $resolvedDiscount = $discountCard->discount_type === 'percentage'
+                    ? ($subTotal * ((float) $discountCard->discount_value / 100))
+                    : (float) $discountCard->discount_value;
+
+                if ($discountCard->max_discount_amount !== null) {
+                    $resolvedDiscount = min(
+                        $resolvedDiscount,
+                        (float) $discountCard->max_discount_amount,
+                    );
+                }
+
+                return [
+                    'discount_card_id' => $discountCard->id,
+                    'discount_type' => $discountCard->discount_type,
+                    'discount_value' => $discountCard->discount_value,
+                    'discount_label' => $discountCard->name,
+                    'discount_amount' => min(max($resolvedDiscount, 0), $subTotal),
+                ];
+            }
+        }
+
+        $resolvedDiscount = $manualDiscountAmount !== null
+            ? min(max($manualDiscountAmount, 0), $subTotal)
+            : (float) ($order->discount_amount ?? 0);
+
+        return [
+            'discount_card_id' => null,
+            'discount_type' => $resolvedDiscount > 0 ? 'manual' : null,
+            'discount_value' => $resolvedDiscount > 0 ? $resolvedDiscount : null,
+            'discount_label' => $resolvedDiscount > 0 ? 'Manual discount' : null,
+            'discount_amount' => $resolvedDiscount,
+        ];
     }
 }

@@ -60,6 +60,7 @@ export interface SharedData {
         provinces: Province[];
         currencies: Currency[];
         vendors: Vendor[];
+        discountCards: DiscountCard[];
         banners: Banner[];
         kitchens: Kitchen[];
         products: Product[];
@@ -759,12 +760,40 @@ export interface Payment {
     [key: string]: unknown;
 }
 
+export interface Customer {
+    id: number;
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface DiscountCard {
+    id: number;
+    name: string;
+    code: string;
+    discount_type: 'percentage' | 'fixed' | string;
+    discount_value: number | string;
+    max_discount_amount?: number | string | null;
+    description?: string | null;
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface Order {
     id: number;
     branch_id: number;
     branch_table_id?: number | null;
     user_id?: number | null;
     client_id?: number | null;
+    customer_id?: number | null;
+    discount_card_id?: number | null;
     user?: User | null;
     client?: {
         id: number;
@@ -773,6 +802,8 @@ export interface Order {
         phone?: string | null;
         [key: string]: unknown;
     } | null;
+    customer?: Customer | null;
+    discountCard?: DiscountCard | null;
     branch?: Branch | null;
     branch_table?: BranchTable | null;
     items?: OrderItem[];
@@ -788,6 +819,9 @@ export interface Order {
     exchange_rate?: number | null;
     sub_total_amount?: number | string;
     discount_amount?: number | string;
+    discount_type?: string | null;
+    discount_value?: number | string | null;
+    discount_label?: string | null;
     total_amount: number | string;
     paid_amount: number | string;
     change_amount: number | string;

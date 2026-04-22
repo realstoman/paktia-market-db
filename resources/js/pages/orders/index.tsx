@@ -38,6 +38,8 @@ import {
     Branch,
     BranchTable,
     BreadcrumbItem,
+    Customer,
+    DiscountCard,
     Order,
     Product,
     SharedData,
@@ -63,6 +65,8 @@ interface OrdersPageProps {
     branches: Branch[];
     products: Product[];
     branchTables: BranchTable[];
+    customers: Customer[];
+    discountCards: DiscountCard[];
     selectedDate: string | null;
     isAllTime: boolean;
     restaurantStartDate: string | null;
@@ -101,6 +105,8 @@ export default function OrdersPage({
     branches,
     products,
     branchTables,
+    customers,
+    discountCards,
     selectedDate,
     isAllTime,
     restaurantStartDate,
@@ -778,6 +784,8 @@ export default function OrdersPage({
                         branches={branches}
                         products={products}
                         branchTables={branchTables}
+                        customers={customers}
+                        discountCards={discountCards}
                     />
                 </div>
             </div>

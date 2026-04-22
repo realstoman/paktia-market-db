@@ -26,7 +26,15 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BranchTable, Order, Product, SharedData } from '@/types';
+import {
+    Branch,
+    BranchTable,
+    Customer,
+    DiscountCard,
+    Order,
+    Product,
+    SharedData,
+} from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
 import {
@@ -62,6 +70,8 @@ interface OrdersClientProps {
     branches: Branch[];
     products: Product[];
     branchTables: BranchTable[];
+    customers: Customer[];
+    discountCards: DiscountCard[];
     isLoading?: boolean;
 }
 
@@ -87,6 +97,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     branches,
     products,
     branchTables,
+    customers,
+    discountCards,
     isLoading = false,
 }) => {
     const { auth } = usePage<SharedData>().props;
@@ -149,9 +161,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [branchTableId, setBranchTableId] = useState('');
     const [orderType, setOrderType] = useState('dine_in');
     const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [customerId, setCustomerId] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [discountCardId, setDiscountCardId] = useState('');
     const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [addItems, setAddItems] = useState<OrderItemDraft[]>([emptyItem()]);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -218,9 +232,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setBranchTableId('');
         setOrderType('dine_in');
         setPaymentMethod('cash');
+        setCustomerId('');
         setCustomerName('');
         setCustomerPhone('');
         setDeliveryAddress('');
+        setDiscountCardId('');
         setItems([emptyItem()]);
         setCreateErrors({});
     };
@@ -344,6 +360,71 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         const quantity = Number(item.quantity) || 0;
         return total + price * quantity;
     }, 0);
+    const customerOptions = useMemo(
+        () => [
+            {
+                value: '',
+                label: t('orders.form.walkInCustomer', 'Walk-in / New customer'),
+            },
+            ...customers.map((customer) => ({
+                value: String(customer.id),
+                label: [customer.name, customer.phone]
+                    .filter(Boolean)
+                    .join(' • '),
+            })),
+        ],
+        [customers, t],
+    );
+    const discountCardOptions = useMemo(
+        () => [
+            {
+                value: '',
+                label: t('orders.form.noDiscountCard', 'No discount card'),
+            },
+            ...discountCards.map((card) => {
+                const valueLabel =
+                    card.discount_type === 'percentage'
+                        ? `${Number(card.discount_value) || 0}%`
+                        : formatAfn(card.discount_value ?? 0);
+
+                return {
+                    value: String(card.id),
+                    label: `${card.name} • ${valueLabel}`,
+                };
+            }),
+        ],
+        [discountCards, t],
+    );
+    const selectedCreateDiscountCard = useMemo(
+        () =>
+            discountCards.find((card) => String(card.id) === discountCardId) ??
+            null,
+        [discountCardId, discountCards],
+    );
+    const estimatedDiscountAmount = useMemo(() => {
+        if (!selectedCreateDiscountCard) {
+            return 0;
+        }
+
+        const rawValue =
+            selectedCreateDiscountCard.discount_type === 'percentage'
+                ? createTotal *
+                  ((Number(selectedCreateDiscountCard.discount_value) || 0) /
+                      100)
+                : Number(selectedCreateDiscountCard.discount_value) || 0;
+        const cappedValue =
+            selectedCreateDiscountCard.max_discount_amount !== undefined &&
+            selectedCreateDiscountCard.max_discount_amount !== null
+                ? Math.min(
+                      rawValue,
+                      Number(
+                          selectedCreateDiscountCard.max_discount_amount,
+                      ) || 0,
+                  )
+                : rawValue;
+
+        return Math.max(0, Math.min(createTotal, cappedValue));
+    }, [createTotal, selectedCreateDiscountCard]);
 
     const handleCreateSubmit = () => {
         if (
@@ -372,12 +453,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             branch_table_id:
                 orderType === 'dine_in' ? Number(branchTableId) : null,
             payment_method: paymentMethod,
-            customer_name:
-                orderType === 'delivery' ? customerName.trim() : null,
-            customer_phone:
-                orderType === 'delivery' ? customerPhone.trim() : null,
+            customer_id: customerId ? Number(customerId) : null,
+            customer_name: customerName.trim() || null,
+            customer_phone: customerPhone.trim() || null,
             delivery_address:
                 orderType === 'delivery' ? deliveryAddress.trim() : null,
+            discount_card_id: discountCardId ? Number(discountCardId) : null,
             items: payloadItems,
         };
 
@@ -470,7 +551,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
 
     const handleCompletePayment = (
         order: Order,
-        payload: { discountAmount: number; paymentMethod: string },
+        payload: {
+            discountAmount: number;
+            paymentMethod: string;
+            discountCardId?: number | null;
+        },
     ) => {
         const subtotal = Number(
             order.sub_total_amount ?? order.total_amount ?? 0,
@@ -485,6 +570,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 status: 'completed',
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
+                discount_card_id: payload.discountCardId ?? null,
             },
             {
                 preserveScroll: true,
@@ -499,6 +585,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     setSelectedReceiptOrder({
                         ...order,
                         status: 'completed',
+                        discount_card_id:
+                            payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
                         total_amount: finalTotal,
                         paid_amount: finalTotal,
@@ -547,9 +635,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         );
         setOrderType(order.order_type);
         setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
+        setCustomerId(order.customer_id ? String(order.customer_id) : '');
         setCustomerName(order.customer_name ?? '');
         setCustomerPhone(order.customer_phone ?? '');
         setDeliveryAddress(order.delivery_address ?? '');
+        setDiscountCardId(
+            order.discount_card_id ? String(order.discount_card_id) : '',
+        );
         setItems(
             (order.items ?? []).map((item) => ({
                 productId: String(item.product_id),
@@ -1271,62 +1363,138 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                 />
                             </div>
                         ) : null}
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t(
+                                    'orders.form.customer',
+                                    'Customer Registration',
+                                )}
+                            </Label>
+                            <SearchableDropdown
+                                value={customerId}
+                                options={customerOptions}
+                                onValueChange={(value) => {
+                                    setCustomerId(value);
+
+                                    const selectedCustomer = customers.find(
+                                        (customer) =>
+                                            String(customer.id) === value,
+                                    );
+
+                                    if (selectedCustomer) {
+                                        setCustomerName(
+                                            selectedCustomer.name ?? '',
+                                        );
+                                        setCustomerPhone(
+                                            selectedCustomer.phone ?? '',
+                                        );
+                                    } else {
+                                        setCustomerName('');
+                                        setCustomerPhone('');
+                                    }
+                                }}
+                                placeholder={t(
+                                    'orders.form.customerPlaceholder',
+                                    'Select an existing customer or keep walk-in',
+                                )}
+                                searchPlaceholder={t(
+                                    'orders.form.customerSearch',
+                                    'Search customers...',
+                                )}
+                                emptyText={t(
+                                    'orders.form.noCustomersFound',
+                                    'No customers found.',
+                                )}
+                            />
+                            <InputError message={createErrors.customer_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'orders.form.customerName',
+                                    'Customer Name',
+                                )}
+                            </Label>
+                            <Input
+                                value={customerName}
+                                onChange={(event) => {
+                                    setCustomerId('');
+                                    setCustomerName(event.target.value);
+                                }}
+                            />
+                            <InputError message={createErrors.customer_name} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'orders.form.customerPhone',
+                                    'Customer Phone',
+                                )}
+                            </Label>
+                            <Input
+                                value={customerPhone}
+                                onChange={(event) => {
+                                    setCustomerId('');
+                                    setCustomerPhone(event.target.value);
+                                }}
+                            />
+                            <InputError message={createErrors.customer_phone} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t(
+                                    'orders.form.discountCard',
+                                    'Discount Card',
+                                )}
+                            </Label>
+                            <SearchableDropdown
+                                value={discountCardId}
+                                options={discountCardOptions}
+                                onValueChange={setDiscountCardId}
+                                placeholder={t(
+                                    'orders.form.discountCardPlaceholder',
+                                    'Select a discount card',
+                                )}
+                                searchPlaceholder={t(
+                                    'orders.form.discountCardSearch',
+                                    'Search discount cards...',
+                                )}
+                                emptyText={t(
+                                    'orders.form.noDiscountCardsFound',
+                                    'No discount cards found.',
+                                )}
+                            />
+                            <InputError
+                                message={createErrors.discount_card_id}
+                            />
+                            {selectedCreateDiscountCard ? (
+                                <p className="text-xs text-muted-foreground">
+                                    {t(
+                                        'orders.form.discountCardApplied',
+                                        'Estimated discount',
+                                    )}
+                                    : {formatAfn(estimatedDiscountAmount)}
+                                </p>
+                            ) : null}
+                        </div>
                         {orderType === 'delivery' ? (
-                            <>
-                                <div className="grid gap-2">
-                                    <Label>
-                                        {t(
-                                            'orders.form.customerName',
-                                            'Customer Name',
-                                        )}
-                                    </Label>
-                                    <Input
-                                        value={customerName}
-                                        onChange={(event) =>
-                                            setCustomerName(event.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={createErrors.customer_name}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label>
-                                        {t(
-                                            'orders.form.customerPhone',
-                                            'Customer Phone',
-                                        )}
-                                    </Label>
-                                    <Input
-                                        value={customerPhone}
-                                        onChange={(event) =>
-                                            setCustomerPhone(event.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={createErrors.customer_phone}
-                                    />
-                                </div>
-                                <div className="grid gap-2 sm:col-span-2">
-                                    <Label>
-                                        {t(
-                                            'orders.form.deliveryAddress',
-                                            'Delivery Address',
-                                        )}
-                                    </Label>
-                                    <Textarea
-                                        value={deliveryAddress}
-                                        onChange={(event) =>
-                                            setDeliveryAddress(
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={createErrors.delivery_address}
-                                    />
-                                </div>
-                            </>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    {t(
+                                        'orders.form.deliveryAddress',
+                                        'Delivery Address',
+                                    )}
+                                </Label>
+                                <Textarea
+                                    value={deliveryAddress}
+                                    onChange={(event) =>
+                                        setDeliveryAddress(event.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={createErrors.delivery_address}
+                                />
+                            </div>
                         ) : null}
                     </div>
 
@@ -1726,9 +1894,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             <span>
                                 {t('orders.form.totalAmount', 'Total Amount')}
                             </span>
-                            <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                                {formatAfn(createTotal)}
-                            </span>
+                            <div className="text-right">
+                                {selectedCreateDiscountCard ? (
+                                    <p className="text-xs">
+                                        -{formatAfn(estimatedDiscountAmount)}
+                                    </p>
+                                ) : null}
+                                <span className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                                    {formatAfn(
+                                        Math.max(
+                                            0,
+                                            createTotal -
+                                                estimatedDiscountAmount,
+                                        ),
+                                    )}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
