@@ -901,6 +901,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         orderTypeFilter,
         sourceFilter,
         statusFilter,
+        coverageFilter,
         userFilter,
     ]);
 

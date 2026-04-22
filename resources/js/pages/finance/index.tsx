@@ -840,6 +840,38 @@ export default function FinancePage({
                         </CardContent>
                     </Card>
 
+                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+                        <CardHeader>
+                            <CardTitle>Sales vs Covered Orders</CardTitle>
+                            <CardDescription>
+                                Compare recognized sales with employee-covered and house-comp volume for the selected period.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[320px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={dashboard.coverageComparison}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                        <YAxis
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value) => formatNumber(Number(value))}
+                                        />
+                                        <Tooltip formatter={(value: number) => formatAfn(value)} />
+                                        <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                                            {dashboard.coverageComparison.map((entry) => (
+                                                <Cell
+                                                    key={entry.label}
+                                                    fill={coverageChartColor(entry.tone)}
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
