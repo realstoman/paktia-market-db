@@ -29,12 +29,7 @@ import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
 import { DiscountCard, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
-import {
-    IconBrandWhatsapp,
-    IconMail,
-    IconMapPin,
-    IconWorldWww,
-} from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
 import { Printer, ReceiptText } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -59,7 +54,7 @@ interface ReceiptPreviewDialogProps {
 const RECEIPT_WIDTH_PX = 302;
 const RESTAURANT_CONTACT = {
     address:
-        'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul',
+        'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul, Afghanistan.',
     website: 'www.babataste.com',
     whatsapp: ['+93 780 59 59 59'],
     emails: ['info@babataste.com'],
@@ -70,6 +65,7 @@ const RECEIPT_FOOTER_NOTE = {
     message:
         'We truly appreciate your order and look forward to serving you again soon.',
 };
+const RECEIPT_QR_LABEL = 'Scan to connect';
 
 const BRAND_COLORS = {
     primary: '#102F33',
@@ -196,6 +192,21 @@ export function ReceiptPreviewDialog({
     const symbolLogoSrc = brand.logo.startsWith('http')
         ? brand.logo
         : `${window.location.origin}${brand.logo}`;
+    const whatsappQrTarget = useMemo(() => {
+        const phone = RESTAURANT_CONTACT.whatsapp[0]?.replace(/\D+/g, '') ?? '';
+        const message = encodeURIComponent(
+            'Hello Baba Restaurant, I would like to get in touch.',
+        );
+
+        return `https://wa.me/${phone}?text=${message}`;
+    }, []);
+    const qrCodeSrc = useMemo(
+        () =>
+            `https://api.qrserver.com/v1/create-qr-code/?size=96x96&margin=0&data=${encodeURIComponent(
+                whatsappQrTarget,
+            )}`,
+        [whatsappQrTarget],
+    );
     const orderTypeLabel = order?.order_type
         ? t(
               `orders.orderType.${order.order_type}`,
@@ -254,8 +265,11 @@ export function ReceiptPreviewDialog({
                         th, td { font-size: 11px; padding: 3px 0; }
                         .totals p { display: flex; justify-content: space-between; margin: 3px 0; }
                         img { width: 34px; height: 34px; object-fit: contain; }
+                        .footer-wrap { display:grid; grid-template-columns:1fr 64px; gap:10px; align-items:start; }
                         .footer-row { display:flex; gap:6px; align-items:flex-start; margin:4px 0; }
                         .footer-icon { width:14px; min-width:14px; height:14px; display:flex; align-items:center; justify-content:center; }
+                        .footer-qr { text-align:center; }
+                        .footer-qr img { width:56px; height:56px; object-fit:contain; display:block; margin:0 auto 4px; }
                     </style>
                 </head>
                 <body>
@@ -296,12 +310,14 @@ export function ReceiptPreviewDialog({
                             <div class="muted">${escapeHtml(RECEIPT_FOOTER_NOTE.message)}</div>
                         </div>
                         <hr />
-                        <div class="muted" style="font-size:10px;">
-                            <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
-                            <div class="footer-row"><span class="footer-icon">${printIcons.phone}</span><span>$
-                            <div class="footer-row"><span class="footer-icon">${printIcons.whatsapp}</span><span>${escapeHtml(RESTAURANT_CONTACT.whatsapp.join(' - '))}</span></div>
-                            <div class="footer-row"><span class="footer-icon">${printIcons.mail}</span><span>${escapeHtml(RESTAURANT_CONTACT.emails.join(' - '))}</span></div>
-                            <div class="footer-row"><span class="footer-icon">${printIcons.globe}</span><span>${escapeHtml(RESTAURANT_CONTACT.website)}</span></div>
+                        <div class="footer-wrap muted" style="font-size:10px;">
+                            <div>
+                                <div class="footer-row"><span class="footer-icon">${printIcons.mapPin}</span><span>${escapeHtml(RESTAURANT_CONTACT.address)}</span></div>
+                            </div>
+                            <div class="footer-qr">
+                                <img src="${qrCodeSrc}" alt="QR Code" />
+                                <div style="font-size:9px;color:${BRAND_COLORS.dark};opacity:0.75;">${escapeHtml(RECEIPT_QR_LABEL)}</div>
+                            </div>
                         </div>
                     </div>
                     <script>
@@ -679,35 +695,25 @@ export function ReceiptPreviewDialog({
                                         </p>
                                     </div>
                                     <div className="my-2 border-t border-dashed" />
-                                    <div className="mt-2 space-y-1 text-[10px] text-neutral-600">
-                                        <p className="flex items-start gap-2">
-                                            <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>
-                                                {RESTAURANT_CONTACT.address}
-                                            </span>
-                                        </p>
-                                        <p className="flex items-center gap-2">
-                                            <IconBrandWhatsapp className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>
-                                                {RESTAURANT_CONTACT.whatsapp.join(
-                                                    ' - ',
-                                                )}
-                                            </span>
-                                        </p>
-                                        <p className="flex items-center gap-2">
-                                            <IconMail className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>
-                                                {RESTAURANT_CONTACT.emails.join(
-                                                    ' - ',
-                                                )}
-                                            </span>
-                                        </p>
-                                        <p className="flex items-center gap-2">
-                                            <IconWorldWww className="h-3 w-3 shrink-0 text-[#102F33]" />
-                                            <span>
-                                                {RESTAURANT_CONTACT.website}
-                                            </span>
-                                        </p>
+                                    <div className="mt-2 grid grid-cols-[1fr_68px] gap-3 text-[10px] text-neutral-600">
+                                        <div className="flex items-start space-y-1 pt-1">
+                                            <p className="flex items-start gap-2">
+                                                <IconMapPin className="mt-0.5 h-3 w-3 shrink-0 text-[#102F33]" />
+                                                <span className="text-[10px]">
+                                                    {RESTAURANT_CONTACT.address}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div className="text-center">
+                                            <img
+                                                src={qrCodeSrc}
+                                                alt="QR Code"
+                                                className="mx-auto h-14 w-14 object-contain"
+                                            />
+                                            <p className="mt-1 text-[9px] text-neutral-500">
+                                                {RECEIPT_QR_LABEL}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </ScrollArea>
