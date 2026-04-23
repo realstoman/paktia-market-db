@@ -13,7 +13,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { KitchenDashboard } from '@/pages/operations/kitchen-dashboard';
 import {
     Select,
     SelectContent,
@@ -24,9 +23,12 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
+import { KitchenDashboard } from '@/pages/operations/kitchen-dashboard';
 import {
     BranchTable,
     BreadcrumbItem,
+    DiscountCard,
+    Employee,
     Order,
     Product,
     SharedData,
@@ -53,9 +55,15 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-type OperationMode = 'cashier' | 'server' | 'order-taker' | 'kitchen' | 'general';
+type OperationMode =
+    | 'cashier'
+    | 'server'
+    | 'order-taker'
+    | 'kitchen'
+    | 'general';
 type Channel = 'dine_in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'credit_card' | 'bank_transfer' | 'other';
+type KitchenBulkAction = 'start' | 'ready' | 'delivered';
 
 interface CategoryOption {
     id: number;
@@ -76,6 +84,8 @@ interface OperationsPageProps {
     mode: OperationMode;
     branchId: number | null;
     products?: Product[];
+    discountCards?: DiscountCard[];
+    sponsorEmployees?: Employee[];
     categories?: CategoryOption[];
     tables?: TableCard[];
     openOrders?: Order[];
@@ -191,6 +201,8 @@ export default function OperationsPage({
     mode,
     branchId,
     products = [],
+    discountCards = [],
+    sponsorEmployees = [],
     categories = [],
     tables = [],
     openOrders = [],
@@ -320,7 +332,13 @@ export default function OperationsPage({
 
         const grouped = new Map<
             string,
-            { label: string; ready: number; total: number; status: string }
+            {
+                label: string;
+                ready: number;
+                total: number;
+                status: string;
+                itemIds: number[];
+            }
         >();
 
         (selectedOrder.items ?? []).forEach((item) => {
@@ -329,18 +347,18 @@ export default function OperationsPage({
             }
 
             const label =
-                item.kitchen?.name ??
-                item.product?.kitchen?.name ??
-                'Kitchen';
+                item.kitchen?.name ?? item.product?.kitchen?.name ?? 'Kitchen';
             const status = item.prep_status ?? 'pending';
             const current = grouped.get(label) ?? {
                 label,
                 ready: 0,
                 total: 0,
                 status: 'pending',
+                itemIds: [],
             };
 
             current.total += 1;
+            current.itemIds.push(Number(item.id));
 
             if (status === 'ready' || status === 'delivered') {
                 current.ready += 1;
@@ -369,8 +387,12 @@ export default function OperationsPage({
     const orderedTables = useMemo(
         () =>
             [...tables].sort((a, b) =>
-                naturalSortKey(a.table_number).localeCompare(
-                    naturalSortKey(b.table_number),
+                naturalSortKey(
+                    a.table_number as string | number | null | undefined,
+                ).localeCompare(
+                    naturalSortKey(
+                        b.table_number as string | number | null | undefined,
+                    ),
                 ),
             ),
         [tables],
@@ -462,9 +484,13 @@ export default function OperationsPage({
         }
 
         const interval = window.setInterval(() => {
+            if (document.visibilityState === 'hidden') {
+                return;
+            }
+
             router.reload({
-                preserveScroll: true,
-                preserveState: true,
+                // preserveScroll: true,
+                // preserveState: true,
                 only: [
                     'mode',
                     'branchId',
@@ -475,10 +501,51 @@ export default function OperationsPage({
                     'summary',
                 ],
             });
-        }, 10000);
+        }, 4000);
 
         return () => window.clearInterval(interval);
     }, [isKitchenMode]);
+
+    const handleKitchenProgressAction = (
+        itemIds: number[],
+        action: KitchenBulkAction,
+    ) => {
+        if (itemIds.length === 0 || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/kitchen/order-items/bulk/${action}`,
+            { item_ids: itemIds },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    const messages: Record<KitchenBulkAction, string> = {
+                        start: t(
+                            'orders.kitchenProgress.messages.started',
+                            'Kitchen items started.',
+                        ),
+                        ready: t(
+                            'orders.kitchenProgress.messages.ready',
+                            'Kitchen items marked ready.',
+                        ),
+                        delivered: t(
+                            'orders.kitchenProgress.messages.delivered',
+                            'Kitchen items marked delivered.',
+                        ),
+                    };
+
+                    toast.success(messages[action]);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            },
+        );
+    };
 
     const resetComposer = (channel: Channel) => {
         setSelectedChannel(channel);
@@ -492,7 +559,7 @@ export default function OperationsPage({
 
     const handleTableSelect = (table: TableCard) => {
         setSelectedChannel('dine_in');
-        setSelectedTableId(table.id);
+        setSelectedTableId(table.id as number);
 
         if (table.active_order) {
             setSelectedOrderId(table.active_order.id);
@@ -573,6 +640,8 @@ export default function OperationsPage({
     const canTakePayment = can('payments.create') && mode === 'cashier';
     const canManageStatus = can('orders.update');
     const canManageAnyOrder = isSuperAdmin || can('payments.create');
+    const canManageKitchenProgress =
+        isSuperAdmin || mode === 'cashier' || mode === 'order-taker';
     const canManageSelectedOrder =
         !selectedOrder ||
         canManageAnyOrder ||
@@ -596,10 +665,7 @@ export default function OperationsPage({
             return;
         }
 
-        if (
-            selectedChannel === 'delivery' &&
-            !deliveryAddress.trim()
-        ) {
+        if (selectedChannel === 'delivery' && !deliveryAddress.trim()) {
             toast.error(
                 'Delivery orders need an address before the ticket can be saved.',
             );
@@ -756,12 +822,20 @@ export default function OperationsPage({
 
     const handleCompletePayment = (
         order: Order,
-        payload: { discountAmount: number; paymentMethod: string },
+        payload: {
+            discountAmount: number;
+            paymentMethod: string;
+            discountCardId?: number | null;
+            coveredByType?: 'customer' | 'employee' | 'house';
+            coveredByEmployeeId?: number | null;
+            coveredByNote?: string | null;
+        },
     ) => {
         const subtotal = Number(
             order.sub_total_amount ?? order.total_amount ?? 0,
         );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
+        const isHouseComp = payload.coveredByType === 'house';
 
         setIsCompletingPayment(true);
 
@@ -771,6 +845,10 @@ export default function OperationsPage({
                 status: 'completed',
                 payment_method: payload.paymentMethod,
                 discount_amount: payload.discountAmount,
+                discount_card_id: payload.discountCardId ?? null,
+                covered_by_type: payload.coveredByType ?? 'customer',
+                covered_by_employee_id: payload.coveredByEmployeeId ?? null,
+                covered_by_note: payload.coveredByNote ?? null,
             },
             {
                 preserveScroll: true,
@@ -782,17 +860,36 @@ export default function OperationsPage({
                     setSelectedReceiptOrder({
                         ...order,
                         status: 'completed',
+                        discount_card_id:
+                            payload.discountCardId ?? order.discount_card_id,
                         discount_amount: payload.discountAmount,
+                        covered_by_type:
+                            payload.coveredByType ?? order.covered_by_type,
+                        covered_by_employee_id:
+                            payload.coveredByEmployeeId ??
+                            order.covered_by_employee_id,
+                        covered_by_note:
+                            payload.coveredByNote ?? order.covered_by_note,
+                        coveredByEmployee:
+                            sponsorEmployees.find(
+                                (employee) =>
+                                    employee.id === payload.coveredByEmployeeId,
+                            ) ?? order.coveredByEmployee,
                         total_amount: finalTotal,
-                        paid_amount: finalTotal,
-                        payments: [
-                            {
-                                ...(order.payments?.[0] ?? {}),
-                                method: payload.paymentMethod,
-                                amount: finalTotal,
-                                status: 'paid',
-                            },
-                        ],
+                        paid_amount: isHouseComp ? 0 : finalTotal,
+                        payments: isHouseComp
+                            ? []
+                            : [
+                                  {
+                                      ...(order.payments?.[0] ?? {}),
+                                      method: payload.paymentMethod,
+                                      amount: finalTotal,
+                                      status:
+                                          payload.coveredByType === 'employee'
+                                              ? 'covered_by_employee'
+                                              : 'paid',
+                                  },
+                              ],
                     });
                 },
                 onError: (errors) => {
@@ -854,7 +951,11 @@ export default function OperationsPage({
                                             Operations dashboard for live orders
                                         </h1>
                                         <p className="max-w-3xl text-sm leading-6 text-[#6a5848]">
-                                            Tables, takeaway, delivery, and payment handling stay in one workspace. The visible channels and actions adapt automatically to the signed-in role.
+                                            Tables, takeaway, delivery, and
+                                            payment handling stay in one
+                                            workspace. The visible channels and
+                                            actions adapt automatically to the
+                                            signed-in role.
                                         </p>
                                     </div>
                                 </div>
@@ -905,723 +1006,896 @@ export default function OperationsPage({
                         </section>
                     )}
 
-                    <div
-                        ref={workspaceRef}
-                        className={workspaceGridClass}
-                    >
-                    <Card
-                        className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'md:order-1' : ''}`}
-                    >
-                        <CardHeader className="pb-4">
-                            <div className="flex flex-wrap gap-2">
-                                {channels.map((channel) => {
-                                    const meta = CHANNEL_META[channel];
-                                    const Icon = meta.icon;
-
-                                    return (
-                                        <Button
-                                            key={channel}
-                                            variant={
-                                                selectedChannel === channel
-                                                    ? 'default'
-                                                    : 'outline'
-                                            }
-                                            className="gap-2 rounded-full"
-                                            onClick={() =>
-                                                resetComposer(channel)
-                                            }
-                                        >
-                                            <Icon className="h-4 w-4" />
-                                            {meta.label}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
-                            <div>
-                                <CardTitle className="text-xl">
-                                    {CHANNEL_META[selectedChannel].label}
-                                </CardTitle>
-                                <CardDescription>
-                                    {isOrderTakerMode &&
-                                    selectedChannel === 'dine_in'
-                                        ? 'Tap a table to open the ticket, then add items from the menu.'
-                                        : CHANNEL_META[selectedChannel]
-                                              .description}
-                                </CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="min-h-0 flex-1 p-0">
-                            {selectedChannel === 'dine_in' ? (
-                                <ScrollArea className="h-full px-4 pb-0">
-                                    <div
-                                        className="grid grid-cols-2 gap-3"
-                                    >
-                                        {orderedTables.map((table) => (
-                                            <button
-                                                key={table.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleTableSelect(table)
-                                                }
-                                                className={`rounded-[1.4rem] border text-left transition ${isOrderTakerMode ? 'min-h-[180px] p-5' : 'p-4'} ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className={`inline-flex items-center justify-center rounded-full bg-white font-semibold text-[#2f1d0f] shadow-sm ${isOrderTakerMode ? 'h-14 w-14 text-xl' : 'h-12 w-12 text-lg'}`}>
-                                                        T-{table.table_number}
-                                                    </div>
-                                                    <Badge
-                                                        className={`border ${getStatusTone(table.status)}`}
-                                                    >
-                                                        {table.status.replace(
-                                                            '_',
-                                                            ' ',
-                                                        )}
-                                                    </Badge>
-                                                </div>
-                                                {table.active_order ? (
-                                                    <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#fff1e7] px-2.5 py-1 text-[11px] font-medium text-[#b5542a]">
-                                                        <Sparkles className="h-3.5 w-3.5" />
-                                                        Serving
-                                                    </div>
-                                                ) : null}
-                                                <div className="mt-4 space-y-1.5">
-                                                    <p className={`${isOrderTakerMode ? 'text-base' : 'text-sm'} font-medium text-[#2f1d0f]`}>
-                                                        {table.active_order
-                                                            ? `Order #${table.active_order.id}`
-                                                            : 'Open a new table ticket'}
-                                                    </p>
-                                                    <p className={`${isOrderTakerMode ? 'text-sm' : 'text-xs'} text-muted-foreground`}>
-                                                        {table.elapsed_label
-                                                            ? `${table.elapsed_label} active`
-                                                            : 'No active order yet'}
-                                                    </p>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            ) : (
-                                <ScrollArea className="h-full px-4 pb-4">
-                                    <div className="space-y-3">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start gap-2 rounded-2xl border-dashed"
-                                            onClick={() =>
-                                                resetComposer(selectedChannel)
-                                            }
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            New{' '}
-                                            {
-                                                CHANNEL_META[selectedChannel]
-                                                    .label
-                                            }{' '}
-                                            order
-                                        </Button>
-
-                                        {filteredOrders.map((order) => (
-                                            <button
-                                                key={order.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleOrderSelect(order)
-                                                }
-                                                className={`w-full rounded-[1.2rem] border p-4 text-left transition ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-semibold text-[#2f1d0f]">
-                                                            Order #{order.id}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {order.customer_name ||
-                                                                'Walk-in customer'}
-                                                        </p>
-                                                    </div>
-                                                    <Badge
-                                                        className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}
-                                                    >
-                                                        {String(
-                                                            order.status ??
-                                                                'pending',
-                                                        ).replace('_', ' ')}
-                                                    </Badge>
-                                                </div>
-                                                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                                                    <span>
-                                                        {order.items?.length ??
-                                                            0}{' '}
-                                                        items
-                                                    </span>
-                                                    <span>
-                                                        {formatCurrency(
-                                                            Number(
-                                                                order.total_amount ??
-                                                                    0,
-                                                            ),
-                                                        )}{' '}
-                                                        ؋
-                                                    </span>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card
-                        className={`${menuCardClass} flex flex-col border-neutral-200/70 shadow-none`}
-                    >
-                        <CardHeader className="space-y-4">
-                            <div className="relative">
-                                <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    value={search}
-                                    onChange={(event) =>
-                                        setSearch(event.target.value)
-                                    }
-                                    placeholder="Search products, categories, or menu items"
-                                    className="h-12 rounded-2xl pl-9"
-                                />
-                            </div>
-                            <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div ref={workspaceRef} className={workspaceGridClass}>
+                        <Card
+                            className={`${tablesCardClass} flex flex-col border-neutral-200/70 shadow-none ${isOrderTakerMode ? 'md:order-1' : ''}`}
+                        >
+                            <CardHeader className="pb-4">
                                 <div className="flex flex-wrap gap-2">
-                                    <Button
-                                        variant={
-                                            selectedCategory === 'all'
-                                                ? 'default'
-                                                : 'outline'
+                                    {channels.map((channel) => {
+                                        const meta = CHANNEL_META[channel];
+                                        const Icon = meta.icon;
+
+                                        return (
+                                            <Button
+                                                key={channel}
+                                                variant={
+                                                    selectedChannel === channel
+                                                        ? 'default'
+                                                        : 'outline'
+                                                }
+                                                className="gap-2 rounded-full"
+                                                onClick={() =>
+                                                    resetComposer(channel)
+                                                }
+                                            >
+                                                <Icon className="h-4 w-4" />
+                                                {meta.label}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl">
+                                        {CHANNEL_META[selectedChannel].label}
+                                    </CardTitle>
+                                    <CardDescription>
+                                        {isOrderTakerMode &&
+                                        selectedChannel === 'dine_in'
+                                            ? 'Tap a table to open the ticket, then add items from the menu.'
+                                            : CHANNEL_META[selectedChannel]
+                                                  .description}
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="min-h-0 flex-1 p-0">
+                                {selectedChannel === 'dine_in' ? (
+                                    <ScrollArea className="h-full px-4 pb-0">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {orderedTables.map((table) => (
+                                                <button
+                                                    key={table.id as number}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleTableSelect(table)
+                                                    }
+                                                    className={`rounded-[1.4rem] border text-left transition ${isOrderTakerMode ? 'min-h-[180px] p-5' : 'p-4'} ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div
+                                                            className={`inline-flex items-center justify-center rounded-full bg-white font-semibold text-[#2f1d0f] shadow-sm ${isOrderTakerMode ? 'h-14 w-14 text-xl' : 'h-12 w-12 text-lg'}`}
+                                                        >
+                                                            T-
+                                                            {String(
+                                                                table.table_number,
+                                                            )}
+                                                        </div>
+                                                        <Badge
+                                                            className={`border ${getStatusTone(table.status)}`}
+                                                        >
+                                                            {table.status.replace(
+                                                                '_',
+                                                                ' ',
+                                                            )}
+                                                        </Badge>
+                                                    </div>
+                                                    {table.active_order ? (
+                                                        <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#fff1e7] px-2.5 py-1 text-[11px] font-medium text-[#b5542a]">
+                                                            <Sparkles className="h-3.5 w-3.5" />
+                                                            Serving
+                                                        </div>
+                                                    ) : null}
+                                                    <div className="mt-4 space-y-1.5">
+                                                        <p
+                                                            className={`${isOrderTakerMode ? 'text-base' : 'text-sm'} font-medium text-[#2f1d0f]`}
+                                                        >
+                                                            {table.active_order
+                                                                ? `Order #${table.active_order.id}`
+                                                                : 'Open a new table ticket'}
+                                                        </p>
+                                                        <p
+                                                            className={`${isOrderTakerMode ? 'text-sm' : 'text-xs'} text-muted-foreground`}
+                                                        >
+                                                            {table.elapsed_label
+                                                                ? `${table.elapsed_label} active`
+                                                                : 'No active order yet'}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                ) : (
+                                    <ScrollArea className="h-full px-4 pb-4">
+                                        <div className="space-y-3">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start gap-2 rounded-2xl border-dashed"
+                                                onClick={() =>
+                                                    resetComposer(
+                                                        selectedChannel,
+                                                    )
+                                                }
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                New{' '}
+                                                {
+                                                    CHANNEL_META[
+                                                        selectedChannel
+                                                    ].label
+                                                }{' '}
+                                                order
+                                            </Button>
+
+                                            {filteredOrders.map((order) => (
+                                                <button
+                                                    key={order.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleOrderSelect(order)
+                                                    }
+                                                    className={`w-full rounded-[1.2rem] border p-4 text-left transition ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-[#2f1d0f]">
+                                                                Order #
+                                                                {order.id}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {order.customer_name ||
+                                                                    'Walk-in customer'}
+                                                            </p>
+                                                        </div>
+                                                        <Badge
+                                                            className={`border ${getStatusTone(String(order.status ?? 'pending'))}`}
+                                                        >
+                                                            {String(
+                                                                order.status ??
+                                                                    'pending',
+                                                            ).replace('_', ' ')}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                                                        <span>
+                                                            {order.items
+                                                                ?.length ??
+                                                                0}{' '}
+                                                            items
+                                                        </span>
+                                                        <span>
+                                                            {formatCurrency(
+                                                                Number(
+                                                                    order.total_amount ??
+                                                                        0,
+                                                                ),
+                                                            )}{' '}
+                                                            ؋
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card
+                            className={`${menuCardClass} flex flex-col border-neutral-200/70 shadow-none`}
+                        >
+                            <CardHeader className="space-y-4">
+                                <div className="relative">
+                                    <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        value={search}
+                                        onChange={(event) =>
+                                            setSearch(event.target.value)
                                         }
-                                        className="rounded-full"
-                                        onClick={() => setSelectedCategory('all')}
-                                    >
-                                        All Menu
-                                    </Button>
-                                    {categories.map((category) => (
+                                        placeholder="Search products, categories, or menu items"
+                                        className="h-12 rounded-2xl pl-9"
+                                    />
+                                </div>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div className="flex flex-wrap gap-2">
                                         <Button
-                                            key={category.id}
                                             variant={
-                                                selectedCategory ===
-                                                String(category.id)
+                                                selectedCategory === 'all'
                                                     ? 'default'
                                                     : 'outline'
                                             }
                                             className="rounded-full"
                                             onClick={() =>
-                                                setSelectedCategory(
-                                                    String(category.id),
-                                                )
+                                                setSelectedCategory('all')
                                             }
                                         >
-                                            {category.name}
+                                            All Menu
                                         </Button>
-                                    ))}
-                                </div>
-                                <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
-                                    {products.length} products
-                                </p>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="min-h-0 flex-1 p-0">
-                            <ScrollArea className="h-full px-4 pb-0">
-                                <div
-                                    className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
-                                >
-                                    {filteredProducts.map((product) => {
-                                        const line = cartLines.find(
-                                            (entry) =>
-                                                entry.productId === product.id,
-                                        );
-
-                                        return (
-                                            <div
-                                                key={product.id}
-                                                className="h-[116px] overflow-hidden rounded-[1.2rem] border border-neutral-200 bg-white sm:min-h-[168px] sm:rounded-[1.4rem] sm:h-[170px]"
+                                        {categories.map((category) => (
+                                            <Button
+                                                key={category.id}
+                                                variant={
+                                                    selectedCategory ===
+                                                    String(category.id)
+                                                        ? 'default'
+                                                        : 'outline'
+                                                }
+                                                className="rounded-full"
+                                                onClick={() =>
+                                                    setSelectedCategory(
+                                                        String(category.id),
+                                                    )
+                                                }
                                             >
-                                                <div className="grid h-full grid-cols-[92px_minmax(0,1fr)] sm:grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
-                                                    <div className="h-full overflow-hidden bg-[#f3eee7]">
-                                                        {product.images?.[0]
-                                                            ?.url ? (
-                                                            <img
-                                                                src={
-                                                                    product
-                                                                        .images[0]
-                                                                        .url
-                                                                }
-                                                                alt={localizedProductName(
-                                                                    product,
-                                                                )}
-                                                                className="h-full w-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex h-full w-full items-center justify-center text-[#8b7560]">
-                                                                <CookingPot className="h-6 w-6" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
-                                                        <div className="min-w-0">
-                                                            <p className="line-clamp-2 text-sm leading-5 font-semibold text-[#2f1d0f] sm:text-base sm:leading-6">
-                                                                {localizedProductName(
-                                                                    product,
-                                                                )}
-                                                            </p>
+                                                {category.name}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
+                                        {products.length} products
+                                    </p>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="min-h-0 flex-1 p-0">
+                                <ScrollArea className="h-full px-4 pb-0">
+                                    <div
+                                        className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
+                                    >
+                                        {filteredProducts.map((product) => {
+                                            const line = cartLines.find(
+                                                (entry) =>
+                                                    entry.productId ===
+                                                    product.id,
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={product.id}
+                                                    className="h-[116px] overflow-hidden rounded-[1.2rem] border border-neutral-200 bg-white sm:h-[170px] sm:min-h-[168px] sm:rounded-[1.4rem]"
+                                                >
+                                                    <div className="grid h-full grid-cols-[92px_minmax(0,1fr)] sm:grid-cols-[minmax(108px,1.1fr)_minmax(0,1.6fr)]">
+                                                        <div className="h-full overflow-hidden bg-[#f3eee7]">
+                                                            {product.images?.[0]
+                                                                ?.url ? (
+                                                                <img
+                                                                    src={
+                                                                        product
+                                                                            .images[0]
+                                                                            .url
+                                                                    }
+                                                                    alt={localizedProductName(
+                                                                        product,
+                                                                    )}
+                                                                    className="h-full w-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex h-full w-full items-center justify-center text-[#8b7560]">
+                                                                    <CookingPot className="h-6 w-6" />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <div className="mt-2 space-y-2 sm:mt-4 sm:space-y-3">
-                                                            <p className="text-xl leading-none font-semibold text-[#2f1d0f] sm:text-2xl">
-                                                                {formatCurrency(
-                                                                    Number(
-                                                                        product.base_price ??
-                                                                            0,
-                                                                    ),
-                                                                )}
-                                                                <span className="ml-1 text-xs font-medium text-[#8b7560] sm:text-sm">
-                                                                    ؋
-                                                                </span>
-                                                            </p>
-                                                            <div className="flex items-center justify-between gap-3">
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
-                                                                    disabled={!canEditComposer}
-                                                                    onClick={() =>
-                                                                        adjustQuantity(
-                                                                            product,
-                                                                            -1,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Minus className="h-4 w-4" />
-                                                                </Button>
-                                                                <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
-                                                                    {line?.quantity ??
-                                                                        0}
-                                                                </span>
-                                                                <Button
-                                                                    size="icon"
-                                                                    className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
-                                                                    disabled={!canEditComposer}
-                                                                    onClick={() =>
-                                                                        adjustQuantity(
-                                                                            product,
-                                                                            1,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Plus className="h-4 w-4" />
-                                                                </Button>
+                                                        <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
+                                                            <div className="min-w-0">
+                                                                <p className="line-clamp-2 text-sm leading-5 font-semibold text-[#2f1d0f] sm:text-base sm:leading-6">
+                                                                    {localizedProductName(
+                                                                        product,
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                            <div className="mt-2 space-y-2 sm:mt-4 sm:space-y-3">
+                                                                <p className="text-xl leading-none font-semibold text-[#2f1d0f] sm:text-2xl">
+                                                                    {formatCurrency(
+                                                                        Number(
+                                                                            product.base_price ??
+                                                                                0,
+                                                                        ),
+                                                                    )}
+                                                                    <span className="ml-1 text-xs font-medium text-[#8b7560] sm:text-sm">
+                                                                        ؋
+                                                                    </span>
+                                                                </p>
+                                                                <div className="flex items-center justify-between gap-3">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                        disabled={
+                                                                            !canEditComposer
+                                                                        }
+                                                                        onClick={() =>
+                                                                            adjustQuantity(
+                                                                                product,
+                                                                                -1,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Minus className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
+                                                                        {line?.quantity ??
+                                                                            0}
+                                                                    </span>
+                                                                    <Button
+                                                                        size="icon"
+                                                                        className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                        disabled={
+                                                                            !canEditComposer
+                                                                        }
+                                                                        onClick={() =>
+                                                                            adjustQuantity(
+                                                                                product,
+                                                                                1,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Plus className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            );
+                                        })}
+                                        {filteredProducts.length === 0 ? (
+                                            <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[1.4rem] border border-dashed border-neutral-300 bg-[#fcfbf8] p-6 text-center text-muted-foreground">
+                                                <CookingPot className="h-6 w-6" />
+                                                <p className="text-sm">
+                                                    No products matched this
+                                                    branch, category, or search
+                                                    yet.
+                                                </p>
                                             </div>
-                                        );
-                                    })}
-                                    {filteredProducts.length === 0 ? (
-                                        <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[1.4rem] border border-dashed border-neutral-300 bg-[#fcfbf8] p-6 text-center text-muted-foreground">
-                                            <CookingPot className="h-6 w-6" />
-                                            <p className="text-sm">
-                                                No products matched this branch,
-                                                category, or search yet.
-                                            </p>
-                                        </div>
+                                        ) : null}
+                                    </div>
+                                </ScrollArea>
+                            </CardContent>
+                        </Card>
+
+                        <Card
+                            className={`${invoiceCardClass} flex flex-col overflow-hidden border-neutral-200/70 shadow-none`}
+                        >
+                            <CardHeader className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-xl">
+                                            {isOrderTakerMode
+                                                ? 'Open Ticket'
+                                                : 'Invoice'}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {selectedOrder
+                                                ? `Editing order #${selectedOrder.id}`
+                                                : isOrderTakerMode
+                                                  ? 'Select a table and build the ticket.'
+                                                  : 'Build a new order ticket'}
+                                        </CardDescription>
+                                    </div>
+                                    {selectedChannel === 'dine_in' &&
+                                    selectedTable ? (
+                                        <Badge
+                                            variant="outline"
+                                            className="gap-1 rounded-full"
+                                        >
+                                            <LayoutGrid className="h-3.5 w-3.5" />
+                                            Table{' '}
+                                            {String(selectedTable.table_number)}
+                                        </Badge>
                                     ) : null}
                                 </div>
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
 
-                    <Card
-                        className={`${invoiceCardClass} flex flex-col overflow-hidden border-neutral-200/70 shadow-none`}
-                    >
-                        <CardHeader className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="text-xl">
-                                        {isOrderTakerMode
-                                            ? 'Open Ticket'
-                                            : 'Invoice'}
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {selectedOrder
-                                            ? `Editing order #${selectedOrder.id}`
-                                            : isOrderTakerMode
-                                              ? 'Select a table and build the ticket.'
-                                              : 'Build a new order ticket'}
-                                    </CardDescription>
-                                </div>
-                                {selectedChannel === 'dine_in' &&
-                                selectedTable ? (
-                                    <Badge
-                                        variant="outline"
-                                        className="gap-1 rounded-full"
-                                    >
-                                        <LayoutGrid className="h-3.5 w-3.5" />
-                                        Table {selectedTable.table_number}
-                                    </Badge>
-                                ) : null}
-                            </div>
-
-                            {selectedChannel !== 'dine_in' ? (
-                                <div className="grid gap-3">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="customer-name">
-                                            Customer
-                                        </Label>
-                                        <Input
-                                            id="customer-name"
-                                            value={customerName}
-                                            onChange={(event) =>
-                                                setCustomerName(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="Customer name (optional)"
-                                            disabled={!canEditComposer}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="customer-phone">
-                                            Phone
-                                        </Label>
-                                        <Input
-                                            id="customer-phone"
-                                            value={customerPhone}
-                                            onChange={(event) =>
-                                                setCustomerPhone(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="Phone number (optional)"
-                                            disabled={!canEditComposer}
-                                        />
-                                    </div>
-                                    {selectedChannel === 'delivery' ? (
+                                {selectedChannel !== 'dine_in' ? (
+                                    <div className="grid gap-3">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="delivery-address">
-                                                Address
+                                            <Label htmlFor="customer-name">
+                                                Customer
                                             </Label>
                                             <Input
-                                                id="delivery-address"
-                                                value={deliveryAddress}
+                                                id="customer-name"
+                                                value={customerName}
                                                 onChange={(event) =>
-                                                    setDeliveryAddress(
+                                                    setCustomerName(
                                                         event.target.value,
                                                     )
                                                 }
-                                                placeholder="Delivery address"
-                                                required
+                                                placeholder="Customer name (optional)"
                                                 disabled={!canEditComposer}
                                             />
                                         </div>
-                                    ) : null}
-                                </div>
-                            ) : null}
-                        </CardHeader>
-                        <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-8 md:pb-12">
-                            <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
-                                <div
-                                    className="max-h-[260px] space-y-3 overflow-y-auto pr-1"
-                                >
-                                    {cartLines.map((line) => (
-                                        <div
-                                            key={`${line.productId}-${line.productSizeId ?? 'base'}`}
-                                            className="flex items-center gap-3 rounded-2xl bg-[#f8f5ef] p-3"
-                                        >
-                                            <div className="h-14 w-14 overflow-hidden rounded-xl bg-white">
-                                                {line.imageUrl ? (
-                                                    <img
-                                                        src={line.imageUrl}
-                                                        alt={line.name}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-[#8b7560]">
-                                                        <CookingPot className="h-5 w-5" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-semibold text-[#2f1d0f]">
-                                                    {line.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {line.quantity} x{' '}
-                                                    {formatCurrency(line.price)}{' '}
-                                                    ؋
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-[#2f1d0f]">
-                                                    {formatCurrency(
-                                                        line.quantity *
-                                                            line.price,
-                                                    )}
-                                                </p>
-                                            </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="customer-phone">
+                                                Phone
+                                            </Label>
+                                            <Input
+                                                id="customer-phone"
+                                                value={customerPhone}
+                                                onChange={(event) =>
+                                                    setCustomerPhone(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder="Phone number (optional)"
+                                                disabled={!canEditComposer}
+                                            />
                                         </div>
-                                    ))}
-
-                                    {cartLines.length === 0 ? (
-                                        <div
-                                            className={`flex flex-col items-center justify-center gap-2 text-center text-muted-foreground ${isOrderTakerMode ? 'min-h-[140px]' : 'min-h-[220px]'}`}
-                                        >
-                                            <Armchair className="h-6 w-6" />
-                                            <p className="text-sm">
-                                                {isOrderTakerMode
-                                                    ? 'Choose a table, then tap menu items to start the order.'
-                                                    : 'Select a table or queue item, then add products from the menu.'}
-                                            </p>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </div>
-
-                            {selectedOrderKitchenProgress.length > 0 ? (
-                                <div className="rounded-[1.4rem] border border-neutral-200 bg-white p-4">
-                                    <p className="mb-3 text-sm font-semibold text-[#2f1d0f]">
-                                        Kitchen Progress
-                                    </p>
-                                    <div className="max-h-[196px] space-y-2 overflow-y-auto pr-1">
-                                        {selectedOrderKitchenProgress.map((entry) => (
+                                        {selectedChannel === 'delivery' ? (
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="delivery-address">
+                                                    Address
+                                                </Label>
+                                                <Input
+                                                    id="delivery-address"
+                                                    value={deliveryAddress}
+                                                    onChange={(event) =>
+                                                        setDeliveryAddress(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Delivery address"
+                                                    required
+                                                    disabled={!canEditComposer}
+                                                />
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                ) : null}
+                            </CardHeader>
+                            <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-8 md:pb-12">
+                                <div className="min-h-[160px] shrink-0 rounded-2xl border border-neutral-200 px-3 py-3">
+                                    <div className="max-h-[260px] space-y-3 overflow-y-auto pr-1">
+                                        {cartLines.map((line) => (
                                             <div
-                                                key={entry.label}
-                                                className="flex items-center justify-between rounded-2xl bg-[#f8f5ef] px-3 py-2"
+                                                key={`${line.productId}-${line.productSizeId ?? 'base'}`}
+                                                className="flex items-center gap-3 rounded-2xl bg-[#f8f5ef] p-3"
                                             >
-                                                <div>
-                                                    <p className="text-sm font-medium text-[#2f1d0f]">
-                                                        {entry.label}
+                                                <div className="h-14 w-14 overflow-hidden rounded-xl bg-white">
+                                                    {line.imageUrl ? (
+                                                        <img
+                                                            src={line.imageUrl}
+                                                            alt={line.name}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full w-full items-center justify-center text-[#8b7560]">
+                                                            <CookingPot className="h-5 w-5" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-semibold text-[#2f1d0f]">
+                                                        {line.name}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {entry.ready}/{entry.total} items ready
+                                                        {line.quantity} x{' '}
+                                                        {formatCurrency(
+                                                            line.price,
+                                                        )}{' '}
+                                                        ؋
                                                     </p>
                                                 </div>
-                                                <Badge
-                                                    className={`border ${getStatusTone(entry.status)}`}
-                                                >
-                                                    {entry.status.replace('_', ' ')}
-                                                </Badge>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-semibold text-[#2f1d0f]">
+                                                        {formatCurrency(
+                                                            line.quantity *
+                                                                line.price,
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
                                         ))}
+
+                                        {cartLines.length === 0 ? (
+                                            <div
+                                                className={`flex flex-col items-center justify-center gap-2 text-center text-muted-foreground ${isOrderTakerMode ? 'min-h-[140px]' : 'min-h-[220px]'}`}
+                                            >
+                                                <Armchair className="h-6 w-6" />
+                                                <p className="text-sm">
+                                                    {isOrderTakerMode
+                                                        ? 'Choose a table, then tap menu items to start the order.'
+                                                        : 'Select a table or queue item, then add products from the menu.'}
+                                                </p>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
-                            ) : null}
 
-                            <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">
-                                            Items
-                                        </span>
-                                        <span>{totalQuantity}</span>
+                                {selectedOrderKitchenProgress.length > 0 ? (
+                                    <div className="rounded-[1.4rem] border border-neutral-200 bg-white p-4">
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <p className="text-sm font-semibold text-[#2f1d0f]">
+                                                Kitchen Progress
+                                            </p>
+                                            {canManageKitchenProgress ? (
+                                                <span className="text-xs text-muted-foreground">
+                                                    {t(
+                                                        'orders.kitchenProgress.supportNote',
+                                                        'You can help move kitchen items forward if the station is delayed.',
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        <div className="max-h-[196px] space-y-2 overflow-y-auto pr-1">
+                                            {selectedOrderKitchenProgress.map(
+                                                (entry) => {
+                                                    const itemsForKitchen = (
+                                                        selectedOrder?.items ??
+                                                        []
+                                                    ).filter((item) =>
+                                                        entry.itemIds.includes(
+                                                            Number(item.id),
+                                                        ),
+                                                    );
+                                                    const startableIds =
+                                                        itemsForKitchen
+                                                            .filter(
+                                                                (item) =>
+                                                                    (item.prep_status ??
+                                                                        'pending') ===
+                                                                    'pending',
+                                                            )
+                                                            .map((item) =>
+                                                                Number(item.id),
+                                                            );
+                                                    const readyIds =
+                                                        itemsForKitchen
+                                                            .filter((item) =>
+                                                                [
+                                                                    'pending',
+                                                                    'in_progress',
+                                                                ].includes(
+                                                                    item.prep_status ??
+                                                                        'pending',
+                                                                ),
+                                                            )
+                                                            .map((item) =>
+                                                                Number(item.id),
+                                                            );
+                                                    const deliveredIds =
+                                                        itemsForKitchen
+                                                            .filter(
+                                                                (item) =>
+                                                                    (item.prep_status ??
+                                                                        'pending') ===
+                                                                    'ready',
+                                                            )
+                                                            .map((item) =>
+                                                                Number(item.id),
+                                                            );
+
+                                                    return (
+                                                        <div
+                                                            key={entry.label}
+                                                            className="rounded-2xl bg-[#f8f5ef] px-3 py-3"
+                                                        >
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div>
+                                                                    <p className="text-sm font-medium text-[#2f1d0f]">
+                                                                        {
+                                                                            entry.label
+                                                                        }
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {
+                                                                            entry.ready
+                                                                        }
+                                                                        /
+                                                                        {
+                                                                            entry.total
+                                                                        }{' '}
+                                                                        items
+                                                                        ready
+                                                                    </p>
+                                                                </div>
+                                                                <Badge
+                                                                    className={`border ${getStatusTone(entry.status)}`}
+                                                                >
+                                                                    {entry.status.replace(
+                                                                        '_',
+                                                                        ' ',
+                                                                    )}
+                                                                </Badge>
+                                                            </div>
+                                                            {canManageKitchenProgress ? (
+                                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                                    {startableIds.length >
+                                                                    0 ? (
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            onClick={() =>
+                                                                                handleKitchenProgressAction(
+                                                                                    startableIds,
+                                                                                    'start',
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                isSubmitting
+                                                                            }
+                                                                        >
+                                                                            {t(
+                                                                                'orders.kitchenProgress.actions.start',
+                                                                                'Start',
+                                                                            )}
+                                                                        </Button>
+                                                                    ) : null}
+                                                                    {readyIds.length >
+                                                                    0 ? (
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                handleKitchenProgressAction(
+                                                                                    readyIds,
+                                                                                    'ready',
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                isSubmitting
+                                                                            }
+                                                                            variant={
+                                                                                'outline'
+                                                                            }
+                                                                        >
+                                                                            {t(
+                                                                                'orders.kitchenProgress.actions.ready',
+                                                                                'Mark Ready',
+                                                                            )}
+                                                                        </Button>
+                                                                    ) : null}
+                                                                    {deliveredIds.length >
+                                                                    0 ? (
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="secondary"
+                                                                            onClick={() =>
+                                                                                handleKitchenProgressAction(
+                                                                                    deliveredIds,
+                                                                                    'delivered',
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                isSubmitting
+                                                                            }
+                                                                        >
+                                                                            {t(
+                                                                                'orders.kitchenProgress.actions.delivered',
+                                                                                'Mark Delivered',
+                                                                            )}
+                                                                        </Button>
+                                                                    ) : null}
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">
-                                            Subtotal
-                                        </span>
-                                        <span>
-                                            {formatCurrency(subTotal)} ؋
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">
-                                            Tax
-                                        </span>
-                                        <span>{formatCurrency(tax)} ؋</span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t border-dashed pt-3 text-base font-semibold text-[#2f1d0f]">
-                                        <span>Total</span>
-                                        <span>{formatCurrency(total)} ؋</span>
+                                ) : null}
+
+                                <div className="rounded-[1.4rem] border border-neutral-200 bg-[#fcfbf8] p-4">
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">
+                                                Items
+                                            </span>
+                                            <span>{totalQuantity}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">
+                                                Subtotal
+                                            </span>
+                                            <span>
+                                                {formatCurrency(subTotal)} ؋
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">
+                                                Tax
+                                            </span>
+                                            <span>{formatCurrency(tax)} ؋</span>
+                                        </div>
+                                        <div className="flex items-center justify-between border-t border-dashed pt-3 text-base font-semibold text-[#2f1d0f]">
+                                            <span>Total</span>
+                                            <span>
+                                                {formatCurrency(total)} ؋
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {canTakePayment ? (
-                                <div className="space-y-2">
-                                    <Label>Payment Method</Label>
-                                    <Select
-                                        value={paymentMethod}
-                                        onValueChange={(value: PaymentMethod) =>
-                                            setPaymentMethod(value)
-                                        }
-                                    >
-                                        <SelectTrigger className="rounded-2xl">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {PAYMENT_METHODS.map((option) => (
-                                                <SelectItem
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            ) : null}
-
-                            <div
-                                className={`shrink-0 grid gap-2 ${isOrderTakerMode ? 'min-h-[120px]' : 'min-h-[146px]'}`}
-                            >
-                                <Button
-                                    className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
-                                    disabled={isSubmitting || !canEditComposer}
-                                    onClick={submitOrder}
-                                >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {selectedOrder
-                                        ? isOrderTakerMode
-                                            ? 'Update ticket'
-                                            : 'Update order'
-                                        : isOrderTakerMode
-                                          ? 'Save ticket'
-                                          : 'Save order'}
-                                </Button>
-
-                                {selectedOrder &&
-                                canManageStatus &&
-                                canManageSelectedOrder ? (
-                                    <div
-                                        className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            className="rounded-2xl"
-                                            disabled={isSubmitting}
-                                            onClick={() =>
-                                                updateStatus('in_progress')
-                                            }
-                                        >
-                                            <Clock3 className="mr-2 h-4 w-4" />
-                                            Preparing
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="rounded-2xl"
-                                            disabled={isSubmitting}
-                                            onClick={() =>
-                                                updateStatus('ready')
-                                            }
-                                        >
-                                            <PackageCheck className="mr-2 h-4 w-4" />
-                                            {isOrderTakerMode
-                                                ? 'Mark ready'
-                                                : 'Ready'}
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            className="rounded-2xl"
-                                            disabled
-                                        >
-                                            <Clock3 className="mr-2 h-4 w-4" />
-                                            Preparing
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="rounded-2xl"
-                                            disabled
-                                        >
-                                            <PackageCheck className="mr-2 h-4 w-4" />
-                                            {isOrderTakerMode
-                                                ? 'Mark ready'
-                                                : 'Ready'}
-                                        </Button>
-                                    </div>
-                                )}
 
                                 {canTakePayment ? (
-                                    <Button
-                                        className="h-12 rounded-2xl bg-[#b5542a] text-base hover:bg-[#9f4722]"
-                                        disabled={
-                                            !selectedOrder || isSubmitting
-                                        }
-                                        onClick={handleCollectPayment}
-                                    >
-                                        <CreditCard className="mr-2 h-4 w-4" />
-                                        Collect payment
-                                    </Button>
+                                    <div className="space-y-2">
+                                        <Label>Payment Method</Label>
+                                        <Select
+                                            value={paymentMethod}
+                                            onValueChange={(
+                                                value: PaymentMethod,
+                                            ) => setPaymentMethod(value)}
+                                        >
+                                            <SelectTrigger className="rounded-2xl">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {PAYMENT_METHODS.map(
+                                                    (option) => (
+                                                        <SelectItem
+                                                            key={option.value}
+                                                            value={option.value}
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 ) : null}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
 
-                {isOrderTakerMode ? null : (
-                    <div className="grid gap-3 md:grid-cols-3">
-                        <Card className="border-neutral-200/70 shadow-none">
-                            <CardContent className="flex items-center gap-3 p-4">
-                                <Store className="h-8 w-8 text-[#b5542a]" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">
-                                        Tables with live tickets
-                                    </p>
-                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                        {
-                                            tables.filter(
-                                                (table) => table.active_order,
-                                            ).length
+                                <div
+                                    className={`grid shrink-0 gap-2 ${isOrderTakerMode ? 'min-h-[120px]' : 'min-h-[146px]'}`}
+                                >
+                                    <Button
+                                        className={`rounded-2xl text-base ${isOrderTakerMode ? 'h-14' : 'h-12'}`}
+                                        disabled={
+                                            isSubmitting || !canEditComposer
                                         }
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="border-neutral-200/70 shadow-none">
-                            <CardContent className="flex items-center gap-3 p-4">
-                                <Bike className="h-8 w-8 text-[#b5542a]" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">
-                                        Active delivery queue
-                                    </p>
-                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                        {
-                                            openOrders.filter(
-                                                (order) =>
-                                                    order.order_type ===
-                                                    'delivery',
-                                            ).length
-                                        }
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="border-neutral-200/70 shadow-none">
-                            <CardContent className="flex items-center gap-3 p-4">
-                                <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">
-                                        Orders ready for checkout
-                                    </p>
-                                    <p className="text-2xl font-semibold text-[#2f1d0f]">
-                                        {summary.readyToPay}
-                                    </p>
+                                        onClick={submitOrder}
+                                    >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {selectedOrder
+                                            ? isOrderTakerMode
+                                                ? 'Update ticket'
+                                                : 'Update order'
+                                            : isOrderTakerMode
+                                              ? 'Save ticket'
+                                              : 'Save order'}
+                                    </Button>
+
+                                    {selectedOrder &&
+                                    canManageStatus &&
+                                    canManageSelectedOrder ? (
+                                        <div
+                                            className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
+                                        >
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-2xl"
+                                                disabled={isSubmitting}
+                                                onClick={() =>
+                                                    updateStatus('in_progress')
+                                                }
+                                            >
+                                                <Clock3 className="mr-2 h-4 w-4" />
+                                                Preparing
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-2xl"
+                                                disabled={isSubmitting}
+                                                onClick={() =>
+                                                    updateStatus('ready')
+                                                }
+                                            >
+                                                <PackageCheck className="mr-2 h-4 w-4" />
+                                                {isOrderTakerMode
+                                                    ? 'Mark ready'
+                                                    : 'Ready'}
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className={`grid gap-2 ${isOrderTakerMode ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
+                                        >
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-2xl"
+                                                disabled
+                                            >
+                                                <Clock3 className="mr-2 h-4 w-4" />
+                                                Preparing
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-2xl"
+                                                disabled
+                                            >
+                                                <PackageCheck className="mr-2 h-4 w-4" />
+                                                {isOrderTakerMode
+                                                    ? 'Mark ready'
+                                                    : 'Ready'}
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {canTakePayment ? (
+                                        <Button
+                                            className="h-12 rounded-2xl bg-[#b5542a] text-base text-white hover:bg-[#9f4722]"
+                                            disabled={
+                                                !selectedOrder || isSubmitting
+                                            }
+                                            onClick={handleCollectPayment}
+                                        >
+                                            <CreditCard className="mr-2 h-4 w-4" />
+                                            Collect payment
+                                        </Button>
+                                    ) : null}
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
-                )}
 
-                <ReceiptPreviewDialog
-                    key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}
-                    order={selectedReceiptOrder}
-                    open={isReceiptPreviewOpen}
-                    onOpenChange={setIsReceiptPreviewOpen}
-                    paymentMethod={paymentMethod}
-                    onPaymentMethodChange={(value) =>
-                        setPaymentMethod(value as PaymentMethod)
-                    }
-                    onCompletePayment={handleCompletePayment}
-                    isCompletingPayment={isCompletingPayment}
-                />
+                    {isOrderTakerMode ? null : (
+                        <div className="grid gap-3 md:grid-cols-3">
+                            <Card className="border-neutral-200/70 shadow-none">
+                                <CardContent className="flex items-center gap-3 p-4">
+                                    <Store className="h-8 w-8 text-[#b5542a]" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Tables with live tickets
+                                        </p>
+                                        <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                            {
+                                                tables.filter(
+                                                    (table) =>
+                                                        table.active_order,
+                                                ).length
+                                            }
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border-neutral-200/70 shadow-none">
+                                <CardContent className="flex items-center gap-3 p-4">
+                                    <Bike className="h-8 w-8 text-[#b5542a]" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Active delivery queue
+                                        </p>
+                                        <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                            {
+                                                openOrders.filter(
+                                                    (order) =>
+                                                        order.order_type ===
+                                                        'delivery',
+                                                ).length
+                                            }
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border-neutral-200/70 shadow-none">
+                                <CardContent className="flex items-center gap-3 p-4">
+                                    <CheckCircle2 className="h-8 w-8 text-[#b5542a]" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Orders ready for checkout
+                                        </p>
+                                        <p className="text-2xl font-semibold text-[#2f1d0f]">
+                                            {summary.readyToPay}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    <ReceiptPreviewDialog
+                        key={`${selectedReceiptOrder?.id ?? 'receipt'}-${selectedReceiptOrder?.discount_amount ?? 0}-${isReceiptPreviewOpen ? 'open' : 'closed'}`}
+                        order={selectedReceiptOrder}
+                        open={isReceiptPreviewOpen}
+                        onOpenChange={setIsReceiptPreviewOpen}
+                        paymentMethod={paymentMethod}
+                        onPaymentMethodChange={(value) =>
+                            setPaymentMethod(value as PaymentMethod)
+                        }
+                        discountCards={discountCards}
+                        sponsorEmployees={sponsorEmployees}
+                        onCompletePayment={handleCompletePayment}
+                        isCompletingPayment={isCompletingPayment}
+                    />
                 </div>
             )}
         </AppLayout>

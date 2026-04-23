@@ -10,6 +10,7 @@ use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscountCardController;
 use App\Http\Controllers\EmployeeAdvanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -157,6 +158,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
         Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
         Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
+    });
+    Route::middleware('role:super-admin')->group(function () {
+        Route::post('discount-cards', [DiscountCardController::class, 'store'])->name('discount-cards.store');
+        Route::put('discount-cards/{discountCard}', [DiscountCardController::class, 'update'])->name('discount-cards.update');
+        Route::delete('discount-cards/{discountCard}', [DiscountCardController::class, 'destroy'])->name('discount-cards.destroy');
     });
     Route::middleware('can:'.PermissionEnum::REPORTS_VIEW->value)->group(function () {
         Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');

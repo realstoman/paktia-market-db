@@ -16,12 +16,20 @@ class Order extends Model
         'branch_table_id',
         'user_id',
         'client_id',
+        'customer_id',
         'order_type',
         'source',
         'customer_name',
         'customer_phone',
         'delivery_address',
         'customer_note',
+        'covered_by_type',
+        'covered_by_employee_id',
+        'covered_by_note',
+        'discount_card_id',
+        'discount_type',
+        'discount_value',
+        'discount_label',
         'base_currency',
         'exchange_rate',
         'sub_total_amount',
@@ -41,6 +49,7 @@ class Order extends Model
         'order_type' => OrderType::class,
         'status' => OrderStatus::class,
         'exchange_rate' => 'decimal:4',
+        'discount_value' => 'decimal:2',
         'sub_total_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
@@ -68,6 +77,16 @@ class Order extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function coveredByEmployee()
+    {
+        return $this->belongsTo(Employee::class, 'covered_by_employee_id');
+    }
+
     public function branchTable()
     {
         return $this->belongsTo(BranchTable::class, 'branch_table_id');
@@ -81,5 +100,10 @@ class Order extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function discountCard()
+    {
+        return $this->belongsTo(DiscountCard::class);
     }
 }

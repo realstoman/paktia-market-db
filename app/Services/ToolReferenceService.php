@@ -7,6 +7,7 @@ use App\Models\Banner;
 use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Currency;
+use App\Models\DiscountCard;
 use App\Models\ExpenseCategory;
 use App\Models\Kitchen;
 use App\Models\KitchenCategory;
@@ -48,6 +49,12 @@ class ToolReferenceService
                 : [],
             'currencies' => Schema::hasTable('currencies')
                 ? Currency::query()
+                    ->orderBy('name')
+                    ->get()
+                    ->all()
+                : [],
+            'discountCards' => Schema::hasTable('discount_cards')
+                ? DiscountCard::query()
                     ->orderBy('name')
                     ->get()
                     ->all()

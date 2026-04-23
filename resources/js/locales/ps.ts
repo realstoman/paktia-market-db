@@ -112,9 +112,9 @@ const ps = {
         previewLabel: 'ژوندی مخکتنه',
         systemBrandingHelp:
             'د نوي هويت د پلي کېدو لپاره خوندي او بيا پورته کړئ.',
-        systemBrandingUpdated: 'د سيستم د هويت تنظيمات په برياليتوب سره خوندي شول.',
-        systemBrandingUpdateFailed:
-            'د سيستم د هويت تنظيمات نوي نه شول.',
+        systemBrandingUpdated:
+            'د سيستم د هويت تنظيمات په برياليتوب سره خوندي شول.',
+        systemBrandingUpdateFailed: 'د سيستم د هويت تنظيمات نوي نه شول.',
         confirmBrandingUpdateTitle: 'د هويت بدلونونه پلي شي؟',
         confirmBrandingUpdateDescription:
             'له بيا پورته کېدو وروسته به د رستورانت نوم، لوګو او ګډ رنګونه په ټول سيستم کې نوي شي.',
@@ -336,9 +336,9 @@ const ps = {
             orderTypePlaceholder: 'ډول وټاکئ',
             paymentMethod: 'د تادیې طریقه',
             paymentMethodPlaceholder: 'د تادیې طریقه وټاکئ',
-            tableNumber: 'د مېز شمېره',
-            tableNumberPlaceholder: 'د مېز شمېره وټاکئ',
-            customerName: 'د پېرودونکي نوم',
+            tableNumber: 'میز',
+            tableNumberPlaceholder: 'میز وټاکئ',
+            customerName: 'د پیرودونکي نوم',
             customerPhone: 'د پېرودونکي ټیلیفون',
             deliveryAddress: 'د رسونې پته',
             orderItems: 'د امر توکي',
@@ -382,7 +382,7 @@ const ps = {
         columns: {
             orderId: 'د امر پېژند',
             branch: 'څانګه',
-            tableNumber: 'د مېز شمېره',
+            tableNumber: 'میز',
             createdBy: 'جوړ شوی توسط',
             source: 'سرچینه',
             customer: 'پېرودونکی',
@@ -504,7 +504,8 @@ const ps = {
             allBranches: 'ټولې څانګې',
             stats: {
                 totalValue: 'د ذخیرې ټول ارزښت',
-                totalValueDescription: 'اوسنی ارزښت د مقدار × واحد قیمت له مخې.',
+                totalValueDescription:
+                    'اوسنی ارزښت د مقدار × واحد قیمت له مخې.',
                 totalItems: 'ټول توکي',
                 totalItemsDescription: 'هغه د ذخیرې ریکارډونه چې اوس ثبت دي.',
                 totalOwed: 'پلورونکو ته پور',
@@ -517,7 +518,8 @@ const ps = {
             },
             vendorOwed: {
                 title: 'پلورونکو ته پور',
-                description: 'ناپرداخت شوې پیسې د پلورونکي او وروستۍ تادیې نېټې له مخې.',
+                description:
+                    'ناپرداخت شوې پیسې د پلورونکي او وروستۍ تادیې نېټې له مخې.',
                 vendor: 'پلورونکی',
                 amount: 'پور شوی مبلغ',
                 lastPaid: 'وروستۍ تادیه',
@@ -528,7 +530,8 @@ const ps = {
         },
         toolbar: {
             title: 'د ذخیرې توکي: :count',
-            description: 'خوراکي مواد، لوازم او کارېدونکي او نه‌کارېدونکي توکي مدیریت کړئ.',
+            description:
+                'خوراکي مواد، لوازم او کارېدونکي او نه‌کارېدونکي توکي مدیریت کړئ.',
             usage: 'مصرف',
             categories: 'کتګورۍ',
             units: 'واحدونه',
@@ -628,7 +631,8 @@ const ps = {
         vendorModal: {
             title: 'د پلورونکو مدیریت',
             editTitle: 'پلورونکی سمول',
-            description: 'هغه پلورونکي/عمده پلورونکي جوړ او نوي کړئ چې له هغوی څخه ذخیره اخلئ.',
+            description:
+                'هغه پلورونکي/عمده پلورونکي جوړ او نوي کړئ چې له هغوی څخه ذخیره اخلئ.',
             storeName: 'د دوکان نوم',
             category: 'کتګوري',
             categoryPlaceholder: 'قصاب، خوراکي توکي، فرنیچر...',
@@ -664,7 +668,8 @@ const ps = {
         unitModal: {
             title: 'د واحدونو مدیریت',
             editTitle: 'واحد سمول',
-            description: 'هغه واحدونه زیات، نوي او حذف کړئ چې د ذخیرې په توکو کې کارېږي.',
+            description:
+                'هغه واحدونه زیات، نوي او حذف کړئ چې د ذخیرې په توکو کې کارېږي.',
             symbol: 'نښان',
             save: 'واحد خوندي کړئ',
             update: 'واحد تازه کړئ',
@@ -703,7 +708,8 @@ const ps = {
         },
         createModal: {
             title: 'د ذخیرې توکی جوړول',
-            description: 'نوی توکی د مقدار، قیمت، رسید/بل او انځورونو سره اضافه کړئ.',
+            description:
+                'نوی توکی د مقدار، قیمت، رسید/بل او انځورونو سره اضافه کړئ.',
             vendorOptional: 'پلورونکی (اختیاري)',
             initialQuantity: 'لومړنی مقدار',
             imagesLabel: 'انځورونه (تر :count پورې)',
@@ -737,7 +743,8 @@ const ps = {
             addNewImages: 'نوي انځورونه زیاتول (اختیاري)',
             uploadAdditionalImages: 'د دې توکي لپاره اضافي انځورونه پورته کړئ.',
             deleteTitle: 'د ذخیرې توکی حذف کړئ؟',
-            deleteDescription: 'دا به ":name" د تل لپاره حذف کړي او اړوند ریکارډونه (انځورونه او راکړې ورکړې) به هم له منځه یوسي.',
+            deleteDescription:
+                'دا به ":name" د تل لپاره حذف کړي او اړوند ریکارډونه (انځورونه او راکړې ورکړې) به هم له منځه یوسي.',
             currentStock: 'اوسنۍ ذخیره',
             paymentDue: 'ورکړه کېدونکی مبلغ',
             quantityToAdd: 'د زیاتولو مقدار',

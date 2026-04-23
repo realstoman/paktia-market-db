@@ -235,7 +235,9 @@ class HandleInertiaRequests extends Middleware
                 'category' => 'payments',
                 'title' => __('notifications.payments.title'),
                 'description' => __('notifications.payments.description', [
-                    'method' => strtoupper((string) $payment->method ?: __('notifications.payments.method_fallback')),
+                    'method' => $payment->status === 'covered_by_employee'
+                        ? __('notifications.payments.method_fallback').' · Employee Cover'
+                        : strtoupper((string) $payment->method ?: __('notifications.payments.method_fallback')),
                     'order' => $payment->order_id
                         ? __('notifications.payments.order_segment', [
                             'order' => $payment->order_id,

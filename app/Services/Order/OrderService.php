@@ -8,6 +8,10 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Branch;
 use App\Models\BranchTable;
+use App\Models\Customer;
+use App\Models\DiscountCard;
+use App\Models\Employee;
+use App\Models\EmployeeAdvance;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -36,6 +40,9 @@ class OrderService
             'branchTable',
             'user',
             'client',
+            'customer',
+            'coveredByEmployee',
+            'discountCard',
             'payments',
             'items' => fn ($query) => $query
                 ->when($allowedKitchenId, fn ($itemQuery) => $itemQuery->where('kitchen_id', $allowedKitchenId))
@@ -75,6 +82,36 @@ class OrderService
                 ->orderBy('branch_id')
                 ->orderBy('table_number')
                 ->get(),
+            'customers' => Customer::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->orderBy('phone')
+                ->get(['id', 'name', 'phone', 'email']),
+            'discountCards' => DiscountCard::query()
+                ->active()
+                ->orderBy('name')
+                ->get(),
+            'sponsorEmployees' => Employee::query()
+                ->where('is_active', true)
+                ->when($allowedBranchId, fn ($query) => $query->where('branch_id', $allowedBranchId))
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get([
+                    'id',
+                    'branch_id',
+                    'first_name',
+                    'last_name',
+                    'phone',
+                ])
+                ->map(fn (Employee $employee) => [
+                    'id' => $employee->id,
+                    'branch_id' => $employee->branch_id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
+                    'full_name' => trim($employee->first_name.' '.$employee->last_name),
+                    'phone' => $employee->phone,
+                ])
+                ->values(),
             'selectedDate' => $selectedDate,
             'isAllTime' => $isAllTime,
             'restaurantStartDate' => $restaurantStartDate,
@@ -97,27 +134,26 @@ class OrderService
 
         DB::transaction(function () use ($data, $userId) {
             $total = $this->orderItemService->calculateTotal($data['items']);
+            $customerPayload = $this->resolveCustomerPayload($data);
 
             $order = Order::create([
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['branch_table_id'] ?? null,
                 'user_id' => $userId,
+                'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
-                'customer_name' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_name'] ?? ''))
-                    : null,
-                'customer_phone' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_phone'] ?? ''))
-                    : null,
+                'customer_name' => $customerPayload['customer_name'],
+                'customer_phone' => $customerPayload['customer_phone'],
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'covered_by_type' => 'customer',
+                'covered_by_employee_id' => null,
+                'covered_by_note' => null,
+                'discount_card_id' => $data['discount_card_id'] ?? null,
+                'discount_type' => null,
+                'discount_value' => null,
+                'discount_label' => null,
                 'sub_total_amount' => $total,
                 'discount_amount' => 0,
                 'tax_amount' => 0,
@@ -150,27 +186,25 @@ class OrderService
         $originalCreatedAt = $order->created_at;
 
         DB::transaction(function () use ($order, $data) {
+            $customerPayload = $this->resolveCustomerPayload($data);
+
             $order->update([
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
                     ? ($data['branch_table_id'] ?? null)
                     : null,
+                'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
-                'customer_name' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_name'] ?? ''))
-                    : null,
-                'customer_phone' => in_array($data['order_type'], [
-                    OrderType::DELIVERY->value,
-                    OrderType::TAKEAWAY->value,
-                ], true)
-                    ? trim((string) ($data['customer_phone'] ?? ''))
-                    : null,
+                'customer_name' => $customerPayload['customer_name'],
+                'customer_phone' => $customerPayload['customer_phone'],
                 'delivery_address' => $data['order_type'] === OrderType::DELIVERY->value
                     ? trim((string) ($data['delivery_address'] ?? ''))
                     : null,
+                'discount_card_id' => $data['discount_card_id'] ?? null,
+                'discount_amount' => 0,
+                'discount_type' => null,
+                'discount_value' => null,
+                'discount_label' => null,
             ]);
 
             $this->orderItemService->replaceForOrder($order, $data['items']);
@@ -216,21 +250,45 @@ class OrderService
         string $status,
         ?string $paymentMethod = null,
         ?float $discountAmount = null,
+        int|User|null $discountCardId = null,
+        ?string $coveredByType = null,
+        ?int $coveredByEmployeeId = null,
+        ?string $coveredByNote = null,
         ?User $actor = null,
     ): void
     {
-        $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod);
+        if ($discountCardId instanceof User) {
+            $actor = $actor ?? $discountCardId;
+            $discountCardId = null;
+        }
 
-        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $actor) {
+        $resolvedCoveredByType = $this->normalizeCoveredByType(
+            $coveredByType ?? ($order->covered_by_type ?: 'customer'),
+        );
+
+        $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod, $resolvedCoveredByType);
+
+        if ($resolvedCoveredByType === 'employee' && $coveredByEmployeeId) {
+            $this->assertCoveredEmployeeBelongsToBranch($coveredByEmployeeId, $order->branch_id);
+        }
+
+        DB::transaction(function () use ($order, $status, $paymentMethod, $discountAmount, $discountCardId, $resolvedCoveredByType, $coveredByEmployeeId, $coveredByNote, $actor) {
             if ($status === OrderStatus::COMPLETED->value) {
                 $subTotal = (float) ($order->sub_total_amount ?? 0);
-                $resolvedDiscount = $discountAmount !== null
-                    ? min(max($discountAmount, 0), $subTotal)
-                    : (float) ($order->discount_amount ?? 0);
+                $discountDetails = $this->resolveDiscountDetails(
+                    order: $order,
+                    subTotal: $subTotal,
+                    manualDiscountAmount: $discountAmount,
+                    discountCardId: $discountCardId,
+                );
 
-                $order->update([
-                    'discount_amount' => $resolvedDiscount,
-                ]);
+                $order->update(array_merge($discountDetails, [
+                    'covered_by_type' => $resolvedCoveredByType,
+                    'covered_by_employee_id' => $resolvedCoveredByType === 'employee'
+                        ? $coveredByEmployeeId
+                        : null,
+                    'covered_by_note' => trim((string) $coveredByNote) ?: null,
+                ]));
 
                 $this->syncOrderAmounts($order, $subTotal);
             }
@@ -246,11 +304,22 @@ class OrderService
             ]);
 
             if ($status === OrderStatus::COMPLETED->value) {
-                $this->syncOrderPayment(
-                    order: $order->fresh(),
-                    paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
-                    receivedBy: $actor?->id ?? $order->user_id,
-                );
+                $refreshedOrder = $order->fresh();
+
+                if ($resolvedCoveredByType === 'house') {
+                    $this->clearOrderPayment($refreshedOrder);
+                    $refreshedOrder->update([
+                        'paid_amount' => 0,
+                        'change_amount' => 0,
+                    ]);
+                } else {
+                    $this->syncOrderPayment(
+                        order: $refreshedOrder,
+                        paymentMethod: $paymentMethod ?? PaymentMethod::CASH->value,
+                        settlementType: $resolvedCoveredByType,
+                        receivedBy: $actor?->id ?? $order->user_id,
+                    );
+                }
             }
         });
 
@@ -322,6 +391,18 @@ class OrderService
         }
 
         if (($data['order_type'] ?? null) === OrderType::DELIVERY->value) {
+            if (empty(trim((string) ($data['customer_name'] ?? '')))) {
+                throw ValidationException::withMessages([
+                    'customer_name' => 'Customer name is required for delivery orders.',
+                ]);
+            }
+
+            if (empty(trim((string) ($data['customer_phone'] ?? '')))) {
+                throw ValidationException::withMessages([
+                    'customer_phone' => 'Customer phone is required for delivery orders.',
+                ]);
+            }
+
             if (empty(trim((string) ($data['delivery_address'] ?? '')))) {
                 throw ValidationException::withMessages([
                     'delivery_address' => 'Delivery address is required for delivery orders.',
@@ -348,6 +429,20 @@ class OrderService
         }
     }
 
+    private function assertCoveredEmployeeBelongsToBranch(int $employeeId, int $branchId): void
+    {
+        $belongsToBranch = Employee::query()
+            ->whereKey($employeeId)
+            ->where('branch_id', $branchId)
+            ->exists();
+
+        if (! $belongsToBranch) {
+            throw ValidationException::withMessages([
+                'covered_by_employee_id' => 'Selected employee does not belong to the order branch.',
+            ]);
+        }
+    }
+
     private function assertOrderCanBeModified(Order $order): void
     {
         if (($order->status?->value ?? $order->status) === OrderStatus::COMPLETED->value) {
@@ -357,7 +452,13 @@ class OrderService
         }
     }
 
-    private function assertStatusCanBeUpdated(Order $order, string $nextStatus, ?User $actor, ?string $paymentMethod = null): void
+    private function assertStatusCanBeUpdated(
+        Order $order,
+        string $nextStatus,
+        ?User $actor,
+        ?string $paymentMethod = null,
+        string $coveredByType = 'customer',
+    ): void
     {
         $this->assertActorCanManageOrder($order, $actor);
         $currentStatus = (string) ($order->status?->value ?? $order->status);
@@ -380,7 +481,13 @@ class OrderService
                 ]);
             }
 
-            if (! $paymentMethod) {
+            if ($coveredByType === 'employee' && ! $order->branch_id && ! $actor?->hasRole('super-admin')) {
+                throw ValidationException::withMessages([
+                    'covered_by_employee_id' => 'Employee coverage requires a branch-assigned order.',
+                ]);
+            }
+
+            if ($coveredByType !== 'house' && ! $paymentMethod) {
                 throw ValidationException::withMessages([
                     'payment_method' => 'Payment method is required before completing an order.',
                 ]);
@@ -408,7 +515,21 @@ class OrderService
         }
     }
 
-    private function syncOrderPayment(Order $order, string $paymentMethod, ?int $receivedBy = null): void
+    private function normalizeCoveredByType(?string $coveredByType): string
+    {
+        return match ($coveredByType) {
+            'employee' => 'employee',
+            'house', 'restaurant' => 'house',
+            default => 'customer',
+        };
+    }
+
+    private function syncOrderPayment(
+        Order $order,
+        string $paymentMethod,
+        string $settlementType = 'customer',
+        ?int $receivedBy = null,
+    ): void
     {
         $order->update([
             'paid_amount' => $order->total_amount,
@@ -423,17 +544,86 @@ class OrderService
             'exchange_rate' => $order->exchange_rate,
             'method' => $paymentMethod,
             'payment_date' => now(),
-            'status' => 'paid',
+            'status' => $settlementType === 'employee' ? 'covered_by_employee' : 'paid',
             'received_by' => $receivedBy,
         ];
 
         if ($payment) {
             $payment->update($payload);
-
+            $this->syncEmployeeCoveredOrderAdvance($order, $settlementType);
             return;
         }
 
         $order->payments()->create($payload);
+        $this->syncEmployeeCoveredOrderAdvance($order, $settlementType);
+    }
+
+    private function clearOrderPayment(Order $order): void
+    {
+        $order->payments()->delete();
+        $this->clearEmployeeCoveredOrderAdvance($order);
+    }
+
+    private function syncEmployeeCoveredOrderAdvance(Order $order, string $settlementType): void
+    {
+        if ($settlementType !== 'employee') {
+            $this->clearEmployeeCoveredOrderAdvance($order);
+            return;
+        }
+
+        $employeeId = (int) ($order->covered_by_employee_id ?? 0);
+        $amount = (float) ($order->total_amount ?? 0);
+
+        if ($employeeId <= 0 || $amount <= 0) {
+            return;
+        }
+
+        $reason = $this->employeeCoveredOrderAdvanceReason($order);
+        $advance = EmployeeAdvance::query()
+            ->where('employee_id', $employeeId)
+            ->where('reason', $reason)
+            ->first();
+
+        $deductedAmount = (float) ($advance?->deducted_amount ?? 0);
+
+        EmployeeAdvance::query()->updateOrCreate(
+            [
+                'employee_id' => $employeeId,
+                'reason' => $reason,
+            ],
+            [
+                'branch_id' => $order->branch_id,
+                'advance_date' => now()->toDateString(),
+                'amount' => $amount,
+                'deducted_amount' => $deductedAmount,
+                'remaining_balance' => max(0, $amount - $deductedAmount),
+                'repayment_method' => 'salary_deduction',
+                'status' => 'approved',
+                'created_by' => $order->user_id,
+            ],
+        );
+    }
+
+    private function clearEmployeeCoveredOrderAdvance(Order $order): void
+    {
+        $reason = $this->employeeCoveredOrderAdvanceReason($order);
+
+        EmployeeAdvance::query()
+            ->where('reason', $reason)
+            ->where('deducted_amount', '<=', 0)
+            ->delete();
+
+        EmployeeAdvance::query()
+            ->where('reason', $reason)
+            ->where('deducted_amount', '>', 0)
+            ->update([
+                'remaining_balance' => 0,
+            ]);
+    }
+
+    private function employeeCoveredOrderAdvanceReason(Order $order): string
+    {
+        return 'Employee covered order #'.$order->id;
     }
 
     private function syncOrderAmounts(Order $order, float|int $subTotal): void
@@ -451,5 +641,124 @@ class OrderService
             'change_amount' => 0,
             'refund_amount' => 0,
         ]);
+    }
+
+    private function resolveCustomerPayload(array $data): array
+    {
+        $customerName = trim((string) ($data['customer_name'] ?? ''));
+        $customerPhone = trim((string) ($data['customer_phone'] ?? ''));
+        $customerId = isset($data['customer_id']) && $data['customer_id']
+            ? (int) $data['customer_id']
+            : null;
+
+        if ($customerId) {
+            $customer = Customer::query()->find($customerId);
+
+            if ($customer) {
+                $updated = false;
+
+                if ($customerName !== '' && $customer->name !== $customerName) {
+                    $customer->name = $customerName;
+                    $updated = true;
+                }
+
+                if ($customerPhone !== '' && $customer->phone !== $customerPhone) {
+                    $customer->phone = $customerPhone;
+                    $updated = true;
+                }
+
+                if ($updated) {
+                    $customer->save();
+                }
+
+                return [
+                    'customer_id' => $customer->id,
+                    'customer_name' => $customerName !== '' ? $customerName : $customer->name,
+                    'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+                ];
+            }
+        }
+
+        if ($customerName === '' && $customerPhone === '') {
+            return [
+                'customer_id' => null,
+                'customer_name' => null,
+                'customer_phone' => null,
+            ];
+        }
+
+        $customer = null;
+
+        if ($customerPhone !== '') {
+            $customer = Customer::query()->where('phone', $customerPhone)->first();
+        }
+
+        if ($customer) {
+            $customer->update([
+                'name' => $customerName !== '' ? $customerName : $customer->name,
+                'phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+                'is_active' => true,
+            ]);
+        } else {
+            $customer = Customer::query()->create([
+                'name' => $customerName !== '' ? $customerName : null,
+                'phone' => $customerPhone !== '' ? $customerPhone : null,
+                'is_active' => true,
+            ]);
+        }
+
+        return [
+            'customer_id' => $customer->id,
+            'customer_name' => $customerName !== '' ? $customerName : $customer->name,
+            'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
+        ];
+    }
+
+    private function resolveDiscountDetails(
+        Order $order,
+        float $subTotal,
+        ?float $manualDiscountAmount = null,
+        ?int $discountCardId = null,
+    ): array {
+        $resolvedDiscountCardId = $discountCardId ?: $order->discount_card_id;
+
+        if ($resolvedDiscountCardId) {
+            $discountCard = DiscountCard::query()
+                ->active()
+                ->find($resolvedDiscountCardId);
+
+            if ($discountCard) {
+                $resolvedDiscount = $discountCard->discount_type === 'percentage'
+                    ? ($subTotal * ((float) $discountCard->discount_value / 100))
+                    : (float) $discountCard->discount_value;
+
+                if ($discountCard->max_discount_amount !== null) {
+                    $resolvedDiscount = min(
+                        $resolvedDiscount,
+                        (float) $discountCard->max_discount_amount,
+                    );
+                }
+
+                return [
+                    'discount_card_id' => $discountCard->id,
+                    'discount_type' => $discountCard->discount_type,
+                    'discount_value' => $discountCard->discount_value,
+                    'discount_label' => $discountCard->name,
+                    'discount_amount' => min(max($resolvedDiscount, 0), $subTotal),
+                ];
+            }
+        }
+
+        $resolvedDiscount = $manualDiscountAmount !== null
+            ? min(max($manualDiscountAmount, 0), $subTotal)
+            : (float) ($order->discount_amount ?? 0);
+
+        return [
+            'discount_card_id' => null,
+            'discount_type' => $resolvedDiscount > 0 ? 'manual' : null,
+            'discount_value' => $resolvedDiscount > 0 ? $resolvedDiscount : null,
+            'discount_label' => $resolvedDiscount > 0 ? 'Manual discount' : null,
+            'discount_amount' => $resolvedDiscount,
+        ];
     }
 }

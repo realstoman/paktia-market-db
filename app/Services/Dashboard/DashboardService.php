@@ -210,6 +210,7 @@ class DashboardService
         // recently completed sales appear even when projections are stale.
         $dashboardSalesTotal = (float) Order::query()
             ->where('status', 'completed')
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->sum('total_amount');
 
         $dashboardExpensesTotal = (float) Expense::query()
@@ -257,6 +258,7 @@ class DashboardService
 
         $monthlySales = Order::query()
             ->where('status', 'completed')
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->whereBetween('created_at', [$monthlyStartDate, $monthlyEndDate])
             ->get(['created_at', 'total_amount'])
             ->groupBy(fn ($order) => Carbon::parse($order->created_at)->format('Y-m'))

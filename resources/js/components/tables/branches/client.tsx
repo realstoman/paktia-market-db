@@ -169,6 +169,17 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         ],
         [provinces, selectedCountryFilter],
     );
+    const createProvinceOptions = useMemo(
+        () =>
+            provinces.filter((province) => {
+                if (!countryId) {
+                    return true;
+                }
+
+                return String(province.country_id ?? '') === countryId;
+            }),
+        [provinces, countryId],
+    );
     const filteredBranches = useMemo(
         () =>
             data.filter((branch) => {
@@ -421,12 +432,16 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <Select
                                 value={provinceId}
                                 onValueChange={setProvinceId}
+                                disabled={
+                                    !!countryId &&
+                                    createProvinceOptions.length === 0
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select province" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {provinces.map((province) => (
+                                    {createProvinceOptions.map((province) => (
                                         <SelectItem
                                             key={province.id}
                                             value={String(province.id)}

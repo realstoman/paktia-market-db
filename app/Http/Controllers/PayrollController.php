@@ -132,6 +132,23 @@ class PayrollController extends Controller
             ->where('remaining_balance', '>', 0)
             ->sum('remaining_balance');
 
+        $upcomingContractPayments = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
+            ? (float) EmployeeContractPaymentSchedule::query()
+                ->whereHas('contract', fn ($query) => $query->whereIn('status', ['submitted', 'approved', 'active']))
+                ->whereDate('due_date', '>=', now()->toDateString())
+                ->whereIn('status', ['submitted', 'approved'])
+                ->whereIn('id', function ($query) {
+                    $query->selectRaw('MIN(employee_contract_payment_schedules.id)')
+                        ->from('employee_contract_payment_schedules')
+                        ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                        ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                        ->whereDate('employee_contract_payment_schedules.due_date', '>=', now()->toDateString())
+                        ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                        ->groupBy('employee_contract_payment_schedules.employee_contract_id');
+                })
+                ->sum('amount')
+            : 0.0;
+
         $summary = [
             'activeEmployees' => $activeEmployees
                 ->filter(fn (Employee $employee) => $this->resolveBaseSalary($employee) > 0)
@@ -142,7 +159,7 @@ class PayrollController extends Controller
                 return collect($run['items'])
                     ->where('payment_status', '!=', 'paid')
                     ->sum('net_salary');
-            }),
+            }) + $upcomingContractPayments,
             'paidThisMonth' => (float) $runs
                 ->filter(fn (array $run) => ($run['paid_at'] ?? null) && str_starts_with($run['paid_at'], now()->format('Y-m')))
                 ->sum('net_total'),
@@ -218,6 +235,8 @@ class PayrollController extends Controller
             'contracts' => $contracts,
             'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
             'employees' => $activeEmployees,
+            'afghanPayrollMonths' => AfghanCalendar::payrollMonthOptions(),
+            'currentAfghanPayrollMonth' => AfghanCalendar::currentMonth(),
             'summary' => $summary,
             'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
             'canApprove' => Gate::allows(PermissionEnum::PAYROLL_APPROVE->value),
@@ -231,8 +250,10 @@ class PayrollController extends Controller
 
         $validated = $request->validate([
             'branch_id' => ['nullable', 'exists:branches,id'],
-            'period_start' => ['required', 'date_format:Y-m-d'],
-            'period_end' => ['required', 'date_format:Y-m-d', 'after_or_equal:period_start'],
+            'afghan_year' => ['nullable', 'integer', 'min:1300', 'max:1600'],
+            'afghan_month' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'period_start' => ['required_without:afghan_month', 'date_format:Y-m-d'],
+            'period_end' => ['required_without:afghan_month', 'date_format:Y-m-d', 'after_or_equal:period_start'],
             'status' => ['nullable', 'in:draft,submitted'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'notes' => ['nullable', 'string', 'max:2000'],
@@ -240,6 +261,11 @@ class PayrollController extends Controller
 
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
         $status = $validated['status'] ?? 'draft';
+        $payrollMonth = isset($validated['afghan_year'], $validated['afghan_month'])
+            ? AfghanCalendar::monthRange((int) $validated['afghan_year'], (int) $validated['afghan_month'])
+            : AfghanCalendar::monthForDate($validated['period_end'] ?? null);
+        $periodStart = $payrollMonth['start'];
+        $periodEnd = $payrollMonth['end'];
 
         $employees = Employee::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -267,8 +293,8 @@ class PayrollController extends Controller
         }
 
         $alreadyExists = PayrollRun::query()
-            ->where('period_start', $validated['period_start'])
-            ->where('period_end', $validated['period_end'])
+            ->where('period_start', $periodStart)
+            ->where('period_end', $periodEnd)
             ->when(
                 $branchId,
                 fn ($query) => $query->where('branch_id', $branchId),
@@ -279,17 +305,17 @@ class PayrollController extends Controller
         if ($alreadyExists) {
             return redirect()
                 ->route('finance.payroll.index')
-                ->withErrors(['payroll' => 'A payroll run for this branch and period already exists.']);
+                ->withErrors(['payroll' => 'A payroll run for '.$payrollMonth['label'].' already exists.']);
         }
 
-        DB::transaction(function () use ($branchId, $payableEmployees, $request, $status, $validated) {
+        DB::transaction(function () use ($branchId, $payableEmployees, $payrollMonth, $periodEnd, $periodStart, $request, $status, $validated) {
             $run = PayrollRun::create([
                 'branch_id' => $branchId,
-                'period_start' => $validated['period_start'],
-                'period_end' => $validated['period_end'],
+                'period_start' => $periodStart,
+                'period_end' => $periodEnd,
                 'status' => $status,
                 'created_by' => $request->user()?->id,
-                'notes' => $validated['notes'] ?? null,
+                'notes' => trim(($validated['notes'] ?? '')."\n".$payrollMonth['label']) ?: null,
             ]);
 
             foreach ($payableEmployees as $row) {
@@ -299,8 +325,8 @@ class PayrollController extends Controller
                 $coveredPeriods = $salaryType === 'fixed_salary'
                     ? $this->resolveFixedSalaryPeriods(
                         employee: $employee,
-                        periodStart: Carbon::parse($validated['period_start']),
-                        periodEnd: Carbon::parse($validated['period_end']),
+                        periodStart: Carbon::parse($periodStart),
+                        periodEnd: Carbon::parse($periodEnd),
                         branchId: $branchId,
                     )
                     : [];
@@ -315,8 +341,8 @@ class PayrollController extends Controller
                                     ->whereIn('status', ['submitted', 'approved', 'active']);
                             })
                             ->whereBetween('due_date', [
-                                $validated['period_start'],
-                                $validated['period_end'],
+                                $periodStart,
+                                $periodEnd,
                             ])
                             ->whereIn('status', ['submitted', 'approved'])
                             ->sum('amount')

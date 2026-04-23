@@ -69,6 +69,41 @@ class FinanceController extends Controller
             : (float) $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
                 ->sum('total_amount');
 
+        $houseCompTotal = (float) Order::query()
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->where('covered_by_type', 'house')
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('total_amount');
+
+        $employeeCoveredTotal = Schema::hasTable('payments')
+            ? (float) DB::table('payments')
+                ->join('orders', 'orders.id', '=', 'payments.order_id')
+                ->where('orders.status', OrderStatus::COMPLETED->value)
+                ->where('payments.status', 'covered_by_employee')
+                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
+                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->sum('payments.amount')
+            : 0.0;
+
+        $coverageComparison = collect([
+            [
+                'label' => 'Sales',
+                'amount' => (float) $salesTotal,
+                'tone' => 'sales',
+            ],
+            [
+                'label' => 'Employee Covered',
+                'amount' => (float) $employeeCoveredTotal,
+                'tone' => 'employee',
+            ],
+            [
+                'label' => 'Restaurant Hospitality',
+                'amount' => (float) $houseCompTotal,
+                'tone' => 'house',
+            ],
+        ])->values();
+
         $expensesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
             : (float) Expense::query()
@@ -164,6 +199,30 @@ class FinanceController extends Controller
                 ->pluck('payroll_run_items.employee_id')
             : collect();
 
+        $paidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_run_items')
+                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
+                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
+                ->where('payroll_run_items.salary_type', 'fixed_salary')
+                ->where('payroll_run_items.payment_status', 'paid')
+                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
+                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
+                ->distinct()
+                ->pluck('payroll_run_items.employee_id')
+            : collect();
+
+        $unpaidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_run_items')
+                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
+                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
+                ->where('payroll_run_items.salary_type', 'fixed_salary')
+                ->where('payroll_run_items.payment_status', '!=', 'paid')
+                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
+                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
+                ->distinct()
+                ->pluck('payroll_run_items.employee_id')
+            : collect();
+
         $unpaidFixedSalaryTotal = (float) $fixedSalaryPayrollItems->sum('total');
 
         $fallbackFixedSalaryTotal = Schema::hasTable('employees')
@@ -174,6 +233,23 @@ class FinanceController extends Controller
                 ->when(
                     $fixedSalaryHandledEmployeeIds->isNotEmpty(),
                     fn ($query) => $query->whereNotIn('id', $fixedSalaryHandledEmployeeIds->all()),
+                )
+                ->sum('salary')
+            : 0.0;
+
+        $upcomingFixedSalaryTotal = Schema::hasTable('employees') && $endDate->isCurrentMonth()
+            ? (float) DB::table('employees')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('is_active', true)
+                ->where('salary', '>', 0)
+                ->when(
+                    $paidFixedSalaryEmployeeIds->isNotEmpty(),
+                    fn ($query) => $query->whereIn('id', $paidFixedSalaryEmployeeIds->all()),
+                    fn ($query) => $query->whereRaw('1 = 0'),
+                )
+                ->when(
+                    $unpaidFixedSalaryEmployeeIds->isNotEmpty(),
+                    fn ($query) => $query->whereNotIn('id', $unpaidFixedSalaryEmployeeIds->all()),
                 )
                 ->sum('salary')
             : 0.0;
@@ -222,10 +298,32 @@ class FinanceController extends Controller
                 ->sum('employee_contract_payment_schedules.amount')
             : 0.0;
 
+        $upcomingContractScheduleTotal = Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
+            ? (float) DB::table('employee_contract_payment_schedules')
+                ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                ->when($branchId, fn ($query) => $query->where('employee_contracts.branch_id', $branchId))
+                ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
+                ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                ->whereIn('employee_contract_payment_schedules.id', function ($query) use ($branchId, $liabilityMonthEnd) {
+                    $query->selectRaw('MIN(employee_contract_payment_schedules.id)')
+                        ->from('employee_contract_payment_schedules')
+                        ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                        ->when($branchId, fn ($subQuery) => $subQuery->where('employee_contracts.branch_id', $branchId))
+                        ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                        ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
+                        ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                        ->groupBy('employee_contract_payment_schedules.employee_contract_id');
+                })
+                ->sum('employee_contract_payment_schedules.amount')
+            : 0.0;
+
         $unpaidSalaries = $unpaidFixedSalaryTotal
             + $fallbackFixedSalaryTotal
+            + $upcomingFixedSalaryTotal
             + $unpaidContractPayrollTotal
-            + $fallbackContractScheduleTotal;
+            + $fallbackContractScheduleTotal
+            + $upcomingContractScheduleTotal;
 
         $weightedCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? (float) DB::table('inventory_transactions')
@@ -348,17 +446,26 @@ class FinanceController extends Controller
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
                 ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
                 ->whereBetween('orders.created_at', [$startDate, $endDate])
-                ->select('payments.method')
+                ->select(['payments.method', 'payments.status'])
                 ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
-                ->groupBy('payments.method')
+                ->groupBy('payments.method', 'payments.status')
                 ->orderByDesc('total')
                 ->get()
                 ->map(fn ($row) => [
-                    'method' => str($row->method)->replace('_', ' ')->title()->toString(),
+                    'method' => $row->status === 'covered_by_employee'
+                        ? 'Employee Cover · '.str($row->method)->replace('_', ' ')->title()->toString()
+                        : str($row->method)->replace('_', ' ')->title()->toString(),
                     'amount' => (float) $row->total,
                 ])
                 ->values()
             : collect();
+
+        if ($houseCompTotal > 0) {
+            $paymentBreakdown->push([
+                'method' => 'Restaurant Hospitality',
+                'amount' => $houseCompTotal,
+            ]);
+        }
 
         $unassignedPaymentAmount = Order::query()
             ->where('orders.status', OrderStatus::COMPLETED->value)
@@ -585,11 +692,14 @@ class FinanceController extends Controller
                     'unpaidSalaries' => (float) $unpaidSalaries,
                     'inventoryValue' => (float) $inventoryValue,
                     'supplierBalances' => (float) $supplierBalances,
+                    'employeeCoveredTotal' => (float) $employeeCoveredTotal,
+                    'houseCompTotal' => (float) $houseCompTotal,
                 ],
                 'trend' => $trend,
                 'branchRevenue' => $branchRevenue,
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => $paymentBreakdown,
+                'coverageComparison' => $coverageComparison,
                 'ledgerStats' => $ledgerStats,
                 'generalLedger' => $generalLedger,
                 'generalLedgerPreview' => $generalLedger->take(5)->values(),
@@ -857,6 +967,7 @@ class FinanceController extends Controller
     ) {
         return Order::query()
             ->where('status', OrderStatus::COMPLETED->value)
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->when($paymentMethod, function ($query, $method) {
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
@@ -881,6 +992,7 @@ class FinanceController extends Controller
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
             })
             ->where('status', OrderStatus::COMPLETED->value)
+            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->orderByDesc('created_at')
             ->when($limit, fn ($query) => $query->limit($limit))
@@ -894,6 +1006,27 @@ class FinanceController extends Controller
                 'description' => 'Completed '.$order->order_type?->value.' order',
                 'debit' => 0.0,
                 'credit' => (float) $order->total_amount,
+                'status' => 'Posted',
+            ]);
+
+        $houseCompEntries = Order::query()
+            ->with(['branch:id,name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('status', OrderStatus::COMPLETED->value)
+            ->where('covered_by_type', 'house')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderByDesc('created_at')
+            ->when($limit, fn ($query) => $query->limit($limit))
+            ->get()
+            ->map(fn (Order $order) => [
+                'date' => optional($order->created_at)?->toDateTimeString(),
+                'reference' => 'Order #'.$order->id,
+                'type' => 'Restaurant Hospitality',
+                'branch' => $order->branch?->name ?? 'All Branches',
+                'account' => 'Hospitality / Comp',
+                'description' => $order->covered_by_note ?: 'Completed hospitality order',
+                'debit' => (float) $order->total_amount,
+                'credit' => 0.0,
                 'status' => 'Posted',
             ]);
 

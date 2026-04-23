@@ -48,9 +48,17 @@ class OrderController extends Controller
             'order_type' => ['required', Rule::in(OrderType::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'branch_table_id' => 'nullable|exists:branch_tables,id',
+            'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
             'delivery_address' => 'nullable|string|max:2000',
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house', 'restaurant'])],
+            'covered_by_employee_id' => 'nullable|exists:employees,id',
+            'covered_by_note' => 'nullable|string|max:1000',
+            'discount_card_id' => [
+                'nullable',
+                Rule::exists('discount_cards', 'id')->where('is_active', true),
+            ],
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_size_id' => 'nullable|exists:product_sizes,id',
@@ -73,9 +81,17 @@ class OrderController extends Controller
             'order_type' => ['required', Rule::in(OrderType::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'branch_table_id' => 'nullable|exists:branch_tables,id',
+            'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:50',
             'delivery_address' => 'nullable|string|max:2000',
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house', 'restaurant'])],
+            'covered_by_employee_id' => 'nullable|exists:employees,id',
+            'covered_by_note' => 'nullable|string|max:1000',
+            'discount_card_id' => [
+                'nullable',
+                Rule::exists('discount_cards', 'id')->where('is_active', true),
+            ],
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_size_id' => 'nullable|exists:product_sizes,id',
@@ -97,6 +113,13 @@ class OrderController extends Controller
             'status' => ['required', Rule::in(OrderStatus::values())],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
+            'covered_by_type' => ['nullable', Rule::in(['customer', 'employee', 'house', 'restaurant'])],
+            'covered_by_employee_id' => 'nullable|exists:employees,id',
+            'covered_by_note' => 'nullable|string|max:1000',
+            'discount_card_id' => [
+                'nullable',
+                Rule::exists('discount_cards', 'id')->where('is_active', true),
+            ],
         ]);
 
         $service->updateStatus(
@@ -104,6 +127,10 @@ class OrderController extends Controller
             $validated['status'],
             $validated['payment_method'] ?? null,
             isset($validated['discount_amount']) ? (float) $validated['discount_amount'] : null,
+            isset($validated['discount_card_id']) ? (int) $validated['discount_card_id'] : null,
+            $validated['covered_by_type'] ?? null,
+            isset($validated['covered_by_employee_id']) ? (int) $validated['covered_by_employee_id'] : null,
+            $validated['covered_by_note'] ?? null,
             $request->user(),
         );
 

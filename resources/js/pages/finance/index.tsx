@@ -95,6 +95,8 @@ interface FinanceDashboardData {
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
+        employeeCoveredTotal: number;
+        houseCompTotal: number;
     };
     trend: Array<{
         date: string;
@@ -115,6 +117,11 @@ interface FinanceDashboardData {
     paymentBreakdown: Array<{
         method: string;
         amount: number;
+    }>;
+    coverageComparison: Array<{
+        label: string;
+        amount: number;
+        tone: 'sales' | 'employee' | 'house' | string;
     }>;
     ledgerStats: {
         accounts: number;
@@ -306,6 +313,18 @@ function ledgerStatusTone(status: string) {
     }
 
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
+}
+
+function coverageChartColor(tone: string) {
+    if (tone === 'employee') {
+        return '#2563eb';
+    }
+
+    if (tone === 'house') {
+        return '#d97706';
+    }
+
+    return '#14532d';
 }
 
 function SummaryCard({
@@ -697,6 +716,18 @@ export default function FinancePage({
                         icon={<Wallet className="h-5 w-5" />}
                     />
                     <SummaryCard
+                        title="Employee Covered"
+                        value={formatAfn(dashboard.summary.employeeCoveredTotal)}
+                        subtitle="Orders paid by employees on behalf of guests"
+                        icon={<Users className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title="Restaurant Hospitality"
+                        value={formatAfn(dashboard.summary.houseCompTotal)}
+                        subtitle="Hospitality and complimentary orders excluded from sales"
+                        icon={<Coins className="h-5 w-5" />}
+                    />
+                    <SummaryCard
                         title="Unpaid Salaries"
                         value={formatAfn(dashboard.summary.unpaidSalaries)}
                         subtitle="Current month salary and scheduled contract liabilities"
@@ -811,44 +842,34 @@ export default function FinancePage({
 
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Payment Breakdown</CardTitle>
+                            <CardTitle>Sales vs Covered Orders</CardTitle>
                             <CardDescription>
-                                Collected payment volume by recorded payment
-                                method. Orders without payment rows are shown as
-                                unassigned.
+                                Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            {dashboard.paymentBreakdown.length ? (
-                                dashboard.paymentBreakdown.map((item) => (
-                                    <div
-                                        key={item.method}
-                                        className="flex items-center justify-between rounded-2xl border border-neutral-200/80 px-4 py-3 dark:border-neutral-800"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-xl bg-neutral-950 p-2 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                                <Coins className="h-4 w-4" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-neutral-900 dark:text-neutral-100">
-                                                    {item.method}
-                                                </p>
-                                                <p className="text-xs text-neutral-500">
-                                                    Payment source
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-                                            {formatAfn(item.amount)}
-                                        </p>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                    No payment data is available for the
-                                    selected filters.
-                                </div>
-                            )}
+                        <CardContent>
+                            <div className="h-[320px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={dashboard.coverageComparison}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                        <YAxis
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value) => formatNumber(Number(value))}
+                                        />
+                                        <Tooltip formatter={(value: number) => formatAfn(value)} />
+                                        <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                                            {dashboard.coverageComparison.map((entry) => (
+                                                <Cell
+                                                    key={entry.label}
+                                                    fill={coverageChartColor(entry.tone)}
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

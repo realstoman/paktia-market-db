@@ -14,9 +14,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { BreadcrumbItem } from '@/types';
-import { cn } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Download, RefreshCcw } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -95,7 +95,10 @@ function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const kilo = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(kilo)), sizes.length - 1);
+    const i = Math.min(
+        Math.floor(Math.log(bytes) / Math.log(kilo)),
+        sizes.length - 1,
+    );
     return `${(bytes / Math.pow(kilo, i)).toFixed(1)} ${sizes[i]}`;
 }
 
@@ -109,16 +112,16 @@ function formatDateTime(value?: string | null): string {
 }
 
 const actionBadgeVariant: Record<string, string> = {
-    created: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-    updated: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    created:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    updated:
+        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
     deleted: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300',
     restored: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
 };
 
 function ActionBadge({ action }: { action: string }) {
-    const cls =
-        actionBadgeVariant[action] ??
-        'bg-muted text-muted-foreground';
+    const cls = actionBadgeVariant[action] ?? 'bg-muted text-muted-foreground';
 
     return (
         <span
@@ -151,9 +154,8 @@ export default function ActivityLogsIndexPage({
     const didMount = useRef(false);
 
     const perPage = logs.meta.per_page;
-    const startIndex = logs.meta.total === 0
-        ? 0
-        : (logs.meta.current_page - 1) * perPage + 1;
+    const startIndex =
+        logs.meta.total === 0 ? 0 : (logs.meta.current_page - 1) * perPage + 1;
     const endIndex = Math.min(
         logs.meta.current_page * perPage,
         logs.meta.total,
@@ -259,9 +261,12 @@ export default function ActivityLogsIndexPage({
                 <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
                     <div className="mb-4 flex items-center justify-between gap-2">
                         <div>
-                            <h2 className="text-lg font-semibold">Activity Logs</h2>
+                            <h2 className="text-lg font-semibold">
+                                Activity Logs
+                            </h2>
                             <p className="text-sm text-muted-foreground">
-                                Retained for 30 days. Older data is available in the monthly archives below.
+                                Retained for 30 days. Older data is available in
+                                the monthly archives below.
                             </p>
                         </div>
                         <Button
@@ -286,7 +291,10 @@ export default function ActivityLogsIndexPage({
                                 id="al-q"
                                 value={state.q}
                                 onChange={(e) =>
-                                    setState((s) => ({ ...s, q: e.target.value }))
+                                    setState((s) => ({
+                                        ...s,
+                                        q: e.target.value,
+                                    }))
                                 }
                                 placeholder="Search action, URL, values…"
                             />
@@ -315,10 +323,12 @@ export default function ActivityLogsIndexPage({
                                 value={state.auditable_type}
                                 options={[
                                     { value: '', label: 'All entities' },
-                                    ...referenceData.auditableTypes.map((type) => ({
-                                        value: type.value,
-                                        label: type.label,
-                                    })),
+                                    ...referenceData.auditableTypes.map(
+                                        (type) => ({
+                                            value: type.value,
+                                            label: type.label,
+                                        }),
+                                    ),
                                 ]}
                                 onValueChange={(value) =>
                                     setState((s) => ({
@@ -360,7 +370,10 @@ export default function ActivityLogsIndexPage({
                                     })),
                                 ]}
                                 onValueChange={(value) =>
-                                    setState((s) => ({ ...s, branch_id: value }))
+                                    setState((s) => ({
+                                        ...s,
+                                        branch_id: value,
+                                    }))
                                 }
                                 placeholder="All branches"
                                 searchPlaceholder="Search branches…"
@@ -373,7 +386,10 @@ export default function ActivityLogsIndexPage({
                                 type="date"
                                 value={state.from}
                                 onChange={(e) =>
-                                    setState((s) => ({ ...s, from: e.target.value }))
+                                    setState((s) => ({
+                                        ...s,
+                                        from: e.target.value,
+                                    }))
                                 }
                             />
                         </div>
@@ -384,17 +400,22 @@ export default function ActivityLogsIndexPage({
                                 type="date"
                                 value={state.to}
                                 onChange={(e) =>
-                                    setState((s) => ({ ...s, to: e.target.value }))
+                                    setState((s) => ({
+                                        ...s,
+                                        to: e.target.value,
+                                    }))
                                 }
                             />
                         </div>
                     </div>
 
                     <div className="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="ghost" onClick={resetFilters}>
+                        <Button variant="outline" onClick={resetFilters}>
                             Reset
                         </Button>
-                        <Button onClick={applyFilters}>Apply filters</Button>
+                        <Button variant={'outline'} onClick={applyFilters}>
+                            Apply filters
+                        </Button>
                     </div>
                 </div>
 
@@ -406,15 +427,27 @@ export default function ActivityLogsIndexPage({
                     </div>
                     <div className="overflow-x-auto rounded-md border border-border">
                         <table className="w-full text-sm">
-                            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                            <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                 <tr>
-                                    <th className="px-3 py-2 text-left">When</th>
-                                    <th className="px-3 py-2 text-left">User</th>
-                                    <th className="px-3 py-2 text-left">Action</th>
-                                    <th className="px-3 py-2 text-left">Entity</th>
-                                    <th className="px-3 py-2 text-left">Branch</th>
+                                    <th className="px-3 py-2 text-left">
+                                        When
+                                    </th>
+                                    <th className="px-3 py-2 text-left">
+                                        User
+                                    </th>
+                                    <th className="px-3 py-2 text-left">
+                                        Action
+                                    </th>
+                                    <th className="px-3 py-2 text-left">
+                                        Entity
+                                    </th>
+                                    <th className="px-3 py-2 text-left">
+                                        Branch
+                                    </th>
                                     <th className="px-3 py-2 text-left">IP</th>
-                                    <th className="px-3 py-2 text-right">Details</th>
+                                    <th className="px-3 py-2 text-right">
+                                        Details
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -424,7 +457,8 @@ export default function ActivityLogsIndexPage({
                                             colSpan={7}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
-                                            No activity found with these filters.
+                                            No activity found with these
+                                            filters.
                                         </td>
                                     </tr>
                                 ) : (
@@ -433,7 +467,7 @@ export default function ActivityLogsIndexPage({
                                             key={log.id}
                                             className="border-t border-border hover:bg-muted/30"
                                         >
-                                            <td className="whitespace-nowrap px-3 py-2 font-mono text-xs">
+                                            <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">
                                                 {formatDateTime(log.created_at)}
                                             </td>
                                             <td className="px-3 py-2">
@@ -453,17 +487,24 @@ export default function ActivityLogsIndexPage({
                                                 )}
                                             </td>
                                             <td className="px-3 py-2">
-                                                <ActionBadge action={log.action} />
+                                                <ActionBadge
+                                                    action={log.action}
+                                                />
                                             </td>
                                             <td className="px-3 py-2">
                                                 {log.auditable_type_short ? (
                                                     <div>
                                                         <span className="font-medium">
-                                                            {log.auditable_type_short}
+                                                            {
+                                                                log.auditable_type_short
+                                                            }
                                                         </span>
                                                         {log.auditable_id ? (
                                                             <span className="ms-1 text-xs text-muted-foreground">
-                                                                #{log.auditable_id}
+                                                                #
+                                                                {
+                                                                    log.auditable_id
+                                                                }
                                                             </span>
                                                         ) : null}
                                                     </div>
@@ -481,7 +522,9 @@ export default function ActivityLogsIndexPage({
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => setSelected(log)}
+                                                    onClick={() =>
+                                                        setSelected(log)
+                                                    }
                                                 >
                                                     View
                                                 </Button>
@@ -503,7 +546,9 @@ export default function ActivityLogsIndexPage({
                                     variant="outline"
                                     size="sm"
                                     disabled={logs.meta.current_page <= 1}
-                                    onClick={() => goToPage(logs.meta.current_page - 1)}
+                                    onClick={() =>
+                                        goToPage(logs.meta.current_page - 1)
+                                    }
                                 >
                                     <ChevronLeft className="me-1 size-4" />
                                     Previous
@@ -512,10 +557,11 @@ export default function ActivityLogsIndexPage({
                                     variant="outline"
                                     size="sm"
                                     disabled={
-                                        logs.meta.current_page >= logs.meta.last_page
+                                        logs.meta.current_page >=
+                                        logs.meta.last_page
                                     }
                                     onClick={() =>
-                                    goToPage(logs.meta.current_page + 1)
+                                        goToPage(logs.meta.current_page + 1)
                                     }
                                 >
                                     Next
@@ -528,27 +574,40 @@ export default function ActivityLogsIndexPage({
 
                 <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
                     <div className="mb-3">
-                        <h3 className="text-base font-semibold">Archived periods</h3>
+                        <h3 className="text-base font-semibold">
+                            Archived periods
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                            Download archived logs for record-keeping. Each archive is a
-                            gzipped JSON-lines file keyed by month.
+                            Download archived logs for record-keeping. Each
+                            archive is a gzipped JSON-lines file keyed by month.
                         </p>
                     </div>
 
                     {archives.length === 0 ? (
                         <p className="text-sm text-muted-foreground">
-                            No archives yet. Archives are generated daily at 02:45.
+                            No archives yet. Archives are generated daily at
+                            03:00 AM.
                         </p>
                     ) : (
                         <div className="overflow-x-auto rounded-md border border-border">
                             <table className="w-full text-sm">
-                                <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                                <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                     <tr>
-                                        <th className="px-3 py-2 text-left">Period</th>
-                                        <th className="px-3 py-2 text-right">Records</th>
-                                        <th className="px-3 py-2 text-right">Size</th>
-                                        <th className="px-3 py-2 text-left">Created</th>
-                                        <th className="px-3 py-2 text-right">Download</th>
+                                        <th className="px-3 py-2 text-left">
+                                            Period
+                                        </th>
+                                        <th className="px-3 py-2 text-right">
+                                            Records
+                                        </th>
+                                        <th className="px-3 py-2 text-right">
+                                            Size
+                                        </th>
+                                        <th className="px-3 py-2 text-left">
+                                            Created
+                                        </th>
+                                        <th className="px-3 py-2 text-right">
+                                            Download
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -564,10 +623,14 @@ export default function ActivityLogsIndexPage({
                                                 {archive.records_count.toLocaleString()}
                                             </td>
                                             <td className="px-3 py-2 text-right">
-                                                {formatBytes(archive.size_bytes)}
+                                                {formatBytes(
+                                                    archive.size_bytes,
+                                                )}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {formatDateTime(archive.created_at)}
+                                                {formatDateTime(
+                                                    archive.created_at,
+                                                )}
                                             </td>
                                             <td className="px-3 py-2 text-right">
                                                 <a
@@ -587,7 +650,10 @@ export default function ActivityLogsIndexPage({
                 </div>
             </div>
 
-            <Drawer open={selected !== null} onOpenChange={() => setSelected(null)}>
+            <Drawer
+                open={selected !== null}
+                onOpenChange={() => setSelected(null)}
+            >
                 <DrawerContent className="max-h-[85vh] overflow-auto">
                     {selected && (
                         <>
@@ -595,14 +661,19 @@ export default function ActivityLogsIndexPage({
                                 <DrawerTitle className="flex items-center gap-2">
                                     <ActionBadge action={selected.action} />
                                     <span>
-                                        {selected.auditable_type_short ?? 'System'}
-                                        {selected.auditable_id ? ` #${selected.auditable_id}` : ''}
+                                        {selected.auditable_type_short ??
+                                            'System'}
+                                        {selected.auditable_id
+                                            ? ` #${selected.auditable_id}`
+                                            : ''}
                                     </span>
                                 </DrawerTitle>
                                 <DrawerDescription>
                                     {formatDateTime(selected.created_at)} ·{' '}
                                     {selected.user?.name ?? 'system'}
-                                    {selected.url ? ` · ${selected.method} ${selected.url}` : ''}
+                                    {selected.url
+                                        ? ` · ${selected.method} ${selected.url}`
+                                        : ''}
                                 </DrawerDescription>
                             </DrawerHeader>
 
@@ -612,7 +683,9 @@ export default function ActivityLogsIndexPage({
                                         IP: {selected.ip_address ?? '—'}
                                     </Badge>
                                     <Badge variant="secondary">
-                                        Batch: {selected.batch_uuid?.slice(0, 8) ?? '—'}
+                                        Batch:{' '}
+                                        {selected.batch_uuid?.slice(0, 8) ??
+                                            '—'}
                                     </Badge>
                                     <Badge variant="secondary">
                                         Branch: {selected.branch?.name ?? '—'}
@@ -627,16 +700,21 @@ export default function ActivityLogsIndexPage({
                                     newValues={selected.new_values}
                                 />
 
-                                {selected.meta && Object.keys(selected.meta).length > 0 && (
-                                    <div>
-                                        <h4 className="mb-1 text-sm font-semibold">
-                                            Additional context
-                                        </h4>
-                                        <pre className="overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
-                                            {JSON.stringify(selected.meta, null, 2)}
-                                        </pre>
-                                    </div>
-                                )}
+                                {selected.meta &&
+                                    Object.keys(selected.meta).length > 0 && (
+                                        <div>
+                                            <h4 className="mb-1 text-sm font-semibold">
+                                                Additional context
+                                            </h4>
+                                            <pre className="overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
+                                                {JSON.stringify(
+                                                    selected.meta,
+                                                    null,
+                                                    2,
+                                                )}
+                                            </pre>
+                                        </div>
+                                    )}
                             </div>
                         </>
                     )}
