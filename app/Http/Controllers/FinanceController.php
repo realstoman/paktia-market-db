@@ -98,7 +98,7 @@ class FinanceController extends Controller
                 'tone' => 'employee',
             ],
             [
-                'label' => 'House Comp',
+                'label' => 'Restaurant Hospitality',
                 'amount' => (float) $houseCompTotal,
                 'tone' => 'house',
             ],
@@ -399,7 +399,7 @@ class FinanceController extends Controller
 
         if ($houseCompTotal > 0) {
             $paymentBreakdown->push([
-                'method' => 'House Comp',
+                'method' => 'Restaurant Hospitality',
                 'amount' => $houseCompTotal,
             ]);
         }
@@ -958,7 +958,7 @@ class FinanceController extends Controller
             ->map(fn (Order $order) => [
                 'date' => optional($order->created_at)?->toDateTimeString(),
                 'reference' => 'Order #'.$order->id,
-                'type' => 'House Comp',
+                'type' => 'Restaurant Hospitality',
                 'branch' => $order->branch?->name ?? 'All Branches',
                 'account' => 'Hospitality / Comp',
                 'description' => $order->covered_by_note ?: 'Completed hospitality order',

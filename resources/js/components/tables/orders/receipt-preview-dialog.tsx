@@ -50,7 +50,7 @@ interface ReceiptPreviewDialogProps {
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
-            coveredByType?: 'customer' | 'employee' | 'restaurant';
+            coveredByType?: 'customer' | 'employee' | 'house';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -132,11 +132,14 @@ export function ReceiptPreviewDialog({
             : '',
     );
     const [coveredByType, setCoveredByType] = useState<
-        'customer' | 'employee' | 'restaurant'
+        'customer' | 'employee' | 'house'
     >(
         order?.covered_by_type === 'employee' ||
+            order?.covered_by_type === 'house' ||
             order?.covered_by_type === 'restaurant'
-            ? order.covered_by_type
+            ? order.covered_by_type === 'restaurant'
+                ? 'house'
+                : order.covered_by_type
             : 'customer',
     );
     const [sponsorNote, setSponsorNote] = useState(
@@ -381,6 +384,8 @@ export function ReceiptPreviewDialog({
                 : null,
             coveredByNote: selectedSponsorEmployee
                 ? sponsorNote.trim() || null
+                : coveredByType === 'house'
+                  ? sponsorNote.trim() || null
                 : null,
         });
         setIsConfirmPaymentOpen(false);
@@ -500,7 +505,7 @@ export function ReceiptPreviewDialog({
                                                 const nextValue = value as
                                                     | 'customer'
                                                     | 'employee'
-                                                    | 'restaurant';
+                                                    | 'house';
                                                 setCoveredByType(nextValue);
                                                 if (nextValue !== 'employee') {
                                                     setSelectedSponsorEmployeeId(
@@ -526,7 +531,7 @@ export function ReceiptPreviewDialog({
                                                         'Employee Cover',
                                                     )}
                                                 </SelectItem>
-                                                <SelectItem value="restaurant">
+                                                <SelectItem value="house">
                                                     {t(
                                                         'orders.receipt.coveredByTypeRestaurant',
                                                         'Restaurant Hospitality',
@@ -550,7 +555,7 @@ export function ReceiptPreviewDialog({
                                             }
                                             disabled={
                                                 isPaymentCompleted ||
-                                                coveredByType === 'restaurant'
+                                                coveredByType === 'house'
                                             }
                                         >
                                             <SelectTrigger>
@@ -583,7 +588,7 @@ export function ReceiptPreviewDialog({
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        {coveredByType === 'restaurant' ? (
+                                        {coveredByType === 'house' ? (
                                             <p className="text-xs text-muted-foreground">
                                                 {t(
                                                     'orders.receipt.restaurantNote',
@@ -664,7 +669,7 @@ export function ReceiptPreviewDialog({
                                                 }
                                                 placeholder={
                                                     coveredByType ===
-                                                    'restaurant'
+                                                    'house'
                                                         ? t(
                                                               'orders.receipt.coveredByNoteRestaurantPlaceholder',
                                                               'Optional note such as owner hospitality, manager guest, or restaurant reason.',
@@ -688,7 +693,7 @@ export function ReceiptPreviewDialog({
                                                     'Employee cover',
                                                 )}
                                             </Badge>
-                                        ) : coveredByType === 'restaurant' ? (
+                                        ) : coveredByType === 'house' ? (
                                             <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
                                                 {t(
                                                     'orders.columns.restaurantComp',
@@ -716,7 +721,7 @@ export function ReceiptPreviewDialog({
                                                           'orders.receipt.coveredByEmployee',
                                                           'Covered By Employee',
                                                       )))
-                                                : coveredByType === 'restaurant'
+                                                : coveredByType === 'house'
                                                   ? t(
                                                         'orders.receipt.coveredByTypeRestaurant',
                                                         'Restaurant Hospitality',
@@ -773,7 +778,7 @@ export function ReceiptPreviewDialog({
                                                 ) : null}
                                             </div>
                                         ) : null}
-                                        {coveredByType === 'restaurant' ? (
+                                        {coveredByType === 'house' ? (
                                             <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
                                                 <p className="font-medium">
                                                     {t(

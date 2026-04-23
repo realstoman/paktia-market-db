@@ -826,7 +826,7 @@ export default function OperationsPage({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
-            coveredByType?: 'customer' | 'employee' | 'restaurant';
+            coveredByType?: 'customer' | 'employee' | 'house';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -835,7 +835,7 @@ export default function OperationsPage({
             order.sub_total_amount ?? order.total_amount ?? 0,
         );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
-        const isHouseComp = payload.coveredByType === 'restaurant';
+        const isHouseComp = payload.coveredByType === 'house';
 
         setIsCompletingPayment(true);
 

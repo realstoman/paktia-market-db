@@ -357,7 +357,7 @@ export default function OrdersPage({
                 coverageType === 'employee'
                     ? `Employee Cover${order.coveredByEmployee?.full_name ? ` (${order.coveredByEmployee.full_name})` : ''}`
                     : coverageType === 'house'
-                      ? 'House Comp'
+                      ? 'Restaurant Hospitality'
                       : 'Customer Payment';
 
             return [
@@ -468,7 +468,7 @@ export default function OrdersPage({
                     coverageType === 'employee'
                         ? `Employee Cover${order.coveredByEmployee?.full_name ? ` (${order.coveredByEmployee.full_name})` : ''}`
                         : coverageType === 'house'
-                          ? 'House Comp'
+                          ? 'Restaurant Hospitality'
                           : 'Customer Payment';
 
                 return `

@@ -722,7 +722,7 @@ export default function FinancePage({
                         icon={<Users className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="House Comp"
+                        title="Restaurant Hospitality"
                         value={formatAfn(dashboard.summary.houseCompTotal)}
                         subtitle="Hospitality and complimentary orders excluded from sales"
                         icon={<Coins className="h-5 w-5" />}
@@ -844,7 +844,7 @@ export default function FinancePage({
                         <CardHeader>
                             <CardTitle>Sales vs Covered Orders</CardTitle>
                             <CardDescription>
-                                Compare recognized sales with employee-covered and house-comp volume for the selected period.
+                                Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

@@ -249,14 +249,21 @@ class OrderService
         string $status,
         ?string $paymentMethod = null,
         ?float $discountAmount = null,
-        ?int $discountCardId = null,
+        int|User|null $discountCardId = null,
         ?string $coveredByType = null,
         ?int $coveredByEmployeeId = null,
         ?string $coveredByNote = null,
         ?User $actor = null,
     ): void
     {
-        $resolvedCoveredByType = $coveredByType ?? ($order->covered_by_type ?: 'customer');
+        if ($discountCardId instanceof User) {
+            $actor = $actor ?? $discountCardId;
+            $discountCardId = null;
+        }
+
+        $resolvedCoveredByType = $this->normalizeCoveredByType(
+            $coveredByType ?? ($order->covered_by_type ?: 'customer'),
+        );
 
         $this->assertStatusCanBeUpdated($order, $status, $actor, $paymentMethod, $resolvedCoveredByType);
 
@@ -505,6 +512,15 @@ class OrderService
                 'order' => 'You can only manage orders you created.',
             ]);
         }
+    }
+
+    private function normalizeCoveredByType(?string $coveredByType): string
+    {
+        return match ($coveredByType) {
+            'employee' => 'employee',
+            'house', 'restaurant' => 'house',
+            default => 'customer',
+        };
     }
 
     private function syncOrderPayment(

@@ -562,7 +562,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
-            coveredByType?: 'customer' | 'employee' | 'house' | 'restaurant';
+            coveredByType?: 'customer' | 'employee' | 'house';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -571,9 +571,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             order.sub_total_amount ?? order.total_amount ?? 0,
         );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
-        const isHouseComp =
-            payload.coveredByType === 'house' ||
-            payload.coveredByType === 'restaurant';
+        const isHouseComp = payload.coveredByType === 'house';
 
         setIsCompletingPayment(true);
 
@@ -1004,7 +1002,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             },
             {
                 value: 'house',
-                label: t('orders.columns.houseComp', 'House comp'),
+                label: t(
+                    'orders.receipt.coveredByTypeRestaurant',
+                    'Restaurant Hospitality',
+                ),
             },
         ],
         [t],
@@ -2105,8 +2106,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                       'customer') === 'house' ? (
                                     <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
                                         {t(
-                                            'orders.columns.houseComp',
-                                            'House comp',
+                                            'orders.receipt.coveredByTypeRestaurant',
+                                            'Restaurant Hospitality',
                                         )}
                                     </Badge>
                                 ) : (

@@ -202,7 +202,7 @@ export const buildColumns = ({
             if (coverageType === 'house') {
                 return (
                     <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                        {t('orders.columns.houseShort', 'House')}
+                        {t('orders.columns.restaurantComp', 'Restaurant')}
                     </Badge>
                 );
             }
