@@ -132,6 +132,23 @@ class PayrollController extends Controller
             ->where('remaining_balance', '>', 0)
             ->sum('remaining_balance');
 
+        $upcomingContractPayments = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
+            ? (float) EmployeeContractPaymentSchedule::query()
+                ->whereHas('contract', fn ($query) => $query->whereIn('status', ['submitted', 'approved', 'active']))
+                ->whereDate('due_date', '>=', now()->toDateString())
+                ->whereIn('status', ['submitted', 'approved'])
+                ->whereIn('id', function ($query) {
+                    $query->selectRaw('MIN(employee_contract_payment_schedules.id)')
+                        ->from('employee_contract_payment_schedules')
+                        ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                        ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                        ->whereDate('employee_contract_payment_schedules.due_date', '>=', now()->toDateString())
+                        ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                        ->groupBy('employee_contract_payment_schedules.employee_contract_id');
+                })
+                ->sum('amount')
+            : 0.0;
+
         $summary = [
             'activeEmployees' => $activeEmployees
                 ->filter(fn (Employee $employee) => $this->resolveBaseSalary($employee) > 0)
@@ -142,7 +159,7 @@ class PayrollController extends Controller
                 return collect($run['items'])
                     ->where('payment_status', '!=', 'paid')
                     ->sum('net_salary');
-            }),
+            }) + $upcomingContractPayments,
             'paidThisMonth' => (float) $runs
                 ->filter(fn (array $run) => ($run['paid_at'] ?? null) && str_starts_with($run['paid_at'], now()->format('Y-m')))
                 ->sum('net_total'),

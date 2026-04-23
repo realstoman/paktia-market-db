@@ -11,6 +11,7 @@ use App\Models\BranchTable;
 use App\Models\Customer;
 use App\Models\DiscountCard;
 use App\Models\Employee;
+use App\Models\EmployeeAdvance;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -549,16 +550,80 @@ class OrderService
 
         if ($payment) {
             $payment->update($payload);
-
+            $this->syncEmployeeCoveredOrderAdvance($order, $settlementType);
             return;
         }
 
         $order->payments()->create($payload);
+        $this->syncEmployeeCoveredOrderAdvance($order, $settlementType);
     }
 
     private function clearOrderPayment(Order $order): void
     {
         $order->payments()->delete();
+        $this->clearEmployeeCoveredOrderAdvance($order);
+    }
+
+    private function syncEmployeeCoveredOrderAdvance(Order $order, string $settlementType): void
+    {
+        if ($settlementType !== 'employee') {
+            $this->clearEmployeeCoveredOrderAdvance($order);
+            return;
+        }
+
+        $employeeId = (int) ($order->covered_by_employee_id ?? 0);
+        $amount = (float) ($order->total_amount ?? 0);
+
+        if ($employeeId <= 0 || $amount <= 0) {
+            return;
+        }
+
+        $reason = $this->employeeCoveredOrderAdvanceReason($order);
+        $advance = EmployeeAdvance::query()
+            ->where('employee_id', $employeeId)
+            ->where('reason', $reason)
+            ->first();
+
+        $deductedAmount = (float) ($advance?->deducted_amount ?? 0);
+
+        EmployeeAdvance::query()->updateOrCreate(
+            [
+                'employee_id' => $employeeId,
+                'reason' => $reason,
+            ],
+            [
+                'branch_id' => $order->branch_id,
+                'advance_date' => now()->toDateString(),
+                'amount' => $amount,
+                'deducted_amount' => $deductedAmount,
+                'remaining_balance' => max(0, $amount - $deductedAmount),
+                'repayment_method' => 'salary_deduction',
+                'status' => 'approved',
+                'created_by' => $order->user_id,
+            ],
+        );
+    }
+
+    private function clearEmployeeCoveredOrderAdvance(Order $order): void
+    {
+        $reason = $this->employeeCoveredOrderAdvanceReason($order);
+
+        EmployeeAdvance::query()
+            ->where('reason', $reason)
+            ->where('deducted_amount', '<=', 0)
+            ->delete();
+
+        EmployeeAdvance::query()
+            ->where('reason', $reason)
+            ->where('deducted_amount', '>', 0)
+            ->update([
+                'remaining_balance' => 0,
+            ]);
+    }
+
+    private function employeeCoveredOrderAdvanceReason(Order $order): string
+    {
+        return 'Employee covered order #'.$order->id;
     }
 
     private function syncOrderAmounts(Order $order, float|int $subTotal): void

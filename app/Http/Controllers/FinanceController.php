@@ -199,6 +199,30 @@ class FinanceController extends Controller
                 ->pluck('payroll_run_items.employee_id')
             : collect();
 
+        $paidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_run_items')
+                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
+                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
+                ->where('payroll_run_items.salary_type', 'fixed_salary')
+                ->where('payroll_run_items.payment_status', 'paid')
+                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
+                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
+                ->distinct()
+                ->pluck('payroll_run_items.employee_id')
+            : collect();
+
+        $unpaidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
+            ? DB::table('payroll_run_items')
+                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
+                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
+                ->where('payroll_run_items.salary_type', 'fixed_salary')
+                ->where('payroll_run_items.payment_status', '!=', 'paid')
+                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
+                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
+                ->distinct()
+                ->pluck('payroll_run_items.employee_id')
+            : collect();
+
         $unpaidFixedSalaryTotal = (float) $fixedSalaryPayrollItems->sum('total');
 
         $fallbackFixedSalaryTotal = Schema::hasTable('employees')
@@ -209,6 +233,23 @@ class FinanceController extends Controller
                 ->when(
                     $fixedSalaryHandledEmployeeIds->isNotEmpty(),
                     fn ($query) => $query->whereNotIn('id', $fixedSalaryHandledEmployeeIds->all()),
+                )
+                ->sum('salary')
+            : 0.0;
+
+        $upcomingFixedSalaryTotal = Schema::hasTable('employees') && $endDate->isCurrentMonth()
+            ? (float) DB::table('employees')
+                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+                ->where('is_active', true)
+                ->where('salary', '>', 0)
+                ->when(
+                    $paidFixedSalaryEmployeeIds->isNotEmpty(),
+                    fn ($query) => $query->whereIn('id', $paidFixedSalaryEmployeeIds->all()),
+                    fn ($query) => $query->whereRaw('1 = 0'),
+                )
+                ->when(
+                    $unpaidFixedSalaryEmployeeIds->isNotEmpty(),
+                    fn ($query) => $query->whereNotIn('id', $unpaidFixedSalaryEmployeeIds->all()),
                 )
                 ->sum('salary')
             : 0.0;
@@ -257,10 +298,32 @@ class FinanceController extends Controller
                 ->sum('employee_contract_payment_schedules.amount')
             : 0.0;
 
+        $upcomingContractScheduleTotal = Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
+            ? (float) DB::table('employee_contract_payment_schedules')
+                ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                ->when($branchId, fn ($query) => $query->where('employee_contracts.branch_id', $branchId))
+                ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
+                ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                ->whereIn('employee_contract_payment_schedules.id', function ($query) use ($branchId, $liabilityMonthEnd) {
+                    $query->selectRaw('MIN(employee_contract_payment_schedules.id)')
+                        ->from('employee_contract_payment_schedules')
+                        ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
+                        ->when($branchId, fn ($subQuery) => $subQuery->where('employee_contracts.branch_id', $branchId))
+                        ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
+                        ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
+                        ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
+                        ->groupBy('employee_contract_payment_schedules.employee_contract_id');
+                })
+                ->sum('employee_contract_payment_schedules.amount')
+            : 0.0;
+
         $unpaidSalaries = $unpaidFixedSalaryTotal
             + $fallbackFixedSalaryTotal
+            + $upcomingFixedSalaryTotal
             + $unpaidContractPayrollTotal
-            + $fallbackContractScheduleTotal;
+            + $fallbackContractScheduleTotal
+            + $upcomingContractScheduleTotal;
 
         $weightedCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
             ? (float) DB::table('inventory_transactions')
