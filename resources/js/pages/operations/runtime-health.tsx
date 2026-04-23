@@ -134,19 +134,15 @@ function formatTimestamp(value?: string | null) {
     });
 }
 
-function Metric({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | number;
-}) {
+function Metric({ label, value }: { label: string; value: string | number }) {
     return (
         <div className="rounded-xl border border-border/60 bg-background/80 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
                 {label}
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
+            <p className="mt-1 text-lg font-semibold text-foreground">
+                {value}
+            </p>
         </div>
     );
 }
@@ -164,7 +160,7 @@ export default function RuntimeHealthPage({
                 <section className="rounded-3xl border border-border/60 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-6 shadow-sm dark:from-brand-bg-dark dark:via-brand-bg-dark dark:to-emerald-950/20">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div className="max-w-3xl space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
                                 <Activity className="h-3.5 w-3.5" />
                                 Operations Runtime
                             </div>
@@ -191,54 +187,71 @@ export default function RuntimeHealthPage({
                                 Projection Health
                             </CardTitle>
                             <CardDescription>
-                                Branch-day summary freshness and lag against recent activity.
+                                Branch-day summary freshness and lag against
+                                recent activity.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.projection.status)}`}>
+                            <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.projection.status)}`}
+                            >
                                 {components.projection.message}
                             </div>
                             <div className="grid gap-3 md:grid-cols-3">
                                 <Metric
                                     label="Critical Branches"
-                                    value={formatNumber(components.projection.criticalBranchCount)}
+                                    value={formatNumber(
+                                        components.projection
+                                            .criticalBranchCount,
+                                    )}
                                 />
                                 <Metric
                                     label="Warning Branches"
-                                    value={formatNumber(components.projection.warningBranchCount)}
+                                    value={formatNumber(
+                                        components.projection
+                                            .warningBranchCount,
+                                    )}
                                 />
                                 <Metric
                                     label="Latest Projection"
-                                    value={formatTimestamp(components.projection.latestProjectionAt)}
+                                    value={formatTimestamp(
+                                        components.projection
+                                            .latestProjectionAt,
+                                    )}
                                 />
                             </div>
                             <div className="space-y-2">
                                 {components.projection.branches.length > 0 ? (
-                                    components.projection.branches.map((branch) => (
-                                        <div
-                                            key={branch.branchId}
-                                            className="rounded-2xl border border-border/60 p-3"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <div>
-                                                    <p className="font-medium text-foreground">
-                                                        {branch.branchName}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {branch.message}
-                                                    </p>
+                                    components.projection.branches.map(
+                                        (branch) => (
+                                            <div
+                                                key={branch.branchId}
+                                                className="rounded-2xl border border-border/60 p-3"
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <p className="font-medium text-foreground">
+                                                            {branch.branchName}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {branch.message}
+                                                        </p>
+                                                    </div>
+                                                    <span
+                                                        className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(branch.status as HealthStatus)}`}
+                                                    >
+                                                        {statusLabel(
+                                                            branch.status as HealthStatus,
+                                                        )}
+                                                    </span>
                                                 </div>
-                                                <span
-                                                    className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(branch.status as HealthStatus)}`}
-                                                >
-                                                    {statusLabel(branch.status as HealthStatus)}
-                                                </span>
                                             </div>
-                                        </div>
-                                    ))
+                                        ),
+                                    )
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No branch-level projection issues are currently surfaced.
+                                        No branch-level projection issues are
+                                        currently surfaced.
                                     </p>
                                 )}
                             </div>
@@ -252,33 +265,50 @@ export default function RuntimeHealthPage({
                                 Queue Health
                             </CardTitle>
                             <CardDescription>
-                                Queue connection, backlog pressure, and failed-job signal.
+                                Queue connection, backlog pressure, and
+                                failed-job signal.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.queue.status)}`}>
+                            <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.queue.status)}`}
+                            >
                                 {components.queue.message}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
-                                <Metric label="Connection" value={components.queue.connection} />
-                                <Metric label="Driver" value={components.queue.driver} />
+                                <Metric
+                                    label="Connection"
+                                    value={components.queue.connection}
+                                />
+                                <Metric
+                                    label="Driver"
+                                    value={components.queue.driver}
+                                />
                                 <Metric
                                     label="Pending Jobs"
-                                    value={formatNumber(components.queue.pendingJobs ?? 0)}
+                                    value={formatNumber(
+                                        components.queue.pendingJobs ?? 0,
+                                    )}
                                 />
                                 <Metric
                                     label="Failed Jobs"
-                                    value={formatNumber(components.queue.failedJobs ?? 0)}
+                                    value={formatNumber(
+                                        components.queue.failedJobs ?? 0,
+                                    )}
                                 />
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
                                     label="Oldest Pending"
-                                    value={formatTimestamp(components.queue.oldestPendingAt)}
+                                    value={formatTimestamp(
+                                        components.queue.oldestPendingAt,
+                                    )}
                                 />
                                 <Metric
                                     label="Latest Failure"
-                                    value={formatTimestamp(components.queue.latestFailedAt)}
+                                    value={formatTimestamp(
+                                        components.queue.latestFailedAt,
+                                    )}
                                 />
                             </div>
                         </CardContent>
@@ -291,21 +321,30 @@ export default function RuntimeHealthPage({
                                 Recent Refresh
                             </CardTitle>
                             <CardDescription>
-                                Heartbeat for the scheduled recent-window projection rebuild.
+                                Heartbeat for the scheduled recent-window
+                                projection rebuild.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.recentRefresh.status)}`}>
+                            <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.recentRefresh.status)}`}
+                            >
                                 {components.recentRefresh.message}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
                                     label="Last Successful Refresh"
-                                    value={formatTimestamp(components.recentRefresh.lastSuccessfulAt)}
+                                    value={formatTimestamp(
+                                        components.recentRefresh
+                                            .lastSuccessfulAt,
+                                    )}
                                 />
                                 <Metric
                                     label="Age (Minutes)"
-                                    value={formatNumber(components.recentRefresh.ageMinutes ?? 0)}
+                                    value={formatNumber(
+                                        components.recentRefresh.ageMinutes ??
+                                            0,
+                                    )}
                                 />
                             </div>
                         </CardContent>
@@ -318,39 +357,54 @@ export default function RuntimeHealthPage({
                                 Branch Sync Activity
                             </CardTitle>
                             <CardDescription>
-                                Active branch-local sync credentials and recent usage footprint.
+                                Active branch-local sync credentials and recent
+                                usage footprint.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.sync.status)}`}>
+                            <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.sync.status)}`}
+                            >
                                 {components.sync.message}
                             </div>
                             <div className="grid gap-3 md:grid-cols-3">
                                 <Metric
                                     label="Active"
-                                    value={formatNumber(components.sync.activeCredentials)}
+                                    value={formatNumber(
+                                        components.sync.activeCredentials,
+                                    )}
                                 />
                                 <Metric
                                     label="Recently Used"
-                                    value={formatNumber(components.sync.recentlyUsedCredentials)}
+                                    value={formatNumber(
+                                        components.sync.recentlyUsedCredentials,
+                                    )}
                                 />
                                 <Metric
                                     label="Stale"
-                                    value={formatNumber(components.sync.staleCredentials)}
+                                    value={formatNumber(
+                                        components.sync.staleCredentials,
+                                    )}
                                 />
                             </div>
                             <div className="grid gap-3 md:grid-cols-3">
                                 <Metric
                                     label="Revoked"
-                                    value={formatNumber(components.sync.revokedCredentials)}
+                                    value={formatNumber(
+                                        components.sync.revokedCredentials,
+                                    )}
                                 />
                                 <Metric
                                     label="Expired"
-                                    value={formatNumber(components.sync.expiredCredentials)}
+                                    value={formatNumber(
+                                        components.sync.expiredCredentials,
+                                    )}
                                 />
                                 <Metric
                                     label="Latest Usage"
-                                    value={formatTimestamp(components.sync.latestUsedAt)}
+                                    value={formatTimestamp(
+                                        components.sync.latestUsedAt,
+                                    )}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -366,19 +420,28 @@ export default function RuntimeHealthPage({
                                                         {branch.branchName}
                                                     </p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        {formatNumber(branch.recentlyUsedCredentialCount)} recently used of{' '}
-                                                        {formatNumber(branch.activeCredentialCount)} active credentials
+                                                        {formatNumber(
+                                                            branch.recentlyUsedCredentialCount,
+                                                        )}{' '}
+                                                        recently used of{' '}
+                                                        {formatNumber(
+                                                            branch.activeCredentialCount,
+                                                        )}{' '}
+                                                        active credentials
                                                     </p>
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {formatTimestamp(branch.latestUsedAt)}
+                                                    {formatTimestamp(
+                                                        branch.latestUsedAt,
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No branch sync credentials are active yet.
+                                        No branch sync credentials are active
+                                        yet.
                                     </p>
                                 )}
                             </div>
@@ -396,13 +459,20 @@ export default function RuntimeHealthPage({
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm text-muted-foreground">
                             <p>
-                                Projection health tells us whether summary widgets are safe to trust for current branch activity.
+                                Projection health tells us whether summary
+                                widgets are safe to trust for current branch
+                                activity.
                             </p>
                             <p>
-                                Queue health is the best early signal that projection jobs, sync tasks, and future branch-local replication can fall behind.
+                                Queue health is the best early signal that
+                                projection jobs, sync tasks, and future
+                                branch-local replication can fall behind.
                             </p>
                             <p>
-                                Redis availability matters because the local-first rollout depends on fast cache and queue services to stay resilient during network instability.
+                                Redis availability matters because the
+                                local-first rollout depends on fast cache and
+                                queue services to stay resilient during network
+                                instability.
                             </p>
                         </CardContent>
                     </Card>
@@ -414,15 +484,21 @@ export default function RuntimeHealthPage({
                                 Redis Runtime
                             </CardTitle>
                             <CardDescription>
-                                Cache and queue readiness for branch-local deployment.
+                                Cache and queue readiness for branch-local
+                                deployment.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.redis.status)}`}>
+                            <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.redis.status)}`}
+                            >
                                 {components.redis.message}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
-                                <Metric label="Cache Store" value={components.redis.cacheStore} />
+                                <Metric
+                                    label="Cache Store"
+                                    value={components.redis.cacheStore}
+                                />
                                 <Metric
                                     label="POS Cache Store"
                                     value={components.redis.posCacheStore}
@@ -433,7 +509,9 @@ export default function RuntimeHealthPage({
                                 />
                                 <Metric
                                     label="Latency (ms)"
-                                    value={formatNumber(components.redis.latencyMs ?? 0)}
+                                    value={formatNumber(
+                                        components.redis.latencyMs ?? 0,
+                                    )}
                                 />
                             </div>
                         </CardContent>

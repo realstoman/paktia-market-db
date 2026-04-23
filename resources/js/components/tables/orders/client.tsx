@@ -562,7 +562,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
-            coveredByType?: 'customer' | 'employee' | 'house';
+            coveredByType?: 'customer' | 'employee' | 'house' | 'restaurant';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -571,7 +571,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             order.sub_total_amount ?? order.total_amount ?? 0,
         );
         const finalTotal = Math.max(0, subtotal - payload.discountAmount);
-        const isHouseComp = payload.coveredByType === 'house';
+        const isHouseComp =
+            payload.coveredByType === 'house' ||
+            payload.coveredByType === 'restaurant';
 
         setIsCompletingPayment(true);
 
@@ -612,8 +614,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         coveredByEmployee:
                             sponsorEmployees.find(
                                 (employee) =>
-                                    employee.id ===
-                                    payload.coveredByEmployeeId,
+                                    employee.id === payload.coveredByEmployeeId,
                             ) ?? order.coveredByEmployee,
                         total_amount: finalTotal,
                         paid_amount: isHouseComp ? 0 : finalTotal,
@@ -2088,19 +2089,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         selectedOrder.source ?? 'pos',
                                     )}
                                 </Badge>
-                                {(selectedOrder.covered_by_type ?? 'customer') ===
-                                'employee' ? (
+                                {(selectedOrder.covered_by_type ??
+                                    'customer') === 'employee' ? (
                                     <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
                                         {t(
                                             'orders.columns.employeeCover',
                                             'Employee cover',
                                         )}
-                                        {selectedOrder.coveredByEmployee?.full_name
+                                        {selectedOrder.coveredByEmployee
+                                            ?.full_name
                                             ? ` • ${selectedOrder.coveredByEmployee.full_name}`
                                             : ''}
                                     </Badge>
-                                ) : (selectedOrder.covered_by_type ?? 'customer') ===
-                                  'house' ? (
+                                ) : (selectedOrder.covered_by_type ??
+                                      'customer') === 'house' ? (
                                     <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
                                         {t(
                                             'orders.columns.houseComp',
@@ -2253,7 +2255,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             )}
                                         </p>
                                         <p className="font-medium">
-                                            {selectedOrder.covered_by_note ?? '-'}
+                                            {selectedOrder.covered_by_note ??
+                                                '-'}
                                         </p>
                                     </div>
                                 </div>

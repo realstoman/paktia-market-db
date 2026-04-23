@@ -1,7 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
+import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import {
     BadgeCheck,
@@ -14,11 +19,6 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatNumber } from '@/utils/format';
 
 interface KitchenTicketItem {
     id: number;
@@ -99,11 +99,17 @@ export function KitchenDashboard({
     const statusLabel = (status: KitchenTicket['ticket_status']) => {
         switch (status) {
             case 'in_progress':
-                return t('orders.kitchenDashboard.status.preparing', 'Preparing');
+                return t(
+                    'orders.kitchenDashboard.status.preparing',
+                    'Preparing',
+                );
             case 'ready':
                 return t('orders.kitchenDashboard.status.ready', 'Ready');
             case 'delivered':
-                return t('orders.kitchenDashboard.status.delivered', 'Delivered');
+                return t(
+                    'orders.kitchenDashboard.status.delivered',
+                    'Delivered',
+                );
             default:
                 return t('orders.kitchenDashboard.status.new', 'New');
         }
@@ -112,11 +118,17 @@ export function KitchenDashboard({
     const itemStatusLabel = (status: KitchenTicketItem['prep_status']) => {
         switch (status) {
             case 'in_progress':
-                return t('orders.kitchenDashboard.status.preparing', 'Preparing');
+                return t(
+                    'orders.kitchenDashboard.status.preparing',
+                    'Preparing',
+                );
             case 'ready':
                 return t('orders.kitchenDashboard.status.ready', 'Ready');
             case 'delivered':
-                return t('orders.kitchenDashboard.status.delivered', 'Delivered');
+                return t(
+                    'orders.kitchenDashboard.status.delivered',
+                    'Delivered',
+                );
             default:
                 return t('dashboard.pending', 'Pending');
         }
@@ -124,9 +136,15 @@ export function KitchenDashboard({
 
     const groupedQueue = useMemo(
         () => ({
-            pending: kitchenQueue.filter((ticket) => ticket.ticket_status === 'pending'),
-            inProgress: kitchenQueue.filter((ticket) => ticket.ticket_status === 'in_progress'),
-            ready: kitchenQueue.filter((ticket) => ticket.ticket_status === 'ready'),
+            pending: kitchenQueue.filter(
+                (ticket) => ticket.ticket_status === 'pending',
+            ),
+            inProgress: kitchenQueue.filter(
+                (ticket) => ticket.ticket_status === 'in_progress',
+            ),
+            ready: kitchenQueue.filter(
+                (ticket) => ticket.ticket_status === 'ready',
+            ),
         }),
         [kitchenQueue],
     );
@@ -134,8 +152,8 @@ export function KitchenDashboard({
     useEffect(() => {
         const interval = window.setInterval(() => {
             router.reload({
-                preserveScroll: true,
-                preserveState: true,
+                // preserveScroll: true,
+                // preserveState: true,
                 only: [
                     'mode',
                     'branchId',
@@ -153,11 +171,15 @@ export function KitchenDashboard({
     }, []);
 
     useEffect(() => {
-        const currentPendingIds = groupedQueue.pending.map((ticket) => ticket.order_id);
+        const currentPendingIds = groupedQueue.pending.map(
+            (ticket) => ticket.order_id,
+        );
         const previousIds = previousQueueRef.current;
 
         if (previousIds.length > 0) {
-            const hasNewTicket = currentPendingIds.some((id) => !previousIds.includes(id));
+            const hasNewTicket = currentPendingIds.some(
+                (id) => !previousIds.includes(id),
+            );
 
             if (hasNewTicket) {
                 toast.success(
@@ -185,17 +207,30 @@ export function KitchenDashboard({
 
     const resolveItemName = (item: KitchenTicketItem) => {
         if (locale === 'ps') {
-            return item.pashto_name?.trim() || item.dari_name?.trim() || item.name || '';
+            return (
+                item.pashto_name?.trim() ||
+                item.dari_name?.trim() ||
+                item.name ||
+                ''
+            );
         }
 
         if (locale === 'fa') {
-            return item.dari_name?.trim() || item.pashto_name?.trim() || item.name || '';
+            return (
+                item.dari_name?.trim() ||
+                item.pashto_name?.trim() ||
+                item.name ||
+                ''
+            );
         }
 
         return item.name || '';
     };
 
-    const mutateItem = (itemId: number, action: 'start' | 'ready' | 'delivered') => {
+    const mutateItem = (
+        itemId: number,
+        action: 'start' | 'ready' | 'delivered',
+    ) => {
         router.post(`/kitchen/order-items/${itemId}/${action}`, undefined, {
             preserveScroll: true,
             preserveState: true,
@@ -264,7 +299,10 @@ export function KitchenDashboard({
         );
         const tableLabel = t('orders.form.tableNumber', 'Table Number');
         const orderLabel = t('orders.receipt.order', 'Order');
-        const preparedLabel = t('orders.kitchenDashboard.preparedAt', 'Prepared');
+        const preparedLabel = t(
+            'orders.kitchenDashboard.preparedAt',
+            'Prepared',
+        );
         const completedAndDeliveredLabel = t(
             'orders.kitchenDashboard.completedAndDelivered',
             'Completed and delivered',
@@ -415,105 +453,136 @@ export function KitchenDashboard({
             ) : (
                 <>
                     <div className="grid gap-4 xl:grid-cols-4">
-                            {[
-                                {
-                                    key: 'pending',
-                                    title: t(
-                                        'orders.kitchenDashboard.status.new',
-                                        'New',
-                                    ),
-                                    tickets: groupedQueue.pending,
-                                },
-                                {
-                                    key: 'in-progress',
-                                    title: t(
-                                        'orders.kitchenDashboard.status.preparing',
-                                        'Preparing',
-                                    ),
-                                    tickets: groupedQueue.inProgress,
-                                },
-                                {
-                                    key: 'ready',
-                                    title: t(
-                                        'orders.kitchenDashboard.status.ready',
-                                        'Ready',
-                                    ),
-                                    tickets: groupedQueue.ready,
-                                },
-                            ].map((column) => (
-                                <Card key={column.key} className="min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px] border-neutral-200/70 shadow-none">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="flex items-center justify-between text-base">
-                                            <span>{column.title}</span>
-                                            <span className="text-sm text-muted-foreground">{formatNumber(column.tickets.length)}</span>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="min-h-0 px-4 pb-4">
-                                        <ScrollArea className="h-[calc(100svh-12.5rem)] min-h-[620px] pr-3">
-                                            <div className="space-y-3">
-                                                {column.tickets.map((ticket) => (
-                                                    <div
-                                                        key={
-                                                            ticket.ticket_key ??
-                                                            `${ticket.order_id}-${ticket.ticket_status}`
-                                                        }
-                                                        className={`rounded-2xl border p-4 ${ticketTone(ticket.ticket_status)}`}
-                                                    >
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <div>
-                                                                <p className="text-base font-semibold">
-                                                                    {t(
-                                                                        'orders.receipt.order',
-                                                                        'Order',
-                                                                    )}{' '}
-                                                                    #{ticket.order_id}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {t(
-                                                                        `dashboard.${ticket.order_type === 'dine_in' ? 'dineIn' : ticket.order_type}`,
-                                                                        ticket.order_type.replace(
-                                                                            '_',
-                                                                            ' ',
-                                                                        ),
-                                                                    )}
-                                                                    {ticket.table_number
-                                                                        ? ` • ${t('orders.form.tableNumber', 'Table Number')} ${ticket.table_number}`
-                                                                        : ''}
-                                                                </p>
-                                                            </div>
-                                                            <span className="rounded-full border bg-white/80 px-2.5 py-1 text-xs font-medium">
-                                                                {statusLabel(ticket.ticket_status)}
-                                                            </span>
+                        {[
+                            {
+                                key: 'pending',
+                                title: t(
+                                    'orders.kitchenDashboard.status.new',
+                                    'New',
+                                ),
+                                tickets: groupedQueue.pending,
+                            },
+                            {
+                                key: 'in-progress',
+                                title: t(
+                                    'orders.kitchenDashboard.status.preparing',
+                                    'Preparing',
+                                ),
+                                tickets: groupedQueue.inProgress,
+                            },
+                            {
+                                key: 'ready',
+                                title: t(
+                                    'orders.kitchenDashboard.status.ready',
+                                    'Ready',
+                                ),
+                                tickets: groupedQueue.ready,
+                            },
+                        ].map((column) => (
+                            <Card
+                                key={column.key}
+                                className="min-h-[760px] border-neutral-200/70 shadow-none xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px]"
+                            >
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center justify-between text-base">
+                                        <span>{column.title}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            {formatNumber(
+                                                column.tickets.length,
+                                            )}
+                                        </span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="min-h-0 px-4 pb-4">
+                                    <ScrollArea className="h-[calc(100svh-12.5rem)] min-h-[620px] pr-3">
+                                        <div className="space-y-3">
+                                            {column.tickets.map((ticket) => (
+                                                <div
+                                                    key={
+                                                        ticket.ticket_key ??
+                                                        `${ticket.order_id}-${ticket.ticket_status}`
+                                                    }
+                                                    className={`rounded-2xl border p-4 ${ticketTone(ticket.ticket_status)}`}
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-base font-semibold">
+                                                                {t(
+                                                                    'orders.receipt.order',
+                                                                    'Order',
+                                                                )}{' '}
+                                                                #
+                                                                {
+                                                                    ticket.order_id
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {t(
+                                                                    `dashboard.${ticket.order_type === 'dine_in' ? 'dineIn' : ticket.order_type}`,
+                                                                    ticket.order_type.replace(
+                                                                        '_',
+                                                                        ' ',
+                                                                    ),
+                                                                )}
+                                                                {ticket.table_number
+                                                                    ? ` • ${t('orders.form.tableNumber', 'Table Number')} ${ticket.table_number}`
+                                                                    : ''}
+                                                            </p>
                                                         </div>
+                                                        <span className="rounded-full border bg-white/80 px-2.5 py-1 text-xs font-medium">
+                                                            {statusLabel(
+                                                                ticket.ticket_status,
+                                                            )}
+                                                        </span>
+                                                    </div>
 
-                                                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                                            <span className="inline-flex items-center gap-1">
-                                                                <Clock3 className="h-3.5 w-3.5" />
-                                                                {ticket.elapsed_label ??
-                                                                    t(
-                                                                        'orders.kitchenDashboard.now',
-                                                                        'now',
-                                                                    )}
+                                                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <Clock3 className="h-3.5 w-3.5" />
+                                                            {ticket.elapsed_label ??
+                                                                t(
+                                                                    'orders.kitchenDashboard.now',
+                                                                    'now',
+                                                                )}
+                                                        </span>
+                                                        {ticket.server_name ? (
+                                                            <span>
+                                                                {t(
+                                                                    'orders.kitchenDashboard.by',
+                                                                    'By',
+                                                                )}{' '}
+                                                                {
+                                                                    ticket.server_name
+                                                                }
                                                             </span>
-                                                            {ticket.server_name ? (
-                                                                <span>
-                                                                    {t(
-                                                                        'orders.kitchenDashboard.by',
-                                                                        'By',
-                                                                    )}{' '}
-                                                                    {ticket.server_name}
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
+                                                        ) : null}
+                                                    </div>
 
-                                                        <div className="mt-3 space-y-2">
-                                                            {ticket.items.map((item) => (
-                                                                <div key={item.id} className="rounded-xl bg-white/80 p-3">
+                                                    <div className="mt-3 space-y-2">
+                                                        {ticket.items.map(
+                                                            (item) => (
+                                                                <div
+                                                                    key={
+                                                                        item.id
+                                                                    }
+                                                                    className="rounded-xl bg-white/80 p-3"
+                                                                >
                                                                     <div className="flex items-start justify-between gap-3">
                                                                         <div>
-                                                                            <p className="font-medium">{resolveItemName(item)}</p>
+                                                                            <p className="font-medium">
+                                                                                {resolveItemName(
+                                                                                    item,
+                                                                                )}
+                                                                            </p>
                                                                             <p className="text-xs text-muted-foreground">
-                                                                                {formatNumber(item.quantity)} x {formatNumber(item.price)} AFN
+                                                                                {formatNumber(
+                                                                                    item.quantity,
+                                                                                )}{' '}
+                                                                                x{' '}
+                                                                                {formatNumber(
+                                                                                    item.price,
+                                                                                )}{' '}
+                                                                                AFN
                                                                             </p>
                                                                             {item.note ? (
                                                                                 <p className="mt-1 text-xs text-muted-foreground">
@@ -521,7 +590,11 @@ export function KitchenDashboard({
                                                                                         'orders.kitchenDashboard.note',
                                                                                         'Note',
                                                                                     )}
-                                                                                    : {item.note}
+
+                                                                                    :{' '}
+                                                                                    {
+                                                                                        item.note
+                                                                                    }
                                                                                 </p>
                                                                             ) : null}
                                                                         </div>
@@ -532,11 +605,17 @@ export function KitchenDashboard({
                                                                         </span>
                                                                     </div>
                                                                     <div className="mt-3 flex flex-wrap gap-2">
-                                                                        {item.prep_status === 'pending' ? (
+                                                                        {item.prep_status ===
+                                                                        'pending' ? (
                                                                             <Button
                                                                                 size="sm"
                                                                                 variant="outline"
-                                                                                onClick={() => mutateItem(item.id, 'start')}
+                                                                                onClick={() =>
+                                                                                    mutateItem(
+                                                                                        item.id,
+                                                                                        'start',
+                                                                                    )
+                                                                                }
                                                                             >
                                                                                 <ChefHat className="mr-2 h-4 w-4" />
                                                                                 {t(
@@ -545,10 +624,16 @@ export function KitchenDashboard({
                                                                                 )}
                                                                             </Button>
                                                                         ) : null}
-                                                                        {item.prep_status === 'in_progress' ? (
+                                                                        {item.prep_status ===
+                                                                        'in_progress' ? (
                                                                             <Button
                                                                                 size="sm"
-                                                                                onClick={() => mutateItem(item.id, 'ready')}
+                                                                                onClick={() =>
+                                                                                    mutateItem(
+                                                                                        item.id,
+                                                                                        'ready',
+                                                                                    )
+                                                                                }
                                                                             >
                                                                                 <PackageCheck className="mr-2 h-4 w-4" />
                                                                                 {t(
@@ -557,11 +642,17 @@ export function KitchenDashboard({
                                                                                 )}
                                                                             </Button>
                                                                         ) : null}
-                                                                        {item.prep_status === 'ready' ? (
+                                                                        {item.prep_status ===
+                                                                        'ready' ? (
                                                                             <Button
                                                                                 size="sm"
                                                                                 variant="outline"
-                                                                                onClick={() => mutateItem(item.id, 'delivered')}
+                                                                                onClick={() =>
+                                                                                    mutateItem(
+                                                                                        item.id,
+                                                                                        'delivered',
+                                                                                    )
+                                                                                }
                                                                             >
                                                                                 <Truck className="mr-2 h-4 w-4" />
                                                                                 {t(
@@ -572,144 +663,145 @@ export function KitchenDashboard({
                                                                         ) : null}
                                                                     </div>
                                                                 </div>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="mt-3 flex flex-wrap gap-2">
-                                                            {ticket.ticket_status ===
-                                                            'pending' ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() =>
-                                                                        mutateTicket(
-                                                                            ticket.items
-                                                                                .filter(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.prep_status ===
-                                                                                        'pending',
-                                                                                )
-                                                                                .map(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.id,
-                                                                                ),
-                                                                            'start',
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <ChefHat className="mr-2 h-4 w-4" />
-                                                                    {t(
-                                                                        'orders.kitchenDashboard.actions.startAll',
-                                                                        'Start All',
-                                                                    )}
-                                                                </Button>
-                                                            ) : null}
-                                                            {ticket.ticket_status ===
-                                                            'in_progress' ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        mutateTicket(
-                                                                            ticket.items
-                                                                                .filter(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.prep_status !==
-                                                                                            'ready' &&
-                                                                                        item.prep_status !==
-                                                                                            'delivered',
-                                                                                )
-                                                                                .map(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.id,
-                                                                                ),
-                                                                            'ready',
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <PackageCheck className="mr-2 h-4 w-4" />
-                                                                    {t(
-                                                                        'orders.kitchenDashboard.actions.markAllReady',
-                                                                        'Mark All Ready',
-                                                                    )}
-                                                                </Button>
-                                                            ) : null}
-                                                            {ticket.ticket_status ===
-                                                            'ready' ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() =>
-                                                                        mutateTicket(
-                                                                            ticket.items
-                                                                                .filter(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.prep_status ===
-                                                                                        'ready',
-                                                                                )
-                                                                                .map(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        item.id,
-                                                                                ),
-                                                                            'delivered',
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Truck className="mr-2 h-4 w-4" />
-                                                                    {t(
-                                                                        'orders.kitchenDashboard.actions.markAllDelivered',
-                                                                        'Mark All Delivered',
-                                                                    )}
-                                                                </Button>
-                                                            ) : null}
-                                                            {ticket.ticket_status ===
-                                                            'ready' ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() =>
-                                                                        printTicket(
-                                                                            ticket,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Printer className="mr-2 h-4 w-4" />
-                                                                    {t(
-                                                                        'orders.kitchenDashboard.actions.print',
-                                                                        'Print',
-                                                                    )}
-                                                                </Button>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-                                                ))}
-
-                                                {column.tickets.length === 0 ? (
-                                                    <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-                                                        {t(
-                                                            'orders.kitchenDashboard.empty.column',
-                                                            'No tickets in this column right now.',
+                                                            ),
                                                         )}
                                                     </div>
-                                                ) : null}
-                                            </div>
-                                        </ScrollArea>
-                                    </CardContent>
-                                </Card>
-                            ))}
 
-                        <Card className="min-h-[760px] xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px] border-neutral-200/70 shadow-none">
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {ticket.ticket_status ===
+                                                        'pending' ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    mutateTicket(
+                                                                        ticket.items
+                                                                            .filter(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.prep_status ===
+                                                                                    'pending',
+                                                                            )
+                                                                            .map(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.id,
+                                                                            ),
+                                                                        'start',
+                                                                    )
+                                                                }
+                                                            >
+                                                                <ChefHat className="mr-2 h-4 w-4" />
+                                                                {t(
+                                                                    'orders.kitchenDashboard.actions.startAll',
+                                                                    'Start All',
+                                                                )}
+                                                            </Button>
+                                                        ) : null}
+                                                        {ticket.ticket_status ===
+                                                        'in_progress' ? (
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    mutateTicket(
+                                                                        ticket.items
+                                                                            .filter(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.prep_status !==
+                                                                                        'ready' &&
+                                                                                    item.prep_status !==
+                                                                                        'delivered',
+                                                                            )
+                                                                            .map(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.id,
+                                                                            ),
+                                                                        'ready',
+                                                                    )
+                                                                }
+                                                            >
+                                                                <PackageCheck className="mr-2 h-4 w-4" />
+                                                                {t(
+                                                                    'orders.kitchenDashboard.actions.markAllReady',
+                                                                    'Mark All Ready',
+                                                                )}
+                                                            </Button>
+                                                        ) : null}
+                                                        {ticket.ticket_status ===
+                                                        'ready' ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    mutateTicket(
+                                                                        ticket.items
+                                                                            .filter(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.prep_status ===
+                                                                                    'ready',
+                                                                            )
+                                                                            .map(
+                                                                                (
+                                                                                    item,
+                                                                                ) =>
+                                                                                    item.id,
+                                                                            ),
+                                                                        'delivered',
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Truck className="mr-2 h-4 w-4" />
+                                                                {t(
+                                                                    'orders.kitchenDashboard.actions.markAllDelivered',
+                                                                    'Mark All Delivered',
+                                                                )}
+                                                            </Button>
+                                                        ) : null}
+                                                        {ticket.ticket_status ===
+                                                        'ready' ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    printTicket(
+                                                                        ticket,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Printer className="mr-2 h-4 w-4" />
+                                                                {t(
+                                                                    'orders.kitchenDashboard.actions.print',
+                                                                    'Print',
+                                                                )}
+                                                            </Button>
+                                                        ) : null}
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {column.tickets.length === 0 ? (
+                                                <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                                                    {t(
+                                                        'orders.kitchenDashboard.empty.column',
+                                                        'No tickets in this column right now.',
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    </ScrollArea>
+                                </CardContent>
+                            </Card>
+                        ))}
+
+                        <Card className="min-h-[760px] border-neutral-200/70 shadow-none xl:h-[calc(100svh-7.5rem)] xl:min-h-[820px]">
                             <CardHeader className="space-y-3">
                                 <div className="flex items-center justify-between gap-3">
                                     <CardTitle className="text-base">
@@ -718,7 +810,10 @@ export function KitchenDashboard({
                                             'Daily Kitchen Report',
                                         )}
                                     </CardTitle>
-                                    <Button variant="outline" onClick={printDailyReport}>
+                                    <Button
+                                        variant="outline"
+                                        onClick={printDailyReport}
+                                    >
                                         <ReceiptText className="mr-2 h-4 w-4" />
                                         {t(
                                             'orders.kitchenDashboard.actions.printReport',
@@ -727,7 +822,10 @@ export function KitchenDashboard({
                                     </Button>
                                 </div>
                                 <div className="grid gap-2">
-                                    <label htmlFor="kitchen-report-date" className="text-sm text-muted-foreground">
+                                    <label
+                                        htmlFor="kitchen-report-date"
+                                        className="text-sm text-muted-foreground"
+                                    >
                                         {t(
                                             'orders.kitchenDashboard.reportDate',
                                             'Report Date',
@@ -740,7 +838,10 @@ export function KitchenDashboard({
                                         onChange={(event) =>
                                             router.get(
                                                 '/dashboard',
-                                                { report_date: event.target.value },
+                                                {
+                                                    report_date:
+                                                        event.target.value,
+                                                },
                                                 {
                                                     preserveState: true,
                                                     preserveScroll: true,
@@ -765,7 +866,10 @@ export function KitchenDashboard({
                                 <ScrollArea className="h-[calc(100svh-14.5rem)] min-h-[590px] pr-3">
                                     <div className="space-y-3">
                                         {kitchenDailyReport.map((ticket) => (
-                                            <div key={`report-${ticket.order_id}`} className="rounded-2xl border border-neutral-200 bg-white p-4">
+                                            <div
+                                                key={`report-${ticket.order_id}`}
+                                                className="rounded-2xl border border-neutral-200 bg-white p-4"
+                                            >
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div>
                                                         <p className="font-semibold">
@@ -797,11 +901,19 @@ export function KitchenDashboard({
                                                     </span>
                                                 </div>
                                                 <ul className="mt-3 space-y-1 text-sm">
-                                                    {ticket.items.map((item) => (
-                                                        <li key={item.id}>
-                                                            {resolveItemName(item)} x{formatNumber(item.quantity)}
-                                                        </li>
-                                                    ))}
+                                                    {ticket.items.map(
+                                                        (item) => (
+                                                            <li key={item.id}>
+                                                                {resolveItemName(
+                                                                    item,
+                                                                )}{' '}
+                                                                x
+                                                                {formatNumber(
+                                                                    item.quantity,
+                                                                )}
+                                                            </li>
+                                                        ),
+                                                    )}
                                                 </ul>
                                             </div>
                                         ))}

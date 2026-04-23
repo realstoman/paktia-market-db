@@ -50,7 +50,7 @@ interface ReceiptPreviewDialogProps {
             discountAmount: number;
             paymentMethod: string;
             discountCardId?: number | null;
-            coveredByType?: 'customer' | 'employee' | 'house';
+            coveredByType?: 'customer' | 'employee' | 'restaurant';
             coveredByEmployeeId?: number | null;
             coveredByNote?: string | null;
         },
@@ -132,10 +132,10 @@ export function ReceiptPreviewDialog({
             : '',
     );
     const [coveredByType, setCoveredByType] = useState<
-        'customer' | 'employee' | 'house'
+        'customer' | 'employee' | 'restaurant'
     >(
         order?.covered_by_type === 'employee' ||
-            order?.covered_by_type === 'house'
+            order?.covered_by_type === 'restaurant'
             ? order.covered_by_type
             : 'customer',
     );
@@ -500,7 +500,7 @@ export function ReceiptPreviewDialog({
                                                 const nextValue = value as
                                                     | 'customer'
                                                     | 'employee'
-                                                    | 'house';
+                                                    | 'restaurant';
                                                 setCoveredByType(nextValue);
                                                 if (nextValue !== 'employee') {
                                                     setSelectedSponsorEmployeeId(
@@ -526,10 +526,10 @@ export function ReceiptPreviewDialog({
                                                         'Employee Cover',
                                                     )}
                                                 </SelectItem>
-                                                <SelectItem value="house">
+                                                <SelectItem value="restaurant">
                                                     {t(
-                                                        'orders.receipt.coveredByTypeHouse',
-                                                        'House Hospitality / Comp',
+                                                        'orders.receipt.coveredByTypeRestaurant',
+                                                        'Restaurant Hospitality',
                                                     )}
                                                 </SelectItem>
                                             </SelectContent>
@@ -550,7 +550,7 @@ export function ReceiptPreviewDialog({
                                             }
                                             disabled={
                                                 isPaymentCompleted ||
-                                                coveredByType === 'house'
+                                                coveredByType === 'restaurant'
                                             }
                                         >
                                             <SelectTrigger>
@@ -583,11 +583,11 @@ export function ReceiptPreviewDialog({
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        {coveredByType === 'house' ? (
+                                        {coveredByType === 'restaurant' ? (
                                             <p className="text-xs text-muted-foreground">
                                                 {t(
-                                                    'orders.receipt.houseCompNote',
-                                                    'House hospitality completes the order without recording a payment collection.',
+                                                    'orders.receipt.restaurantNote',
+                                                    'Restaurant hospitality completes the order without recording a payment collection.',
                                                 )}
                                             </p>
                                         ) : null}
@@ -663,10 +663,11 @@ export function ReceiptPreviewDialog({
                                                     )
                                                 }
                                                 placeholder={
-                                                    coveredByType === 'house'
+                                                    coveredByType ===
+                                                    'restaurant'
                                                         ? t(
-                                                              'orders.receipt.coveredByNoteHousePlaceholder',
-                                                              'Optional note such as owner hospitality, manager guest, or house comp reason.',
+                                                              'orders.receipt.coveredByNoteRestaurantPlaceholder',
+                                                              'Optional note such as owner hospitality, manager guest, or restaurant reason.',
                                                           )
                                                         : t(
                                                               'orders.receipt.coveredByNotePlaceholder',
@@ -687,11 +688,11 @@ export function ReceiptPreviewDialog({
                                                     'Employee cover',
                                                 )}
                                             </Badge>
-                                        ) : coveredByType === 'house' ? (
+                                        ) : coveredByType === 'restaurant' ? (
                                             <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
                                                 {t(
-                                                    'orders.columns.houseComp',
-                                                    'House comp',
+                                                    'orders.columns.restaurantComp',
+                                                    'Restaurant',
                                                 )}
                                             </Badge>
                                         ) : (
@@ -715,10 +716,10 @@ export function ReceiptPreviewDialog({
                                                           'orders.receipt.coveredByEmployee',
                                                           'Covered By Employee',
                                                       )))
-                                                : coveredByType === 'house'
+                                                : coveredByType === 'restaurant'
                                                   ? t(
-                                                        'orders.receipt.coveredByTypeHouse',
-                                                        'House Hospitality / Comp',
+                                                        'orders.receipt.coveredByTypeRestaurant',
+                                                        'Restaurant Hospitality',
                                                     )
                                                   : t(
                                                         'orders.receipt.coveredByTypeCustomer',
@@ -772,12 +773,12 @@ export function ReceiptPreviewDialog({
                                                 ) : null}
                                             </div>
                                         ) : null}
-                                        {coveredByType === 'house' ? (
+                                        {coveredByType === 'restaurant' ? (
                                             <div className="mt-3 rounded-md border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
                                                 <p className="font-medium">
                                                     {t(
-                                                        'orders.receipt.houseCompSummary',
-                                                        'This order will be recorded as house hospitality / comp.',
+                                                        'orders.receipt.restaurantCompSummary',
+                                                        'This order will be recorded as restaurant hospitality.',
                                                     )}
                                                 </p>
                                                 {sponsorNote.trim() ? (
