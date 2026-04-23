@@ -2,6 +2,8 @@
 
 use App\Models\Branch;
 use App\Models\Country;
+use App\Models\Employee;
+use App\Models\EmployeeAdvance;
 use App\Models\Order;
 use App\Models\Province;
 use App\Models\User;
@@ -125,4 +127,61 @@ test('order takers can not complete orders directly without payment permission',
 
     expect(fn () => $service->updateStatus($order, 'completed', 'cash', null, $orderTaker))
         ->toThrow(ValidationException::class);
+});
+
+test('employee covered orders become salary deductions for the next payroll', function () {
+    $service = app(OrderService::class);
+    $branch = createBranchForOrders();
+    Permission::findOrCreate('payments.create', 'web');
+    $cashier = User::factory()->create([
+        'branch_id' => $branch->id,
+    ]);
+    $cashier->givePermissionTo('payments.create');
+
+    $employee = Employee::create([
+        'branch_id' => $branch->id,
+        'first_name' => 'Ahmad',
+        'last_name' => 'Karimi',
+        'salary' => 20000,
+        'salary_currency' => 'AFN',
+        'is_active' => true,
+    ]);
+
+    $order = Order::create([
+        'branch_id' => $branch->id,
+        'user_id' => $cashier->id,
+        'order_type' => 'takeaway',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 1200,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'total_amount' => 1200,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'ready',
+    ]);
+
+    $service->updateStatus(
+        order: $order,
+        status: 'completed',
+        paymentMethod: 'cash',
+        discountAmount: null,
+        discountCardId: null,
+        coveredByType: 'employee',
+        coveredByEmployeeId: $employee->id,
+        coveredByNote: null,
+        actor: $cashier,
+    );
+
+    $advance = EmployeeAdvance::query()
+        ->where('employee_id', $employee->id)
+        ->where('reason', 'Employee covered order #'.$order->id)
+        ->first();
+
+    expect($advance)->not->toBeNull();
+    expect((float) $advance->amount)->toBe(1200.0);
+    expect((float) $advance->remaining_balance)->toBe(1200.0);
+    expect($advance->status)->toBe('approved');
 });
