@@ -1,4 +1,18 @@
 const PERSIAN_LOCALE = 'en-US-u-ca-persian-nu-latn';
+const AFGHAN_MONTH_NAMES = [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+];
 
 function resolveDate(value?: string | number | Date | null) {
     if (!value) {
@@ -26,8 +40,9 @@ export function formatAfghanMonthLabel(value?: string | number | Date | null) {
         parts.find((part) => part.type === 'month')?.value ?? '';
     const year =
         parts.find((part) => part.type === 'year')?.value ?? '';
+    const monthName = AFGHAN_MONTH_NAMES[Number(month) - 1];
 
-    return month && year ? `${month}/${year}` : '-';
+    return monthName && year ? `${monthName} ${year}` : '-';
 }
 
 export function formatAfghanDate(value?: string | number | Date | null) {

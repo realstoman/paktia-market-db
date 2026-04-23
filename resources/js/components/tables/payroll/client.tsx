@@ -89,6 +89,7 @@ const PAYMENT_METHOD_OPTIONS = [
 
 interface PayrollFormState {
     branch_id: string;
+    afghan_month_key: string;
     period_start: string;
     period_end: string;
     status: string;
@@ -122,6 +123,7 @@ interface ScheduleFormState {
 
 const emptyForm: PayrollFormState = {
     branch_id: '',
+    afghan_month_key: '',
     period_start: new Date().toISOString().slice(0, 10),
     period_end: new Date().toISOString().slice(0, 10),
     status: 'draft',
@@ -158,6 +160,8 @@ interface PayrollClientProps {
     contracts: EmployeeContract[];
     branches: Branch[];
     employees: Employee[];
+    afghanPayrollMonths: AfghanPayrollMonth[];
+    currentAfghanPayrollMonth: AfghanPayrollMonth;
     canCreate: boolean;
     canApprove: boolean;
     canPay: boolean;
@@ -169,6 +173,15 @@ interface PayrollClientProps {
         paidThisMonth: number;
         outstandingAdvances: number;
     };
+}
+
+interface AfghanPayrollMonth {
+    year: number;
+    month: number;
+    month_name: string;
+    label: string;
+    start: string;
+    end: string;
 }
 
 function employeeName(employee?: Employee | null) {
@@ -229,6 +242,8 @@ export function PayrollClient({
     contracts,
     branches,
     employees,
+    afghanPayrollMonths,
+    currentAfghanPayrollMonth,
     canCreate,
     canApprove,
     canPay,
@@ -401,10 +416,37 @@ export function PayrollClient({
         }
     }, [filteredRuns, selectedRun]);
 
+    const payrollMonthOptions = React.useMemo(
+        () =>
+            afghanPayrollMonths.map((month) => ({
+                value: `${month.year}-${month.month}`,
+                label: month.label,
+            })),
+        [afghanPayrollMonths],
+    );
+    const payrollMonthsByKey = React.useMemo(
+        () =>
+            new Map(
+                afghanPayrollMonths.map((month) => [
+                    `${month.year}-${month.month}`,
+                    month,
+                ]),
+            ),
+        [afghanPayrollMonths],
+    );
+
     const openCreate = React.useCallback(() => {
-        setForm(emptyForm);
+        const month =
+            currentAfghanPayrollMonth ?? afghanPayrollMonths[0] ?? null;
+
+        setForm({
+            ...emptyForm,
+            afghan_month_key: month ? `${month.year}-${month.month}` : '',
+            period_start: month?.start ?? emptyForm.period_start,
+            period_end: month?.end ?? emptyForm.period_end,
+        });
         setIsOpen(true);
-    }, []);
+    }, [afghanPayrollMonths, currentAfghanPayrollMonth]);
 
     const openContractCreate = React.useCallback(() => {
         setEditingContract(null);
@@ -517,6 +559,12 @@ export function PayrollClient({
             '/finance/payroll',
             {
                 branch_id: form.branch_id ? Number(form.branch_id) : null,
+                afghan_year: form.afghan_month_key
+                    ? Number(form.afghan_month_key.split('-')[0])
+                    : null,
+                afghan_month: form.afghan_month_key
+                    ? Number(form.afghan_month_key.split('-')[1])
+                    : null,
                 period_start: form.period_start,
                 period_end: form.period_end,
                 status: form.status,
@@ -1349,8 +1397,8 @@ export function PayrollClient({
                     <DialogHeader>
                         <DialogTitle>Generate Payroll Run</DialogTitle>
                         <DialogDescription>
-                            Create a payroll run for a period. Employees with
-                            salary or contract amount will be included
+                            Create a payroll run by Afghan month. Employees
+                            with salary or contract amount will be included
                             automatically, and approved employee advances will
                             be proposed as deductions.
                         </DialogDescription>
@@ -1389,31 +1437,40 @@ export function PayrollClient({
                                 emptyText="No status found."
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Period Start</Label>
-                            <Input
-                                type="date"
-                                value={form.period_start}
-                                onChange={(event) =>
+                        <div className="grid gap-2 md:col-span-2">
+                            <Label>Afghan Payroll Month</Label>
+                            <SearchableDropdown
+                                value={form.afghan_month_key}
+                                options={payrollMonthOptions}
+                                onValueChange={(value) => {
+                                    const month = payrollMonthsByKey.get(value);
+
                                     setForm((current) => ({
                                         ...current,
-                                        period_start: event.target.value,
-                                    }))
-                                }
+                                        afghan_month_key: value,
+                                        period_start:
+                                            month?.start ??
+                                            current.period_start,
+                                        period_end:
+                                            month?.end ?? current.period_end,
+                                    }));
+                                }}
+                                placeholder="Select Afghan month"
+                                searchPlaceholder="Search Afghan months..."
+                                emptyText="No Afghan month found."
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Period End</Label>
+                            <Label>Gregorian Start</Label>
                             <Input
                                 type="date"
-                                value={form.period_end}
-                                onChange={(event) =>
-                                    setForm((current) => ({
-                                        ...current,
-                                        period_end: event.target.value,
-                                    }))
-                                }
+                                value={form.period_start}
+                                readOnly
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Gregorian End</Label>
+                            <Input type="date" value={form.period_end} readOnly />
                         </div>
                         <div className="grid gap-2 md:col-span-2">
                             <Label>Default Payment Method</Label>
@@ -1453,8 +1510,8 @@ export function PayrollClient({
                         </p>
                         <ul className="mt-3 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
                             <li>
-                                Include active employees with salary or contract
-                                amount
+                                Process payroll by Afghan month such as حمل،
+                                ثور، جوزا
                             </li>
                             <li>
                                 Generate employee-level payroll items
