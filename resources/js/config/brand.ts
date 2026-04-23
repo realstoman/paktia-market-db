@@ -120,14 +120,21 @@ export function getBrandingCssVariables(branding?: RuntimeBranding) {
         brand.tertiaryColor,
     );
 
+    const primaryChannels = toHslChannels(primary);
+    const primaryForegroundChannels = getForegroundChannels(primary);
+
     return {
         '--brand-primary': primary,
         '--brand-secondary': secondary,
         '--brand-tertiary': tertiary,
-        '--primary': toHslChannels(primary),
-        '--primary-foreground': getForegroundChannels(primary),
-        '--ring': toHslChannels(primary),
-        '--sidebar-ring': toHslChannels(primary),
+        '--primary': primaryChannels,
+        '--primary-foreground': primaryForegroundChannels,
+        '--ring': primaryChannels,
+        '--sidebar-ring': primaryChannels,
+        '--color-primary': `hsl(${primaryChannels})`,
+        '--color-primary-foreground': `hsl(${primaryForegroundChannels})`,
+        '--color-ring': `hsl(${primaryChannels})`,
+        '--color-sidebar-ring': `hsl(${primaryChannels})`,
     } as const;
 }
 

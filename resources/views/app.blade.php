@@ -69,6 +69,8 @@
                 };
 
                 const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#102F33');
+                const primaryChannels = hexToHslChannels(primaryColor);
+                const primaryForegroundChannels = getForegroundChannels(primaryColor);
                 document.documentElement.style.setProperty('--brand-primary', primaryColor);
                 document.documentElement.style.setProperty(
                     '--brand-secondary',
@@ -78,10 +80,14 @@
                     '--brand-tertiary',
                     normalizeHex(window.__APP_BRANDING__?.tertiaryColor, '#F8FAFD'),
                 );
-                document.documentElement.style.setProperty('--primary', hexToHslChannels(primaryColor));
-                document.documentElement.style.setProperty('--primary-foreground', getForegroundChannels(primaryColor));
-                document.documentElement.style.setProperty('--ring', hexToHslChannels(primaryColor));
-                document.documentElement.style.setProperty('--sidebar-ring', hexToHslChannels(primaryColor));
+                document.documentElement.style.setProperty('--primary', primaryChannels);
+                document.documentElement.style.setProperty('--primary-foreground', primaryForegroundChannels);
+                document.documentElement.style.setProperty('--ring', primaryChannels);
+                document.documentElement.style.setProperty('--sidebar-ring', primaryChannels);
+                document.documentElement.style.setProperty('--color-primary', `hsl(${primaryChannels})`);
+                document.documentElement.style.setProperty('--color-primary-foreground', `hsl(${primaryForegroundChannels})`);
+                document.documentElement.style.setProperty('--color-ring', `hsl(${primaryChannels})`);
+                document.documentElement.style.setProperty('--color-sidebar-ring', `hsl(${primaryChannels})`);
 
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
