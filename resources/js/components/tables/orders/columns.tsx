@@ -9,25 +9,38 @@ import {
 import type { BranchTable, Employee, Order } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { ColumnDef } from '@tanstack/react-table';
-import { BadgeCheck, Ban, Clock3, CookingPot } from 'lucide-react';
+import { BadgeCheck, Ban, Clock3, CookingPot, PackageCheck } from 'lucide-react';
 import React from 'react';
 import { OrderRowActions } from './row-actions';
 
-const statusStyles: Record<string, { icon: React.JSX.Element }> = {
+const statusStyles: Record<
+    string,
+    { icon: React.JSX.Element; className: string }
+> = {
     pending: {
         icon: <Clock3 className="h-4 w-4 text-amber-600" />,
+        className:
+            'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/60',
     },
     in_progress: {
         icon: <CookingPot className="h-4 w-4 text-blue-600" />,
+        className:
+            'bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:ring-blue-900/60',
     },
     ready: {
-        icon: <BadgeCheck className="h-4 w-4 text-emerald-600" />,
+        icon: <PackageCheck className="h-4 w-4 text-orange-600" />,
+        className:
+            'bg-orange-50 text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:ring-orange-900/60',
     },
     completed: {
         icon: <BadgeCheck className="h-4 w-4 text-green-600" />,
+        className:
+            'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-900/60',
     },
     cancelled: {
         icon: <Ban className="h-4 w-4 text-red-600" />,
+        className:
+            'bg-red-50 text-red-800 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900/60',
     },
 };
 
@@ -288,7 +301,7 @@ export const buildColumns = ({
                 statusStyles.pending;
 
             return (
-                <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                <Badge className={`flex items-center gap-1 ${status.className}`}>
                     {status.icon}
                     {getStatusLabel(statusValue ?? 'pending')}
                 </Badge>
