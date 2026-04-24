@@ -10,6 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { dashboard } from '@/routes';
 import {
     Branch,
@@ -23,17 +24,6 @@ import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import { BriefcaseBusiness, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-    {
-        title: 'Employees',
-        href: '/employees',
-    },
-];
 
 interface EmployeesPageProps {
     employees: Employee[];
@@ -52,7 +42,19 @@ export default function EmployeesPage({
     employeePositions,
     shifts,
 }: EmployeesPageProps) {
+    const { t } = useLocalization();
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: dashboard().url,
+        },
+        {
+            title: t('navigation.employees', 'Employees'),
+            href: '/employees',
+        },
+    ];
+
     const statsEmployees = useMemo(() => {
         if (selectedBranchId === BRANCH_FILTER_ALL) {
             return employees;
@@ -82,7 +84,7 @@ export default function EmployeesPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Employees" />
+            <Head title={t('employees.page.title', 'Employees')} />
             <div className="space-y-4 pt-3 pb-4">
                 <div className="flex justify-end">
                     <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
@@ -91,11 +93,19 @@ export default function EmployeesPage({
                             onValueChange={setSelectedBranchId}
                         >
                             <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Select branch for stats" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'employees.page.selectBranchForStats',
+                                        'Select branch for stats',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={BRANCH_FILTER_ALL}>
-                                    All Branches
+                                    {t(
+                                        'employees.filters.allBranches',
+                                        'All Branches',
+                                    )}
                                 </SelectItem>
                                 {branches.map((branch) => (
                                     <SelectItem
@@ -112,18 +122,27 @@ export default function EmployeesPage({
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
                     <SummaryMetricCard
-                        title="Total Employees"
+                        title={t('employees.page.totalEmployees', 'Total Employees')}
                         value={formatNumber(statsEmployees.length)}
-                        description="Employees visible for the selected branch scope."
+                        description={t(
+                            'employees.page.totalEmployeesDescription',
+                            'Employees visible for the selected branch scope.',
+                        )}
                         icon={Users}
                         variant="blue"
                         className="md:col-span-6"
                     />
 
                     <SummaryMetricCard
-                        title="Contract Employees"
+                        title={t(
+                            'employees.page.contractEmployees',
+                            'Contract Employees',
+                        )}
                         value={formatNumber(contractEmployeesCount)}
-                        description="Employees with contract-based employment terms."
+                        description={t(
+                            'employees.page.contractEmployeesDescription',
+                            'Employees with contract-based employment terms.',
+                        )}
                         icon={BriefcaseBusiness}
                         variant="blue"
                         className="md:col-span-6"

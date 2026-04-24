@@ -24,7 +24,6 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
-    ClipboardList,
     Globe,
     LayoutGrid,
     Package,
@@ -175,11 +174,6 @@ export function AppSidebar() {
                       href: '/operations/runtime-health',
                       icon: Activity,
                   } satisfies NavItem,
-                  {
-                      title: t('navigation.activityLogs', 'Activity Logs'),
-                      href: '/admin/activity-logs',
-                      icon: ClipboardList,
-                  } satisfies NavItem,
               ]
             : []),
     ];
@@ -208,8 +202,10 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="bg-white dark:bg-brand-bg-dark">
-                <NavMain items={navigationItems} />
-                {isSuperAdmin ? <ToolsLauncher /> : null}
+                <NavMain
+                    items={navigationItems}
+                    trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}
+                />
             </SidebarContent>
 
             <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">

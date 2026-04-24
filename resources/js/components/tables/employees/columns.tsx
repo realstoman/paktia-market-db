@@ -12,6 +12,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
+type TranslateFn = (key: string, fallback?: string) => string;
+
 const publicStorageUrl = (path?: string | null) => {
     if (!path) {
         return null;
@@ -34,6 +36,8 @@ export const buildColumns = (
     employeePositions: EmployeePosition[],
     shifts: Shift[],
     canDelete: boolean,
+    t: TranslateFn,
+    locale: string,
 ): ColumnDef<Employee>[] => [
     {
         id: 'select',
@@ -43,14 +47,14 @@ export const buildColumns = (
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
-                aria-label="Select all"
+                aria-label={t('employees.table.selectAll', 'Select all')}
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={t('employees.table.selectRow', 'Select row')}
             />
         ),
         enableSorting: false,
@@ -58,7 +62,7 @@ export const buildColumns = (
     },
     {
         id: 'photo',
-        header: 'Photo',
+        header: t('employees.table.photo', 'Photo'),
         cell: ({ row }) => {
             const photoUrl = publicStorageUrl(row.original.profile_picture);
             const initials =
@@ -69,12 +73,12 @@ export const buildColumns = (
                     {photoUrl ? (
                         <img
                             src={photoUrl}
-                            alt={row.original.full_name ?? 'Employee'}
+                            alt={row.original.full_name ?? t('employees.page.title', 'Employee')}
                             className="h-10 w-10 rounded-full border object-cover"
                         />
                     ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-full border bg-muted text-xs font-semibold text-muted-foreground">
-                            {initials || 'NA'}
+                            {initials || t('employees.common.na', 'NA')}
                         </div>
                     )}
                 </div>
@@ -84,29 +88,30 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: t('employees.table.id', 'ID'),
     },
     {
         accessorKey: 'full_name',
-        header: 'Name',
+        header: t('employees.table.name', 'Name'),
     },
     {
         accessorKey: 'phone',
-        header: 'Phone',
-        cell: ({ row }) => row.original.phone || '—',
+        header: t('employees.table.phone', 'Phone'),
+        cell: ({ row }) => row.original.phone || t('employees.common.empty', '—'),
     },
     {
         accessorKey: 'employment_type',
-        header: 'Employment Type',
-        cell: ({ row }) => row.original.employment_type || '—',
+        header: t('employees.table.employmentType', 'Employment Type'),
+        cell: ({ row }) =>
+            row.original.employment_type || t('employees.common.empty', '—'),
     },
     {
         accessorKey: 'shift',
-        header: 'Shift',
+        header: t('employees.table.shift', 'Shift'),
         cell: ({ row }) => {
             const shift = row.original.shift;
             if (!shift) {
-                return '—';
+                return t('employees.common.empty', '—');
             }
 
             const nameMatch = shift.match(/^(.*?)\s*\((.*?)\)$/);
@@ -126,17 +131,18 @@ export const buildColumns = (
     },
     {
         accessorKey: 'employee_position',
-        header: 'Position',
-        cell: ({ row }) => row.original.employee_position || '—',
+        header: t('employees.table.position', 'Position'),
+        cell: ({ row }) =>
+            row.original.employee_position || t('employees.common.empty', '—'),
     },
     {
         accessorKey: 'branch',
-        header: 'Branch',
-        cell: ({ row }) => row.original.branch || '—',
+        header: t('employees.filters.branch', 'Branch'),
+        cell: ({ row }) => row.original.branch || t('employees.common.empty', '—'),
     },
     {
         accessorKey: 'salary',
-        header: 'Salary',
+        header: t('employees.table.salary', 'Salary'),
         cell: ({ row }) => {
             const compensation =
                 row.original.contract_amount ?? row.original.salary;
@@ -145,28 +151,31 @@ export const buildColumns = (
                 compensation === undefined ||
                 compensation === ''
             ) {
-                return '—';
+                return t('employees.common.empty', '—');
             }
 
             const numericSalary = Number(compensation);
             if (Number.isNaN(numericSalary)) {
-                return '—';
+                return t('employees.common.empty', '—');
             }
 
-            return `${formatNumber(numericSalary)} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ' (Contract)' : ''}`;
+            return `${formatNumber(numericSalary)} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ` (${t('employees.common.contract', 'Contract')})` : ''}`;
         },
     },
     {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('employees.table.status', 'Status'),
         cell: ({ row }) => {
             const active = row.original.is_active;
             const status =
                 row.original.status || (active ? 'active' : 'inactive');
-            const label = status
-                .split('_')
-                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-                .join(' ');
+            const label = t(
+                `employees.statuses.${status}`,
+                status
+                    .split('_')
+                    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                    .join(' '),
+            );
 
             return active ? (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
@@ -183,19 +192,26 @@ export const buildColumns = (
     },
     {
         accessorKey: 'created_at',
-        header: 'Created At',
+        header: t('employees.table.createdAt', 'Created At'),
         cell: ({ row }) => {
             const createdAt = row.original.created_at;
             if (!createdAt) {
-                return '—';
+                return t('employees.common.empty', '—');
             }
 
-            return new Date(createdAt).toLocaleDateString();
+            return new Intl.DateTimeFormat(
+                locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+                {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                },
+            ).format(new Date(createdAt));
         },
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: t('employees.table.actions', 'Actions'),
         cell: ({ row }) => (
             <CellAction
                 data={row.original}

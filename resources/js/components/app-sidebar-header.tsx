@@ -12,8 +12,9 @@ import {
     type BreadcrumbItem as BreadcrumbItemType,
     type SharedData,
 } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useLocalization } from '@/lib/localization';
+import { ClipboardList } from 'lucide-react';
 import AppearanceToggleDropdown from './appearance-dropdown';
 import LanguageDropdown from './language-dropdown';
 import { Button } from './ui/button';
@@ -24,7 +25,7 @@ export function AppSidebarHeader({
     breadcrumbs?: BreadcrumbItemType[];
 }) {
     const { auth } = usePage<SharedData>().props;
-    const { isRtl } = useLocalization();
+    const { isRtl, t } = useLocalization();
 
     return (
         <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-lg border border-neutral-100/90 bg-white px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
@@ -37,6 +38,21 @@ export function AppSidebarHeader({
             <div className="ml-2 flex shrink-0 items-center gap-2">
                 <AppearanceToggleDropdown />
                 <LanguageDropdown />
+                {auth.is_super_admin ? (
+                    <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-full border border-neutral-200/70 bg-neutral-100 transition-all duration-300 hover:bg-neutral-200/70 dark:border-neutral-700/90 dark:bg-neutral-950"
+                    >
+                        <Link href="/admin/activity-logs">
+                            <ClipboardList className="h-5 w-5" />
+                            <span className="sr-only">
+                                {t('navigation.activityLogs', 'Activity Logs')}
+                            </span>
+                        </Link>
+                    </Button>
+                ) : null}
                 <HeaderNotifications />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -51,7 +67,7 @@ export function AppSidebarHeader({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         className={`w-52 rounded-lg ${isRtl ? 'text-right' : ''}`}
-                        align={isRtl ? 'start' : 'end'}
+                        align="end"
                     >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>

@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLocalization } from '@/lib/localization';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -69,7 +70,7 @@ import {
     Wallet,
     X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -135,6 +136,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     shifts,
     canDelete,
 }) => {
+    const { t, locale, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canDeleteEmployee = canDelete && auth.is_super_admin === true;
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -239,41 +241,98 @@ export const CellAction: React.FC<CellActionProps> = ({
         [editEmploymentTypeName],
     );
 
-    const staticPreviousPayments = useMemo(
-        () => [
-            {
-                id: '1',
-                date: '2026-02-28',
-                type: 'Salary',
-                amount: 25000,
-                currency: data.salary_currency ?? 'AFN',
-                note: 'Monthly salary - February',
-            },
-            {
-                id: '2',
-                date: '2026-02-16',
-                type: 'Takeout',
-                amount: 3500,
-                currency: data.salary_currency ?? 'AFN',
-                note: 'Personal advance',
-            },
-            {
-                id: '3',
-                date: '2026-01-31',
-                type: 'Salary',
-                amount: 25000,
-                currency: data.salary_currency ?? 'AFN',
-                note: 'Monthly salary - January',
-            },
-        ],
-        [data.salary_currency],
-    );
+    const getStatusLabel = (value: string) =>
+        t(
+            `employees.statuses.${value}`,
+            value
+                .split('_')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' '),
+        );
 
-    const nextSalaryDate = useMemo(() => {
-        const next = new Date();
-        next.setMonth(next.getMonth() + 1, 0);
-        return next.toLocaleDateString();
-    }, []);
+    const formatLocalizedDate = useCallback((value?: string | null) => {
+        if (!value) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat(
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            },
+        ).format(new Date(value));
+    }, [locale]);
+
+    const financeEntries = useMemo(() => {
+        const advanceEntries = (data.advances ?? []).map((advance) => ({
+            id: `advance-${advance.id}`,
+            date: advance.advance_date,
+            type: t('employees.finance.takeoutType', 'Takeout'),
+            amount: Number(advance.amount ?? 0),
+            currency: data.salary_currency ?? 'AFN',
+            status: advance.status ?? 'draft',
+            note:
+                advance.reason ||
+                t(
+                    'employees.finance.defaultAdvanceReason',
+                    'Employee advance / takeout',
+                ),
+        }));
+
+        const payrollEntries = (data.payroll_items ?? []).map((item) => ({
+            id: `payroll-${item.id}`,
+            date:
+                item.payment_date ??
+                item.payroll_run?.period_end ??
+                item.payroll_run?.period_start,
+            type:
+                item.salary_type === 'contract'
+                    ? t('employees.finance.contractType', 'Contract Payment')
+                    : t('employees.finance.salaryType', 'Salary'),
+            amount: Number(item.net_salary ?? 0),
+            currency: data.salary_currency ?? 'AFN',
+            status: item.payment_status ?? item.payroll_run?.status ?? 'draft',
+            note:
+                item.payroll_run?.period_end
+                    ? t(
+                          'employees.finance.payrollPeriodNote',
+                          'Payroll period ending :date',
+                      ).replace(
+                          ':date',
+                          formatLocalizedDate(item.payroll_run.period_end),
+                      )
+                    : t(
+                          'employees.finance.generatedFromPayroll',
+                          'Generated from payroll',
+                      ),
+        }));
+
+        return [...advanceEntries, ...payrollEntries].sort((a, b) => {
+            const aTime = a.date ? new Date(a.date).getTime() : 0;
+            const bTime = b.date ? new Date(b.date).getTime() : 0;
+            return bTime - aTime;
+        });
+    }, [data.advances, data.payroll_items, data.salary_currency, formatLocalizedDate, t]);
+
+    const upcomingPayment = useMemo(() => {
+        const fallbackDate = (() => {
+            const next = new Date();
+            next.setMonth(next.getMonth() + 1, 0);
+            return next.toISOString().slice(0, 10);
+        })();
+
+        return {
+            amount: Number(data.upcoming_payment?.amount ?? 0),
+            currency: data.upcoming_payment?.currency ?? data.salary_currency ?? 'AFN',
+            status: data.upcoming_payment?.status ?? 'scheduled',
+            dueDate: data.upcoming_payment?.due_date ?? fallbackDate,
+            title:
+                data.upcoming_payment?.title ??
+                t('employees.finance.upcomingPayment', 'Upcoming Payment'),
+        };
+    }, [data.salary_currency, data.upcoming_payment, t]);
 
     const resetEdit = () => {
         setEditFirstName(data.first_name ?? '');
@@ -324,7 +383,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
             if (totalCount > MAX_ATTACHMENTS) {
                 toast.error(
-                    `Total attachments cannot exceed ${MAX_ATTACHMENTS}.`,
+                    t(
+                        'employees.edit.attachmentsLimit',
+                        'Total attachments cannot exceed :count.',
+                    ).replace(':count', String(MAX_ATTACHMENTS)),
                 );
 
                 const allowedNew = Math.max(
@@ -396,7 +458,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Employee updated successfully.');
+                    toast.success(
+                        t(
+                            'employees.toasts.employeeUpdated',
+                            'Employee updated successfully.',
+                        ),
+                    );
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -427,8 +494,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             onSuccess: () => {
                 toast.success(
                     data.is_active
-                        ? 'Employee marked inactive.'
-                        : 'Employee marked active.',
+                        ? t(
+                              'employees.toasts.employeeMarkedInactive',
+                              'Employee marked inactive.',
+                          )
+                        : t(
+                              'employees.toasts.employeeMarkedActive',
+                              'Employee marked active.',
+                          ),
                 );
                 setIsStatusOpen(false);
             },
@@ -448,7 +521,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/employees/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Employee deleted successfully.');
+                toast.success(
+                    t(
+                        'employees.toasts.employeeDeleted',
+                        'Employee deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -462,19 +540,29 @@ export const CellAction: React.FC<CellActionProps> = ({
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">
+                            {t('employees.actions.openMenu', 'Open menu')}
+                        </span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuContent
+                    align="end"
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        {t('employees.table.actions', 'Actions')}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        View Details
+                        {t('employees.actions.viewDetails', 'View Details')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsFinanceOpen(true)}>
                         <Wallet className="mr-2 h-4 w-4" />
-                        Employee Finances
+                        {t(
+                            'employees.actions.employeeFinances',
+                            'Employee Finances',
+                        )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
@@ -483,16 +571,21 @@ export const CellAction: React.FC<CellActionProps> = ({
                         }}
                     >
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        {t('employees.actions.edit', 'Edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsStatusOpen(true)}>
                         <Ban className="mr-2 h-4 w-4" />
-                        {data.is_active ? 'Mark Inactive' : 'Mark Active'}
+                        {data.is_active
+                            ? t(
+                                  'employees.actions.markInactive',
+                                  'Mark Inactive',
+                              )
+                            : t('employees.actions.markActive', 'Mark Active')}
                     </DropdownMenuItem>
                     {canDeleteEmployee ? (
                         <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                             <Trash className="mr-2 h-4 w-4 text-red-600" />
-                            Delete
+                            {t('employees.common.delete', 'Delete')}
                         </DropdownMenuItem>
                     ) : null}
                 </DropdownMenuContent>
@@ -501,9 +594,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Employee Details</DialogTitle>
+                        <DialogTitle>
+                            {t('employees.details.title', 'Employee Details')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Profile overview and attachments.
+                            {t(
+                                'employees.details.description',
+                                'Profile overview and attachments.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -514,13 +612,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     {currentProfilePictureUrl ? (
                                         <img
                                             src={currentProfilePictureUrl}
-                                            alt={data.full_name ?? 'Employee'}
+                                            alt={
+                                                data.full_name ??
+                                                t('employees.page.title', 'Employee')
+                                            }
                                             className="h-24 w-24 rounded-xl border object-cover"
                                         />
                                     ) : (
                                         <div className="flex h-24 w-24 items-center justify-center rounded-xl border bg-muted text-xl font-semibold text-muted-foreground">
                                             {`${data.first_name?.charAt(0) ?? ''}${data.last_name?.charAt(0) ?? ''}`.toUpperCase() ||
-                                                'NA'}
+                                                t('employees.common.na', 'NA')}
                                         </div>
                                     )}
                                     <div className="space-y-1">
@@ -530,7 +631,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         </h3>
                                         <p className="text-sm text-muted-foreground">
                                             {data.employee_position ??
-                                                'No position assigned'}
+                                                t(
+                                                    'employees.details.noPositionAssigned',
+                                                    'No position assigned',
+                                                )}
                                         </p>
                                         <div className="flex flex-wrap gap-2 pt-1">
                                             <span
@@ -540,25 +644,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                         : 'bg-red-100 text-red-700'
                                                 }`}
                                             >
-                                                {(
+                                                {getStatusLabel(
                                                     data.status ??
-                                                    (data.is_active
-                                                        ? 'active'
-                                                        : 'inactive')
-                                                )
-                                                    .split('_')
-                                                    .map(
-                                                        (part) =>
-                                                            part
-                                                                .charAt(0)
-                                                                .toUpperCase() +
-                                                            part.slice(1),
-                                                    )
-                                                    .join(' ')}
+                                                        (data.is_active
+                                                            ? 'active'
+                                                            : 'inactive'),
+                                                )}
                                             </span>
                                             <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
                                                 {data.employment_type ??
-                                                    'No employment type'}
+                                                    t(
+                                                        'employees.details.noEmploymentType',
+                                                        'No employment type',
+                                                    )}
                                             </span>
                                         </div>
                                     </div>
@@ -568,60 +666,70 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="rounded-lg border p-4">
                                     <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                        Contact
+                                        {t('employees.details.contact', 'Contact')}
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
                                             <span className="font-medium">
-                                                Phone:
+                                                {t('employees.form.phone', 'Phone')}:
                                             </span>{' '}
-                                            {data.phone || '—'}
+                                            {data.phone ||
+                                                t('employees.common.empty', '—')}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                Address:
+                                                {t('employees.form.address', 'Address')}:
                                             </span>{' '}
-                                            {data.address || '—'}
+                                            {data.address ||
+                                                t('employees.common.empty', '—')}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="rounded-lg border p-4">
                                     <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                        Employment
+                                        {t('employees.details.employment', 'Employment')}
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
                                             <span className="font-medium">
-                                                Branch:
+                                                {t('employees.filters.branch', 'Branch')}:
                                             </span>{' '}
-                                            {data.branch || '—'}
+                                            {data.branch ||
+                                                t('employees.common.empty', '—')}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                Salary:
+                                                {t('employees.table.salary', 'Salary')}:
                                             </span>{' '}
                                             {data.contract_amount
-                                                ? `${formatNumber(Number(data.contract_amount))} ${data.salary_currency ?? 'AFN'} (Contract)`
+                                                ? `${formatNumber(Number(data.contract_amount))} ${data.salary_currency ?? 'AFN'} (${t('employees.common.contract', 'Contract')})`
                                                 : data.salary
                                                   ? `${formatNumber(Number(data.salary))} ${data.salary_currency ?? 'AFN'}`
-                                                  : '—'}
+                                                  : t('employees.common.empty', '—')}
                                         </p>
                                         <p>
                                             <span className="font-medium">
                                                 {data.contract_amount
-                                                    ? 'Contract Duration:'
-                                                    : 'Work Duration:'}
+                                                    ? t(
+                                                          'employees.details.contractDuration',
+                                                          'Contract Duration:',
+                                                      )
+                                                    : t(
+                                                          'employees.details.workDuration',
+                                                          'Work Duration:',
+                                                      )}
                                             </span>{' '}
                                             {data.contract_start_date &&
                                             data.contract_end_date
-                                                ? `${new Date(data.contract_start_date).toLocaleDateString()} - ${new Date(data.contract_end_date).toLocaleDateString()}`
-                                                : '—'}
+                                                ? `${formatLocalizedDate(data.contract_start_date)} - ${formatLocalizedDate(data.contract_end_date)}`
+                                                : t('employees.common.empty', '—')}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                Shift:
+                                                {t('employees.filters.shift', 'Shift')}:
                                             </span>{' '}
-                                            {data.shift || '—'}
+                                            {data.shift ||
+                                                t('employees.common.empty', '—')}
                                         </p>
                                     </div>
                                 </div>
@@ -629,17 +737,20 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="rounded-lg border p-4">
                                 <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     {data.description ||
-                                        'No description provided.'}
+                                        t(
+                                            'employees.details.noDescription',
+                                            'No description provided.',
+                                        )}
                                 </p>
                             </div>
 
                             <div className="rounded-lg border p-4">
                                 <p className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                    Attachments
+                                    {t('employees.form.attachments', 'Attachments')}
                                 </p>
                                 {existingAttachments.length > 0 ? (
                                     <div className="space-y-2">
@@ -664,7 +775,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No attachments uploaded.
+                                        {t(
+                                            'employees.details.noAttachments',
+                                            'No attachments uploaded.',
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -676,9 +790,17 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isFinanceOpen} onOpenChange={setIsFinanceOpen}>
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Employee Finances</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'employees.finance.title',
+                                'Employee Finances',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Static preview of salary and takeout records.
+                            {t(
+                                'employees.finance.description',
+                                'Static preview of salary and takeout records.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -686,21 +808,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="space-y-6 px-1">
                             <div className="rounded-xl border bg-gradient-to-r from-emerald-50 to-white p-5 dark:from-emerald-950/30 dark:to-neutral-950">
                                 <p className="text-xs font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
-                                    Upcoming Payment
+                                    {t(
+                                        'employees.finance.upcomingPayment',
+                                        'Upcoming Payment',
+                                    )}
                                 </p>
                                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p className="text-2xl font-semibold">
-                                            {`${formatNumber(Number(data.contract_amount ?? data.salary ?? 25000))} ${data.salary_currency ?? 'AFN'}`}
+                                            {`${formatNumber(upcomingPayment.amount)} ${upcomingPayment.currency}`}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Monthly salary for{' '}
-                                            {data.full_name ??
-                                                `${data.first_name} ${data.last_name}`}
+                                            {upcomingPayment.title}
                                         </p>
                                     </div>
-                                    <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
-                                        Due date: {nextSalaryDate}
+                                    <div className="space-y-2">
+                                        <div className="rounded-full border bg-white/70 px-3 py-1 text-center text-xs font-medium dark:bg-neutral-900/60">
+                                            {t(
+                                                `employees.finance.paymentStatus.${upcomingPayment.status}`,
+                                                upcomingPayment.status,
+                                            )}
+                                        </div>
+                                        <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
+                                        {t('employees.finance.dueDate', 'Due date')}:{' '}
+                                        {formatLocalizedDate(upcomingPayment.dueDate)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -708,10 +840,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="rounded-xl border p-4">
                                 <div className="mb-3 flex items-center justify-between">
                                     <h4 className="text-sm font-semibold">
-                                        Previous Payments
+                                        {t(
+                                            'employees.finance.historyTitle',
+                                            'Payment History',
+                                        )}
                                     </h4>
                                     <span className="text-xs text-muted-foreground">
-                                        Salary + Takeouts
+                                        {t(
+                                            'employees.finance.salaryAndTakeouts',
+                                            'Salary + Takeouts',
+                                        )}
                                     </span>
                                 </div>
 
@@ -719,27 +857,47 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Type</TableHead>
-                                                <TableHead>Amount</TableHead>
-                                                <TableHead>Note</TableHead>
+                                                <TableHead>
+                                                    {t(
+                                                        'employees.finance.table.date',
+                                                        'Date',
+                                                    )}
+                                                </TableHead>
+                                                <TableHead>
+                                                    {t('employees.finance.table.type', 'Type')}
+                                                </TableHead>
+                                                <TableHead>
+                                                    {t('employees.finance.table.amount', 'Amount')}
+                                                </TableHead>
+                                                <TableHead>
+                                                    {t('employees.finance.table.note', 'Note')}
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {staticPreviousPayments.map(
-                                                (payment) => (
+                                            {financeEntries.length > 0 ? (
+                                                financeEntries.map((payment) => (
                                                     <TableRow key={payment.id}>
                                                         <TableCell>
-                                                            {new Date(
+                                                            {formatLocalizedDate(
                                                                 payment.date,
-                                                            ).toLocaleDateString()}
+                                                            )}
                                                         </TableCell>
                                                         <TableCell>
                                                             <span
                                                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                                                                     payment.type ===
-                                                                    'Salary'
+                                                                    t(
+                                                                        'employees.finance.salaryType',
+                                                                        'Salary',
+                                                                    )
                                                                         ? 'bg-blue-100 text-blue-700'
+                                                                        : payment.type ===
+                                                                            t(
+                                                                                'employees.finance.contractType',
+                                                                                'Contract Payment',
+                                                                            )
+                                                                          ? 'bg-violet-100 text-violet-700'
                                                                         : 'bg-amber-100 text-amber-700'
                                                                 }`}
                                                             >
@@ -750,10 +908,30 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                             {`${formatNumber(payment.amount)} ${payment.currency}`}
                                                         </TableCell>
                                                         <TableCell className="text-muted-foreground">
-                                                            {payment.note}
+                                                            <div className="space-y-1">
+                                                                <p>{payment.note}</p>
+                                                                <p className="text-xs">
+                                                                    {t(
+                                                                        `employees.finance.paymentStatus.${payment.status}`,
+                                                                        payment.status,
+                                                                    )}
+                                                                </p>
+                                                            </div>
                                                         </TableCell>
                                                     </TableRow>
-                                                ),
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={4}
+                                                        className="text-center text-muted-foreground"
+                                                    >
+                                                        {t(
+                                                            'employees.finance.empty',
+                                                            'No finance records found for this employee.',
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
@@ -767,10 +945,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Employee</DialogTitle>
+                        <DialogTitle>
+                            {t('employees.edit.title', 'Edit Employee')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update employee profile, employment type, position,
-                            salary details, and files.
+                            {t(
+                                'employees.edit.description',
+                                'Update employee profile, employment type, position, salary details, and files.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -778,7 +960,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-first-name-${data.id}`}>
-                                    First name
+                                    {t('employees.form.firstName', 'First name')}
                                 </Label>
                                 <Input
                                     id={`edit-first-name-${data.id}`}
@@ -791,7 +973,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-last-name-${data.id}`}>
-                                    Last name
+                                    {t('employees.form.lastName', 'Last name')}
                                 </Label>
                                 <Input
                                     id={`edit-last-name-${data.id}`}
@@ -804,7 +986,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-phone-${data.id}`}>
-                                    Phone
+                                    {t('employees.form.phone', 'Phone')}
                                 </Label>
                                 <Input
                                     id={`edit-phone-${data.id}`}
@@ -816,13 +998,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Branch</Label>
+                                <Label>{t('employees.filters.branch', 'Branch')}</Label>
                                 <Select
                                     value={editBranchId}
                                     onValueChange={setEditBranchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select branch" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectBranch',
+                                                'Select branch',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {branches.map((branch) => (
@@ -838,13 +1025,23 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.branch_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Employment type</Label>
+                                <Label>
+                                    {t(
+                                        'employees.filters.employmentType',
+                                        'Employment type',
+                                    )}
+                                </Label>
                                 <Select
                                     value={editEmploymentTypeId}
                                     onValueChange={setEditEmploymentTypeId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select employment type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectEmploymentType',
+                                                'Select employment type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employmentTypes.map((type) => (
@@ -862,13 +1059,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Employee position</Label>
+                                <Label>
+                                    {t('employees.form.employeePosition', 'Employee position')}
+                                </Label>
                                 <Select
                                     value={editEmployeePositionId}
                                     onValueChange={setEditEmployeePositionId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select position" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectPosition',
+                                                'Select position',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employeePositions.map((position) => (
@@ -886,13 +1090,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Shift</Label>
+                                <Label>{t('employees.filters.shift', 'Shift')}</Label>
                                 <Select
                                     value={editShiftId}
                                     onValueChange={setEditShiftId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select shift" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectShift',
+                                                'Select shift',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {shifts.map((shift) => (
@@ -910,8 +1119,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-salary-${data.id}`}>
                                     {editIsContractBased
-                                        ? 'Contract Amount'
-                                        : 'Salary'}
+                                        ? t(
+                                              'employees.form.contractAmount',
+                                              'Contract Amount',
+                                          )
+                                        : t('employees.table.salary', 'Salary')}
                                 </Label>
                                 <NumericInput
                                     id={`edit-salary-${data.id}`}
@@ -940,8 +1152,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     htmlFor={`edit-contract-start-${data.id}`}
                                 >
                                     {editIsContractBased
-                                        ? 'Contract start date'
-                                        : 'Work start date'}
+                                        ? t(
+                                              'employees.form.contractStartDate',
+                                              'Contract start date',
+                                          )
+                                        : t(
+                                              'employees.form.workStartDate',
+                                              'Work start date',
+                                          )}
                                 </Label>
                                 <Input
                                     id={`edit-contract-start-${data.id}`}
@@ -960,8 +1178,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-contract-end-${data.id}`}>
                                     {editIsContractBased
-                                        ? 'Contract end date'
-                                        : 'Work end date'}
+                                        ? t(
+                                              'employees.form.contractEndDate',
+                                              'Contract end date',
+                                          )
+                                        : t(
+                                              'employees.form.workEndDate',
+                                              'Work end date',
+                                          )}
                                 </Label>
                                 <Input
                                     id={`edit-contract-end-${data.id}`}
@@ -978,7 +1202,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Payment currency</Label>
+                                <Label>
+                                    {t(
+                                        'employees.form.paymentCurrency',
+                                        'Payment currency',
+                                    )}
+                                </Label>
                                 <Select
                                     value={editSalaryCurrency}
                                     onValueChange={(value) =>
@@ -988,7 +1217,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select currency" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectCurrency',
+                                                'Select currency',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {CURRENCIES.map((currency) => (
@@ -1006,13 +1240,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Status</Label>
+                                <Label>{t('employees.table.status', 'Status')}</Label>
                                 <Select
                                     value={editStatus}
                                     onValueChange={setEditStatus}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectStatus',
+                                                'Select status',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {EMPLOYEE_STATUSES.map((status) => (
@@ -1020,16 +1259,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 key={status}
                                                 value={status}
                                             >
-                                                {status
-                                                    .split('_')
-                                                    .map(
-                                                        (part) =>
-                                                            part
-                                                                .charAt(0)
-                                                                .toUpperCase() +
-                                                            part.slice(1),
-                                                    )
-                                                    .join(' ')}
+                                                {getStatusLabel(status)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -1038,7 +1268,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor={`edit-address-${data.id}`}>
-                                    Address
+                                    {t('employees.form.address', 'Address')}
                                 </Label>
                                 <Input
                                     id={`edit-address-${data.id}`}
@@ -1051,7 +1281,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor={`edit-description-${data.id}`}>
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </Label>
                                 <Textarea
                                     id={`edit-description-${data.id}`}
@@ -1064,18 +1294,26 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
 
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Profile picture</Label>
+                                <Label>
+                                    {t('employees.form.profilePicture', 'Profile picture')}
+                                </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Replace employee profile picture.
+                                            {t(
+                                                'employees.edit.profilePictureHelp',
+                                                'Replace employee profile picture.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor={`edit-profile-picture-${data.id}`}
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Picture
+                                            {t(
+                                                'employees.form.selectPicture',
+                                                'Select Picture',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -1093,7 +1331,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         {currentProfilePictureUrl ? (
                                             <img
                                                 src={currentProfilePictureUrl}
-                                                alt="Current profile"
+                                                alt={t(
+                                                    'employees.edit.currentProfile',
+                                                    'Current profile',
+                                                )}
                                                 className="h-16 w-16 rounded-md border object-cover"
                                             />
                                         ) : null}
@@ -1103,7 +1344,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     src={
                                                         editProfilePicturePreview
                                                     }
-                                                    alt="New profile preview"
+                                                    alt={t(
+                                                        'employees.edit.newProfilePreview',
+                                                        'New profile preview',
+                                                    )}
                                                     className="h-full w-full object-cover"
                                                 />
                                                 <button
@@ -1128,19 +1372,28 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
-                                    Attachments (up to {MAX_ATTACHMENTS} total)
+                                    {t(
+                                        'employees.edit.attachmentsLabel',
+                                        'Attachments (up to :count total)',
+                                    ).replace(':count', String(MAX_ATTACHMENTS))}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Add new attachment files.
+                                            {t(
+                                                'employees.edit.attachmentsHelp',
+                                                'Add new attachment files.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor={`edit-attachments-${data.id}`}
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Files
+                                            {t(
+                                                'employees.form.selectFiles',
+                                                'Select Files',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -1159,7 +1412,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     {existingAttachments.length > 0 ? (
                                         <div className="mt-3 space-y-2">
                                             <p className="text-xs font-medium text-muted-foreground">
-                                                Current attachments
+                                                {t(
+                                                    'employees.edit.currentAttachments',
+                                                    'Current attachments',
+                                                )}
                                             </p>
                                             {existingAttachments.map(
                                                 (path, index) => (
@@ -1187,7 +1443,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     {editAttachments.length > 0 ? (
                                         <div className="mt-3 space-y-2">
                                             <p className="text-xs font-medium text-muted-foreground">
-                                                New attachments to add
+                                                {t(
+                                                    'employees.edit.newAttachments',
+                                                    'New attachments to add',
+                                                )}
                                             </p>
                                             {editAttachments.map((item) => (
                                                 <div
@@ -1228,7 +1487,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
@@ -1247,7 +1506,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Changes
+                            {t('employees.edit.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1258,19 +1517,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             {data.is_active
-                                ? 'Mark employee inactive'
-                                : 'Mark employee active'}
+                                ? t(
+                                      'employees.statusDialog.markInactiveTitle',
+                                      'Mark employee inactive',
+                                  )
+                                : t(
+                                      'employees.statusDialog.markActiveTitle',
+                                      'Mark employee active',
+                                  )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will mark employee as inactive in the system.'
-                                : 'This will mark employee as active in the system.'}
+                                ? t(
+                                      'employees.statusDialog.markInactiveDescription',
+                                      'This will mark employee as inactive in the system.',
+                                  )
+                                : t(
+                                      'employees.statusDialog.markActiveDescription',
+                                      'This will mark employee as active in the system.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
@@ -1280,12 +1551,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             {data.is_active ? (
                                 <>
                                     <Ban className="mr-2 h-4 w-4" />
-                                    Mark Inactive
+                                    {t(
+                                        'employees.actions.markInactive',
+                                        'Mark Inactive',
+                                    )}
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Mark Active
+                                    {t('employees.actions.markActive', 'Mark Active')}
                                 </>
                             )}
                         </AlertDialogAction>
@@ -1297,15 +1571,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete employee</AlertDialogTitle>
+                            <AlertDialogTitle>
+                                {t('employees.delete.title', 'Delete employee')}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will permanently remove the employee record.
+                                {t(
+                                    'employees.delete.description',
+                                    'This will permanently remove the employee record.',
+                                )}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isSubmitting}>
                                 <X className="mr-2 h-4 w-4" />
-                                Cancel
+                                {t('common.cancel', 'Cancel')}
                             </AlertDialogCancel>
                             <AlertDialogAction
                                 variant="destructive"
@@ -1313,7 +1592,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 disabled={isSubmitting}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete employee
+                                {t(
+                                    'employees.delete.confirmButton',
+                                    'Delete employee',
+                                )}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

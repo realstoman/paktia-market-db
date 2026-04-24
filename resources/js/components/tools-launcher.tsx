@@ -36,9 +36,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
@@ -733,42 +730,34 @@ export function ToolsLauncher() {
 
     return (
         <>
-            <SidebarGroup className="px-2 py-2">
-                <SidebarGroupLabel>
-                    {t('navigation.tools', 'Tools')}
-                </SidebarGroupLabel>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <Popover
-                            open={isToolsMenuOpen}
-                            onOpenChange={handleToolsMenuOpenChange}
+            <SidebarMenuItem>
+                <Popover
+                    open={isToolsMenuOpen}
+                    onOpenChange={handleToolsMenuOpenChange}
+                >
+                    <PopoverTrigger asChild className="cursor-pointer">
+                        <SidebarMenuButton
+                            tooltip={{
+                                children: t('navigation.tools', 'Tools'),
+                            }}
                         >
-                            <PopoverTrigger asChild className="cursor-pointer">
-                                <SidebarMenuButton
-                                    tooltip={{
-                                        children: t(
-                                            'navigation.tools',
-                                            'Tools',
-                                        ),
-                                    }}
-                                >
-                                    <LayoutDashboard />
-                                    <span className="text-sm">
-                                        {t('navigation.tools', 'Tools')}
-                                    </span>
-                                </SidebarMenuButton>
-                            </PopoverTrigger>
-                            <PopoverContent
-                                side="right"
-                                align="start"
-                                className="w-64 p-3"
-                            >
-                                {isLoadingTools ? (
-                                    <div className="py-6 text-center text-sm text-muted-foreground">
-                                        Loading tools...
-                                    </div>
-                                ) : null}
-                                <div className="grid grid-cols-3 gap-2">
+                            <LayoutDashboard />
+                            <span className="text-sm">
+                                {t('navigation.tools', 'Tools')}
+                            </span>
+                        </SidebarMenuButton>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        side="right"
+                        align="start"
+                        className="w-64 p-3"
+                    >
+                        {isLoadingTools ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                                Loading tools...
+                            </div>
+                        ) : null}
+                        <div className="grid grid-cols-3 gap-2">
                                     <Button
                                         variant="outline"
                                         className="h-20 flex-col gap-2"
@@ -859,12 +848,10 @@ export function ToolsLauncher() {
                                             Kitchens
                                         </span>
                                     </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarGroup>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </SidebarMenuItem>
 
             <Dialog open={isCountriesOpen} onOpenChange={setIsCountriesOpen}>
                 <DialogContent className="sm:max-w-3xl">

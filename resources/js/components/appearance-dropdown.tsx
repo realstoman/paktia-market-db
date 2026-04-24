@@ -43,60 +43,66 @@ export default function AppearanceToggleDropdown({
                         </span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    align={isRtl ? 'start' : 'end'}
-                    className={isRtl ? 'text-right' : ''}
-                >
+                <DropdownMenuContent align="end" className={isRtl ? 'text-right' : ''}>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('light')}
                         className={
                             isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
+                                ? 'w-full text-right'
                                 : ''
                         }
                     >
-                        <span
-                            className={`flex items-center gap-2 ${
-                                isRtl ? 'flex-row-reverse' : ''
-                            }`}
-                        >
-                            <Sun className="h-5 w-5" />
-                            {t('appearance.light', 'Light')}
-                        </span>
+                        {isRtl ? (
+                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                                <Sun className="h-5 w-5" />
+                                <span>{t('appearance.light', 'Light')}</span>
+                            </span>
+                        ) : (
+                            <>
+                                <Sun className="h-5 w-5" />
+                                <span>{t('appearance.light', 'Light')}</span>
+                            </>
+                        )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('dark')}
                         className={
                             isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
+                                ? 'w-full text-right'
                                 : ''
                         }
                     >
-                        <span
-                            className={`flex items-center gap-2 ${
-                                isRtl ? 'flex-row-reverse' : ''
-                            }`}
-                        >
-                            <Moon className="h-5 w-5" />
-                            {t('appearance.dark', 'Dark')}
-                        </span>
+                        {isRtl ? (
+                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                                <Moon className="h-5 w-5" />
+                                <span>{t('appearance.dark', 'Dark')}</span>
+                            </span>
+                        ) : (
+                            <>
+                                <Moon className="h-5 w-5" />
+                                <span>{t('appearance.dark', 'Dark')}</span>
+                            </>
+                        )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('system')}
                         className={
                             isRtl
-                                ? 'w-full flex-row-reverse justify-start text-right'
+                                ? 'w-full text-right'
                                 : ''
                         }
                     >
-                        <span
-                            className={`flex items-center gap-2 ${
-                                isRtl ? 'flex-row-reverse' : ''
-                            }`}
-                        >
-                            <Monitor className="h-5 w-5" />
-                            {t('appearance.system', 'System')}
-                        </span>
+                        {isRtl ? (
+                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                                <Monitor className="h-5 w-5" />
+                                <span>{t('appearance.system', 'System')}</span>
+                            </span>
+                        ) : (
+                            <>
+                                <Monitor className="h-5 w-5" />
+                                <span>{t('appearance.system', 'System')}</span>
+                            </>
+                        )}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
