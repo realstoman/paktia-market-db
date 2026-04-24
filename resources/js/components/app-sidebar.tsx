@@ -202,8 +202,10 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="bg-white dark:bg-brand-bg-dark">
-                <NavMain items={navigationItems} />
-                {isSuperAdmin ? <ToolsLauncher /> : null}
+                <NavMain
+                    items={navigationItems}
+                    trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}
+                />
             </SidebarContent>
 
             <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">

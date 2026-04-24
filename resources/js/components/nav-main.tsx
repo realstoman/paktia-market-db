@@ -1,20 +1,24 @@
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { resolveUrl } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
+import { ReactNode } from 'react';
 
-export function NavMain({ items = [] }: { items: NavItem[] }) {
+export function NavMain({
+    items = [],
+    trailingItems,
+}: {
+    items: NavItem[];
+    trailingItems?: ReactNode;
+}) {
     const page = usePage();
     const { can, canAny } = useAuthorization();
-    const { t } = useLocalization();
 
     const filteredItems = items.filter((item) => {
         if (item.canAny?.length) {
@@ -25,10 +29,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     });
 
     return (
-        <SidebarGroup className="px-2 py-2">
-            <SidebarGroupLabel>
-                {t('navigation.platform', 'Platform')}
-            </SidebarGroupLabel>
+        <SidebarGroup className="px-2 pt-3 pb-2">
             <SidebarMenu>
                 {filteredItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
@@ -46,6 +47,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 ))}
+                {trailingItems}
             </SidebarMenu>
         </SidebarGroup>
     );
