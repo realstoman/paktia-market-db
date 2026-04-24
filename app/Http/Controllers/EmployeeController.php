@@ -6,9 +6,13 @@ use App\Enums\EmployeeStatus;
 use App\Enums\PermissionEnum;
 use App\Models\Branch;
 use App\Models\Employee;
+use App\Models\EmployeeAdvance;
+use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
+use App\Models\PayrollRunItem;
 use App\Models\Shift;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +28,34 @@ class EmployeeController extends Controller
         $employees = Employee::query()
             ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
             ->orderByDesc('id')
+            ->get();
+
+        $employeeIds = $employees->pluck('id');
+
+        $advancesByEmployee = EmployeeAdvance::query()
+            ->with(['branch:id,name'])
+            ->whereIn('employee_id', $employeeIds)
+            ->orderByDesc('advance_date')
+            ->orderByDesc('id')
             ->get()
+            ->groupBy('employee_id');
+
+        $payrollItemsByEmployee = PayrollRunItem::query()
+            ->with(['payrollRun:id,branch_id,period_start,period_end,status,paid_at', 'payrollRun.branch:id,name'])
+            ->whereIn('employee_id', $employeeIds)
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('employee_id');
+
+        $contractSchedulesByEmployee = EmployeeContractPaymentSchedule::query()
+            ->with(['contract:id,employee_id,branch_id,contract_amount,start_date,end_date,status', 'contract.branch:id,name'])
+            ->whereHas('contract', fn ($query) => $query->whereIn('employee_id', $employeeIds))
+            ->orderBy('due_date')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (EmployeeContractPaymentSchedule $schedule) => $schedule->contract?->employee_id);
+
+        $employees = $employees
             ->map(fn (Employee $employee) => [
                 'id' => $employee->id,
                 'first_name' => $employee->first_name,
@@ -52,6 +83,78 @@ class EmployeeController extends Controller
                 'contract_amount' => $employee->contract_amount,
                 'status' => $employee->status,
                 'is_active' => $employee->is_active,
+                'advances' => ($advancesByEmployee->get($employee->id) ?? collect())
+                    ->map(fn (EmployeeAdvance $advance) => [
+                        'id' => $advance->id,
+                        'advance_date' => $advance->advance_date?->toDateString(),
+                        'amount' => $advance->amount,
+                        'deducted_amount' => $advance->deducted_amount,
+                        'remaining_balance' => $advance->remaining_balance,
+                        'status' => $advance->status,
+                        'reason' => $advance->reason,
+                        'repayment_method' => $advance->repayment_method,
+                        'branch' => $advance->branch ? [
+                            'id' => $advance->branch->id,
+                            'name' => $advance->branch->name,
+                        ] : null,
+                        'created_at' => $advance->created_at?->toIso8601String(),
+                    ])
+                    ->values(),
+                'payroll_items' => ($payrollItemsByEmployee->get($employee->id) ?? collect())
+                    ->map(fn (PayrollRunItem $item) => [
+                        'id' => $item->id,
+                        'gross_salary' => $item->gross_salary,
+                        'bonuses' => $item->bonuses,
+                        'deductions' => $item->deductions,
+                        'advances_deducted' => $item->advances_deducted,
+                        'overtime_amount' => $item->overtime_amount,
+                        'net_salary' => $item->net_salary,
+                        'salary_type' => $item->salary_type,
+                        'payment_method' => $item->payment_method,
+                        'payment_status' => $item->payment_status,
+                        'payment_date' => $item->payment_date?->toDateString(),
+                        'covered_period_dates' => $item->covered_period_dates,
+                        'covered_month_count' => $item->covered_month_count,
+                        'payroll_run' => $item->payrollRun ? [
+                            'id' => $item->payrollRun->id,
+                            'status' => $item->payrollRun->status,
+                            'period_start' => $item->payrollRun->period_start?->toDateString(),
+                            'period_end' => $item->payrollRun->period_end?->toDateString(),
+                            'paid_at' => $item->payrollRun->paid_at?->toIso8601String(),
+                            'branch' => $item->payrollRun->branch ? [
+                                'id' => $item->payrollRun->branch->id,
+                                'name' => $item->payrollRun->branch->name,
+                            ] : null,
+                        ] : null,
+                    ])
+                    ->values(),
+                'contract_schedules' => ($contractSchedulesByEmployee->get($employee->id) ?? collect())
+                    ->map(fn (EmployeeContractPaymentSchedule $schedule) => [
+                        'id' => $schedule->id,
+                        'due_date' => $schedule->due_date?->toDateString(),
+                        'title' => $schedule->title,
+                        'amount' => $schedule->amount,
+                        'status' => $schedule->status,
+                        'payment_method' => $schedule->payment_method,
+                        'paid_at' => $schedule->paid_at?->toIso8601String(),
+                        'contract' => $schedule->contract ? [
+                            'id' => $schedule->contract->id,
+                            'status' => $schedule->contract->status,
+                            'contract_amount' => $schedule->contract->contract_amount,
+                            'start_date' => $schedule->contract->start_date?->toDateString(),
+                            'end_date' => $schedule->contract->end_date?->toDateString(),
+                            'branch' => $schedule->contract->branch ? [
+                                'id' => $schedule->contract->branch->id,
+                                'name' => $schedule->contract->branch->name,
+                            ] : null,
+                        ] : null,
+                    ])
+                    ->values(),
+                'upcoming_payment' => $this->resolveUpcomingPayment(
+                    $employee,
+                    $contractSchedulesByEmployee->get($employee->id) ?? collect(),
+                    $payrollItemsByEmployee->get($employee->id) ?? collect(),
+                ),
                 'created_at' => $employee->created_at,
                 'updated_at' => $employee->updated_at,
             ])
@@ -65,6 +168,51 @@ class EmployeeController extends Controller
             'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
             'canCreate' => Gate::allows(PermissionEnum::EMPLOYEES_CREATE->value),
         ]);
+    }
+
+    private function resolveUpcomingPayment(
+        Employee $employee,
+        \Illuminate\Support\Collection $contractSchedules,
+        \Illuminate\Support\Collection $payrollItems,
+    ): array {
+        $nextSchedule = $contractSchedules
+            ->first(fn (EmployeeContractPaymentSchedule $schedule) => $schedule->status !== 'paid');
+
+        if ($nextSchedule) {
+            return [
+                'source' => 'contract_schedule',
+                'title' => $nextSchedule->title ?: 'Contract payment',
+                'amount' => $nextSchedule->amount,
+                'currency' => $employee->salary_currency ?? 'AFN',
+                'status' => $nextSchedule->status,
+                'due_date' => $nextSchedule->due_date?->toDateString(),
+            ];
+        }
+
+        $nextPayroll = $payrollItems
+            ->filter(fn (PayrollRunItem $item) => $item->payment_status !== 'paid')
+            ->sortBy(fn (PayrollRunItem $item) => $item->payrollRun?->period_end?->timestamp ?? PHP_INT_MAX)
+            ->first();
+
+        if ($nextPayroll) {
+            return [
+                'source' => 'payroll',
+                'title' => 'Monthly salary',
+                'amount' => $nextPayroll->net_salary,
+                'currency' => $employee->salary_currency ?? 'AFN',
+                'status' => $nextPayroll->payment_status,
+                'due_date' => $nextPayroll->payrollRun?->period_end?->toDateString(),
+            ];
+        }
+
+        return [
+            'source' => 'scheduled',
+            'title' => $employee->contract_amount ? 'Contract payment' : 'Monthly salary',
+            'amount' => $employee->contract_amount ?? $employee->salary ?? 0,
+            'currency' => $employee->salary_currency ?? 'AFN',
+            'status' => 'scheduled',
+            'due_date' => Carbon::now()->endOfMonth()->toDateString(),
+        ];
     }
 
     public function store(Request $request)

@@ -70,7 +70,7 @@ import {
     Wallet,
     X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -136,7 +136,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     shifts,
     canDelete,
 }) => {
-    const { t, locale } = useLocalization();
+    const { t, locale, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canDeleteEmployee = canDelete && auth.is_super_admin === true;
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -250,7 +250,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 .join(' '),
         );
 
-    const formatLocalizedDate = (value?: string | null) => {
+    const formatLocalizedDate = useCallback((value?: string | null) => {
         if (!value) {
             return '';
         }
@@ -263,52 +263,76 @@ export const CellAction: React.FC<CellActionProps> = ({
                 day: 'numeric',
             },
         ).format(new Date(value));
-    };
+    }, [locale]);
 
-    const staticPreviousPayments = useMemo(
-        () => [
-            {
-                id: '1',
-                date: '2026-02-28',
-                type: t('employees.finance.salaryType', 'Salary'),
-                amount: 25000,
-                currency: data.salary_currency ?? 'AFN',
-                note: t(
-                    'employees.finance.notes.monthlySalaryFebruary',
-                    'Monthly salary - February',
+    const financeEntries = useMemo(() => {
+        const advanceEntries = (data.advances ?? []).map((advance) => ({
+            id: `advance-${advance.id}`,
+            date: advance.advance_date,
+            type: t('employees.finance.takeoutType', 'Takeout'),
+            amount: Number(advance.amount ?? 0),
+            currency: data.salary_currency ?? 'AFN',
+            status: advance.status ?? 'draft',
+            note:
+                advance.reason ||
+                t(
+                    'employees.finance.defaultAdvanceReason',
+                    'Employee advance / takeout',
                 ),
-            },
-            {
-                id: '2',
-                date: '2026-02-16',
-                type: t('employees.finance.takeoutType', 'Takeout'),
-                amount: 3500,
-                currency: data.salary_currency ?? 'AFN',
-                note: t(
-                    'employees.finance.notes.personalAdvance',
-                    'Personal advance',
-                ),
-            },
-            {
-                id: '3',
-                date: '2026-01-31',
-                type: t('employees.finance.salaryType', 'Salary'),
-                amount: 25000,
-                currency: data.salary_currency ?? 'AFN',
-                note: t(
-                    'employees.finance.notes.monthlySalaryJanuary',
-                    'Monthly salary - January',
-                ),
-            },
-        ],
-        [data.salary_currency, t],
-    );
+        }));
 
-    const nextSalaryDate = (() => {
-        const next = new Date();
-        next.setMonth(next.getMonth() + 1, 0);
-        return formatLocalizedDate(next.toISOString());
-    })();
+        const payrollEntries = (data.payroll_items ?? []).map((item) => ({
+            id: `payroll-${item.id}`,
+            date:
+                item.payment_date ??
+                item.payroll_run?.period_end ??
+                item.payroll_run?.period_start,
+            type:
+                item.salary_type === 'contract'
+                    ? t('employees.finance.contractType', 'Contract Payment')
+                    : t('employees.finance.salaryType', 'Salary'),
+            amount: Number(item.net_salary ?? 0),
+            currency: data.salary_currency ?? 'AFN',
+            status: item.payment_status ?? item.payroll_run?.status ?? 'draft',
+            note:
+                item.payroll_run?.period_end
+                    ? t(
+                          'employees.finance.payrollPeriodNote',
+                          'Payroll period ending :date',
+                      ).replace(
+                          ':date',
+                          formatLocalizedDate(item.payroll_run.period_end),
+                      )
+                    : t(
+                          'employees.finance.generatedFromPayroll',
+                          'Generated from payroll',
+                      ),
+        }));
+
+        return [...advanceEntries, ...payrollEntries].sort((a, b) => {
+            const aTime = a.date ? new Date(a.date).getTime() : 0;
+            const bTime = b.date ? new Date(b.date).getTime() : 0;
+            return bTime - aTime;
+        });
+    }, [data.advances, data.payroll_items, data.salary_currency, formatLocalizedDate, t]);
+
+    const upcomingPayment = useMemo(() => {
+        const fallbackDate = (() => {
+            const next = new Date();
+            next.setMonth(next.getMonth() + 1, 0);
+            return next.toISOString().slice(0, 10);
+        })();
+
+        return {
+            amount: Number(data.upcoming_payment?.amount ?? 0),
+            currency: data.upcoming_payment?.currency ?? data.salary_currency ?? 'AFN',
+            status: data.upcoming_payment?.status ?? 'scheduled',
+            dueDate: data.upcoming_payment?.due_date ?? fallbackDate,
+            title:
+                data.upcoming_payment?.title ??
+                t('employees.finance.upcomingPayment', 'Upcoming Payment'),
+        };
+    }, [data.salary_currency, data.upcoming_payment, t]);
 
     const resetEdit = () => {
         setEditFirstName(data.first_name ?? '');
@@ -522,8 +546,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
+                <DropdownMenuContent
+                    align="end"
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
                         {t('employees.table.actions', 'Actions')}
                     </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
@@ -789,20 +816,23 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p className="text-2xl font-semibold">
-                                            {`${formatNumber(Number(data.contract_amount ?? data.salary ?? 25000))} ${data.salary_currency ?? 'AFN'}`}
+                                            {`${formatNumber(upcomingPayment.amount)} ${upcomingPayment.currency}`}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {t(
-                                                'employees.finance.monthlySalaryFor',
-                                                'Monthly salary for',
-                                            )}{' '}
-                                            {data.full_name ??
-                                                `${data.first_name} ${data.last_name}`}
+                                            {upcomingPayment.title}
                                         </p>
                                     </div>
-                                    <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
+                                    <div className="space-y-2">
+                                        <div className="rounded-full border bg-white/70 px-3 py-1 text-center text-xs font-medium dark:bg-neutral-900/60">
+                                            {t(
+                                                `employees.finance.paymentStatus.${upcomingPayment.status}`,
+                                                upcomingPayment.status,
+                                            )}
+                                        </div>
+                                        <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
                                         {t('employees.finance.dueDate', 'Due date')}:{' '}
-                                        {nextSalaryDate}
+                                        {formatLocalizedDate(upcomingPayment.dueDate)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -811,8 +841,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <div className="mb-3 flex items-center justify-between">
                                     <h4 className="text-sm font-semibold">
                                         {t(
-                                            'employees.finance.previousPayments',
-                                            'Previous Payments',
+                                            'employees.finance.historyTitle',
+                                            'Payment History',
                                         )}
                                     </h4>
                                     <span className="text-xs text-muted-foreground">
@@ -845,8 +875,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {staticPreviousPayments.map(
-                                                (payment) => (
+                                            {financeEntries.length > 0 ? (
+                                                financeEntries.map((payment) => (
                                                     <TableRow key={payment.id}>
                                                         <TableCell>
                                                             {formatLocalizedDate(
@@ -862,6 +892,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                                         'Salary',
                                                                     )
                                                                         ? 'bg-blue-100 text-blue-700'
+                                                                        : payment.type ===
+                                                                            t(
+                                                                                'employees.finance.contractType',
+                                                                                'Contract Payment',
+                                                                            )
+                                                                          ? 'bg-violet-100 text-violet-700'
                                                                         : 'bg-amber-100 text-amber-700'
                                                                 }`}
                                                             >
@@ -872,10 +908,30 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                             {`${formatNumber(payment.amount)} ${payment.currency}`}
                                                         </TableCell>
                                                         <TableCell className="text-muted-foreground">
-                                                            {payment.note}
+                                                            <div className="space-y-1">
+                                                                <p>{payment.note}</p>
+                                                                <p className="text-xs">
+                                                                    {t(
+                                                                        `employees.finance.paymentStatus.${payment.status}`,
+                                                                        payment.status,
+                                                                    )}
+                                                                </p>
+                                                            </div>
                                                         </TableCell>
                                                     </TableRow>
-                                                ),
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={4}
+                                                        className="text-center text-muted-foreground"
+                                                    >
+                                                        {t(
+                                                            'employees.finance.empty',
+                                                            'No finance records found for this employee.',
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>

@@ -173,6 +173,17 @@ export interface Employee {
     contract_amount?: number | string | null;
     status?: string;
     is_active?: boolean;
+    advances?: EmployeeAdvance[];
+    payroll_items?: PayrollRunItem[];
+    contract_schedules?: EmployeeContractPaymentSchedule[];
+    upcoming_payment?: {
+        source?: string;
+        title?: string;
+        amount?: number | string | null;
+        currency?: string | null;
+        status?: string | null;
+        due_date?: string | null;
+    } | null;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;
@@ -217,6 +228,14 @@ export interface PayrollRunItem {
     payment_date?: string | null;
     covered_period_dates?: string[];
     covered_month_count?: number;
+    payroll_run?: {
+        id: number;
+        status?: string;
+        period_start?: string | null;
+        period_end?: string | null;
+        paid_at?: string | null;
+        branch?: Branch | null;
+    } | null;
     [key: string]: unknown;
 }
 
