@@ -1011,14 +1011,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         [t],
     );
 
+    const filterControlClassName = 'w-full sm:w-[145px] sm:min-w-[145px]';
+
     const tableToolbar = (
-        <div
-            className={`flex w-full flex-wrap gap-2 xl:flex-nowrap ${
-                locale === 'fa' || locale === 'ps'
-                    ? 'justify-end [&>*]:w-full md:[&>*]:flex-1'
-                    : 'justify-end'
-            }`}
-        >
+        <div className="flex w-full flex-wrap justify-end gap-2">
             <SearchableDropdown
                 value={branchFilter}
                 options={branchFilterOptions}
@@ -1029,11 +1025,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search branches...',
                 )}
                 emptyText={t('orders.filters.noBranches', 'No branches found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
             {!isOrderTaker ? (
                 <SearchableDropdown
@@ -1046,11 +1038,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         'Search users...',
                     )}
                     emptyText={t('orders.filters.noUsers', 'No users found.')}
-                    className={
-                        locale === 'fa' || locale === 'ps'
-                            ? 'w-full md:min-w-[170px]'
-                            : 'w-[170px]'
-                    }
+                    className={filterControlClassName}
                 />
             ) : null}
             <SearchableDropdown
@@ -1063,11 +1051,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search types...',
                 )}
                 emptyText={t('orders.filters.noTypes', 'No types found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
             <SearchableDropdown
                 value={kitchenFilter}
@@ -1079,11 +1063,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search kitchens...',
                 )}
                 emptyText={t('orders.filters.noKitchens', 'No kitchens found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
             <SearchableDropdown
                 value={statusFilter}
@@ -1095,11 +1075,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search statuses...',
                 )}
                 emptyText={t('orders.filters.noStatuses', 'No statuses found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
             <SearchableDropdown
                 value={coverageFilter}
@@ -1111,11 +1087,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search coverage...',
                 )}
                 emptyText={t('orders.filters.noCoverage', 'No coverage found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
             <SearchableDropdown
                 value={sourceFilter}
@@ -1127,11 +1099,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Search sources...',
                 )}
                 emptyText={t('orders.filters.noSources', 'No sources found.')}
-                className={
-                    locale === 'fa' || locale === 'ps'
-                        ? 'w-full md:min-w-[170px]'
-                        : 'w-[170px]'
-                }
+                className={filterControlClassName}
             />
         </div>
     );

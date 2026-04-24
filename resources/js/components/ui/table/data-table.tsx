@@ -215,7 +215,7 @@ export function DataTable<TData, TValue>({
                         setSearchInput(event.target.value)
                     }
                     className={`h-10 w-full max-w-[250px] border border-neutral-200/60 dark:border-neutral-900/80 ${
-                        isRtl ? 'max-w-none flex-1 text-right' : ''
+                        isRtl ? 'text-right' : ''
                     }`}
                 />
                 {toolbar ? (
