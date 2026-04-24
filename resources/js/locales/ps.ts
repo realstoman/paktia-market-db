@@ -288,6 +288,14 @@ const ps = {
             allShifts: 'ټول شیفټونه',
             searchPlaceholder:
                 'کارکوونکي د نوم، ټیلیفون یا څانګې له مخې ولټوئ...',
+            searchBranches: 'څانګې ولټوئ...',
+            searchEmploymentTypes: 'د ګومارنې ډولونه ولټوئ...',
+            searchPositions: 'دندې ولټوئ...',
+            searchShifts: 'شیفټونه ولټوئ...',
+            noBranches: 'هیڅ څانګه ونه موندل شوه.',
+            noEmploymentTypes: 'د ګومارنې هېڅ ډول ونه موندل شو.',
+            noPositions: 'هیڅ دنده ونه موندل شوه.',
+            noShifts: 'هیڅ شیفټ ونه موندل شو.',
         },
         table: {
             selectAll: 'ټول وټاکئ',

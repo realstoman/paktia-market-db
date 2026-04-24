@@ -291,6 +291,14 @@ const fa = {
             allShifts: 'همه شیفت‌ها',
             searchPlaceholder:
                 'کارمندان را بر اساس نام، شماره تماس یا شعبه جستجو کنید...',
+            searchBranches: 'شعبات را جستجو کنید...',
+            searchEmploymentTypes: 'نوعیت‌های استخدام را جستجو کنید...',
+            searchPositions: 'سمت‌ها را جستجو کنید...',
+            searchShifts: 'شیفت‌ها را جستجو کنید...',
+            noBranches: 'هیچ شعبه‌ای یافت نشد.',
+            noEmploymentTypes: 'هیچ نوعیت استخدامی یافت نشد.',
+            noPositions: 'هیچ سمتی یافت نشد.',
+            noShifts: 'هیچ شیفتی یافت نشد.',
         },
         table: {
             selectAll: 'انتخاب همه',

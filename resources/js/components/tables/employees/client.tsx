@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,13 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
@@ -107,7 +102,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     shifts,
     isLoading = false,
 }) => {
-    const { t, locale } = useLocalization();
+    const { t, locale, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canDelete = auth.is_super_admin === true;
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -707,6 +702,8 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         selectedShiftFilter,
     ]);
 
+    const filterControlClassName = 'w-full sm:w-[170px] sm:min-w-[170px]';
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
@@ -775,126 +772,124 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     'Search employees by name, phone, or branch...',
                 )}
                 toolbar={
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Select
+                    <div className="flex w-full flex-wrap justify-end gap-2">
+                        <SearchableDropdown
                             value={selectedBranchFilter}
                             onValueChange={setSelectedBranchFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[170px]">
-                                <SelectValue
-                                    placeholder={t(
-                                        'employees.filters.branch',
-                                        'Branch',
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    {t(
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: t(
                                         'employees.filters.allBranches',
                                         'All Branches',
-                                    )}
-                                </SelectItem>
-                                {branches.map((branch) => (
-                                    <SelectItem
-                                        key={branch.id}
-                                        value={String(branch.id)}
-                                    >
-                                        {branch.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    ),
+                                },
+                                ...branches.map((branch) => ({
+                                    value: String(branch.id),
+                                    label: branch.name,
+                                })),
+                            ]}
+                            placeholder={t('employees.filters.branch', 'Branch')}
+                            searchPlaceholder={t(
+                                'employees.filters.searchBranches',
+                                'Search branches...',
+                            )}
+                            emptyText={t(
+                                'employees.filters.noBranches',
+                                'No branches found.',
+                            )}
+                            className={filterControlClassName}
+                        />
 
-                        <Select
+                        <SearchableDropdown
                             value={selectedEmploymentTypeFilter}
                             onValueChange={setSelectedEmploymentTypeFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[190px]">
-                                <SelectValue
-                                    placeholder={t(
-                                        'employees.filters.employmentType',
-                                        'Employment Type',
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    {t(
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: t(
                                         'employees.filters.allEmploymentTypes',
                                         'All Employment Types',
-                                    )}
-                                </SelectItem>
-                                {employmentTypes.map((type) => (
-                                    <SelectItem
-                                        key={type.id}
-                                        value={String(type.id)}
-                                    >
-                                        {type.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    ),
+                                },
+                                ...employmentTypes.map((type) => ({
+                                    value: String(type.id),
+                                    label: type.name,
+                                })),
+                            ]}
+                            placeholder={t(
+                                'employees.filters.employmentType',
+                                'Employment Type',
+                            )}
+                            searchPlaceholder={t(
+                                'employees.filters.searchEmploymentTypes',
+                                'Search employment types...',
+                            )}
+                            emptyText={t(
+                                'employees.filters.noEmploymentTypes',
+                                'No employment types found.',
+                            )}
+                            className={filterControlClassName}
+                        />
 
-                        <Select
+                        <SearchableDropdown
                             value={selectedPositionFilter}
                             onValueChange={setSelectedPositionFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[180px]">
-                                <SelectValue
-                                    placeholder={t(
-                                        'employees.filters.position',
-                                        'Position',
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    {t(
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: t(
                                         'employees.filters.allPositions',
                                         'All Positions',
-                                    )}
-                                </SelectItem>
-                                {employeePositions.map((position) => (
-                                    <SelectItem
-                                        key={position.id}
-                                        value={String(position.id)}
-                                    >
-                                        {position.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    ),
+                                },
+                                ...employeePositions.map((position) => ({
+                                    value: String(position.id),
+                                    label: position.name,
+                                })),
+                            ]}
+                            placeholder={t(
+                                'employees.filters.position',
+                                'Position',
+                            )}
+                            searchPlaceholder={t(
+                                'employees.filters.searchPositions',
+                                'Search positions...',
+                            )}
+                            emptyText={t(
+                                'employees.filters.noPositions',
+                                'No positions found.',
+                            )}
+                            className={filterControlClassName}
+                        />
 
-                        <Select
+                        <SearchableDropdown
                             value={selectedShiftFilter}
                             onValueChange={setSelectedShiftFilter}
-                        >
-                            <SelectTrigger className="h-10 w-[170px]">
-                                <SelectValue
-                                    placeholder={t(
-                                        'employees.filters.shift',
-                                        'Shift',
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={FILTER_ALL}>
-                                    {t(
+                            options={[
+                                {
+                                    value: FILTER_ALL,
+                                    label: t(
                                         'employees.filters.allShifts',
                                         'All Shifts',
-                                    )}
-                                </SelectItem>
-                                {shifts.map((shift) => (
-                                    <SelectItem
-                                        key={shift.id}
-                                        value={String(shift.id)}
-                                    >
-                                        {shift.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                                    ),
+                                },
+                                ...shifts.map((shift) => ({
+                                    value: String(shift.id),
+                                    label: shift.name,
+                                })),
+                            ]}
+                            placeholder={t('employees.filters.shift', 'Shift')}
+                            searchPlaceholder={t(
+                                'employees.filters.searchShifts',
+                                'Search shifts...',
+                            )}
+                            emptyText={t(
+                                'employees.filters.noShifts',
+                                'No shifts found.',
+                            )}
+                            className={filterControlClassName}
+                        />
                     </div>
                 }
             />
@@ -908,7 +903,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent
+                    className={
+                        isRtl
+                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            : 'sm:max-w-3xl'
+                    }
+                >
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-1">
                                 <Shapes className="h-5 w-5" />
@@ -1084,7 +1085,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent
+                    className={
+                        isRtl
+                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            : 'sm:max-w-3xl'
+                    }
+                >
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-1">
                                 <Clock3 className="h-5 w-5" />
@@ -1275,7 +1282,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent
+                    className={
+                        isRtl
+                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            : 'sm:max-w-3xl'
+                    }
+                >
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-1">
                                 <BriefcaseBusiness className="h-5 w-5" />
@@ -1447,7 +1460,13 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent
+                    className={
+                        isRtl
+                            ? "sm:max-w-4xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            : 'sm:max-w-4xl'
+                    }
+                >
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-1">
                                 <UserRound className="h-5 w-5" />
