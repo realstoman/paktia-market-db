@@ -42,32 +42,28 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className={`flex w-full items-center gap-2 ${
-                            isRtl
-                                ? 'flex-row-reverse justify-start text-right'
-                                : ''
+                            isRtl ? 'justify-end text-right' : ''
                         }`}
                         href={edit()}
                         as="button"
                         prefetch
                         onClick={cleanup}
                     >
-                        <UserIcon className={isRtl ? 'ml-2' : 'mr-2'} />
+                        <UserIcon />
                         {t('userMenu.profile', 'Profile')}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link
                         className={`flex w-full items-center gap-2 ${
-                            isRtl
-                                ? 'flex-row-reverse justify-start text-right'
-                                : ''
+                            isRtl ? 'justify-end text-right' : ''
                         }`}
                         href={edit()}
                         as="button"
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className={isRtl ? 'ml-2' : 'mr-2'} />
+                        <Settings />
                         {t('userMenu.settings', 'Settings')}
                     </Link>
                 </DropdownMenuItem>
@@ -76,16 +72,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link
                     className={`flex w-full items-center gap-2 ${
-                        isRtl
-                            ? 'flex-row-reverse justify-start text-right'
-                            : ''
+                        isRtl ? 'justify-end text-right' : ''
                     }`}
                     href={logout()}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className={isRtl ? 'ml-2' : 'mr-2'} />
+                    <LogOut />
                     {t('userMenu.logout', 'Log out')}
                 </Link>
             </DropdownMenuItem>

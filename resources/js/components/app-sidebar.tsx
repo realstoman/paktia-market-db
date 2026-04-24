@@ -24,7 +24,6 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
-    ClipboardList,
     Globe,
     LayoutGrid,
     Package,
@@ -174,11 +173,6 @@ export function AppSidebar() {
                       title: t('navigation.runtimeHealth', 'Runtime Health'),
                       href: '/operations/runtime-health',
                       icon: Activity,
-                  } satisfies NavItem,
-                  {
-                      title: t('navigation.activityLogs', 'Activity Logs'),
-                      href: '/admin/activity-logs',
-                      icon: ClipboardList,
                   } satisfies NavItem,
               ]
             : []),

@@ -34,7 +34,14 @@ import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    ClipboardList,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -67,7 +74,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
-    const { isRtl } = useLocalization();
+    const { isRtl, t } = useLocalization();
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
@@ -228,6 +235,34 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
+                        {auth.is_super_admin ? (
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            href="/admin/activity-logs"
+                                            className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                        >
+                                            <span className="sr-only">
+                                                {t(
+                                                    'navigation.activityLogs',
+                                                    'Activity Logs',
+                                                )}
+                                            </span>
+                                            <ClipboardList className="size-5 opacity-80 group-hover:opacity-100" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>
+                                            {t(
+                                                'navigation.activityLogs',
+                                                'Activity Logs',
+                                            )}
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        ) : null}
                         <HeaderNotifications />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -248,7 +283,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 className={`w-52 ${isRtl ? 'text-right' : ''}`}
-                                align={isRtl ? 'start' : 'end'}
+                                align="end"
                             >
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
