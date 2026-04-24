@@ -32,7 +32,7 @@ export function CellAction({
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" preserveRtlAlign>
+            <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 {data.approval_status !== 'approved' ? (
                     <DropdownMenuItem onClick={() => onEdit(data)}>

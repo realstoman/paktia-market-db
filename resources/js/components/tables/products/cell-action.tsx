@@ -376,7 +376,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                     align="end"
-                    preserveRtlAlign
                     className={isRtl ? 'text-right' : ''}
                 >
                     <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>

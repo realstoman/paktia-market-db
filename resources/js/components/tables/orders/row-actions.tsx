@@ -249,7 +249,7 @@ export function OrderRowActions({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        align="end"
+                        align="start"
                         preserveRtlAlign
                         className={isRtl ? 'text-right' : ''}
                     >
