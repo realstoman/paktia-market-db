@@ -282,7 +282,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" preserveRtlAlign>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() => router.visit(`/users/${data.id}`)}

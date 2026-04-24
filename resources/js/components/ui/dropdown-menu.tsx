@@ -33,12 +33,15 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
   align,
   className,
+  preserveRtlAlign = false,
   sideOffset = 4,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & {
+  preserveRtlAlign?: boolean
+}) {
   const { isRtl } = useLocalization()
   const resolvedAlign =
-    isRtl && align
+    isRtl && align && !preserveRtlAlign
       ? align === "start"
         ? "end"
         : align === "end"
@@ -91,7 +94,7 @@ function DropdownMenuItem({
       className={cn(
         "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer",
         isRtl &&
-          "flex-row-reverse justify-end text-right data-[inset]:pr-8 data-[inset]:pl-2",
+          "justify-start text-right data-[inset]:pr-8 data-[inset]:pl-2 [&>svg]:ml-2 [&>svg]:mr-0",
         className
       )}
       {...props}

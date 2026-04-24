@@ -233,7 +233,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" preserveRtlAlign>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem onClick={onView}>
                         <Eye className="mr-2 h-4 w-4" />
