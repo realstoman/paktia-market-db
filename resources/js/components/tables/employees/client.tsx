@@ -263,21 +263,6 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 .join(' '),
         );
 
-    const formatLocalizedDate = (value?: string | null) => {
-        if (!value) {
-            return '';
-        }
-
-        return new Intl.DateTimeFormat(
-            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
-            {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            },
-        ).format(new Date(value));
-    };
-
     const removeAttachment = (id: string) => {
         setAttachments((current) => current.filter((item) => item.id !== id));
     };
@@ -1033,8 +1018,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                     {type.name}
                                                 </p>
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {type.description || '—'}
-                                                    
+                                                    {type.description ||
+                                                        t(
+                                                            'employees.common.empty',
+                                                            '—',
+                                                        )}
                                                 </p>
                                             </div>
                                             <div className="ml-3 flex items-center gap-1">
@@ -1225,7 +1213,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                     {`${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)}`}
                                                 </p>
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {shift.description || '—'}
+                                                    {shift.description ||
+                                                        t(
+                                                            'employees.common.empty',
+                                                            '—',
+                                                        )}
                                                 </p>
                                             </div>
                                             <div className="ml-3 flex items-center gap-1">
@@ -1390,7 +1382,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                 </p>
                                                 <p className="truncate text-xs text-muted-foreground">
                                                     {position.description ||
-                                                        '—'}
+                                                        t(
+                                                            'employees.common.empty',
+                                                            '—',
+                                                        )}
                                                 </p>
                                             </div>
                                             <div className="ml-3 flex items-center gap-1">
@@ -1953,7 +1948,6 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
                             {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
