@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLocalization } from '@/lib/localization';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -135,6 +136,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     shifts,
     canDelete,
 }) => {
+    const { t, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canDeleteEmployee = canDelete && auth.is_super_admin === true;
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -239,41 +241,74 @@ export const CellAction: React.FC<CellActionProps> = ({
         [editEmploymentTypeName],
     );
 
+    const getStatusLabel = (value: string) =>
+        t(
+            `employees.statuses.${value}`,
+            value
+                .split('_')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' '),
+        );
+
+    const formatLocalizedDate = (value?: string | null) => {
+        if (!value) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat(
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            },
+        ).format(new Date(value));
+    };
+
     const staticPreviousPayments = useMemo(
         () => [
             {
                 id: '1',
                 date: '2026-02-28',
-                type: 'Salary',
+                type: t('employees.finance.salaryType', 'Salary'),
                 amount: 25000,
                 currency: data.salary_currency ?? 'AFN',
-                note: 'Monthly salary - February',
+                note: t(
+                    'employees.finance.notes.monthlySalaryFebruary',
+                    'Monthly salary - February',
+                ),
             },
             {
                 id: '2',
                 date: '2026-02-16',
-                type: 'Takeout',
+                type: t('employees.finance.takeoutType', 'Takeout'),
                 amount: 3500,
                 currency: data.salary_currency ?? 'AFN',
-                note: 'Personal advance',
+                note: t(
+                    'employees.finance.notes.personalAdvance',
+                    'Personal advance',
+                ),
             },
             {
                 id: '3',
                 date: '2026-01-31',
-                type: 'Salary',
+                type: t('employees.finance.salaryType', 'Salary'),
                 amount: 25000,
                 currency: data.salary_currency ?? 'AFN',
-                note: 'Monthly salary - January',
+                note: t(
+                    'employees.finance.notes.monthlySalaryJanuary',
+                    'Monthly salary - January',
+                ),
             },
         ],
-        [data.salary_currency],
+        [data.salary_currency, t],
     );
 
     const nextSalaryDate = useMemo(() => {
         const next = new Date();
         next.setMonth(next.getMonth() + 1, 0);
-        return next.toLocaleDateString();
-    }, []);
+        return formatLocalizedDate(next.toISOString());
+    }, [formatLocalizedDate]);
 
     const resetEdit = () => {
         setEditFirstName(data.first_name ?? '');

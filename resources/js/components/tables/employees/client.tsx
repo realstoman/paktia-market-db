@@ -33,6 +33,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     Employee,
@@ -106,6 +107,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     shifts,
     isLoading = false,
 }) => {
+    const { t, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canDelete = auth.is_super_admin === true;
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -224,7 +226,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
 
             if (merged.length > MAX_ATTACHMENTS) {
                 toast.error(
-                    `You can upload up to ${MAX_ATTACHMENTS} attachments.`,
+                    t(
+                        'employees.create.attachmentsLimit',
+                        'You can upload up to :count attachments.',
+                    ).replace(':count', String(MAX_ATTACHMENTS)),
                 );
                 return merged.slice(0, MAX_ATTACHMENTS);
             }
@@ -248,6 +253,30 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         () => selectedEmploymentTypeName.toLowerCase().includes('contract'),
         [selectedEmploymentTypeName],
     );
+
+    const getStatusLabel = (value: string) =>
+        t(
+            `employees.statuses.${value}`,
+            value
+                .split('_')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' '),
+        );
+
+    const formatLocalizedDate = (value?: string | null) => {
+        if (!value) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat(
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            },
+        ).format(new Date(value));
+    };
 
     const removeAttachment = (id: string) => {
         setAttachments((current) => current.filter((item) => item.id !== id));
@@ -300,7 +329,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
-                    toast.success('Employee created successfully.');
+                    toast.success(
+                        t(
+                            'employees.toasts.employeeCreated',
+                            'Employee created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -338,7 +372,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             router.put(`/employee-positions/${editingPositionId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Employee position updated.');
+                    toast.success(
+                        t(
+                            'employees.toasts.positionUpdated',
+                            'Employee position updated.',
+                        ),
+                    );
                     resetPositionForm();
                 },
                 onError: (errors) => {
@@ -354,7 +393,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.post('/employee-positions', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Employee position created.');
+                toast.success(
+                    t(
+                        'employees.toasts.positionCreated',
+                        'Employee position created.',
+                    ),
+                );
                 resetPositionForm();
             },
             onError: (errors) => {
@@ -391,7 +435,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.delete(`/employee-positions/${deletePositionTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Employee position deleted.');
+                toast.success(
+                    t(
+                        'employees.toasts.positionDeleted',
+                        'Employee position deleted.',
+                    ),
+                );
                 if (editingPositionId === deletePositionTarget.id) {
                     resetPositionForm();
                 }
@@ -430,7 +479,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        toast.success('Employment type updated.');
+                        toast.success(
+                            t(
+                                'employees.toasts.employmentTypeUpdated',
+                                'Employment type updated.',
+                            ),
+                        );
                         resetEmploymentTypeForm();
                     },
                     onError: (errors) => {
@@ -447,7 +501,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.post('/employment-types', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Employment type created.');
+                toast.success(
+                    t(
+                        'employees.toasts.employmentTypeCreated',
+                        'Employment type created.',
+                    ),
+                );
                 resetEmploymentTypeForm();
             },
             onError: (errors) => {
@@ -484,7 +543,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.delete(`/employment-types/${deleteEmploymentTypeTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Employment type deleted.');
+                toast.success(
+                    t(
+                        'employees.toasts.employmentTypeDeleted',
+                        'Employment type deleted.',
+                    ),
+                );
                 if (
                     editingEmploymentTypeId === deleteEmploymentTypeTarget.id
                 ) {
@@ -526,7 +590,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             router.put(`/shifts/${editingShiftId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Shift updated.');
+                    toast.success(
+                        t('employees.toasts.shiftUpdated', 'Shift updated.'),
+                    );
                     resetShiftForm();
                 },
                 onError: (errors) => {
@@ -542,7 +608,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.post('/shifts', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Shift created.');
+                toast.success(
+                    t('employees.toasts.shiftCreated', 'Shift created.'),
+                );
                 resetShiftForm();
             },
             onError: (errors) => {
@@ -581,7 +649,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         router.delete(`/shifts/${deleteShiftTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Shift deleted.');
+                toast.success(
+                    t('employees.toasts.shiftDeleted', 'Shift deleted.'),
+                );
                 if (editingShiftId === deleteShiftTarget.id) {
                     resetShiftForm();
                 }
@@ -601,8 +671,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 employeePositions,
                 shifts,
                 canDelete,
+                t,
+                locale,
             ),
-        [branches, canDelete, employmentTypes, employeePositions, shifts],
+        [
+            branches,
+            canDelete,
+            employmentTypes,
+            employeePositions,
+            locale,
+            shifts,
+            t,
+        ],
     );
 
     const attachmentError =
@@ -646,8 +726,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Employees: ${formatNumber(data.length)}`}
-                    description="Manage employee records"
+                    title={t('employees.page.heading', 'Employees: :count').replace(
+                        ':count',
+                        formatNumber(data.length),
+                    )}
+                    description={t(
+                        'employees.page.headingDescription',
+                        'Manage employee records',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     <Button
@@ -656,7 +742,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         className="gap-2"
                     >
                         <Shapes className="h-4 w-4" />
-                        Employment Types
+                        {t(
+                            'employees.employmentTypes.managerButton',
+                            'Employment Types',
+                        )}
                     </Button>
                     <Button
                         variant="outline"
@@ -664,7 +753,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         className="gap-2"
                     >
                         <Clock3 className="h-4 w-4" />
-                        Shifts
+                        {t('employees.shifts.managerButton', 'Shifts')}
                     </Button>
                     <Button
                         variant="outline"
@@ -672,14 +761,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         className="gap-2"
                     >
                         <BriefcaseBusiness className="h-4 w-4" />
-                        Positions
+                        {t('employees.positions.managerButton', 'Positions')}
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add Employee
+                        {t('employees.create.button', 'Add Employee')}
                     </Button>
                 </div>
             </div>
@@ -696,7 +785,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
-                searchPlaceholder="Search employees by name, phone, or branch..."
+                searchPlaceholder={t(
+                    'employees.filters.searchPlaceholder',
+                    'Search employees by name, phone, or branch...',
+                )}
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
                         <Select
@@ -704,11 +796,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             onValueChange={setSelectedBranchFilter}
                         >
                             <SelectTrigger className="h-10 w-[170px]">
-                                <SelectValue placeholder="Branch" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'employees.filters.branch',
+                                        'Branch',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={FILTER_ALL}>
-                                    All Branches
+                                    {t(
+                                        'employees.filters.allBranches',
+                                        'All Branches',
+                                    )}
                                 </SelectItem>
                                 {branches.map((branch) => (
                                     <SelectItem
@@ -726,11 +826,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             onValueChange={setSelectedEmploymentTypeFilter}
                         >
                             <SelectTrigger className="h-10 w-[190px]">
-                                <SelectValue placeholder="Employment Type" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'employees.filters.employmentType',
+                                        'Employment Type',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={FILTER_ALL}>
-                                    All Employment Types
+                                    {t(
+                                        'employees.filters.allEmploymentTypes',
+                                        'All Employment Types',
+                                    )}
                                 </SelectItem>
                                 {employmentTypes.map((type) => (
                                     <SelectItem
@@ -748,11 +856,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             onValueChange={setSelectedPositionFilter}
                         >
                             <SelectTrigger className="h-10 w-[180px]">
-                                <SelectValue placeholder="Position" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'employees.filters.position',
+                                        'Position',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={FILTER_ALL}>
-                                    All Positions
+                                    {t(
+                                        'employees.filters.allPositions',
+                                        'All Positions',
+                                    )}
                                 </SelectItem>
                                 {employeePositions.map((position) => (
                                     <SelectItem
@@ -770,11 +886,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             onValueChange={setSelectedShiftFilter}
                         >
                             <SelectTrigger className="h-10 w-[170px]">
-                                <SelectValue placeholder="Shift" />
+                                <SelectValue
+                                    placeholder={t(
+                                        'employees.filters.shift',
+                                        'Shift',
+                                    )}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={FILTER_ALL}>
-                                    All Shifts
+                                    {t(
+                                        'employees.filters.allShifts',
+                                        'All Shifts',
+                                    )}
                                 </SelectItem>
                                 {shifts.map((shift) => (
                                     <SelectItem
@@ -800,21 +924,30 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent className="sm:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <Shapes className="h-5 w-5" />
-                            Employment Type Manager
-                        </DialogTitle>
-                        <DialogDescription>
-                            Add, edit, and remove employment types.
-                        </DialogDescription>
-                    </DialogHeader>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-1">
+                                <Shapes className="h-5 w-5" />
+                                {t(
+                                    'employees.employmentTypes.managerTitle',
+                                    'Employment Type Manager',
+                                )}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t(
+                                    'employees.employmentTypes.managerDescription',
+                                    'Add, edit, and remove employment types.',
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="employment-type-name">
-                                    Type name
+                                    {t(
+                                        'employees.employmentTypes.typeName',
+                                        'Type name',
+                                    )}
                                 </Label>
                                 <Input
                                     id="employment-type-name"
@@ -824,7 +957,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                             event.target.value,
                                         )
                                     }
-                                    placeholder="e.g. Full Time"
+                                    placeholder={t(
+                                        'employees.employmentTypes.typeNamePlaceholder',
+                                        'e.g. Full Time',
+                                    )}
                                 />
                                 <InputError
                                     message={employmentTypeErrors.name}
@@ -832,7 +968,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="employment-type-description">
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </Label>
                                 <Input
                                     id="employment-type-description"
@@ -842,7 +978,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                             event.target.value,
                                         )
                                     }
-                                    placeholder="Optional"
+                                    placeholder={t(
+                                        'employees.common.optional',
+                                        'Optional',
+                                    )}
                                 />
                                 <InputError
                                     message={employmentTypeErrors.description}
@@ -857,8 +996,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                 >
                                     {editingEmploymentTypeId
-                                        ? 'Update Employment Type'
-                                        : 'Add Employment Type'}
+                                        ? t(
+                                              'employees.employmentTypes.updateButton',
+                                              'Update Employment Type',
+                                          )
+                                        : t(
+                                              'employees.employmentTypes.addButton',
+                                              'Add Employment Type',
+                                          )}
                                 </Button>
                                 {editingEmploymentTypeId ? (
                                     <Button
@@ -866,7 +1011,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         onClick={resetEmploymentTypeForm}
                                         disabled={isEmploymentTypeSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'employees.common.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -886,6 +1034,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                 </p>
                                                 <p className="truncate text-xs text-muted-foreground">
                                                     {type.description || '—'}
+                                                    
                                                 </p>
                                             </div>
                                             <div className="ml-3 flex items-center gap-1">
@@ -926,7 +1075,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     ))
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No employment types found.
+                                        {t(
+                                            'employees.employmentTypes.empty',
+                                            'No employment types found.',
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -945,33 +1097,44 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent className="sm:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <Clock3 className="h-5 w-5" />
-                            Shift Manager
-                        </DialogTitle>
-                        <DialogDescription>
-                            Add, edit, and remove employee shifts.
-                        </DialogDescription>
-                    </DialogHeader>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-1">
+                                <Clock3 className="h-5 w-5" />
+                                {t(
+                                    'employees.shifts.managerTitle',
+                                    'Shift Manager',
+                                )}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t(
+                                    'employees.shifts.managerDescription',
+                                    'Add, edit, and remove employee shifts.',
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label htmlFor="shift-name">Shift name</Label>
+                                <Label htmlFor="shift-name">
+                                    {t('employees.shifts.shiftName', 'Shift name')}
+                                </Label>
                                 <Input
                                     id="shift-name"
                                     value={shiftName}
                                     onChange={(event) =>
                                         setShiftName(event.target.value)
                                     }
-                                    placeholder="e.g. Day Shift"
+                                    placeholder={t(
+                                        'employees.shifts.shiftNamePlaceholder',
+                                        'e.g. Day Shift',
+                                    )}
                                 />
                                 <InputError message={shiftErrors.name} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="shift-start-time">
-                                    Start time
+                                    {t('employees.shifts.startTime', 'Start time')}
                                 </Label>
                                 <Input
                                     id="shift-start-time"
@@ -984,7 +1147,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={shiftErrors.start_time} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="shift-end-time">End time</Label>
+                                <Label htmlFor="shift-end-time">
+                                    {t('employees.shifts.endTime', 'End time')}
+                                </Label>
                                 <Input
                                     id="shift-end-time"
                                     type="time"
@@ -997,7 +1162,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="shift-description">
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </Label>
                                 <Input
                                     id="shift-description"
@@ -1005,7 +1170,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setShiftDescription(event.target.value)
                                     }
-                                    placeholder="Optional"
+                                    placeholder={t(
+                                        'employees.common.optional',
+                                        'Optional',
+                                    )}
                                 />
                                 <InputError message={shiftErrors.description} />
                             </div>
@@ -1017,8 +1185,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                 >
                                     {editingShiftId
-                                        ? 'Update Shift'
-                                        : 'Add Shift'}
+                                        ? t(
+                                              'employees.shifts.updateButton',
+                                              'Update Shift',
+                                          )
+                                        : t(
+                                              'employees.shifts.addButton',
+                                              'Add Shift',
+                                          )}
                                 </Button>
                                 {editingShiftId ? (
                                     <Button
@@ -1026,7 +1200,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         onClick={resetShiftForm}
                                         disabled={isShiftSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'employees.common.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -1085,7 +1262,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     ))
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No shifts found.
+                                        {t(
+                                            'employees.shifts.empty',
+                                            'No shifts found.',
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -1104,21 +1284,30 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent className="sm:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <BriefcaseBusiness className="h-5 w-5" />
-                            Employee Position Manager
-                        </DialogTitle>
-                        <DialogDescription>
-                            Add, edit, and remove employee positions.
-                        </DialogDescription>
-                    </DialogHeader>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-1">
+                                <BriefcaseBusiness className="h-5 w-5" />
+                                {t(
+                                    'employees.positions.managerTitle',
+                                    'Employee Position Manager',
+                                )}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t(
+                                    'employees.positions.managerDescription',
+                                    'Add, edit, and remove employee positions.',
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="position-name">
-                                    Position name
+                                    {t(
+                                        'employees.positions.positionName',
+                                        'Position name',
+                                    )}
                                 </Label>
                                 <Input
                                     id="position-name"
@@ -1126,13 +1315,16 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setPositionName(event.target.value)
                                     }
-                                    placeholder="e.g. Floor Manager"
+                                    placeholder={t(
+                                        'employees.positions.positionNamePlaceholder',
+                                        'e.g. Floor Manager',
+                                    )}
                                 />
                                 <InputError message={positionErrors.name} />
                             </div>
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="position-description">
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </Label>
                                 <Input
                                     id="position-description"
@@ -1142,7 +1334,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                             event.target.value,
                                         )
                                     }
-                                    placeholder="Optional"
+                                    placeholder={t(
+                                        'employees.common.optional',
+                                        'Optional',
+                                    )}
                                 />
                                 <InputError
                                     message={positionErrors.description}
@@ -1157,8 +1352,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     }
                                 >
                                     {editingPositionId
-                                        ? 'Update Position'
-                                        : 'Add Position'}
+                                        ? t(
+                                              'employees.positions.updateButton',
+                                              'Update Position',
+                                          )
+                                        : t(
+                                              'employees.positions.addButton',
+                                              'Add Position',
+                                          )}
                                 </Button>
                                 {editingPositionId ? (
                                     <Button
@@ -1166,7 +1367,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         onClick={resetPositionForm}
                                         disabled={isPositionSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'employees.common.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -1227,7 +1431,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     ))
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No positions found.
+                                        {t(
+                                            'employees.positions.empty',
+                                            'No positions found.',
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -1246,22 +1453,24 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent className="sm:max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <UserRound className="h-5 w-5" />
-                            Add Employee
-                        </DialogTitle>
-                        <DialogDescription>
-                            Add employee profile, employment type, position, and
-                            compensation details.
-                        </DialogDescription>
-                    </DialogHeader>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-1">
+                                <UserRound className="h-5 w-5" />
+                                {t('employees.create.title', 'Add Employee')}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t(
+                                    'employees.create.description',
+                                    'Add employee profile, employment type, position, and compensation details.',
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
 
                     <ScrollArea className="max-h-[70vh]">
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="employee-first-name">
-                                    First name
+                                    {t('employees.form.firstName', 'First name')}
                                 </Label>
                                 <Input
                                     id="employee-first-name"
@@ -1269,13 +1478,16 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setFirstName(event.target.value)
                                     }
-                                    placeholder="First name"
+                                    placeholder={t(
+                                        'employees.form.firstName',
+                                        'First name',
+                                    )}
                                 />
                                 <InputError message={createErrors.first_name} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="employee-last-name">
-                                    Last name
+                                    {t('employees.form.lastName', 'Last name')}
                                 </Label>
                                 <Input
                                     id="employee-last-name"
@@ -1283,12 +1495,17 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setLastName(event.target.value)
                                     }
-                                    placeholder="Last name"
+                                    placeholder={t(
+                                        'employees.form.lastName',
+                                        'Last name',
+                                    )}
                                 />
                                 <InputError message={createErrors.last_name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-phone">Phone</Label>
+                                <Label htmlFor="employee-phone">
+                                    {t('employees.form.phone', 'Phone')}
+                                </Label>
                                 <Input
                                     id="employee-phone"
                                     value={phone}
@@ -1300,13 +1517,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Branch</Label>
+                                <Label>{t('employees.filters.branch', 'Branch')}</Label>
                                 <Select
                                     value={branchId}
                                     onValueChange={setBranchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select branch" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectBranch',
+                                                'Select branch',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {branches.map((branch) => (
@@ -1322,13 +1544,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.branch_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Employment type</Label>
+                                <Label>
+                                    {t(
+                                        'employees.filters.employmentType',
+                                        'Employment type',
+                                    )}
+                                </Label>
                                 <Select
                                     value={employmentTypeId}
                                     onValueChange={setEmploymentTypeId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select employment type" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectEmploymentType',
+                                                'Select employment type',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employmentTypes.map((type) => (
@@ -1346,13 +1578,20 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Employee position</Label>
+                                <Label>
+                                    {t('employees.form.employeePosition', 'Employee position')}
+                                </Label>
                                 <Select
                                     value={employeePositionId}
                                     onValueChange={setEmployeePositionId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select position" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectPosition',
+                                                'Select position',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employeePositions.map((position) => (
@@ -1370,13 +1609,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Shift</Label>
+                                <Label>{t('employees.filters.shift', 'Shift')}</Label>
                                 <Select
                                     value={shiftId}
                                     onValueChange={setShiftId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select shift" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectShift',
+                                                'Select shift',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {shifts.map((shift) => (
@@ -1394,8 +1638,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             <div className="grid gap-2">
                                 <Label htmlFor="employee-salary">
                                     {isContractBased
-                                        ? 'Contract Amount'
-                                        : 'Salary'}
+                                        ? t(
+                                              'employees.form.contractAmount',
+                                              'Contract Amount',
+                                          )
+                                        : t('employees.table.salary', 'Salary')}
                                 </Label>
                                 <NumericInput
                                     id="employee-salary"
@@ -1423,8 +1670,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             <div className="grid gap-2">
                                 <Label htmlFor="contract-start-date">
                                     {isContractBased
-                                        ? 'Contract start date'
-                                        : 'Work start date'}
+                                        ? t(
+                                              'employees.form.contractStartDate',
+                                              'Contract start date',
+                                          )
+                                        : t(
+                                              'employees.form.workStartDate',
+                                              'Work start date',
+                                          )}
                                 </Label>
                                 <Input
                                     id="contract-start-date"
@@ -1441,8 +1694,14 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             <div className="grid gap-2">
                                 <Label htmlFor="contract-end-date">
                                     {isContractBased
-                                        ? 'Contract end date'
-                                        : 'Work end date'}
+                                        ? t(
+                                              'employees.form.contractEndDate',
+                                              'Contract end date',
+                                          )
+                                        : t(
+                                              'employees.form.workEndDate',
+                                              'Work end date',
+                                          )}
                                 </Label>
                                 <Input
                                     id="contract-end-date"
@@ -1457,13 +1716,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Payment Currency</Label>
+                                <Label>
+                                    {t(
+                                        'employees.form.paymentCurrency',
+                                        'Payment Currency',
+                                    )}
+                                </Label>
                                 <Select
                                     value={salaryCurrency}
                                     onValueChange={setSalaryCurrency}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select currency" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectCurrency',
+                                                'Select currency',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {CURRENCIES.map((currency) => (
@@ -1481,13 +1750,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Status</Label>
+                                <Label>{t('employees.table.status', 'Status')}</Label>
                                 <Select
                                     value={status}
                                     onValueChange={setStatus}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'employees.form.selectStatus',
+                                                'Select status',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {EMPLOYEE_STATUSES.map(
@@ -1496,16 +1770,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                     key={employeeStatus}
                                                     value={employeeStatus}
                                                 >
-                                                    {employeeStatus
-                                                        .split('_')
-                                                        .map(
-                                                            (part) =>
-                                                                part
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                part.slice(1),
-                                                        )
-                                                        .join(' ')}
+                                                    {getStatusLabel(employeeStatus)}
                                                 </SelectItem>
                                             ),
                                         )}
@@ -1515,7 +1780,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="employee-address">
-                                    Address
+                                    {t('employees.form.address', 'Address')}
                                 </Label>
                                 <Input
                                     id="employee-address"
@@ -1523,13 +1788,16 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setAddress(event.target.value)
                                     }
-                                    placeholder="Address"
+                                    placeholder={t(
+                                        'employees.form.address',
+                                        'Address',
+                                    )}
                                 />
                                 <InputError message={createErrors.address} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="employee-description">
-                                    Description
+                                    {t('employees.common.description', 'Description')}
                                 </Label>
                                 <Textarea
                                     id="employee-description"
@@ -1537,25 +1805,36 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onChange={(event) =>
                                         setDescription(event.target.value)
                                     }
-                                    placeholder="Notes about this employee"
+                                    placeholder={t(
+                                        'employees.form.descriptionPlaceholder',
+                                        'Notes about this employee',
+                                    )}
                                 />
                                 <InputError
                                     message={createErrors.description}
                                 />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Profile picture</Label>
+                                <Label>
+                                    {t('employees.form.profilePicture', 'Profile picture')}
+                                </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload employee profile picture.
+                                            {t(
+                                                'employees.form.profilePictureHelp',
+                                                'Upload employee profile picture.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor="employee-profile-picture"
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Picture
+                                            {t(
+                                                'employees.form.selectPicture',
+                                                'Select Picture',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -1573,7 +1852,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         <div className="relative mt-3 h-24 w-24 overflow-hidden rounded-md border">
                                             <img
                                                 src={profilePicturePreview}
-                                                alt="Profile preview"
+                                                alt={t(
+                                                    'employees.form.profilePreview',
+                                                    'Profile preview',
+                                                )}
                                                 className="h-full w-full object-cover"
                                             />
                                             <button
@@ -1594,20 +1876,28 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
-                                    Attachments (up to {MAX_ATTACHMENTS})
+                                    {t(
+                                        'employees.form.attachmentsLabel',
+                                        'Attachments (up to :count)',
+                                    ).replace(':count', String(MAX_ATTACHMENTS))}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Upload multiple files, documents,
-                                            and images.
+                                            {t(
+                                                'employees.form.attachmentsHelp',
+                                                'Upload multiple files, documents, and images.',
+                                            )}
                                         </p>
                                         <Label
                                             htmlFor="employee-attachments"
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            Select Files
+                                            {t(
+                                                'employees.form.selectFiles',
+                                                'Select Files',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -1664,6 +1954,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         >
                             <X className="mr-2 h-4 w-4" />
                             Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
@@ -1682,7 +1973,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             }
                         >
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Employee
+                            {t('employees.create.button', 'Add Employee')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1695,25 +1986,39 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete employment type</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t(
+                                'employees.employmentTypes.deleteTitle',
+                                'Delete employment type',
+                            )}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deleteEmploymentTypeTarget
-                                ? `This will permanently delete ${deleteEmploymentTypeTarget.name}.`
-                                : 'This will permanently delete the selected employment type.'}
+                                ? t(
+                                      'employees.employmentTypes.deleteDescriptionNamed',
+                                      'This will permanently delete :name.',
+                                  ).replace(
+                                      ':name',
+                                      deleteEmploymentTypeTarget.name,
+                                  )
+                                : t(
+                                      'employees.employmentTypes.deleteDescription',
+                                      'This will permanently delete the selected employment type.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
                             disabled={isEmploymentTypeSubmitting}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={confirmDeleteEmploymentType}
                             disabled={isEmploymentTypeSubmitting}
                         >
-                            Delete
+                            {t('employees.common.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1726,23 +2031,31 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete shift</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('employees.shifts.deleteTitle', 'Delete shift')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deleteShiftTarget
-                                ? `This will permanently delete ${deleteShiftTarget.name}.`
-                                : 'This will permanently delete the selected shift.'}
+                                ? t(
+                                      'employees.shifts.deleteDescriptionNamed',
+                                      'This will permanently delete :name.',
+                                  ).replace(':name', deleteShiftTarget.name)
+                                : t(
+                                      'employees.shifts.deleteDescription',
+                                      'This will permanently delete the selected shift.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isShiftSubmitting}>
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={confirmDeleteShift}
                             disabled={isShiftSubmitting}
                         >
-                            Delete
+                            {t('employees.common.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1755,23 +2068,31 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete position</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('employees.positions.deleteTitle', 'Delete position')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deletePositionTarget
-                                ? `This will permanently delete ${deletePositionTarget.name}.`
-                                : 'This will permanently delete the selected position.'}
+                                ? t(
+                                      'employees.positions.deleteDescriptionNamed',
+                                      'This will permanently delete :name.',
+                                  ).replace(':name', deletePositionTarget.name)
+                                : t(
+                                      'employees.positions.deleteDescription',
+                                      'This will permanently delete the selected position.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isPositionSubmitting}>
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={confirmDeletePosition}
                             disabled={isPositionSubmitting}
                         >
-                            Delete
+                            {t('employees.common.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
