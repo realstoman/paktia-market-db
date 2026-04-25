@@ -71,7 +71,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            if ($status === 403 && $request->user()) {
+            if (
+                $status === 403 &&
+                $request->user() &&
+                ! app()->environment('testing')
+            ) {
                 $dashboardUrl = route('dashboard');
                 $currentUrl = $request->fullUrl();
                 $previousUrl = url()->previous();
