@@ -90,6 +90,7 @@ export interface AppNotification {
     title: string;
     description: string;
     createdAt?: string | null;
+    readAt?: string | null;
     meta?: string | null;
     href?: string | null;
     unread?: boolean;
