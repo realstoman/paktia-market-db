@@ -22,22 +22,22 @@ Route::middleware('app.auth')->group(function (): void {
     });
 
     Route::post('guest/session', [GuestSessionController::class, 'store'])
-        ->middleware('idempotency')
+        ->middleware(['throttle:mobile-auth', 'idempotency'])
         ->name('guest.session.store');
     Route::post('auth/firebase/sync', [AuthController::class, 'firebaseSync'])
-        ->middleware(['resolve.guest', 'idempotency'])
+        ->middleware(['throttle:mobile-auth', 'resolve.guest', 'idempotency'])
         ->name('auth.firebase.sync');
 
     Route::middleware(['resolve.guest', 'resolve.firebase', 'cart.actor'])->group(function (): void {
         Route::get('cart', [CartController::class, 'show'])->name('cart.show');
         Route::post('cart/items', [CartController::class, 'storeItem'])
-            ->middleware('idempotency')
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
             ->name('cart.items.store');
         Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem'])
-            ->middleware('idempotency')
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
             ->name('cart.items.update');
         Route::delete('cart/items/{cartItem}', [CartController::class, 'destroyItem'])
-            ->middleware('idempotency')
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
             ->name('cart.items.destroy');
     });
 
@@ -47,7 +47,7 @@ Route::middleware('app.auth')->group(function (): void {
         Route::get('me/orders/{order}', [MeController::class, 'showOrder'])->name('me.orders.show');
         Route::get('me/orders/{order}/status', [MeController::class, 'orderStatus'])->name('me.orders.status');
         Route::post('checkout', [CheckoutController::class, 'store'])
-            ->middleware('idempotency')
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
             ->name('checkout.store');
     });
 });

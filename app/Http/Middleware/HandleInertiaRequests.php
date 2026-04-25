@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Http\Resources\AuthUserResource;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Settings\SystemBrandingService;
@@ -58,15 +59,17 @@ class HandleInertiaRequests extends Middleware
         $currentLocale = app()->getLocale();
         $branding = app(SystemBrandingService::class)->getBranding();
 
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => $branding['name'],
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
-                'roles' => $request->user()?->roles->pluck('name')->toArray() ?? [],
-                'permissions' => $request->user()?->getAllPermissions()->pluck('name')->toArray() ?? [],
-                'is_super_admin' => $request->user()?->hasRole('super-admin') ?? false,
+                'user' => $user ? AuthUserResource::make($user)->resolve($request) : null,
+                'roles' => $user?->roles->pluck('name')->toArray() ?? [],
+                'permissions' => $user?->getAllPermissions()->pluck('name')->toArray() ?? [],
+                'is_super_admin' => $user?->hasRole('super-admin') ?? false,
             ],
             'notifications' => fn () => $this->buildNotifications($request),
             'unauthorizedAccess' => fn () => $this->resolveUnauthorizedAccess($request),

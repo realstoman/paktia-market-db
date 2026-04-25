@@ -11,6 +11,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HandleLocale;
 use App\Http\Middleware\ResolveFirebaseUser;
 use App\Http\Middleware\ResolveGuestSession;
+use App\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Foundation\Application;
@@ -52,6 +53,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            SetSecurityHeaders::class,
+        ]);
+
+        $middleware->api(append: [
+            SetSecurityHeaders::class,
         ]);
 
         $middleware->redirectGuestsTo('/login');

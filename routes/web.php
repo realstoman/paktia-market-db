@@ -42,7 +42,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->middleware('guest');
 
+// Available to guests (used on the login screen) but heavily throttled to
+// stop session-write abuse from anonymous traffic.
 Route::put('language', [LanguageController::class, 'update'])
+    ->middleware('throttle:30,1')
     ->name('language.switch');
 
 /*
@@ -277,16 +280,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employees
-    Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
-    Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
-    Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
-    Route::post('employees/{employee}/toggle-active', [EmployeeController::class, 'toggleActive'])->name('employees.toggle-active');
-    Route::post('employee-positions', [EmployeeController::class, 'storePosition'])->name('employee-positions.store');
-    Route::put('employee-positions/{employeePosition}', [EmployeeController::class, 'updatePosition'])->name('employee-positions.update');
-    Route::post('employment-types', [EmployeeController::class, 'storeEmploymentType'])->name('employment-types.store');
-    Route::put('employment-types/{employmentType}', [EmployeeController::class, 'updateEmploymentType'])->name('employment-types.update');
-    Route::post('shifts', [EmployeeController::class, 'storeShift'])->name('shifts.store');
-    Route::put('shifts/{shift}', [EmployeeController::class, 'updateShift'])->name('shifts.update');
+    Route::middleware('can:'.PermissionEnum::EMPLOYEES_VIEW->value)->group(function () {
+        Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+    });
+    Route::middleware('can:'.PermissionEnum::EMPLOYEES_CREATE->value)->group(function () {
+        Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
+        Route::post('employee-positions', [EmployeeController::class, 'storePosition'])->name('employee-positions.store');
+        Route::post('employment-types', [EmployeeController::class, 'storeEmploymentType'])->name('employment-types.store');
+        Route::post('shifts', [EmployeeController::class, 'storeShift'])->name('shifts.store');
+    });
+    Route::middleware('can:'.PermissionEnum::EMPLOYEES_UPDATE->value)->group(function () {
+        Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::post('employees/{employee}/toggle-active', [EmployeeController::class, 'toggleActive'])->name('employees.toggle-active');
+        Route::put('employee-positions/{employeePosition}', [EmployeeController::class, 'updatePosition'])->name('employee-positions.update');
+        Route::put('employment-types/{employmentType}', [EmployeeController::class, 'updateEmploymentType'])->name('employment-types.update');
+        Route::put('shifts/{shift}', [EmployeeController::class, 'updateShift'])->name('shifts.update');
+    });
     Route::middleware('role:super-admin')->group(function () {
         Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
         Route::delete('employee-positions/{employeePosition}', [EmployeeController::class, 'destroyPosition'])->name('employee-positions.destroy');

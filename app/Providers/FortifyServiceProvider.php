@@ -107,5 +107,43 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+
+        // Generic API limiter used by routes/api.php. Authenticated users get a
+        // higher cap; anonymous traffic is throttled by IP.
+        RateLimiter::for('api', function (Request $request) {
+            $userKey = $request->user()?->getKey();
+
+            return $userKey
+                ? Limit::perMinute(120)->by('user:'.$userKey)
+                : Limit::perMinute(60)->by('ip:'.$request->ip());
+        });
+
+        // Stricter limits for unauthenticated mobile entry points (guest
+        // session / firebase sync). Keyed by app key + IP so a single
+        // misbehaving device cannot exhaust budget for the whole app.
+        RateLimiter::for('mobile-auth', function (Request $request) {
+            $appKey = (string) $request->header('X-App-Key', 'unknown');
+
+            return Limit::perMinute(30)->by('mobile-auth:'.sha1($appKey.'|'.$request->ip()));
+        });
+
+        // Cart write operations get a moderately tight per-actor limit.
+        RateLimiter::for('mobile-cart', function (Request $request) {
+            $client = $request->attributes->get('client');
+            $guest = $request->attributes->get('guestSession');
+            $key = $client?->id ? 'client:'.$client->id
+                : ($guest?->id ? 'guest:'.$guest->id : 'ip:'.$request->ip());
+
+            return Limit::perMinute(120)->by('mobile-cart:'.$key);
+        });
+
+        // Branch-sync traffic is keyed by credential (when present) so a
+        // healthy poll loop on one branch cannot starve another.
+        RateLimiter::for('branch-sync', function (Request $request) {
+            $token = (string) $request->header('X-Branch-Token', '');
+            $key = $token !== '' ? 'token:'.sha1($token) : 'ip:'.$request->ip();
+
+            return Limit::perMinute(60)->by('branch-sync:'.$key);
+        });
     }
 }
