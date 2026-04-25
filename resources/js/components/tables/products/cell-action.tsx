@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Kitchen,
     Product,
@@ -126,7 +127,11 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
-    const canDeleteProduct = canDelete && auth.is_super_admin === true;
+    const { can } = useAuthorization();
+    const canViewProduct = can('products.view');
+    const canEditProduct = can('products.update');
+    const canDeleteProduct =
+        canDelete && can('products.delete') && auth.is_super_admin === true;
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -365,43 +370,49 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">
-                            {t('products.actions.openMenu', 'Open menu')}
-                        </span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    align="end"
-                    className={isRtl ? 'text-right' : ''}
-                >
-                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
-                        {t('products.actions.actionMenu', 'Actions')}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        {t('products.actions.view', 'View')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEdit();
-                            setIsEditOpen(true);
-                        }}
+            {canViewProduct || canEditProduct || canDeleteProduct ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">
+                                {t('products.actions.openMenu', 'Open menu')}
+                            </span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        align="end"
+                        className={isRtl ? 'text-right' : ''}
                     >
-                        <Edit className="mr-2 h-4 w-4" />
-                        {t('products.actions.edit', 'Edit')}
-                    </DropdownMenuItem>
-                    {canDeleteProduct ? (
-                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                            <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                            {t('products.actions.delete', 'Delete')}
-                        </DropdownMenuItem>
-                    ) : null}
-                </DropdownMenuContent>
-            </DropdownMenu>
+                        <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                            {t('products.actions.actionMenu', 'Actions')}
+                        </DropdownMenuLabel>
+                        {canViewProduct ? (
+                            <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                {t('products.actions.view', 'View')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canEditProduct ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEdit();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t('products.actions.edit', 'Edit')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteProduct ? (
+                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                                <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                                {t('products.actions.delete', 'Delete')}
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
 
             <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">

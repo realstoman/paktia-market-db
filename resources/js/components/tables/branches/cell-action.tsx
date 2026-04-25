@@ -36,6 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuthorization } from '@/lib/permissions';
 import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
@@ -66,6 +67,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     provinces,
     kitchens,
 }) => {
+    const { can } = useAuthorization();
+    const canViewBranch = can('branch.view');
+    const canManageBranch = can('branch.update');
+    const canDeleteBranch = can('branch.delete');
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDisableOpen, setIsDisableOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -233,48 +238,60 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => router.visit(`/branches/${data.id}`)}
-                    >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEdit();
-                            setIsEditOpen(true);
-                        }}
-                    >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={openKitchenAssign}>
-                        <CookingPot className="mr-2 h-4 w-4" />
-                        Assign Kitchens
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
-                        {data.is_active ? (
-                            <MapPinOff className="mr-2 h-4 w-4" />
-                        ) : (
-                            <MapPin className="mr-2 h-4 w-4" />
-                        )}
-                        {data.is_active ? 'Deactivate' : 'Activate'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {canViewBranch || canManageBranch || canDeleteBranch ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {canViewBranch ? (
+                            <DropdownMenuItem
+                                onClick={() => router.visit(`/branches/${data.id}`)}
+                            >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageBranch ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEdit();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageBranch ? (
+                            <DropdownMenuItem onClick={openKitchenAssign}>
+                                <CookingPot className="mr-2 h-4 w-4" />
+                                Assign Kitchens
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageBranch ? (
+                            <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
+                                {data.is_active ? (
+                                    <MapPinOff className="mr-2 h-4 w-4" />
+                                ) : (
+                                    <MapPin className="mr-2 h-4 w-4" />
+                                )}
+                                {data.is_active ? 'Deactivate' : 'Activate'}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteBranch ? (
+                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                                <Trash className="mr-2 h-4 w-4 text-red-600" />
+                                Delete
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">

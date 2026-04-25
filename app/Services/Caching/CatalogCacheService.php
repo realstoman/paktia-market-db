@@ -71,18 +71,13 @@ class CatalogCacheService
 
     public function invalidateKitchen(?Kitchen $kitchen = null): void
     {
+        // Branch menus are versioned via the BRANCH_MENU_NAMESPACE bump,
+        // so a single invalidate() bumps every cached entry under that
+        // namespace. There is no per-branch sub-key to bump
+        // independently — the previous loop was a no-op that just
+        // re-incremented the same version counter for each branch.
         $this->cache->invalidate(self::TOOL_REFERENCE_NAMESPACE);
         $this->cache->invalidate(self::BRANCH_MENU_NAMESPACE);
-
-        if (! $kitchen) {
-            return;
-        }
-
-        $kitchen->loadMissing('branches');
-
-        foreach ($kitchen->branches as $branch) {
-            $this->cache->invalidate(self::BRANCH_MENU_NAMESPACE);
-        }
     }
 
     public function invalidateReferenceData(): void

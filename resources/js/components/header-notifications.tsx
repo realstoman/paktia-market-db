@@ -379,7 +379,7 @@ export function HeaderNotifications() {
                             type="button"
                             onClick={() => setSelectedCategory('all')}
                             className={cn(
-                                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition',
+                                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
                                 selectedCategory === 'all'
                                     ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
                                     : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
@@ -399,7 +399,7 @@ export function HeaderNotifications() {
                                         setSelectedCategory(category)
                                     }
                                     className={cn(
-                                        'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition',
+                                        'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
                                         selectedCategory === category
                                             ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
                                             : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
@@ -481,7 +481,7 @@ export function HeaderNotifications() {
                                             router.visit(href);
                                         }}
                                         className={cn(
-                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
+                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition-[color,background-color,border-color,box-shadow] hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
                                             isRtl && 'flex-row-reverse text-right',
                                         )}
                                     >
@@ -572,7 +572,7 @@ export function HeaderNotifications() {
                                                             notification.id,
                                                         ]);
                                                     }}
-                                                    className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-white"
+                                                    className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition-[color,background-color,border-color] hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-white"
                                                     aria-label={t(
                                                         'notifications.remove',
                                                         'Remove notification',

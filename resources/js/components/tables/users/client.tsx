@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useAuthorization } from '@/lib/permissions';
 import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
@@ -55,6 +56,9 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     kitchens,
     isLoading = false,
 }) => {
+    const { can } = useAuthorization();
+    const canCreateUser = can('user.create');
+    const canViewRoles = can('role.view') || can('roles.manage');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedRoleFilter, setSelectedRoleFilter] = useState('');
     const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
@@ -287,19 +291,23 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     description="Manage system users"
                 />
                 <div className="gap-2">
-                    <Link href="/roles">
-                        <Button className="mr-2 gap-2" variant={'outline'}>
-                            <ShieldCheck className="h-4 w-4" />
-                            Roles
+                    {canViewRoles ? (
+                        <Link href="/roles">
+                            <Button className="mr-2 gap-2" variant={'outline'}>
+                                <ShieldCheck className="h-4 w-4" />
+                                Roles
+                            </Button>
+                        </Link>
+                    ) : null}
+                    {canCreateUser ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add User
                         </Button>
-                    </Link>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add User
-                    </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />

@@ -363,16 +363,46 @@ Main sections are available under routes such as:
 Before deploying:
 
 ```bash
-composer install --no-dev --optimize-autoloader
-npm install
+composer install --no-dev --optimize-autoloader --classmap-authoritative
+npm ci
 npm run build
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan event:cache
 ```
 
+`--classmap-authoritative` flips Composer into a faster autoload mode that
+drops filesystem checks for missing classes. Combined with the artisan
+`*:cache` commands above, this materially reduces per-request boot cost.
+
 If queues are used in production, make sure a worker is running.
+
+### Recommended runtime stack (central deployment)
+
+The central Laravel app is much faster on Redis-backed cache, queue, and
+session drivers. The default `database` drivers are convenient for local
+development but add per-request DB contention on the `cache` and
+`sessions` tables under load.
+
+Production `.env` recommendations:
+
+```env
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+
+# Spatie Permission cache should also live on Redis so role/permission
+# checks don't hit the database on every authenticated request.
+PERMISSION_CACHE_STORE=redis
+
+# Async report exports become safe once a queue worker is running.
+POS_EXPORTS_ASYNC=true
+```
+
+Also make sure to run a queue worker (`php artisan queue:work --queue=high,default,audit`)
+and schedule `php artisan schedule:run` every minute.
 
 ## Troubleshooting
 

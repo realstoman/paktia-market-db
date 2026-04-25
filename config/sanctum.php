@@ -45,9 +45,12 @@ return [
     | considered expired. This will override any values set in the token's
     | "expires_at" attribute, but first-party sessions are not affected.
     |
+    | Defaults to 60 days; set SANCTUM_EXPIRATION to override (in minutes).
+    | Use null to disable expiration entirely (not recommended in production).
+    |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24 * 60),
 
     /*
     |--------------------------------------------------------------------------

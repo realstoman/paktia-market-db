@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Branch,
     Currency,
@@ -114,9 +115,13 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const { t, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
+    const { can } = useAuthorization();
     const VENDOR_NONE = '__none__';
+    const canViewInventory = can('inventory.view');
+    const canAdjustInventory = can('inventory.adjust');
     const canDeleteInventoryItem =
-        auth.is_super_admin === true || auth.roles.includes('super-admin');
+        can('inventory.delete') &&
+        (auth.is_super_admin === true || auth.roles.includes('super-admin'));
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
@@ -438,58 +443,66 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">
-                            {t('inventory.rowActions.openMenu', 'Open menu')}
-                        </span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
-                        {t('inventory.rowActions.actions', 'Actions')}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        {t('inventory.rowActions.details', 'Details')}
-                    </DropdownMenuItem>
-                    {data.is_usable ? (
-                        <DropdownMenuItem
-                            onClick={() => setIsUsageHistoryOpen(true)}
-                        >
-                            <CalendarClock className="mr-2 h-4 w-4" />
-                            {t(
-                                'inventory.rowActions.usageHistory',
-                                'Usage History',
-                            )}
-                        </DropdownMenuItem>
-                    ) : null}
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEditForm();
-                            setIsEditOpen(true);
-                        }}
-                    >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {t('inventory.common.edit', 'Edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsRestockOpen(true)}>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        {t('inventory.rowActions.restock', 'Restock')}
-                    </DropdownMenuItem>
-                    {canDeleteInventoryItem ? (
-                        <DropdownMenuItem
-                            onClick={() => setIsDeleteOpen(true)}
-                            className="text-red-600 focus:text-red-600"
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t('inventory.common.delete', 'Delete')}
-                        </DropdownMenuItem>
-                    ) : null}
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {canViewInventory || canAdjustInventory || canDeleteInventoryItem ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">
+                                {t('inventory.rowActions.openMenu', 'Open menu')}
+                            </span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>
+                            {t('inventory.rowActions.actions', 'Actions')}
+                        </DropdownMenuLabel>
+                        {canViewInventory ? (
+                            <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                {t('inventory.rowActions.details', 'Details')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canViewInventory && data.is_usable ? (
+                            <DropdownMenuItem
+                                onClick={() => setIsUsageHistoryOpen(true)}
+                            >
+                                <CalendarClock className="mr-2 h-4 w-4" />
+                                {t(
+                                    'inventory.rowActions.usageHistory',
+                                    'Usage History',
+                                )}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canAdjustInventory ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEditForm();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                {t('inventory.common.edit', 'Edit')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canAdjustInventory ? (
+                            <DropdownMenuItem onClick={() => setIsRestockOpen(true)}>
+                                <PackagePlus className="mr-2 h-4 w-4" />
+                                {t('inventory.rowActions.restock', 'Restock')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteInventoryItem ? (
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                                className="text-red-600 focus:text-red-600"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('inventory.common.delete', 'Delete')}
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
 
             {canDeleteInventoryItem ? (
                 <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Branch,
     BranchTable,
@@ -105,7 +106,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     isLoading = false,
 }) => {
     const { auth } = usePage<SharedData>().props;
+    const { can } = useAuthorization();
     const { t, locale } = useLocalization();
+    const canCreateOrder = can('orders.create');
     const localizedProductName = (product?: Product | null) => {
         if (!product) {
             return '';
@@ -1114,17 +1117,19 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         'Track and manage orders (DESC order by ID)',
                     )}
                 />
-                <Button
-                    onClick={() => {
-                        resetCreateForm();
-                        setIsCreateOpen(true);
-                    }}
-                    className="gap-2"
-                    variant={'outline'}
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('orders.createOrder', 'Create Order')}
-                </Button>
+                {canCreateOrder ? (
+                    <Button
+                        onClick={() => {
+                            resetCreateForm();
+                            setIsCreateOpen(true);
+                        }}
+                        className="gap-2"
+                        variant={'outline'}
+                    >
+                        <Plus className="h-4 w-4" />
+                        {t('orders.createOrder', 'Create Order')}
+                    </Button>
+                ) : null}
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable

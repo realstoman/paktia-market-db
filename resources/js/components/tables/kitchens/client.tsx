@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Cuisine,
     Kitchen,
@@ -72,6 +73,9 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     kitchenCategories,
     isLoading = false,
 }) => {
+    const { can } = useAuthorization();
+    const canCreateKitchen = can('kitchen.create');
+    const canManageKitchenMeta = can('kitchen.update');
     const NO_KITCHEN_TYPE = '__none__';
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isKitchenTypesOpen, setIsKitchenTypesOpen] = useState(false);
@@ -425,37 +429,45 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     description="Manage kitchens"
                 />
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsKitchenCategoriesOpen(true)}
-                        className="gap-2"
-                    >
-                        <Tags className="h-4 w-4" />
-                        Kitchen Categories
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsCuisinesOpen(true)}
-                        className="gap-2"
-                    >
-                        <UtensilsCrossed className="h-4 w-4" />
-                        Cuisines
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsKitchenTypesOpen(true)}
-                        className="gap-2"
-                    >
-                        <Shapes className="h-4 w-4" />
-                        Kitchen Types
-                    </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add New
-                    </Button>
+                    {canManageKitchenMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsKitchenCategoriesOpen(true)}
+                            className="gap-2"
+                        >
+                            <Tags className="h-4 w-4" />
+                            Kitchen Categories
+                        </Button>
+                    ) : null}
+                    {canManageKitchenMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCuisinesOpen(true)}
+                            className="gap-2"
+                        >
+                            <UtensilsCrossed className="h-4 w-4" />
+                            Cuisines
+                        </Button>
+                    ) : null}
+                    {canManageKitchenMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsKitchenTypesOpen(true)}
+                            className="gap-2"
+                        >
+                            <Shapes className="h-4 w-4" />
+                            Kitchen Types
+                        </Button>
+                    ) : null}
+                    {canCreateKitchen ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add New
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />

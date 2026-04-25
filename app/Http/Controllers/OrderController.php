@@ -7,20 +7,20 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Order;
 use App\Services\Order\OrderService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class OrderController extends Controller
 {
-    protected function ensureKitchenCannotUseOrders(Request $request): void
-    {
-        abort_if($request->user()?->hasRole('kitchen'), 403);
-    }
+    use AuthorizesRequests;
 
     public function index(Request $request, OrderService $service)
     {
-        if ($request->user()?->hasRole('kitchen')) {
+        // Kitchen users do not have an orders surface in the UI; redirect
+        // them to the dashboard rather than serving a 403 page.
+        if ($request->user()?->hasRole('kitchen') && ! $request->user()?->hasRole('super-admin')) {
             return redirect()->route('dashboard');
         }
 
@@ -41,7 +41,7 @@ class OrderController extends Controller
 
     public function store(Request $request, OrderService $service)
     {
-        $this->ensureKitchenCannotUseOrders($request);
+        $this->authorize('create', Order::class);
 
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
@@ -74,7 +74,7 @@ class OrderController extends Controller
 
     public function update(Request $request, OrderService $service, Order $order)
     {
-        $this->ensureKitchenCannotUseOrders($request);
+        $this->authorize('update', $order);
 
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,id',
@@ -107,7 +107,7 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, OrderService $service, Order $order)
     {
-        $this->ensureKitchenCannotUseOrders($request);
+        $this->authorize('update', $order);
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(OrderStatus::values())],
@@ -140,7 +140,7 @@ class OrderController extends Controller
 
     public function updateTable(Request $request, OrderService $service, Order $order)
     {
-        $this->ensureKitchenCannotUseOrders($request);
+        $this->authorize('update', $order);
 
         $validated = $request->validate([
             'branch_table_id' => ['required', 'exists:branch_tables,id'],
@@ -154,7 +154,7 @@ class OrderController extends Controller
 
     public function addItems(Request $request, OrderService $service, Order $order)
     {
-        $this->ensureKitchenCannotUseOrders($request);
+        $this->authorize('update', $order);
 
         $validated = $request->validate([
             'items' => 'required|array|min:1',

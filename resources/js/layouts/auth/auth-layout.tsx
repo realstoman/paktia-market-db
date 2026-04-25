@@ -59,7 +59,7 @@ export default function AuthLayout({
                                 isRtl ? 'text-right' : 'text-left'
                             }`}
                         >
-                            <p
+                            <div
                                 className={`flex items-start gap-2 text-sm text-slate-400 ${
                                     isRtl
                                         ? 'justify-start text-right'
@@ -88,7 +88,7 @@ export default function AuthLayout({
                                         'All rights reserved.',
                                     )}
                                 </div>
-                            </p>
+                            </div>
                             <p
                                 className={`flex items-center gap-1 pt-2 text-sm text-slate-400 ${
                                     isRtl

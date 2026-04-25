@@ -55,6 +55,10 @@ export interface SharedData {
         }[];
     };
     notifications?: AppNotification[];
+    unauthorizedAccess?: {
+        show: boolean;
+        path?: string | null;
+    } | null;
     tools?: {
         countries: Country[];
         provinces: Province[];
@@ -86,6 +90,7 @@ export interface AppNotification {
     title: string;
     description: string;
     createdAt?: string | null;
+    readAt?: string | null;
     meta?: string | null;
     href?: string | null;
     unread?: boolean;

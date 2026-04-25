@@ -47,7 +47,7 @@ class EnsureIdempotentRequests
                     );
                 }
 
-                if ($record->completed_at && $record->response_body !== null) {
+                if ($record->completed_at) {
                     return $this->replayResponse($record);
                 }
 
@@ -73,7 +73,7 @@ class EnsureIdempotentRequests
                     ->where('route', $route)
                     ->first();
 
-                if ($existing && $existing->completed_at && $existing->response_body !== null) {
+                if ($existing && $existing->completed_at) {
                     return $this->replayResponse($existing);
                 }
 
@@ -85,23 +85,46 @@ class EnsureIdempotentRequests
             try {
                 $response = $next($request);
             } catch (Throwable $throwable) {
-                $record->delete();
+                // Preserve idempotency on failures: persist a synthetic 500
+                // response so a retried key sees the same error rather than
+                // re-executing the side effects of the original handler.
+                $this->persistResponse(
+                    $record,
+                    500,
+                    'application/json',
+                    json_encode([
+                        'message' => 'The original request failed. Use a new Idempotency-Key to retry.',
+                    ], JSON_THROW_ON_ERROR),
+                );
+
                 throw $throwable;
             }
 
-            $record->forceFill([
-                'response_status' => $response->getStatusCode(),
-                'response_headers' => [
-                    'Content-Type' => $response->headers->get('Content-Type', 'application/json'),
-                ],
-                'response_body' => $response->getContent(),
-                'completed_at' => now(),
-            ])->save();
+            $this->persistResponse(
+                $record,
+                $response->getStatusCode(),
+                (string) $response->headers->get('Content-Type', 'application/json'),
+                (string) $response->getContent(),
+            );
 
             return $response;
         }
 
         return $next($request);
+    }
+
+    private function persistResponse(
+        IdempotencyRequest $record,
+        int $status,
+        string $contentType,
+        string $body,
+    ): void {
+        $record->forceFill([
+            'response_status' => $status,
+            'response_headers' => ['Content-Type' => $contentType],
+            'response_body' => $body,
+            'completed_at' => now(),
+        ])->save();
     }
 
     private function resolveScope(Request $request): string
@@ -126,10 +149,14 @@ class EnsureIdempotentRequests
 
     private function replayResponse(IdempotencyRequest $record): Response|JsonResponse
     {
+        $headers = $record->response_headers ?? ['Content-Type' => 'application/json'];
+        // Mark the response so well-behaved clients can detect a replay.
+        $headers['Idempotency-Replayed'] = 'true';
+
         return response(
-            $record->response_body,
+            $record->response_body ?? '',
             $record->response_status ?? 200,
-            $record->response_headers ?? ['Content-Type' => 'application/json'],
+            $headers,
         );
     }
 

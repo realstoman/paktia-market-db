@@ -45,14 +45,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Computed attributes for JSON responses.
-     *
-     * @var array<int, string>
-     */
-    protected $appends = [
-        'is_internal_user',
-    ];
+    // is_internal_user is intentionally NOT in $appends to keep the
+    // default JSON shape minimal and avoid an extra roles() exists()
+    // query on every serialization. Use AuthUserResource (or call
+    // $user->is_internal_user explicitly) when the value is needed.
 
     /**
      * Attribute casting
