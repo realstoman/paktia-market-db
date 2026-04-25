@@ -1,3 +1,4 @@
+import translations from '@/locales';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -7,19 +8,65 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { useLocalization } from '@/lib/localization';
 import { SharedData } from '@/types';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 
-export function UnauthorizedAccessModal() {
-    const { unauthorizedAccess } = usePage<SharedData>().props;
-    const { t } = useLocalization();
+type UnauthorizedAccessModalProps = Pick<
+    SharedData,
+    'unauthorizedAccess' | 'localization'
+>;
+
+export function UnauthorizedAccessModal({
+    unauthorizedAccess,
+    localization,
+}: UnauthorizedAccessModalProps) {
     const [dismissedPath, setDismissedPath] = useState<string | null>(null);
     const attemptedPath = unauthorizedAccess?.path?.trim();
     const open =
         unauthorizedAccess?.show === true && dismissedPath !== attemptedPath;
+    const locale = localization?.locale ?? 'en';
+    const activeTranslations = translations[locale] ?? translations.en;
+    const fallbackTranslations = translations.en;
+    const t = (key: string, fallback: string) => {
+        const segments = key.split('.');
+        let value: unknown = activeTranslations;
+
+        for (const segment of segments) {
+            if (
+                value === null ||
+                value === undefined ||
+                typeof value === 'string'
+            ) {
+                value = undefined;
+                break;
+            }
+
+            value = (value as Record<string, unknown>)[segment];
+        }
+
+        if (typeof value === 'string') {
+            return value;
+        }
+
+        value = fallbackTranslations;
+
+        for (const segment of segments) {
+            if (
+                value === null ||
+                value === undefined ||
+                typeof value === 'string'
+            ) {
+                value = undefined;
+                break;
+            }
+
+            value = (value as Record<string, unknown>)[segment];
+        }
+
+        return typeof value === 'string' ? value : fallback;
+    };
 
     return (
         <Dialog
