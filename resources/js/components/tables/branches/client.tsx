@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Select,
     SelectContent,
@@ -58,6 +59,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     kitchens,
     isLoading = false,
 }) => {
+    const { can } = useAuthorization();
+    const canCreateBranch = can('branch.create');
+    const canUpdateBranch = can('branch.update');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
     const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('');
@@ -317,21 +321,25 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     description="Manage restaurant branches"
                 />
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsManageTablesOpen(true)}
-                        className="gap-2"
-                    >
-                        <Table2 className="h-4 w-4" />
-                        Manage Tables
-                    </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add New
-                    </Button>
+                    {canUpdateBranch ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsManageTablesOpen(true)}
+                            className="gap-2"
+                        >
+                            <Table2 className="h-4 w-4" />
+                            Manage Tables
+                        </Button>
+                    ) : null}
+                    {canCreateBranch ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add New
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />

@@ -29,6 +29,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Branch,
     Employee,
@@ -104,7 +105,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
 }) => {
     const { t, locale, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
-    const canDelete = auth.is_super_admin === true;
+    const { can } = useAuthorization();
+    const canCreateEmployee = can('employees.create');
+    const canManageEmployeeMeta = can('employees.update');
+    const canDelete = auth.is_super_admin === true && can('employees.update');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -718,40 +722,48 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     )}
                 />
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsEmploymentTypesOpen(true)}
-                        className="gap-2"
-                    >
-                        <Shapes className="h-4 w-4" />
-                        {t(
-                            'employees.employmentTypes.managerButton',
-                            'Employment Types',
-                        )}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsShiftsOpen(true)}
-                        className="gap-2"
-                    >
-                        <Clock3 className="h-4 w-4" />
-                        {t('employees.shifts.managerButton', 'Shifts')}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsPositionsOpen(true)}
-                        className="gap-2"
-                    >
-                        <BriefcaseBusiness className="h-4 w-4" />
-                        {t('employees.positions.managerButton', 'Positions')}
-                    </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        {t('employees.create.button', 'Add Employee')}
-                    </Button>
+                    {canManageEmployeeMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEmploymentTypesOpen(true)}
+                            className="gap-2"
+                        >
+                            <Shapes className="h-4 w-4" />
+                            {t(
+                                'employees.employmentTypes.managerButton',
+                                'Employment Types',
+                            )}
+                        </Button>
+                    ) : null}
+                    {canManageEmployeeMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsShiftsOpen(true)}
+                            className="gap-2"
+                        >
+                            <Clock3 className="h-4 w-4" />
+                            {t('employees.shifts.managerButton', 'Shifts')}
+                        </Button>
+                    ) : null}
+                    {canManageEmployeeMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsPositionsOpen(true)}
+                            className="gap-2"
+                        >
+                            <BriefcaseBusiness className="h-4 w-4" />
+                            {t('employees.positions.managerButton', 'Positions')}
+                        </Button>
+                    ) : null}
+                    {canCreateEmployee ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            {t('employees.create.button', 'Add Employee')}
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />

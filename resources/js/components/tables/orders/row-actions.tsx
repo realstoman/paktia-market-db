@@ -24,6 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import { BranchTable, Order, SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import {
@@ -72,6 +73,7 @@ export function OrderRowActions({
 }: OrderRowActionsProps) {
     const { auth } = usePage<SharedData>().props;
     const { t, isRtl } = useLocalization();
+    const { can } = useAuthorization();
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [branchTableId, setBranchTableId] = useState(
@@ -80,13 +82,16 @@ export function OrderRowActions({
     const [status, setStatus] = useState(order.status ?? 'pending');
     const [error, setError] = useState('');
     const isCompleted = (order.status ?? 'pending') === 'completed';
+    const canViewOrder = can('orders.view');
+    const canManageOrder = can('orders.update');
     const canPrintReceipt = ['ready', 'completed'].includes(
         order.status ?? 'pending',
-    );
-    const canEditOrder = !isCompleted;
-    const canAddOrderItems = !isCompleted;
-    const canAssignOrderTable = !isCompleted;
-    const canUpdateStatus = !isCompleted || auth.is_super_admin === true;
+    ) && canViewOrder;
+    const canEditOrder = canManageOrder && !isCompleted;
+    const canAddOrderItems = canManageOrder && !isCompleted;
+    const canAssignOrderTable = canManageOrder && !isCompleted;
+    const canUpdateStatus =
+        canManageOrder && (!isCompleted || auth.is_super_admin === true);
     const tableOptions = useMemo(
         () =>
             branchTables.filter(
@@ -166,75 +171,87 @@ export function OrderRowActions({
 
     const actionItems = (
         <>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handleView}
-            >
-                <Eye className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
-                {t('orders.rowActions.viewDetails', 'Details')}
-            </Button>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handleEdit}
-                disabled={!canEditOrder}
-            >
-                <SquarePen
-                    className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                />
-                {t('orders.rowActions.editOrder', 'Edit Order')}
-            </Button>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handleAddItems}
-                disabled={!canAddOrderItems}
-            >
-                <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
-                {t('orders.rowActions.addItem', 'Add Item')}
-            </Button>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handlePrint}
-                disabled={!canPrintReceipt}
-            >
-                <Printer className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
-                {t('orders.rowActions.printReceipt', 'Print Receipt')}
-            </Button>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handleAssignOpen}
-                disabled={!canAssignOrderTable}
-            >
-                <Utensils className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
-                {t('orders.rowActions.assignTable', 'Assign Table')}
-            </Button>
-            <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full justify-start"
-                onClick={handleStatusOpen}
-                disabled={!canUpdateStatus}
-            >
-                <FilePenLine
-                    className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
-                />
-                {t('orders.rowActions.updateStatus', 'Update Status')}
-            </Button>
+            {canViewOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handleView}
+                >
+                    <Eye className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                    {t('orders.rowActions.viewDetails', 'Details')}
+                </Button>
+            ) : null}
+            {canManageOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handleEdit}
+                    disabled={!canEditOrder}
+                >
+                    <SquarePen
+                        className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                    />
+                    {t('orders.rowActions.editOrder', 'Edit Order')}
+                </Button>
+            ) : null}
+            {canManageOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handleAddItems}
+                    disabled={!canAddOrderItems}
+                >
+                    <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                    {t('orders.rowActions.addItem', 'Add Item')}
+                </Button>
+            ) : null}
+            {canViewOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handlePrint}
+                    disabled={!canPrintReceipt}
+                >
+                    <Printer className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                    {t('orders.rowActions.printReceipt', 'Print Receipt')}
+                </Button>
+            ) : null}
+            {canManageOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handleAssignOpen}
+                    disabled={!canAssignOrderTable}
+                >
+                    <Utensils className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                    {t('orders.rowActions.assignTable', 'Assign Table')}
+                </Button>
+            ) : null}
+            {canManageOrder ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-start"
+                    onClick={handleStatusOpen}
+                    disabled={!canUpdateStatus}
+                >
+                    <FilePenLine
+                        className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
+                    />
+                    {t('orders.rowActions.updateStatus', 'Update Status')}
+                </Button>
+            ) : null}
         </>
     );
 
     return (
         <>
-            {mode === 'dropdown' ? (
+            {canViewOrder || canManageOrder ? mode === 'dropdown' ? (
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button
@@ -258,56 +275,68 @@ export function OrderRowActions({
                         >
                             {t('orders.rowActions.actions', 'Actions')}
                         </DropdownMenuLabel>
-                        <DropdownMenuItem onClick={handleView}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.viewDetails', 'Details')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleEdit}
-                            disabled={!canEditOrder}
-                        >
-                            <SquarePen className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.editOrder', 'Edit Order')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleAddItems}
-                            disabled={!canAddOrderItems}
-                        >
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.addItem', 'Add Item')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handlePrint}
-                            disabled={!canPrintReceipt}
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
-                            {t(
-                                'orders.rowActions.printReceipt',
-                                'Print Receipt',
-                            )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleAssignOpen}
-                            disabled={!canAssignOrderTable}
-                        >
-                            <Utensils className="mr-2 h-4 w-4" />
-                            {t('orders.rowActions.assignTable', 'Assign Table')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleStatusOpen}
-                            disabled={!canUpdateStatus}
-                        >
-                            <FilePenLine className="mr-2 h-4 w-4" />
-                            {t(
-                                'orders.rowActions.updateStatus',
-                                'Update Status',
-                            )}
-                        </DropdownMenuItem>
+                        {canViewOrder ? (
+                            <DropdownMenuItem onClick={handleView}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                {t('orders.rowActions.viewDetails', 'Details')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageOrder ? (
+                            <DropdownMenuItem
+                                onClick={handleEdit}
+                                disabled={!canEditOrder}
+                            >
+                                <SquarePen className="mr-2 h-4 w-4" />
+                                {t('orders.rowActions.editOrder', 'Edit Order')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageOrder ? (
+                            <DropdownMenuItem
+                                onClick={handleAddItems}
+                                disabled={!canAddOrderItems}
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t('orders.rowActions.addItem', 'Add Item')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canViewOrder ? (
+                            <DropdownMenuItem
+                                onClick={handlePrint}
+                                disabled={!canPrintReceipt}
+                            >
+                                <Printer className="mr-2 h-4 w-4" />
+                                {t(
+                                    'orders.rowActions.printReceipt',
+                                    'Print Receipt',
+                                )}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageOrder ? (
+                            <DropdownMenuItem
+                                onClick={handleAssignOpen}
+                                disabled={!canAssignOrderTable}
+                            >
+                                <Utensils className="mr-2 h-4 w-4" />
+                                {t('orders.rowActions.assignTable', 'Assign Table')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageOrder ? (
+                            <DropdownMenuItem
+                                onClick={handleStatusOpen}
+                                disabled={!canUpdateStatus}
+                            >
+                                <FilePenLine className="mr-2 h-4 w-4" />
+                                {t(
+                                    'orders.rowActions.updateStatus',
+                                    'Update Status',
+                                )}
+                            </DropdownMenuItem>
+                        ) : null}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ) : (
                 <div className="grid gap-1.5">{actionItems}</div>
-            )}
+            ) : null}
 
             <Dialog
                 open={isAssignTableOpen}

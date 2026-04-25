@@ -29,6 +29,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -138,7 +139,11 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const { t, locale, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
-    const canDeleteEmployee = canDelete && auth.is_super_admin === true;
+    const { can } = useAuthorization();
+    const canViewEmployee = can('employees.view');
+    const canManageEmployee = can('employees.update');
+    const canDeleteEmployee =
+        canDelete && auth.is_super_admin === true && canManageEmployee;
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -537,59 +542,69 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">
-                            {t('employees.actions.openMenu', 'Open menu')}
-                        </span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    align="end"
-                    className={isRtl ? 'text-right' : ''}
-                >
-                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
-                        {t('employees.table.actions', 'Actions')}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        {t('employees.actions.viewDetails', 'View Details')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsFinanceOpen(true)}>
-                        <Wallet className="mr-2 h-4 w-4" />
-                        {t(
-                            'employees.actions.employeeFinances',
-                            'Employee Finances',
-                        )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEdit();
-                            setIsEditOpen(true);
-                        }}
+            {canViewEmployee || canManageEmployee || canDeleteEmployee ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">
+                                {t('employees.actions.openMenu', 'Open menu')}
+                            </span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        align="end"
+                        className={isRtl ? 'text-right' : ''}
                     >
-                        <Edit className="mr-2 h-4 w-4" />
-                        {t('employees.actions.edit', 'Edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsStatusOpen(true)}>
-                        <Ban className="mr-2 h-4 w-4" />
-                        {data.is_active
-                            ? t(
-                                  'employees.actions.markInactive',
-                                  'Mark Inactive',
-                              )
-                            : t('employees.actions.markActive', 'Mark Active')}
-                    </DropdownMenuItem>
-                    {canDeleteEmployee ? (
-                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                            <Trash className="mr-2 h-4 w-4 text-red-600" />
-                            {t('employees.common.delete', 'Delete')}
-                        </DropdownMenuItem>
-                    ) : null}
-                </DropdownMenuContent>
-            </DropdownMenu>
+                        <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                            {t('employees.table.actions', 'Actions')}
+                        </DropdownMenuLabel>
+                        {canViewEmployee ? (
+                            <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                {t('employees.actions.viewDetails', 'View Details')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canViewEmployee ? (
+                            <DropdownMenuItem onClick={() => setIsFinanceOpen(true)}>
+                                <Wallet className="mr-2 h-4 w-4" />
+                                {t(
+                                    'employees.actions.employeeFinances',
+                                    'Employee Finances',
+                                )}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageEmployee ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEdit();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t('employees.actions.edit', 'Edit')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageEmployee ? (
+                            <DropdownMenuItem onClick={() => setIsStatusOpen(true)}>
+                                <Ban className="mr-2 h-4 w-4" />
+                                {data.is_active
+                                    ? t(
+                                          'employees.actions.markInactive',
+                                          'Mark Inactive',
+                                      )
+                                    : t('employees.actions.markActive', 'Mark Active')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteEmployee ? (
+                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                                <Trash className="mr-2 h-4 w-4 text-red-600" />
+                                {t('employees.common.delete', 'Delete')}
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="sm:max-w-3xl">

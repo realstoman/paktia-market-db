@@ -43,6 +43,7 @@ import {
     KitchenType,
     Product,
 } from '@/types';
+import { useAuthorization } from '@/lib/permissions';
 import { router } from '@inertiajs/react';
 import {
     CookingPot,
@@ -75,6 +76,10 @@ export const CellAction: React.FC<CellActionProps> = ({
     products,
 }) => {
     const NO_KITCHEN_TYPE = '__none__';
+    const { can } = useAuthorization();
+    const canViewKitchen = can('kitchen.view');
+    const canManageKitchen = can('kitchen.update');
+    const canDeleteKitchen = can('kitchen.delete');
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isToggleOpen, setIsToggleOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -258,47 +263,60 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => router.visit(`/kitchens/${data.id}`)}
-                    >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEdit();
-                            setIsEditOpen(true);
-                        }}
-                    >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={openProductAssign}>
-                        <CookingPot className="mr-2 h-4 w-4" />
-                        Assign Products
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>
-                        {data.is_active ? (
-                            <MapPinOff className="mr-2 h-4 w-4" />
-                        ) : (
-                            <MapPin className="mr-2 h-4 w-4" />
-                        )}
-                        {data.is_active ? 'Deactivate' : 'Activate'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
+            {canViewKitchen || canManageKitchen || canDeleteKitchen ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {canViewKitchen ? (
+                            <DropdownMenuItem
+                                onClick={() => router.visit(`/kitchens/${data.id}`)}
+                            >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageKitchen ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEdit();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageKitchen ? (
+                            <DropdownMenuItem onClick={openProductAssign}>
+                                <CookingPot className="mr-2 h-4 w-4" />
+                                Assign Products
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canManageKitchen ? (
+                            <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>
+                                {data.is_active ? (
+                                    <MapPinOff className="mr-2 h-4 w-4" />
+                                ) : (
+                                    <MapPin className="mr-2 h-4 w-4" />
+                                )}
+                                {data.is_active ? 'Deactivate' : 'Activate'}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteKitchen ? (
+                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                                <Trash className="mr-2 h-4 w-4 text-red-600" />
+                                Delete
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
             </DropdownMenu>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
