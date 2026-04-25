@@ -65,4 +65,16 @@ return [
         'use_queue' => (bool) env('POS_AUDIT_USE_QUEUE', false),
         'queue' => env('POS_AUDIT_QUEUE', 'audit'),
     ],
+
+    'exports' => [
+        // When true, /reports/export/{pdf,xlsx} dispatches the heavy
+        // rendering to RenderReportExportJob and immediately redirects the
+        // user with a flash notification linking to the eventual download.
+        // Leave off until a queue worker (preferably Redis-backed) is in
+        // place; otherwise sync remains the safest fallback.
+        'async' => (bool) env('POS_EXPORTS_ASYNC', false),
+        'queue' => env('POS_EXPORTS_QUEUE', 'default'),
+        'disk' => env('POS_EXPORTS_DISK', 'local'),
+        'path' => env('POS_EXPORTS_PATH', 'reports/exports'),
+    ],
 ];

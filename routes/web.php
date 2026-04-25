@@ -173,6 +173,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:'.PermissionEnum::REPORTS_EXPORT->value)->group(function () {
         Route::get('reports/export/pdf', [ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
         Route::get('reports/export/xlsx', [ReportsController::class, 'exportXlsx'])->name('reports.export.xlsx');
+        Route::get('reports/exports/{filename}/download', [ReportsController::class, 'downloadExport'])
+            ->where('filename', '[A-Za-z0-9_\-\.]+')
+            ->name('reports.exports.download');
     });
 
     // Inventory

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PermissionEnum;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Jobs\RenderReportExportJob;
 use App\Models\Branch;
 use App\Models\CashMovement;
 use App\Models\Employee;
@@ -15,18 +15,22 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Projection\BranchDailyMetricReader;
+use App\Services\Reports\ReportFileRenderer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportsController extends Controller
 {
     public function __construct(
         private readonly BranchDailyMetricReader $branchDailyMetricReader,
+        private readonly ReportFileRenderer $reportFileRenderer,
     ) {}
 
     private const MODULES = [
@@ -44,31 +48,40 @@ class ReportsController extends Controller
         return Inertia::render('reports/index', $this->buildReportPageData($request));
     }
 
-    public function exportPdf(Request $request)
+    public function exportPdf(Request $request): Response|RedirectResponse
     {
-        abort_unless($request->user()?->can(PermissionEnum::REPORTS_EXPORT->value), 403);
-
-        $data = $this->buildReportPageData($request);
-        $report = $data['activeReport'];
-
-        abort_unless(($report['isReady'] ?? false) === true, 404);
-
-        $pdf = Pdf::loadView('reports/pdf', [
-            'report' => $report,
-            'period' => $data['period'],
-            'filters' => $data['filters'],
-            'branchName' => $this->resolveBranchName($data),
-        ])->setPaper('a4', 'landscape');
-
-        return $pdf->download($this->exportFilename(
-            (string) $data['filters']['module'],
-            (string) $data['period']['startDate'],
-            (string) $data['period']['endDate'],
-            'pdf',
-        ));
+        return $this->handleExport($request, 'pdf');
     }
 
-    public function exportXlsx(Request $request): StreamedResponse
+    public function exportXlsx(Request $request): Response|StreamedResponse|RedirectResponse
+    {
+        return $this->handleExport($request, 'xlsx');
+    }
+
+    public function downloadExport(Request $request, string $filename): StreamedResponse
+    {
+        abort_unless($request->user()?->can(PermissionEnum::REPORTS_EXPORT->value), 403);
+
+        $userId = (int) $request->user()?->getKey();
+        abort_unless($userId > 0, 403);
+
+        $disk = (string) config('pos.exports.disk', 'local');
+        $path = RenderReportExportJob::storagePath($userId, $filename);
+
+        $storage = Storage::disk($disk);
+
+        abort_unless($storage->exists($path), 404);
+
+        $contentType = str_ends_with($filename, '.pdf')
+            ? 'application/pdf'
+            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        return $storage->download($path, $filename, [
+            'Content-Type' => $contentType,
+        ]);
+    }
+
+    private function handleExport(Request $request, string $format): Response|StreamedResponse|RedirectResponse
     {
         abort_unless($request->user()?->can(PermissionEnum::REPORTS_EXPORT->value), 403);
 
@@ -77,77 +90,58 @@ class ReportsController extends Controller
 
         abort_unless(($report['isReady'] ?? false) === true, 404);
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(substr((string) ($report['title'] ?? 'Report'), 0, 31));
+        $filename = $this->reportFileRenderer->defaultFilename($data, $format);
 
-        $row = 1;
-        $sheet->setCellValue("A{$row}", (string) ($report['title'] ?? 'Report'));
-        $row++;
-        $sheet->setCellValue("A{$row}", 'Reporting period');
-        $sheet->setCellValue("B{$row}", (string) ($data['period']['label'] ?? ''));
-        $row++;
-        $sheet->setCellValue("A{$row}", 'Branch scope');
-        $sheet->setCellValue("B{$row}", $this->resolveBranchName($data));
-        $row += 2;
+        // Async path: dispatch the rendering, give the user an immediate
+        // "we'll have it ready shortly" notification, then they download
+        // from the user-scoped exports endpoint.
+        if ((bool) config('pos.exports.async', false)) {
+            $userId = (int) $request->user()->getKey();
+            $uniqueFilename = $this->uniqueExportFilename($filename);
 
-        $summary = $report['summary'] ?? [];
-        if ($summary !== []) {
-            $sheet->setCellValue("A{$row}", 'Summary');
-            $row++;
-            $sheet->setCellValue("A{$row}", 'Metric');
-            $sheet->setCellValue("B{$row}", 'Value');
-            $row++;
+            RenderReportExportJob::dispatch($userId, $format, $data, $uniqueFilename);
 
-            foreach ($summary as $item) {
-                $sheet->setCellValue("A{$row}", (string) ($item['label'] ?? ''));
-                $sheet->setCellValue("B{$row}", (float) ($item['value'] ?? 0));
-                $row++;
-            }
-
-            $row++;
+            return redirect()
+                ->route('reports.index', $request->query())
+                ->with('notification', [
+                    'id' => 'report-export-'.Str::uuid()->toString(),
+                    'category' => 'system',
+                    'title' => 'Report export queued',
+                    'description' => sprintf(
+                        'We\'re generating %s. You can download it from the reports page once it\'s ready.',
+                        $uniqueFilename,
+                    ),
+                    'href' => route('reports.exports.download', ['filename' => $uniqueFilename]),
+                    'priority' => 'medium',
+                ]);
         }
 
-        $columns = $report['columns'] ?? [];
-        $rows = $report['rows'] ?? [];
-        $currencyColumns = collect($report['currencyColumns'] ?? [])->map(fn ($column) => (string) $column)->all();
-
-        foreach ($columns as $columnIndex => $column) {
-            $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, (string) ($column['label'] ?? ''));
-        }
-        $row++;
-
-        foreach ($rows as $reportRow) {
-            foreach ($columns as $columnIndex => $column) {
-                $key = (string) ($column['key'] ?? '');
-                $value = $reportRow[$key] ?? '';
-                $cellValue = in_array($key, $currencyColumns, true)
-                    ? (float) $value
-                    : (string) $value;
-
-                $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, $cellValue);
-            }
-
-            $row++;
+        // Synchronous path (default): render inline and stream to the user.
+        if ($format === 'pdf') {
+            return response($this->reportFileRenderer->renderPdf($data), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+            ]);
         }
 
-        foreach (range(1, max(1, count($columns))) as $columnIndex) {
-            $sheet->getColumnDimensionByColumn($columnIndex)->setAutoSize(true);
-        }
+        $bytes = $this->reportFileRenderer->renderXlsx($data);
 
-        $filename = $this->exportFilename(
-            (string) $data['filters']['module'],
-            (string) $data['period']['startDate'],
-            (string) $data['period']['endDate'],
-            'xlsx',
-        );
-
-        return response()->streamDownload(function () use ($spreadsheet) {
-            $writer = new Xlsx($spreadsheet);
-            $writer->save('php://output');
+        return response()->streamDownload(function () use ($bytes) {
+            echo $bytes;
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
+    }
+
+    private function uniqueExportFilename(string $filename): string
+    {
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        $stamp = now()->format('Ymd-His');
+
+        return $extension !== ''
+            ? "{$base}-{$stamp}.{$extension}"
+            : "{$base}-{$stamp}";
     }
 
     private function buildReportPageData(Request $request): array
