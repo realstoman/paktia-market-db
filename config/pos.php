@@ -19,6 +19,10 @@ return [
         // Minimum allowed length of the plain text token. Tokens shorter
         // than this are rejected without touching the database.
         'min_token_length' => (int) env('POS_SYNC_MIN_TOKEN_LENGTH', 40),
+        // Whether the credential service is allowed to issue tokens with the
+        // wildcard ('*') ability. Default false; flip to true (or pass the
+        // explicit allowWildcard flag) only for one-off seeding.
+        'allow_wildcard_ability' => (bool) env('POS_SYNC_ALLOW_WILDCARD_ABILITY', false),
     ],
 
     'projection' => [

@@ -7,6 +7,7 @@ use App\Models\Province;
 use App\Services\BranchSync\BranchSyncCredentialService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 function createBranchSyncBranch(bool $isActive = true): Branch
 {
@@ -118,10 +119,10 @@ test('validate rejects expired, revoked, or inactive-branch credentials and unkn
     $branch = createBranchSyncBranch();
     $service = app(BranchSyncCredentialService::class);
 
-    $expired = $service->issue($branch, 'expired', ['*'], now()->subMinute());
+    $expired = $service->issue($branch, 'expired', ['health.read'], now()->subMinute());
     expect($service->validate($expired['plain_text_token']))->toBeNull();
 
-    $revoked = $service->issue($branch, 'revoked');
+    $revoked = $service->issue($branch, 'revoked', ['health.read']);
     $service->revoke($revoked['credential']);
     expect($service->validate($revoked['plain_text_token']))->toBeNull();
 
@@ -130,6 +131,35 @@ test('validate rejects expired, revoked, or inactive-branch credentials and unkn
     expect($service->validate($scoped['plain_text_token'], 'health.read'))->not->toBeNull();
 
     $branch->forceFill(['is_active' => false])->save();
-    $stillActive = $service->issue($branch, 'will-fail');
+    $stillActive = $service->issue($branch, 'will-fail', ['health.read']);
     expect($service->validate($stillActive['plain_text_token']))->toBeNull();
+});
+
+test('issue rejects wildcard abilities by default and accepts them with allowWildcard', function () {
+    $branch = createBranchSyncBranch();
+    $service = app(BranchSyncCredentialService::class);
+
+    expect(fn () => $service->issue($branch, 'wildcard', ['*']))
+        ->toThrow(InvalidArgumentException::class);
+
+    expect(fn () => $service->issue($branch, 'wildcard', ['health.read', '*']))
+        ->toThrow(InvalidArgumentException::class);
+
+    $issued = $service->issue($branch, 'wildcard', ['*'], allowWildcard: true);
+    expect($issued['credential']->abilities)->toContain('*');
+
+    config()->set('pos.sync.allow_wildcard_ability', true);
+    $configIssued = $service->issue($branch, 'wildcard-config', ['*']);
+    expect($configIssued['credential']->abilities)->toContain('*');
+});
+
+test('issue defaults to health.read when no abilities are provided', function () {
+    $branch = createBranchSyncBranch();
+    $service = app(BranchSyncCredentialService::class);
+
+    $issued = $service->issue($branch, 'defaults');
+    expect($issued['credential']->abilities)->toBe(['health.read']);
+
+    $issued = $service->issue($branch, 'defaults-empty', []);
+    expect($issued['credential']->abilities)->toBe(['health.read']);
 });

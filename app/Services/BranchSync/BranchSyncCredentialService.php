@@ -5,6 +5,7 @@ namespace App\Services\BranchSync;
 use App\Models\Branch;
 use App\Models\BranchSyncCredential;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class BranchSyncCredentialService
 {
@@ -16,12 +17,20 @@ class BranchSyncCredentialService
      */
     private const HMAC_PREFIX = 'hmac-sha256$';
 
+    /**
+     * Default abilities granted to a fresh credential when the caller
+     * does not specify any. Read-only health is the safest baseline.
+     */
+    private const DEFAULT_ABILITIES = ['health.read'];
+
     public function issue(
         Branch $branch,
         string $name,
-        array $abilities = ['*'],
+        ?array $abilities = null,
         ?\DateTimeInterface $expiresAt = null,
+        bool $allowWildcard = false,
     ): array {
+        $abilities = $this->normalizeAbilities($abilities, $allowWildcard);
         $plainTextToken = Str::random(64);
 
         $credential = BranchSyncCredential::query()->create([
@@ -36,6 +45,35 @@ class BranchSyncCredentialService
             'credential' => $credential,
             'plain_text_token' => $plainTextToken,
         ];
+    }
+
+    /**
+     * @param  array<int, string>|null  $abilities
+     * @return array<int, string>
+     */
+    private function normalizeAbilities(?array $abilities, bool $allowWildcard): array
+    {
+        $abilities = array_values(array_filter(
+            array_map(static fn ($value) => is_string($value) ? trim($value) : '', $abilities ?? []),
+            static fn (string $value) => $value !== '',
+        ));
+
+        if (empty($abilities)) {
+            $abilities = self::DEFAULT_ABILITIES;
+        }
+
+        if (in_array('*', $abilities, true)) {
+            $configAllowsWildcard = (bool) config('pos.sync.allow_wildcard_ability', false);
+
+            if (! $allowWildcard && ! $configAllowsWildcard) {
+                throw new InvalidArgumentException(
+                    'Wildcard ("*") branch-sync abilities are disabled. '
+                    .'Pass allowWildcard: true or set POS_SYNC_ALLOW_WILDCARD_ABILITY=true to override.',
+                );
+            }
+        }
+
+        return $abilities;
     }
 
     public function validate(?string $plainTextToken, ?string $ability = null): ?BranchSyncCredential
