@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
@@ -80,7 +81,10 @@ class ReportFileRenderer
             ->map(fn ($column) => (string) $column)->all();
 
         foreach ($columns as $columnIndex => $column) {
-            $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, (string) ($column['label'] ?? ''));
+            $sheet->setCellValue(
+                $this->cellAddress($columnIndex + 1, $row),
+                (string) ($column['label'] ?? ''),
+            );
         }
         $row++;
 
@@ -92,7 +96,10 @@ class ReportFileRenderer
                     ? (float) $value
                     : (string) $value;
 
-                $sheet->setCellValueByColumnAndRow($columnIndex + 1, $row, $cellValue);
+                $sheet->setCellValue(
+                    $this->cellAddress($columnIndex + 1, $row),
+                    $cellValue,
+                );
             }
 
             $row++;
@@ -121,5 +128,10 @@ class ReportFileRenderer
         $branch = collect($branches)->firstWhere('id', $branchId);
 
         return is_array($branch) ? (string) ($branch['name'] ?? 'All Branches') : 'All Branches';
+    }
+
+    private function cellAddress(int $columnIndex, int $row): string
+    {
+        return Coordinate::stringFromColumnIndex($columnIndex).$row;
     }
 }
