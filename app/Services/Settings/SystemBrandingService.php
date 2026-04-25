@@ -3,18 +3,34 @@
 namespace App\Services\Settings;
 
 use App\Models\SystemSetting;
+use App\Support\Performance\SchemaCache;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SystemBrandingService
 {
+    public const CACHE_KEY = 'system:branding:v1';
+    public const CACHE_TTL_SECONDS = 86400; // 24h, also busted on update().
+
     /**
      * @return array<string, string>
      */
     public function getBranding(): array
     {
-        if (! Schema::hasTable('system_settings')) {
+        // Branding is read on every Inertia request. Cache it for a day and
+        // invalidate explicitly when settings are saved.
+        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function (): array {
+            return $this->resolveBranding();
+        });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function resolveBranding(): array
+    {
+        if (! SchemaCache::hasTable('system_settings')) {
             return [
                 'name' => $this->defaults()['restaurant_name'],
                 'shortName' => $this->defaults()['restaurant_short_name'],
@@ -78,6 +94,8 @@ class SystemBrandingService
                 ['value' => $value]
             );
         }
+
+        Cache::forget(self::CACHE_KEY);
     }
 
     /**

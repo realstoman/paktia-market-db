@@ -17,10 +17,11 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Settings\SystemBrandingService;
 use App\Support\AfghanCalendar;
+use App\Support\Performance\SchemaCache;
 use Illuminate\Support\Collection;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Middleware;
 
@@ -94,6 +95,13 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Cache TTL for the heavyweight notification aggregation. Short enough
+     * that fresh activity surfaces quickly, long enough to absorb most
+     * page-to-page Inertia navigations without re-running 10+ queries.
+     */
+    private const NOTIFICATIONS_TTL_SECONDS = 30;
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private function buildNotifications(Request $request): array
@@ -104,8 +112,33 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
+        $flash = $this->flashNotifications($request)->all();
+
+        // Aggregated business-data notifications are derived purely from the
+        // database and the current user identity; cache by user id + branch +
+        // role-fingerprint so role/branch changes invalidate the entry.
+        $cacheKey = $this->notificationsCacheKey($user);
+
+        $aggregated = Cache::remember(
+            $cacheKey,
+            self::NOTIFICATIONS_TTL_SECONDS,
+            fn () => $this->aggregatedNotifications($user),
+        );
+
+        return collect($flash)
+            ->merge($aggregated)
+            ->sortByDesc('createdAt')
+            ->take(12)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function aggregatedNotifications(User $user): array
+    {
         return collect()
-            ->merge($this->flashNotifications($request))
             ->merge($this->recentOrderNotifications($user))
             ->merge($this->recentPaymentNotifications($user))
             ->merge($this->recentPayrollNotifications($user))
@@ -121,6 +154,18 @@ class HandleInertiaRequests extends Middleware
             ->take(12)
             ->values()
             ->all();
+    }
+
+    private function notificationsCacheKey(User $user): string
+    {
+        $roleSignature = sha1($user->roles->pluck('name')->sort()->implode('|'));
+
+        return sprintf(
+            'inertia:notifications:u%d:b%s:r%s',
+            $user->getKey(),
+            (string) ($user->branch_id ?? '0'),
+            $roleSignature,
+        );
     }
 
     /**
@@ -169,7 +214,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentOrderNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('orders') || ! $this->canSeeOrderNotifications($currentUser)) {
+        if (! SchemaCache::hasTable('orders') || ! $this->canSeeOrderNotifications($currentUser)) {
             return collect();
         }
 
@@ -236,7 +281,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentPaymentNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('payments') || ! $this->canSeePaymentNotifications($currentUser)) {
+        if (! SchemaCache::hasTable('payments') || ! $this->canSeePaymentNotifications($currentUser)) {
             return collect();
         }
 
@@ -287,7 +332,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentPayrollNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('payroll_runs') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('payroll_runs') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::PAYROLL_VIEW->value,
             PermissionEnum::PAYROLL_CREATE->value,
             PermissionEnum::PAYROLL_APPROVE->value,
@@ -332,7 +377,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentPayrollPaymentNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('payroll_run_items') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('payroll_run_items') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::PAYROLL_VIEW->value,
             PermissionEnum::PAYROLL_PAY->value,
         ])) {
@@ -380,7 +425,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentAdvanceNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('employee_advances') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('employee_advances') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::FINANCE_VIEW->value,
             PermissionEnum::FINANCE_MANAGE->value,
             PermissionEnum::PAYROLL_VIEW->value,
@@ -426,7 +471,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentExpenseNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('expenses') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('expenses') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::FINANCE_VIEW->value,
             PermissionEnum::FINANCE_MANAGE->value,
             PermissionEnum::EXPENSES_VIEW->value,
@@ -478,7 +523,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentCashMovementNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('cash_movements') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('cash_movements') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::FINANCE_VIEW->value,
             PermissionEnum::FINANCE_MANAGE->value,
             PermissionEnum::PAYMENTS_VIEW->value,
@@ -518,7 +563,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentEmployeeNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('employees') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('employees') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::EMPLOYEES_VIEW->value,
             PermissionEnum::EMPLOYEES_CREATE->value,
             PermissionEnum::EMPLOYEES_UPDATE->value,
@@ -557,7 +602,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentUserNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('users') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('users') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::USER_VIEW->value,
             PermissionEnum::USER_CREATE->value,
             PermissionEnum::USER_UPDATE->value,
@@ -597,7 +642,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentInventoryNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('inventory_items') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('inventory_items') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::INVENTORY_VIEW->value,
             PermissionEnum::INVENTORY_ADJUST->value,
         ])) {
@@ -646,7 +691,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function recentProductNotifications(User $currentUser): Collection
     {
-        if (! Schema::hasTable('products') || ! $this->hasAnyPermission($currentUser, [
+        if (! SchemaCache::hasTable('products') || ! $this->hasAnyPermission($currentUser, [
             PermissionEnum::PRODUCTS_VIEW->value,
             PermissionEnum::PRODUCTS_CREATE->value,
             PermissionEnum::PRODUCTS_UPDATE->value,
