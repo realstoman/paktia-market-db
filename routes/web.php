@@ -23,6 +23,7 @@ use App\Http\Controllers\Location\BranchController;
 use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayrollController;
@@ -74,6 +75,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notifications API for the bell (TanStack Query consumer in the SPA)
+    Route::prefix('api/notifications')
+        ->middleware('throttle:60,1')
+        ->name('notifications.')
+        ->group(function () {
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::post('read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+            Route::post('{id}/read', [NotificationController::class, 'markRead'])
+                ->where('id', '[A-Za-z0-9_\-:.]+')
+                ->name('read');
+        });
 
     // Users
     Route::middleware('role:super-admin')->group(function () {
