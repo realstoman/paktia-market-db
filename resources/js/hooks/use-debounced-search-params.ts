@@ -3,9 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Primitive = string | number | boolean | null | undefined;
 
-export interface UseDebouncedSearchParamsOptions<
-    T extends Record<string, Primitive>,
-> {
+export interface UseDebouncedSearchParamsOptions {
     /**
      * The page path to navigate to when params change. Defaults to the
      * current pathname so the same Inertia page handler picks up the
@@ -37,7 +35,7 @@ export interface UseDebouncedSearchParamsOptions<
  */
 export function useDebouncedSearchParams<T extends Record<string, Primitive>>(
     initial: T,
-    options?: UseDebouncedSearchParamsOptions<T>,
+    options?: UseDebouncedSearchParamsOptions,
 ): {
     params: T;
     setParams: (next: Partial<T>) => void;
