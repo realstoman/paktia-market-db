@@ -36,6 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Kitchen,
     Product,
@@ -91,7 +92,10 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 }) => {
     const { t } = useLocalization();
     const { auth } = usePage<SharedData>().props;
-    const canDelete = auth.is_super_admin === true;
+    const { can } = useAuthorization();
+    const canCreateProduct = can('products.create');
+    const canManageProductMeta = can('products.create');
+    const canDelete = can('products.delete') && auth.is_super_admin === true;
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isCategoryMetaOpen, setIsCategoryMetaOpen] = useState(false);
     const [isTypeMetaOpen, setIsTypeMetaOpen] = useState(false);
@@ -715,32 +719,38 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                     )}
                 />
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsCategoryMetaOpen(true)}
-                        className="gap-2"
-                    >
-                        <Tag className="h-4 w-4" />
-                        {t(
-                            'products.manageCategories',
-                            'Manage Categories',
-                        )}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsTypeMetaOpen(true)}
-                        className="gap-2"
-                    >
-                        <Settings2 className="h-4 w-4" />
-                        {t('products.manageTypes', 'Manage Types')}
-                    </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        {t('products.addNewProduct', 'Add New Product')}
-                    </Button>
+                    {canManageProductMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsCategoryMetaOpen(true)}
+                            className="gap-2"
+                        >
+                            <Tag className="h-4 w-4" />
+                            {t(
+                                'products.manageCategories',
+                                'Manage Categories',
+                            )}
+                        </Button>
+                    ) : null}
+                    {canManageProductMeta ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsTypeMetaOpen(true)}
+                            className="gap-2"
+                        >
+                            <Settings2 className="h-4 w-4" />
+                            {t('products.manageTypes', 'Manage Types')}
+                        </Button>
+                    ) : null}
+                    {canCreateProduct ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            {t('products.addNewProduct', 'Add New Product')}
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Select,
     SelectContent,
@@ -49,7 +50,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -70,6 +71,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     kitchens,
 }) => {
     const { auth } = usePage().props as { auth: { user: User; is_super_admin?: boolean } };
+    const { can, isSuperAdmin } = useAuthorization();
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isBlockOpen, setIsBlockOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -106,10 +108,30 @@ export const CellAction: React.FC<CellActionProps> = ({
     const selectedEditRole =
         roles.find((role) => String(role.id) === editRoleId) ?? null;
     const isEditKitchenRole = selectedEditRole?.name === 'kitchen';
-    const canToggleBlock = auth.user.id !== data.id;
-    const canDeleteUser = auth.user.id !== data.id;
+    const canViewUser = can('user.view');
+    const canEditUser = can('user.update');
+    const canToggleBlock = can('user.block') && auth.user.id !== data.id;
+    const canDeleteUser =
+        isSuperAdmin && can('user.update') && auth.user.id !== data.id;
     const canResetPassword =
-        auth.is_super_admin === true && auth.user.id !== data.id;
+        isSuperAdmin && can('user.reset-password') && auth.user.id !== data.id;
+    const visibleActionCount = useMemo(
+        () =>
+            [
+                canViewUser,
+                canEditUser,
+                canToggleBlock,
+                canResetPassword,
+                canDeleteUser,
+            ].filter(Boolean).length,
+        [
+            canDeleteUser,
+            canEditUser,
+            canResetPassword,
+            canToggleBlock,
+            canViewUser,
+        ],
+    );
     const editProvinceOptions = useMemo(
         () =>
             provinces.filter((province) => {
@@ -275,55 +297,61 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => router.visit(`/users/${data.id}`)}
-                    >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            resetEdit();
-                            setIsEditOpen(true);
-                        }}
-                    >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                    </DropdownMenuItem>
-                    {canToggleBlock ? (
-                        <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
-                            <Ban className="mr-2 h-4 w-4" />
-                            {data.is_active ? 'Block' : 'Unblock'}
-                        </DropdownMenuItem>
-                    ) : null}
-                    {canResetPassword ? (
-                        <DropdownMenuItem
-                            onClick={() => {
-                                resetPasswordForm();
-                                setIsResetPasswordOpen(true);
-                            }}
-                        >
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            Reset password
-                        </DropdownMenuItem>
-                    ) : null}
-                    {canDeleteUser ? (
-                        <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                            <Trash className="mr-2 h-4 w-4 text-red-600" />
-                            Delete
-                        </DropdownMenuItem>
-                    ) : null}
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {visibleActionCount > 0 ? (
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {canViewUser ? (
+                            <DropdownMenuItem
+                                onClick={() => router.visit(`/users/${data.id}`)}
+                            >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canEditUser ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetEdit();
+                                    setIsEditOpen(true);
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canToggleBlock ? (
+                            <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
+                                <Ban className="mr-2 h-4 w-4" />
+                                {data.is_active ? 'Block' : 'Unblock'}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canResetPassword ? (
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    resetPasswordForm();
+                                    setIsResetPasswordOpen(true);
+                                }}
+                            >
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                Reset password
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canDeleteUser ? (
+                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                                <Trash className="mr-2 h-4 w-4 text-red-600" />
+                                Delete
+                            </DropdownMenuItem>
+                        ) : null}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : null}
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">

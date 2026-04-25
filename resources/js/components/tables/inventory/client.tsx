@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
     Branch,
     Currency,
@@ -87,8 +88,12 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 }) => {
     const { t } = useLocalization();
     const { auth } = usePage<SharedData>().props;
+    const { can } = useAuthorization();
+    const canAdjustInventory = can('inventory.adjust');
+    const canDeleteInventory = can('inventory.delete');
     const canDeleteInventoryResources =
-        auth.is_super_admin === true || auth.roles.includes('super-admin');
+        canDeleteInventory &&
+        (auth.is_super_admin === true || auth.roles.includes('super-admin'));
     interface UsageCycleItem {
         id: string;
         inventoryItemId: string;
@@ -1099,54 +1104,64 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     )}
                 />
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsUsageCycleOpen(true)}
-                        className="gap-2"
-                    >
-                        <Clock className="h-4 w-4" />
-                        {t('inventory.toolbar.usage', 'Usage')}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            resetCategoryForm();
-                            setIsCategoryDialogOpen(true);
-                        }}
-                        className="gap-2"
-                    >
-                        <Tag className="h-4 w-4" />
-                        {t('inventory.toolbar.categories', 'Categories')}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            resetUnitForm();
-                            setIsUnitDialogOpen(true);
-                        }}
-                        className="gap-2"
-                    >
-                        <ImagePlus className="h-4 w-4" />
-                        {t('inventory.toolbar.units', 'Units')}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            resetTypeForm();
-                            setIsTypeDialogOpen(true);
-                        }}
-                        className="gap-2"
-                    >
-                        <Pencil className="h-4 w-4" />
-                        {t('inventory.toolbar.types', 'Types')}
-                    </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        {t('inventory.toolbar.addNewItem', 'Add New Item')}
-                    </Button>
+                    {canAdjustInventory ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsUsageCycleOpen(true)}
+                            className="gap-2"
+                        >
+                            <Clock className="h-4 w-4" />
+                            {t('inventory.toolbar.usage', 'Usage')}
+                        </Button>
+                    ) : null}
+                    {canAdjustInventory ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                resetCategoryForm();
+                                setIsCategoryDialogOpen(true);
+                            }}
+                            className="gap-2"
+                        >
+                            <Tag className="h-4 w-4" />
+                            {t('inventory.toolbar.categories', 'Categories')}
+                        </Button>
+                    ) : null}
+                    {canAdjustInventory ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                resetUnitForm();
+                                setIsUnitDialogOpen(true);
+                            }}
+                            className="gap-2"
+                        >
+                            <ImagePlus className="h-4 w-4" />
+                            {t('inventory.toolbar.units', 'Units')}
+                        </Button>
+                    ) : null}
+                    {canAdjustInventory ? (
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                resetTypeForm();
+                                setIsTypeDialogOpen(true);
+                            }}
+                            className="gap-2"
+                        >
+                            <Pencil className="h-4 w-4" />
+                            {t('inventory.toolbar.types', 'Types')}
+                        </Button>
+                    ) : null}
+                    {canAdjustInventory ? (
+                        <Button
+                            onClick={() => setIsCreateOpen(true)}
+                            className="gap-2"
+                        >
+                            <Plus className="h-4 w-4" />
+                            {t('inventory.toolbar.addNewItem', 'Add New Item')}
+                        </Button>
+                    ) : null}
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
