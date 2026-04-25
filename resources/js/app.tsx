@@ -1,5 +1,6 @@
 import '../css/app.css';
 
+import { UnauthorizedAccessModal } from '@/components/unauthorized-access-modal';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
@@ -22,6 +23,7 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <App {...props} />
+                <UnauthorizedAccessModal />
                 <Toaster richColors closeButton />
             </StrictMode>,
         );
