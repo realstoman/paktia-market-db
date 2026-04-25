@@ -12,6 +12,13 @@ return [
 
     'sync' => [
         'credential_ttl_hours' => (int) env('POS_SYNC_CREDENTIAL_TTL_HOURS', 720),
+        // Minimum seconds between two consecutive last_used_at refreshes for
+        // a branch-sync credential. Reduces DB writes on hot health-check
+        // endpoints while still surfacing recent activity.
+        'last_used_throttle_seconds' => (int) env('POS_SYNC_LAST_USED_THROTTLE_SECONDS', 60),
+        // Minimum allowed length of the plain text token. Tokens shorter
+        // than this are rejected without touching the database.
+        'min_token_length' => (int) env('POS_SYNC_MIN_TOKEN_LENGTH', 40),
     ],
 
     'projection' => [
