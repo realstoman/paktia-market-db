@@ -65,6 +65,33 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
+            if ($status === 403 && $request->user()) {
+                $dashboardUrl = route('dashboard');
+                $currentUrl = $request->fullUrl();
+                $previousUrl = url()->previous();
+                $previousHost = $previousUrl ? parse_url($previousUrl, PHP_URL_HOST) : null;
+                $currentHost = $request->getHost();
+
+                $targetUrl = $dashboardUrl;
+
+                if (
+                    filled($previousUrl) &&
+                    $previousHost === $currentHost &&
+                    $previousUrl !== $currentUrl
+                ) {
+                    $targetUrl = $previousUrl;
+                }
+
+                if ($targetUrl !== $currentUrl) {
+                    return redirect()
+                        ->to($targetUrl)
+                        ->with('unauthorized_access', [
+                            'show' => true,
+                            'path' => '/'.$request->path(),
+                        ]);
+                }
+            }
+
             if (! in_array($status, [403, 404, 500, 503], true)) {
                 return $response;
             }
