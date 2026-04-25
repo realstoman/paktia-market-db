@@ -98,6 +98,34 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
 
+            // Page expired (CSRF token mismatch). Bounce back with a flash
+            // notification rather than dumping the raw 419 page.
+            if ($status === 419) {
+                return redirect()
+                    ->back(fallback: route('dashboard'))
+                    ->with('notification', [
+                        'id' => 'http-419-'.bin2hex(random_bytes(4)),
+                        'category' => 'system',
+                        'title' => 'Page expired',
+                        'description' => 'Your session expired before this action could complete. Please try again.',
+                        'priority' => 'medium',
+                    ]);
+            }
+
+            // Rate limit hit. Friendly flash + back redirect so the user
+            // doesn't see the raw 429 page.
+            if ($status === 429) {
+                return redirect()
+                    ->back(fallback: route('dashboard'))
+                    ->with('notification', [
+                        'id' => 'http-429-'.bin2hex(random_bytes(4)),
+                        'category' => 'system',
+                        'title' => 'Too many requests',
+                        'description' => 'You\'re going a bit fast. Wait a moment and try again.',
+                        'priority' => 'high',
+                    ]);
+            }
+
             if (! in_array($status, [403, 404, 500, 503], true)) {
                 return $response;
             }
