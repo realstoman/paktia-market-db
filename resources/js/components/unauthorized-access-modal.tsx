@@ -11,21 +11,25 @@ import { useLocalization } from '@/lib/localization';
 import { SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { ShieldAlert } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function UnauthorizedAccessModal() {
     const { unauthorizedAccess } = usePage<SharedData>().props;
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
-
-    useEffect(() => {
-        setOpen(unauthorizedAccess?.show === true);
-    }, [unauthorizedAccess?.show, unauthorizedAccess?.path]);
-
+    const [dismissedPath, setDismissedPath] = useState<string | null>(null);
     const attemptedPath = unauthorizedAccess?.path?.trim();
+    const open =
+        unauthorizedAccess?.show === true && dismissedPath !== attemptedPath;
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+                if (!nextOpen) {
+                    setDismissedPath(attemptedPath ?? '__unauthorized__');
+                }
+            }}
+        >
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -55,12 +59,17 @@ export function UnauthorizedAccessModal() {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="gap-2 sm:justify-end">
-                    <Button variant="outline" onClick={() => setOpen(false)}>
+                    <Button
+                        variant="outline"
+                        onClick={() =>
+                            setDismissedPath(attemptedPath ?? '__unauthorized__')
+                        }
+                    >
                         {t('common.close', 'Close')}
                     </Button>
                     <Button
                         onClick={() => {
-                            setOpen(false);
+                            setDismissedPath(attemptedPath ?? '__unauthorized__');
                             router.visit('/dashboard');
                         }}
                     >

@@ -317,7 +317,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </DropdownMenuContent>
                 </DropdownMenu>
             ) : null}
-            </DropdownMenu>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-2xl">

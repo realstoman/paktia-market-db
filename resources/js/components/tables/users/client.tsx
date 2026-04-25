@@ -58,6 +58,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
 }) => {
     const { can } = useAuthorization();
     const canCreateUser = can('user.create');
+    const canViewRoles = can('role.view') || can('roles.manage');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedRoleFilter, setSelectedRoleFilter] = useState('');
     const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
@@ -290,12 +291,14 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     description="Manage system users"
                 />
                 <div className="gap-2">
-                    <Link href="/roles">
-                        <Button className="mr-2 gap-2" variant={'outline'}>
-                            <ShieldCheck className="h-4 w-4" />
-                            Roles
-                        </Button>
-                    </Link>
+                    {canViewRoles ? (
+                        <Link href="/roles">
+                            <Button className="mr-2 gap-2" variant={'outline'}>
+                                <ShieldCheck className="h-4 w-4" />
+                                Roles
+                            </Button>
+                        </Link>
+                    ) : null}
                     {canCreateUser ? (
                         <Button
                             onClick={() => setIsCreateOpen(true)}

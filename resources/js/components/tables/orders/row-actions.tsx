@@ -248,95 +248,96 @@ export function OrderRowActions({
             ) : null}
         </>
     );
+    const hasVisibleActions = canViewOrder || canManageOrder;
+    const renderedActions =
+        mode === 'dropdown' ? (
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <span className="sr-only">
+                            {t('orders.rowActions.openMenu', 'Open menu')}
+                        </span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    align="start"
+                    preserveRtlAlign
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        {t('orders.rowActions.actions', 'Actions')}
+                    </DropdownMenuLabel>
+                    {canViewOrder ? (
+                        <DropdownMenuItem onClick={handleView}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            {t('orders.rowActions.viewDetails', 'Details')}
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canManageOrder ? (
+                        <DropdownMenuItem
+                            onClick={handleEdit}
+                            disabled={!canEditOrder}
+                        >
+                            <SquarePen className="mr-2 h-4 w-4" />
+                            {t('orders.rowActions.editOrder', 'Edit Order')}
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canManageOrder ? (
+                        <DropdownMenuItem
+                            onClick={handleAddItems}
+                            disabled={!canAddOrderItems}
+                        >
+                            <Plus className="mr-2 h-4 w-4" />
+                            {t('orders.rowActions.addItem', 'Add Item')}
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canViewOrder ? (
+                        <DropdownMenuItem
+                            onClick={handlePrint}
+                            disabled={!canPrintReceipt}
+                        >
+                            <Printer className="mr-2 h-4 w-4" />
+                            {t(
+                                'orders.rowActions.printReceipt',
+                                'Print Receipt',
+                            )}
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canManageOrder ? (
+                        <DropdownMenuItem
+                            onClick={handleAssignOpen}
+                            disabled={!canAssignOrderTable}
+                        >
+                            <Utensils className="mr-2 h-4 w-4" />
+                            {t('orders.rowActions.assignTable', 'Assign Table')}
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canManageOrder ? (
+                        <DropdownMenuItem
+                            onClick={handleStatusOpen}
+                            disabled={!canUpdateStatus}
+                        >
+                            <FilePenLine className="mr-2 h-4 w-4" />
+                            {t(
+                                'orders.rowActions.updateStatus',
+                                'Update Status',
+                            )}
+                        </DropdownMenuItem>
+                    ) : null}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        ) : (
+            <div className="grid gap-1.5">{actionItems}</div>
+        );
 
     return (
         <>
-            {canViewOrder || canManageOrder ? mode === 'dropdown' ? (
-                <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <span className="sr-only">
-                                {t('orders.rowActions.openMenu', 'Open menu')}
-                            </span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        align="start"
-                        preserveRtlAlign
-                        className={isRtl ? 'text-right' : ''}
-                    >
-                        <DropdownMenuLabel
-                            className={isRtl ? 'text-right' : ''}
-                        >
-                            {t('orders.rowActions.actions', 'Actions')}
-                        </DropdownMenuLabel>
-                        {canViewOrder ? (
-                            <DropdownMenuItem onClick={handleView}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                {t('orders.rowActions.viewDetails', 'Details')}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canManageOrder ? (
-                            <DropdownMenuItem
-                                onClick={handleEdit}
-                                disabled={!canEditOrder}
-                            >
-                                <SquarePen className="mr-2 h-4 w-4" />
-                                {t('orders.rowActions.editOrder', 'Edit Order')}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canManageOrder ? (
-                            <DropdownMenuItem
-                                onClick={handleAddItems}
-                                disabled={!canAddOrderItems}
-                            >
-                                <Plus className="mr-2 h-4 w-4" />
-                                {t('orders.rowActions.addItem', 'Add Item')}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canViewOrder ? (
-                            <DropdownMenuItem
-                                onClick={handlePrint}
-                                disabled={!canPrintReceipt}
-                            >
-                                <Printer className="mr-2 h-4 w-4" />
-                                {t(
-                                    'orders.rowActions.printReceipt',
-                                    'Print Receipt',
-                                )}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canManageOrder ? (
-                            <DropdownMenuItem
-                                onClick={handleAssignOpen}
-                                disabled={!canAssignOrderTable}
-                            >
-                                <Utensils className="mr-2 h-4 w-4" />
-                                {t('orders.rowActions.assignTable', 'Assign Table')}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canManageOrder ? (
-                            <DropdownMenuItem
-                                onClick={handleStatusOpen}
-                                disabled={!canUpdateStatus}
-                            >
-                                <FilePenLine className="mr-2 h-4 w-4" />
-                                {t(
-                                    'orders.rowActions.updateStatus',
-                                    'Update Status',
-                                )}
-                            </DropdownMenuItem>
-                        ) : null}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            ) : (
-                <div className="grid gap-1.5">{actionItems}</div>
-            ) : null}
+            {hasVisibleActions ? renderedActions : null}
 
             <Dialog
                 open={isAssignTableOpen}
