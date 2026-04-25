@@ -93,5 +93,11 @@ test('users are rate limited', function () {
         'password' => 'wrong-password',
     ]);
 
-    $response->assertTooManyRequests();
+    // The web exception handler converts non-API 429s into a friendly
+    // back-redirect with a "Too many requests" flash notification.
+    $response->assertStatus(302);
+    $response->assertSessionHas('notification', function ($notification) {
+        return is_array($notification)
+            && ($notification['title'] ?? null) === 'Too many requests';
+    });
 });
