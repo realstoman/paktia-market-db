@@ -69,6 +69,7 @@ class HandleInertiaRequests extends Middleware
                 'is_super_admin' => $request->user()?->hasRole('super-admin') ?? false,
             ],
             'notifications' => fn () => $this->buildNotifications($request),
+            'unauthorizedAccess' => fn () => $this->resolveUnauthorizedAccess($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'branding' => $branding,
             'localization' => [
@@ -141,6 +142,23 @@ class HandleInertiaRequests extends Middleware
             'priority' => $flash['priority'] ?? 'medium',
             'unread' => true,
         ]]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveUnauthorizedAccess(Request $request): ?array
+    {
+        $flash = $request->session()->get('unauthorized_access');
+
+        if (! is_array($flash) || ($flash['show'] ?? false) !== true) {
+            return null;
+        }
+
+        return [
+            'show' => true,
+            'path' => $flash['path'] ?? null,
+        ];
     }
 
     /**
