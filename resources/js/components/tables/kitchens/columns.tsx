@@ -11,11 +11,14 @@ import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
+type TranslateFn = (key: string, fallback?: string) => string;
+
 export const buildColumns = (
     kitchenTypes: KitchenType[],
     cuisines: Cuisine[],
     kitchenCategories: KitchenCategory[],
     products: Product[],
+    t: TranslateFn,
 ): ColumnDef<Kitchen>[] => [
     {
         id: 'select',
@@ -25,14 +28,20 @@ export const buildColumns = (
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
-                aria-label="Select all"
+                aria-label={t(
+                    'toolbarResources.kitchens.columns.selectAll',
+                    'Select all',
+                )}
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={t(
+                    'toolbarResources.kitchens.columns.selectRow',
+                    'Select row',
+                )}
             />
         ),
         enableSorting: false,
@@ -40,20 +49,23 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: t('toolbarResources.kitchens.columns.id', 'ID'),
     },
     {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('toolbarResources.kitchens.columns.name', 'Name'),
     },
     {
         accessorKey: 'kitchen_type',
-        header: 'Kitchen Type',
+        header: t(
+            'toolbarResources.kitchens.columns.kitchenType',
+            'Kitchen Type',
+        ),
         cell: ({ row }) => row.getValue('kitchen_type') || '—',
     },
     {
         accessorKey: 'cuisines_label',
-        header: 'Cuisines',
+        header: t('toolbarResources.kitchens.columns.cuisines', 'Cuisines'),
         cell: ({ row }) => {
             const kitchenCuisines = row.original.cuisines ?? [];
             if (kitchenCuisines.length === 0) {
@@ -77,7 +89,10 @@ export const buildColumns = (
     },
     {
         accessorKey: 'kitchen_categories_label',
-        header: 'Categories',
+        header: t(
+            'toolbarResources.kitchens.columns.categories',
+            'Categories',
+        ),
         cell: ({ row }) => {
             const categories = row.original.kitchen_categories ?? [];
             if (categories.length === 0) {
@@ -101,7 +116,7 @@ export const buildColumns = (
     },
     {
         id: 'products',
-        header: 'Products',
+        header: t('toolbarResources.kitchens.columns.products', 'Products'),
         accessorFn: (row) =>
             (row.products ?? []).map((product) => product.name).join(', '),
         cell: ({ row }) => {
@@ -125,7 +140,7 @@ export const buildColumns = (
 
     {
         accessorKey: 'is_active',
-        header: 'Status',
+        header: t('toolbarResources.kitchens.columns.status', 'Status'),
         cell: ({ row }) => {
             const active = row.getValue('is_active');
             return active ? (
@@ -143,7 +158,7 @@ export const buildColumns = (
     },
     {
         accessorKey: 'created_at',
-        header: 'Created At',
+        header: t('toolbarResources.kitchens.columns.createdAt', 'Created At'),
         cell: ({ row }) => {
             const date = new Date(row.getValue('created_at'));
             return date.toLocaleDateString();
@@ -151,7 +166,7 @@ export const buildColumns = (
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: t('toolbarResources.kitchens.columns.actions', 'Actions'),
         cell: ({ row }) => (
             <CellAction
                 data={row.original}

@@ -36,6 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { Branch, Country, Kitchen, Province } from '@/types';
 import { router } from '@inertiajs/react';
@@ -67,6 +68,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     provinces,
     kitchens,
 }) => {
+    const { t } = useLocalization();
     const { can } = useAuthorization();
     const canViewBranch = can('branch.view');
     const canManageBranch = can('branch.update');
@@ -152,7 +154,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Branch kitchens updated successfully.');
+                    toast.success(
+                        t(
+                            'branches.feedback.kitchensUpdated',
+                            'Branch kitchens updated successfully.',
+                        ),
+                    );
                     setIsKitchenOpen(false);
                 },
                 onFinish: () => {
@@ -181,7 +188,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Branch updated successfully.');
+                    toast.success(
+                        t(
+                            'branches.feedback.branchUpdated',
+                            'Branch updated successfully.',
+                        ),
+                    );
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -206,8 +218,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             onSuccess: () => {
                 toast.success(
                     data.is_active
-                        ? 'Branch disabled successfully.'
-                        : 'Branch activated successfully.',
+                        ? t(
+                              'branches.feedback.branchDisabled',
+                              'Branch disabled successfully.',
+                          )
+                        : t(
+                              'branches.feedback.branchActivated',
+                              'Branch activated successfully.',
+                          ),
                 );
                 setIsDisableOpen(false);
             },
@@ -227,7 +245,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/branches/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Branch deleted successfully.');
+                toast.success(
+                    t(
+                        'branches.feedback.branchDeleted',
+                        'Branch deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -242,18 +265,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">
+                                {t('branches.actions.openMenu', 'Open menu')}
+                            </span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                            {t('branches.table.actions', 'Actions')}
+                        </DropdownMenuLabel>
                         {canViewBranch ? (
                             <DropdownMenuItem
                                 onClick={() => router.visit(`/branches/${data.id}`)}
                             >
                                 <Eye className="mr-2 h-4 w-4" />
-                                View
+                                {t('branches.actions.view', 'View')}
                             </DropdownMenuItem>
                         ) : null}
                         {canManageBranch ? (
@@ -264,13 +291,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit
+                                {t('branches.actions.edit', 'Edit')}
                             </DropdownMenuItem>
                         ) : null}
                         {canManageBranch ? (
                             <DropdownMenuItem onClick={openKitchenAssign}>
                                 <CookingPot className="mr-2 h-4 w-4" />
-                                Assign Kitchens
+                                {t('branches.actions.assignKitchens', 'Assign Kitchens')}
                             </DropdownMenuItem>
                         ) : null}
                         {canManageBranch ? (
@@ -280,13 +307,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 ) : (
                                     <MapPin className="mr-2 h-4 w-4" />
                                 )}
-                                {data.is_active ? 'Deactivate' : 'Activate'}
+                                {data.is_active
+                                    ? t('branches.actions.deactivate', 'Deactivate')
+                                    : t('branches.actions.activate', 'Activate')}
                             </DropdownMenuItem>
                         ) : null}
                         {canDeleteBranch ? (
                             <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                                 <Trash className="mr-2 h-4 w-4 text-red-600" />
-                                Delete
+                                {t('branches.actions.delete', 'Delete')}
                             </DropdownMenuItem>
                         ) : null}
                     </DropdownMenuContent>
@@ -296,16 +325,21 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Branch</DialogTitle>
+                        <DialogTitle>
+                            {t('branches.modals.edit.title', 'Edit Branch')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update the branch information and location.
+                            {t(
+                                'branches.modals.edit.description',
+                                'Update the branch information and location.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor={`branch-name-${data.id}`}>
-                                Name
+                                {t('branches.fields.name', 'Name')}
                             </Label>
                             <Input
                                 id={`branch-name-${data.id}`}
@@ -317,7 +351,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>{t('branches.fields.country', 'Country')}</Label>
                             <Select
                                 value={countryId}
                                 onValueChange={(value) => {
@@ -328,7 +362,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'branches.placeholders.selectCountry',
+                                            'Select country',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {countries.map((country) => (
@@ -344,7 +383,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
+                            <Label>{t('branches.fields.province', 'Province')}</Label>
                             <Select
                                 value={provinceId}
                                 onValueChange={setProvinceId}
@@ -354,7 +393,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'branches.placeholders.selectProvince',
+                                            'Select province',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {editProvinceOptions.map((province) => (
@@ -371,7 +415,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`branch-address-${data.id}`}>
-                                Address
+                                {t('branches.fields.address', 'Address')}
                             </Label>
                             <Input
                                 id={`branch-address-${data.id}`}
@@ -384,7 +428,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label htmlFor={`branch-description-${data.id}`}>
-                                Description
+                                {t('branches.fields.description', 'Description')}
                             </Label>
                             <Textarea
                                 id={`branch-description-${data.id}`}
@@ -404,7 +448,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
@@ -416,7 +460,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Save Changes
+                            {t('branches.actions.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -425,17 +469,30 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isKitchenOpen} onOpenChange={setIsKitchenOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Assign Kitchens</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'branches.modals.kitchens.title',
+                                'Assign Kitchens',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Select kitchens available for {data.name}.
+                            {t(
+                                'branches.modals.kitchens.description',
+                                'Select kitchens available for :name.',
+                            ).replace(':name', data.name)}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>Selected</span>
+                            <span>{t('branches.common.selected', 'Selected')}</span>
                             <span>
-                                {selectedKitchenIds.size} of {kitchens.length}
+                                {t(
+                                    'branches.common.selectedCount',
+                                    ':selected of :total',
+                                )
+                                    .replace(':selected', String(selectedKitchenIds.size))
+                                    .replace(':total', String(kitchens.length))}
                             </span>
                         </div>
                         <div className="max-h-64 space-y-2 overflow-auto rounded-md border p-3">
@@ -454,7 +511,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     />
                                     <span>
                                         {kitchen.name ??
-                                            `Kitchen #${kitchen.id}`}
+                                            t(
+                                                'branches.common.kitchenFallback',
+                                                'Kitchen #:id',
+                                            ).replace(':id', String(kitchen.id))}
                                     </span>
                                 </label>
                             ))}
@@ -468,14 +528,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleAssignKitchens}
                             disabled={isSubmitting}
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Save Kitchens
+                            {t('branches.actions.saveKitchens', 'Save Kitchens')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -486,19 +546,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             {data.is_active
-                                ? 'Deactivate branch'
-                                : 'Activate branch'}
+                                ? t(
+                                      'branches.modals.toggle.deactivateTitle',
+                                      'Deactivate branch',
+                                  )
+                                : t(
+                                      'branches.modals.toggle.activateTitle',
+                                      'Activate branch',
+                                  )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will mark the branch as inactive.'
-                                : 'This will mark the branch as active.'}
+                                ? t(
+                                      'branches.modals.toggle.deactivateDescription',
+                                      'This will mark the branch as inactive.',
+                                  )
+                                : t(
+                                      'branches.modals.toggle.activateDescription',
+                                      'This will mark the branch as active.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
@@ -506,7 +578,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <MapPinOff className="mr-2 h-5 w-5" />
-                            {data.is_active ? 'Deactivate' : 'Activate'}
+                            {data.is_active
+                                ? t('branches.actions.deactivate', 'Deactivate')
+                                : t('branches.actions.activate', 'Activate')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -515,16 +589,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete branch</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('branches.modals.delete.title', 'Delete branch')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the branch and related
-                            data.
+                            {t(
+                                'branches.modals.delete.description',
+                                'This will permanently remove the branch and related data.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -532,7 +610,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-5 w-5" />
-                            Delete
+                            {t('branches.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

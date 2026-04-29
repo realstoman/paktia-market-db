@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Select,
@@ -70,6 +71,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     branches,
     kitchens,
 }) => {
+    const { t } = useLocalization();
     const { auth } = usePage().props as { auth: { user: User; is_super_admin?: boolean } };
     const { can, isSuperAdmin } = useAuthorization();
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -197,7 +199,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('User updated successfully.');
+                    toast.success(
+                        t(
+                            'users.feedback.userUpdated',
+                            'User updated successfully.',
+                        ),
+                    );
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -228,8 +235,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             onSuccess: () => {
                 toast.success(
                     data.is_active
-                        ? 'User blocked successfully.'
-                        : 'User unblocked successfully.',
+                        ? t(
+                              'users.feedback.userBlocked',
+                              'User blocked successfully.',
+                          )
+                        : t(
+                              'users.feedback.userUnblocked',
+                              'User unblocked successfully.',
+                          ),
                 );
                 setIsBlockOpen(false);
             },
@@ -249,7 +262,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/users/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('User deleted successfully.');
+                toast.success(
+                    t(
+                        'users.feedback.userDeleted',
+                        'User deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -281,7 +299,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Password reset successfully.');
+                    toast.success(
+                        t(
+                            'users.feedback.passwordReset',
+                            'Password reset successfully.',
+                        ),
+                    );
                     setIsResetPasswordOpen(false);
                     resetPasswordForm();
                 },
@@ -301,18 +324,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">
+                                {t('users.actions.openMenu', 'Open menu')}
+                            </span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                            {t('users.table.actions', 'Actions')}
+                        </DropdownMenuLabel>
                         {canViewUser ? (
                             <DropdownMenuItem
                                 onClick={() => router.visit(`/users/${data.id}`)}
                             >
                                 <Eye className="mr-2 h-4 w-4" />
-                                View
+                                {t('users.actions.view', 'View')}
                             </DropdownMenuItem>
                         ) : null}
                         {canEditUser ? (
@@ -323,13 +350,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit
+                                {t('users.actions.edit', 'Edit')}
                             </DropdownMenuItem>
                         ) : null}
                         {canToggleBlock ? (
                             <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
                                 <Ban className="mr-2 h-4 w-4" />
-                                {data.is_active ? 'Block' : 'Unblock'}
+                                {data.is_active
+                                    ? t('users.actions.block', 'Block')
+                                    : t('users.actions.unblock', 'Unblock')}
                             </DropdownMenuItem>
                         ) : null}
                         {canResetPassword ? (
@@ -340,13 +369,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <KeyRound className="mr-2 h-4 w-4" />
-                                Reset password
+                                {t('users.actions.resetPassword', 'Reset password')}
                             </DropdownMenuItem>
                         ) : null}
                         {canDeleteUser ? (
                             <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                                 <Trash className="mr-2 h-4 w-4 text-red-600" />
-                                Delete
+                                {t('users.actions.delete', 'Delete')}
                             </DropdownMenuItem>
                         ) : null}
                     </DropdownMenuContent>
@@ -356,15 +385,22 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogTitle>
+                            {t('users.modals.edit.title', 'Edit User')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update profile details and role assignments.
+                            {t(
+                                'users.modals.edit.description',
+                                'Update profile details and role assignments.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor={`edit-name-${data.id}`}>Name</Label>
+                            <Label htmlFor={`edit-name-${data.id}`}>
+                                {t('users.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 id={`edit-name-${data.id}`}
                                 value={editName}
@@ -376,7 +412,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-email-${data.id}`}>
-                                Email
+                                {t('users.fields.email', 'Email')}
                             </Label>
                             <Input
                                 id={`edit-email-${data.id}`}
@@ -390,7 +426,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-password-${data.id}`}>
-                                New password
+                                {t('users.fields.newPassword', 'New password')}
                             </Label>
                             <Input
                                 id={`edit-password-${data.id}`}
@@ -399,13 +435,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 onChange={(event) =>
                                     setEditPassword(event.target.value)
                                 }
-                                placeholder="Leave blank to keep current"
+                                placeholder={t(
+                                    'users.placeholders.leaveBlankPassword',
+                                    'Leave blank to keep current',
+                                )}
                             />
                             <InputError message={editErrors.password} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-password-confirm-${data.id}`}>
-                                Confirm password
+                                {t('users.fields.confirmPassword', 'Confirm password')}
                             </Label>
                             <Input
                                 id={`edit-password-confirm-${data.id}`}
@@ -422,7 +461,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Role</Label>
+                            <Label>{t('users.fields.role', 'Role')}</Label>
                             <Select
                                 value={editRoleId}
                                 onValueChange={(value) => {
@@ -438,7 +477,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectRole',
+                                            'Select role',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roles.map((role) => (
@@ -455,13 +499,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         {isEditKitchenRole ? (
                             <div className="grid gap-2">
-                                <Label>Kitchen</Label>
+                                <Label>{t('users.fields.kitchen', 'Kitchen')}</Label>
                                 <Select
                                     value={editKitchenId}
                                     onValueChange={setEditKitchenId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select kitchen" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'users.placeholders.selectKitchen',
+                                                'Select kitchen',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {kitchens.map((kitchen) => (
@@ -479,7 +528,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                         ) : null}
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>{t('users.fields.country', 'Country')}</Label>
                             <Select
                                 value={editCountryId}
                                 onValueChange={(value) => {
@@ -491,7 +540,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectCountry',
+                                            'Select country',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {countries.map((country) => (
@@ -507,7 +561,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
+                            <Label>{t('users.fields.province', 'Province')}</Label>
                             <Select
                                 value={editProvinceId}
                                 onValueChange={(value) => {
@@ -522,7 +576,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectProvince',
+                                            'Select province',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {editProvinceOptions.map((province) => (
@@ -538,14 +597,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>{t('users.fields.branch', 'Branch')}</Label>
                             <Select
                                 value={editBranchId}
                                 onValueChange={setEditBranchId}
                                 disabled={editBranchOptions.length === 0}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectBranch',
+                                            'Select branch',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {editBranchOptions.map((branch) => (
@@ -569,7 +633,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
@@ -580,7 +644,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Changes
+                            {t('users.actions.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -598,17 +662,24 @@ export const CellAction: React.FC<CellActionProps> = ({
             >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Reset User Password</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'users.modals.resetPassword.title',
+                                'Reset User Password',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Set a new password for {data.name}. Ask the user to
-                            change it after signing in.
+                            {t(
+                                'users.modals.resetPassword.description',
+                                'Set a new password for :name. Ask the user to change it after signing in.',
+                            ).replace(':name', data.name)}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor={`reset-password-${data.id}`}>
-                                New password
+                                {t('users.fields.newPassword', 'New password')}
                             </Label>
                             <div className="relative">
                                 <Input
@@ -618,7 +689,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     onChange={(event) =>
                                         setResetPassword(event.target.value)
                                     }
-                                    placeholder="Minimum 8 characters"
+                                    placeholder={t(
+                                        'users.placeholders.minimumPassword',
+                                        'Minimum 8 characters',
+                                    )}
                                 />
                                 <Button
                                     type="button"
@@ -641,7 +715,7 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                         <div className="grid gap-2">
                             <Label htmlFor={`reset-password-confirmation-${data.id}`}>
-                                Confirm password
+                                {t('users.fields.confirmPassword', 'Confirm password')}
                             </Label>
                             <Input
                                 id={`reset-password-confirmation-${data.id}`}
@@ -652,7 +726,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         event.target.value,
                                     )
                                 }
-                                placeholder="Repeat the new password"
+                                placeholder={t(
+                                    'users.placeholders.repeatPassword',
+                                    'Repeat the new password',
+                                )}
                             />
                             <InputError
                                 message={
@@ -672,14 +749,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }}
                             disabled={isSubmitting}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             type="button"
                             onClick={handleResetPassword}
                             disabled={!resetPassword || isSubmitting}
                         >
-                            Reset password
+                            {t('users.actions.resetPassword', 'Reset password')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -692,18 +769,29 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {data.is_active ? 'Block user' : 'Unblock user'}
+                            {data.is_active
+                                ? t('users.modals.block.title', 'Block user')
+                                : t(
+                                      'users.modals.unblock.title',
+                                      'Unblock user',
+                                  )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will prevent the user from signing in.'
-                                : 'This will restore access for the user.'}
+                                ? t(
+                                      'users.modals.block.description',
+                                      'This will prevent the user from signing in.',
+                                  )
+                                : t(
+                                      'users.modals.unblock.description',
+                                      'This will restore access for the user.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
@@ -713,12 +801,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             {data.is_active ? (
                                 <>
                                     <Ban className="mr-2 h-4 w-4" />
-                                    Block user
+                                    {t('users.actions.blockUser', 'Block user')}
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Unblock user
+                                    {t(
+                                        'users.actions.unblockUser',
+                                        'Unblock user',
+                                    )}
                                 </>
                             )}
                         </AlertDialogAction>
@@ -732,16 +823,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete user</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('users.modals.delete.title', 'Delete user')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the user and revoke all
-                            role assignments.
+                            {t(
+                                'users.modals.delete.description',
+                                'This will permanently remove the user and revoke all role assignments.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -749,7 +844,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete user
+                            {t('users.actions.deleteUser', 'Delete user')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

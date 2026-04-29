@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Cuisine,
@@ -73,6 +74,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     kitchenCategories,
     isLoading = false,
 }) => {
+    const { t } = useLocalization();
     const { can } = useAuthorization();
     const canCreateKitchen = can('kitchen.create');
     const canManageKitchenMeta = can('kitchen.update');
@@ -189,7 +191,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Kitchen created successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.created',
+                            'Kitchen created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -219,7 +226,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             router.put(`/kitchen-types/${editingKitchenTypeId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Kitchen type updated successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.typeUpdated',
+                            'Kitchen type updated successfully.',
+                        ),
+                    );
                     resetKitchenTypeForm();
                 },
                 onError: (errors) => setKitchenTypeErrors(errors),
@@ -231,7 +243,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         router.post('/kitchen-types', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Kitchen type created successfully.');
+                toast.success(
+                    t(
+                        'toolbarResources.kitchens.feedback.typeCreated',
+                        'Kitchen type created successfully.',
+                    ),
+                );
                 resetKitchenTypeForm();
             },
             onError: (errors) => setKitchenTypeErrors(errors),
@@ -289,7 +306,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             router.put(`/cuisines/${editingCuisineId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Cuisine updated successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.cuisineUpdated',
+                            'Cuisine updated successfully.',
+                        ),
+                    );
                     resetCuisineForm();
                 },
                 onError: (errors) => setCuisineErrors(errors),
@@ -301,7 +323,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         router.post('/cuisines', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Cuisine created successfully.');
+                toast.success(
+                    t(
+                        'toolbarResources.kitchens.feedback.cuisineCreated',
+                        'Cuisine created successfully.',
+                    ),
+                );
                 resetCuisineForm();
             },
             onError: (errors) => setCuisineErrors(errors),
@@ -417,16 +444,29 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(kitchenTypes, cuisines, kitchenCategories, products),
-        [kitchenTypes, cuisines, kitchenCategories, products],
+        () =>
+            buildColumns(
+                kitchenTypes,
+                cuisines,
+                kitchenCategories,
+                products,
+                t,
+            ),
+        [kitchenTypes, cuisines, kitchenCategories, products, t],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Kitchens: ${formatNumber(data.length)}`}
-                    description="Manage kitchens"
+                    title={`${t(
+                        'toolbarResources.kitchens.heading.title',
+                        'Kitchens',
+                    )}: ${formatNumber(data.length)}`}
+                    description={t(
+                        'toolbarResources.kitchens.heading.description',
+                        'Manage kitchens',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     {canManageKitchenMeta ? (
@@ -436,7 +476,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Tags className="h-4 w-4" />
-                            Kitchen Categories
+                            {t(
+                                'toolbarResources.kitchens.actions.categories',
+                                'Kitchen Categories',
+                            )}
                         </Button>
                     ) : null}
                     {canManageKitchenMeta ? (
@@ -446,7 +489,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <UtensilsCrossed className="h-4 w-4" />
-                            Cuisines
+                            {t(
+                                'toolbarResources.kitchens.actions.cuisines',
+                                'Cuisines',
+                            )}
                         </Button>
                     ) : null}
                     {canManageKitchenMeta ? (
@@ -456,7 +502,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Shapes className="h-4 w-4" />
-                            Kitchen Types
+                            {t(
+                                'toolbarResources.kitchens.actions.types',
+                                'Kitchen Types',
+                            )}
                         </Button>
                     ) : null}
                     {canCreateKitchen ? (
@@ -465,7 +514,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Plus className="h-4 w-4" />
-                            Add New
+                            {t(
+                                'toolbarResources.kitchens.actions.addNew',
+                                'Add New',
+                            )}
                         </Button>
                     ) : null}
                 </div>
@@ -482,7 +534,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search kitchens by name or location..."
+                searchPlaceholder={t(
+                    'toolbarResources.kitchens.searchPlaceholder',
+                    'Search kitchens by name or location...',
+                )}
             />
 
             <Dialog
@@ -498,17 +553,27 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ChefHat className="mr-2 h-5 w-5" />
-                            Create Kitchen
+                            {t(
+                                'toolbarResources.kitchens.dialogs.create.title',
+                                'Create Kitchen',
+                            )}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a kitchen, choose its station type, and assign
-                            one or more cuisines.
+                            {t(
+                                'toolbarResources.kitchens.dialogs.create.description',
+                                'Add a kitchen, choose its station type, and assign one or more cuisines.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="kitchen-name">Name</Label>
+                            <Label htmlFor="kitchen-name">
+                                {t(
+                                    'toolbarResources.kitchens.fields.name',
+                                    'Name',
+                                )}
+                            </Label>
                             <Input
                                 id="kitchen-name"
                                 value={name}
@@ -519,13 +584,23 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Kitchen Type</Label>
+                            <Label>
+                                {t(
+                                    'toolbarResources.kitchens.fields.kitchenType',
+                                    'Kitchen Type',
+                                )}
+                            </Label>
                             <Select
                                 value={kitchenTypeId}
                                 onValueChange={setKitchenTypeId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select kitchen type" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'toolbarResources.kitchens.placeholders.selectKitchenType',
+                                            'Select kitchen type',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value={NO_KITCHEN_TYPE}>
@@ -548,7 +623,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>Cuisines</Label>
+                        <Label>
+                            {t(
+                                'toolbarResources.kitchens.fields.cuisines',
+                                'Cuisines',
+                            )}
+                        </Label>
                         <ScrollArea className="h-44 rounded-md border p-3">
                             <div className="space-y-2">
                                 {cuisines.map((cuisine) => (
@@ -580,7 +660,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>Kitchen Categories</Label>
+                        <Label>
+                            {t(
+                                'toolbarResources.kitchens.fields.categories',
+                                'Kitchen Categories',
+                            )}
+                        </Label>
                         <ScrollArea className="h-44 rounded-md border p-3">
                             <div className="space-y-2">
                                 {kitchenCategories.map((category) => (
@@ -620,14 +705,17 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
                             disabled={!name.trim() || isSubmitting}
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Kitchen
+                            {t(
+                                'toolbarResources.kitchens.actions.createKitchen',
+                                'Create Kitchen',
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -688,7 +776,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="kitchen-category-name">
-                                    Name
+                                    {t(
+                                        'toolbarResources.kitchens.fields.name',
+                                        'Name',
+                                    )}
                                 </Label>
                                 <Input
                                     id="kitchen-category-name"
@@ -705,7 +796,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="kitchen-category-description">
-                                    Description
+                                    {t(
+                                        'toolbarResources.kitchens.fields.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="kitchen-category-description"
@@ -729,8 +823,14 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                     }
                                 >
                                     {editingKitchenCategoryId
-                                        ? 'Update Kitchen Category'
-                                        : 'Add Kitchen Category'}
+                                        ? t(
+                                              'toolbarResources.kitchens.actions.updateCategory',
+                                              'Update Kitchen Category',
+                                          )
+                                        : t(
+                                              'toolbarResources.kitchens.actions.addCategory',
+                                              'Add Kitchen Category',
+                                          )}
                                 </Button>
                                 {editingKitchenCategoryId ? (
                                     <Button
@@ -738,7 +838,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                         onClick={resetKitchenCategoryForm}
                                         disabled={isSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'toolbarResources.kitchens.actions.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -778,7 +881,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                                     );
                                                 }}
                                             >
-                                                Edit
+                                                {t(
+                                                    'toolsLauncher.actions.edit',
+                                                    'Edit',
+                                                )}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -789,7 +895,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                                     )
                                                 }
                                             >
-                                                Delete
+                                                {t(
+                                                    'toolsLauncher.actions.delete',
+                                                    'Delete',
+                                                )}
                                             </Button>
                                         </div>
                                     </div>
@@ -824,7 +933,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label htmlFor="kitchen-type-name">Name</Label>
+                                <Label htmlFor="kitchen-type-name">
+                                    {t(
+                                        'toolbarResources.kitchens.fields.name',
+                                        'Name',
+                                    )}
+                                </Label>
                                 <Input
                                     id="kitchen-type-name"
                                     value={kitchenTypeName}
@@ -836,7 +950,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="kitchen-type-description">
-                                    Description
+                                    {t(
+                                        'toolbarResources.kitchens.fields.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="kitchen-type-description"
@@ -859,8 +976,14 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                     }
                                 >
                                     {editingKitchenTypeId
-                                        ? 'Update Kitchen Type'
-                                        : 'Add Kitchen Type'}
+                                        ? t(
+                                              'toolbarResources.kitchens.actions.updateType',
+                                              'Update Kitchen Type',
+                                          )
+                                        : t(
+                                              'toolbarResources.kitchens.actions.addType',
+                                              'Add Kitchen Type',
+                                          )}
                                 </Button>
                                 {editingKitchenTypeId ? (
                                     <Button
@@ -868,7 +991,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                         onClick={resetKitchenTypeForm}
                                         disabled={isSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'toolbarResources.kitchens.actions.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -906,7 +1032,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                                     setKitchenTypeErrors({});
                                                 }}
                                             >
-                                                Edit
+                                                {t(
+                                                    'toolsLauncher.actions.edit',
+                                                    'Edit',
+                                                )}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -917,7 +1046,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                                     )
                                                 }
                                             >
-                                                Delete
+                                                {t(
+                                                    'toolsLauncher.actions.delete',
+                                                    'Delete',
+                                                )}
                                             </Button>
                                         </div>
                                     </div>
@@ -982,7 +1114,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label htmlFor="cuisine-name">Name</Label>
+                                <Label htmlFor="cuisine-name">
+                                    {t(
+                                        'toolbarResources.kitchens.fields.name',
+                                        'Name',
+                                    )}
+                                </Label>
                                 <Input
                                     id="cuisine-name"
                                     value={cuisineName}
@@ -994,7 +1131,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="cuisine-description">
-                                    Description
+                                    {t(
+                                        'toolbarResources.kitchens.fields.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="cuisine-description"
@@ -1017,8 +1157,14 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                     }
                                 >
                                     {editingCuisineId
-                                        ? 'Update Cuisine'
-                                        : 'Add Cuisine'}
+                                        ? t(
+                                              'toolbarResources.kitchens.actions.updateCuisine',
+                                              'Update Cuisine',
+                                          )
+                                        : t(
+                                              'toolbarResources.kitchens.actions.addCuisine',
+                                              'Add Cuisine',
+                                          )}
                                 </Button>
                                 {editingCuisineId ? (
                                     <Button
@@ -1026,7 +1172,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                                         onClick={resetCuisineForm}
                                         disabled={isSubmitting}
                                     >
-                                        Cancel Edit
+                                        {t(
+                                            'toolbarResources.kitchens.actions.cancelEdit',
+                                            'Cancel Edit',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>

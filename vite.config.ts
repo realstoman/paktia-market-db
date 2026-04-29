@@ -26,17 +26,17 @@ export default defineConfig({
     },
     build: {
         target: 'es2022',
-        // Split heavy vendor groups into their own chunks so individual
-        // page bundles stay small and the browser can long-cache the
-        // libraries that don't change between deploys.
         rollupOptions: {
             output: {
+                hoistTransitiveImports: false,
                 manualChunks(id) {
                     if (!id.includes('node_modules')) {
                         return undefined;
                     }
                     if (id.includes('@radix-ui') || id.includes('radix-ui')) {
-                        return 'vendor-radix';
+                        // Return undefined so Rollup determines the correct split
+                        // itself — avoids TDZ errors from circular deps in one merged chunk.
+                        return undefined;
                     }
                     if (id.includes('@tanstack/')) {
                         return 'vendor-tanstack';

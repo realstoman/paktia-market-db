@@ -4,6 +4,7 @@ import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
+type TranslateFn = (key: string, fallback?: string) => string;
 
 export const buildColumns = (
     roles: Role[],
@@ -11,6 +12,8 @@ export const buildColumns = (
     provinces: Province[],
     branches: Branch[],
     kitchens: Kitchen[],
+    t: TranslateFn,
+    locale: string,
 ): ColumnDef<User>[] => [
     {
         id: 'select',
@@ -20,14 +23,14 @@ export const buildColumns = (
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
-                aria-label="Select all"
+                aria-label={t('users.table.selectAll', 'Select all')}
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={t('users.table.selectRow', 'Select row')}
             />
         ),
         enableSorting: false,
@@ -35,19 +38,19 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: t('users.table.id', 'ID'),
     },
     {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('users.table.name', 'Name'),
     },
     {
         accessorKey: 'email',
-        header: 'Email',
+        header: t('users.table.email', 'Email'),
     },
     {
         accessorKey: 'roles',
-        header: 'Role',
+        header: t('users.table.role', 'Role'),
         cell: ({ row }) => {
             const roles = row.original.roles ?? [];
             const userKitchen =
@@ -63,7 +66,7 @@ export const buildColumns = (
             if (roles.length === 0) {
                 return (
                     <span className="text-xs text-muted-foreground">
-                        No role
+                        {t('users.common.noRole', 'No role')}
                     </span>
                 );
             }
@@ -93,45 +96,47 @@ export const buildColumns = (
     },
     {
         accessorKey: 'branch',
-        header: 'Branch',
+        header: t('users.table.branch', 'Branch'),
     },
     {
         accessorKey: 'province',
-        header: 'Province',
+        header: t('users.table.province', 'Province'),
     },
     {
         accessorKey: 'country',
-        header: 'Country',
+        header: t('users.table.country', 'Country'),
     },
     {
         accessorKey: 'is_active',
-        header: 'Status',
+        header: t('users.table.status', 'Status'),
         cell: ({ row }) => {
             const active = row.getValue('is_active');
             return active ? (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                     <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
+                    {t('users.statuses.active', 'Active')}
                 </Badge>
             ) : (
                 <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
                     <Ban className="h-4 w-4 text-red-600" />
-                    Blocked
+                    {t('users.statuses.blocked', 'Blocked')}
                 </Badge>
             );
         },
     },
     {
         accessorKey: 'created_at',
-        header: 'Created At',
+        header: t('users.table.createdAt', 'Created At'),
         cell: ({ row }) => {
             const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
+            return new Intl.DateTimeFormat(
+                locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            ).format(date);
         },
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: t('users.table.actions', 'Actions'),
         cell: ({ row }) => (
             <CellAction
                 data={row.original}

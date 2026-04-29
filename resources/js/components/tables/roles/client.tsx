@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -33,6 +34,7 @@ export const RolesClient: React.FC<RolesClientProps> = ({
     permissions,
     isLoading = false,
 }) => {
+    const { t } = useLocalization();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isPermissionOpen, setIsPermissionOpen] = useState(false);
     const [name, setName] = useState('');
@@ -95,7 +97,12 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Role created successfully.');
+                    toast.success(
+                        t(
+                            'roles.feedback.roleCreated',
+                            'Role created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -124,7 +131,12 @@ export const RolesClient: React.FC<RolesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Permission created successfully.');
+                    toast.success(
+                        t(
+                            'roles.feedback.permissionCreated',
+                            'Permission created successfully.',
+                        ),
+                    );
                     setIsPermissionOpen(false);
                     resetPermissionForm();
                 },
@@ -154,22 +166,25 @@ export const RolesClient: React.FC<RolesClientProps> = ({
     }, []);
 
     const tableColumns = useMemo(
-        () => buildColumns(permissions, handleDuplicateRole),
-        [permissions, handleDuplicateRole],
+        () => buildColumns(permissions, handleDuplicateRole, t),
+        [permissions, handleDuplicateRole, t],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Roles: ${formatNumber(data.length)}`}
-                    description="Manage system roles and permissions"
+                    title={`${t('roles.page.title', 'System Roles')}: ${formatNumber(data.length)}`}
+                    description={t(
+                        'roles.page.description',
+                        'Manage system roles and permissions',
+                    )}
                 />
                 <div className="flex gap-2">
                     <Link href="/users">
                         <Button className="gap-2" variant={'outline'}>
                             <Users2 className="h-4 w-4" />
-                            Users
+                            {t('roles.actions.users', 'Users')}
                         </Button>
                     </Link>
                     <Button
@@ -178,14 +193,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add Permission
+                        {t('roles.actions.addPermission', 'Add Permission')}
                     </Button>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
                         className="gap-2"
                     >
                         <Plus className="h-4 w-4" />
-                        Add Role
+                        {t('roles.actions.addRole', 'Add Role')}
                     </Button>
                 </div>
             </div>
@@ -195,7 +210,10 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search roles by name..."
+                searchPlaceholder={t(
+                    'roles.filters.searchPlaceholder',
+                    'Search roles by name...',
+                )}
             />
 
             <Dialog
@@ -211,24 +229,30 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ShieldCheck className="mr-2 h-5 w-5" />
-                            Create Role
+                            {t('roles.modals.createRole.title', 'Create Role')}
                         </DialogTitle>
                         <DialogDescription>
-                            Define a role name and assign permissions.
+                            {t(
+                                'roles.modals.createRole.description',
+                                'Define a role name and assign permissions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                Role name
+                                {t('roles.fields.roleName', 'Role name')}
                             </label>
                             <Input
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
                                 }
-                                placeholder="e.g. Manager"
+                                placeholder={t(
+                                    'roles.placeholders.roleName',
+                                    'e.g. Manager',
+                                )}
                             />
                             <InputError message={createErrors.name} />
                         </div>
@@ -236,11 +260,15 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium">
-                                    Permissions
+                                    {t('roles.table.permissions', 'Permissions')}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                    {selectedCount} of {totalPermissions}{' '}
-                                    selected
+                                    {t(
+                                        'roles.common.selectedCount',
+                                        ':selected of :total selected',
+                                    )
+                                        .replace(':selected', String(selectedCount))
+                                        .replace(':total', String(totalPermissions))}
                                 </span>
                             </div>
                             <ScrollArea className="h-64 rounded-md border p-3">
@@ -278,14 +306,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleSubmit}
                             disabled={!name.trim() || isSubmitting}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Create Role
+                            {t('roles.modals.createRole.submit', 'Create Role')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -304,23 +332,32 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ShieldPlus className="h-5 w-5" />
-                            Create Permission
+                            {t(
+                                'roles.modals.createPermission.title',
+                                'Create Permission',
+                            )}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new permission to assign to roles.
+                            {t(
+                                'roles.modals.createPermission.description',
+                                'Add a new permission to assign to roles.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium">
-                            Permission name
+                            {t('roles.fields.permissionName', 'Permission name')}
                         </label>
                         <Input
                             value={permissionName}
                             onChange={(event) =>
                                 setPermissionName(event.target.value)
                             }
-                            placeholder="e.g. roles.create"
+                            placeholder={t(
+                                'roles.placeholders.permissionName',
+                                'e.g. roles.create',
+                            )}
                         />
                         <InputError message={permissionErrors.name} />
                     </div>
@@ -332,14 +369,17 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handlePermissionSubmit}
                             disabled={!permissionName.trim() || isSubmitting}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Create Permission
+                            {t(
+                                'roles.modals.createPermission.submit',
+                                'Create Permission',
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

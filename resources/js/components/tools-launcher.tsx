@@ -754,7 +754,10 @@ export function ToolsLauncher() {
                     >
                         {isLoadingTools ? (
                             <div className="py-6 text-center text-sm text-muted-foreground">
-                                Loading tools...
+                                {t(
+                                    'toolsLauncher.common.loading',
+                                    'Loading tools...',
+                                )}
                             </div>
                         ) : null}
                         <div className="grid grid-cols-3 gap-2">
@@ -769,7 +772,10 @@ export function ToolsLauncher() {
                                     >
                                         <Globe className="h-5 w-5" />
                                         <span className="text-xs">
-                                            Countries
+                                            {t(
+                                                'toolsLauncher.tiles.countries',
+                                                'Countries',
+                                            )}
                                         </span>
                                     </Button>
                                     <Button
@@ -783,7 +789,12 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Globe className="h-5 w-5" />
-                                        <span className="text-xs">Cities</span>
+                                        <span className="text-xs">
+                                            {t(
+                                                'toolsLauncher.tiles.cities',
+                                                'Cities',
+                                            )}
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -796,7 +807,10 @@ export function ToolsLauncher() {
                                     >
                                         <Coins className="h-5 w-5" />
                                         <span className="text-xs">
-                                            Currencies
+                                            {t(
+                                                'toolsLauncher.tiles.currencies',
+                                                'Currencies',
+                                            )}
                                         </span>
                                     </Button>
                                     <Button
@@ -809,7 +823,12 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Building2 className="h-5 w-5" />
-                                        <span className="text-xs">Vendors</span>
+                                        <span className="text-xs">
+                                            {t(
+                                                'toolsLauncher.tiles.vendors',
+                                                'Vendors',
+                                            )}
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -821,7 +840,12 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <ImagePlus className="h-5 w-5" />
-                                        <span className="text-xs">Banners</span>
+                                        <span className="text-xs">
+                                            {t(
+                                                'toolsLauncher.tiles.banners',
+                                                'Banners',
+                                            )}
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -834,7 +858,15 @@ export function ToolsLauncher() {
                                     >
                                         <BadgePercent className="h-5 w-5" />
                                         <span className="text-xs">
-                                            Discount <br /> Cards
+                                            {t(
+                                                'toolsLauncher.tiles.discountCards',
+                                                'Discount',
+                                            )}{' '}
+                                            <br />{' '}
+                                            {t(
+                                                'toolsLauncher.tiles.cards',
+                                                'Cards',
+                                            )}
                                         </span>
                                     </Button>
                                     <Button
@@ -845,7 +877,10 @@ export function ToolsLauncher() {
                                     >
                                         <ChefHat className="h-5 w-5" />
                                         <span className="text-xs">
-                                            Kitchens
+                                            {t(
+                                                'toolsLauncher.tiles.kitchens',
+                                                'Kitchens',
+                                            )}
                                         </span>
                                     </Button>
                         </div>
@@ -856,14 +891,24 @@ export function ToolsLauncher() {
             <Dialog open={isCountriesOpen} onOpenChange={setIsCountriesOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Countries</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.countries.title',
+                                'Manage Countries',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Country CRUD with currency details.
+                            {t(
+                                'toolsLauncher.dialogs.countries.description',
+                                'Country CRUD with currency details.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={countryName}
                                 onChange={(event) =>
@@ -873,7 +918,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 maxLength={2}
                                 value={countryCode}
@@ -884,7 +931,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Currency Code</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.currencyCode',
+                                    'Currency Code',
+                                )}
+                            </Label>
                             <Input
                                 maxLength={3}
                                 value={countryCurrencyCode}
@@ -902,7 +954,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.currency_code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Currency Symbol</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.currencySymbol',
+                                    'Currency Symbol',
+                                )}
+                            </Label>
                             <Input
                                 value={countryCurrencySymbol}
                                 onChange={(event) =>
@@ -914,7 +971,7 @@ export function ToolsLauncher() {
                     </div>
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetCountryForm}>
-                            Clear
+                            {t('toolsLauncher.actions.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={submitCountry}
@@ -925,7 +982,15 @@ export function ToolsLauncher() {
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {countryId ? 'Update Country' : 'Save Country'}
+                            {countryId
+                                ? t(
+                                      'toolsLauncher.actions.updateCountry',
+                                      'Update Country',
+                                  )
+                                : t(
+                                      'toolsLauncher.actions.saveCountry',
+                                      'Save Country',
+                                  )}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
@@ -962,7 +1027,7 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Pencil className="mr-1 h-3 w-3" />
-                                        Edit
+                                        {t('toolsLauncher.actions.edit', 'Edit')}
                                     </Button>
                                     {canDeleteTools ? (
                                         <Button
@@ -978,7 +1043,10 @@ export function ToolsLauncher() {
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t(
+                                                'toolsLauncher.actions.delete',
+                                                'Delete',
+                                            )}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -991,30 +1059,47 @@ export function ToolsLauncher() {
             <Dialog open={isCitiesOpen} onOpenChange={setIsCitiesOpen}>
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Cities</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.cities.title',
+                                'Manage Cities',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Add, edit, or delete cities and assign them to a
-                            country.
+                            {t(
+                                'toolsLauncher.dialogs.cities.description',
+                                'Add, edit, or delete cities and assign them to a country.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 sm:grid-cols-[320px_minmax(0,1fr)]">
                         <div className="grid gap-4 rounded-md border p-4">
                             <div className="grid gap-2">
-                                <Label>Country</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.country', 'Country')}
+                                </Label>
                                 <SearchableDropdown
                                     value={provinceCountryId}
                                     options={countryOptions.filter(
                                         (option) => option.value !== '',
                                     )}
                                     onValueChange={setProvinceCountryId}
-                                    placeholder="Select country"
+                                    placeholder={t(
+                                        'toolsLauncher.placeholders.selectCountry',
+                                        'Select country',
+                                    )}
                                     searchPlaceholder="Search countries..."
                                     emptyText="No countries found."
                                 />
                                 <InputError message={errors.country_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>City Name</Label>
+                                <Label>
+                                    {t(
+                                        'toolsLauncher.fields.cityName',
+                                        'City Name',
+                                    )}
+                                </Label>
                                 <Input
                                     value={provinceName}
                                     onChange={(event) =>
@@ -1029,7 +1114,7 @@ export function ToolsLauncher() {
                                     onClick={resetProvinceForm}
                                     disabled={isSubmitting}
                                 >
-                                    Clear
+                                    {t('toolsLauncher.actions.clear', 'Clear')}
                                 </Button>
                                 <Button
                                     onClick={submitProvince}
@@ -1040,7 +1125,15 @@ export function ToolsLauncher() {
                                     }
                                 >
                                     <Save className="mr-2 h-4 w-4" />
-                                    {provinceId ? 'Update City' : 'Save City'}
+                                    {provinceId
+                                        ? t(
+                                              'toolsLauncher.actions.updateCity',
+                                              'Update City',
+                                          )
+                                        : t(
+                                              'toolsLauncher.actions.saveCity',
+                                              'Save City',
+                                          )}
                                 </Button>
                             </div>
                         </div>
@@ -1049,7 +1142,10 @@ export function ToolsLauncher() {
                                 value={provinceFilterCountryId}
                                 options={countryOptions}
                                 onValueChange={setProvinceFilterCountryId}
-                                placeholder="All countries"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.allCountries',
+                                    'All countries',
+                                )}
                                 searchPlaceholder="Search countries..."
                                 emptyText="No countries found."
                                 className="sm:w-[240px]"
@@ -1097,7 +1193,10 @@ export function ToolsLauncher() {
                                                 }}
                                             >
                                                 <Pencil className="mr-1 h-3 w-3" />
-                                                Edit
+                                                {t(
+                                                    'toolsLauncher.actions.edit',
+                                                    'Edit',
+                                                )}
                                             </Button>
                                             {canDeleteTools ? (
                                                 <Button
@@ -1113,7 +1212,10 @@ export function ToolsLauncher() {
                                                     }
                                                 >
                                                     <Trash2 className="mr-1 h-3 w-3" />
-                                                    Delete
+                                                    {t(
+                                                        'toolsLauncher.actions.delete',
+                                                        'Delete',
+                                                    )}
                                                 </Button>
                                             ) : null}
                                         </div>
@@ -1133,15 +1235,24 @@ export function ToolsLauncher() {
             <Dialog open={isCurrenciesOpen} onOpenChange={setIsCurrenciesOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Currencies</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.currencies.title',
+                                'Manage Currencies',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Global currencies for inventory, payments and other
-                            modules.
+                            {t(
+                                'toolsLauncher.dialogs.currencies.description',
+                                'Global currencies for inventory, payments and other modules.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={currencyName}
                                 onChange={(event) =>
@@ -1151,7 +1262,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 maxLength={3}
                                 value={currencyCode}
@@ -1162,7 +1275,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Symbol</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.symbol', 'Symbol')}
+                            </Label>
                             <Input
                                 value={currencySymbol}
                                 onChange={(event) =>
@@ -1174,7 +1289,7 @@ export function ToolsLauncher() {
                     </div>
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetCurrencyForm}>
-                            Clear
+                            {t('toolsLauncher.actions.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={submitCurrency}
@@ -1186,7 +1301,15 @@ export function ToolsLauncher() {
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {currencyId ? 'Update Currency' : 'Save Currency'}
+                            {currencyId
+                                ? t(
+                                      'toolsLauncher.actions.updateCurrency',
+                                      'Update Currency',
+                                  )
+                                : t(
+                                      'toolsLauncher.actions.saveCurrency',
+                                      'Save Currency',
+                                  )}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
@@ -1217,7 +1340,7 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Pencil className="mr-1 h-3 w-3" />
-                                        Edit
+                                        {t('toolsLauncher.actions.edit', 'Edit')}
                                     </Button>
                                     {canDeleteTools ? (
                                         <Button
@@ -1233,7 +1356,10 @@ export function ToolsLauncher() {
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t(
+                                                'toolsLauncher.actions.delete',
+                                                'Delete',
+                                            )}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -1249,37 +1375,59 @@ export function ToolsLauncher() {
             >
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Discount Cards</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.discountCards.title',
+                                'Manage Discount Cards',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Create flexible discount cards for percentage or
-                            fixed-amount customer benefits.
+                            {t(
+                                'toolsLauncher.dialogs.discountCards.description',
+                                'Create flexible discount cards for percentage or fixed-amount customer benefits.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={discountCardName}
                                 onChange={(event) =>
                                     setDiscountCardName(event.target.value)
                                 }
-                                placeholder="Platinum"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardName',
+                                    'Platinum',
+                                )}
                             />
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 value={discountCardCode}
                                 onChange={(event) =>
                                     setDiscountCardCode(event.target.value)
                                 }
-                                placeholder="PLATINUM-15"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardCode',
+                                    'PLATINUM-15',
+                                )}
                             />
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Discount Type</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.discountType',
+                                    'Discount Type',
+                                )}
+                            </Label>
                             <Select
                                 value={discountCardType}
                                 onValueChange={(value) =>
@@ -1289,7 +1437,12 @@ export function ToolsLauncher() {
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'toolsLauncher.placeholders.selectType',
+                                            'Select type',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="percentage">
@@ -1305,8 +1458,14 @@ export function ToolsLauncher() {
                         <div className="grid gap-2">
                             <Label>
                                 {discountCardType === 'percentage'
-                                    ? 'Percentage'
-                                    : 'Fixed Amount'}
+                                    ? t(
+                                          'toolsLauncher.fields.percentage',
+                                          'Percentage',
+                                      )
+                                    : t(
+                                          'toolsLauncher.fields.fixedAmount',
+                                          'Fixed Amount',
+                                      )}
                             </Label>
                             <NumericInput
                                 min="0"
@@ -1316,7 +1475,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.discount_value} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Max Discount (Optional)</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.maxDiscountOptional',
+                                    'Max Discount (Optional)',
+                                )}
+                            </Label>
                             <NumericInput
                                 min="0"
                                 value={discountCardMaxAmount}
@@ -1325,7 +1489,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.max_discount_amount} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.description',
+                                    'Description',
+                                )}
+                            </Label>
                             <Input
                                 value={discountCardDescription}
                                 onChange={(event) =>
@@ -1333,7 +1502,10 @@ export function ToolsLauncher() {
                                         event.target.value,
                                     )
                                 }
-                                placeholder="VIP repeat customer card"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardDescription',
+                                    'VIP repeat customer card',
+                                )}
                             />
                             <InputError message={errors.description} />
                         </div>
@@ -1343,7 +1515,7 @@ export function ToolsLauncher() {
                             variant="outline"
                             onClick={resetDiscountCardForm}
                         >
-                            Clear
+                            {t('toolsLauncher.actions.clear', 'Clear')}
                         </Button>
                         <Button
                             variant={'outline'}
@@ -1357,8 +1529,14 @@ export function ToolsLauncher() {
                         >
                             <Save className="mr-2 h-4 w-4" />
                             {discountCardId
-                                ? 'Update Discount Card'
-                                : 'Save Discount Card'}
+                                ? t(
+                                      'toolsLauncher.actions.updateDiscountCard',
+                                      'Update Discount Card',
+                                  )
+                                : t(
+                                      'toolsLauncher.actions.saveDiscountCard',
+                                      'Save Discount Card',
+                                  )}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-60 space-y-2 overflow-auto rounded-md border p-3">
@@ -1421,7 +1599,7 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Pencil className="mr-1 h-3 w-3" />
-                                        Edit
+                                        {t('toolsLauncher.actions.edit', 'Edit')}
                                     </Button>
                                     {canDeleteTools ? (
                                         <Button
@@ -1437,7 +1615,10 @@ export function ToolsLauncher() {
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t(
+                                                'toolsLauncher.actions.delete',
+                                                'Delete',
+                                            )}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -1455,14 +1636,27 @@ export function ToolsLauncher() {
             <Dialog open={isVendorsOpen} onOpenChange={setIsVendorsOpen}>
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Vendors</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.vendors.title',
+                                'Manage Vendors',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Global vendor CRUD for all purchasing modules.
+                            {t(
+                                'toolsLauncher.dialogs.vendors.description',
+                                'Global vendor CRUD for all purchasing modules.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Store Name</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.storeName',
+                                    'Store Name',
+                                )}
+                            </Label>
                             <Input
                                 value={vendorName}
                                 onChange={(event) =>
@@ -1472,7 +1666,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Category</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.category', 'Category')}
+                            </Label>
                             <Input
                                 value={vendorCategory}
                                 onChange={(event) =>
@@ -1482,7 +1678,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.category} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Contact Person</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.contactPerson',
+                                    'Contact Person',
+                                )}
+                            </Label>
                             <Input
                                 value={vendorContact}
                                 onChange={(event) =>
@@ -1492,7 +1693,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.contact_person} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Phone</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.phone', 'Phone')}
+                            </Label>
                             <Input
                                 value={vendorPhone}
                                 onChange={(event) =>
@@ -1502,7 +1705,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.phone} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Email</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.email', 'Email')}
+                            </Label>
                             <Input
                                 value={vendorEmail}
                                 onChange={(event) =>
@@ -1512,7 +1717,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.email} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Address</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.address', 'Address')}
+                            </Label>
                             <Input
                                 value={vendorAddress}
                                 onChange={(event) =>
@@ -1522,7 +1729,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.address} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label>Notes</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.notes', 'Notes')}
+                            </Label>
                             <Input
                                 value={vendorNotes}
                                 onChange={(event) =>
@@ -1534,14 +1743,22 @@ export function ToolsLauncher() {
                     </div>
                     <DialogFooter className="sm:justify-between">
                         <Button variant="outline" onClick={resetVendorForm}>
-                            Clear
+                            {t('toolsLauncher.actions.clear', 'Clear')}
                         </Button>
                         <Button
                             onClick={submitVendor}
                             disabled={isSubmitting || !vendorName.trim()}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            {vendorId ? 'Update Vendor' : 'Save Vendor'}
+                            {vendorId
+                                ? t(
+                                      'toolsLauncher.actions.updateVendor',
+                                      'Update Vendor',
+                                  )
+                                : t(
+                                      'toolsLauncher.actions.saveVendor',
+                                      'Save Vendor',
+                                  )}
                         </Button>
                     </DialogFooter>
                     <div className="max-h-52 space-y-2 overflow-auto rounded-md border p-3">
@@ -1584,7 +1801,7 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Pencil className="mr-1 h-3 w-3" />
-                                        Edit
+                                        {t('toolsLauncher.actions.edit', 'Edit')}
                                     </Button>
                                     {canDeleteTools ? (
                                         <Button
@@ -1600,7 +1817,10 @@ export function ToolsLauncher() {
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t(
+                                                'toolsLauncher.actions.delete',
+                                                'Delete',
+                                            )}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -1652,7 +1872,7 @@ export function ToolsLauncher() {
                             variant="destructive"
                             onClick={handleConfirmDelete}
                         >
-                            Delete
+                            {t('toolsLauncher.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1661,30 +1881,46 @@ export function ToolsLauncher() {
             <Dialog open={isBannersOpen} onOpenChange={setIsBannersOpen}>
                 <DialogContent className="sm:max-w-5xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Banners</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.banners.title',
+                                'Manage Banners',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Home-screen slider banners for the mobile app. Use
-                            internal links for app routes and external links for
-                            websites or social pages.
+                            {t(
+                                'toolsLauncher.dialogs.banners.description',
+                                'Home-screen slider banners for the mobile app. Use internal links for app routes and external links for websites or social pages.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label>Title</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.title', 'Title')}
+                                </Label>
                                 <Input
                                     value={bannerTitle}
                                     onChange={(event) =>
                                         setBannerTitle(event.target.value)
                                     }
-                                    placeholder="Qabuli Palaw Special"
+                                    placeholder={t(
+                                        'toolsLauncher.placeholders.bannerTitle',
+                                        'Qabuli Palaw Special',
+                                    )}
                                 />
                                 <InputError message={errors.title} />
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label>Banner Type</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.bannerType',
+                                            'Banner Type',
+                                        )}
+                                    </Label>
                                     <select
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={bannerType}
@@ -1710,7 +1946,12 @@ export function ToolsLauncher() {
                                     <InputError message={errors.banner_type} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>Link Type</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.linkType',
+                                            'Link Type',
+                                        )}
+                                    </Label>
                                     <select
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={bannerLinkType}
@@ -1732,7 +1973,12 @@ export function ToolsLauncher() {
                                     <InputError message={errors.link_type} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>Sort Order</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.sortOrder',
+                                            'Sort Order',
+                                        )}
+                                    </Label>
                                     <NumericInput
                                         min="0"
                                         value={bannerSortOrder}
@@ -1743,7 +1989,9 @@ export function ToolsLauncher() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Link</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.link', 'Link')}
+                                </Label>
                                 <Input
                                     value={bannerLink}
                                     onChange={(event) =>
@@ -1773,7 +2021,12 @@ export function ToolsLauncher() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Banner Image</Label>
+                                <Label>
+                                    {t(
+                                        'toolsLauncher.fields.bannerImage',
+                                        'Banner Image',
+                                    )}
+                                </Label>
                                 <Input
                                     type="file"
                                     accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -1814,7 +2067,7 @@ export function ToolsLauncher() {
                                     variant="outline"
                                     onClick={resetBannerForm}
                                 >
-                                    Clear
+                                    {t('toolsLauncher.actions.clear', 'Clear')}
                                 </Button>
                                 <Button
                                     onClick={submitBanner}
@@ -1825,7 +2078,15 @@ export function ToolsLauncher() {
                                     }
                                 >
                                     <Save className="mr-2 h-4 w-4" />
-                                    {bannerId ? 'Update Banner' : 'Save Banner'}
+                                    {bannerId
+                                        ? t(
+                                              'toolsLauncher.actions.updateBanner',
+                                              'Update Banner',
+                                          )
+                                        : t(
+                                              'toolsLauncher.actions.saveBanner',
+                                              'Save Banner',
+                                          )}
                                 </Button>
                             </DialogFooter>
                         </div>
@@ -1920,7 +2181,7 @@ export function ToolsLauncher() {
                                         }}
                                     >
                                         <Pencil className="mr-1 h-3 w-3" />
-                                        Edit
+                                        {t('toolsLauncher.actions.edit', 'Edit')}
                                     </Button>
                                     {canDeleteTools ? (
                                         <Button
@@ -1936,7 +2197,10 @@ export function ToolsLauncher() {
                                             }
                                         >
                                             <Trash2 className="mr-1 h-3 w-3" />
-                                            Delete
+                                            {t(
+                                                'toolsLauncher.actions.delete',
+                                                'Delete',
+                                            )}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -1949,10 +2213,17 @@ export function ToolsLauncher() {
             <Dialog open={isKitchensOpen} onOpenChange={setIsKitchensOpen}>
                 <DialogContent className="sm:max-w-6xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Kitchens</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'toolsLauncher.dialogs.kitchens.title',
+                                'Manage Kitchens',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Manage kitchens with the same table columns and
-                            actions.
+                            {t(
+                                'toolsLauncher.dialogs.kitchens.description',
+                                'Manage kitchens with the same table columns and actions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="max-h-[75vh] overflow-auto pr-1">
