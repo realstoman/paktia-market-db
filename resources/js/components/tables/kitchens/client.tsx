@@ -444,16 +444,29 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(kitchenTypes, cuisines, kitchenCategories, products),
-        [kitchenTypes, cuisines, kitchenCategories, products],
+        () =>
+            buildColumns(
+                kitchenTypes,
+                cuisines,
+                kitchenCategories,
+                products,
+                t,
+            ),
+        [kitchenTypes, cuisines, kitchenCategories, products, t],
     );
 
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Kitchens: ${formatNumber(data.length)}`}
-                    description="Manage kitchens"
+                    title={`${t(
+                        'toolbarResources.kitchens.heading.title',
+                        'Kitchens',
+                    )}: ${formatNumber(data.length)}`}
+                    description={t(
+                        'toolbarResources.kitchens.heading.description',
+                        'Manage kitchens',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     {canManageKitchenMeta ? (
@@ -463,7 +476,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Tags className="h-4 w-4" />
-                            Kitchen Categories
+                            {t(
+                                'toolbarResources.kitchens.actions.categories',
+                                'Kitchen Categories',
+                            )}
                         </Button>
                     ) : null}
                     {canManageKitchenMeta ? (
@@ -473,7 +489,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <UtensilsCrossed className="h-4 w-4" />
-                            Cuisines
+                            {t(
+                                'toolbarResources.kitchens.actions.cuisines',
+                                'Cuisines',
+                            )}
                         </Button>
                     ) : null}
                     {canManageKitchenMeta ? (
@@ -483,7 +502,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Shapes className="h-4 w-4" />
-                            Kitchen Types
+                            {t(
+                                'toolbarResources.kitchens.actions.types',
+                                'Kitchen Types',
+                            )}
                         </Button>
                     ) : null}
                     {canCreateKitchen ? (
@@ -492,7 +514,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                             className="gap-2"
                         >
                             <Plus className="h-4 w-4" />
-                            Add New
+                            {t(
+                                'toolbarResources.kitchens.actions.addNew',
+                                'Add New',
+                            )}
                         </Button>
                     ) : null}
                 </div>
@@ -509,7 +534,10 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                 columns={tableColumns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search kitchens by name or location..."
+                searchPlaceholder={t(
+                    'toolbarResources.kitchens.searchPlaceholder',
+                    'Search kitchens by name or location...',
+                )}
             />
 
             <Dialog
@@ -525,11 +553,16 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <ChefHat className="mr-2 h-5 w-5" />
-                            Create Kitchen
+                            {t(
+                                'toolbarResources.kitchens.dialogs.create.title',
+                                'Create Kitchen',
+                            )}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a kitchen, choose its station type, and assign
-                            one or more cuisines.
+                            {t(
+                                'toolbarResources.kitchens.dialogs.create.description',
+                                'Add a kitchen, choose its station type, and assign one or more cuisines.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
