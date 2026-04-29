@@ -28,6 +28,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { useLocalization } from '@/lib/localization';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Permission, Role } from '@/types';
 import { router } from '@inertiajs/react';
@@ -55,6 +56,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     permissions,
     onDuplicate,
 }) => {
+    const { t } = useLocalization();
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -112,7 +114,12 @@ export const CellAction: React.FC<CellActionProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Role updated successfully.');
+                    toast.success(
+                        t(
+                            'roles.feedback.roleUpdated',
+                            'Role updated successfully.',
+                        ),
+                    );
                     setIsEditOpen(false);
                 },
                 onError: (errors) => {
@@ -141,7 +148,12 @@ export const CellAction: React.FC<CellActionProps> = ({
         router.delete(`/roles/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Role deleted successfully.');
+                toast.success(
+                    t(
+                        'roles.feedback.roleDeleted',
+                        'Role deleted successfully.',
+                    ),
+                );
                 setIsDeleteOpen(false);
             },
             onFinish: () => {
@@ -154,28 +166,32 @@ export const CellAction: React.FC<CellActionProps> = ({
         <>
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">
+                            {t('roles.actions.openMenu', 'Open menu')}
+                        </span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                        {t('roles.table.actions', 'Actions')}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        View
+                        {t('roles.actions.view', 'View')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={openEdit}>
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        {t('roles.actions.edit', 'Edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onDuplicate(data)}>
                         <Copy className="mr-2 h-4 w-4" />
-                        Duplicate
+                        {t('roles.actions.duplicate', 'Duplicate')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                         <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                        {t('roles.actions.delete', 'Delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -183,9 +199,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Role Details</DialogTitle>
+                        <DialogTitle>
+                            {t('roles.modals.view.title', 'Role Details')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Review role metadata and permissions.
+                            {t(
+                                'roles.modals.view.description',
+                                'Review role metadata and permissions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -193,13 +214,13 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="grid gap-2 text-sm">
                             <div>
                                 <span className="text-muted-foreground">
-                                    Name:{' '}
+                                    {t('roles.fields.nameLabel', 'Name')}:{' '}
                                 </span>
                                 <span className="font-medium">{data.name}</span>
                             </div>
                             <div>
                                 <span className="text-muted-foreground">
-                                    Created:{' '}
+                                    {t('roles.fields.createdLabel', 'Created')}:{' '}
                                 </span>
                                 <span>
                                     {new Date(data.created_at).toLocaleString()}
@@ -207,7 +228,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div>
                                 <span className="text-muted-foreground">
-                                    Updated:{' '}
+                                    {t('roles.fields.updatedLabel', 'Updated')}:{' '}
                                 </span>
                                 <span>
                                     {new Date(data.updated_at).toLocaleString()}
@@ -217,11 +238,14 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                         <div className="space-y-2">
                             <div className="text-sm font-medium">
-                                Permissions ({rolePermissions.length})
+                                {t('roles.table.permissions', 'Permissions')} ({rolePermissions.length})
                             </div>
                             {rolePermissions.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
-                                    No permissions assigned.
+                                    {t(
+                                        'roles.common.noPermissionsAssigned',
+                                        'No permissions assigned.',
+                                    )}
                                 </p>
                             ) : (
                                 <div className="flex flex-wrap gap-1">
@@ -243,16 +267,21 @@ export const CellAction: React.FC<CellActionProps> = ({
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Role</DialogTitle>
+                        <DialogTitle>
+                            {t('roles.modals.edit.title', 'Edit Role')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update the role name and permissions.
+                            {t(
+                                'roles.modals.edit.description',
+                                'Update the role name and permissions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                Role name
+                                {t('roles.fields.roleName', 'Role name')}
                             </label>
                             <Input
                                 value={editName}
@@ -266,11 +295,21 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium">
-                                    Permissions
+                                    {t('roles.table.permissions', 'Permissions')}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                    {selectedPermissionIds.size} of{' '}
-                                    {permissions.length} selected
+                                    {t(
+                                        'roles.common.selectedCount',
+                                        ':selected of :total selected',
+                                    )
+                                        .replace(
+                                            ':selected',
+                                            String(selectedPermissionIds.size),
+                                        )
+                                        .replace(
+                                            ':total',
+                                            String(permissions.length),
+                                        )}
                                 </span>
                             </div>
                             <ScrollArea className="h-64 rounded-md border p-3">
@@ -308,14 +347,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleEditSubmit}
                             disabled={!editName.trim() || isSubmitting}
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Save Changes
+                            {t('roles.actions.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -324,16 +363,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete role</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('roles.modals.delete.title', 'Delete role')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will remove the role and detach it from all
-                            users. This action cannot be undone.
+                            {t(
+                                'roles.modals.delete.description',
+                                'This will remove the role and detach it from all users. This action cannot be undone.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -341,7 +384,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Role
+                            {t('roles.actions.deleteRole', 'Delete Role')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -366,6 +366,103 @@ const fa = {
             },
         },
     },
+    roles: {
+        page: {
+            metaTitle: 'نقش‌ها',
+            title: 'نقش‌های سیستم',
+            description: 'نقش‌ها و مجوزهای سیستم را مدیریت کنید',
+        },
+        cards: {
+            total: {
+                title: 'مجموع نقش‌ها',
+                description: 'تعریف‌های نقش موجود در سیستم.',
+            },
+            permissions: {
+                title: 'مجوزها',
+                description: 'مجوزهای موجود برای تعیین.',
+            },
+            configured: {
+                title: 'نقش‌های پیکربندی‌شده',
+                description: 'نقش‌هایی که از قبل مجوز دریافت کرده‌اند.',
+            },
+            averagePermissions: {
+                title: 'میانگین مجوزها',
+                description: 'میانگین تعداد مجوزهای تعیین‌شده برای هر نقش.',
+            },
+        },
+        table: {
+            selectAll: 'انتخاب همه',
+            selectRow: 'انتخاب ردیف',
+            id: 'شناسه',
+            name: 'نام',
+            permissions: 'مجوزها',
+            createdAt: 'تاریخ ایجاد',
+            actions: 'عملیات',
+            morePermissions: '+:count بیشتر',
+        },
+        fields: {
+            roleName: 'نام نقش',
+            permissionName: 'نام مجوز',
+            nameLabel: 'نام',
+            createdLabel: 'ایجاد شده',
+            updatedLabel: 'به‌روزرسانی شده',
+        },
+        placeholders: {
+            roleName: 'مثلاً Manager',
+            permissionName: 'مثلاً roles.create',
+        },
+        actions: {
+            openMenu: 'باز کردن منو',
+            users: 'کاربران',
+            addPermission: 'افزودن مجوز',
+            addRole: 'افزودن نقش',
+            view: 'نمایش',
+            edit: 'ویرایش',
+            duplicate: 'تکثیر',
+            delete: 'حذف',
+            deleteRole: 'حذف نقش',
+            saveChanges: 'ذخیره تغییرات',
+        },
+        common: {
+            selectedCount: ':selected از :total انتخاب شده',
+            noPermissions: 'بدون مجوز',
+            noPermissionsAssigned: 'هیچ مجوزی تعیین نشده است.',
+        },
+        filters: {
+            searchPlaceholder: 'نقش‌ها را با نام جستجو کنید...',
+        },
+        feedback: {
+            roleCreated: 'نقش با موفقیت ایجاد شد.',
+            permissionCreated: 'مجوز با موفقیت ایجاد شد.',
+            roleUpdated: 'نقش با موفقیت به‌روزرسانی شد.',
+            roleDeleted: 'نقش با موفقیت حذف شد.',
+        },
+        modals: {
+            createRole: {
+                title: 'ایجاد نقش',
+                description: 'نام نقش را تعیین کرده و مجوزها را انتخاب کنید.',
+                submit: 'ایجاد نقش',
+            },
+            createPermission: {
+                title: 'ایجاد مجوز',
+                description: 'یک مجوز جدید برای تعیین به نقش‌ها اضافه کنید.',
+                submit: 'ایجاد مجوز',
+            },
+            view: {
+                title: 'جزئیات نقش',
+                description: 'اطلاعات نقش و مجوزهای آن را بررسی کنید.',
+            },
+            edit: {
+                title: 'ویرایش نقش',
+                description: 'نام نقش و مجوزهای آن را به‌روزرسانی کنید.',
+            },
+            delete: {
+                title: 'حذف نقش',
+                description:
+                    'این کار نقش را حذف می‌کند و آن را از تمام کاربران جدا می‌سازد. این عمل قابل بازگشت نیست.',
+            },
+        },
+    },
     settings: {
         title: 'تنظیمات',
         description: 'پروفایل و تنظیمات حساب خود را مدیریت کنید',

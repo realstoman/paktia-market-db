@@ -366,6 +366,103 @@ const en = {
             },
         },
     },
+    roles: {
+        page: {
+            metaTitle: 'Roles',
+            title: 'System Roles',
+            description: 'Manage system roles and permissions',
+        },
+        cards: {
+            total: {
+                title: 'Total Roles',
+                description: 'Role definitions available in the system.',
+            },
+            permissions: {
+                title: 'Permissions',
+                description: 'Permission entries available for assignment.',
+            },
+            configured: {
+                title: 'Configured Roles',
+                description: 'Roles that already have permission mappings.',
+            },
+            averagePermissions: {
+                title: 'Average Permissions',
+                description: 'Average permission count assigned per role.',
+            },
+        },
+        table: {
+            selectAll: 'Select all',
+            selectRow: 'Select row',
+            id: 'ID',
+            name: 'Name',
+            permissions: 'Permissions',
+            createdAt: 'Created At',
+            actions: 'Actions',
+            morePermissions: '+:count more',
+        },
+        fields: {
+            roleName: 'Role name',
+            permissionName: 'Permission name',
+            nameLabel: 'Name',
+            createdLabel: 'Created',
+            updatedLabel: 'Updated',
+        },
+        placeholders: {
+            roleName: 'e.g. Manager',
+            permissionName: 'e.g. roles.create',
+        },
+        actions: {
+            openMenu: 'Open menu',
+            users: 'Users',
+            addPermission: 'Add Permission',
+            addRole: 'Add Role',
+            view: 'View',
+            edit: 'Edit',
+            duplicate: 'Duplicate',
+            delete: 'Delete',
+            deleteRole: 'Delete Role',
+            saveChanges: 'Save Changes',
+        },
+        common: {
+            selectedCount: ':selected of :total selected',
+            noPermissions: 'No permissions',
+            noPermissionsAssigned: 'No permissions assigned.',
+        },
+        filters: {
+            searchPlaceholder: 'Search roles by name...',
+        },
+        feedback: {
+            roleCreated: 'Role created successfully.',
+            permissionCreated: 'Permission created successfully.',
+            roleUpdated: 'Role updated successfully.',
+            roleDeleted: 'Role deleted successfully.',
+        },
+        modals: {
+            createRole: {
+                title: 'Create Role',
+                description: 'Define a role name and assign permissions.',
+                submit: 'Create Role',
+            },
+            createPermission: {
+                title: 'Create Permission',
+                description: 'Add a new permission to assign to roles.',
+                submit: 'Create Permission',
+            },
+            view: {
+                title: 'Role Details',
+                description: 'Review role metadata and permissions.',
+            },
+            edit: {
+                title: 'Edit Role',
+                description: 'Update the role name and permissions.',
+            },
+            delete: {
+                title: 'Delete role',
+                description:
+                    'This will remove the role and detach it from all users. This action cannot be undone.',
+            },
+        },
+    },
     settings: {
         title: 'Settings',
         description: 'Manage your profile and account settings',

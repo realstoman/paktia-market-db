@@ -365,6 +365,103 @@ const ps = {
             },
         },
     },
+    roles: {
+        page: {
+            metaTitle: 'رولونه',
+            title: 'د سیستم رولونه',
+            description: 'د سیستم رولونه او اجازې مدیریت کړئ',
+        },
+        cards: {
+            total: {
+                title: 'ټول رولونه',
+                description: 'هغه رول تعریفونه چې په سیستم کې شته.',
+            },
+            permissions: {
+                title: 'اجازې',
+                description: 'هغه اجازې چې د ټاکنې لپاره شته.',
+            },
+            configured: {
+                title: 'تنظیم شوي رولونه',
+                description: 'هغه رولونه چې مخکې له مخکې اجازې لري.',
+            },
+            averagePermissions: {
+                title: 'د اجازو اوسط',
+                description: 'د هر رول لپاره د ټاکل شویو اجازو اوسط شمېر.',
+            },
+        },
+        table: {
+            selectAll: 'ټول وټاکئ',
+            selectRow: 'قطار وټاکئ',
+            id: 'شناسه',
+            name: 'نوم',
+            permissions: 'اجازې',
+            createdAt: 'د جوړېدو نېټه',
+            actions: 'عملیات',
+            morePermissions: '+:count نور',
+        },
+        fields: {
+            roleName: 'د رول نوم',
+            permissionName: 'د اجازې نوم',
+            nameLabel: 'نوم',
+            createdLabel: 'جوړ شوی',
+            updatedLabel: 'نوی شوی',
+        },
+        placeholders: {
+            roleName: 'لکه Manager',
+            permissionName: 'لکه roles.create',
+        },
+        actions: {
+            openMenu: 'مېنو پرانیزئ',
+            users: 'کارنان',
+            addPermission: 'اجازه اضافه کړئ',
+            addRole: 'رول اضافه کړئ',
+            view: 'لیدل',
+            edit: 'سمول',
+            duplicate: 'کاپي',
+            delete: 'حذف',
+            deleteRole: 'رول حذف کړئ',
+            saveChanges: 'بدلونونه خوندي کړئ',
+        },
+        common: {
+            selectedCount: ':selected له :total انتخاب شوي',
+            noPermissions: 'هیڅ اجازه نشته',
+            noPermissionsAssigned: 'هیڅ اجازه نه ده ټاکل شوې.',
+        },
+        filters: {
+            searchPlaceholder: 'رولونه د نوم له مخې وپلټئ...',
+        },
+        feedback: {
+            roleCreated: 'رول په بریالیتوب سره جوړ شو.',
+            permissionCreated: 'اجازه په بریالیتوب سره جوړه شوه.',
+            roleUpdated: 'رول په بریالیتوب سره نوی شو.',
+            roleDeleted: 'رول په بریالیتوب سره حذف شو.',
+        },
+        modals: {
+            createRole: {
+                title: 'رول جوړ کړئ',
+                description: 'د رول نوم وټاکئ او اجازې ورکړئ.',
+                submit: 'رول جوړ کړئ',
+            },
+            createPermission: {
+                title: 'اجازه جوړه کړئ',
+                description: 'یوه نوې اجازه اضافه کړئ چې رولونو ته ورکړل شي.',
+                submit: 'اجازه جوړه کړئ',
+            },
+            view: {
+                title: 'د رول جزئیات',
+                description: 'د رول معلومات او اجازې یې وګورئ.',
+            },
+            edit: {
+                title: 'رول سم کړئ',
+                description: 'د رول نوم او اجازې یې نوي کړئ.',
+            },
+            delete: {
+                title: 'رول حذف کړئ',
+                description:
+                    'دا به رول لرې کړي او له ټولو کاروونکو به یې بېل کړي. دا عمل بېرته نه راګرځي.',
+            },
+        },
+    },
     settings: {
         title: 'ترتیبات',
         description: 'خپل پروفایل او د حساب ترتیبات سمبال کړئ',
