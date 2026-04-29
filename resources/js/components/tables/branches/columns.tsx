@@ -12,11 +12,14 @@ import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
 const MAX_VISIBLE_KITCHENS = 3;
+type TranslateFn = (key: string, fallback?: string) => string;
 
 export const buildColumns = (
     countries: Country[],
     provinces: Province[],
     kitchens: Kitchen[],
+    t: TranslateFn,
+    locale: string,
 ): ColumnDef<Branch>[] => [
     {
         id: 'select',
@@ -26,14 +29,14 @@ export const buildColumns = (
                 onCheckedChange={(value) =>
                     table.toggleAllPageRowsSelected(!!value)
                 }
-                aria-label="Select all"
+                aria-label={t('branches.table.selectAll', 'Select all')}
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
+                aria-label={t('branches.table.selectRow', 'Select row')}
             />
         ),
         enableSorting: false,
@@ -41,23 +44,23 @@ export const buildColumns = (
     },
     {
         accessorKey: 'id',
-        header: 'ID',
+        header: t('branches.table.id', 'ID'),
     },
     {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('branches.table.name', 'Name'),
     },
     {
         accessorKey: 'country',
-        header: 'Country',
+        header: t('branches.table.country', 'Country'),
     },
     {
         accessorKey: 'province',
-        header: 'Province',
+        header: t('branches.table.province', 'Province'),
     },
     {
         id: 'kitchens',
-        header: 'Kitchens',
+        header: t('branches.table.kitchens', 'Kitchens'),
         cell: ({ row }) => {
             const kitchens = row.original.kitchens ?? [];
             const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
@@ -66,7 +69,7 @@ export const buildColumns = (
             if (kitchens.length === 0) {
                 return (
                     <span className="text-xs text-muted-foreground">
-                        No kitchens
+                        {t('branches.common.noKitchens', 'No kitchens')}
                     </span>
                 );
             }
@@ -89,7 +92,10 @@ export const buildColumns = (
                                         variant="outline"
                                         className="cursor-help"
                                     >
-                                        +{hidden.length} more
+                                        {t(
+                                            'branches.table.moreKitchens',
+                                            '+:count more',
+                                        ).replace(':count', String(hidden.length))}
                                     </Badge>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -114,37 +120,39 @@ export const buildColumns = (
     },
     {
         accessorKey: 'address',
-        header: 'Address',
+        header: t('branches.table.address', 'Address'),
     },
     {
         accessorKey: 'is_active',
-        header: 'Status',
+        header: t('branches.table.status', 'Status'),
         cell: ({ row }) => {
             const active = row.getValue('is_active');
             return active ? (
                 <Badge className="flex items-center gap-1 bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
                     <BadgeCheck className="h-4 w-4 text-green-600" />
-                    Active
+                    {t('branches.statuses.active', 'Active')}
                 </Badge>
             ) : (
                 <Badge className="flex items-center gap-1 bg-red-100 text-neutral-800 dark:bg-red-200">
                     <Ban className="h-4 w-4 text-red-600" />
-                    Inactive
+                    {t('branches.statuses.inactive', 'Inactive')}
                 </Badge>
             );
         },
     },
     {
         accessorKey: 'created_at',
-        header: 'Created At',
+        header: t('branches.table.createdAt', 'Created At'),
         cell: ({ row }) => {
             const date = new Date(row.getValue('created_at'));
-            return date.toLocaleDateString();
+            return new Intl.DateTimeFormat(
+                locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+            ).format(date);
         },
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: t('branches.table.actions', 'Actions'),
         cell: ({ row }) => (
             <CellAction
                 data={row.original}
