@@ -34,7 +34,9 @@ export default defineConfig({
                         return undefined;
                     }
                     if (id.includes('@radix-ui') || id.includes('radix-ui')) {
-                        return 'vendor-radix';
+                        // Return undefined so Rollup determines the correct split
+                        // itself — avoids TDZ errors from circular deps in one merged chunk.
+                        return undefined;
                     }
                     if (id.includes('@tanstack/')) {
                         return 'vendor-tanstack';
