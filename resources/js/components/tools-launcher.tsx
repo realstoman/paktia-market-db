@@ -906,7 +906,9 @@ export function ToolsLauncher() {
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={countryName}
                                 onChange={(event) =>
@@ -916,7 +918,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 maxLength={2}
                                 value={countryCode}
@@ -927,7 +931,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Currency Code</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.currencyCode',
+                                    'Currency Code',
+                                )}
+                            </Label>
                             <Input
                                 maxLength={3}
                                 value={countryCurrencyCode}
@@ -945,7 +954,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.currency_code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Currency Symbol</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.currencySymbol',
+                                    'Currency Symbol',
+                                )}
+                            </Label>
                             <Input
                                 value={countryCurrencySymbol}
                                 onChange={(event) =>
@@ -1061,21 +1075,31 @@ export function ToolsLauncher() {
                     <div className="grid gap-6 sm:grid-cols-[320px_minmax(0,1fr)]">
                         <div className="grid gap-4 rounded-md border p-4">
                             <div className="grid gap-2">
-                                <Label>Country</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.country', 'Country')}
+                                </Label>
                                 <SearchableDropdown
                                     value={provinceCountryId}
                                     options={countryOptions.filter(
                                         (option) => option.value !== '',
                                     )}
                                     onValueChange={setProvinceCountryId}
-                                    placeholder="Select country"
+                                    placeholder={t(
+                                        'toolsLauncher.placeholders.selectCountry',
+                                        'Select country',
+                                    )}
                                     searchPlaceholder="Search countries..."
                                     emptyText="No countries found."
                                 />
                                 <InputError message={errors.country_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>City Name</Label>
+                                <Label>
+                                    {t(
+                                        'toolsLauncher.fields.cityName',
+                                        'City Name',
+                                    )}
+                                </Label>
                                 <Input
                                     value={provinceName}
                                     onChange={(event) =>
@@ -1118,7 +1142,10 @@ export function ToolsLauncher() {
                                 value={provinceFilterCountryId}
                                 options={countryOptions}
                                 onValueChange={setProvinceFilterCountryId}
-                                placeholder="All countries"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.allCountries',
+                                    'All countries',
+                                )}
                                 searchPlaceholder="Search countries..."
                                 emptyText="No countries found."
                                 className="sm:w-[240px]"
@@ -1223,7 +1250,9 @@ export function ToolsLauncher() {
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={currencyName}
                                 onChange={(event) =>
@@ -1233,7 +1262,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 maxLength={3}
                                 value={currencyCode}
@@ -1244,7 +1275,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Symbol</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.symbol', 'Symbol')}
+                            </Label>
                             <Input
                                 value={currencySymbol}
                                 onChange={(event) =>
@@ -1357,29 +1390,44 @@ export function ToolsLauncher() {
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 value={discountCardName}
                                 onChange={(event) =>
                                     setDiscountCardName(event.target.value)
                                 }
-                                placeholder="Platinum"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardName',
+                                    'Platinum',
+                                )}
                             />
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Code</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.code', 'Code')}
+                            </Label>
                             <Input
                                 value={discountCardCode}
                                 onChange={(event) =>
                                     setDiscountCardCode(event.target.value)
                                 }
-                                placeholder="PLATINUM-15"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardCode',
+                                    'PLATINUM-15',
+                                )}
                             />
                             <InputError message={errors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Discount Type</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.discountType',
+                                    'Discount Type',
+                                )}
+                            </Label>
                             <Select
                                 value={discountCardType}
                                 onValueChange={(value) =>
@@ -1389,7 +1437,12 @@ export function ToolsLauncher() {
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'toolsLauncher.placeholders.selectType',
+                                            'Select type',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="percentage">
@@ -1405,8 +1458,14 @@ export function ToolsLauncher() {
                         <div className="grid gap-2">
                             <Label>
                                 {discountCardType === 'percentage'
-                                    ? 'Percentage'
-                                    : 'Fixed Amount'}
+                                    ? t(
+                                          'toolsLauncher.fields.percentage',
+                                          'Percentage',
+                                      )
+                                    : t(
+                                          'toolsLauncher.fields.fixedAmount',
+                                          'Fixed Amount',
+                                      )}
                             </Label>
                             <NumericInput
                                 min="0"
@@ -1416,7 +1475,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.discount_value} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Max Discount (Optional)</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.maxDiscountOptional',
+                                    'Max Discount (Optional)',
+                                )}
+                            </Label>
                             <NumericInput
                                 min="0"
                                 value={discountCardMaxAmount}
@@ -1425,7 +1489,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.max_discount_amount} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.description',
+                                    'Description',
+                                )}
+                            </Label>
                             <Input
                                 value={discountCardDescription}
                                 onChange={(event) =>
@@ -1433,7 +1502,10 @@ export function ToolsLauncher() {
                                         event.target.value,
                                     )
                                 }
-                                placeholder="VIP repeat customer card"
+                                placeholder={t(
+                                    'toolsLauncher.placeholders.discountCardDescription',
+                                    'VIP repeat customer card',
+                                )}
                             />
                             <InputError message={errors.description} />
                         </div>
@@ -1579,7 +1651,12 @@ export function ToolsLauncher() {
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Store Name</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.storeName',
+                                    'Store Name',
+                                )}
+                            </Label>
                             <Input
                                 value={vendorName}
                                 onChange={(event) =>
@@ -1589,7 +1666,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Category</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.category', 'Category')}
+                            </Label>
                             <Input
                                 value={vendorCategory}
                                 onChange={(event) =>
@@ -1599,7 +1678,12 @@ export function ToolsLauncher() {
                             <InputError message={errors.category} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Contact Person</Label>
+                            <Label>
+                                {t(
+                                    'toolsLauncher.fields.contactPerson',
+                                    'Contact Person',
+                                )}
+                            </Label>
                             <Input
                                 value={vendorContact}
                                 onChange={(event) =>
@@ -1609,7 +1693,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.contact_person} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Phone</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.phone', 'Phone')}
+                            </Label>
                             <Input
                                 value={vendorPhone}
                                 onChange={(event) =>
@@ -1619,7 +1705,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.phone} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Email</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.email', 'Email')}
+                            </Label>
                             <Input
                                 value={vendorEmail}
                                 onChange={(event) =>
@@ -1629,7 +1717,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.email} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Address</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.address', 'Address')}
+                            </Label>
                             <Input
                                 value={vendorAddress}
                                 onChange={(event) =>
@@ -1639,7 +1729,9 @@ export function ToolsLauncher() {
                             <InputError message={errors.address} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label>Notes</Label>
+                            <Label>
+                                {t('toolsLauncher.fields.notes', 'Notes')}
+                            </Label>
                             <Input
                                 value={vendorNotes}
                                 onChange={(event) =>
@@ -1805,20 +1897,30 @@ export function ToolsLauncher() {
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label>Title</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.title', 'Title')}
+                                </Label>
                                 <Input
                                     value={bannerTitle}
                                     onChange={(event) =>
                                         setBannerTitle(event.target.value)
                                     }
-                                    placeholder="Qabuli Palaw Special"
+                                    placeholder={t(
+                                        'toolsLauncher.placeholders.bannerTitle',
+                                        'Qabuli Palaw Special',
+                                    )}
                                 />
                                 <InputError message={errors.title} />
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label>Banner Type</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.bannerType',
+                                            'Banner Type',
+                                        )}
+                                    </Label>
                                     <select
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={bannerType}
@@ -1844,7 +1946,12 @@ export function ToolsLauncher() {
                                     <InputError message={errors.banner_type} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>Link Type</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.linkType',
+                                            'Link Type',
+                                        )}
+                                    </Label>
                                     <select
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         value={bannerLinkType}
@@ -1866,7 +1973,12 @@ export function ToolsLauncher() {
                                     <InputError message={errors.link_type} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>Sort Order</Label>
+                                    <Label>
+                                        {t(
+                                            'toolsLauncher.fields.sortOrder',
+                                            'Sort Order',
+                                        )}
+                                    </Label>
                                     <NumericInput
                                         min="0"
                                         value={bannerSortOrder}
@@ -1877,7 +1989,9 @@ export function ToolsLauncher() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Link</Label>
+                                <Label>
+                                    {t('toolsLauncher.fields.link', 'Link')}
+                                </Label>
                                 <Input
                                     value={bannerLink}
                                     onChange={(event) =>
@@ -1907,7 +2021,12 @@ export function ToolsLauncher() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Banner Image</Label>
+                                <Label>
+                                    {t(
+                                        'toolsLauncher.fields.bannerImage',
+                                        'Banner Image',
+                                    )}
+                                </Label>
                                 <Input
                                     type="file"
                                     accept="image/png,image/jpeg,image/jpg,image/webp"
