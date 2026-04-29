@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Select,
@@ -59,6 +60,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     kitchens,
     isLoading = false,
 }) => {
+    const { t, locale } = useLocalization();
     const { can } = useAuthorization();
     const canCreateBranch = can('branch.create');
     const canUpdateBranch = can('branch.update');
@@ -118,7 +120,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Branch created successfully.');
+                    toast.success(
+                        t(
+                            'branches.feedback.branchCreated',
+                            'Branch created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -133,14 +140,14 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
     };
 
     const tableColumns = useMemo(
-        () => buildColumns(countries, provinces, kitchens),
-        [countries, provinces, kitchens],
+        () => buildColumns(countries, provinces, kitchens, t, locale),
+        [countries, provinces, kitchens, t, locale],
     );
     const countryFilterOptions = useMemo(
         () => [
             {
                 value: '',
-                label: 'All countries',
+                label: t('branches.filters.allCountries', 'All countries'),
             },
             ...countries.map((country) => ({
                 value: String(country.id),
@@ -153,7 +160,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         () => [
             {
                 value: '',
-                label: 'All cities',
+                label: t('branches.filters.allCities', 'All cities'),
             },
             ...provinces
                 .filter((province) => {
@@ -317,8 +324,11 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Restaurant Branches: ${formatNumber(data.length)}`}
-                    description="Manage restaurant branches"
+                    title={`${t('branches.page.title', 'Restaurant Branches')}: ${formatNumber(data.length)}`}
+                    description={t(
+                        'branches.page.description',
+                        'Manage restaurant branches',
+                    )}
                 />
                 <div className="flex items-center gap-2">
                     {canUpdateBranch ? (
@@ -328,7 +338,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             className="gap-2"
                         >
                             <Table2 className="h-4 w-4" />
-                            Manage Tables
+                            {t('branches.actions.manageTables', 'Manage Tables')}
                         </Button>
                     ) : null}
                     {canCreateBranch ? (
@@ -337,7 +347,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             className="gap-2"
                         >
                             <Plus className="h-4 w-4" />
-                            Add New
+                            {t('branches.actions.addNew', 'Add New')}
                         </Button>
                     ) : null}
                 </div>
@@ -348,7 +358,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                 columns={tableColumns}
                 data={filteredBranches}
                 isLoading={isLoading}
-                searchPlaceholder="Search branches by name, country or province..."
+                searchPlaceholder={t(
+                    'branches.filters.searchPlaceholder',
+                    'Search branches by name, country or province...',
+                )}
                 toolbar={
                     <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                         <SearchableDropdown
@@ -358,18 +371,36 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 setSelectedCountryFilter(value);
                                 setSelectedProvinceFilter('');
                             }}
-                            placeholder="All countries"
-                            searchPlaceholder="Search countries..."
-                            emptyText="No countries found."
+                            placeholder={t(
+                                'branches.filters.allCountries',
+                                'All countries',
+                            )}
+                            searchPlaceholder={t(
+                                'branches.filters.searchCountries',
+                                'Search countries...',
+                            )}
+                            emptyText={t(
+                                'branches.filters.noCountriesFound',
+                                'No countries found.',
+                            )}
                             className="sm:w-[220px]"
                         />
                         <SearchableDropdown
                             value={selectedProvinceFilter}
                             options={provinceFilterOptions}
                             onValueChange={setSelectedProvinceFilter}
-                            placeholder="All cities"
-                            searchPlaceholder="Search cities..."
-                            emptyText="No cities found."
+                            placeholder={t(
+                                'branches.filters.allCities',
+                                'All cities',
+                            )}
+                            searchPlaceholder={t(
+                                'branches.filters.searchCities',
+                                'Search cities...',
+                            )}
+                            emptyText={t(
+                                'branches.filters.noCitiesFound',
+                                'No cities found.',
+                            )}
                             className="sm:w-[220px]"
                         />
                     </div>
