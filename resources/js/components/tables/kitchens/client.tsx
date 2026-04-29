@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Cuisine,
@@ -73,6 +74,7 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
     kitchenCategories,
     isLoading = false,
 }) => {
+    const { t } = useLocalization();
     const { can } = useAuthorization();
     const canCreateKitchen = can('kitchen.create');
     const canManageKitchenMeta = can('kitchen.update');
@@ -189,7 +191,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Kitchen created successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.created',
+                            'Kitchen created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -219,7 +226,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             router.put(`/kitchen-types/${editingKitchenTypeId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Kitchen type updated successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.typeUpdated',
+                            'Kitchen type updated successfully.',
+                        ),
+                    );
                     resetKitchenTypeForm();
                 },
                 onError: (errors) => setKitchenTypeErrors(errors),
@@ -231,7 +243,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         router.post('/kitchen-types', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Kitchen type created successfully.');
+                toast.success(
+                    t(
+                        'toolbarResources.kitchens.feedback.typeCreated',
+                        'Kitchen type created successfully.',
+                    ),
+                );
                 resetKitchenTypeForm();
             },
             onError: (errors) => setKitchenTypeErrors(errors),
@@ -289,7 +306,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
             router.put(`/cuisines/${editingCuisineId}`, payload, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Cuisine updated successfully.');
+                    toast.success(
+                        t(
+                            'toolbarResources.kitchens.feedback.cuisineUpdated',
+                            'Cuisine updated successfully.',
+                        ),
+                    );
                     resetCuisineForm();
                 },
                 onError: (errors) => setCuisineErrors(errors),
@@ -301,7 +323,12 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         router.post('/cuisines', payload, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Cuisine created successfully.');
+                toast.success(
+                    t(
+                        'toolbarResources.kitchens.feedback.cuisineCreated',
+                        'Cuisine created successfully.',
+                    ),
+                );
                 resetCuisineForm();
             },
             onError: (errors) => setCuisineErrors(errors),
