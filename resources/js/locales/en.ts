@@ -85,6 +85,115 @@ const en = {
         mobileApp: 'Mobile App',
         website: 'Website',
     },
+    toolsLauncher: {
+        common: {
+            loading: 'Loading tools...',
+        },
+        tiles: {
+            countries: 'Countries',
+            cities: 'Cities',
+            currencies: 'Currencies',
+            vendors: 'Vendors',
+            banners: 'Banners',
+            discountCards: 'Discount',
+            cards: 'Cards',
+            kitchens: 'Kitchens',
+        },
+        actions: {
+            clear: 'Clear',
+            edit: 'Edit',
+            delete: 'Delete',
+            saveCountry: 'Save Country',
+            updateCountry: 'Update Country',
+            saveCity: 'Save City',
+            updateCity: 'Update City',
+            saveCurrency: 'Save Currency',
+            updateCurrency: 'Update Currency',
+            saveDiscountCard: 'Save Discount Card',
+            updateDiscountCard: 'Update Discount Card',
+            saveVendor: 'Save Vendor',
+            updateVendor: 'Update Vendor',
+            saveBanner: 'Save Banner',
+            updateBanner: 'Update Banner',
+        },
+        dialogs: {
+            countries: {
+                title: 'Manage Countries',
+                description: 'Country CRUD with currency details.',
+            },
+            cities: {
+                title: 'Manage Cities',
+                description:
+                    'Add, edit, or delete cities and assign them to a country.',
+            },
+            currencies: {
+                title: 'Manage Currencies',
+                description:
+                    'Global currencies for inventory, payments and other modules.',
+            },
+            discountCards: {
+                title: 'Manage Discount Cards',
+                description:
+                    'Create flexible discount cards for percentage or fixed-amount customer benefits.',
+            },
+            vendors: {
+                title: 'Manage Vendors',
+                description: 'Global vendor CRUD for all purchasing modules.',
+            },
+            banners: {
+                title: 'Manage Banners',
+                description:
+                    'Home-screen slider banners for the mobile app. Use internal links for app routes and external links for websites or social pages.',
+            },
+            kitchens: {
+                title: 'Manage Kitchens',
+                description:
+                    'Manage kitchens with the same table columns and actions.',
+            },
+        },
+    },
+    toolbarResources: {
+        kitchens: {
+            heading: {
+                title: 'Kitchens',
+                description: 'Manage kitchens',
+            },
+            actions: {
+                categories: 'Kitchen Categories',
+                cuisines: 'Cuisines',
+                types: 'Kitchen Types',
+                addNew: 'Add New',
+            },
+            searchPlaceholder: 'Search kitchens by name or location...',
+            columns: {
+                selectAll: 'Select all',
+                selectRow: 'Select row',
+                id: 'ID',
+                name: 'Name',
+                kitchenType: 'Kitchen Type',
+                cuisines: 'Cuisines',
+                categories: 'Categories',
+                products: 'Products',
+                status: 'Status',
+                createdAt: 'Created At',
+                actions: 'Actions',
+            },
+            dialogs: {
+                create: {
+                    title: 'Create Kitchen',
+                    description:
+                        'Add a kitchen, choose its station type, and assign one or more cuisines.',
+                },
+            },
+            feedback: {
+                created: 'Kitchen created successfully.',
+                typeCreated: 'Kitchen type created successfully.',
+                typeUpdated: 'Kitchen type updated successfully.',
+                cuisineCreated: 'Cuisine created successfully.',
+                cuisineUpdated: 'Cuisine updated successfully.',
+            },
+        },
+    },
     branches: {
         page: {
             metaTitle: 'Branches',

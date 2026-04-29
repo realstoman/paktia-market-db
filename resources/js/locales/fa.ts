@@ -86,6 +86,116 @@ const fa = {
         mobileApp: 'اپلیکیشن موبایل',
         website: 'وب‌ سایت',
     },
+    toolsLauncher: {
+        common: {
+            loading: 'در حال بارگذاری ابزارها...',
+        },
+        tiles: {
+            countries: 'کشورها',
+            cities: 'شهرها',
+            currencies: 'ارزها',
+            vendors: 'تامین‌کنندگان',
+            banners: 'بنرها',
+            discountCards: 'کارت‌های',
+            cards: 'تخفیف',
+            kitchens: 'آشپزخانه‌ها',
+        },
+        actions: {
+            clear: 'پاک کردن',
+            edit: 'ویرایش',
+            delete: 'حذف',
+            saveCountry: 'ذخیره کشور',
+            updateCountry: 'به‌روزرسانی کشور',
+            saveCity: 'ذخیره شهر',
+            updateCity: 'به‌روزرسانی شهر',
+            saveCurrency: 'ذخیره ارز',
+            updateCurrency: 'به‌روزرسانی ارز',
+            saveDiscountCard: 'ذخیره کارت تخفیف',
+            updateDiscountCard: 'به‌روزرسانی کارت تخفیف',
+            saveVendor: 'ذخیره تامین‌کننده',
+            updateVendor: 'به‌روزرسانی تامین‌کننده',
+            saveBanner: 'ذخیره بنر',
+            updateBanner: 'به‌روزرسانی بنر',
+        },
+        dialogs: {
+            countries: {
+                title: 'مدیریت کشورها',
+                description: 'مدیریت کشورها همراه با جزئیات ارز.',
+            },
+            cities: {
+                title: 'مدیریت شهرها',
+                description:
+                    'افزودن، ویرایش یا حذف شهرها و تعیین کشور برای آنها.',
+            },
+            currencies: {
+                title: 'مدیریت ارزها',
+                description:
+                    'ارزهای سراسری برای موجودی، پرداخت‌ها و سایر بخش‌ها.',
+            },
+            discountCards: {
+                title: 'مدیریت کارت‌های تخفیف',
+                description:
+                    'ایجاد کارت‌های تخفیف انعطاف‌پذیر برای مزایای درصدی یا مبلغ ثابت.',
+            },
+            vendors: {
+                title: 'مدیریت تامین‌کنندگان',
+                description:
+                    'مدیریت سراسری تامین‌کنندگان برای تمام بخش‌های خرید.',
+            },
+            banners: {
+                title: 'مدیریت بنرها',
+                description:
+                    'بنرهای اسلایدر صفحه اصلی برای اپ موبایل. برای مسیرهای داخلی از لینک داخلی و برای وب‌سایت یا شبکه‌های اجتماعی از لینک خارجی استفاده کنید.',
+            },
+            kitchens: {
+                title: 'مدیریت آشپزخانه‌ها',
+                description:
+                    'آشپزخانه‌ها را با همان ستون‌ها و اکشن‌های جدول مدیریت کنید.',
+            },
+        },
+    },
+    toolbarResources: {
+        kitchens: {
+            heading: {
+                title: 'آشپزخانه‌ها',
+                description: 'مدیریت آشپزخانه‌ها',
+            },
+            actions: {
+                categories: 'دسته‌بندی‌های آشپزخانه',
+                cuisines: 'سبک‌های غذایی',
+                types: 'نوع‌های آشپزخانه',
+                addNew: 'افزودن جدید',
+            },
+            searchPlaceholder: 'جستجوی آشپزخانه‌ها بر اساس نام یا موقعیت...',
+            columns: {
+                selectAll: 'انتخاب همه',
+                selectRow: 'انتخاب ردیف',
+                id: 'شناسه',
+                name: 'نام',
+                kitchenType: 'نوع آشپزخانه',
+                cuisines: 'سبک‌های غذایی',
+                categories: 'دسته‌بندی‌ها',
+                products: 'محصولات',
+                status: 'وضعیت',
+                createdAt: 'تاریخ ایجاد',
+                actions: 'عملیات',
+            },
+            dialogs: {
+                create: {
+                    title: 'ایجاد آشپزخانه',
+                    description:
+                        'یک آشپزخانه اضافه کنید، نوع ایستگاه آن را انتخاب کنید و یک یا چند سبک غذایی را تعیین کنید.',
+                },
+            },
+            feedback: {
+                created: 'آشپزخانه با موفقیت ایجاد شد.',
+                typeCreated: 'نوع آشپزخانه با موفقیت ایجاد شد.',
+                typeUpdated: 'نوع آشپزخانه با موفقیت به‌روزرسانی شد.',
+                cuisineCreated: 'سبک غذایی با موفقیت ایجاد شد.',
+                cuisineUpdated: 'سبک غذایی با موفقیت به‌روزرسانی شد.',
+            },
+        },
+    },
     branches: {
         page: {
             metaTitle: 'شعبات',

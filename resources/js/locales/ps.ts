@@ -85,6 +85,115 @@ const ps = {
         mobileApp: 'موبایل اپ',
         website: 'وب ‌سایټ',
     },
+    toolsLauncher: {
+        common: {
+            loading: 'وسایل بارېږي...',
+        },
+        tiles: {
+            countries: 'هیوادونه',
+            cities: 'ښارونه',
+            currencies: 'اسعار',
+            vendors: 'پلورونکي',
+            banners: 'بنرونه',
+            discountCards: 'د تخفیف',
+            cards: 'کارتونه',
+            kitchens: 'پخلنځي',
+        },
+        actions: {
+            clear: 'پاکول',
+            edit: 'سمون',
+            delete: 'حذف',
+            saveCountry: 'هیواد خوندي کړئ',
+            updateCountry: 'هیواد تازه کړئ',
+            saveCity: 'ښار خوندي کړئ',
+            updateCity: 'ښار تازه کړئ',
+            saveCurrency: 'اسعار خوندي کړئ',
+            updateCurrency: 'اسعار تازه کړئ',
+            saveDiscountCard: 'د تخفیف کارت خوندي کړئ',
+            updateDiscountCard: 'د تخفیف کارت تازه کړئ',
+            saveVendor: 'پلورونکی خوندي کړئ',
+            updateVendor: 'پلورونکی تازه کړئ',
+            saveBanner: 'بنر خوندي کړئ',
+            updateBanner: 'بنر تازه کړئ',
+        },
+        dialogs: {
+            countries: {
+                title: 'د هیوادونو مدیریت',
+                description: 'د اسعارو له جزیاتو سره د هیوادونو مدیریت.',
+            },
+            cities: {
+                title: 'د ښارونو مدیریت',
+                description:
+                    'ښارونه زیات، سم یا حذف کړئ او اړوند هیواد ورته وټاکئ.',
+            },
+            currencies: {
+                title: 'د اسعارو مدیریت',
+                description:
+                    'د موجودي، تادیاتو او نورو برخو لپاره عمومي اسعار.',
+            },
+            discountCards: {
+                title: 'د تخفیف کارتونو مدیریت',
+                description:
+                    'د سلنې یا ثابت مقدار ګټو لپاره انعطاف منونکي تخفیفي کارتونه جوړ کړئ.',
+            },
+            vendors: {
+                title: 'د پلورونکو مدیریت',
+                description: 'د ټولو پېرودیزو برخو لپاره د پلورونکو عمومي CRUD.',
+            },
+            banners: {
+                title: 'د بنرونو مدیریت',
+                description:
+                    'د موبایل اپ لپاره د کورپاڼې سلایډر بنرونه. د اپ لارو لپاره داخلي لینکونه او د ویب‌سایټ یا ټولنیزو پاڼو لپاره خارجي لینکونه وکاروئ.',
+            },
+            kitchens: {
+                title: 'د پخلنځیو مدیریت',
+                description:
+                    'پخلنځي د هماغه جدول ستنو او اکشنونو سره مدیریت کړئ.',
+            },
+        },
+    },
+    toolbarResources: {
+        kitchens: {
+            heading: {
+                title: 'پخلنځي',
+                description: 'د پخلنځیو مدیریت',
+            },
+            actions: {
+                categories: 'د پخلنځي کټګورۍ',
+                cuisines: 'پخلي ډولونه',
+                types: 'د پخلنځي ډولونه',
+                addNew: 'نوی اضافه کړئ',
+            },
+            searchPlaceholder: 'پخلنځي د نوم یا ځای له مخې ولټوئ...',
+            columns: {
+                selectAll: 'ټول وټاکئ',
+                selectRow: 'قطار وټاکئ',
+                id: 'شناسه',
+                name: 'نوم',
+                kitchenType: 'د پخلنځي ډول',
+                cuisines: 'پخلي ډولونه',
+                categories: 'کټګورۍ',
+                products: 'محصولات',
+                status: 'حالت',
+                createdAt: 'د جوړېدو نېټه',
+                actions: 'عملیات',
+            },
+            dialogs: {
+                create: {
+                    title: 'پخلنځی جوړ کړئ',
+                    description:
+                        'یو پخلنځی اضافه کړئ، د سټېشن ډول یې وټاکئ او یو یا څو د پخلي ډولونه ورته وټاکئ.',
+                },
+            },
+            feedback: {
+                created: 'پخلنځی په بریالیتوب سره جوړ شو.',
+                typeCreated: 'د پخلنځي ډول په بریالیتوب سره جوړ شو.',
+                typeUpdated: 'د پخلنځي ډول په بریالیتوب سره تازه شو.',
+                cuisineCreated: 'د پخلي ډول په بریالیتوب سره جوړ شو.',
+                cuisineUpdated: 'د پخلي ډول په بریالیتوب سره تازه شو.',
+            },
+        },
+    },
     branches: {
         page: {
             metaTitle: 'څانګې',
