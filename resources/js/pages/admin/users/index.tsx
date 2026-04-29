@@ -2,24 +2,14 @@
 
 import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { UsersClient } from '@/components/tables/users/client';
+import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import users from '@/routes/users';
+import userRoutes from '@/routes/users';
 import { Branch, BreadcrumbItem, Country, Kitchen, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import { Building2, Globe2, ShieldCheck, Users } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-    {
-        title: 'Users',
-        href: users.index().url,
-    },
-];
 
 interface UsersPageProps {
     users: User[];
@@ -38,39 +28,62 @@ export default function UsersPage({
     branches,
     kitchens,
 }: UsersPageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: dashboard().url,
+        },
+        {
+            title: t('navigation.users', 'Users'),
+            href: userRoutes.index().url,
+        },
+    ];
     const activeUsers = users.filter((user) => user.is_active !== false).length;
     const blockedUsers = users.length - activeUsers;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title={t('users.page.metaTitle', 'Users')} />
             <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <SummaryMetricCard
-                        title="Total Users"
+                        title={t('users.cards.total.title', 'Total Users')}
                         value={formatNumber(users.length)}
-                        description="All user accounts currently available."
+                        description={t(
+                            'users.cards.total.description',
+                            'All user accounts currently available.',
+                        )}
                         icon={Users}
                         variant="indigo"
                     />
                     <SummaryMetricCard
-                        title="Active Users"
+                        title={t('users.cards.active.title', 'Active Users')}
                         value={formatNumber(activeUsers)}
-                        description="Users with active account access."
+                        description={t(
+                            'users.cards.active.description',
+                            'Users with active account access.',
+                        )}
                         icon={ShieldCheck}
                         variant="indigo"
                     />
                     <SummaryMetricCard
-                        title="Blocked Users"
+                        title={t('users.cards.blocked.title', 'Blocked Users')}
                         value={formatNumber(blockedUsers)}
-                        description="Users currently blocked from access."
+                        description={t(
+                            'users.cards.blocked.description',
+                            'Users currently blocked from access.',
+                        )}
                         icon={Building2}
                         variant="indigo"
                     />
                     <SummaryMetricCard
-                        title="Countries"
+                        title={t('users.cards.countries.title', 'Countries')}
                         value={formatNumber(countries.length)}
-                        description="Countries available for user assignment."
+                        description={t(
+                            'users.cards.countries.description',
+                            'Countries available for user assignment.',
+                        )}
                         icon={Globe2}
                         variant="indigo"
                     />

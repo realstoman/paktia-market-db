@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -56,6 +57,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     kitchens,
     isLoading = false,
 }) => {
+    const { t, locale } = useLocalization();
     const { can } = useAuthorization();
     const canCreateUser = can('user.create');
     const canViewRoles = can('role.view') || can('roles.manage');
@@ -124,7 +126,12 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('User created successfully.');
+                    toast.success(
+                        t(
+                            'users.feedback.userCreated',
+                            'User created successfully.',
+                        ),
+                    );
                     setIsCreateOpen(false);
                     resetForm();
                 },
@@ -145,32 +152,35 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         )?.[1];
 
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches, kitchens),
-        [roles, countries, provinces, branches, kitchens],
+        () => buildColumns(roles, countries, provinces, branches, kitchens, t, locale),
+        [roles, countries, provinces, branches, kitchens, t, locale],
     );
     const roleFilterOptions = useMemo(
         () => [
-            { value: '', label: 'All roles' },
+            { value: '', label: t('users.filters.allRoles', 'All roles') },
             ...roles.map((role) => ({
                 value: String(role.id),
                 label: role.name,
             })),
         ],
-        [roles],
+        [roles, t],
     );
     const countryFilterOptions = useMemo(
         () => [
-            { value: '', label: 'All countries' },
+            {
+                value: '',
+                label: t('users.filters.allCountries', 'All countries'),
+            },
             ...countries.map((country) => ({
                 value: String(country.id),
                 label: country.name,
             })),
         ],
-        [countries],
+        [countries, t],
     );
     const provinceFilterOptions = useMemo(
         () => [
-            { value: '', label: 'All cities' },
+            { value: '', label: t('users.filters.allCities', 'All cities') },
             ...provinces
                 .filter((province) => {
                     if (!selectedCountryFilter) {
@@ -187,11 +197,14 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     label: province.name,
                 })),
         ],
-        [provinces, selectedCountryFilter],
+        [provinces, selectedCountryFilter, t],
     );
     const branchFilterOptions = useMemo(
         () => [
-            { value: '', label: 'All branches' },
+            {
+                value: '',
+                label: t('users.filters.allBranches', 'All branches'),
+            },
             ...branches
                 .filter((branch) => {
                     const matchesCountry = selectedCountryFilter
@@ -210,7 +223,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     label: branch.name,
                 })),
         ],
-        [branches, selectedCountryFilter, selectedProvinceFilter],
+        [branches, selectedCountryFilter, selectedProvinceFilter, t],
     );
     const createProvinceOptions = useMemo(
         () =>
@@ -287,15 +300,18 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`System Users: ${formatNumber(data.length)}`}
-                    description="Manage system users"
+                    title={`${t('users.page.title', 'System Users')}: ${formatNumber(data.length)}`}
+                    description={t(
+                        'users.page.description',
+                        'Manage system users',
+                    )}
                 />
                 <div className="gap-2">
                     {canViewRoles ? (
                         <Link href="/roles">
                             <Button className="mr-2 gap-2" variant={'outline'}>
                                 <ShieldCheck className="h-4 w-4" />
-                                Roles
+                                {t('users.actions.roles', 'Roles')}
                             </Button>
                         </Link>
                     ) : null}
@@ -305,7 +321,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             className="gap-2"
                         >
                             <Plus className="h-4 w-4" />
-                            Add User
+                            {t('users.actions.addUser', 'Add User')}
                         </Button>
                     ) : null}
                 </div>
@@ -323,16 +339,25 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 columns={tableColumns}
                 data={filteredUsers}
                 isLoading={isLoading}
-                searchPlaceholder="Search users by name or email..."
+                searchPlaceholder={t(
+                    'users.filters.searchPlaceholder',
+                    'Search users by name or email...',
+                )}
                 toolbar={
                     <div className="flex w-full flex-col gap-3 xl:w-auto xl:flex-row">
                         <SearchableDropdown
                             value={selectedRoleFilter}
                             options={roleFilterOptions}
                             onValueChange={setSelectedRoleFilter}
-                            placeholder="All roles"
-                            searchPlaceholder="Search roles..."
-                            emptyText="No roles found."
+                            placeholder={t('users.filters.allRoles', 'All roles')}
+                            searchPlaceholder={t(
+                                'users.filters.searchRoles',
+                                'Search roles...',
+                            )}
+                            emptyText={t(
+                                'users.filters.noRolesFound',
+                                'No roles found.',
+                            )}
                             className="xl:w-[180px]"
                         />
                         <SearchableDropdown
@@ -343,9 +368,18 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 setSelectedProvinceFilter('');
                                 setSelectedBranchFilter('');
                             }}
-                            placeholder="All countries"
-                            searchPlaceholder="Search countries..."
-                            emptyText="No countries found."
+                            placeholder={t(
+                                'users.filters.allCountries',
+                                'All countries',
+                            )}
+                            searchPlaceholder={t(
+                                'users.filters.searchCountries',
+                                'Search countries...',
+                            )}
+                            emptyText={t(
+                                'users.filters.noCountriesFound',
+                                'No countries found.',
+                            )}
                             className="xl:w-[180px]"
                         />
                         <SearchableDropdown
@@ -355,18 +389,33 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 setSelectedProvinceFilter(value);
                                 setSelectedBranchFilter('');
                             }}
-                            placeholder="All cities"
-                            searchPlaceholder="Search cities..."
-                            emptyText="No cities found."
+                            placeholder={t('users.filters.allCities', 'All cities')}
+                            searchPlaceholder={t(
+                                'users.filters.searchCities',
+                                'Search cities...',
+                            )}
+                            emptyText={t(
+                                'users.filters.noCitiesFound',
+                                'No cities found.',
+                            )}
                             className="xl:w-[180px]"
                         />
                         <SearchableDropdown
                             value={selectedBranchFilter}
                             options={branchFilterOptions}
                             onValueChange={setSelectedBranchFilter}
-                            placeholder="All branches"
-                            searchPlaceholder="Search branches..."
-                            emptyText="No branches found."
+                            placeholder={t(
+                                'users.filters.allBranches',
+                                'All branches',
+                            )}
+                            searchPlaceholder={t(
+                                'users.filters.searchBranches',
+                                'Search branches...',
+                            )}
+                            emptyText={t(
+                                'users.filters.noBranchesFound',
+                                'No branches found.',
+                            )}
                             className="xl:w-[180px]"
                         />
                     </div>
@@ -386,28 +435,35 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <UserIcon className="h-5 w-5" />
-                            Create User
+                            {t('users.modals.create.title', 'Create User')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new user and assign roles and location.
+                            {t(
+                                'users.modals.create.description',
+                                'Add a new user and assign roles and location.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="user-name">Name</Label>
+                            <Label htmlFor="user-name">
+                                {t('users.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 id="user-name"
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
                                 }
-                                placeholder="Full name"
+                                placeholder={t('users.placeholders.fullName', 'Full name')}
                             />
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="user-email">Email</Label>
+                            <Label htmlFor="user-email">
+                                {t('users.fields.email', 'Email')}
+                            </Label>
                             <Input
                                 id="user-email"
                                 type="email"
@@ -415,12 +471,17 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 onChange={(event) =>
                                     setEmail(event.target.value)
                                 }
-                                placeholder="user@babataste.com"
+                                placeholder={t(
+                                    'users.placeholders.email',
+                                    'user@babataste.com',
+                                )}
                             />
                             <InputError message={createErrors.email} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="user-password">Password</Label>
+                            <Label htmlFor="user-password">
+                                {t('users.fields.password', 'Password')}
+                            </Label>
                             <div className="relative">
                                 <Input
                                     id="user-password"
@@ -451,7 +512,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="user-password-confirm">
-                                Confirm password
+                                {t(
+                                    'users.fields.confirmPassword',
+                                    'Confirm password',
+                                )}
                             </Label>
                             <div className="relative">
                                 <Input
@@ -486,7 +550,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Role</Label>
+                            <Label>{t('users.fields.role', 'Role')}</Label>
                             <Select
                                 value={roleId}
                                 onValueChange={(value) => {
@@ -502,7 +566,12 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectRole',
+                                            'Select role',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roles.map((role) => (
@@ -519,13 +588,18 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         {isCreateKitchenRole ? (
                             <div className="grid gap-2">
-                                <Label>Kitchen</Label>
+                                <Label>{t('users.fields.kitchen', 'Kitchen')}</Label>
                                 <Select
                                     value={kitchenId}
                                     onValueChange={setKitchenId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select kitchen" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'users.placeholders.selectKitchen',
+                                                'Select kitchen',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {kitchens.map((kitchen) => (
@@ -543,7 +617,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             </div>
                         ) : null}
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>{t('users.fields.country', 'Country')}</Label>
                             <Select
                                 value={countryId}
                                 onValueChange={(value) => {
@@ -555,7 +629,12 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectCountry',
+                                            'Select country',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {countries.map((country) => (
@@ -571,7 +650,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <InputError message={createErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
+                            <Label>{t('users.fields.province', 'Province')}</Label>
                             <Select
                                 value={provinceId}
                                 onValueChange={(value) => {
@@ -582,7 +661,12 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectProvince',
+                                            'Select province',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {createProvinceOptions.map((province) => (
@@ -598,13 +682,18 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <InputError message={createErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>{t('users.fields.branch', 'Branch')}</Label>
                             <Select
                                 value={branchId}
                                 onValueChange={setBranchId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select branch" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'users.placeholders.selectBranch',
+                                            'Select branch',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {createBranchOptions.map((branch) => (
@@ -628,7 +717,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
@@ -640,7 +729,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             }
                         >
                             <Plus className="mr-2 h-4 w-4" />
-                            Create User
+                            {t('users.modals.create.submit', 'Create User')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
