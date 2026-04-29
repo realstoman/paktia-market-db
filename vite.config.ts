@@ -26,11 +26,9 @@ export default defineConfig({
     },
     build: {
         target: 'es2022',
-        // Split heavy vendor groups into their own chunks so individual
-        // page bundles stay small and the browser can long-cache the
-        // libraries that don't change between deploys.
         rollupOptions: {
             output: {
+                hoistTransitiveImports: false,
                 manualChunks(id) {
                     if (!id.includes('node_modules')) {
                         return undefined;
