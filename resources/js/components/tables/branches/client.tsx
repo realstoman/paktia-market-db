@@ -154,7 +154,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                 label: country.name,
             })),
         ],
-        [countries],
+        [countries, t],
     );
     const provinceFilterOptions = useMemo(
         () => [
@@ -178,7 +178,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     label: province.name,
                 })),
         ],
-        [provinces, selectedCountryFilter],
+        [provinces, selectedCountryFilter, t],
     );
     const createProvinceOptions = useMemo(
         () =>
