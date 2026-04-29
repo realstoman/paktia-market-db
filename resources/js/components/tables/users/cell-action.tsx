@@ -769,18 +769,29 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {data.is_active ? 'Block user' : 'Unblock user'}
+                            {data.is_active
+                                ? t('users.modals.block.title', 'Block user')
+                                : t(
+                                      'users.modals.unblock.title',
+                                      'Unblock user',
+                                  )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will prevent the user from signing in.'
-                                : 'This will restore access for the user.'}
+                                ? t(
+                                      'users.modals.block.description',
+                                      'This will prevent the user from signing in.',
+                                  )
+                                : t(
+                                      'users.modals.unblock.description',
+                                      'This will restore access for the user.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
@@ -790,12 +801,15 @@ export const CellAction: React.FC<CellActionProps> = ({
                             {data.is_active ? (
                                 <>
                                     <Ban className="mr-2 h-4 w-4" />
-                                    Block user
+                                    {t('users.actions.blockUser', 'Block user')}
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Unblock user
+                                    {t(
+                                        'users.actions.unblockUser',
+                                        'Unblock user',
+                                    )}
                                 </>
                             )}
                         </AlertDialogAction>
@@ -809,16 +823,20 @@ export const CellAction: React.FC<CellActionProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete user</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('users.modals.delete.title', 'Delete user')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the user and revoke all
-                            role assignments.
+                            {t(
+                                'users.modals.delete.description',
+                                'This will permanently remove the user and revoke all role assignments.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
@@ -826,7 +844,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete user
+                            {t('users.actions.deleteUser', 'Delete user')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
