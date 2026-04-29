@@ -5,7 +5,7 @@ import { BranchesClient } from '@/components/tables/branches/client';
 import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import branches from '@/routes/branches';
+import branchRoutes from '@/routes/branches';
 import {
     Branch,
     BranchTable,
@@ -41,7 +41,7 @@ export default function BranchesPage({
         },
         {
             title: t('navigation.branches', 'Branches'),
-            href: branches.index().url,
+            href: branchRoutes.index().url,
         },
     ];
     const activeBranches = branches.filter((branch) => branch.is_active).length;

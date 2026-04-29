@@ -238,7 +238,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Table number created successfully.');
+                    toast.success(
+                        t(
+                            'branches.feedback.tableCreated',
+                            'Table number created successfully.',
+                        ),
+                    );
                     setTableNumber('');
                     setTableTitle('');
                     setTableDescription('');
@@ -281,7 +286,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Table number updated successfully.');
+                    toast.success(
+                        t(
+                            'branches.feedback.tableUpdated',
+                            'Table number updated successfully.',
+                        ),
+                    );
                     setEditingTable(null);
                 },
                 onError: (errors) => {
@@ -311,7 +321,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
         router.delete(`/branch-tables/${deleteTableTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Table number deleted successfully.');
+                toast.success(
+                    t(
+                        'branches.feedback.tableDeleted',
+                        'Table number deleted successfully.',
+                    ),
+                );
                 setDeleteTableTarget(null);
             },
             onFinish: () => {
