@@ -152,7 +152,16 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         )?.[1];
 
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches, kitchens, t, locale),
+        () =>
+            buildColumns(
+                roles,
+                countries,
+                provinces,
+                branches,
+                kitchens,
+                t,
+                locale,
+            ),
         [roles, countries, provinces, branches, kitchens, t, locale],
     );
     const roleFilterOptions = useMemo(
@@ -308,7 +317,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 />
                 <div className="gap-2">
                     {canViewRoles ? (
-                        <Link href="/roles">
+                        <Link href="/roles" className="ml-2">
                             <Button className="mr-2 gap-2" variant={'outline'}>
                                 <ShieldCheck className="h-4 w-4" />
                                 {t('users.actions.roles', 'Roles')}
@@ -320,7 +329,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             onClick={() => setIsCreateOpen(true)}
                             className="gap-2"
                         >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="mr-2 h-4 w-4" />
                             {t('users.actions.addUser', 'Add User')}
                         </Button>
                     ) : null}
@@ -349,7 +358,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             value={selectedRoleFilter}
                             options={roleFilterOptions}
                             onValueChange={setSelectedRoleFilter}
-                            placeholder={t('users.filters.allRoles', 'All roles')}
+                            placeholder={t(
+                                'users.filters.allRoles',
+                                'All roles',
+                            )}
                             searchPlaceholder={t(
                                 'users.filters.searchRoles',
                                 'Search roles...',
@@ -389,7 +401,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 setSelectedProvinceFilter(value);
                                 setSelectedBranchFilter('');
                             }}
-                            placeholder={t('users.filters.allCities', 'All cities')}
+                            placeholder={t(
+                                'users.filters.allCities',
+                                'All cities',
+                            )}
                             searchPlaceholder={t(
                                 'users.filters.searchCities',
                                 'Search cities...',
@@ -456,7 +471,10 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 onChange={(event) =>
                                     setName(event.target.value)
                                 }
-                                placeholder={t('users.placeholders.fullName', 'Full name')}
+                                placeholder={t(
+                                    'users.placeholders.fullName',
+                                    'Full name',
+                                )}
                             />
                             <InputError message={createErrors.name} />
                         </div>
@@ -588,7 +606,9 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         {isCreateKitchenRole ? (
                             <div className="grid gap-2">
-                                <Label>{t('users.fields.kitchen', 'Kitchen')}</Label>
+                                <Label>
+                                    {t('users.fields.kitchen', 'Kitchen')}
+                                </Label>
                                 <Select
                                     value={kitchenId}
                                     onValueChange={setKitchenId}
@@ -617,7 +637,9 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             </div>
                         ) : null}
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.country', 'Country')}</Label>
+                            <Label>
+                                {t('users.fields.country', 'Country')}
+                            </Label>
                             <Select
                                 value={countryId}
                                 onValueChange={(value) => {
@@ -650,7 +672,9 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <InputError message={createErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.province', 'Province')}</Label>
+                            <Label>
+                                {t('users.fields.province', 'Province')}
+                            </Label>
                             <Select
                                 value={provinceId}
                                 onValueChange={(value) => {
