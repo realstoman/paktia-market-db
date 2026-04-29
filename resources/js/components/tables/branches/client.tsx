@@ -420,16 +420,21 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-1">
                             <Building2 className="mr-2 h-5 w-5" />
-                            Create Branch
+                            {t('branches.modals.create.title', 'Create Branch')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new branch and assign its location.
+                            {t(
+                                'branches.modals.create.description',
+                                'Add a new branch and assign its location.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="branch-name">Name</Label>
+                            <Label htmlFor="branch-name">
+                                {t('branches.fields.name', 'Name')}
+                            </Label>
                             <Input
                                 id="branch-name"
                                 value={name}
@@ -440,7 +445,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <InputError message={createErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Country</Label>
+                            <Label>{t('branches.fields.country', 'Country')}</Label>
                             <Select
                                 value={countryId}
                                 onValueChange={(value) => {
@@ -451,7 +456,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'branches.placeholders.selectCountry',
+                                            'Select country',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {countries.map((country) => (
@@ -467,7 +477,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <InputError message={createErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Province</Label>
+                            <Label>{t('branches.fields.province', 'Province')}</Label>
                             <Select
                                 value={provinceId}
                                 onValueChange={setProvinceId}
@@ -477,7 +487,12 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select province" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'branches.placeholders.selectProvince',
+                                            'Select province',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {createProvinceOptions.map((province) => (
@@ -493,7 +508,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <InputError message={createErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="branch-address">Address</Label>
+                            <Label htmlFor="branch-address">
+                                {t('branches.fields.address', 'Address')}
+                            </Label>
                             <Input
                                 id="branch-address"
                                 value={address}
@@ -505,7 +522,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
                             <Label htmlFor="branch-description">
-                                Description
+                                {t('branches.fields.description', 'Description')}
                             </Label>
                             <Textarea
                                 id="branch-description"
@@ -525,7 +542,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateSubmit}
@@ -537,7 +554,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            Create Branch
+                            {t('branches.modals.create.submit', 'Create Branch')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -551,23 +568,34 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Table2 className="h-5 w-5" />
-                            Manage Branch Tables
+                            {t(
+                                'branches.modals.tables.title',
+                                'Manage Branch Tables',
+                            )}
                         </DialogTitle>
                         <DialogDescription>
-                            Create and manage table numbers by branch.
+                            {t(
+                                'branches.modals.tables.description',
+                                'Create and manage table numbers by branch.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label>Branch</Label>
+                                <Label>{t('branches.fields.branch', 'Branch')}</Label>
                                 <Select
                                     value={manageBranchId}
                                     onValueChange={setManageBranchId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select branch" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'branches.placeholders.selectBranch',
+                                                'Select branch',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {data.map((branch) => (
@@ -586,7 +614,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
 
                         <div className="grid gap-4 rounded-md border border-neutral-200 p-4 sm:grid-cols-2 dark:border-neutral-800">
                             <div className="grid gap-2">
-                                <Label>Table Number</Label>
+                                <Label>
+                                    {t('branches.fields.tableNumber', 'Table Number')}
+                                </Label>
                                 <Input
                                     value={tableNumber}
                                     onChange={(event) =>
@@ -598,7 +628,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Title</Label>
+                                <Label>{t('branches.fields.title', 'Title')}</Label>
                                 <Input
                                     value={tableTitle}
                                     onChange={(event) =>
@@ -608,7 +638,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                 <InputError message={tableErrors.title} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
-                                <Label>Description</Label>
+                                <Label>
+                                    {t('branches.fields.description', 'Description')}
+                                </Label>
                                 <Textarea
                                     value={tableDescription}
                                     onChange={(event) =>
@@ -629,20 +661,29 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                     className="gap-2"
                                 >
                                     <Plus className="h-4 w-4" />
-                                    Create Table Number
+                                    {t(
+                                        'branches.modals.tables.createTable',
+                                        'Create Table Number',
+                                    )}
                                 </Button>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <h3 className="text-sm font-medium">
-                                Existing Table Numbers
+                                {t(
+                                    'branches.modals.tables.existingTables',
+                                    'Existing Table Numbers',
+                                )}
                             </h3>
                             <ScrollArea className="h-[280px] rounded-md border border-neutral-200 p-2 dark:border-neutral-800">
                                 <div className="space-y-2">
                                     {filteredBranchTables.length === 0 ? (
                                         <p className="p-2 text-sm text-muted-foreground">
-                                            No table numbers available.
+                                            {t(
+                                                'branches.modals.tables.noTables',
+                                                'No table numbers available.',
+                                            )}
                                         </p>
                                     ) : (
                                         filteredBranchTables.map((table) => (
@@ -657,7 +698,10 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
                                                         {table.description ??
-                                                            'No description'}
+                                                            t(
+                                                                'branches.common.noDescription',
+                                                                'No description',
+                                                            )}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -669,7 +713,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                                         }
                                                     >
                                                         <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
+                                                        {t('branches.actions.edit', 'Edit')}
                                                     </Button>
                                                     <Button
                                                         size="sm"
@@ -682,7 +726,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                                                         }
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
-                                                        Trash
+                                                        {t('branches.actions.trash', 'Trash')}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -701,15 +745,25 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             >
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Table Number</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'branches.modals.editTable.title',
+                                'Edit Table Number',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update the selected table details.
+                            {t(
+                                'branches.modals.editTable.description',
+                                'Update the selected table details.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label>Table Number</Label>
+                            <Label>
+                                {t('branches.fields.tableNumber', 'Table Number')}
+                            </Label>
                             <Input
                                 value={editTableNumber}
                                 onChange={(event) =>
@@ -721,7 +775,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Title</Label>
+                            <Label>{t('branches.fields.title', 'Title')}</Label>
                             <Input
                                 value={editTableTitle}
                                 onChange={(event) =>
@@ -731,7 +785,9 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             <InputError message={editTableErrors.title} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t('branches.fields.description', 'Description')}
+                            </Label>
                             <Textarea
                                 value={editTableDescription}
                                 onChange={(event) =>
@@ -749,7 +805,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             disabled={isSubmitting}
                         >
                             <X className="mr-2 h-4 w-4" />
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleUpdateTable}
@@ -760,7 +816,7 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
                             }
                         >
                             <Save className="mr-2 h-4 w-4" />
-                            Update
+                            {t('branches.actions.update', 'Update')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -775,23 +831,41 @@ export const BranchesClient: React.FC<BranchesClientProps> = ({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete table</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('branches.modals.deleteTable.title', 'Delete table')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deleteTableTarget
-                                ? `This will permanently delete table ${deleteTableTarget.table_number}${deleteTableTarget.title ? ` (${deleteTableTarget.title})` : ''}.`
-                                : 'This will permanently delete the selected table.'}
+                                ? t(
+                                      'branches.modals.deleteTable.descriptionWithName',
+                                      'This will permanently delete table :number:name.',
+                                  )
+                                      .replace(
+                                          ':number',
+                                          deleteTableTarget.table_number,
+                                      )
+                                      .replace(
+                                          ':name',
+                                          deleteTableTarget.title
+                                              ? ` (${deleteTableTarget.title})`
+                                              : '',
+                                      )
+                                : t(
+                                      'branches.modals.deleteTable.description',
+                                      'This will permanently delete the selected table.',
+                                  )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={confirmDeleteTable}
                             disabled={isSubmitting}
                         >
-                            Delete
+                            {t('branches.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
