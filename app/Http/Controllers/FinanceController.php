@@ -1075,8 +1075,8 @@ class FinanceController extends Controller
                 'branch' => $movement->branch?->name ?? 'All Branches',
                 'account' => $movement->account?->name ?? 'Cash / Bank',
                 'description' => str($movement->movement_type)->replace('_', ' ')->title()->toString(),
-                'debit' => $movement->direction === 'in' ? (float) $movement->amount : 0.0,
-                'credit' => $movement->direction === 'out' ? (float) $movement->amount : 0.0,
+                'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0.0,
+                'credit' => $movement->direction === 'in' ? (float) $movement->amount : 0.0,
                 'status' => str($movement->approval_status ?? 'draft')->headline()->toString(),
             ]);
 
