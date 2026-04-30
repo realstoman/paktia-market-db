@@ -30,6 +30,10 @@ interface SearchableDropdownProps {
     searchPlaceholder?: string;
     emptyText?: string;
     className?: string;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    isLoading?: boolean;
+    loadingText?: string;
 }
 
 export function SearchableDropdown({
@@ -40,9 +44,25 @@ export function SearchableDropdown({
     searchPlaceholder = 'Search...',
     emptyText = 'No results found.',
     className,
+    searchValue,
+    onSearchChange,
+    isLoading = false,
+    loadingText = 'Loading...',
 }: SearchableDropdownProps) {
     const { isRtl } = useLocalization();
     const [open, setOpen] = useState(false);
+    const [internalSearchValue, setInternalSearchValue] = useState('');
+
+    const resolvedSearchValue = searchValue ?? internalSearchValue;
+
+    const handleSearchChange = (value: string) => {
+        if (onSearchChange) {
+            onSearchChange(value);
+            return;
+        }
+
+        setInternalSearchValue(value);
+    };
 
     const selectedLabel = useMemo(
         () => options.find((option) => option.value === value)?.label,
@@ -77,9 +97,13 @@ export function SearchableDropdown({
                     <CommandInput
                         className={cn(isRtl && 'text-right')}
                         placeholder={searchPlaceholder}
+                        value={resolvedSearchValue}
+                        onValueChange={handleSearchChange}
                     />
                     <CommandList>
-                        <CommandEmpty>{emptyText}</CommandEmpty>
+                        <CommandEmpty>
+                            {isLoading ? loadingText : emptyText}
+                        </CommandEmpty>
                         <CommandGroup>
                             {options.map((option) => (
                                 <CommandItem
