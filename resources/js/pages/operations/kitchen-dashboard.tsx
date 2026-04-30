@@ -152,8 +152,8 @@ export function KitchenDashboard({
     useEffect(() => {
         const interval = window.setInterval(() => {
             router.reload({
-                // preserveScroll: true,
-                // preserveState: true,
+                preserveScroll: true,
+                preserveState: true,
                 only: [
                     'mode',
                     'branchId',
