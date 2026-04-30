@@ -738,8 +738,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                       {
                           id: order.customer_id,
                           name: order.customer_name ?? order.customer?.name,
-                          phone:
-                              order.customer_phone ?? order.customer?.phone,
+                          phone: order.customer_phone ?? order.customer?.phone,
                           email: order.customer?.email,
                       },
                   ]
@@ -1658,7 +1657,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => addDraftItem(setItems)}
-                                    className="gap-2"
+                                    className="mt-4 gap-2"
                                 >
                                     <Plus className="h-4 w-4" />
                                     {t('orders.form.addItem', 'Add Item')}
