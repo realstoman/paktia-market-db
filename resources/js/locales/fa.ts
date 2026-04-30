@@ -1054,6 +1054,8 @@ const fa = {
         allTimeSince: 'تمام‌زمان از',
         totalOrdersToday: 'مجموع سفارش‌های امروز',
         afghanDateLabel: 'تاریخ افغانی',
+        printReport: 'چاپ گزارش',
+        downloadReport: 'دانلود CSV',
         details: 'جزئیات',
         statusOrders: 'سفارش‌ها',
         statusOrdersDescription: 'سفارش‌هایی که فعلاً در وضعیت',

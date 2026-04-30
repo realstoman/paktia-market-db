@@ -1047,6 +1047,8 @@ const ps = {
         allTimeSince: 'ټول وخت له',
         totalOrdersToday: 'د نن ټولو امرونو شمېر',
         afghanDateLabel: 'افغاني نېټه',
+        printReport: 'راپور چاپ',
+        downloadReport: 'CSV ډاونلوډ',
         details: 'جزئیات',
         statusOrders: 'امرونه',
         statusOrdersDescription: 'هغه امرونه چې اوس د',
