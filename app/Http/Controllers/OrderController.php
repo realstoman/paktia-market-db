@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Services\Order\OrderService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -37,6 +38,17 @@ class OrderController extends Controller
             isAllTime: $isAllTime,
             user: $request->user(),
         ));
+    }
+
+    public function searchCustomers(Request $request, OrderService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        return response()->json([
+            'data' => $service->searchCustomers($validated['search'] ?? ''),
+        ]);
     }
 
     public function store(Request $request, OrderService $service)

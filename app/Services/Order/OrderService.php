@@ -82,11 +82,7 @@ class OrderService
                 ->orderBy('branch_id')
                 ->orderBy('table_number')
                 ->get(),
-            'customers' => Customer::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->orderBy('phone')
-                ->get(['id', 'name', 'phone', 'email']),
+            'customers' => [],
             'discountCards' => DiscountCard::query()
                 ->active()
                 ->orderBy('name')
@@ -125,6 +121,26 @@ class OrderService
         }
 
         return $date ?? Carbon::today()->toDateString();
+    }
+
+    public function searchCustomers(string $search, int $limit = 15)
+    {
+        $normalized = trim($search);
+
+        return Customer::query()
+            ->where('is_active', true)
+            ->when($normalized !== '', function ($query) use ($normalized) {
+                $query->where(function ($innerQuery) use ($normalized) {
+                    $innerQuery
+                        ->where('name', 'like', "%{$normalized}%")
+                        ->orWhere('phone', 'like', "%{$normalized}%");
+                });
+            })
+            ->orderByRaw("case when name is null or name = '' then 1 else 0 end")
+            ->orderBy('name')
+            ->orderBy('phone')
+            ->limit(max(1, min($limit, 25)))
+            ->get(['id', 'name', 'phone', 'email']);
     }
 
     public function createOrder(array $data, ?int $userId, ?User $user = null): void
