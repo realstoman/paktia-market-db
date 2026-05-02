@@ -1,12 +1,47 @@
 <?php
 
+use App\Models\Branch;
+use App\Models\Country;
+use App\Models\Kitchen;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
 use App\Models\ProductType;
+use App\Models\Province;
+
+function createDigitalTabletMenuBaseData(): array
+{
+    $country = Country::create([
+        'name' => 'Afghanistan',
+        'code' => 'AF',
+        'currency_code' => 'AFN',
+        'currency_symbol' => '؋',
+        'is_active' => true,
+    ]);
+
+    $province = Province::create([
+        'country_id' => $country->id,
+        'name' => 'Kabul',
+    ]);
+
+    $branch = Branch::create([
+        'name' => 'Baba Main',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'is_active' => true,
+    ]);
+
+    $kitchen = Kitchen::create([
+        'branch_id' => $branch->id,
+        'name' => 'Hot Kitchen',
+        'is_active' => true,
+    ]);
+
+    return [$branch, $kitchen];
+}
 
 test('digital tablet menu products endpoint returns the dedicated tablet payload', function () {
-    [, $kitchen] = createProductApiBaseData();
+    [, $kitchen] = createDigitalTabletMenuBaseData();
 
     $category = ProductCategory::create([
         'name' => 'Main Dishes',
@@ -61,11 +96,11 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.product_category_id', $category->id)
         ->assertJsonPath('data.0.type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
-        ->assertJsonPath('data.0.price', 450.0)
+        ->assertJsonPath('data.0.price', 450)
         ->assertJsonPath('data.0.size_prices.0.name', 'Small')
-        ->assertJsonPath('data.0.size_prices.0.price', 400.0)
+        ->assertJsonPath('data.0.size_prices.0.price', 400)
         ->assertJsonPath('data.0.size_prices.1.name', 'Large')
-        ->assertJsonPath('data.0.size_prices.1.price', 650.0)
+        ->assertJsonPath('data.0.size_prices.1.price', 650)
         ->assertJsonPath('data.0.first_image.path', 'products/qabuli-1.jpg')
         ->assertJsonPath('data.0.first_image.url', '/storage/products/qabuli-1.jpg');
 });
