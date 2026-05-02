@@ -80,7 +80,7 @@ interface ProductsClientProps {
 const MAX_IMAGES = 10;
 const FALLBACK_TYPES = ['food', 'beverage', 'dessert', 'bundle'];
 const CATEGORY_IMAGE_DIMENSION_HINT = 'Recommended: 400x167';
-const TYPE_IMAGE_DIMENSION_HINT = 'Recommended: 1920x800 (12:5 ratio)';
+const TYPE_IMAGE_DIMENSION_HINT = 'Recommended: 400x167';
 
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,

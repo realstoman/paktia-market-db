@@ -19,7 +19,7 @@ class ProductController extends Controller
     private const IMAGE_RULE = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
     private const GALLERY_IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
     private const CATEGORY_IMAGE_DIMENSIONS = 'dimensions:min_width=400,min_height=167,ratio=400/167';
-    private const TYPE_IMAGE_DIMENSIONS = 'dimensions:min_width=1200,min_height=500,ratio=12/5';
+    private const TYPE_IMAGE_DIMENSIONS = 'dimensions:min_width=400,min_height=167,ratio=400/167';
 
     public function index()
     {
