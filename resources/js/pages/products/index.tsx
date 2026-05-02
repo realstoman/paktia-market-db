@@ -25,7 +25,7 @@ interface ProductsPageProps {
     sizes: ProductSize[];
 }
 
-const getKitchenIcon = (_kitchenName: string): LucideIcon => ChefHat;
+const getKitchenIcon = (): LucideIcon => ChefHat;
 
 const normalizeKitchenTranslationKey = (name?: string | null) =>
     (name ?? '')
