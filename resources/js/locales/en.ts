@@ -1050,6 +1050,8 @@ const en = {
         allTimeSince: 'All time since',
         totalOrdersToday: 'Total orders today',
         afghanDateLabel: 'Afghan date',
+        printReport: 'Print Report',
+        downloadReport: 'Download CSV',
         details: 'Details',
         statusOrders: 'Orders',
         statusOrdersDescription: 'Orders currently in',

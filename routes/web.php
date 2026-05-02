@@ -164,6 +164,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::middleware('can:'.PermissionEnum::ORDERS_VIEW->value)->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/customers/search', [OrderController::class, 'searchCustomers'])
+            ->name('orders.customers.search');
     });
     Route::middleware('can:'.PermissionEnum::ORDERS_CREATE->value)->group(function () {
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');

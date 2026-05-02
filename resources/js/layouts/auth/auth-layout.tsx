@@ -37,7 +37,14 @@ export default function AuthLayout({
     return (
         <div className="flex min-h-screen min-h-svh w-full">
             {/* Left Side - Auth Forms */}
-            <div className="flex-center flex min-h-screen min-h-svh flex-1 items-stretch justify-center bg-brand-primary p-6 md:p-8 lg:items-center">
+            <div className="relative flex-center flex min-h-screen min-h-svh flex-1 items-stretch justify-center bg-brand-primary p-6 md:p-8 lg:items-center">
+                <div
+                    className={`absolute top-4 z-20 lg:hidden ${
+                        isRtl ? 'left-4' : 'right-4'
+                    }`}
+                >
+                    <LanguageDropdown />
+                </div>
                 <div className="flex min-h-full w-full max-w-lg flex-col items-start justify-between gap-8 py-2 md:py-4 lg:min-h-[calc(100svh-4rem)]">
                     {/* Brand Logo */}
                     <div className="mb-0 flex w-full items-center justify-center sm:mb-12">

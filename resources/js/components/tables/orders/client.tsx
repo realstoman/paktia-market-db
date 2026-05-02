@@ -170,6 +170,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [customerId, setCustomerId] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [customerSearchResults, setCustomerSearchResults] =
+        useState<Customer[]>(customers);
+    const [isCustomerSearchLoading, setIsCustomerSearchLoading] =
+        useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [discountCardId, setDiscountCardId] = useState('');
     const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
@@ -242,6 +247,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setCustomerId('');
         setCustomerName('');
         setCustomerPhone('');
+        setCustomerSearch('');
+        setCustomerSearchResults([]);
         setDeliveryAddress('');
         setDiscountCardId('');
         setItems([emptyItem()]);
@@ -367,6 +374,58 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         const quantity = Number(item.quantity) || 0;
         return total + price * quantity;
     }, 0);
+
+    useEffect(() => {
+        if (!isCreateOpen) {
+            return;
+        }
+
+        const controller = new AbortController();
+        const timeout = window.setTimeout(async () => {
+            setIsCustomerSearchLoading(true);
+
+            try {
+                const params = new URLSearchParams();
+                if (customerSearch.trim()) {
+                    params.set('search', customerSearch.trim());
+                }
+
+                const response = await fetch(
+                    `/orders/customers/search?${params.toString()}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                        signal: controller.signal,
+                    },
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to search customers.');
+                }
+
+                const payload = (await response.json()) as {
+                    data?: Customer[];
+                };
+                setCustomerSearchResults(payload.data ?? []);
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    setCustomerSearchResults([]);
+                }
+            } finally {
+                setIsCustomerSearchLoading(false);
+            }
+        }, 250);
+
+        return () => {
+            controller.abort();
+            window.clearTimeout(timeout);
+        };
+    }, [customerSearch, isCreateOpen]);
+
     const customerOptions = useMemo(
         () => [
             {
@@ -376,7 +435,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                     'Walk-in / New customer',
                 ),
             },
-            ...customers.map((customer) => ({
+            ...customerSearchResults.map((customer) => ({
                 value: String(customer.id),
                 label:
                     [customer.name, customer.phone]
@@ -384,7 +443,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                         .join(' • ') || `Customer #${customer.id}`,
             })),
         ],
-        [customers, t],
+        [customerSearchResults, t],
     );
     const discountCardOptions = useMemo(
         () => [
@@ -672,6 +731,19 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         setCustomerId(order.customer_id ? String(order.customer_id) : '');
         setCustomerName(order.customer_name ?? '');
         setCustomerPhone(order.customer_phone ?? '');
+        setCustomerSearch('');
+        setCustomerSearchResults(
+            order.customer_id
+                ? [
+                      {
+                          id: order.customer_id,
+                          name: order.customer_name ?? order.customer?.name,
+                          phone: order.customer_phone ?? order.customer?.phone,
+                          email: order.customer?.email,
+                      },
+                  ]
+                : [],
+        );
         setDeliveryAddress(order.delivery_address ?? '');
         setDiscountCardId(
             order.discount_card_id ? String(order.discount_card_id) : '',
@@ -1437,10 +1509,12 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     onValueChange={(value) => {
                                         setCustomerId(value);
 
-                                        const selectedCustomer = customers.find(
-                                            (customer) =>
-                                                String(customer.id) === value,
-                                        );
+                                        const selectedCustomer =
+                                            customerSearchResults.find(
+                                                (customer) =>
+                                                    String(customer.id) ===
+                                                    value,
+                                            );
 
                                         if (selectedCustomer) {
                                             setCustomerName(
@@ -1461,6 +1535,13 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     searchPlaceholder={t(
                                         'orders.form.customerSearch',
                                         'Search customers...',
+                                    )}
+                                    searchValue={customerSearch}
+                                    onSearchChange={setCustomerSearch}
+                                    isLoading={isCustomerSearchLoading}
+                                    loadingText={t(
+                                        'orders.form.loadingCustomers',
+                                        'Loading customers...',
                                     )}
                                     emptyText={t(
                                         'orders.form.noCustomersFound',
@@ -1576,7 +1657,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => addDraftItem(setItems)}
-                                    className="gap-2"
+                                    className="mt-4 gap-2"
                                 >
                                     <Plus className="h-4 w-4" />
                                     {t('orders.form.addItem', 'Add Item')}
