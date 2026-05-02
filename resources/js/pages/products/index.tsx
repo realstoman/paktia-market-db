@@ -27,6 +27,14 @@ interface ProductsPageProps {
 
 const getKitchenIcon = (_kitchenName: string): LucideIcon => ChefHat;
 
+const normalizeKitchenTranslationKey = (name?: string | null) =>
+    (name ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
 export default function ProductsPage({
     products,
     categories,
@@ -34,7 +42,7 @@ export default function ProductsPage({
     kitchens,
     sizes,
 }: ProductsPageProps) {
-    const { t } = useLocalization();
+    const { locale, t } = useLocalization();
     const totalProducts = products.length;
     const totalCategories = categories.length;
     const breadcrumbs: BreadcrumbItem[] = [
@@ -69,9 +77,23 @@ export default function ProductsPage({
         return kitchens.map((kitchen) => ({
             id: kitchen.id,
             name: kitchen.name,
+            localizedName:
+                (locale === 'ps'
+                    ? (kitchen as Kitchen & { pashto_name?: string | null })
+                          .pashto_name
+                    : locale === 'fa'
+                      ? (kitchen as Kitchen & { dari_name?: string | null })
+                            .dari_name
+                      : kitchen.name) ||
+                t(
+                    `products.kitchenNames.${normalizeKitchenTranslationKey(
+                        kitchen.name,
+                    )}`,
+                    kitchen.name ?? `Kitchen #${kitchen.id}`,
+                ),
             count: kitchenCountMap.get(kitchen.id) ?? 0,
         }));
-    }, [kitchens, products]);
+    }, [kitchens, locale, products, t]);
 
     const unassignedProductsCount = useMemo(
         () => products.filter((product) => !product.kitchen_id).length,
@@ -115,7 +137,7 @@ export default function ProductsPage({
                         return (
                             <SummaryMetricCard
                                 key={kitchenSummary.id}
-                                title={kitchenSummary.name}
+                                title={kitchenSummary.localizedName}
                                 value={formatNumber(kitchenSummary.count)}
                                 description={t(
                                     'products.mappedToKitchenDescription',

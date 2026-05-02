@@ -1590,6 +1590,23 @@ const en = {
         totalCategories: 'Total Categories',
         totalCategoriesDescription:
             'Categories available for organizing products.',
+        mappedToKitchenDescription: 'Products mapped to this kitchen.',
+        unassignedProducts: 'Unassigned',
+        unassignedProductsDescription:
+            'Products not assigned to any kitchen yet.',
+        kitchenNames: {
+            afghan_foods_kitchen: 'Afghan Foods Kitchen',
+            afghan_dishes_kitchen: 'Afghan Dishes Kitchen',
+            desserts_kitchen: 'Desserts Kitchen',
+            fast_food_kitchen: 'Fast Food Kitchen',
+            grill_kitchen: 'Grill Kitchen',
+            grills_or_kababs_kitchen: 'Grills or Kababs Kitchen',
+            kababs_kitchen: 'Kababs Kitchen',
+            foreign_dishes_kitchen: 'Foreign Dishes Kitchen',
+            hot_kitchen: 'Hot Kitchen',
+            other_branch_kitchen: 'Other Branch Kitchen',
+            salads_kitchen: 'Salads Kitchen',
+        },
         headingTitle: 'Products:',
         headingDescription: 'Manage menu items, categories, types, and pricing',
         manageCategories: 'Manage Categories',
