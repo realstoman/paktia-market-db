@@ -14,7 +14,6 @@ class DigitalTabletMenuProductResource extends JsonResource
             ?->map(fn ($size) => [
                 'id' => $size->id,
                 'name' => $size->name,
-                'code' => $size->code,
                 'price' => isset($size->pivot?->price)
                     ? (float) $size->pivot->price
                     : null,
@@ -28,16 +27,15 @@ class DigitalTabletMenuProductResource extends JsonResource
             'dari_name' => $this->dari_name,
             'pashto_name' => $this->pashto_name,
             'product_category_id' => $this->product_category_id,
-            'type' => $this->type,
+            'product_category_name' => $this->category?->name,
+            'product_type' => $this->type,
             'product_type_id' => $this->product_type_id,
             'price' => (float) $this->base_price,
             'size_prices' => $sizePrices,
-            'first_image' => $firstImage
+            'image' => $firstImage
                 ? [
-                    'id' => $firstImage->id,
                     'path' => $firstImage->path,
                     'url' => $firstImage->url,
-                    'sort_order' => (int) $firstImage->sort_order,
                 ]
                 : null,
         ];

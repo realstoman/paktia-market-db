@@ -17,7 +17,7 @@ class DigitalTabletMenuProductService
             );
 
         return Product::query()
-            ->with(['images', 'sizes'])
+            ->with(['category', 'images', 'sizes'])
             ->where('is_active', true)
             ->orderBy('product_category_id')
             ->orderBy('name')

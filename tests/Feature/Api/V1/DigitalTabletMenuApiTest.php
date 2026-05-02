@@ -94,13 +94,14 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.dari_name', 'قابلی پلو')
         ->assertJsonPath('data.0.pashto_name', 'قابلي پلو')
         ->assertJsonPath('data.0.product_category_id', $category->id)
-        ->assertJsonPath('data.0.type', 'food')
+        ->assertJsonPath('data.0.product_category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
         ->assertJsonPath('data.0.price', 450)
         ->assertJsonPath('data.0.size_prices.0.name', 'Small')
         ->assertJsonPath('data.0.size_prices.0.price', 400)
         ->assertJsonPath('data.0.size_prices.1.name', 'Large')
         ->assertJsonPath('data.0.size_prices.1.price', 650)
-        ->assertJsonPath('data.0.first_image.path', 'products/qabuli-1.jpg')
-        ->assertJsonPath('data.0.first_image.url', '/storage/products/qabuli-1.jpg');
+        ->assertJsonPath('data.0.image.path', 'products/qabuli-1.jpg')
+        ->assertJsonPath('data.0.image.url', '/storage/products/qabuli-1.jpg');
 });
