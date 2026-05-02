@@ -1984,6 +1984,119 @@ export default function OperationsPage({
                         onCompletePayment={handleCompletePayment}
                         isCompletingPayment={isCompletingPayment}
                     />
+                    <Dialog
+                        open={sizePickerProduct !== null}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setSizePickerProduct(null);
+                            }
+                        }}
+                    >
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>
+                                    {sizePickerProduct
+                                        ? localizedProductName(
+                                              sizePickerProduct,
+                                          )
+                                        : 'Select size'}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Choose a size before adding this item to the
+                                    order.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-3">
+                                {(sizePickerProduct?.sizes ?? []).map(
+                                    (size) => {
+                                        const quantity = cartLines
+                                            .filter(
+                                                (line) =>
+                                                    line.productId ===
+                                                        sizePickerProduct?.id &&
+                                                    line.productSizeId ===
+                                                        size.id,
+                                            )
+                                            .reduce(
+                                                (sum, line) =>
+                                                    sum + line.quantity,
+                                                0,
+                                            );
+
+                                        return (
+                                            <div
+                                                key={size.id}
+                                                className="flex items-center justify-between rounded-2xl border border-neutral-200 p-3"
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-[#2f1d0f]">
+                                                        {size.name}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatCurrency(
+                                                            Number(
+                                                                size.pivot
+                                                                    ?.price ??
+                                                                    sizePickerProduct?.base_price ??
+                                                                    0,
+                                                            ),
+                                                        )}{' '}
+                                                        ؋
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-full"
+                                                        disabled={
+                                                            !canEditComposer
+                                                        }
+                                                        onClick={() => {
+                                                            if (
+                                                                sizePickerProduct
+                                                            ) {
+                                                                adjustQuantityForLine(
+                                                                    sizePickerProduct,
+                                                                    size.id,
+                                                                    -1,
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                    <span className="min-w-6 text-center text-sm font-medium">
+                                                        {quantity}
+                                                    </span>
+                                                    <Button
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-full"
+                                                        disabled={
+                                                            !canEditComposer
+                                                        }
+                                                        onClick={() => {
+                                                            if (
+                                                                sizePickerProduct
+                                                            ) {
+                                                                adjustQuantityForLine(
+                                                                    sizePickerProduct,
+                                                                    size.id,
+                                                                    1,
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    },
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             )}
         </AppLayout>
