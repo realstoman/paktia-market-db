@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\BannerController;
+use App\Http\Controllers\Api\V1\DigitalTabletMenuController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,9 @@ Route::get('banners/{banner}', [BannerController::class, 'show'])->name('banners
 
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::get('digital-tablet-menu/products', [DigitalTabletMenuController::class, 'products'])
+    ->name('digital-tablet-menu.products.index');
 
 Route::get('products/categories', [ProductController::class, 'categories'])->name('products.categories.index');
 Route::get('products/categories/{category}', [ProductController::class, 'showCategory'])->name('products.categories.show');

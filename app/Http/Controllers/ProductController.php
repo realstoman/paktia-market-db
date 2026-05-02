@@ -18,7 +18,8 @@ class ProductController extends Controller
 {
     private const IMAGE_RULE = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
     private const GALLERY_IMAGE_RULE = ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
-    private const CATEGORY_TYPE_IMAGE_DIMENSIONS = 'dimensions:min_width=1200,min_height=500,ratio=12/5';
+    private const CATEGORY_IMAGE_DIMENSIONS = 'dimensions:min_width=400,min_height=167,ratio=400/167';
+    private const TYPE_IMAGE_DIMENSIONS = 'dimensions:min_width=400,min_height=167,ratio=400/167';
 
     public function index()
     {
@@ -233,7 +234,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_IMAGE_DIMENSIONS],
         ]);
 
         $imagePath = $request->file('image')?->store('product-categories', 'public');
@@ -261,7 +262,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
+            'image' => [...self::IMAGE_RULE, self::CATEGORY_IMAGE_DIMENSIONS],
         ]);
 
         $payload = [
@@ -314,7 +315,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
+            'image' => [...self::IMAGE_RULE, self::TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $normalizedName = strtolower(trim($validated['name']));
@@ -343,7 +344,7 @@ class ProductController extends Controller
             'description' => 'nullable|string|max:1000',
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
-            'image' => [...self::IMAGE_RULE, self::CATEGORY_TYPE_IMAGE_DIMENSIONS],
+            'image' => [...self::IMAGE_RULE, self::TYPE_IMAGE_DIMENSIONS],
         ]);
 
         $oldName = $type->name;

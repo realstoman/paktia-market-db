@@ -14,15 +14,7 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
-import {
-    Coffee,
-    IceCreamCone,
-    Layers3,
-    Package,
-    Tags,
-    UtensilsCrossed,
-    type LucideIcon,
-} from 'lucide-react';
+import { ChefHat, Layers3, Package, type LucideIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface ProductsPageProps {
@@ -33,58 +25,15 @@ interface ProductsPageProps {
     sizes: ProductSize[];
 }
 
-const getTypeTranslationKey = (typeName: string) => {
-    const normalizedType = typeName.trim().toLowerCase();
+const getKitchenIcon = (): LucideIcon => ChefHat;
 
-    if (normalizedType.includes('food')) {
-        return 'products.typeNames.food';
-    }
-
-    if (
-        normalizedType.includes('dessert') ||
-        normalizedType.includes('desert')
-    ) {
-        return 'products.typeNames.dessert';
-    }
-
-    if (
-        normalizedType.includes('beverage') ||
-        normalizedType.includes('bverage') ||
-        normalizedType.includes('drink')
-    ) {
-        return 'products.typeNames.drinks';
-    }
-
-    if (normalizedType.includes('bundle')) {
-        return 'products.typeNames.bundles';
-    }
-
-    return null;
-};
-
-const getTypeIcon = (typeName: string): LucideIcon => {
-    const normalizedType = typeName.trim().toLowerCase();
-
-    if (normalizedType.includes('food')) {
-        return UtensilsCrossed;
-    }
-
-    if (
-        normalizedType.includes('dessert') ||
-        normalizedType.includes('desert')
-    ) {
-        return IceCreamCone;
-    }
-
-    if (
-        normalizedType.includes('beverage') ||
-        normalizedType.includes('bverage')
-    ) {
-        return Coffee;
-    }
-
-    return Package;
-};
+const normalizeKitchenTranslationKey = (name?: string | null) =>
+    (name ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
 
 export default function ProductsPage({
     products,
@@ -93,8 +42,9 @@ export default function ProductsPage({
     kitchens,
     sizes,
 }: ProductsPageProps) {
-    const { t } = useLocalization();
+    const { locale, t } = useLocalization();
     const totalProducts = products.length;
+    const totalCategories = categories.length;
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('navigation.dashboard', 'Dashboard'),
@@ -106,30 +56,49 @@ export default function ProductsPage({
         },
     ];
 
-    const productsByType = useMemo(() => {
-        const typeCountMap = new Map<string, number>();
+    const productsByKitchen = useMemo(() => {
+        const kitchenCountMap = new Map<number, number>();
 
-        for (const type of types) {
-            typeCountMap.set(type.name.trim().toLowerCase(), 0);
+        for (const kitchen of kitchens) {
+            kitchenCountMap.set(kitchen.id, 0);
         }
 
         for (const product of products) {
-            const normalizedType = (product.type ?? '').trim().toLowerCase();
-            if (!normalizedType) {
+            if (!product.kitchen_id) {
                 continue;
             }
 
-            typeCountMap.set(
-                normalizedType,
-                (typeCountMap.get(normalizedType) ?? 0) + 1,
+            kitchenCountMap.set(
+                product.kitchen_id,
+                (kitchenCountMap.get(product.kitchen_id) ?? 0) + 1,
             );
         }
 
-        return Array.from(typeCountMap.entries()).map(([name, count]) => ({
-            name,
-            count,
+        return kitchens.map((kitchen) => ({
+            id: kitchen.id,
+            name: kitchen.name,
+            localizedName:
+                (locale === 'ps'
+                    ? (kitchen as Kitchen & { pashto_name?: string | null })
+                          .pashto_name
+                    : locale === 'fa'
+                      ? (kitchen as Kitchen & { dari_name?: string | null })
+                            .dari_name
+                      : kitchen.name) ||
+                t(
+                    `products.kitchenNames.${normalizeKitchenTranslationKey(
+                        kitchen.name,
+                    )}`,
+                    kitchen.name ?? `Kitchen #${kitchen.id}`,
+                ),
+            count: kitchenCountMap.get(kitchen.id) ?? 0,
         }));
-    }, [products, types]);
+    }, [kitchens, locale, products, t]);
+
+    const unassignedProductsCount = useMemo(
+        () => products.filter((product) => !product.kitchen_id).length,
+        [products],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -148,34 +117,33 @@ export default function ProductsPage({
                         className="md:col-span-4"
                     />
 
-                    {productsByType.map((typeSummary) => {
-                        const TypeIcon = getTypeIcon(typeSummary.name);
-                        const typeTranslationKey = getTypeTranslationKey(
-                            typeSummary.name,
+                    <SummaryMetricCard
+                        title={t('products.totalCategories', 'Total Categories')}
+                        value={formatNumber(totalCategories)}
+                        description={t(
+                            'products.totalCategoriesDescription',
+                            'Categories currently organizing your products.',
+                        )}
+                        icon={Package}
+                        variant="green"
+                        className="md:col-span-4"
+                    />
+
+                    {productsByKitchen.map((kitchenSummary) => {
+                        const KitchenIcon = getKitchenIcon(
+                            kitchenSummary.name,
                         );
-                        const fallbackTitle = typeSummary.name
-                            .split(' ')
-                            .map(
-                                (part) =>
-                                    part.charAt(0).toUpperCase() +
-                                    part.slice(1),
-                            )
-                            .join(' ');
 
                         return (
                             <SummaryMetricCard
-                                key={typeSummary.name}
-                                title={
-                                    typeTranslationKey
-                                        ? t(typeTranslationKey, fallbackTitle)
-                                        : fallbackTitle
-                                }
-                                value={formatNumber(typeSummary.count)}
+                                key={kitchenSummary.id}
+                                title={kitchenSummary.localizedName}
+                                value={formatNumber(kitchenSummary.count)}
                                 description={t(
-                                    'products.mappedToTypeDescription',
-                                    'Products mapped to this product type.',
+                                    'products.mappedToKitchenDescription',
+                                    'Products mapped to this kitchen.',
                                 )}
-                                icon={TypeIcon}
+                                icon={KitchenIcon}
                                 variant="green"
                                 className="md:col-span-4"
                             />
@@ -183,16 +151,13 @@ export default function ProductsPage({
                     })}
 
                     <SummaryMetricCard
-                        title={t(
-                            'products.totalCategories',
-                            'Total Categories',
-                        )}
-                        value={formatNumber(categories.length)}
+                        title={t('products.unassignedProducts', 'Unassigned')}
+                        value={formatNumber(unassignedProductsCount)}
                         description={t(
-                            'products.totalCategoriesDescription',
-                            'Categories available for organizing products.',
+                            'products.unassignedProductsDescription',
+                            'Products not assigned to any kitchen yet.',
                         )}
-                        icon={Tags}
+                        icon={Package}
                         variant="green"
                         className="md:col-span-4"
                     />

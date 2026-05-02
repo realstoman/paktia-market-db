@@ -1583,6 +1583,24 @@ const ps = {
         totalCategories: 'ټولې کټګورۍ',
         totalCategoriesDescription:
             'هغه کټګورۍ چې د محصولاتو د تنظیم لپاره شته.',
+        mappedToKitchenDescription:
+            'هغه محصولات چې دې پخلنځي ته ټاکل شوي دي.',
+        unassignedProducts: 'نه دي ټاکل شوي',
+        unassignedProductsDescription:
+            'هغه محصولات چې لا تر اوسه کوم پخلنځي ته نه دي ټاکل شوي.',
+        kitchenNames: {
+            afghan_foods_kitchen: 'د افغاني خوړو پخلنځی',
+            afghan_dishes_kitchen: 'د افغاني خوړو پخلنځی',
+            desserts_kitchen: 'د ډیزرټونو پخلنځی',
+            fast_food_kitchen: 'د فاسټ فوډ پخلنځی',
+            grill_kitchen: 'د ګریل پخلنځی',
+            grills_or_kababs_kitchen: 'د ګریل او کبابونو پخلنځی',
+            kababs_kitchen: 'د کبابونو پخلنځی',
+            foreign_dishes_kitchen: 'د بهرنیو خوړو پخلنځی',
+            hot_kitchen: 'ګرمه پخلنځی',
+            other_branch_kitchen: 'د بلې څانګې پخلنځی',
+            salads_kitchen: 'د سلادونو پخلنځی',
+        },
         headingTitle: 'محصولات:',
         headingDescription:
             'د مینو توکي، کټګورۍ، ډولونه او بیې دلته مدیریت کړئ',
