@@ -437,6 +437,81 @@ export function PayrollClient({
         [afghanPayrollMonths],
     );
 
+    const statusOptions = React.useMemo(
+        () => [
+            {
+                value: 'draft',
+                label: t('financePayroll.statuses.draft', 'Draft'),
+            },
+            {
+                value: 'submitted',
+                label: t('financePayroll.statuses.submitted', 'Submitted'),
+            },
+            {
+                value: 'approved',
+                label: t('financePayroll.statuses.approved', 'Approved'),
+            },
+            {
+                value: 'paid',
+                label: t('financePayroll.statuses.paid', 'Paid'),
+            },
+        ],
+        [t],
+    );
+
+    const createStatusOptions = React.useMemo(
+        () => [
+            {
+                value: 'draft',
+                label: t('financePayroll.statuses.draft', 'Draft'),
+            },
+            {
+                value: 'submitted',
+                label: t('financePayroll.statuses.submitted', 'Submitted'),
+            },
+        ],
+        [t],
+    );
+
+    const paymentMethodOptions = React.useMemo(
+        () =>
+            PAYMENT_METHOD_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(
+                    `orders.paymentMethod.${option.value}`,
+                    option.label,
+                ),
+            })),
+        [t],
+    );
+
+    const contractPlanTypeOptions = React.useMemo(
+        () => [
+            {
+                value: 'equal_installments',
+                label: t(
+                    'financePayroll.form.equalInstallments',
+                    'Equal Installments',
+                ),
+            },
+            {
+                value: 'custom_schedule',
+                label: t(
+                    'financePayroll.form.customSchedule',
+                    'Custom Schedule',
+                ),
+            },
+            {
+                value: 'manual_milestones',
+                label: t(
+                    'financePayroll.form.manualMilestones',
+                    'Manual Milestones',
+                ),
+            },
+        ],
+        [t],
+    );
+
     const openCreate = React.useCallback(() => {
         const month =
             currentAfghanPayrollMonth ?? afghanPayrollMonths[0] ?? null;
@@ -2483,68 +2558,3 @@ export function PayrollClient({
         </div>
     );
 }
-    const statusOptions = React.useMemo(
-        () => [
-            { value: 'draft', label: t('financePayroll.statuses.draft', 'Draft') },
-            {
-                value: 'submitted',
-                label: t('financePayroll.statuses.submitted', 'Submitted'),
-            },
-            {
-                value: 'approved',
-                label: t('financePayroll.statuses.approved', 'Approved'),
-            },
-            { value: 'paid', label: t('financePayroll.statuses.paid', 'Paid') },
-        ],
-        [t],
-    );
-
-    const createStatusOptions = React.useMemo(
-        () => [
-            { value: 'draft', label: t('financePayroll.statuses.draft', 'Draft') },
-            {
-                value: 'submitted',
-                label: t('financePayroll.statuses.submitted', 'Submitted'),
-            },
-        ],
-        [t],
-    );
-
-    const paymentMethodOptions = React.useMemo(
-        () =>
-            PAYMENT_METHOD_OPTIONS.map((option) => ({
-                value: option.value,
-                label: t(
-                    `orders.paymentMethod.${option.value}`,
-                    option.label,
-                ),
-            })),
-        [t],
-    );
-
-    const contractPlanTypeOptions = React.useMemo(
-        () => [
-            {
-                value: 'equal_installments',
-                label: t(
-                    'financePayroll.contractForm.equalInstallments',
-                    'Equal Installments',
-                ),
-            },
-            {
-                value: 'custom_schedule',
-                label: t(
-                    'financePayroll.contractForm.customSchedule',
-                    'Custom Schedule',
-                ),
-            },
-            {
-                value: 'manual_milestones',
-                label: t(
-                    'financePayroll.contractForm.manualMilestones',
-                    'Manual Milestones',
-                ),
-            },
-        ],
-        [t],
-    );
