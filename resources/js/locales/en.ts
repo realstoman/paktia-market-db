@@ -6,6 +6,9 @@ const en = {
         save: 'Save',
         cancel: 'Cancel',
         saved: 'Saved',
+        open: 'Open',
+        reset: 'Reset',
+        dashboard: 'Dashboard',
         settings: 'Settings',
         profile: 'Profile',
         password: 'Password',
@@ -1037,6 +1040,213 @@ const en = {
             shiftCreated: 'Shift created.',
             shiftUpdated: 'Shift updated.',
             shiftDeleted: 'Shift deleted.',
+        },
+    },
+    financeDashboard: {
+        pageTitle: 'Finance Dashboard',
+        eyebrow: 'Finance Dashboard',
+        hero: {
+            title: 'Financial control center for revenue, payroll, expenses, inventory, and cash.',
+            description:
+                'This is the finance dashboard which is designed around the accounting foundation: chart of accounts, ledger postings, payroll, advances, cash movements, and inventory valuation.',
+            ledgerAccounts: 'Ledger Accounts',
+            approvalQueue: 'Approval Queue',
+        },
+        projection: {
+            title: 'Projection Health',
+            transactionalFallback:
+                'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.',
+            lastProjectedAt: 'Last projected at :date',
+            noTimestamp: 'No projection timestamp recorded yet',
+            message: {
+                current:
+                    'Projection data is current for the selected finance view.',
+                lagging:
+                    'Some branch projections are lagging behind the selected finance window.',
+                stale:
+                    'Projection data is stale. Finance metrics may be outdated until projections refresh.',
+                unavailable:
+                    'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
+            },
+        },
+        filters: {
+            title: 'Filters',
+            description:
+                'Slice the finance dashboard by period, branch, payment method, and expense category.',
+            branch: 'Branch',
+            paymentMethod: 'Payment Method',
+            expenseCategory: 'Expense Category',
+            startDate: 'Start Date',
+            endDate: 'End Date',
+            apply: 'Apply Filters',
+            allBranches: 'All branches',
+            allMethods: 'All methods',
+            allCategories: 'All categories',
+            searchExpenseCategory: 'Search expense category...',
+            noExpenseCategoryFound: 'No expense category found.',
+            range: {
+                today: 'Today',
+                yesterday: 'Yesterday',
+                this_week: 'This Week',
+                this_month: 'This Month',
+                custom: 'Custom',
+            },
+        },
+        summary: {
+            sales: 'Sales',
+            salesSubtitle: 'Completed order revenue in selected period',
+            expenses: 'Expenses',
+            expensesSubtitle: 'Recorded operational expenses',
+            grossProfit: 'Gross Profit',
+            netProfit: 'Net Profit',
+            netProfitSubtitle:
+                'Sales minus expenses, before unposted finance adjustments',
+            cashPosition: 'Cash Position',
+            employeeCovered: 'Employee Covered',
+            employeeCoveredSubtitle:
+                'Orders paid by employees on behalf of guests',
+            restaurantHospitality: 'Restaurant Hospitality',
+            restaurantHospitalitySubtitle:
+                'Hospitality and complimentary orders excluded from sales',
+            unpaidSalaries: 'Unpaid Salaries',
+            unpaidSalariesSubtitle:
+                'Current month salary and scheduled contract liabilities',
+            inventoryValue: 'Inventory Value',
+            inventoryValueSubtitle:
+                'Current stock value from quantity and unit cost',
+            supplierBalances: 'Supplier Balances',
+            supplierBalancesSubtitle:
+                'Unpaid vendor balance from stock purchases',
+            pending: 'Pending',
+        },
+        notes: {
+            grossProfitRecognized:
+                'Recognized using recorded sales minus average inventory cost.',
+            grossProfitPending:
+                'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
+            cashPosition:
+                'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+        },
+        charts: {
+            revenueExpenseTitle: 'Revenue, Expense, and Operating Result',
+            revenueExpenseDescription:
+                'Daily trend for the selected finance window.',
+            coverageTitle: 'Sales vs Covered Orders',
+            coverageDescription:
+                'Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.',
+            branchRevenueTitle: 'Branch-wise Revenue',
+            branchRevenueDescription:
+                'Compare completed order revenue by branch.',
+            expenseCategoriesTitle: 'Top Expense Categories',
+            expenseCategoriesDescription:
+                'Expense concentration in the selected period.',
+            noExpenseCategories:
+                'No expense categories were found for the selected filters.',
+        },
+        ledger: {
+            title: 'Ledger Readiness',
+            description:
+                'Live accounting activity from posted operations and pending finance records.',
+            accounts: 'Accounts',
+            postedEntries: 'Posted Entries',
+            postedEntriesDescription:
+                'Approved expenses, approved cash movements, completed sales, and posted journals',
+            draftEntries: 'Draft Entries',
+            draftEntriesDescription:
+                'Draft expenses, draft cash movements, and unposted journal drafts',
+            approvalQueue: 'Approval Queue',
+            approvalQueueDescription:
+                'Submitted records waiting for manager approval',
+            note:
+                'These numbers now reflect real operational finance activity. When automatic journal posting is fully enabled, this same area will transition from operational entries to strict accounting journals without changing the workflow for your team.',
+        },
+        modules: {
+            title: 'Finance Modules',
+            description:
+                'Open finance areas from here so the dashboard filters stay focused on analytics.',
+            names: {
+                chartOfAccounts: 'Chart of Accounts',
+                generalLedger: 'General Ledger',
+                expenses: 'Expenses',
+                payroll: 'Payroll',
+                employeeAdvances: 'Employee Advances',
+                cashBank: 'Cash & Bank',
+                inventoryValuation: 'Inventory Valuation',
+            },
+            descriptions: {
+                chartOfAccounts:
+                    'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
+                generalLedger:
+                    'Review entries generated from completed orders, approved expenses, and manual journals.',
+                expenses:
+                    'Track business expenses with approval status and accounting impact.',
+                payroll:
+                    'Process monthly payroll, contract payouts, and salary-linked deductions.',
+                employeeAdvances:
+                    'Record employee advances and keep payroll deductions aligned with settlement.',
+                cashBank:
+                    'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
+                inventoryValuation:
+                    'Follow weighted average costing, stock value, and cost of goods sold readiness.',
+            },
+            status: {
+                ready: 'Ready',
+                needsUpgrade: 'Needs upgrade',
+                pendingMigration: 'Pending migration',
+            },
+            stats: {
+                accounts: 'Accounts',
+                journals: 'Journals',
+                drafts: 'Drafts',
+                employees: 'Employees',
+                advances: 'Advances',
+                draft: 'Draft',
+                submitted: 'Submitted',
+                active: 'Active',
+                balance: 'Balance',
+                skus: 'SKUs',
+                value: 'Value',
+            },
+        },
+        generalLedger: {
+            title: 'General Ledger Preview',
+            description:
+                'A recent snapshot of financial entries. Open the full ledger from Finance Modules.',
+            open: 'Open General Ledger',
+            empty: 'No recent ledger entries were found for the selected filters.',
+            columns: {
+                date: 'Date',
+                reference: 'Reference',
+                type: 'Type',
+                branch: 'Branch',
+                account: 'Account',
+                description: 'Description',
+                debit: 'Debit',
+                credit: 'Credit',
+                status: 'Status',
+            },
+        },
+        quickCards: {
+            chartOfAccounts: {
+                title: 'Chart of Accounts',
+                description:
+                    'Assets, liabilities, equity, revenue, COGS, and expenses',
+            },
+            branchControl: {
+                title: 'Branch-wise Control',
+                description:
+                    'Consolidated reporting with branch-level filters and balances',
+            },
+            cashBank: {
+                title: 'Cash & Bank',
+                description:
+                    'Cash drawers, deposits, petty cash, and manual movements',
+            },
+            inventoryValuation: {
+                title: 'Inventory Valuation',
+                description:
+                    'Weighted average costing for stock value and COGS',
+            },
         },
     },
     orders: {

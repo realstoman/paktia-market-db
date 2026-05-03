@@ -17,6 +17,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BreadcrumbItem, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -52,20 +53,20 @@ import {
     YAxis,
 } from 'recharts';
 
-const RANGE_OPTIONS = [
-    { value: 'today', label: 'Today' },
-    { value: 'yesterday', label: 'Yesterday' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'this_month', label: 'This Month' },
-    { value: 'custom', label: 'Custom' },
+const RANGE_VALUES = [
+    'today',
+    'yesterday',
+    'this_week',
+    'this_month',
+    'custom',
 ] as const;
 
-const PAYMENT_METHODS = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'credit_card', label: 'Credit Card' },
-    { value: 'other', label: 'Other' },
-];
+const PAYMENT_METHOD_VALUES = [
+    'cash',
+    'bank_transfer',
+    'credit_card',
+    'other',
+] as const;
 
 const PIE_COLORS = [
     '#14532d',
@@ -212,6 +213,167 @@ function projectionTone(status: ProjectionHealth['status']) {
     }
 
     return 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-200';
+}
+
+function localizeProjectionMessage(
+    message: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const messageMap: Record<string, string> = {
+        'Projection data is current for the selected finance view.': t(
+            'financeDashboard.projection.message.current',
+            'Projection data is current for the selected finance view.',
+        ),
+        'Some branch projections are lagging behind the selected finance window.': t(
+            'financeDashboard.projection.message.lagging',
+            'Some branch projections are lagging behind the selected finance window.',
+        ),
+        'Projection data is stale. Finance metrics may be outdated until projections refresh.': t(
+            'financeDashboard.projection.message.stale',
+            'Projection data is stale. Finance metrics may be outdated until projections refresh.',
+        ),
+        'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.': t(
+            'financeDashboard.projection.message.unavailable',
+            'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
+        ),
+    };
+
+    return messageMap[message] ?? message;
+}
+
+function localizeFinanceNote(
+    note: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const notesMap: Record<string, string> = {
+        'Recognized using recorded sales minus average inventory cost.': t(
+            'financeDashboard.notes.grossProfitRecognized',
+            'Recognized using recorded sales minus average inventory cost.',
+        ),
+        'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.': t(
+            'financeDashboard.notes.grossProfitPending',
+            'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
+        ),
+        'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.': t(
+            'financeDashboard.notes.cashPosition',
+            'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+        ),
+    };
+
+    return notesMap[note] ?? note;
+}
+
+function localizeModuleName(
+    name: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const nameMap: Record<string, string> = {
+        'Chart of Accounts': t(
+            'financeDashboard.modules.names.chartOfAccounts',
+            'Chart of Accounts',
+        ),
+        'General Ledger': t(
+            'financeDashboard.modules.names.generalLedger',
+            'General Ledger',
+        ),
+        Expenses: t('financeDashboard.modules.names.expenses', 'Expenses'),
+        Payroll: t('financeDashboard.modules.names.payroll', 'Payroll'),
+        'Employee Advances': t(
+            'financeDashboard.modules.names.employeeAdvances',
+            'Employee Advances',
+        ),
+        'Cash & Bank': t(
+            'financeDashboard.modules.names.cashBank',
+            'Cash & Bank',
+        ),
+        'Inventory Valuation': t(
+            'financeDashboard.modules.names.inventoryValuation',
+            'Inventory Valuation',
+        ),
+    };
+
+    return nameMap[name] ?? name;
+}
+
+function localizeModuleDescription(
+    description: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const descriptionMap: Record<string, string> = {
+        'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.': t(
+            'financeDashboard.modules.descriptions.chartOfAccounts',
+            'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
+        ),
+        'Review entries generated from completed orders, approved expenses, and manual journals.': t(
+            'financeDashboard.modules.descriptions.generalLedger',
+            'Review entries generated from completed orders, approved expenses, and manual journals.',
+        ),
+        'Track business expenses with approval status and accounting impact.': t(
+            'financeDashboard.modules.descriptions.expenses',
+            'Track business expenses with approval status and accounting impact.',
+        ),
+        'Process monthly payroll, contract payouts, and salary-linked deductions.': t(
+            'financeDashboard.modules.descriptions.payroll',
+            'Process monthly payroll, contract payouts, and salary-linked deductions.',
+        ),
+        'Record employee advances and keep payroll deductions aligned with settlement.': t(
+            'financeDashboard.modules.descriptions.employeeAdvances',
+            'Record employee advances and keep payroll deductions aligned with settlement.',
+        ),
+        'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.': t(
+            'financeDashboard.modules.descriptions.cashBank',
+            'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
+        ),
+        'Follow weighted average costing, stock value, and cost of goods sold readiness.': t(
+            'financeDashboard.modules.descriptions.inventoryValuation',
+            'Follow weighted average costing, stock value, and cost of goods sold readiness.',
+        ),
+    };
+
+    return descriptionMap[description] ?? description;
+}
+
+function localizeModuleStatus(
+    status: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const statusMap: Record<string, string> = {
+        Ready: t('financeDashboard.modules.status.ready', 'Ready'),
+        'Needs upgrade': t(
+            'financeDashboard.modules.status.needsUpgrade',
+            'Needs upgrade',
+        ),
+        'Pending migration': t(
+            'financeDashboard.modules.status.pendingMigration',
+            'Pending migration',
+        ),
+    };
+
+    return statusMap[status] ?? status;
+}
+
+function localizeModuleStatLabel(
+    label: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const labelMap: Record<string, string> = {
+        Accounts: t('financeDashboard.modules.stats.accounts', 'Accounts'),
+        Journals: t('financeDashboard.modules.stats.journals', 'Journals'),
+        Drafts: t('financeDashboard.modules.stats.drafts', 'Drafts'),
+        Employees: t('financeDashboard.modules.stats.employees', 'Employees'),
+        Advances: t('financeDashboard.modules.stats.advances', 'Advances'),
+        Draft: t('financeDashboard.modules.stats.draft', 'Draft'),
+        Submitted: t(
+            'financeDashboard.modules.stats.submitted',
+            'Submitted',
+        ),
+        Active: t('financeDashboard.modules.stats.active', 'Active'),
+        Balance: t('financeDashboard.modules.stats.balance', 'Balance'),
+        SKUs: t('financeDashboard.modules.stats.skus', 'SKUs'),
+        Value: t('financeDashboard.modules.stats.value', 'Value'),
+    };
+
+    return labelMap[label] ?? label;
 }
 
 function submitFilters(filters: {
@@ -368,21 +530,22 @@ export default function FinancePage({
     dashboard,
 }: FinancePageProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const breadcrumbs: BreadcrumbItem[] =
         auth.is_super_admin || !auth.roles.includes('finance')
             ? [
                   {
-                      title: 'Dashboard',
+                      title: t('common.dashboard', 'Dashboard'),
                       href: '/dashboard',
                   },
                   {
-                      title: 'Finance',
+                      title: t('common.navigation.finance', 'Finance'),
                       href: '/finance',
                   },
               ]
             : [
                   {
-                      title: 'Finance',
+                      title: t('common.navigation.finance', 'Finance'),
                       href: '/finance',
                   },
               ];
@@ -396,6 +559,17 @@ export default function FinancePage({
         filters.paymentMethod ?? '',
     );
     const [category, setCategory] = React.useState(filters.category ?? '');
+    const rangeOptions = RANGE_VALUES.map((value) => ({
+        value,
+        label: t(
+            `financeDashboard.filters.range.${value}`,
+            value.replace('_', ' '),
+        ),
+    }));
+    const paymentMethods = PAYMENT_METHOD_VALUES.map((value) => ({
+        value,
+        label: t(`orders.paymentMethod.${value}`, value.replace('_', ' ')),
+    }));
 
     React.useEffect(() => {
         setRange(filters.range);
@@ -408,7 +582,7 @@ export default function FinancePage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Finance Dashboard" />
+            <Head title={t('financeDashboard.pageTitle', 'Finance Dashboard')} />
 
             <div className="space-y-6 py-2">
                 <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] p-6 shadow-none dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#111827_0%,#0f172a_45%,#0b2a1f_100%)]">
@@ -416,19 +590,23 @@ export default function FinancePage({
                         <div className="max-w-3xl space-y-3">
                             <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1 text-xs font-medium tracking-[0.24em] text-neutral-600 uppercase dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300">
                                 <ChartNoAxesCombined className="h-3.5 w-3.5" />
-                                Finance Dashboard
+                                {t(
+                                    'financeDashboard.eyebrow',
+                                    'Finance Dashboard',
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                                    Financial control center for revenue,
-                                    payroll, expenses, inventory, and cash.
+                                    {t(
+                                        'financeDashboard.hero.title',
+                                        'Financial control center for revenue, payroll, expenses, inventory, and cash.',
+                                    )}
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                    This is the finance dashboard which is
-                                    designed around the accounting foundation:
-                                    chart of accounts, ledger postings, payroll,
-                                    advances, cash movements, and inventory
-                                    valuation.
+                                    {t(
+                                        'financeDashboard.hero.description',
+                                        'This is the finance dashboard which is designed around the accounting foundation: chart of accounts, ledger postings, payroll, advances, cash movements, and inventory valuation.',
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -436,7 +614,10 @@ export default function FinancePage({
                         <div className="grid grid-cols-2 gap-3 lg:min-w-[420px]">
                             <div className="rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
                                 <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                    Ledger Accounts
+                                    {t(
+                                        'financeDashboard.hero.ledgerAccounts',
+                                        'Ledger Accounts',
+                                    )}
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatNumber(
@@ -446,7 +627,10 @@ export default function FinancePage({
                             </div>
                             <div className="rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
                                 <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                    Approval Queue
+                                    {t(
+                                        'financeDashboard.hero.approvalQueue',
+                                        'Approval Queue',
+                                    )}
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatNumber(
@@ -464,18 +648,38 @@ export default function FinancePage({
                             <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                                 <div>
                                     <p className="text-xs font-medium tracking-[0.22em] uppercase">
-                                        Projection Health
+                                        {t(
+                                            'financeDashboard.projection.title',
+                                            'Projection Health',
+                                        )}
                                     </p>
                                     <p className="mt-1 text-sm">
                                         {projectionHealth.usesProjectionData
-                                            ? projectionHealth.message
-                                            : 'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.'}
+                                            ? localizeProjectionMessage(
+                                                  projectionHealth.message,
+                                                  t,
+                                              )
+                                            : t(
+                                                  'financeDashboard.projection.transactionalFallback',
+                                                  'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.',
+                                              )}
                                     </p>
                                 </div>
                                 <div className="text-sm">
                                     {projectionHealth.latestProjectionAt
-                                        ? `Last projected at ${new Date(projectionHealth.latestProjectionAt).toLocaleString()}`
-                                        : 'No projection timestamp recorded yet'}
+                                        ? t(
+                                              'financeDashboard.projection.lastProjectedAt',
+                                              'Last projected at :date',
+                                          ).replace(
+                                              ':date',
+                                              new Date(
+                                                  projectionHealth.latestProjectionAt,
+                                              ).toLocaleString(),
+                                          )
+                                        : t(
+                                              'financeDashboard.projection.noTimestamp',
+                                              'No projection timestamp recorded yet',
+                                          )}
                                 </div>
                             </div>
                             {projectionHealth.branches.length > 0 ? (
@@ -485,7 +689,11 @@ export default function FinancePage({
                                             key={branch.branchId}
                                             className="rounded-full border border-current/20 px-3 py-1"
                                         >
-                                            {branch.branchName}: {branch.message}
+                                            {branch.branchName}:{' '}
+                                            {localizeProjectionMessage(
+                                                branch.message,
+                                                t,
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -496,15 +704,19 @@ export default function FinancePage({
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="space-y-2">
-                        <CardTitle>Filters</CardTitle>
+                        <CardTitle>
+                            {t('financeDashboard.filters.title', 'Filters')}
+                        </CardTitle>
                         <CardDescription>
-                            Slice the finance dashboard by period, branch,
-                            payment method, and expense category.
+                            {t(
+                                'financeDashboard.filters.description',
+                                'Slice the finance dashboard by period, branch, payment method, and expense category.',
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-2">
-                            {RANGE_OPTIONS.map((option) => (
+                            {rangeOptions.map((option) => (
                                 <Button
                                     key={option.value}
                                     variant={
@@ -535,7 +747,10 @@ export default function FinancePage({
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
-                                    Branch
+                                    {t(
+                                        'financeDashboard.filters.branch',
+                                        'Branch',
+                                    )}
                                 </p>
                                 <Select
                                     value={branchId || '__all__'}
@@ -546,11 +761,19 @@ export default function FinancePage({
                                     }
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="All branches" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'financeDashboard.filters.allBranches',
+                                                'All branches',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="__all__">
-                                            All branches
+                                            {t(
+                                                'financeDashboard.filters.allBranches',
+                                                'All branches',
+                                            )}
                                         </SelectItem>
                                         {branches.map((branch) => (
                                             <SelectItem
@@ -566,7 +789,10 @@ export default function FinancePage({
 
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
-                                    Payment Method
+                                    {t(
+                                        'financeDashboard.filters.paymentMethod',
+                                        'Payment Method',
+                                    )}
                                 </p>
                                 <Select
                                     value={paymentMethod || '__all__'}
@@ -577,13 +803,21 @@ export default function FinancePage({
                                     }
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="All methods" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                'financeDashboard.filters.allMethods',
+                                                'All methods',
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="__all__">
-                                            All methods
+                                            {t(
+                                                'financeDashboard.filters.allMethods',
+                                                'All methods',
+                                            )}
                                         </SelectItem>
-                                        {PAYMENT_METHODS.map((method) => (
+                                        {paymentMethods.map((method) => (
                                             <SelectItem
                                                 key={method.value}
                                                 value={method.value}
@@ -597,27 +831,45 @@ export default function FinancePage({
 
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
-                                    Expense Category
+                                    {t(
+                                        'financeDashboard.filters.expenseCategory',
+                                        'Expense Category',
+                                    )}
                                 </p>
                                 <SearchableDropdown
                                     value={category}
                                     options={[
                                         {
                                             value: '',
-                                            label: 'All categories',
+                                            label: t(
+                                                'financeDashboard.filters.allCategories',
+                                                'All categories',
+                                            ),
                                         },
                                         ...expenseCategories,
                                     ]}
                                     onValueChange={setCategory}
-                                    placeholder="All categories"
-                                    searchPlaceholder="Search expense category..."
-                                    emptyText="No expense category found."
+                                    placeholder={t(
+                                        'financeDashboard.filters.allCategories',
+                                        'All categories',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeDashboard.filters.searchExpenseCategory',
+                                        'Search expense category...',
+                                    )}
+                                    emptyText={t(
+                                        'financeDashboard.filters.noExpenseCategoryFound',
+                                        'No expense category found.',
+                                    )}
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
-                                    Start Date
+                                    {t(
+                                        'financeDashboard.filters.startDate',
+                                        'Start Date',
+                                    )}
                                 </p>
                                 <input
                                     type="date"
@@ -632,7 +884,10 @@ export default function FinancePage({
 
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
-                                    End Date
+                                    {t(
+                                        'financeDashboard.filters.endDate',
+                                        'End Date',
+                                    )}
                                 </p>
                                 <input
                                     type="date"
@@ -659,7 +914,10 @@ export default function FinancePage({
                                     })
                                 }
                             >
-                                Apply Filters
+                                {t(
+                                    'financeDashboard.filters.apply',
+                                    'Apply Filters',
+                                )}
                             </Button>
                             <Button
                                 variant="outline"
@@ -674,7 +932,7 @@ export default function FinancePage({
                                     })
                                 }
                             >
-                                Reset
+                                {t('common.reset', 'Reset')}
                             </Button>
                         </div>
                     </CardContent>
@@ -682,67 +940,127 @@ export default function FinancePage({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <SummaryCard
-                        title="Sales"
+                        title={t('financeDashboard.summary.sales', 'Sales')}
                         value={formatAfn(dashboard.summary.sales)}
-                        subtitle="Completed order revenue in selected period"
+                        subtitle={t(
+                            'financeDashboard.summary.salesSubtitle',
+                            'Completed order revenue in selected period',
+                        )}
                         icon={<Banknote className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Expenses"
+                        title={t(
+                            'financeDashboard.summary.expenses',
+                            'Expenses',
+                        )}
                         value={formatAfn(dashboard.summary.expenses)}
-                        subtitle="Recorded operational expenses"
+                        subtitle={t(
+                            'financeDashboard.summary.expensesSubtitle',
+                            'Recorded operational expenses',
+                        )}
                         icon={<ReceiptText className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Gross Profit"
+                        title={t(
+                            'financeDashboard.summary.grossProfit',
+                            'Gross Profit',
+                        )}
                         value={
                             dashboard.summary.grossProfit === null
-                                ? 'Pending'
+                                ? t(
+                                      'financeDashboard.summary.pending',
+                                      'Pending',
+                                  )
                                 : formatAfn(dashboard.summary.grossProfit)
                         }
-                        subtitle={dashboard.notes.grossProfit}
+                        subtitle={localizeFinanceNote(
+                            dashboard.notes.grossProfit,
+                            t,
+                        )}
                         icon={<ArrowUpRight className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Net Profit"
+                        title={t(
+                            'financeDashboard.summary.netProfit',
+                            'Net Profit',
+                        )}
                         value={formatAfn(dashboard.summary.netProfit)}
-                        subtitle="Sales minus expenses, before unposted finance adjustments"
+                        subtitle={t(
+                            'financeDashboard.summary.netProfitSubtitle',
+                            'Sales minus expenses, before unposted finance adjustments',
+                        )}
                         icon={<ArrowDownRight className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Cash Position"
+                        title={t(
+                            'financeDashboard.summary.cashPosition',
+                            'Cash Position',
+                        )}
                         value={formatAfn(dashboard.summary.cashPosition)}
-                        subtitle={dashboard.notes.cashPosition}
+                        subtitle={localizeFinanceNote(
+                            dashboard.notes.cashPosition,
+                            t,
+                        )}
                         icon={<Wallet className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Employee Covered"
+                        title={t(
+                            'financeDashboard.summary.employeeCovered',
+                            'Employee Covered',
+                        )}
                         value={formatAfn(dashboard.summary.employeeCoveredTotal)}
-                        subtitle="Orders paid by employees on behalf of guests"
+                        subtitle={t(
+                            'financeDashboard.summary.employeeCoveredSubtitle',
+                            'Orders paid by employees on behalf of guests',
+                        )}
                         icon={<Users className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Restaurant Hospitality"
+                        title={t(
+                            'financeDashboard.summary.restaurantHospitality',
+                            'Restaurant Hospitality',
+                        )}
                         value={formatAfn(dashboard.summary.houseCompTotal)}
-                        subtitle="Hospitality and complimentary orders excluded from sales"
+                        subtitle={t(
+                            'financeDashboard.summary.restaurantHospitalitySubtitle',
+                            'Hospitality and complimentary orders excluded from sales',
+                        )}
                         icon={<Coins className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Unpaid Salaries"
+                        title={t(
+                            'financeDashboard.summary.unpaidSalaries',
+                            'Unpaid Salaries',
+                        )}
                         value={formatAfn(dashboard.summary.unpaidSalaries)}
-                        subtitle="Current month salary and scheduled contract liabilities"
+                        subtitle={t(
+                            'financeDashboard.summary.unpaidSalariesSubtitle',
+                            'Current month salary and scheduled contract liabilities',
+                        )}
                         icon={<Users className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Inventory Value"
+                        title={t(
+                            'financeDashboard.summary.inventoryValue',
+                            'Inventory Value',
+                        )}
                         value={formatAfn(dashboard.summary.inventoryValue)}
-                        subtitle="Current stock value from quantity and unit cost"
+                        subtitle={t(
+                            'financeDashboard.summary.inventoryValueSubtitle',
+                            'Current stock value from quantity and unit cost',
+                        )}
                         icon={<Package className="h-5 w-5" />}
                     />
                     <SummaryCard
-                        title="Supplier Balances"
+                        title={t(
+                            'financeDashboard.summary.supplierBalances',
+                            'Supplier Balances',
+                        )}
                         value={formatAfn(dashboard.summary.supplierBalances)}
-                        subtitle="Unpaid vendor balance from stock purchases"
+                        subtitle={t(
+                            'financeDashboard.summary.supplierBalancesSubtitle',
+                            'Unpaid vendor balance from stock purchases',
+                        )}
                         icon={<CreditCard className="h-5 w-5" />}
                     />
                 </div>
@@ -751,10 +1069,16 @@ export default function FinancePage({
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
                             <CardTitle>
-                                Revenue, Expense, and Operating Result
+                                {t(
+                                    'financeDashboard.charts.revenueExpenseTitle',
+                                    'Revenue, Expense, and Operating Result',
+                                )}
                             </CardTitle>
                             <CardDescription>
-                                Daily trend for the selected finance window.
+                                {t(
+                                    'financeDashboard.charts.revenueExpenseDescription',
+                                    'Daily trend for the selected finance window.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -842,9 +1166,17 @@ export default function FinancePage({
 
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Sales vs Covered Orders</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeDashboard.charts.coverageTitle',
+                                    'Sales vs Covered Orders',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.
+                                {t(
+                                    'financeDashboard.charts.coverageDescription',
+                                    'Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -877,9 +1209,17 @@ export default function FinancePage({
                 <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Branch-wise Revenue</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeDashboard.charts.branchRevenueTitle',
+                                    'Branch-wise Revenue',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Compare completed order revenue by branch.
+                                {t(
+                                    'financeDashboard.charts.branchRevenueDescription',
+                                    'Compare completed order revenue by branch.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -920,9 +1260,17 @@ export default function FinancePage({
 
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Top Expense Categories</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeDashboard.charts.expenseCategoriesTitle',
+                                    'Top Expense Categories',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Expense concentration in the selected period.
+                                {t(
+                                    'financeDashboard.charts.expenseCategoriesDescription',
+                                    'Expense concentration in the selected period.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-6 lg:grid-cols-[180px_1fr]">
@@ -992,8 +1340,10 @@ export default function FinancePage({
                                     )
                                 ) : (
                                     <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                        No expense categories were found for the
-                                        selected filters.
+                                        {t(
+                                            'financeDashboard.charts.noExpenseCategories',
+                                            'No expense categories were found for the selected filters.',
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -1004,17 +1354,27 @@ export default function FinancePage({
                 <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Ledger Readiness</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeDashboard.ledger.title',
+                                    'Ledger Readiness',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Live accounting activity from posted operations
-                                and pending finance records.
+                                {t(
+                                    'financeDashboard.ledger.description',
+                                    'Live accounting activity from posted operations and pending finance records.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
                                     <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                        Accounts
+                                        {t(
+                                            'financeDashboard.ledger.accounts',
+                                            'Accounts',
+                                        )}
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
@@ -1024,7 +1384,10 @@ export default function FinancePage({
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
                                     <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                        Posted Entries
+                                        {t(
+                                            'financeDashboard.ledger.postedEntries',
+                                            'Posted Entries',
+                                        )}
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
@@ -1032,14 +1395,18 @@ export default function FinancePage({
                                         )}
                                     </p>
                                     <p className="mt-1 text-xs text-neutral-500">
-                                        Approved expenses, approved cash
-                                        movements, completed sales, and posted
-                                        journals
+                                        {t(
+                                            'financeDashboard.ledger.postedEntriesDescription',
+                                            'Approved expenses, approved cash movements, completed sales, and posted journals',
+                                        )}
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
                                     <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                        Draft Entries
+                                        {t(
+                                            'financeDashboard.ledger.draftEntries',
+                                            'Draft Entries',
+                                        )}
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
@@ -1048,13 +1415,18 @@ export default function FinancePage({
                                         )}
                                     </p>
                                     <p className="mt-1 text-xs text-neutral-500">
-                                        Draft expenses, draft cash movements,
-                                        and unposted journal drafts
+                                        {t(
+                                            'financeDashboard.ledger.draftEntriesDescription',
+                                            'Draft expenses, draft cash movements, and unposted journal drafts',
+                                        )}
                                     </p>
                                 </div>
                                 <div className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800">
                                     <p className="text-xs tracking-[0.22em] text-neutral-500 uppercase">
-                                        Approval Queue
+                                        {t(
+                                            'financeDashboard.ledger.approvalQueue',
+                                            'Approval Queue',
+                                        )}
                                     </p>
                                     <p className="mt-2 text-2xl font-semibold">
                                         {formatNumber(
@@ -1063,29 +1435,36 @@ export default function FinancePage({
                                         )}
                                     </p>
                                     <p className="mt-1 text-xs text-neutral-500">
-                                        Submitted records waiting for manager
-                                        approval
+                                        {t(
+                                            'financeDashboard.ledger.approvalQueueDescription',
+                                            'Submitted records waiting for manager approval',
+                                        )}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="rounded-2xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-600 dark:border-neutral-700 dark:text-neutral-300">
-                                These numbers now reflect real operational
-                                finance activity. When automatic journal posting
-                                is fully enabled, this same area will transition
-                                from operational entries to strict accounting
-                                journals without changing the workflow for your
-                                team.
+                                {t(
+                                    'financeDashboard.ledger.note',
+                                    'These numbers now reflect real operational finance activity. When automatic journal posting is fully enabled, this same area will transition from operational entries to strict accounting journals without changing the workflow for your team.',
+                                )}
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Finance Modules</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeDashboard.modules.title',
+                                    'Finance Modules',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Open finance areas from here so the dashboard
-                                filters stay focused on analytics.
+                                {t(
+                                    'financeDashboard.modules.description',
+                                    'Open finance areas from here so the dashboard filters stay focused on analytics.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-3 md:grid-cols-2">
@@ -1097,10 +1476,16 @@ export default function FinancePage({
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="space-y-2">
                                             <p className="font-medium text-neutral-950 dark:text-neutral-50">
-                                                {module.name}
+                                                {localizeModuleName(
+                                                    module.name,
+                                                    t,
+                                                )}
                                             </p>
                                             <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
-                                                {module.description}
+                                                {localizeModuleDescription(
+                                                    module.description,
+                                                    t,
+                                                )}
                                             </p>
                                         </div>
                                         {module.status === 'Ready' ? (
@@ -1111,7 +1496,10 @@ export default function FinancePage({
                                             <span
                                                 className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(module.status)}`}
                                             >
-                                                {module.status}
+                                                {localizeModuleStatus(
+                                                    module.status,
+                                                    t,
+                                                )}
                                             </span>
                                         )}
                                     </div>
@@ -1125,7 +1513,10 @@ export default function FinancePage({
                                                     className="rounded-2xl bg-neutral-50 px-3 py-2 dark:bg-neutral-800/80"
                                                 >
                                                     <p className="text-[11px] tracking-[0.18em] text-neutral-500 uppercase">
-                                                        {stat.label}
+                                                        {localizeModuleStatLabel(
+                                                            stat.label,
+                                                            t,
+                                                        )}
                                                     </p>
                                                     <p className="mt-1 text-sm font-semibold text-neutral-950 dark:text-neutral-50">
                                                         {formatModuleStat(
@@ -1152,7 +1543,7 @@ export default function FinancePage({
                                                     }
                                                     className="gap-2 text-neutral-600 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-50"
                                                 >
-                                                    Open
+                                                    {t('common.open', 'Open')}
                                                     <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
                                                         <ExternalLink className="h-4 w-4" />
                                                     </span>
@@ -1170,15 +1561,25 @@ export default function FinancePage({
                     <CardHeader>
                         <div className="flex items-center justify-between gap-4">
                             <div>
-                                <CardTitle>General Ledger Preview</CardTitle>
+                                <CardTitle>
+                                    {t(
+                                        'financeDashboard.generalLedger.title',
+                                        'General Ledger Preview',
+                                    )}
+                                </CardTitle>
                                 <CardDescription>
-                                    A recent snapshot of financial entries. Open
-                                    the full ledger from Finance Modules.
+                                    {t(
+                                        'financeDashboard.generalLedger.description',
+                                        'A recent snapshot of financial entries. Open the full ledger from Finance Modules.',
+                                    )}
                                 </CardDescription>
                             </div>
                             <Button variant="outline" asChild>
                                 <Link href="/finance/general-ledger">
-                                    Open General Ledger
+                                    {t(
+                                        'financeDashboard.generalLedger.open',
+                                        'Open General Ledger',
+                                    )}
                                 </Link>
                             </Button>
                         </div>
@@ -1189,28 +1590,59 @@ export default function FinancePage({
                                 <table className="min-w-full text-sm">
                                     <thead>
                                         <tr className="border-b border-neutral-200 text-left text-xs tracking-[0.18em] text-neutral-500 uppercase dark:border-neutral-800">
-                                            <th className="px-3 py-3">Date</th>
                                             <th className="px-3 py-3">
-                                                Reference
-                                            </th>
-                                            <th className="px-3 py-3">Type</th>
-                                            <th className="px-3 py-3">
-                                                Branch
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.date',
+                                                    'Date',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3">
-                                                Account
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.reference',
+                                                    'Reference',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3">
-                                                Description
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.type',
+                                                    'Type',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.branch',
+                                                    'Branch',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.account',
+                                                    'Account',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.description',
+                                                    'Description',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Debit
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.debit',
+                                                    'Debit',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Credit
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.credit',
+                                                    'Credit',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Status
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.status',
+                                                    'Status',
+                                                )}
                                             </th>
                                         </tr>
                                     </thead>
@@ -1270,8 +1702,10 @@ export default function FinancePage({
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No recent ledger entries were found for the
-                                selected filters.
+                                {t(
+                                    'financeDashboard.generalLedger.empty',
+                                    'No recent ledger entries were found for the selected filters.',
+                                )}
                             </div>
                         )}
                     </CardContent>
@@ -1285,11 +1719,16 @@ export default function FinancePage({
                             </div>
                             <div>
                                 <p className="text-sm font-medium">
-                                    Chart of Accounts
+                                    {t(
+                                        'financeDashboard.quickCards.chartOfAccounts.title',
+                                        'Chart of Accounts',
+                                    )}
                                 </p>
                                 <p className="text-xs text-neutral-500">
-                                    Assets, liabilities, equity, revenue, COGS,
-                                    and expenses
+                                    {t(
+                                        'financeDashboard.quickCards.chartOfAccounts.description',
+                                        'Assets, liabilities, equity, revenue, COGS, and expenses',
+                                    )}
                                 </p>
                             </div>
                         </CardContent>
@@ -1301,11 +1740,16 @@ export default function FinancePage({
                             </div>
                             <div>
                                 <p className="text-sm font-medium">
-                                    Branch-wise Control
+                                    {t(
+                                        'financeDashboard.quickCards.branchControl.title',
+                                        'Branch-wise Control',
+                                    )}
                                 </p>
                                 <p className="text-xs text-neutral-500">
-                                    Consolidated reporting with branch-level
-                                    filters and balances
+                                    {t(
+                                        'financeDashboard.quickCards.branchControl.description',
+                                        'Consolidated reporting with branch-level filters and balances',
+                                    )}
                                 </p>
                             </div>
                         </CardContent>
@@ -1317,11 +1761,16 @@ export default function FinancePage({
                             </div>
                             <div>
                                 <p className="text-sm font-medium">
-                                    Cash & Bank
+                                    {t(
+                                        'financeDashboard.quickCards.cashBank.title',
+                                        'Cash & Bank',
+                                    )}
                                 </p>
                                 <p className="text-xs text-neutral-500">
-                                    Cash drawers, deposits, petty cash, and
-                                    manual movements
+                                    {t(
+                                        'financeDashboard.quickCards.cashBank.description',
+                                        'Cash drawers, deposits, petty cash, and manual movements',
+                                    )}
                                 </p>
                             </div>
                         </CardContent>
@@ -1333,11 +1782,16 @@ export default function FinancePage({
                             </div>
                             <div>
                                 <p className="text-sm font-medium">
-                                    Inventory Valuation
+                                    {t(
+                                        'financeDashboard.quickCards.inventoryValuation.title',
+                                        'Inventory Valuation',
+                                    )}
                                 </p>
                                 <p className="text-xs text-neutral-500">
-                                    Weighted average costing for stock value and
-                                    COGS
+                                    {t(
+                                        'financeDashboard.quickCards.inventoryValuation.description',
+                                        'Weighted average costing for stock value and COGS',
+                                    )}
                                 </p>
                             </div>
                         </CardContent>
