@@ -1367,6 +1367,41 @@ const en = {
             inactive: 'Inactive',
         },
     },
+    financeGeneralLedger: {
+        pageTitle: 'General Ledger',
+        hero: {
+            eyebrow: 'Finance Module',
+            title: 'General Ledger',
+            description:
+                'This is the full finance ledger page. It shows the growing stream of sales, expenses, cash movements, and posted journal lines in one place, so the dashboard can stay focused on summary analytics.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+        },
+        filters: {
+            title: 'Filters',
+            description:
+                'Narrow the ledger by period, branch, payment method, and expense category.',
+            selectBranch: 'Select branch',
+            noBranchFound: 'No branch found.',
+            selectPaymentMethod: 'Select payment method',
+            searchPaymentMethods: 'Search payment methods...',
+            noMethodFound: 'No method found.',
+            selectCategory: 'Select category',
+            searchCategories: 'Search categories...',
+            noCategoryFound: 'No category found.',
+        },
+        entries: {
+            title: 'Ledger Entries',
+            description:
+                'Full operational finance stream for the selected filters.',
+            summary: ' Showing :from to :to of :total entries.',
+            empty: 'No ledger entries were found for the selected filters.',
+        },
+        pagination: {
+            pageOf: 'Page :current of :last',
+        },
+    },
     orders: {
         title: 'Orders',
         breadcrumb: 'Orders',

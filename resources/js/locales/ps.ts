@@ -1364,6 +1364,41 @@ const ps = {
             inactive: 'غیرفعال',
         },
     },
+    financeGeneralLedger: {
+        pageTitle: 'عمومي لیجر',
+        hero: {
+            eyebrow: 'مالي ماډیول',
+            title: 'عمومي لیجر',
+            description:
+                'دا د مالي لیجر بشپړه پاڼه ده. دا د پلور، لګښتونو، نغدي خوځښتونو او ثبت شويو ژورنال کرښو مخ پر زیاتېدونکی جریان په یوه ځای کې ښيي، څو ډشبورډ پر لنډیزي تحلیلونو متمرکز پاتې شي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+        },
+        filters: {
+            title: 'فلټرونه',
+            description:
+                'لیجر د مودې، څانګې، د تادیې طریقې او د لګښت کتګورۍ له مخې محدود کړئ.',
+            selectBranch: 'څانګه وټاکئ',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+            selectPaymentMethod: 'د تادیې طریقه وټاکئ',
+            searchPaymentMethods: 'د تادیې طریقې ولټوئ...',
+            noMethodFound: 'هیڅ طریقه ونه موندل شوه.',
+            selectCategory: 'کتګوري وټاکئ',
+            searchCategories: 'کتګورۍ ولټوئ...',
+            noCategoryFound: 'هیڅ کتګوري ونه موندل شوه.',
+        },
+        entries: {
+            title: 'د لیجر داخلې',
+            description:
+                'د ټاکل شويو فلټرونو لپاره بشپړ عملیاتي مالي جریان.',
+            summary: ' د :total داخلو څخه :from تر :to ښودل کېږي.',
+            empty: 'د ټاکل شويو فلټرونو لپاره د لیجر هېڅ داخله ونه موندل شوه.',
+        },
+        pagination: {
+            pageOf: 'پاڼه :current له :last څخه',
+        },
+    },
     orders: {
         title: 'امرونه',
         breadcrumb: 'امرونه',

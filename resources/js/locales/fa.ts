@@ -1371,6 +1371,41 @@ const fa = {
             inactive: 'غیرفعال',
         },
     },
+    financeGeneralLedger: {
+        pageTitle: 'دفترکل عمومی',
+        hero: {
+            eyebrow: 'ماژول مالی',
+            title: 'دفترکل عمومی',
+            description:
+                'این صفحه کامل دفترکل مالی است. جریان رو‌به‌رشد فروش، مصارف، حرکات نقدی و خطوط ژورنال ثبت‌شده را در یک جا نشان می‌دهد تا داشبورد روی تحلیل‌های خلاصه متمرکز بماند.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+        },
+        filters: {
+            title: 'فیلترها',
+            description:
+                'دفترکل را بر اساس بازه زمانی، شعبه، روش پرداخت و کتگوری مصرف محدود کنید.',
+            selectBranch: 'شعبه را انتخاب کنید',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+            selectPaymentMethod: 'روش پرداخت را انتخاب کنید',
+            searchPaymentMethods: 'جستجوی روش‌های پرداخت...',
+            noMethodFound: 'هیچ روشی یافت نشد.',
+            selectCategory: 'کتگوری را انتخاب کنید',
+            searchCategories: 'جستجوی کتگوری‌ها...',
+            noCategoryFound: 'هیچ کتگوری‌ای یافت نشد.',
+        },
+        entries: {
+            title: 'ثبت‌های دفترکل',
+            description:
+                'جریان کامل مالی عملیاتی برای فیلترهای انتخاب‌شده.',
+            summary: ' نمایش :from تا :to از :total ثبت.',
+            empty: 'برای فیلترهای انتخاب‌شده هیچ ثبت دفترکلی یافت نشد.',
+        },
+        pagination: {
+            pageOf: 'صفحه :current از :last',
+        },
+    },
     orders: {
         title: 'سفارش‌ها',
         breadcrumb: 'سفارش‌ها',

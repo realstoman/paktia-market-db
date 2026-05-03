@@ -10,32 +10,27 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'General Ledger', href: '/finance/general-ledger' },
-];
-
-const RANGE_OPTIONS = [
-    { value: 'today', label: 'Today' },
-    { value: 'yesterday', label: 'Yesterday' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'this_month', label: 'This Month' },
-    { value: 'custom', label: 'Custom' },
+const RANGE_VALUES = [
+    'today',
+    'yesterday',
+    'this_week',
+    'this_month',
+    'custom',
 ] as const;
 
-const PAYMENT_METHODS = [
-    { value: 'cash', label: 'Cash' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'credit_card', label: 'Credit Card' },
-    { value: 'other', label: 'Other' },
-];
+const PAYMENT_METHOD_VALUES = [
+    'cash',
+    'bank_transfer',
+    'credit_card',
+    'other',
+] as const;
 
 interface LedgerFilters {
     range: string;
@@ -90,6 +85,30 @@ function ledgerStatusTone(status: string) {
     }
 
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
+}
+
+function localizeLedgerStatus(
+    status: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const normalized = status.toLowerCase();
+
+    if (normalized === 'posted') {
+        return t('financeDashboard.generalLedger.status.posted', 'Posted');
+    }
+
+    if (normalized === 'approved') {
+        return t('financeDashboard.generalLedger.status.approved', 'Approved');
+    }
+
+    if (normalized === 'submitted') {
+        return t(
+            'financeDashboard.generalLedger.status.submitted',
+            'Submitted',
+        );
+    }
+
+    return status;
 }
 
 function submitFilters(filters: {
@@ -167,6 +186,15 @@ export default function GeneralLedgerPage({
     entries,
     pagination,
 }: GeneralLedgerPageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t('financeGeneralLedger.pageTitle', 'General Ledger'),
+            href: '/finance/general-ledger',
+        },
+    ];
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
@@ -177,6 +205,17 @@ export default function GeneralLedgerPage({
         filters.paymentMethod ?? '',
     );
     const [category, setCategory] = React.useState(filters.category ?? '');
+    const rangeOptions = RANGE_VALUES.map((value) => ({
+        value,
+        label: t(
+            `financeDashboard.filters.range.${value}`,
+            value.replace('_', ' '),
+        ),
+    }));
+    const paymentMethods = PAYMENT_METHOD_VALUES.map((value) => ({
+        value,
+        label: t(`orders.paymentMethod.${value}`, value.replace('_', ' ')),
+    }));
 
     React.useEffect(() => {
         setRange(filters.range);
@@ -226,44 +265,60 @@ export default function GeneralLedgerPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="General Ledger" />
+            <Head
+                title={t('financeGeneralLedger.pageTitle', 'General Ledger')}
+            />
 
             <div className="space-y-6 py-2">
                 <section className="rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f8fafc_0%,#ffffff_55%,#eef6ff_100%)] p-6 dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#111827_0%,#0f172a_55%,#10243a_100%)]">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Finance Module
+                                {t(
+                                    'financeGeneralLedger.hero.eyebrow',
+                                    'Finance Module',
+                                )}
                             </p>
                             <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                                General Ledger
+                                {t(
+                                    'financeGeneralLedger.hero.title',
+                                    'General Ledger',
+                                )}
                             </h1>
                             <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                This is the full finance ledger page. It shows
-                                the growing stream of sales, expenses, cash
-                                movements, and posted journal lines in one
-                                place, so the dashboard can stay focused on
-                                summary analytics.
+                                {t(
+                                    'financeGeneralLedger.hero.description',
+                                    'This is the full finance ledger page. It shows the growing stream of sales, expenses, cash movements, and posted journal lines in one place, so the dashboard can stay focused on summary analytics.',
+                                )}
                             </p>
                         </div>
 
                         <Button variant="outline" asChild>
-                            <Link href="/finance">Back to Finance</Link>
+                            <Link href="/finance">
+                                {t(
+                                    'financeGeneralLedger.actions.backToFinance',
+                                    'Back to Finance',
+                                )}
+                            </Link>
                         </Button>
                     </div>
                 </section>
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader>
-                        <CardTitle>Filters</CardTitle>
+                        <CardTitle>
+                            {t('financeGeneralLedger.filters.title', 'Filters')}
+                        </CardTitle>
                         <CardDescription>
-                            Narrow the ledger by period, branch, payment method,
-                            and expense category.
+                            {t(
+                                'financeGeneralLedger.filters.description',
+                                'Narrow the ledger by period, branch, payment method, and expense category.',
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-2">
-                            {RANGE_OPTIONS.map((option) => (
+                            {rangeOptions.map((option) => (
                                 <Button
                                     key={option.value}
                                     variant={
@@ -296,7 +351,10 @@ export default function GeneralLedgerPage({
                                 <>
                                     <div className="grid gap-2">
                                         <label className="text-sm font-medium">
-                                            Start Date
+                                            {t(
+                                                'financeDashboard.filters.startDate',
+                                                'Start Date',
+                                            )}
                                         </label>
                                         <input
                                             type="date"
@@ -309,7 +367,10 @@ export default function GeneralLedgerPage({
                                     </div>
                                     <div className="grid gap-2">
                                         <label className="text-sm font-medium">
-                                            End Date
+                                            {t(
+                                                'financeDashboard.filters.endDate',
+                                                'End Date',
+                                            )}
                                         </label>
                                         <input
                                             type="date"
@@ -325,12 +386,21 @@ export default function GeneralLedgerPage({
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    Branch
+                                    {t(
+                                        'financeDashboard.filters.branch',
+                                        'Branch',
+                                    )}
                                 </label>
                                 <SearchableDropdown
                                     value={branchId || 'all'}
                                     options={[
-                                        { value: 'all', label: 'All Branches' },
+                                        {
+                                            value: 'all',
+                                            label: t(
+                                                'financeDashboard.filters.allBranches',
+                                                'All Branches',
+                                            ),
+                                        },
                                         ...branches.map((branch) => ({
                                             value: String(branch.id),
                                             label: branch.name,
@@ -341,43 +411,76 @@ export default function GeneralLedgerPage({
                                             value === 'all' ? '' : value,
                                         )
                                     }
-                                    placeholder="Select branch"
-                                    searchPlaceholder="Search branches..."
-                                    emptyText="No branch found."
+                                    placeholder={t(
+                                        'financeGeneralLedger.filters.selectBranch',
+                                        'Select branch',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeDashboard.filters.searchBranches',
+                                        'Search branches...',
+                                    )}
+                                    emptyText={t(
+                                        'financeGeneralLedger.filters.noBranchFound',
+                                        'No branch found.',
+                                    )}
                                 />
                             </div>
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    Payment Method
+                                    {t(
+                                        'financeDashboard.filters.paymentMethod',
+                                        'Payment Method',
+                                    )}
                                 </label>
                                 <SearchableDropdown
                                     value={paymentMethod || 'all'}
                                     options={[
-                                        { value: 'all', label: 'All Methods' },
-                                        ...PAYMENT_METHODS,
+                                        {
+                                            value: 'all',
+                                            label: t(
+                                                'financeDashboard.filters.allMethods',
+                                                'All Methods',
+                                            ),
+                                        },
+                                        ...paymentMethods,
                                     ]}
                                     onValueChange={(value) =>
                                         setPaymentMethod(
                                             value === 'all' ? '' : value,
                                         )
                                     }
-                                    placeholder="Select payment method"
-                                    searchPlaceholder="Search payment methods..."
-                                    emptyText="No method found."
+                                    placeholder={t(
+                                        'financeGeneralLedger.filters.selectPaymentMethod',
+                                        'Select payment method',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeGeneralLedger.filters.searchPaymentMethods',
+                                        'Search payment methods...',
+                                    )}
+                                    emptyText={t(
+                                        'financeGeneralLedger.filters.noMethodFound',
+                                        'No method found.',
+                                    )}
                                 />
                             </div>
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    Expense Category
+                                    {t(
+                                        'financeDashboard.filters.expenseCategory',
+                                        'Expense Category',
+                                    )}
                                 </label>
                                 <SearchableDropdown
                                     value={category || 'all'}
                                     options={[
                                         {
                                             value: 'all',
-                                            label: 'All Categories',
+                                            label: t(
+                                                'financeDashboard.filters.allCategories',
+                                                'All Categories',
+                                            ),
                                         },
                                         ...expenseCategories,
                                     ]}
@@ -386,9 +489,18 @@ export default function GeneralLedgerPage({
                                             value === 'all' ? '' : value,
                                         )
                                     }
-                                    placeholder="Select category"
-                                    searchPlaceholder="Search categories..."
-                                    emptyText="No category found."
+                                    placeholder={t(
+                                        'financeGeneralLedger.filters.selectCategory',
+                                        'Select category',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeGeneralLedger.filters.searchCategories',
+                                        'Search categories...',
+                                    )}
+                                    emptyText={t(
+                                        'financeGeneralLedger.filters.noCategoryFound',
+                                        'No category found.',
+                                    )}
                                 />
                             </div>
                         </div>
@@ -406,7 +518,10 @@ export default function GeneralLedgerPage({
                                     })
                                 }
                             >
-                                Apply Filters
+                                {t(
+                                    'financeDashboard.filters.apply',
+                                    'Apply Filters',
+                                )}
                             </Button>
                         </div>
                     </CardContent>
@@ -414,12 +529,25 @@ export default function GeneralLedgerPage({
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader>
-                        <CardTitle>Ledger Entries</CardTitle>
+                        <CardTitle>
+                            {t(
+                                'financeGeneralLedger.entries.title',
+                                'Ledger Entries',
+                            )}
+                        </CardTitle>
                         <CardDescription>
-                            Full operational finance stream for the selected
-                            filters.
+                            {t(
+                                'financeGeneralLedger.entries.description',
+                                'Full operational finance stream for the selected filters.',
+                            )}
                             {pagination.total > 0
-                                ? ` Showing ${pagination.from} to ${pagination.to} of ${pagination.total} entries.`
+                                ? t(
+                                      'financeGeneralLedger.entries.summary',
+                                      ' Showing :from to :to of :total entries.',
+                                  )
+                                      .replace(':from', String(pagination.from))
+                                      .replace(':to', String(pagination.to))
+                                      .replace(':total', String(pagination.total))
                                 : ''}
                         </CardDescription>
                     </CardHeader>
@@ -429,28 +557,59 @@ export default function GeneralLedgerPage({
                                 <table className="min-w-full text-sm">
                                     <thead>
                                         <tr className="border-b border-neutral-200 text-left text-xs tracking-[0.18em] text-neutral-500 uppercase dark:border-neutral-800">
-                                            <th className="px-3 py-3">Date</th>
                                             <th className="px-3 py-3">
-                                                Reference
-                                            </th>
-                                            <th className="px-3 py-3">Type</th>
-                                            <th className="px-3 py-3">
-                                                Branch
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.date',
+                                                    'Date',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3">
-                                                Account
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.reference',
+                                                    'Reference',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3">
-                                                Description
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.type',
+                                                    'Type',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.branch',
+                                                    'Branch',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.account',
+                                                    'Account',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3">
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.description',
+                                                    'Description',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Debit
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.debit',
+                                                    'Debit',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Credit
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.credit',
+                                                    'Credit',
+                                                )}
                                             </th>
                                             <th className="px-3 py-3 text-right">
-                                                Status
+                                                {t(
+                                                    'financeDashboard.generalLedger.columns.status',
+                                                    'Status',
+                                                )}
                                             </th>
                                         </tr>
                                     </thead>
@@ -494,7 +653,10 @@ export default function GeneralLedgerPage({
                                                     <span
                                                         className={`rounded-full px-2.5 py-1 text-xs font-medium ${ledgerStatusTone(entry.status)}`}
                                                     >
-                                                        {entry.status}
+                                                        {localizeLedgerStatus(
+                                                            entry.status,
+                                                            t,
+                                                        )}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -504,16 +666,28 @@ export default function GeneralLedgerPage({
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No ledger entries were found for the selected
-                                filters.
+                                {t(
+                                    'financeGeneralLedger.entries.empty',
+                                    'No ledger entries were found for the selected filters.',
+                                )}
                             </div>
                         )}
 
                         {pagination.lastPage > 1 ? (
                             <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Page {pagination.currentPage} of{' '}
-                                    {pagination.lastPage}
+                                    {t(
+                                        'financeGeneralLedger.pagination.pageOf',
+                                        'Page :current of :last',
+                                    )
+                                        .replace(
+                                            ':current',
+                                            String(pagination.currentPage),
+                                        )
+                                        .replace(
+                                            ':last',
+                                            String(pagination.lastPage),
+                                        )}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -523,7 +697,10 @@ export default function GeneralLedgerPage({
                                         onClick={() =>
                                             goToPage(pagination.currentPage - 1)
                                         }
-                                        aria-label="Previous page"
+                                        aria-label={t(
+                                            'common.previousPage',
+                                            'Previous page',
+                                        )}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Button>
@@ -565,7 +742,10 @@ export default function GeneralLedgerPage({
                                         onClick={() =>
                                             goToPage(pagination.currentPage + 1)
                                         }
-                                        aria-label="Next page"
+                                        aria-label={t(
+                                            'common.nextPage',
+                                            'Next page',
+                                        )}
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
