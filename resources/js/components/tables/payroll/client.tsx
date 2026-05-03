@@ -4,6 +4,7 @@ import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { buildColumns as buildScheduleColumns } from '@/components/tables/contract-payment-schedules/columns';
 import { ContractPaymentVoucherPrintDialog } from '@/components/tables/contract-payment-schedules/contract-payment-voucher-print-dialog';
 import { buildColumns as buildContractColumns } from '@/components/tables/contract-plans/columns';
@@ -250,6 +251,7 @@ export function PayrollClient({
     summary,
 }: PayrollClientProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedRun, setSelectedRun] = React.useState<PayrollRun | null>(
@@ -579,12 +581,15 @@ export function PayrollClient({
                     toast.error(
                         typeof firstError === 'string' && firstError
                             ? firstError
-                            : 'Failed to generate payroll run.',
+                            : t(
+                                  'financePayroll.toasts.generateRunFailed',
+                                  'Failed to generate payroll run.',
+                              ),
                     );
                 },
             },
         );
-    }, [form]);
+    }, [form, t]);
 
     const submitContract = React.useCallback(() => {
         const milestonePercentages = contractForm.milestone_percentages
@@ -620,14 +625,22 @@ export function PayrollClient({
                     preserveScroll: true,
                     onSuccess: () => {
                         setIsContractOpen(false);
-                        toast.success('Contract plan updated successfully.');
+                        toast.success(
+                            t(
+                                'financePayroll.toasts.contractUpdated',
+                                'Contract plan updated successfully.',
+                            ),
+                        );
                     },
                     onError: (errors) => {
                         const firstError = Object.values(errors)[0];
                         toast.error(
                             typeof firstError === 'string'
                                 ? firstError
-                                : 'Failed to update contract plan.',
+                                : t(
+                                      'financePayroll.toasts.contractUpdateFailed',
+                                      'Failed to update contract plan.',
+                                  ),
                         );
                     },
                 },
@@ -639,18 +652,26 @@ export function PayrollClient({
             preserveScroll: true,
             onSuccess: () => {
                 setIsContractOpen(false);
-                toast.success('Contract plan created successfully.');
+                toast.success(
+                    t(
+                        'financePayroll.toasts.contractCreated',
+                        'Contract plan created successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
                 toast.error(
                     typeof firstError === 'string'
                         ? firstError
-                        : 'Failed to create contract plan.',
+                        : t(
+                              'financePayroll.toasts.contractCreateFailed',
+                              'Failed to create contract plan.',
+                          ),
                 );
             },
         });
-    }, [contractForm, editingContract]);
+    }, [contractForm, editingContract, t]);
 
     const submitSchedule = React.useCallback(() => {
         const payload: Record<string, string | number | null | File> = {
@@ -680,7 +701,10 @@ export function PayrollClient({
                         setIsScheduleOpen(false);
                         setScheduleReceiptFile(null);
                         toast.success(
-                            'Contract schedule updated successfully.',
+                            t(
+                                'financePayroll.toasts.scheduleUpdated',
+                                'Contract schedule updated successfully.',
+                            ),
                         );
                     },
                     onError: (errors) => {
@@ -688,7 +712,10 @@ export function PayrollClient({
                         toast.error(
                             typeof firstError === 'string'
                                 ? firstError
-                                : 'Failed to update schedule.',
+                                : t(
+                                      'financePayroll.toasts.scheduleUpdateFailed',
+                                      'Failed to update schedule.',
+                                  ),
                         );
                     },
                 },
@@ -702,18 +729,26 @@ export function PayrollClient({
             onSuccess: () => {
                 setIsScheduleOpen(false);
                 setScheduleReceiptFile(null);
-                toast.success('Contract schedule created successfully.');
+                toast.success(
+                    t(
+                        'financePayroll.toasts.scheduleCreated',
+                        'Contract schedule created successfully.',
+                    ),
+                );
             },
             onError: (errors) => {
                 const firstError = Object.values(errors)[0];
                 toast.error(
                     typeof firstError === 'string'
                         ? firstError
-                        : 'Failed to create schedule.',
+                        : t(
+                              'financePayroll.toasts.scheduleCreateFailed',
+                              'Failed to create schedule.',
+                          ),
                 );
             },
         });
-    }, [editingSchedule, scheduleForm, scheduleReceiptFile]);
+    }, [editingSchedule, scheduleForm, scheduleReceiptFile, t]);
 
     const approve = React.useCallback((run: PayrollRun) => {
         router.post(
@@ -792,18 +827,20 @@ export function PayrollClient({
     const columns = React.useMemo(
         () =>
             buildColumns({
+                t,
                 onView: setSelectedRun,
                 onReviewApproval: setApprovalTarget,
                 onMarkPaid: markPaid,
                 canApprove,
                 canPay,
             }),
-        [canApprove, canPay, markPaid],
+        [canApprove, canPay, markPaid, t],
     );
 
     const scheduleColumns = React.useMemo(
         () =>
             buildScheduleColumns({
+                t,
                 onEdit: openScheduleEdit,
                 onDelete: setDeleteScheduleTarget,
                 onPrint: openSchedulePrint,
@@ -824,6 +861,7 @@ export function PayrollClient({
     const contractColumns = React.useMemo(
         () =>
             buildContractColumns({
+                t,
                 onEdit: openContractEdit,
                 onDelete: setDeleteContractTarget,
                 onPrint: openContractPrint,
@@ -842,25 +880,49 @@ export function PayrollClient({
             <SearchableDropdown
                 value={branchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branch found."
+                placeholder={t('financePayroll.filters.branch', 'Branch')}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noBranchFound',
+                    'No branch found.',
+                )}
                 className="w-[190px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
-                    ...STATUS_OPTIONS,
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    ...statusOptions,
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t('financePayroll.filters.status', 'Status')}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[190px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -871,16 +933,28 @@ export function PayrollClient({
             <SearchableDropdown
                 value={scheduleStatusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
-                    { value: 'draft', label: 'Draft' },
-                    { value: 'submitted', label: 'Submitted' },
-                    { value: 'approved', label: 'Approved' },
-                    { value: 'paid', label: 'Paid' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    ...statusOptions,
                 ]}
                 onValueChange={setScheduleStatusFilter}
-                placeholder="Schedule Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t(
+                    'financePayroll.filters.scheduleStatus',
+                    'Schedule Status',
+                )}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[210px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -891,40 +965,77 @@ export function PayrollClient({
             <SearchableDropdown
                 value={contractEmployeeFilter}
                 options={[
-                    { value: 'all', label: 'All Employees' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allEmployees',
+                            'All Employees',
+                        ),
+                    },
                     ...employeeOptions,
                 ]}
                 onValueChange={setContractEmployeeFilter}
-                placeholder="Employee"
-                searchPlaceholder="Search employees..."
-                emptyText="No employee found."
+                placeholder={t('financePayroll.filters.employee', 'Employee')}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchEmployees',
+                    'Search employees...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noEmployeeFound',
+                    'No employee found.',
+                )}
                 className="w-[175px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={contractBranchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setContractBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branch found."
+                placeholder={t('financePayroll.filters.branch', 'Branch')}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noBranchFound',
+                    'No branch found.',
+                )}
                 className="w-[155px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={contractStatusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
-                    { value: 'draft', label: 'Draft' },
-                    { value: 'submitted', label: 'Submitted' },
-                    { value: 'approved', label: 'Approved' },
-                    { value: 'active', label: 'Active' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financePayroll.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    ...statusOptions.filter((option) => option.value !== 'paid'),
+                    {
+                        value: 'active',
+                        label: t('financePayroll.statuses.active', 'Active'),
+                    },
                 ]}
                 onValueChange={setContractStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t('financePayroll.filters.status', 'Status')}
+                searchPlaceholder={t(
+                    'financePayroll.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financePayroll.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[145px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -934,8 +1045,11 @@ export function PayrollClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Payroll Runs: ${formatNumber(filteredRuns.length)}`}
-                    description="Generate payroll runs, deduct approved employee advances, and track approval and payment in one clean workflow."
+                    title={`${t('financePayroll.heading.title', 'Payroll Runs')}: ${formatNumber(filteredRuns.length)}`}
+                    description={t(
+                        'financePayroll.heading.description',
+                        'Generate payroll runs, deduct approved employee advances, and track approval and payment in one clean workflow.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -943,13 +1057,19 @@ export function PayrollClient({
                             href="/finance"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Finance
+                            {t(
+                                'financePayroll.actions.backToFinance',
+                                'Back to Finance',
+                            )}
                         </Link>
                     </Button>
                     {canCreate ? (
                         <Button onClick={openCreate} className="gap-2">
                             <Plus className="h-4 w-4" />
-                            Generate Payroll
+                            {t(
+                                'financePayroll.actions.generatePayroll',
+                                'Generate Payroll',
+                            )}
                         </Button>
                     ) : null}
                 </div>
@@ -961,21 +1081,25 @@ export function PayrollClient({
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="space-y-2">
                         <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                            Finance Module
+                            {t('financePayroll.hero.eyebrow', 'Finance Module')}
                         </p>
                         <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                            Payroll
+                            {t('financePayroll.hero.title', 'Payroll')}
                         </h1>
                         <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                            This is where finance turns active employees, salary
-                            setup, and approved advances into a structured
-                            payroll run ready for approval and payout.
+                            {t(
+                                'financePayroll.hero.description',
+                                'This is where finance turns active employees, salary setup, and approved advances into a structured payroll run ready for approval and payout.',
+                            )}
                         </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[600px] lg:grid-cols-3">
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
                             <p className="text-[11px] tracking-[0.14em] text-neutral-500 uppercase">
-                                Active Staff
+                                {t(
+                                    'financePayroll.summary.activeStaff',
+                                    'Active Staff',
+                                )}
                             </p>
                             <p className="mt-2 text-2xl font-semibold">
                                 {formatNumber(summary.activeEmployees)}
@@ -983,7 +1107,10 @@ export function PayrollClient({
                         </div>
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
                             <p className="text-[11px] tracking-[0.14em] text-neutral-500 uppercase">
-                                Unpaid Payroll
+                                {t(
+                                    'financePayroll.summary.unpaidPayroll',
+                                    'Unpaid Payroll',
+                                )}
                             </p>
                             <p className="mt-2 text-2xl font-semibold">
                                 {formatAfn(summary.unpaidPayroll)}
@@ -991,7 +1118,10 @@ export function PayrollClient({
                         </div>
                         <div className="rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-neutral-900/80">
                             <p className="text-[11px] tracking-[0.14em] text-neutral-500 uppercase">
-                                Advances To Deduct
+                                {t(
+                                    'financePayroll.summary.advancesToDeduct',
+                                    'Advances To Deduct',
+                                )}
                             </p>
                             <p className="mt-2 text-2xl font-semibold">
                                 {formatAfn(summary.outstandingAdvances)}
@@ -1006,7 +1136,10 @@ export function PayrollClient({
                     <CardContent className="flex items-start justify-between p-5">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Draft Runs
+                                {t(
+                                    'financePayroll.summary.draftRuns',
+                                    'Draft Runs',
+                                )}
                             </p>
                             <p className="text-2xl font-semibold">
                                 {formatNumber(summary.draftRuns)}
@@ -1021,7 +1154,10 @@ export function PayrollClient({
                     <CardContent className="flex items-start justify-between p-5">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Submitted Runs
+                                {t(
+                                    'financePayroll.summary.submittedRuns',
+                                    'Submitted Runs',
+                                )}
                             </p>
                             <p className="text-2xl font-semibold">
                                 {formatNumber(summary.submittedRuns)}
@@ -1036,7 +1172,10 @@ export function PayrollClient({
                     <CardContent className="flex items-start justify-between p-5">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Paid This Month
+                                {t(
+                                    'financePayroll.summary.paidThisMonth',
+                                    'Paid This Month',
+                                )}
                             </p>
                             <p className="text-2xl font-semibold">
                                 {formatAfn(summary.paidThisMonth)}
@@ -1051,7 +1190,10 @@ export function PayrollClient({
                     <CardContent className="flex items-start justify-between p-5">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Employees In Focus
+                                {t(
+                                    'financePayroll.summary.employeesInFocus',
+                                    'Employees In Focus',
+                                )}
                             </p>
                             <p className="text-2xl font-semibold">
                                 {formatNumber(employees.length)}
@@ -1068,10 +1210,17 @@ export function PayrollClient({
                 <div className="space-y-4">
                     <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Payroll Register</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financePayroll.register.title',
+                                    'Payroll Register',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Recent payroll runs with employee counts, gross
-                                pay, advance deductions, and payout status.
+                                {t(
+                                    'financePayroll.register.description',
+                                    'Recent payroll runs with employee counts, gross pay, advance deductions, and payout status.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                     </Card>
@@ -1081,7 +1230,10 @@ export function PayrollClient({
                             columns={columns}
                             data={filteredRuns}
                             searchKey={['period', 'status', 'branch.name']}
-                            searchPlaceholder="Search payroll runs by period, branch, or status..."
+                            searchPlaceholder={t(
+                                'financePayroll.register.searchPlaceholder',
+                                'Search payroll runs by period, branch, or status...',
+                            )}
                             toolbar={toolbar}
                         />
                     </div>
@@ -1090,15 +1242,25 @@ export function PayrollClient({
                         <CardHeader>
                             <div className="flex items-center justify-between gap-4">
                                 <div>
-                                    <CardTitle>Contract Plans</CardTitle>
+                                    <CardTitle>
+                                        {t(
+                                            'financePayroll.contracts.title',
+                                            'Contract Plans',
+                                        )}
+                                    </CardTitle>
                                     <CardDescription>
-                                        Manage employee contract payment plans
-                                        and print contract summary vouchers.
+                                        {t(
+                                            'financePayroll.contracts.description',
+                                            'Manage employee contract payment plans and print contract summary vouchers.',
+                                        )}
                                     </CardDescription>
                                 </div>
                                 {canCreate ? (
                                     <Button onClick={openContractCreate}>
-                                        New Contract Plan
+                                        {t(
+                                            'financePayroll.actions.newContractPlan',
+                                            'New Contract Plan',
+                                        )}
                                     </Button>
                                 ) : null}
                             </div>
@@ -1115,7 +1277,10 @@ export function PayrollClient({
                                 'payment_plan_type',
                                 'status',
                             ]}
-                            searchPlaceholder="Search contract plans by employee, period, plan type, or status..."
+                            searchPlaceholder={t(
+                                'financePayroll.contracts.searchPlaceholder',
+                                'Search contract plans by employee, period, plan type, or status...',
+                            )}
                             toolbar={contractToolbar}
                         />
                     </div>
@@ -1125,12 +1290,16 @@ export function PayrollClient({
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <CardTitle>
-                                        Contract Payment Schedules
+                                        {t(
+                                            'financePayroll.schedules.title',
+                                            'Contract Payment Schedules',
+                                        )}
                                     </CardTitle>
                                     <CardDescription>
-                                        Manage contract payment plans and due
-                                        schedule items that payroll will pull
-                                        instead of raw contract amounts.
+                                        {t(
+                                            'financePayroll.schedules.description',
+                                            'Manage contract payment plans and due schedule items that payroll will pull instead of raw contract amounts.',
+                                        )}
                                     </CardDescription>
                                 </div>
                                 {canCreate ? (
@@ -1139,7 +1308,10 @@ export function PayrollClient({
                                             variant="outline"
                                             onClick={openScheduleCreate}
                                         >
-                                            New Schedule
+                                            {t(
+                                                'financePayroll.actions.newSchedule',
+                                                'New Schedule',
+                                            )}
                                         </Button>
                                     </div>
                                 ) : null}
@@ -1157,7 +1329,10 @@ export function PayrollClient({
                                 'due_date',
                                 'status',
                             ]}
-                            searchPlaceholder="Search schedules by employee, title, due date, or status..."
+                            searchPlaceholder={t(
+                                'financePayroll.schedules.searchPlaceholder',
+                                'Search schedules by employee, title, due date, or status...',
+                            )}
                             toolbar={scheduleToolbar}
                         />
                     </div>
@@ -1168,13 +1343,19 @@ export function PayrollClient({
                         <CardHeader>
                             <CardTitle>
                                 {selectedRun
-                                    ? `Payroll Run #${selectedRun.id}`
-                                    : 'Payroll Details'}
+                                    ? `${t('financePayroll.details.run', 'Payroll Run')} #${selectedRun.id}`
+                                    : t(
+                                          'financePayroll.details.title',
+                                          'Payroll Details',
+                                      )}
                             </CardTitle>
                             <CardDescription>
                                 {selectedRun
-                                    ? `${formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? 'All Branches'}`
-                                    : 'Select a payroll run to review employee-level payroll items.'}
+                                    ? `${formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? t('financePayroll.filters.allBranches', 'All Branches')}`
+                                    : t(
+                                          'financePayroll.details.description',
+                                          'Select a payroll run to review employee-level payroll items.',
+                                      )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -1183,7 +1364,10 @@ export function PayrollClient({
                                     <div className="grid gap-3 md:grid-cols-2">
                                         <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/80">
                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                Net Payroll
+                                                {t(
+                                                    'financePayroll.table.netPayroll',
+                                                    'Net Payroll',
+                                                )}
                                             </p>
                                             <p className="mt-2 text-xl font-semibold">
                                                 {formatAfn(
@@ -1193,13 +1377,19 @@ export function PayrollClient({
                                         </div>
                                         <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/80">
                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                Status
+                                                {t(
+                                                    'financePayroll.table.status',
+                                                    'Status',
+                                                )}
                                             </p>
                                             <div className="mt-2">
                                                 <span
                                                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(selectedRun.status)}`}
                                                 >
-                                                    {selectedRun.status}
+                                                    {t(
+                                                        `financePayroll.statuses.${selectedRun.status}`,
+                                                        selectedRun.status,
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -1214,7 +1404,10 @@ export function PayrollClient({
                                             }
                                         >
                                             <Printer className="h-4 w-4" />
-                                            Print Vouchers
+                                            {t(
+                                                'financePayroll.actions.printVouchers',
+                                                'Print Vouchers',
+                                            )}
                                         </Button>
                                         {canApprove &&
                                         selectedRun.status !== 'approved' &&
@@ -1227,7 +1420,10 @@ export function PayrollClient({
                                                 }
                                                 className="gap-2"
                                             >
-                                                Review Approval
+                                                {t(
+                                                    'financePayroll.actions.reviewApproval',
+                                                    'Review Approval',
+                                                )}
                                             </Button>
                                         ) : null}
                                         {canPay &&
@@ -1238,7 +1434,10 @@ export function PayrollClient({
                                                 }
                                                 className="gap-2"
                                             >
-                                                Mark Paid
+                                                {t(
+                                                    'financePayroll.actions.markPaid',
+                                                    'Mark Paid',
+                                                )}
                                             </Button>
                                         ) : null}
                                     </div>
@@ -1272,8 +1471,10 @@ export function PayrollClient({
                                                                 item,
                                                             ).length ? (
                                                                 <p className="mt-1 text-xs text-neutral-500">
-                                                                    Payment for
-                                                                    month{' '}
+                                                                    {t(
+                                                                        'financePayroll.details.paymentForMonth',
+                                                                        'Payment for month',
+                                                                    )}{' '}
                                                                     {payrollCoveredMonths(
                                                                         item,
                                                                     ).join(
@@ -1285,15 +1486,19 @@ export function PayrollClient({
                                                         <span
                                                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(item.payment_status)}`}
                                                         >
-                                                            {
-                                                                item.payment_status
-                                                            }
+                                                            {t(
+                                                                `financePayroll.statuses.${item.payment_status}`,
+                                                                item.payment_status,
+                                                            )}
                                                         </span>
                                                     </div>
                                                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                                Gross
+                                                                {t(
+                                                                    'financePayroll.table.gross',
+                                                                    'Gross',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 font-semibold">
                                                                 {formatAfn(
@@ -1303,8 +1508,10 @@ export function PayrollClient({
                                                         </div>
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                                Advance
-                                                                Deduction
+                                                                {t(
+                                                                    'financePayroll.details.advanceDeduction',
+                                                                    'Advance Deduction',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 font-semibold">
                                                                 {formatAfn(
@@ -1314,7 +1521,10 @@ export function PayrollClient({
                                                         </div>
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                                Net Salary
+                                                                {t(
+                                                                    'financePayroll.details.netSalary',
+                                                                    'Net Salary',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 font-semibold">
                                                                 {formatAfn(
@@ -1324,7 +1534,10 @@ export function PayrollClient({
                                                         </div>
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                                Payment Date
+                                                                {t(
+                                                                    'financePayroll.details.paymentDate',
+                                                                    'Payment Date',
+                                                                )}
                                                             </p>
                                                             <p className="mt-1 font-semibold">
                                                                 {item.payment_date
@@ -1348,7 +1561,10 @@ export function PayrollClient({
                                                             }
                                                         >
                                                             <Printer className="h-4 w-4" />
-                                                            Print Voucher
+                                                            {t(
+                                                                'financePayroll.actions.printVoucher',
+                                                                'Print Voucher',
+                                                            )}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -1358,33 +1574,37 @@ export function PayrollClient({
                                 </>
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-8 text-sm text-neutral-500 dark:border-neutral-700">
-                                    No payroll run selected yet.
+                                    {t(
+                                        'financePayroll.details.empty',
+                                        'No payroll run selected yet.',
+                                    )}
                                 </div>
                             )}
 
                             {!canApprove ? (
                                 <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
-                                    Approval actions are hidden. Only users with
-                                    payroll approval permission can approve or
-                                    reject payroll runs after vouchers are
-                                    reviewed.
+                                    {t(
+                                        'financePayroll.notices.approvalHidden',
+                                        'Approval actions are hidden. Only users with payroll approval permission can approve or reject payroll runs after vouchers are reviewed.',
+                                    )}
                                 </div>
                             ) : null}
 
                             {!canPay ? (
                                 <div className="rounded-2xl border border-dashed border-sky-300 bg-sky-50 px-4 py-4 text-sm text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-200">
-                                    Payment actions are hidden. Only users with
-                                    payroll payment permission can mark payroll
-                                    runs as paid.
+                                    {t(
+                                        'financePayroll.notices.paymentHidden',
+                                        'Payment actions are hidden. Only users with payroll payment permission can mark payroll runs as paid.',
+                                    )}
                                 </div>
                             ) : null}
 
                             {!canApprove ? (
                                 <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/20 dark:text-amber-200">
-                                    Contract schedule approval actions are
-                                    hidden. Only users with payroll approval
-                                    permission can approve or reject schedule
-                                    payouts.
+                                    {t(
+                                        'financePayroll.notices.scheduleApprovalHidden',
+                                        'Contract schedule approval actions are hidden. Only users with payroll approval permission can approve or reject schedule payouts.',
+                                    )}
                                 </div>
                             ) : null}
                         </CardContent>
@@ -1395,18 +1615,23 @@ export function PayrollClient({
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Generate Payroll Run</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'financePayroll.form.generateTitle',
+                                'Generate Payroll Run',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
-                            Create a payroll run by Afghan month. Employees
-                            with salary or contract amount will be included
-                            automatically, and approved employee advances will
-                            be proposed as deductions.
+                            {t(
+                                'financePayroll.form.generateDescription',
+                                'Create a payroll run by Afghan month. Employees with salary or contract amount will be included automatically, and approved employee advances will be proposed as deductions.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>{t('financePayroll.filters.branch', 'Branch')}</Label>
                             <SearchableDropdown
                                 value={form.branch_id}
                                 options={branchOptions}
@@ -1416,29 +1641,52 @@ export function PayrollClient({
                                         branch_id: value,
                                     }))
                                 }
-                                placeholder="All branches"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder={t(
+                                    'financePayroll.filters.allBranches',
+                                    'All branches',
+                                )}
+                                searchPlaceholder={t(
+                                    'financePayroll.filters.searchBranches',
+                                    'Search branches...',
+                                )}
+                                emptyText={t(
+                                    'financePayroll.filters.noBranchFound',
+                                    'No branch found.',
+                                )}
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Status</Label>
+                            <Label>{t('financePayroll.filters.status', 'Status')}</Label>
                             <SearchableDropdown
                                 value={form.status}
-                                options={CREATE_STATUS_OPTIONS}
+                                options={createStatusOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         status: value,
                                     }))
                                 }
-                                placeholder="Select status"
-                                searchPlaceholder="Search statuses..."
-                                emptyText="No status found."
+                                placeholder={t(
+                                    'financePayroll.form.selectStatus',
+                                    'Select status',
+                                )}
+                                searchPlaceholder={t(
+                                    'financePayroll.filters.searchStatuses',
+                                    'Search statuses...',
+                                )}
+                                emptyText={t(
+                                    'financePayroll.filters.noStatusFound',
+                                    'No status found.',
+                                )}
                             />
                         </div>
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Afghan Payroll Month</Label>
+                            <Label>
+                                {t(
+                                    'financePayroll.form.afghanPayrollMonth',
+                                    'Afghan Payroll Month',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.afghan_month_key}
                                 options={payrollMonthOptions}
@@ -1455,13 +1703,27 @@ export function PayrollClient({
                                             month?.end ?? current.period_end,
                                     }));
                                 }}
-                                placeholder="Select Afghan month"
-                                searchPlaceholder="Search Afghan months..."
-                                emptyText="No Afghan month found."
+                                placeholder={t(
+                                    'financePayroll.form.selectAfghanMonth',
+                                    'Select Afghan month',
+                                )}
+                                searchPlaceholder={t(
+                                    'financePayroll.form.searchAfghanMonths',
+                                    'Search Afghan months...',
+                                )}
+                                emptyText={t(
+                                    'financePayroll.form.noAfghanMonthFound',
+                                    'No Afghan month found.',
+                                )}
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Gregorian Start</Label>
+                            <Label>
+                                {t(
+                                    'financePayroll.form.gregorianStart',
+                                    'Gregorian Start',
+                                )}
+                            </Label>
                             <Input
                                 type="date"
                                 value={form.period_start}
@@ -1469,27 +1731,46 @@ export function PayrollClient({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Gregorian End</Label>
+                            <Label>
+                                {t(
+                                    'financePayroll.form.gregorianEnd',
+                                    'Gregorian End',
+                                )}
+                            </Label>
                             <Input type="date" value={form.period_end} readOnly />
                         </div>
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Default Payment Method</Label>
+                            <Label>
+                                {t(
+                                    'financePayroll.form.defaultPaymentMethod',
+                                    'Default Payment Method',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.payment_method}
-                                options={PAYMENT_METHOD_OPTIONS}
+                                options={paymentMethodOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         payment_method: value,
                                     }))
                                 }
-                                placeholder="Select payment method"
-                                searchPlaceholder="Search methods..."
-                                emptyText="No method found."
+                                placeholder={t(
+                                    'financePayroll.form.selectPaymentMethod',
+                                    'Select payment method',
+                                )}
+                                searchPlaceholder={t(
+                                    'financePayroll.form.searchMethods',
+                                    'Search methods...',
+                                )}
+                                emptyText={t(
+                                    'financePayroll.form.noMethodFound',
+                                    'No method found.',
+                                )}
                             />
                         </div>
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Notes</Label>
+                            <Label>{t('financePayroll.form.notes', 'Notes')}</Label>
                             <Textarea
                                 value={form.notes}
                                 onChange={(event) =>
@@ -1499,14 +1780,20 @@ export function PayrollClient({
                                     }))
                                 }
                                 rows={4}
-                                placeholder="Optional payroll note for the period, branch context, or payout instructions."
+                                placeholder={t(
+                                    'financePayroll.form.notesPlaceholder',
+                                    'Optional payroll note for the period, branch context, or payout instructions.',
+                                )}
                             />
                         </div>
                     </div>
 
                     <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/80">
                         <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                            What this will do
+                            {t(
+                                'financePayroll.form.whatThisWillDo',
+                                'What this will do',
+                            )}
                         </p>
                         <ul className="mt-3 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
                             <li>
@@ -1533,9 +1820,14 @@ export function PayrollClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={submit}>Generate Run</Button>
+                        <Button onClick={submit}>
+                            {t(
+                                'financePayroll.actions.generateRun',
+                                'Generate Run',
+                            )}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -2191,3 +2483,68 @@ export function PayrollClient({
         </div>
     );
 }
+    const statusOptions = React.useMemo(
+        () => [
+            { value: 'draft', label: t('financePayroll.statuses.draft', 'Draft') },
+            {
+                value: 'submitted',
+                label: t('financePayroll.statuses.submitted', 'Submitted'),
+            },
+            {
+                value: 'approved',
+                label: t('financePayroll.statuses.approved', 'Approved'),
+            },
+            { value: 'paid', label: t('financePayroll.statuses.paid', 'Paid') },
+        ],
+        [t],
+    );
+
+    const createStatusOptions = React.useMemo(
+        () => [
+            { value: 'draft', label: t('financePayroll.statuses.draft', 'Draft') },
+            {
+                value: 'submitted',
+                label: t('financePayroll.statuses.submitted', 'Submitted'),
+            },
+        ],
+        [t],
+    );
+
+    const paymentMethodOptions = React.useMemo(
+        () =>
+            PAYMENT_METHOD_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(
+                    `orders.paymentMethod.${option.value}`,
+                    option.label,
+                ),
+            })),
+        [t],
+    );
+
+    const contractPlanTypeOptions = React.useMemo(
+        () => [
+            {
+                value: 'equal_installments',
+                label: t(
+                    'financePayroll.contractForm.equalInstallments',
+                    'Equal Installments',
+                ),
+            },
+            {
+                value: 'custom_schedule',
+                label: t(
+                    'financePayroll.contractForm.customSchedule',
+                    'Custom Schedule',
+                ),
+            },
+            {
+                value: 'manual_milestones',
+                label: t(
+                    'financePayroll.contractForm.manualMilestones',
+                    'Manual Milestones',
+                ),
+            },
+        ],
+        [t],
+    );
