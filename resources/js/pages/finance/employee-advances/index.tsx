@@ -1,13 +1,8 @@
 import { EmployeeAdvanceClient } from '@/components/tables/employee-advances/client';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BreadcrumbItem, Employee, EmployeeAdvance } from '@/types';
 import { Head } from '@inertiajs/react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'Employee Advances', href: '/finance/employee-advances' },
-];
 
 interface EmployeeAdvancePageProps {
     printAdvanceId?: number | null;
@@ -29,9 +24,27 @@ export default function EmployeeAdvancesPage({
     employees,
     printAdvanceId,
 }: EmployeeAdvancePageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t(
+                'financeEmployeeAdvances.pageTitle',
+                'Employee Advances',
+            ),
+            href: '/finance/employee-advances',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Employee Advances" />
+            <Head
+                title={t(
+                    'financeEmployeeAdvances.pageTitle',
+                    'Employee Advances',
+                )}
+            />
             <EmployeeAdvanceClient
                 advances={advances}
                 branches={branches}

@@ -1,4 +1,5 @@
 import { brand } from '@/config/brand';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -75,6 +76,8 @@ export function AdvanceVoucherPrintDialog({
     advance,
     branch,
 }: AdvanceVoucherPrintDialogProps) {
+    const { t } = useLocalization();
+
     const printVoucher = () => {
         if (!advance) {
             return;
@@ -220,11 +223,16 @@ export function AdvanceVoucherPrintDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Employee Advance Voucher Print
+                        {t(
+                            'financeEmployeeAdvances.voucher.printTitle',
+                            'Employee Advance Voucher Print',
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        Review this advance voucher, then print it for manager
-                        review and signature.
+                        {t(
+                            'financeEmployeeAdvances.voucher.printDescription',
+                            'Review this advance voucher, then print it for manager review and signature.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -233,7 +241,10 @@ export function AdvanceVoucherPrintDialog({
                         <div className="flex justify-end">
                             <Button onClick={printVoucher} className="gap-2">
                                 <Printer className="h-4 w-4" />
-                                Print Advance Voucher
+                                {t(
+                                    'financeEmployeeAdvances.actions.printVoucher',
+                                    'Print Advance Voucher',
+                                )}
                             </Button>
                         </div>
                         <ScrollArea className="h-[560px] rounded-lg border bg-slate-50 p-4">

@@ -24,6 +24,7 @@ function statusTone(status?: string) {
 }
 
 interface BuildColumnsProps {
+    t: (key: string, fallback?: string) => string;
     onEdit: (advance: EmployeeAdvance) => void;
     onApprove: (advance: EmployeeAdvance) => void;
     onReject: (advance: EmployeeAdvance) => void;
@@ -31,6 +32,7 @@ interface BuildColumnsProps {
 }
 
 export function buildColumns({
+    t,
     onEdit,
     onApprove,
     onReject,
@@ -43,7 +45,7 @@ export function buildColumns({
                 row.employee?.full_name ||
                 `${row.employee?.first_name ?? ''} ${row.employee?.last_name ?? ''}`.trim() ||
                 `Employee #${row.employee_id}`,
-            header: 'Employee',
+            header: t('financeEmployeeAdvances.table.employee', 'Employee'),
             cell: ({ row }) => {
                 const employeeName =
                     row.original.employee?.full_name ||
@@ -54,7 +56,11 @@ export function buildColumns({
                     <div>
                         <p className="font-medium">{employeeName}</p>
                         <p className="text-xs text-muted-foreground">
-                            {row.original.branch?.name ?? 'All Branches'}
+                            {row.original.branch?.name ??
+                                t(
+                                    'financeEmployeeAdvances.filters.allBranches',
+                                    'All Branches',
+                                )}
                         </p>
                     </div>
                 );
@@ -63,7 +69,7 @@ export function buildColumns({
         {
             id: 'advance_date',
             accessorFn: (row) => shortDate(row.advance_date),
-            header: 'Date',
+            header: t('financeEmployeeAdvances.table.date', 'Date'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
@@ -75,7 +81,7 @@ export function buildColumns({
         {
             id: 'reason',
             accessorFn: (row) => row.reason ?? '-',
-            header: 'Reason',
+            header: t('financeEmployeeAdvances.table.reason', 'Reason'),
             cell: ({ row }) => (
                 <p className="max-w-[260px] truncate text-sm text-muted-foreground">
                     {row.original.reason ?? '-'}
@@ -85,25 +91,28 @@ export function buildColumns({
         {
             id: 'amount',
             accessorFn: (row) => Number(row.amount ?? 0),
-            header: 'Amount',
+            header: t('financeEmployeeAdvances.table.amount', 'Amount'),
             cell: ({ row }) => formatAfn(row.original.amount),
         },
         {
             id: 'deducted_amount',
             accessorFn: (row) => Number(row.deducted_amount ?? 0),
-            header: 'Deducted',
+            header: t('financeEmployeeAdvances.table.deducted', 'Deducted'),
             cell: ({ row }) => formatAfn(row.original.deducted_amount ?? 0),
         },
         {
             id: 'remaining_balance',
             accessorFn: (row) => Number(row.remaining_balance ?? 0),
-            header: 'Remaining',
+            header: t('financeEmployeeAdvances.table.remaining', 'Remaining'),
             cell: ({ row }) => formatAfn(row.original.remaining_balance ?? 0),
         },
         {
             id: 'repayment_method',
             accessorFn: (row) => row.repayment_method ?? '-',
-            header: 'Repayment Method',
+            header: t(
+                'financeEmployeeAdvances.table.repaymentMethod',
+                'Repayment Method',
+            ),
             cell: ({ row }) =>
                 row.original.repayment_method
                     ? row.original.repayment_method.replaceAll('_', ' ')
@@ -112,20 +121,23 @@ export function buildColumns({
         {
             id: 'status',
             accessorFn: (row) => row.status ?? 'draft',
-            header: 'Status',
+            header: t('financeEmployeeAdvances.table.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(
                         row.original.status,
                     )}`}
                 >
-                    {row.original.status ?? 'draft'}
+                    {t(
+                        `financeEmployeeAdvances.statuses.${row.original.status ?? 'draft'}`,
+                        row.original.status ?? 'draft',
+                    )}
                 </span>
             ),
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financeEmployeeAdvances.table.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

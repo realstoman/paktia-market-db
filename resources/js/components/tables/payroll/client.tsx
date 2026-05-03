@@ -69,18 +69,6 @@ import { toast } from 'sonner';
 import { buildColumns } from './columns';
 import { PayrollVoucherPrintDialog } from './payroll-voucher-print-dialog';
 
-const STATUS_OPTIONS = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'submitted', label: 'Submitted' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'paid', label: 'Paid' },
-];
-
-const CREATE_STATUS_OPTIONS = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'submitted', label: 'Submitted' },
-];
-
 const PAYMENT_METHOD_OPTIONS = [
     { value: 'cash', label: 'Cash' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
@@ -930,6 +918,7 @@ export function PayrollClient({
             openScheduleAttachment,
             openScheduleEdit,
             openSchedulePrint,
+            t,
         ],
     );
 
@@ -942,7 +931,7 @@ export function PayrollClient({
                 onPrint: openContractPrint,
                 canDelete,
             }),
-        [canDelete, openContractEdit, openContractPrint],
+        [canDelete, openContractEdit, openContractPrint, t],
     );
 
     const selectedPrintItem = React.useMemo(
@@ -1998,20 +1987,7 @@ export function PayrollClient({
                             <Label>Payment Plan Type</Label>
                             <SearchableDropdown
                                 value={contractForm.payment_plan_type}
-                                options={[
-                                    {
-                                        value: 'equal_installments',
-                                        label: 'Equal Installments',
-                                    },
-                                    {
-                                        value: 'custom_schedule',
-                                        label: 'Custom Schedule',
-                                    },
-                                    {
-                                        value: 'manual_milestones',
-                                        label: 'Manual Milestones',
-                                    },
-                                ]}
+                                options={contractPlanTypeOptions}
                                 onValueChange={(value) =>
                                     setContractForm((current) => ({
                                         ...current,
