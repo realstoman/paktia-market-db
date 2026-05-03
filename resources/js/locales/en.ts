@@ -1214,6 +1214,11 @@ const en = {
                 'A recent snapshot of financial entries. Open the full ledger from Finance Modules.',
             open: 'Open General Ledger',
             empty: 'No recent ledger entries were found for the selected filters.',
+            status: {
+                posted: 'Posted',
+                approved: 'Approved',
+                submitted: 'Submitted',
+            },
             columns: {
                 date: 'Date',
                 reference: 'Reference',

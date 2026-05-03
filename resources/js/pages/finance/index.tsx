@@ -376,6 +376,49 @@ function localizeModuleStatLabel(
     return labelMap[label] ?? label;
 }
 
+function localizeCoverageLabel(
+    label: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const labelMap: Record<string, string> = {
+        Sales: t('financeDashboard.summary.sales', 'Sales'),
+        'Employee Covered': t(
+            'financeDashboard.summary.employeeCovered',
+            'Employee Covered',
+        ),
+        'Restaurant Hospitality': t(
+            'financeDashboard.summary.restaurantHospitality',
+            'Restaurant Hospitality',
+        ),
+    };
+
+    return labelMap[label] ?? label;
+}
+
+function localizeLedgerStatus(
+    status: string,
+    t: (key: string, fallback?: string) => string,
+) {
+    const normalized = status.toLowerCase();
+
+    if (normalized === 'posted') {
+        return t('financeDashboard.generalLedger.status.posted', 'Posted');
+    }
+
+    if (normalized === 'approved') {
+        return t('financeDashboard.generalLedger.status.approved', 'Approved');
+    }
+
+    if (normalized === 'submitted') {
+        return t(
+            'financeDashboard.generalLedger.status.submitted',
+            'Submitted',
+        );
+    }
+
+    return status;
+}
+
 function submitFilters(filters: {
     range: string;
     startDate: string;
@@ -539,13 +582,13 @@ export default function FinancePage({
                       href: '/dashboard',
                   },
                   {
-                      title: t('common.navigation.finance', 'Finance'),
+                      title: t('navigation.finance', 'Finance'),
                       href: '/finance',
                   },
               ]
             : [
                   {
-                      title: t('common.navigation.finance', 'Finance'),
+                      title: t('navigation.finance', 'Finance'),
                       href: '/finance',
                   },
               ];
@@ -569,6 +612,10 @@ export default function FinancePage({
     const paymentMethods = PAYMENT_METHOD_VALUES.map((value) => ({
         value,
         label: t(`orders.paymentMethod.${value}`, value.replace('_', ' ')),
+    }));
+    const coverageComparison = dashboard.coverageComparison.map((entry) => ({
+        ...entry,
+        label: localizeCoverageLabel(entry.label, t),
     }));
 
     React.useEffect(() => {
@@ -1182,7 +1229,7 @@ export default function FinancePage({
                         <CardContent>
                             <div className="h-[320px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={dashboard.coverageComparison}>
+                                    <BarChart data={coverageComparison}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="label" tickLine={false} axisLine={false} />
                                         <YAxis
@@ -1192,7 +1239,7 @@ export default function FinancePage({
                                         />
                                         <Tooltip formatter={(value: number) => formatAfn(value)} />
                                         <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
-                                            {dashboard.coverageComparison.map((entry) => (
+                                            {coverageComparison.map((entry) => (
                                                 <Cell
                                                     key={entry.label}
                                                     fill={coverageChartColor(entry.tone)}
@@ -1691,7 +1738,10 @@ export default function FinancePage({
                                                                 entry.status,
                                                             )}`}
                                                         >
-                                                            {entry.status}
+                                                            {localizeLedgerStatus(
+                                                                entry.status,
+                                                                t,
+                                                            )}
                                                         </span>
                                                     </td>
                                                 </tr>
