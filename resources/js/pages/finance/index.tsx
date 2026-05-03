@@ -250,6 +250,10 @@ function localizeFinanceNote(
             'financeDashboard.notes.grossProfitRecognized',
             'Recognized using recorded sales minus average inventory cost.',
         ),
+        'Gross profit is using posted inventory cost movements.': t(
+            'financeDashboard.notes.grossProfitPosted',
+            'Gross profit is using posted inventory cost movements.',
+        ),
         'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.': t(
             'financeDashboard.notes.grossProfitPending',
             'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',

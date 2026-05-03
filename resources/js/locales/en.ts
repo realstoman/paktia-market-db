@@ -1122,6 +1122,8 @@ const en = {
         notes: {
             grossProfitRecognized:
                 'Recognized using recorded sales minus average inventory cost.',
+            grossProfitPosted:
+                'Gross profit is using posted inventory cost movements.',
             grossProfitPending:
                 'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
             cashPosition:
