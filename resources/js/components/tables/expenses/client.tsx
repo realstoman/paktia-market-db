@@ -41,6 +41,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     Expense,
@@ -116,6 +117,7 @@ export function ExpenseClient({
     paidFromAccounts,
     printExpenseId = null,
 }: ExpenseClientProps) {
+    const { t } = useLocalization();
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingExpense, setEditingExpense] = React.useState<Expense | null>(
         null,
@@ -286,7 +288,12 @@ export function ExpenseClient({
                         return;
                     }
 
-                    toast.error('Failed to update expense.');
+                    toast.error(
+                        t(
+                            'financeExpenses.toasts.updateFailed',
+                            'Failed to update expense.',
+                        ),
+                    );
                 },
             });
             return;
@@ -306,10 +313,15 @@ export function ExpenseClient({
                     return;
                 }
 
-                toast.error('Failed to create expense.');
+                toast.error(
+                    t(
+                        'financeExpenses.toasts.createFailed',
+                        'Failed to create expense.',
+                    ),
+                );
             },
         });
-    }, [editingExpense, form, receiptFile]);
+    }, [editingExpense, form, receiptFile, t]);
 
     const approve = React.useCallback((expense: Expense) => {
         router.post(
@@ -365,8 +377,9 @@ export function ExpenseClient({
                     setPrintExpense(expense);
                     setIsPrintOpen(true);
                 },
+                t,
             }),
-        [openEdit, reject],
+        [openEdit, reject, t],
     );
 
     const toolbar = (
@@ -374,37 +387,79 @@ export function ExpenseClient({
             <SearchableDropdown
                 value={branchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeExpenses.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branches found."
+                placeholder={t('financeExpenses.filters.branch', 'Branch')}
+                searchPlaceholder={t(
+                    'financeExpenses.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financeExpenses.filters.noBranchesFound',
+                    'No branches found.',
+                )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={categoryFilter}
                 options={[
-                    { value: 'all', label: 'All Categories' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeExpenses.filters.allCategories',
+                            'All Categories',
+                        ),
+                    },
                     ...categoryOptions,
                 ]}
                 onValueChange={setCategoryFilter}
-                placeholder="Category"
-                searchPlaceholder="Search categories..."
-                emptyText="No categories found."
+                placeholder={t('financeExpenses.filters.category', 'Category')}
+                searchPlaceholder={t(
+                    'financeExpenses.filters.searchCategories',
+                    'Search categories...',
+                )}
+                emptyText={t(
+                    'financeExpenses.filters.noCategoriesFound',
+                    'No categories found.',
+                )}
                 className="w-[200px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
-                    ...APPROVAL_OPTIONS,
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeExpenses.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    ...APPROVAL_OPTIONS.map((option) => ({
+                        ...option,
+                        label: t(
+                            `financeExpenses.status.${option.value}`,
+                            option.label,
+                        ),
+                    })),
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No statuses found."
+                placeholder={t('financeExpenses.filters.status', 'Status')}
+                searchPlaceholder={t(
+                    'financeExpenses.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeExpenses.filters.noStatusesFound',
+                    'No statuses found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -414,8 +469,11 @@ export function ExpenseClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Expenses: ${formatNumber(filteredExpenses.length)}`}
-                    description="Create, review, approve, and manage operating expenses."
+                    title={`${t('financeExpenses.heading.title', 'Expenses')}: ${formatNumber(filteredExpenses.length)}`}
+                    description={t(
+                        'financeExpenses.heading.description',
+                        'Create, review, approve, and manage operating expenses.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -423,7 +481,10 @@ export function ExpenseClient({
                             href="/finance"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Finance
+                            {t(
+                                'financeExpenses.actions.backToFinance',
+                                'Back to Finance',
+                            )}
                         </Link>
                     </Button>
                     <Button variant="outline" asChild>
@@ -431,12 +492,15 @@ export function ExpenseClient({
                             href="/finance/expense-categories"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Expense Categories
+                            {t(
+                                'financeExpenses.actions.expenseCategories',
+                                'Expense Categories',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        New Expense
+                        {t('financeExpenses.actions.newExpense', 'New Expense')}
                     </Button>
                 </div>
             </div>
@@ -447,11 +511,16 @@ export function ExpenseClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Expense Register
+                        {t(
+                            'financeExpenses.register.title',
+                            'Expense Register',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Same table system as the other management sections, with
-                        search, filters, and pagination.
+                        {t(
+                            'financeExpenses.register.description',
+                            'Same table system as the other management sections, with search, filters, and pagination.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -467,7 +536,10 @@ export function ExpenseClient({
                         'payment_method',
                         'approval_status',
                     ]}
-                    searchPlaceholder="Search expenses by title, branch, category, or status..."
+                    searchPlaceholder={t(
+                        'financeExpenses.table.searchPlaceholder',
+                        'Search expenses by title, branch, category, or status...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -476,18 +548,27 @@ export function ExpenseClient({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingExpense ? 'Edit Expense' : 'Create Expense'}
+                            {editingExpense
+                                ? t(
+                                      'financeExpenses.form.editTitle',
+                                      'Edit Expense',
+                                  )
+                                : t(
+                                      'financeExpenses.form.createTitle',
+                                      'Create Expense',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Record a finance expense with branch, category,
-                            payment method, amount, and optional approval
-                            status.
+                            {t(
+                                'financeExpenses.form.description',
+                                'Record a finance expense with branch, category, payment method, amount, and optional approval status.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>{t('financeExpenses.form.branch', 'Branch')}</Label>
                             <SearchableDropdown
                                 value={form.branch_id}
                                 options={branchOptions}
@@ -497,26 +578,49 @@ export function ExpenseClient({
                                         branch_id: value,
                                     }))
                                 }
-                                placeholder="Select branch"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder={t(
+                                    'financeExpenses.form.selectBranch',
+                                    'Select branch',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenses.filters.searchBranches',
+                                    'Search branches...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenses.form.noBranchFound',
+                                    'No branch found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Expense Category</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.expenseCategory',
+                                    'Expense Category',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.expense_category_id}
                                 options={categoryOptions}
                                 onValueChange={syncCategoryAccount}
-                                placeholder="Select expense category"
-                                searchPlaceholder="Search expense categories..."
-                                emptyText="No expense category found."
+                                placeholder={t(
+                                    'financeExpenses.form.selectExpenseCategory',
+                                    'Select expense category',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenses.form.searchExpenseCategories',
+                                    'Search expense categories...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenses.form.noExpenseCategoryFound',
+                                    'No expense category found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Title</Label>
+                            <Label>{t('financeExpenses.form.title', 'Title')}</Label>
                             <Input
                                 value={form.title}
                                 onChange={(event) =>
@@ -525,12 +629,15 @@ export function ExpenseClient({
                                         title: event.target.value,
                                     }))
                                 }
-                                placeholder="Internet bill - March"
+                                placeholder={t(
+                                    'financeExpenses.form.titlePlaceholder',
+                                    'Internet bill - March',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Amount</Label>
+                            <Label>{t('financeExpenses.form.amount', 'Amount')}</Label>
                             <NumericInput
                                 min="0"
                                 value={form.amount}
@@ -540,12 +647,20 @@ export function ExpenseClient({
                                         amount: value,
                                     }))
                                 }
-                                placeholder="0"
+                                placeholder={t(
+                                    'financeExpenses.form.amountPlaceholder',
+                                    '0',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Payment Method</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.paymentMethod',
+                                    'Payment Method',
+                                )}
+                            </Label>
                             <Select
                                 value={form.payment_method}
                                 onValueChange={(value) =>
@@ -556,7 +671,12 @@ export function ExpenseClient({
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select payment method" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'financeExpenses.form.selectPaymentMethod',
+                                            'Select payment method',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {PAYMENT_METHOD_OPTIONS.map((option) => (
@@ -564,7 +684,10 @@ export function ExpenseClient({
                                             key={option.value}
                                             value={option.value}
                                         >
-                                            {option.label}
+                                            {t(
+                                                `orders.paymentMethod.${option.value}`,
+                                                option.label,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -572,7 +695,12 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Expense Date</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.expenseDate',
+                                    'Expense Date',
+                                )}
+                            </Label>
                             <Input
                                 type="date"
                                 value={form.expense_date}
@@ -586,7 +714,12 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Vendor / Payee</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.vendorPayee',
+                                    'Vendor / Payee',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.vendor_id}
                                 options={vendorOptions}
@@ -596,14 +729,28 @@ export function ExpenseClient({
                                         vendor_id: value,
                                     }))
                                 }
-                                placeholder="Select vendor or payee"
-                                searchPlaceholder="Search vendors..."
-                                emptyText="No vendor found."
+                                placeholder={t(
+                                    'financeExpenses.form.selectVendorPayee',
+                                    'Select vendor or payee',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenses.form.searchVendors',
+                                    'Search vendors...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenses.form.noVendorFound',
+                                    'No vendor found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Expense Ledger Account</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.expenseLedgerAccount',
+                                    'Expense Ledger Account',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.account_id}
                                 options={ledgerAccountOptions}
@@ -613,14 +760,28 @@ export function ExpenseClient({
                                         account_id: value,
                                     }))
                                 }
-                                placeholder="Select expense ledger account"
-                                searchPlaceholder="Search expense ledger accounts..."
-                                emptyText="No account found."
+                                placeholder={t(
+                                    'financeExpenses.form.selectExpenseLedgerAccount',
+                                    'Select expense ledger account',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenses.form.searchExpenseLedgerAccounts',
+                                    'Search expense ledger accounts...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenses.form.noAccountFound',
+                                    'No account found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Payment Source Account</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.paymentSourceAccount',
+                                    'Payment Source Account',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.paid_from_account_id}
                                 options={paidFromAccountOptions}
@@ -630,14 +791,28 @@ export function ExpenseClient({
                                         paid_from_account_id: value,
                                     }))
                                 }
-                                placeholder="Select payment source account"
-                                searchPlaceholder="Search payment source accounts..."
-                                emptyText="No account found."
+                                placeholder={t(
+                                    'financeExpenses.form.selectPaymentSourceAccount',
+                                    'Select payment source account',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenses.form.searchPaymentSourceAccounts',
+                                    'Search payment source accounts...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenses.form.noAccountFound',
+                                    'No account found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Approval Status</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.approvalStatus',
+                                    'Approval Status',
+                                )}
+                            </Label>
                             <Select
                                 value={form.approval_status}
                                 onValueChange={(value) =>
@@ -652,7 +827,12 @@ export function ExpenseClient({
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select approval status" />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'financeExpenses.form.selectApprovalStatus',
+                                            'Select approval status',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {APPROVAL_OPTIONS.map((option) => (
@@ -660,7 +840,10 @@ export function ExpenseClient({
                                             key={option.value}
                                             value={option.value}
                                         >
-                                            {option.label}
+                                            {t(
+                                                `financeExpenses.status.${option.value}`,
+                                                option.label,
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -668,7 +851,12 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.descriptionLabel',
+                                    'Description',
+                                )}
+                            </Label>
                             <Textarea
                                 value={form.description}
                                 onChange={(event) =>
@@ -677,13 +865,21 @@ export function ExpenseClient({
                                         description: event.target.value,
                                     }))
                                 }
-                                placeholder="Optional notes or receipt details"
+                                placeholder={t(
+                                    'financeExpenses.form.descriptionPlaceholder',
+                                    'Optional notes or receipt details',
+                                )}
                                 rows={4}
                             />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Bill / Receipt Attachment</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenses.form.receiptAttachment',
+                                    'Bill / Receipt Attachment',
+                                )}
+                            </Label>
                             <label
                                 htmlFor="expense-receipt"
                                 className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition-[background-color,border-color,box-shadow] hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
@@ -709,11 +905,20 @@ export function ExpenseClient({
                                                 ? receiptFile.name
                                                 : editingExpense
                                                         ?.attachments?.[0]
-                                                  ? 'Replace current receipt'
-                                                  : 'Upload receipt (JPG, PNG, PDF)'}
+                                                  ? t(
+                                                        'financeExpenses.form.replaceCurrentReceipt',
+                                                        'Replace current receipt',
+                                                    )
+                                                  : t(
+                                                        'financeExpenses.form.uploadReceipt',
+                                                        'Upload receipt (JPG, PNG, PDF)',
+                                                    )}
                                         </p>
                                         <p className="text-xs text-slate-500">
-                                            Click to browse files (max 5MB)
+                                            {t(
+                                                'financeExpenses.form.browseFiles',
+                                                'Click to browse files (max 5MB)',
+                                            )}
                                         </p>
                                     </div>
                                     {receiptFile ? (
@@ -740,12 +945,18 @@ export function ExpenseClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
                             {editingExpense
-                                ? 'Update Expense'
-                                : 'Create Expense'}
+                                ? t(
+                                      'financeExpenses.form.updateExpense',
+                                      'Update Expense',
+                                  )
+                                : t(
+                                      'financeExpenses.form.createExpense',
+                                      'Create Expense',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -762,19 +973,23 @@ export function ExpenseClient({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Review Expense Submission
+                            {t(
+                                'financeExpenses.review.title',
+                                'Review Expense Submission',
+                            )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm whether you want to approve this expense or
-                            send it back for correction. Approved expenses can
-                            later be cancelled, but not edited.
+                            {t(
+                                'financeExpenses.review.description',
+                                'Confirm whether you want to approve this expense or send it back for correction. Approved expenses can later be cancelled, but not edited.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
                             onClick={() => setApprovalTarget(null)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => {
@@ -784,7 +999,7 @@ export function ExpenseClient({
                                 setApprovalTarget(null);
                             }}
                         >
-                            Reject
+                            {t('financeExpenses.actions.reject', 'Reject')}
                         </AlertDialogAction>
                         <AlertDialogAction
                             onClick={() => {
@@ -794,7 +1009,7 @@ export function ExpenseClient({
                                 setApprovalTarget(null);
                             }}
                         >
-                            Approve
+                            {t('financeExpenses.actions.approve', 'Approve')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -826,7 +1041,10 @@ export function ExpenseClient({
                     }
                 }}
                 path={attachmentPath}
-                title="Expense Attachment"
+                title={t(
+                    'financeExpenses.attachmentTitle',
+                    'Expense Attachment',
+                )}
             />
         </div>
     );

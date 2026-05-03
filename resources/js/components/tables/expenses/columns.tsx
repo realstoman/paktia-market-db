@@ -58,6 +58,7 @@ interface BuildColumnsProps {
     onCancel: (expense: Expense) => void;
     onViewAttachment: (path: string) => void;
     onPrint: (expense: Expense) => void;
+    t: (key: string, fallback?: string) => string;
 }
 
 export function buildColumns({
@@ -66,11 +67,12 @@ export function buildColumns({
     onCancel,
     onViewAttachment,
     onPrint,
+    t,
 }: BuildColumnsProps): ColumnDef<Expense>[] {
     return [
         {
             accessorKey: 'expense_date',
-            header: 'Date',
+            header: t('financeExpenses.table.date', 'Date'),
             cell: ({ row }) => {
                 const dateText = formatExpenseDate(row.original.expense_date);
                 const timeText = formatExpenseTime(row.original.created_at);
@@ -90,7 +92,7 @@ export function buildColumns({
         {
             id: 'title',
             accessorKey: 'title',
-            header: 'Title',
+            header: t('financeExpenses.table.title', 'Title'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">{row.original.title}</p>
@@ -105,30 +107,33 @@ export function buildColumns({
         {
             id: 'branch.name',
             accessorFn: (row) => row.branch?.name ?? '-',
-            header: 'Branch',
+            header: t('financeExpenses.table.branch', 'Branch'),
         },
         {
             id: 'expense_category.name',
             accessorFn: (row) =>
                 row.expense_category?.name ?? row.expense_type ?? '-',
-            header: 'Category',
+            header: t('financeExpenses.table.category', 'Category'),
         },
         {
             accessorKey: 'payment_method',
-            header: 'Payment Method',
+            header: t('financeExpenses.table.paymentMethod', 'Payment Method'),
             cell: ({ row }) =>
                 row.original.payment_method
-                    ? row.original.payment_method.replaceAll('_', ' ')
+                    ? t(
+                          `orders.paymentMethod.${row.original.payment_method}`,
+                          row.original.payment_method.replaceAll('_', ' '),
+                      )
                     : '-',
         },
         {
             accessorKey: 'amount',
-            header: 'Amount',
+            header: t('financeExpenses.table.amount', 'Amount'),
             cell: ({ row }) => formatAfn(row.original.amount),
         },
         {
             id: 'attachment',
-            header: 'Attachment',
+            header: t('financeExpenses.table.attachment', 'Attachment'),
             cell: ({ row }) => {
                 const attachmentPath = row.original.attachments?.[0];
 
@@ -142,27 +147,30 @@ export function buildColumns({
                         onClick={() => onViewAttachment(attachmentPath)}
                         className="text-sm font-medium text-primary underline-offset-4 hover:underline"
                     >
-                        View
+                        {t('financeExpenses.table.view', 'View')}
                     </button>
                 );
             },
         },
         {
             accessorKey: 'approval_status',
-            header: 'Status',
+            header: t('financeExpenses.table.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeTone(
                         row.original.approval_status,
                     )}`}
                 >
-                    {row.original.approval_status ?? 'draft'}
+                    {t(
+                        `financeExpenses.status.${row.original.approval_status ?? 'draft'}`,
+                        row.original.approval_status ?? 'draft',
+                    )}
                 </span>
             ),
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financeExpenses.table.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}
