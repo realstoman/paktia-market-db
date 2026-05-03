@@ -300,29 +300,57 @@ function localizeModuleDescription(
     t: (key: string, fallback?: string) => string,
 ) {
     const descriptionMap: Record<string, string> = {
+        'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.': t(
+            'financeDashboard.modules.descriptions.chartOfAccounts',
+            'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.',
+        ),
         'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.': t(
             'financeDashboard.modules.descriptions.chartOfAccounts',
             'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
+        ),
+        'Journal headers and lines for every approved financial event.': t(
+            'financeDashboard.modules.descriptions.generalLedger',
+            'Journal headers and lines for every approved financial event.',
         ),
         'Review entries generated from completed orders, approved expenses, and manual journals.': t(
             'financeDashboard.modules.descriptions.generalLedger',
             'Review entries generated from completed orders, approved expenses, and manual journals.',
         ),
+        'Operational expenses with approval and account mapping support.': t(
+            'financeDashboard.modules.descriptions.expenses',
+            'Operational expenses with approval and account mapping support.',
+        ),
         'Track business expenses with approval status and accounting impact.': t(
             'financeDashboard.modules.descriptions.expenses',
             'Track business expenses with approval status and accounting impact.',
+        ),
+        'Payroll runs, payroll items, and unpaid salary visibility.': t(
+            'financeDashboard.modules.descriptions.payroll',
+            'Payroll runs, payroll items, and unpaid salary visibility.',
         ),
         'Process monthly payroll, contract payouts, and salary-linked deductions.': t(
             'financeDashboard.modules.descriptions.payroll',
             'Process monthly payroll, contract payouts, and salary-linked deductions.',
         ),
+        'Employee takeouts and automatic payroll deductions.': t(
+            'financeDashboard.modules.descriptions.employeeAdvances',
+            'Employee takeouts and automatic payroll deductions.',
+        ),
         'Record employee advances and keep payroll deductions aligned with settlement.': t(
             'financeDashboard.modules.descriptions.employeeAdvances',
             'Record employee advances and keep payroll deductions aligned with settlement.',
         ),
+        'Manual cash movements, deposits, withdrawals, and branch petty cash.': t(
+            'financeDashboard.modules.descriptions.cashBank',
+            'Manual cash movements, deposits, withdrawals, and branch petty cash.',
+        ),
         'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.': t(
             'financeDashboard.modules.descriptions.cashBank',
             'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
+        ),
+        'Weighted average costing and inventory-to-COGS movement tracking.': t(
+            'financeDashboard.modules.descriptions.inventoryValuation',
+            'Weighted average costing and inventory-to-COGS movement tracking.',
         ),
         'Follow weighted average costing, stock value, and cost of goods sold readiness.': t(
             'financeDashboard.modules.descriptions.inventoryValuation',
