@@ -1,4 +1,6 @@
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Minus, Plus } from 'lucide-react';
 import * as React from 'react';
 
 interface NumericInputProps
@@ -43,22 +45,134 @@ const formatWithCommas = (value: string): string => {
     }).format(Number(normalized));
 };
 
+const parseBoundary = (
+    value: React.ComponentProps<typeof Input>['min'] |
+        React.ComponentProps<typeof Input>['max'],
+): number | null => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const parseStep = (
+    value: React.ComponentProps<typeof Input>['step'],
+): number => {
+    if (value === undefined || value === null || value === '') {
+        return 1;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+};
+
+const clampValue = (
+    value: number,
+    min: number | null,
+    max: number | null,
+): number => {
+    if (min !== null && value < min) {
+        return min;
+    }
+
+    if (max !== null && value > max) {
+        return max;
+    }
+
+    return value;
+};
+
 export function NumericInput({
     value,
     onValueChange,
     ...props
 }: NumericInputProps) {
     const displayValue = formatWithCommas(normalizeValue(value));
+    const min = parseBoundary(props.min);
+    const max = parseBoundary(props.max);
+    const step = parseStep(props.step);
+    const normalizedCurrentValue = normalizeValue(value);
+    const currentNumericValue = normalizedCurrentValue
+        ? Number(normalizedCurrentValue)
+        : null;
+
+    const updateClampedValue = (nextValue: number) => {
+        const clamped = clampValue(nextValue, min, max);
+        onValueChange(String(Math.trunc(clamped)));
+    };
 
     return (
-        <Input
-            type="text"
-            inputMode="numeric"
-            value={displayValue}
-            onChange={(event) => {
-                onValueChange(sanitizeNumeric(event.target.value));
-            }}
-            {...props}
-        />
+        <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]">
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-none border-r"
+                disabled={
+                    props.disabled ||
+                    (currentNumericValue !== null &&
+                        min !== null &&
+                        currentNumericValue <= min)
+                }
+                onClick={() =>
+                    updateClampedValue(
+                        (currentNumericValue ?? min ?? 0) - step,
+                    )
+                }
+            >
+                <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+                type="text"
+                inputMode="numeric"
+                value={displayValue}
+                onChange={(event) => {
+                    const sanitized = sanitizeNumeric(event.target.value);
+
+                    if (!sanitized) {
+                        onValueChange('');
+                        return;
+                    }
+
+                    updateClampedValue(Number(sanitized));
+                }}
+                onBlur={() => {
+                    if (!normalizedCurrentValue) {
+                        if (min !== null) {
+                            onValueChange(String(Math.trunc(min)));
+                        }
+
+                        return;
+                    }
+
+                    updateClampedValue(Number(normalizedCurrentValue));
+                }}
+                className="h-9 rounded-none border-0 text-center shadow-none focus-visible:ring-0"
+                {...props}
+            />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-none border-l"
+                disabled={
+                    props.disabled ||
+                    (currentNumericValue !== null &&
+                        max !== null &&
+                        currentNumericValue >= max)
+                }
+                onClick={() =>
+                    updateClampedValue(
+                        (currentNumericValue ?? min ?? 0) + step,
+                    )
+                }
+            >
+                <Plus className="h-4 w-4" />
+            </Button>
+        </div>
     );
 }
