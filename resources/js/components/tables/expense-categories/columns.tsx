@@ -12,18 +12,20 @@ interface BuildColumnsProps {
     onEdit: (category: ExpenseCategory) => void;
     onDelete: (category: ExpenseCategory) => void;
     canDelete: boolean;
+    t: (key: string, fallback?: string) => string;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
     canDelete,
+    t,
 }: BuildColumnsProps): ColumnDef<ExpenseCategory>[] {
     return [
         {
             id: 'name',
             accessorKey: 'name',
-            header: 'Name',
+            header: t('financeExpenseCategories.table.name', 'Name'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">{row.original.name}</p>
@@ -37,42 +39,59 @@ export function buildColumns({
         },
         {
             accessorKey: 'slug',
-            header: 'Slug',
+            header: t('financeExpenseCategories.table.slug', 'Slug'),
         },
         {
             id: 'expense_account.name',
             accessorFn: (row) =>
                 row.expense_account
                     ? `${row.expense_account.code} - ${row.expense_account.name}`
-                    : 'Not mapped',
-            header: 'Ledger Account',
+                    : t(
+                          'financeExpenseCategories.table.notMapped',
+                          'Not mapped',
+                      ),
+            header: t(
+                'financeExpenseCategories.table.ledgerAccount',
+                'Ledger Account',
+            ),
         },
         {
             accessorKey: 'sort_order',
-            header: 'Sort',
+            header: t('financeExpenseCategories.table.sort', 'Sort'),
             cell: ({ row }) => row.original.sort_order ?? 0,
         },
         {
             accessorKey: 'is_active',
-            header: 'Status',
+            header: t('financeExpenseCategories.table.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(
                         row.original.is_active,
                     )}`}
                 >
-                    {row.original.is_active ? 'Active' : 'Inactive'}
+                    {row.original.is_active
+                        ? t(
+                              'financeExpenseCategories.status.active',
+                              'Active',
+                          )
+                        : t(
+                              'financeExpenseCategories.status.inactive',
+                              'Inactive',
+                          )}
                 </span>
             ),
         },
         {
             accessorKey: 'expenses_count',
-            header: 'Used In Expenses',
+            header: t(
+                'financeExpenseCategories.table.usedInExpenses',
+                'Used In Expenses',
+            ),
             cell: ({ row }) => row.original.expenses_count ?? 0,
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financeExpenseCategories.table.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

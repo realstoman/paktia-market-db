@@ -1542,6 +1542,94 @@ const en = {
             createFailed: 'Failed to create expense.',
         },
     },
+    financeExpenseCategories: {
+        pageTitle: 'Expense Categories',
+        heading: {
+            title: 'Expense Categories',
+            description:
+                'Manage the expense category catalog, ledger mappings, and activation state for finance operations.',
+        },
+        actions: {
+            backToExpenses: 'Back to Expenses',
+            addCategory: 'Add Category',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            delete: 'Delete',
+        },
+        register: {
+            title: 'Expense Category Register',
+            description:
+                'Same table system as the expense register, with search, filters, pagination, and category management actions.',
+        },
+        filters: {
+            status: 'Status',
+            ledgerMapping: 'Ledger Mapping',
+            allStatuses: 'All Statuses',
+            allMappings: 'All Mappings',
+            mapped: 'Mapped',
+            unmapped: 'Unmapped',
+            searchStatuses: 'Search statuses...',
+            searchMappingStatus: 'Search mapping status...',
+            noStatusesFound: 'No statuses found.',
+            noMappingStatusFound: 'No mapping status found.',
+        },
+        table: {
+            searchPlaceholder:
+                'Search categories by name, slug, ledger account, or usage...',
+            name: 'Name',
+            slug: 'Slug',
+            ledgerAccount: 'Ledger Account',
+            notMapped: 'Not mapped',
+            sort: 'Sort',
+            status: 'Status',
+            usedInExpenses: 'Used In Expenses',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Expense Category',
+            editTitle: 'Edit Expense Category',
+            description:
+                'Define the category, optional ledger mapping, display order, and whether it is active for new expense entries.',
+            name: 'Name',
+            namePlaceholder: 'Internet',
+            slug: 'Slug',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'Ledger Account',
+            selectLedgerAccount: 'Select ledger account',
+            searchLedgerAccounts: 'Search ledger accounts...',
+            noAccountFound: 'No account found.',
+            sortOrder: 'Sort Order',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Monthly internet and connectivity costs.',
+            activeLabel: 'Active and available for new expense entries',
+            updateCategory: 'Update Category',
+            createCategory: 'Create Category',
+        },
+        delete: {
+            title: 'Delete Expense Category',
+            description:
+                'This will permanently remove the selected expense category.',
+            reassignBeforeDeleting:
+                'This category is already assigned to expenses. Reassign those records before deleting it.',
+            expensesWillBeMoved:
+                ':count expenses will be moved to another category.',
+            noExpensesAssigned:
+                'No expenses are currently assigned to this category.',
+            replacementCategory: 'Replacement Category',
+            selectReplacementCategory: 'Select replacement category',
+            searchCategories: 'Search categories...',
+            noReplacementCategoryFound:
+                'No replacement category found.',
+            createAnotherCategory:
+                'Create another category before deleting this one.',
+        },
+        status: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+    },
     orders: {
         title: 'Orders',
         breadcrumb: 'Orders',

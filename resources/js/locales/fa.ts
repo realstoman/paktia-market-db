@@ -1546,6 +1546,89 @@ const fa = {
             createFailed: 'ایجاد مصرف ناکام شد.',
         },
     },
+    financeExpenseCategories: {
+        pageTitle: 'دسته‌بندی‌های مصرف',
+        heading: {
+            title: 'دسته‌بندی‌های مصرف',
+            description:
+                'فهرست دسته‌بندی‌های مصرف، پیوندهای دفترکل و وضعیت فعال‌سازی را برای عملیات مالی مدیریت کنید.',
+        },
+        actions: {
+            backToExpenses: 'بازگشت به مصرف‌ها',
+            addCategory: 'افزودن دسته‌بندی',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'ثبت دسته‌بندی‌های مصرف',
+            description:
+                'همان سیستم جدولی ثبت مصرف، همراه با جستجو، فیلترها، صفحه‌بندی و عملیات مدیریت دسته‌بندی.',
+        },
+        filters: {
+            status: 'وضعیت',
+            ledgerMapping: 'پیوند دفترکل',
+            allStatuses: 'همه وضعیت‌ها',
+            allMappings: 'همه پیوندها',
+            mapped: 'پیوند شده',
+            unmapped: 'بدون پیوند',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            searchMappingStatus: 'جستجوی وضعیت پیوند...',
+            noStatusesFound: 'هیچ وضعیتی یافت نشد.',
+            noMappingStatusFound: 'هیچ وضعیت پیوندی یافت نشد.',
+        },
+        table: {
+            searchPlaceholder:
+                'دسته‌بندی‌ها را بر اساس نام، اسلاگ، حساب دفترکل یا میزان استفاده جستجو کنید...',
+            name: 'نام',
+            slug: 'اسلاگ',
+            ledgerAccount: 'حساب دفترکل',
+            notMapped: 'پیوند نشده',
+            sort: 'ترتیب',
+            status: 'وضعیت',
+            usedInExpenses: 'استفاده‌شده در مصرف‌ها',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد دسته‌بندی مصرف',
+            editTitle: 'ویرایش دسته‌بندی مصرف',
+            description:
+                'دسته‌بندی، پیوند اختیاری دفترکل، ترتیب نمایش و فعال بودن آن برای ثبت‌های جدید مصرف را تعیین کنید.',
+            name: 'نام',
+            namePlaceholder: 'انترنت',
+            slug: 'اسلاگ',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'حساب دفترکل',
+            selectLedgerAccount: 'حساب دفترکل را انتخاب کنید',
+            searchLedgerAccounts: 'جستجوی حساب‌های دفترکل...',
+            noAccountFound: 'هیچ حسابی یافت نشد.',
+            sortOrder: 'ترتیب نمایش',
+            descriptionLabel: 'توضیحات',
+            descriptionPlaceholder: 'هزینه‌های ماهانه انترنت و اتصال.',
+            activeLabel: 'برای ثبت‌های جدید مصرف فعال و قابل استفاده باشد',
+            updateCategory: 'به‌روزرسانی دسته‌بندی',
+            createCategory: 'ایجاد دسته‌بندی',
+        },
+        delete: {
+            title: 'حذف دسته‌بندی مصرف',
+            description:
+                'این کار دسته‌بندی انتخاب‌شده مصرف را برای همیشه حذف می‌کند.',
+            reassignBeforeDeleting:
+                'این دسته‌بندی از قبل به مصرف‌ها اختصاص داده شده است. پیش از حذف، آن سوابق را دوباره تعیین کنید.',
+            expensesWillBeMoved:
+                ':count مصرف به دسته‌بندی دیگری منتقل خواهند شد.',
+            noExpensesAssigned:
+                'هیچ مصرفی در حال حاضر به این دسته‌بندی اختصاص داده نشده است.',
+            replacementCategory: 'دسته‌بندی جایگزین',
+            selectReplacementCategory: 'دسته‌بندی جایگزین را انتخاب کنید',
+            searchCategories: 'جستجوی دسته‌بندی‌ها...',
+            noReplacementCategoryFound:
+                'هیچ دسته‌بندی جایگزینی یافت نشد.',
+            createAnotherCategory:
+                'اگر دسته‌بندی جایگزین وجود ندارد، ابتدا یکی دیگر ایجاد کنید.',
+        },
+    },
     orders: {
         title: 'سفارش‌ها',
         breadcrumb: 'سفارش‌ها',

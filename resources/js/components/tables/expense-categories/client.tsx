@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import { ExpenseCategory, FinanceAccount, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -58,6 +59,7 @@ export function ExpenseCategoryClient({
     financeAccounts,
 }: ExpenseCategoryClientProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingCategory, setEditingCategory] =
@@ -204,8 +206,9 @@ export function ExpenseCategoryClient({
                 onEdit: openEdit,
                 onDelete: remove,
                 canDelete,
+                t,
             }),
-        [canDelete, openEdit, remove],
+        [canDelete, openEdit, remove, t],
     );
 
     const toolbar = (
@@ -213,27 +216,81 @@ export function ExpenseCategoryClient({
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeExpenseCategories.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    {
+                        value: 'active',
+                        label: t(
+                            'financeExpenseCategories.status.active',
+                            'Active',
+                        ),
+                    },
+                    {
+                        value: 'inactive',
+                        label: t(
+                            'financeExpenseCategories.status.inactive',
+                            'Inactive',
+                        ),
+                    },
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No statuses found."
+                placeholder={t(
+                    'financeExpenseCategories.filters.status',
+                    'Status',
+                )}
+                searchPlaceholder={t(
+                    'financeExpenseCategories.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeExpenseCategories.filters.noStatusesFound',
+                    'No statuses found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={mappingFilter}
                 options={[
-                    { value: 'all', label: 'All Mappings' },
-                    { value: 'mapped', label: 'Mapped' },
-                    { value: 'unmapped', label: 'Unmapped' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeExpenseCategories.filters.allMappings',
+                            'All Mappings',
+                        ),
+                    },
+                    {
+                        value: 'mapped',
+                        label: t(
+                            'financeExpenseCategories.filters.mapped',
+                            'Mapped',
+                        ),
+                    },
+                    {
+                        value: 'unmapped',
+                        label: t(
+                            'financeExpenseCategories.filters.unmapped',
+                            'Unmapped',
+                        ),
+                    },
                 ]}
                 onValueChange={setMappingFilter}
-                placeholder="Ledger Mapping"
-                searchPlaceholder="Search mapping status..."
-                emptyText="No mapping status found."
+                placeholder={t(
+                    'financeExpenseCategories.filters.ledgerMapping',
+                    'Ledger Mapping',
+                )}
+                searchPlaceholder={t(
+                    'financeExpenseCategories.filters.searchMappingStatus',
+                    'Search mapping status...',
+                )}
+                emptyText={t(
+                    'financeExpenseCategories.filters.noMappingStatusFound',
+                    'No mapping status found.',
+                )}
                 className="w-[190px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -243,8 +300,14 @@ export function ExpenseCategoryClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Expense Categories: ${formatNumber(filteredCategories.length)}`}
-                    description="Manage the expense category catalog, ledger mappings, and activation state for finance operations."
+                    title={`${t(
+                        'financeExpenseCategories.heading.title',
+                        'Expense Categories',
+                    )}: ${formatNumber(filteredCategories.length)}`}
+                    description={t(
+                        'financeExpenseCategories.heading.description',
+                        'Manage the expense category catalog, ledger mappings, and activation state for finance operations.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -252,12 +315,18 @@ export function ExpenseCategoryClient({
                             href="/finance/expenses"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Expenses
+                            {t(
+                                'financeExpenseCategories.actions.backToExpenses',
+                                'Back to Expenses',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        Add Category
+                        {t(
+                            'financeExpenseCategories.actions.addCategory',
+                            'Add Category',
+                        )}
                     </Button>
                 </div>
             </div>
@@ -268,11 +337,16 @@ export function ExpenseCategoryClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Tags className="h-5 w-5" />
-                        Expense Category Register
+                        {t(
+                            'financeExpenseCategories.register.title',
+                            'Expense Category Register',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Same table system as the expense register, with search,
-                        filters, pagination, and category management actions.
+                        {t(
+                            'financeExpenseCategories.register.description',
+                            'Same table system as the expense register, with search, filters, pagination, and category management actions.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -287,7 +361,10 @@ export function ExpenseCategoryClient({
                         'expense_account.name',
                         'expenses_count',
                     ]}
-                    searchPlaceholder="Search categories by name, slug, ledger account, or usage..."
+                    searchPlaceholder={t(
+                        'financeExpenseCategories.table.searchPlaceholder',
+                        'Search categories by name, slug, ledger account, or usage...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -297,19 +374,31 @@ export function ExpenseCategoryClient({
                     <DialogHeader>
                         <DialogTitle>
                             {editingCategory
-                                ? 'Edit Expense Category'
-                                : 'Create Expense Category'}
+                                ? t(
+                                      'financeExpenseCategories.form.editTitle',
+                                      'Edit Expense Category',
+                                  )
+                                : t(
+                                      'financeExpenseCategories.form.createTitle',
+                                      'Create Expense Category',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Define the category, optional ledger mapping,
-                            display order, and whether it is active for new
-                            expense entries.
+                            {t(
+                                'financeExpenseCategories.form.description',
+                                'Define the category, optional ledger mapping, display order, and whether it is active for new expense entries.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2">
                         <div className="grid gap-2">
-                            <Label htmlFor="expense-category-name">Name</Label>
+                            <Label htmlFor="expense-category-name">
+                                {t(
+                                    'financeExpenseCategories.form.name',
+                                    'Name',
+                                )}
+                            </Label>
                             <Input
                                 id="expense-category-name"
                                 value={form.name}
@@ -319,12 +408,20 @@ export function ExpenseCategoryClient({
                                         name: event.target.value,
                                     }))
                                 }
-                                placeholder="Internet"
+                                placeholder={t(
+                                    'financeExpenseCategories.form.namePlaceholder',
+                                    'Internet',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="expense-category-slug">Slug</Label>
+                            <Label htmlFor="expense-category-slug">
+                                {t(
+                                    'financeExpenseCategories.form.slug',
+                                    'Slug',
+                                )}
+                            </Label>
                             <Input
                                 id="expense-category-slug"
                                 value={form.slug}
@@ -334,12 +431,20 @@ export function ExpenseCategoryClient({
                                         slug: event.target.value,
                                     }))
                                 }
-                                placeholder="internet"
+                                placeholder={t(
+                                    'financeExpenseCategories.form.slugPlaceholder',
+                                    'internet',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Ledger Account</Label>
+                            <Label>
+                                {t(
+                                    'financeExpenseCategories.form.ledgerAccount',
+                                    'Ledger Account',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.expense_account_id}
                                 options={accountOptions}
@@ -349,15 +454,27 @@ export function ExpenseCategoryClient({
                                         expense_account_id: value,
                                     }))
                                 }
-                                placeholder="Select ledger account"
-                                searchPlaceholder="Search ledger accounts..."
-                                emptyText="No account found."
+                                placeholder={t(
+                                    'financeExpenseCategories.form.selectLedgerAccount',
+                                    'Select ledger account',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeExpenseCategories.form.searchLedgerAccounts',
+                                    'Search ledger accounts...',
+                                )}
+                                emptyText={t(
+                                    'financeExpenseCategories.form.noAccountFound',
+                                    'No account found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="expense-category-sort-order">
-                                Sort Order
+                                {t(
+                                    'financeExpenseCategories.form.sortOrder',
+                                    'Sort Order',
+                                )}
                             </Label>
                             <NumericInput
                                 id="expense-category-sort-order"
@@ -374,7 +491,10 @@ export function ExpenseCategoryClient({
 
                         <div className="grid gap-2">
                             <Label htmlFor="expense-category-description">
-                                Description
+                                {t(
+                                    'financeExpenseCategories.form.descriptionLabel',
+                                    'Description',
+                                )}
                             </Label>
                             <Textarea
                                 id="expense-category-description"
@@ -385,7 +505,10 @@ export function ExpenseCategoryClient({
                                         description: event.target.value,
                                     }))
                                 }
-                                placeholder="Monthly internet and connectivity costs."
+                                placeholder={t(
+                                    'financeExpenseCategories.form.descriptionPlaceholder',
+                                    'Monthly internet and connectivity costs.',
+                                )}
                                 rows={4}
                             />
                         </div>
@@ -402,7 +525,10 @@ export function ExpenseCategoryClient({
                                 }
                                 className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
                             />
-                            Active and available for new expense entries
+                            {t(
+                                'financeExpenseCategories.form.activeLabel',
+                                'Active and available for new expense entries',
+                            )}
                         </label>
                     </div>
 
@@ -411,12 +537,18 @@ export function ExpenseCategoryClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
                             {editingCategory
-                                ? 'Update Category'
-                                : 'Create Category'}
+                                ? t(
+                                      'financeExpenseCategories.form.updateCategory',
+                                      'Update Category',
+                                  )
+                                : t(
+                                      'financeExpenseCategories.form.createCategory',
+                                      'Create Category',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -434,11 +566,22 @@ export function ExpenseCategoryClient({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Delete Expense Category</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'financeExpenseCategories.delete.title',
+                                'Delete Expense Category',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
                             {deleteTarget?.expenses_count
-                                ? 'This category is already assigned to expenses. Reassign those records before deleting it.'
-                                : 'This will permanently remove the selected expense category.'}
+                                ? t(
+                                      'financeExpenseCategories.delete.reassignBeforeDeleting',
+                                      'This category is already assigned to expenses. Reassign those records before deleting it.',
+                                  )
+                                : t(
+                                      'financeExpenseCategories.delete.description',
+                                      'This will permanently remove the selected expense category.',
+                                  )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -450,20 +593,45 @@ export function ExpenseCategoryClient({
                                 </div>
                                 <div className="mt-1 text-muted-foreground">
                                     {deleteTarget.expenses_count
-                                        ? `${formatNumber(deleteTarget.expenses_count)} expenses will be moved to another category.`
-                                        : 'No expenses are currently assigned to this category.'}
+                                        ? t(
+                                              'financeExpenseCategories.delete.expensesWillBeMoved',
+                                              ':count expenses will be moved to another category.',
+                                          ).replace(
+                                              ':count',
+                                              formatNumber(
+                                                  deleteTarget.expenses_count,
+                                              ),
+                                          )
+                                        : t(
+                                              'financeExpenseCategories.delete.noExpensesAssigned',
+                                              'No expenses are currently assigned to this category.',
+                                          )}
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Replacement Category</Label>
+                                <Label>
+                                    {t(
+                                        'financeExpenseCategories.delete.replacementCategory',
+                                        'Replacement Category',
+                                    )}
+                                </Label>
                                 <SearchableDropdown
                                     value={replacementCategoryId}
                                     options={replacementCategoryOptions}
                                     onValueChange={setReplacementCategoryId}
-                                    placeholder="Select replacement category"
-                                    searchPlaceholder="Search categories..."
-                                    emptyText="No replacement category found."
+                                    placeholder={t(
+                                        'financeExpenseCategories.delete.selectReplacementCategory',
+                                        'Select replacement category',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeExpenseCategories.delete.searchCategories',
+                                        'Search categories...',
+                                    )}
+                                    emptyText={t(
+                                        'financeExpenseCategories.delete.noReplacementCategoryFound',
+                                        'No replacement category found.',
+                                    )}
                                 />
                                 <InputError
                                     message={
@@ -473,8 +641,10 @@ export function ExpenseCategoryClient({
                                 {deleteTarget.expenses_count &&
                                 replacementCategoryOptions.length === 0 ? (
                                     <p className="text-xs text-amber-600">
-                                        Create another category before deleting
-                                        this one.
+                                        {t(
+                                            'financeExpenseCategories.delete.createAnotherCategory',
+                                            'Create another category before deleting this one.',
+                                        )}
                                     </p>
                                 ) : null}
                             </div>
@@ -491,7 +661,7 @@ export function ExpenseCategoryClient({
                             }}
                             disabled={isDeleteSubmitting}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -503,7 +673,10 @@ export function ExpenseCategoryClient({
                             }
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t(
+                                'financeExpenseCategories.actions.delete',
+                                'Delete',
+                            )}
                         </Button>
                     </div>
                 </DialogContent>

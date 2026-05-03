@@ -1539,6 +1539,89 @@ const ps = {
             createFailed: 'د لګښت جوړول ناکام شول.',
         },
     },
+    financeExpenseCategories: {
+        pageTitle: 'د لګښت کټګورۍ',
+        heading: {
+            title: 'د لګښت کټګورۍ',
+            description:
+                'د مالي عملیاتو لپاره د لګښت کټګوریو فهرست، د لیجر نښلونې، او د فعالېدو حالت مدیریت کړئ.',
+        },
+        actions: {
+            backToExpenses: 'بېرته لګښتونو ته',
+            addCategory: 'کټګوري اضافه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'د لګښت کټګوریو ثبت',
+            description:
+                'د لګښت د ثبت هماغه جدولي سیستم، له لټون، فلټرونو، مخ‌بندۍ او د کټګورۍ مدیریت له عملیاتو سره.',
+        },
+        filters: {
+            status: 'حالت',
+            ledgerMapping: 'د لیجر نښلون',
+            allStatuses: 'ټول حالتونه',
+            allMappings: 'ټولې نښلونې',
+            mapped: 'نښلول شوی',
+            unmapped: 'بې‌نښلونې',
+            searchStatuses: 'حالتونه ولټوئ...',
+            searchMappingStatus: 'د نښلونې حالت ولټوئ...',
+            noStatusesFound: 'هیڅ حالت ونه موندل شو.',
+            noMappingStatusFound: 'د نښلونې هېڅ حالت ونه موندل شو.',
+        },
+        table: {
+            searchPlaceholder:
+                'کټګورۍ د نوم، سلګ، لیجر حساب یا کارونې له مخې ولټوئ...',
+            name: 'نوم',
+            slug: 'سلګ',
+            ledgerAccount: 'د لیجر حساب',
+            notMapped: 'نه دی نښلول شوی',
+            sort: 'ترتیب',
+            status: 'حالت',
+            usedInExpenses: 'په لګښتونو کې کارول شوی',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د لګښت کټګوري جوړه کړئ',
+            editTitle: 'د لګښت کټګوري سمه کړئ',
+            description:
+                'کټګوري، اختیاري لیجر نښلون، د ښودلو ترتیب، او دا چې د نوو لګښت ثبتونو لپاره فعاله وي که نه، وټاکئ.',
+            name: 'نوم',
+            namePlaceholder: 'انټرنېټ',
+            slug: 'سلګ',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'د لیجر حساب',
+            selectLedgerAccount: 'د لیجر حساب وټاکئ',
+            searchLedgerAccounts: 'د لیجر حسابونه ولټوئ...',
+            noAccountFound: 'هیڅ حساب ونه موندل شو.',
+            sortOrder: 'د ښودلو ترتیب',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder: 'د انټرنېټ او اتصال میاشتني لګښتونه.',
+            activeLabel: 'د نوو لګښت ثبتونو لپاره فعال او د کارولو وړ وي',
+            updateCategory: 'کټګوري تازه کړئ',
+            createCategory: 'کټګوري جوړه کړئ',
+        },
+        delete: {
+            title: 'د لګښت کټګوري حذف کړئ',
+            description:
+                'دا کار به ټاکل شوې د لګښت کټګوري د تل لپاره حذف کړي.',
+            reassignBeforeDeleting:
+                'دا کټګوري لا له وړاندې لګښتونو ته ټاکل شوې ده. د حذف کولو مخکې، هغه ریکارډونه بېرته وټاکئ.',
+            expensesWillBeMoved:
+                ':count لګښتونه به بلې کټګورۍ ته ولېږدول شي.',
+            noExpensesAssigned:
+                'اوس مهال هېڅ لګښت دې کټګورۍ ته نه دی ټاکل شوی.',
+            replacementCategory: 'بدیله کټګوري',
+            selectReplacementCategory: 'بدیله کټګوري وټاکئ',
+            searchCategories: 'کټګورۍ ولټوئ...',
+            noReplacementCategoryFound:
+                'هیڅ بدیله کټګوري ونه موندل شوه.',
+            createAnotherCategory:
+                'که بدیله کټګوري نه وي، لومړی بله کټګوري جوړه کړئ.',
+        },
+    },
     orders: {
         title: 'امرونه',
         breadcrumb: 'امرونه',
