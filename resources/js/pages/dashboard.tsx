@@ -174,10 +174,13 @@ interface DashboardProps {
         }>;
         recentOrders: Order[];
         topOrderedDishes: Array<{
-            product_name: string;
+            product_name?: string | null;
             product_name_fa?: string | null;
             product_name_ps?: string | null;
-            category_name: string;
+            name?: string | null;
+            dari_name?: string | null;
+            pashto_name?: string | null;
+            category_name?: string | null;
             total_quantity: number;
         }>;
         selectedDate: string;
@@ -448,27 +451,26 @@ export default function Dashboard({ data }: DashboardProps) {
     const recentOrders = data?.recentOrders ?? [];
     const topOrderedDishes = data?.topOrderedDishes ?? [];
     const getLocalizedDashboardProductName = (item: {
-        product_name: string;
+        product_name?: string | null;
         product_name_fa?: string | null;
         product_name_ps?: string | null;
+        name?: string | null;
+        dari_name?: string | null;
+        pashto_name?: string | null;
     }) => {
+        const englishName = item.product_name || item.name;
+        const dariName = item.product_name_fa || item.dari_name;
+        const pashtoName = item.product_name_ps || item.pashto_name;
+
         if (locale === 'ps') {
-            return (
-                item.product_name_ps ||
-                item.product_name_fa ||
-                item.product_name
-            );
+            return pashtoName || dariName || englishName || t('dashboard.unknownItem', 'Unknown Item');
         }
 
         if (locale === 'fa') {
-            return (
-                item.product_name_fa ||
-                item.product_name_ps ||
-                item.product_name
-            );
+            return dariName || pashtoName || englishName || t('dashboard.unknownItem', 'Unknown Item');
         }
 
-        return item.product_name;
+        return englishName || dariName || pashtoName || t('dashboard.unknownItem', 'Unknown Item');
     };
     const inventoryStats = data?.inventory;
     const financeStats = data?.finance;
