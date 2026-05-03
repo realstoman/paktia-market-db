@@ -10,6 +10,7 @@ interface NumericInputProps
     > {
     value: string | number;
     onValueChange: (value: string) => void;
+    showControls?: boolean;
 }
 
 const sanitizeNumeric = (value: string): string => value.replace(/[^\d]/g, '');
@@ -89,6 +90,7 @@ const clampValue = (
 export function NumericInput({
     value,
     onValueChange,
+    showControls = true,
     ...props
 }: NumericInputProps) {
     const displayValue = formatWithCommas(normalizeValue(value));
@@ -104,6 +106,38 @@ export function NumericInput({
         const clamped = clampValue(nextValue, min, max);
         onValueChange(String(Math.trunc(clamped)));
     };
+
+    if (!showControls) {
+        return (
+            <Input
+                type="text"
+                inputMode="numeric"
+                value={displayValue}
+                onChange={(event) => {
+                    const sanitized = sanitizeNumeric(event.target.value);
+
+                    if (!sanitized) {
+                        onValueChange('');
+                        return;
+                    }
+
+                    updateClampedValue(Number(sanitized));
+                }}
+                onBlur={() => {
+                    if (!normalizedCurrentValue) {
+                        if (min !== null) {
+                            onValueChange(String(Math.trunc(min)));
+                        }
+
+                        return;
+                    }
+
+                    updateClampedValue(Number(normalizedCurrentValue));
+                }}
+                {...props}
+            />
+        );
+    }
 
     return (
         <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]">

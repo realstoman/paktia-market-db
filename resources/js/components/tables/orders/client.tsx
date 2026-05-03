@@ -1820,6 +1820,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         <NumericInput
                                                             min="0"
                                                             value={item.price}
+                                                            showControls={
+                                                                false
+                                                            }
+                                                            disabled
                                                             onValueChange={(
                                                                 value,
                                                             ) =>
@@ -2011,6 +2015,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     <NumericInput
                                                         min="0"
                                                         value={item.price}
+                                                        showControls={false}
+                                                        disabled
                                                         onValueChange={(
                                                             value,
                                                         ) =>
@@ -2684,6 +2690,8 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             <NumericInput
                                                 min="0"
                                                 value={item.price}
+                                                showControls={false}
+                                                disabled
                                                 onValueChange={(value) =>
                                                     handleItemChange(
                                                         setAddItems,
