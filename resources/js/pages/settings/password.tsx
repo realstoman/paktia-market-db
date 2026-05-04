@@ -5,7 +5,8 @@ import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 import HeadingSmall from '@/components/shared/heading-small';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,10 @@ import { useLocalization } from '@/lib/localization';
 import { edit } from '@/routes/user-password';
 
 export default function Password() {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('settings.passwordTitle', 'Password settings'),
@@ -74,18 +76,52 @@ export default function Password() {
                                         )}
                                     </Label>
 
-                                    <Input
-                                        id="current_password"
-                                        ref={currentPasswordInput}
-                                        name="current_password"
-                                        type="password"
-                                        className="mt-1 block w-full"
-                                        autoComplete="current-password"
-                                        placeholder={t(
-                                            'settings.currentPasswordPlaceholder',
-                                            'Current password',
-                                        )}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="current_password"
+                                            ref={currentPasswordInput}
+                                            name="current_password"
+                                            type={
+                                                showPassword
+                                                    ? 'text'
+                                                    : 'password'
+                                            }
+                                            className={`mt-1 block w-full ${
+                                                isRtl
+                                                    ? 'pr-3 pl-10 text-right'
+                                                    : 'pr-10 pl-3'
+                                            }`}
+                                            autoComplete="current-password"
+                                            placeholder={t(
+                                                'settings.currentPasswordPlaceholder',
+                                                'Current password',
+                                            )}
+                                        />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            aria-label={t(
+                                                showPassword
+                                                    ? 'auth.login.hidePassword'
+                                                    : 'auth.login.showPassword',
+                                                showPassword
+                                                    ? 'Hide password'
+                                                    : 'Show password',
+                                            )}
+                                            onClick={() =>
+                                                setShowPassword((value) => !value)
+                                            }
+                                            className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground ${
+                                                isRtl ? 'left-3' : 'right-3'
+                                            }`}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
 
                                     <InputError
                                         message={errors.current_password}
@@ -100,18 +136,52 @@ export default function Password() {
                                         )}
                                     </Label>
 
-                                    <Input
-                                        id="password"
-                                        ref={passwordInput}
-                                        name="password"
-                                        type="password"
-                                        className="mt-1 block w-full"
-                                        autoComplete="new-password"
-                                        placeholder={t(
-                                            'settings.newPasswordPlaceholder',
-                                            'New password',
-                                        )}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            ref={passwordInput}
+                                            name="password"
+                                            type={
+                                                showPassword
+                                                    ? 'text'
+                                                    : 'password'
+                                            }
+                                            className={`mt-1 block w-full ${
+                                                isRtl
+                                                    ? 'pr-3 pl-10 text-right'
+                                                    : 'pr-10 pl-3'
+                                            }`}
+                                            autoComplete="new-password"
+                                            placeholder={t(
+                                                'settings.newPasswordPlaceholder',
+                                                'New password',
+                                            )}
+                                        />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            aria-label={t(
+                                                showPassword
+                                                    ? 'auth.login.hidePassword'
+                                                    : 'auth.login.showPassword',
+                                                showPassword
+                                                    ? 'Hide password'
+                                                    : 'Show password',
+                                            )}
+                                            onClick={() =>
+                                                setShowPassword((value) => !value)
+                                            }
+                                            className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground ${
+                                                isRtl ? 'left-3' : 'right-3'
+                                            }`}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
 
                                     <InputError message={errors.password} />
                                 </div>
@@ -124,17 +194,51 @@ export default function Password() {
                                         )}
                                     </Label>
 
-                                    <Input
-                                        id="password_confirmation"
-                                        name="password_confirmation"
-                                        type="password"
-                                        className="mt-1 block w-full"
-                                        autoComplete="new-password"
-                                        placeholder={t(
-                                            'settings.confirmPasswordPlaceholder',
-                                            'Confirm password',
-                                        )}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            type={
+                                                showPassword
+                                                    ? 'text'
+                                                    : 'password'
+                                            }
+                                            className={`mt-1 block w-full ${
+                                                isRtl
+                                                    ? 'pr-3 pl-10 text-right'
+                                                    : 'pr-10 pl-3'
+                                            }`}
+                                            autoComplete="new-password"
+                                            placeholder={t(
+                                                'settings.confirmPasswordPlaceholder',
+                                                'Confirm password',
+                                            )}
+                                        />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            aria-label={t(
+                                                showPassword
+                                                    ? 'auth.login.hidePassword'
+                                                    : 'auth.login.showPassword',
+                                                showPassword
+                                                    ? 'Hide password'
+                                                    : 'Show password',
+                                            )}
+                                            onClick={() =>
+                                                setShowPassword((value) => !value)
+                                            }
+                                            className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground ${
+                                                isRtl ? 'left-3' : 'right-3'
+                                            }`}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
 
                                     <InputError
                                         message={errors.password_confirmation}

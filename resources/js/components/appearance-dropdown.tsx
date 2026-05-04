@@ -43,17 +43,16 @@ export default function AppearanceToggleDropdown({
                         </span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={isRtl ? 'text-right' : ''}>
+                <DropdownMenuContent
+                    align="end"
+                    className={isRtl ? 'text-right' : ''}
+                >
                     <DropdownMenuItem
                         onClick={() => updateAppearance('light')}
-                        className={
-                            isRtl
-                                ? 'w-full text-right'
-                                : ''
-                        }
+                        className={isRtl ? 'w-full text-right' : ''}
                     >
                         {isRtl ? (
-                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                            <span className="ml-auto inline-flex items-center gap-3 text-right">
                                 <Sun className="h-5 w-5" />
                                 <span>{t('appearance.light', 'Light')}</span>
                             </span>
@@ -66,14 +65,10 @@ export default function AppearanceToggleDropdown({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('dark')}
-                        className={
-                            isRtl
-                                ? 'w-full text-right'
-                                : ''
-                        }
+                        className={isRtl ? 'w-full text-right' : ''}
                     >
                         {isRtl ? (
-                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                            <span className="ml-auto inline-flex items-center gap-3 text-right">
                                 <Moon className="h-5 w-5" />
                                 <span>{t('appearance.dark', 'Dark')}</span>
                             </span>
@@ -86,14 +81,10 @@ export default function AppearanceToggleDropdown({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('system')}
-                        className={
-                            isRtl
-                                ? 'w-full text-right'
-                                : ''
-                        }
+                        className={isRtl ? 'w-full text-right' : ''}
                     >
                         {isRtl ? (
-                            <span className="ml-auto inline-flex items-center gap-2 text-right">
+                            <span className="ml-auto inline-flex items-center gap-3 text-right">
                                 <Monitor className="h-5 w-5" />
                                 <span>{t('appearance.system', 'System')}</span>
                             </span>
