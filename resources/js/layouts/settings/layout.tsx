@@ -79,12 +79,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 )}
             />
 
-            <div
-                className={cn('flex flex-col lg:gap-12', {
-                    'lg:flex-row': !isRtl,
-                    'lg:flex-row-reverse': isRtl,
-                })}
-            >
+            <div className="flex flex-col lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
                         {translatedNavItems.map((item, index) => (
