@@ -113,6 +113,16 @@ class EmployeeController extends Controller
                         'payment_method' => $item->payment_method,
                         'payment_status' => $item->payment_status,
                         'payment_date' => $item->payment_date?->toDateString(),
+                        'advance_breakdown' => collect($item->advance_breakdown ?? [])
+                            ->filter(fn ($entry) => is_array($entry) && (float) ($entry['amount'] ?? 0) > 0)
+                            ->map(fn (array $entry) => [
+                                'advance_id' => isset($entry['advance_id']) ? (int) $entry['advance_id'] : null,
+                                'amount' => round((float) ($entry['amount'] ?? 0), 2),
+                                'reason' => trim((string) ($entry['reason'] ?? '')) ?: 'Salary advance deduction',
+                                'type' => (string) ($entry['type'] ?? 'advance'),
+                            ])
+                            ->values()
+                            ->all(),
                         'covered_period_dates' => $item->covered_period_dates,
                         'covered_month_count' => $item->covered_month_count,
                         'payroll_run' => $item->payrollRun ? [

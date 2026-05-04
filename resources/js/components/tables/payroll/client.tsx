@@ -214,6 +214,23 @@ function payrollCoveredMonths(item: {
     return item.payment_date ? [formatAfghanMonthLabel(item.payment_date)] : [];
 }
 
+function payrollAdvanceBreakdownTotals(item: PayrollRunItem) {
+    return (item.advance_breakdown ?? []).reduce(
+        (totals, entry) => {
+            const amount = Number(entry.amount ?? 0);
+
+            if ((entry.type ?? 'advance') === 'employee_order') {
+                totals.employeeOrder += amount;
+            } else {
+                totals.advance += amount;
+            }
+
+            return totals;
+        },
+        { employeeOrder: 0, advance: 0 },
+    );
+}
+
 function statusTone(status?: string) {
     if (status === 'paid' || status === 'approved') {
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200';
@@ -1508,11 +1525,17 @@ export function PayrollClient({
 
                                     <div className="max-h-[520px] space-y-3 overflow-y-auto pr-1">
                                         {(selectedRun.items ?? []).map(
-                                            (item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800"
-                                                >
+                                            (item) => {
+                                                const deductionBreakdown =
+                                                    payrollAdvanceBreakdownTotals(
+                                                        item,
+                                                    );
+
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        className="rounded-2xl border border-neutral-200/80 p-4 dark:border-neutral-800"
+                                                    >
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
                                                             <p className="font-medium">
@@ -1586,6 +1609,32 @@ export function PayrollClient({
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
                                                                 {t(
+                                                                    'financePayroll.details.employeeOrderDeduction',
+                                                                    'Employee order deduction',
+                                                                )}
+                                                            </p>
+                                                            <p className="mt-1 font-semibold">
+                                                                {formatAfn(
+                                                                    deductionBreakdown.employeeOrder,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
+                                                            <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
+                                                                {t(
+                                                                    'financePayroll.details.otherAdvanceDeduction',
+                                                                    'Other advances',
+                                                                )}
+                                                            </p>
+                                                            <p className="mt-1 font-semibold">
+                                                                {formatAfn(
+                                                                    deductionBreakdown.advance,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
+                                                            <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
+                                                                {t(
                                                                     'financePayroll.details.netSalary',
                                                                     'Net Salary',
                                                                 )}
@@ -1612,6 +1661,58 @@ export function PayrollClient({
                                                             </p>
                                                         </div>
                                                     </div>
+                                                    {item.advance_breakdown &&
+                                                    item.advance_breakdown
+                                                        .length ? (
+                                                        <div className="mt-4 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/70 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+                                                            <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
+                                                                {t(
+                                                                    'financePayroll.details.deductionBreakdown',
+                                                                    'Deduction breakdown',
+                                                                )}
+                                                            </p>
+                                                            <div className="mt-3 space-y-2">
+                                                                {item.advance_breakdown.map(
+                                                                    (
+                                                                        entry,
+                                                                        index,
+                                                                    ) => (
+                                                                        <div
+                                                                            key={`${item.id}-deduction-${entry.advance_id ?? index}`}
+                                                                            className="flex items-center justify-between gap-3 rounded-lg bg-white/80 px-3 py-2 text-sm dark:bg-neutral-950/50"
+                                                                        >
+                                                                            <div className="min-w-0">
+                                                                                <p className="truncate font-medium text-neutral-900 dark:text-neutral-100">
+                                                                                    {entry.type ===
+                                                                                    'employee_order'
+                                                                                        ? t(
+                                                                                              'financePayroll.details.employeeCoveredOrder',
+                                                                                              'Employee-covered order',
+                                                                                          )
+                                                                                        : t(
+                                                                                              'financePayroll.details.salaryAdvance',
+                                                                                              'Salary advance',
+                                                                                          )}
+                                                                                </p>
+                                                                                <p className="truncate text-xs text-neutral-500">
+                                                                                    {entry.reason ??
+                                                                                        '-'}
+                                                                                </p>
+                                                                            </div>
+                                                                            <span className="font-semibold whitespace-nowrap text-neutral-900 dark:text-neutral-100">
+                                                                                {formatAfn(
+                                                                                    Number(
+                                                                                        entry.amount ??
+                                                                                            0,
+                                                                                    ),
+                                                                                )}
+                                                                            </span>
+                                                                        </div>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
                                                     <div className="mt-4 flex justify-end">
                                                         <Button
                                                             variant="outline"
@@ -1632,7 +1733,8 @@ export function PayrollClient({
                                                         </Button>
                                                     </div>
                                                 </div>
-                                            ),
+                                                );
+                                            },
                                         )}
                                     </div>
                                 </>

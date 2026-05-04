@@ -109,6 +109,7 @@ class PayrollController extends Controller
                             'payment_method' => $item->payment_method,
                             'payment_status' => $item->payment_status,
                             'payment_date' => optional($item->payment_date)->toDateString(),
+                            'advance_breakdown' => $this->transformAdvanceBreakdown($item->advance_breakdown),
                             'covered_period_dates' => collect($item->covered_period_dates ?? [])
                                 ->filter()
                                 ->values()
@@ -356,13 +357,8 @@ class PayrollController extends Controller
                     continue;
                 }
 
-                $outstandingAdvance = (float) EmployeeAdvance::query()
-                    ->where('employee_id', $employee->id)
-                    ->where('status', 'approved')
-                    ->where('remaining_balance', '>', 0)
-                    ->sum('remaining_balance');
-
-                $advanceDeduction = min($grossSalary, $outstandingAdvance);
+                $advanceBreakdown = $this->buildAdvanceBreakdown($employee->id, $grossSalary);
+                $advanceDeduction = (float) collect($advanceBreakdown)->sum('amount');
                 $netSalary = max(0, $grossSalary - $advanceDeduction);
 
                 PayrollRunItem::create([
@@ -378,6 +374,7 @@ class PayrollController extends Controller
                     'payment_method' => $validated['payment_method'] ?? PaymentMethod::CASH->value,
                     'payment_status' => 'unpaid',
                     'payment_date' => null,
+                    'advance_breakdown' => $advanceBreakdown,
                     'covered_period_dates' => $coveredPeriods,
                     'covered_month_count' => $salaryType === 'fixed_salary'
                         ? max(1, count($coveredPeriods))
@@ -450,34 +447,7 @@ class PayrollController extends Controller
                 $remainingToApply = (float) $item->advances_deducted;
 
                 if ($remainingToApply > 0) {
-                    $advances = EmployeeAdvance::query()
-                        ->where('employee_id', $item->employee_id)
-                        ->where('status', 'approved')
-                        ->where('remaining_balance', '>', 0)
-                        ->orderBy('advance_date')
-                        ->orderBy('id')
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($advances as $advance) {
-                        if ($remainingToApply <= 0) {
-                            break;
-                        }
-
-                        $available = (float) $advance->remaining_balance;
-                        if ($available <= 0) {
-                            continue;
-                        }
-
-                        $applied = min($available, $remainingToApply);
-
-                        $advance->update([
-                            'deducted_amount' => (float) $advance->deducted_amount + $applied,
-                            'remaining_balance' => max(0, $available - $applied),
-                        ]);
-
-                        $remainingToApply -= $applied;
-                    }
+                    $remainingToApply = $this->applyAdvanceBreakdown($item, $remainingToApply);
                 }
 
                 if ($item->salary_type === 'contract_payment' && Schema::hasTable('employee_contract_payment_schedules')) {
@@ -604,6 +574,165 @@ class PayrollController extends Controller
         }
 
         return $anchor->startOfDay();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildAdvanceBreakdown(int $employeeId, float $grossSalary): array
+    {
+        $remainingToAllocate = max(0, $grossSalary);
+
+        if ($remainingToAllocate <= 0) {
+            return [];
+        }
+
+        $advances = EmployeeAdvance::query()
+            ->where('employee_id', $employeeId)
+            ->where('status', 'approved')
+            ->where('remaining_balance', '>', 0)
+            ->orderBy('advance_date')
+            ->orderBy('id')
+            ->get();
+
+        $breakdown = [];
+
+        foreach ($advances as $advance) {
+            if ($remainingToAllocate <= 0) {
+                break;
+            }
+
+            $available = (float) $advance->remaining_balance;
+            if ($available <= 0) {
+                continue;
+            }
+
+            $applied = min($available, $remainingToAllocate);
+            $reason = trim((string) ($advance->reason ?? ''));
+
+            $breakdown[] = [
+                'advance_id' => $advance->id,
+                'amount' => round($applied, 2),
+                'reason' => $reason ?: 'Salary advance deduction',
+                'type' => $this->resolveAdvanceBreakdownType($reason),
+            ];
+
+            $remainingToAllocate -= $applied;
+        }
+
+        return $breakdown;
+    }
+
+    private function applyAdvanceBreakdown(PayrollRunItem $item, float $remainingToApply): float
+    {
+        $breakdown = collect($item->advance_breakdown ?? [])
+            ->filter(fn ($entry) => is_array($entry) && ! empty($entry['advance_id']) && (float) ($entry['amount'] ?? 0) > 0)
+            ->values();
+
+        if ($breakdown->isNotEmpty()) {
+            foreach ($breakdown as $entry) {
+                if ($remainingToApply <= 0) {
+                    break;
+                }
+
+                $advance = EmployeeAdvance::query()
+                    ->where('employee_id', $item->employee_id)
+                    ->whereKey((int) $entry['advance_id'])
+                    ->where('status', 'approved')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $advance) {
+                    continue;
+                }
+
+                $available = (float) $advance->remaining_balance;
+                if ($available <= 0) {
+                    continue;
+                }
+
+                $requested = (float) ($entry['amount'] ?? 0);
+                if ($requested <= 0) {
+                    continue;
+                }
+
+                $applied = min($available, $requested, $remainingToApply);
+
+                $advance->update([
+                    'deducted_amount' => (float) $advance->deducted_amount + $applied,
+                    'remaining_balance' => max(0, $available - $applied),
+                ]);
+
+                $remainingToApply -= $applied;
+            }
+        }
+
+        if ($remainingToApply <= 0) {
+            return 0;
+        }
+
+        $advances = EmployeeAdvance::query()
+            ->where('employee_id', $item->employee_id)
+            ->where('status', 'approved')
+            ->where('remaining_balance', '>', 0)
+            ->orderBy('advance_date')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($advances as $advance) {
+            if ($remainingToApply <= 0) {
+                break;
+            }
+
+            $available = (float) $advance->remaining_balance;
+            if ($available <= 0) {
+                continue;
+            }
+
+            $applied = min($available, $remainingToApply);
+
+            $advance->update([
+                'deducted_amount' => (float) $advance->deducted_amount + $applied,
+                'remaining_balance' => max(0, $available - $applied),
+            ]);
+
+            $remainingToApply -= $applied;
+        }
+
+        return $remainingToApply;
+    }
+
+    private function resolveAdvanceBreakdownType(?string $reason): string
+    {
+        $normalized = strtolower(trim((string) $reason));
+
+        return str_starts_with($normalized, 'employee covered order #')
+            ? 'employee_order'
+            : 'advance';
+    }
+
+    /**
+     * @param  array<int, mixed>|null  $breakdown
+     * @return array<int, array<string, mixed>>
+     */
+    private function transformAdvanceBreakdown(?array $breakdown): array
+    {
+        return collect($breakdown ?? [])
+            ->filter(fn ($entry) => is_array($entry) && (float) ($entry['amount'] ?? 0) > 0)
+            ->map(function (array $entry) {
+                $reason = trim((string) ($entry['reason'] ?? ''));
+                $type = (string) ($entry['type'] ?? $this->resolveAdvanceBreakdownType($reason));
+
+                return [
+                    'advance_id' => isset($entry['advance_id']) ? (int) $entry['advance_id'] : null,
+                    'amount' => round((float) ($entry['amount'] ?? 0), 2),
+                    'reason' => $reason ?: 'Salary advance deduction',
+                    'type' => $type,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function storeContract(Request $request)
