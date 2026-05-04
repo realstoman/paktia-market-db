@@ -52,17 +52,13 @@ class FinanceController extends Controller
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
-        $canUseProjectedFinanceData = $paymentMethod === null && $category === null;
-        $hasProjectedFinanceData = $canUseProjectedFinanceData
-            ? BranchDailyMetric::query()
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->whereBetween('metric_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
-                ->exists()
-            : false;
-        $useProjectedFinanceData = $canUseProjectedFinanceData && $hasProjectedFinanceData;
+        // The finance dashboard is heavily filter-driven, so we prefer live
+        // transactional reads here. Projection rows can lag behind current
+        // activity and are bucketed by projection date, which can hide valid
+        // order/expense data for the selected finance range.
+        $canUseProjectedFinanceData = false;
+        $hasProjectedFinanceData = false;
+        $useProjectedFinanceData = false;
 
         $salesTotal = $useProjectedFinanceData
             ? $this->branchDailyMetricReader->sumCompletedSales($startDate, $endDate, $branchId)
@@ -73,7 +69,7 @@ class FinanceController extends Controller
             ->where('status', OrderStatus::COMPLETED->value)
             ->where('covered_by_type', 'house')
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
             ->sum('total_amount');
 
         $employeeCoveredTotal = Schema::hasTable('payments')
@@ -82,7 +78,7 @@ class FinanceController extends Controller
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->where('payments.status', 'covered_by_employee')
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
                 ->sum('payments.amount')
             : 0.0;
 
@@ -355,7 +351,7 @@ class FinanceController extends Controller
                 ->values();
         } else {
             $salesTrend = $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
-                ->selectRaw('DATE(created_at) as bucket, COALESCE(SUM(total_amount), 0) as total')
+                ->selectRaw('DATE(COALESCE(completed_at, created_at)) as bucket, COALESCE(SUM(total_amount), 0) as total')
                 ->groupBy('bucket')
                 ->pluck('total', 'bucket');
 
@@ -393,7 +389,7 @@ class FinanceController extends Controller
                 ->when($paymentMethod, function ($query, $method) {
                     $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
                 })
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
                 ->selectRaw('branches.name as branch, COALESCE(SUM(orders.total_amount), 0) as revenue')
                 ->groupBy('branches.id', 'branches.name')
                 ->orderByDesc('revenue')
@@ -445,7 +441,7 @@ class FinanceController extends Controller
                 ->where('orders.status', OrderStatus::COMPLETED->value)
                 ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
                 ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
                 ->select(['payments.method', 'payments.status'])
                 ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
                 ->groupBy('payments.method', 'payments.status')
@@ -470,7 +466,7 @@ class FinanceController extends Controller
         $unassignedPaymentAmount = Order::query()
             ->where('orders.status', OrderStatus::COMPLETED->value)
             ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
             ->doesntHave('payments')
             ->sum('paid_amount');
 
@@ -571,12 +567,12 @@ class FinanceController extends Controller
                 : Order::query()
                     ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                     ->where('status', OrderStatus::COMPLETED->value)
-                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
                     ->count())
             : Order::query()
                 ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
                 ->where('status', OrderStatus::COMPLETED->value)
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
                 ->count();
 
         $ledgerStats = [
@@ -972,7 +968,7 @@ class FinanceController extends Controller
             ->when($paymentMethod, function ($query, $method) {
                 $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
             })
-            ->whereBetween('created_at', [$startDate, $endDate]);
+            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate]);
     }
 
     protected function buildGeneralLedger(
@@ -993,12 +989,12 @@ class FinanceController extends Controller
             })
             ->where('status', OrderStatus::COMPLETED->value)
             ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->orderByDesc('created_at')
+            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
+            ->orderByDesc(DB::raw('COALESCE(completed_at, created_at)'))
             ->when($limit, fn ($query) => $query->limit($limit))
             ->get()
             ->map(fn (Order $order) => [
-                'date' => optional($order->created_at)?->toDateTimeString(),
+                'date' => optional($order->completed_at ?? $order->created_at)?->toDateTimeString(),
                 'reference' => 'Order #'.$order->id,
                 'type' => 'Sale',
                 'branch' => $order->branch?->name ?? 'All Branches',
@@ -1014,12 +1010,12 @@ class FinanceController extends Controller
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->where('status', OrderStatus::COMPLETED->value)
             ->where('covered_by_type', 'house')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->orderByDesc('created_at')
+            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
+            ->orderByDesc(DB::raw('COALESCE(completed_at, created_at)'))
             ->when($limit, fn ($query) => $query->limit($limit))
             ->get()
             ->map(fn (Order $order) => [
-                'date' => optional($order->created_at)?->toDateTimeString(),
+                'date' => optional($order->completed_at ?? $order->created_at)?->toDateTimeString(),
                 'reference' => 'Order #'.$order->id,
                 'type' => 'Restaurant Hospitality',
                 'branch' => $order->branch?->name ?? 'All Branches',
