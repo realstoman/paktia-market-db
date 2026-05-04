@@ -1379,45 +1379,69 @@ export default function Dashboard({ data }: DashboardProps) {
                                                             key={`${item.product_name}-${index}`}
                                                             className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
                                                         >
-                                                            <div
-                                                                className={cn(
-                                                                    'flex items-center gap-3',
-                                                                    isRtl &&
-                                                                        'flex-row-reverse',
-                                                                )}
-                                                            >
-                                                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                                    <Dot className="h-5 w-5" />
-                                                                </div>
-                                                                <div
-                                                                    className={cn(
-                                                                        isRtl &&
-                                                                            'text-right',
-                                                                    )}
-                                                                >
-                                                                    <p className="text-sm font-medium tracking-tight">
-                                                                        {getLocalizedDashboardProductName(
-                                                                            item,
-                                                                        )}
-                                                                    </p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        {
-                                                                            item.category_name
-                                                                        }{' '}
-                                                                        •{' '}
-                                                                        {formatNumber(
-                                                                            item.total_quantity,
-                                                                        )}{' '}
-                                                                        {t(
-                                                                            'dashboard.allTimeOrdersSuffix',
-                                                                            'orders',
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                                #{index + 1}
-                                                            </div>
+                                                            {isRtl ? (
+                                                                <>
+                                                                    <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+                                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                                                                            <Dot className="h-5 w-5" />
+                                                                        </div>
+                                                                        <div className="min-w-0 text-right">
+                                                                            <p className="text-sm font-medium tracking-tight">
+                                                                                {getLocalizedDashboardProductName(
+                                                                                    item,
+                                                                                )}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {
+                                                                                    item.category_name
+                                                                                }{' '}
+                                                                                •{' '}
+                                                                                {formatNumber(
+                                                                                    item.total_quantity,
+                                                                                )}{' '}
+                                                                                {t(
+                                                                                    'dashboard.allTimeOrdersSuffix',
+                                                                                    'orders',
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 px-3 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
+                                                                        #{index + 1}
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                                                                            <Dot className="h-5 w-5" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-sm font-medium tracking-tight">
+                                                                                {getLocalizedDashboardProductName(
+                                                                                    item,
+                                                                                )}
+                                                                            </p>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {
+                                                                                    item.category_name
+                                                                                }{' '}
+                                                                                •{' '}
+                                                                                {formatNumber(
+                                                                                    item.total_quantity,
+                                                                                )}{' '}
+                                                                                {t(
+                                                                                    'dashboard.allTimeOrdersSuffix',
+                                                                                    'orders',
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 px-3 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
+                                                                        #{index + 1}
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     ),
                                                 )}
