@@ -7,6 +7,7 @@ const en = {
         cancel: 'Cancel',
         saved: 'Saved',
         open: 'Open',
+        close: 'Close',
         reset: 'Reset',
         dashboard: 'Dashboard',
         settings: 'Settings',
@@ -632,6 +633,79 @@ const en = {
     settings: {
         title: 'Settings',
         description: 'Manage your profile and account settings',
+        profileTitle: 'Profile settings',
+        profileInformationTitle: 'Profile information',
+        profileInformationDescription:
+            'Update your name and email address',
+        nameLabel: 'Name',
+        fullNamePlaceholder: 'Full name',
+        emailAddressLabel: 'Email address',
+        emailAddressPlaceholder: 'Email address',
+        emailUnverified: 'Your email address is unverified.',
+        resendVerificationEmail:
+            'Click here to resend the verification email.',
+        verificationLinkSent:
+            'A new verification link has been sent to your email address.',
+        passwordTitle: 'Password settings',
+        updatePasswordTitle: 'Update password',
+        updatePasswordDescription:
+            'Ensure your account is using a long, random password to stay secure',
+        currentPasswordLabel: 'Current password',
+        currentPasswordPlaceholder: 'Current password',
+        newPasswordLabel: 'New password',
+        newPasswordPlaceholder: 'New password',
+        confirmPasswordLabel: 'Confirm password',
+        confirmPasswordPlaceholder: 'Confirm password',
+        savePassword: 'Save password',
+        twoFactorTitle: 'Two-Factor Authentication',
+        twoFactorDescription:
+            'Manage your two-factor authentication settings',
+        enabled: 'Enabled',
+        disabled: 'Disabled',
+        twoFactorEnabledDescription:
+            'With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.',
+        twoFactorDisabledDescription:
+            'When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.',
+        enable2fa: 'Enable 2FA',
+        disable2fa: 'Disable 2FA',
+        continueSetup: 'Continue Setup',
+        continue: 'Continue',
+        back: 'Back',
+        confirm: 'Confirm',
+        twoFactorManualEntry: 'or, enter the code manually',
+        twoFactorEnabledTitle: 'Two-Factor Authentication Enabled',
+        twoFactorEnabledModalDescription:
+            'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
+        verifyAuthenticationCodeTitle: 'Verify Authentication Code',
+        verifyAuthenticationCodeDescription:
+            'Enter the 6-digit code from your authenticator app',
+        enableTwoFactorTitle: 'Enable Two-Factor Authentication',
+        enableTwoFactorModalDescription:
+            'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
+        recoveryCodesTitle: '2FA Recovery Codes',
+        recoveryCodesDescription:
+            'Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.',
+        viewRecoveryCodes: 'View Recovery Codes',
+        hideRecoveryCodes: 'Hide Recovery Codes',
+        regenerateCodes: 'Regenerate Codes',
+        loadingRecoveryCodes: 'Loading recovery codes',
+        recoveryCodesWarning:
+            'Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate Codes above.',
+        deleteAccountTitle: 'Delete account',
+        deleteAccountDescription:
+            'Delete your account and all of its resources',
+        deleteAccountUnavailableDescription:
+            'Internal restaurant staff accounts cannot be deleted from profile settings',
+        warning: 'Warning',
+        notAvailable: 'Not available',
+        deleteAccountWarning:
+            'Please proceed with caution, this cannot be undone.',
+        deleteAccountAdminManaged:
+            'If this account belongs to a restaurant team member, an administrator should manage it from the users section instead.',
+        confirmDeleteAccountTitle:
+            'Are you sure you want to delete your account?',
+        confirmDeleteAccountDescription:
+            'Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.',
         appearanceTitle: 'Appearance settings',
         appearanceDescription: "Update your account's appearance settings",
         languageTitle: 'Language settings',

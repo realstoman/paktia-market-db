@@ -7,6 +7,7 @@ const fa = {
         cancel: 'لغو',
         saved: 'ذخیره شد',
         open: 'باز کردن',
+        close: 'بستن',
         reset: 'بازنشانی',
         dashboard: 'داشبورد',
         settings: 'تنظیمات',
@@ -633,6 +634,78 @@ const fa = {
     settings: {
         title: 'تنظیمات',
         description: 'پروفایل و تنظیمات حساب خود را مدیریت کنید',
+        profileTitle: 'تنظیمات پروفایل',
+        profileInformationTitle: 'اطلاعات پروفایل',
+        profileInformationDescription:
+            'نام و آدرس ایمیل خود را به‌روزرسانی کنید',
+        nameLabel: 'نام',
+        fullNamePlaceholder: 'نام کامل',
+        emailAddressLabel: 'آدرس ایمیل',
+        emailAddressPlaceholder: 'آدرس ایمیل',
+        emailUnverified: 'آدرس ایمیل شما تأیید نشده است.',
+        resendVerificationEmail:
+            'برای ارسال دوباره ایمیل تأیید اینجا کلیک کنید.',
+        verificationLinkSent:
+            'یک لینک تأیید جدید به آدرس ایمیل شما ارسال شد.',
+        passwordTitle: 'تنظیمات رمز عبور',
+        updatePasswordTitle: 'به‌روزرسانی رمز عبور',
+        updatePasswordDescription:
+            'اطمینان حاصل کنید حساب شما از یک رمز عبور طولانی و تصادفی برای امنیت بیشتر استفاده می‌کند',
+        currentPasswordLabel: 'رمز عبور فعلی',
+        currentPasswordPlaceholder: 'رمز عبور فعلی',
+        newPasswordLabel: 'رمز عبور جدید',
+        newPasswordPlaceholder: 'رمز عبور جدید',
+        confirmPasswordLabel: 'تأیید رمز عبور',
+        confirmPasswordPlaceholder: 'تأیید رمز عبور',
+        savePassword: 'ذخیره رمز عبور',
+        twoFactorTitle: 'احراز هویت دو مرحله‌ای',
+        twoFactorDescription:
+            'تنظیمات احراز هویت دو مرحله‌ای خود را مدیریت کنید',
+        enabled: 'فعال',
+        disabled: 'غیرفعال',
+        twoFactorEnabledDescription:
+            'با فعال بودن احراز هویت دو مرحله‌ای، هنگام ورود از شما یک کُد امن و تصادفی خواسته می‌شود که می‌توانید آن را از برنامه پشتیبان TOTP در تلفن خود دریافت کنید.',
+        twoFactorDisabledDescription:
+            'وقتی احراز هویت دو مرحله‌ای را فعال کنید، هنگام ورود از شما یک کُد امن خواسته می‌شود. این کُد را می‌توان از یک برنامه پشتیبان TOTP در تلفن شما دریافت کرد.',
+        enable2fa: 'فعال‌سازی ۲FA',
+        disable2fa: 'غیرفعال‌سازی ۲FA',
+        continueSetup: 'ادامه راه‌اندازی',
+        continue: 'ادامه',
+        back: 'بازگشت',
+        confirm: 'تأیید',
+        twoFactorManualEntry: 'یا کد را به‌صورت دستی وارد کنید',
+        twoFactorEnabledTitle: 'احراز هویت دو مرحله‌ای فعال شد',
+        twoFactorEnabledModalDescription:
+            'احراز هویت دو مرحله‌ای اکنون فعال است. کد QR را اسکن کنید یا کلید تنظیم را در برنامه تأییدکننده خود وارد کنید.',
+        verifyAuthenticationCodeTitle: 'تأیید کد احراز هویت',
+        verifyAuthenticationCodeDescription:
+            'کد ۶ رقمی برنامه تأییدکننده خود را وارد کنید',
+        enableTwoFactorTitle: 'فعال‌سازی احراز هویت دو مرحله‌ای',
+        enableTwoFactorModalDescription:
+            'برای تکمیل فعال‌سازی احراز هویت دو مرحله‌ای، کد QR را اسکن کنید یا کلید تنظیم را در برنامه تأییدکننده خود وارد کنید',
+        recoveryCodesTitle: 'کدهای بازیابی ۲FA',
+        recoveryCodesDescription:
+            'کدهای بازیابی به شما کمک می‌کنند اگر دستگاه ۲FA خود را از دست دادید دوباره به حساب‌تان دسترسی پیدا کنید. آنها را در یک مدیر رمز عبور امن نگه دارید.',
+        viewRecoveryCodes: 'نمایش کدهای بازیابی',
+        hideRecoveryCodes: 'پنهان کردن کدهای بازیابی',
+        regenerateCodes: 'تولید دوباره کدها',
+        loadingRecoveryCodes: 'در حال بارگذاری کدهای بازیابی',
+        recoveryCodesWarning:
+            'هر کد بازیابی فقط یک‌بار برای دسترسی به حساب شما قابل استفاده است و پس از استفاده حذف می‌شود. اگر به کدهای بیشتری نیاز دارید، روی «تولید دوباره کدها» در بالا کلیک کنید.',
+        deleteAccountTitle: 'حذف حساب',
+        deleteAccountDescription: 'حساب و تمام منابع آن را حذف کنید',
+        deleteAccountUnavailableDescription:
+            'حساب‌های کارمندان داخلی رستورانت از تنظیمات پروفایل قابل حذف نیستند',
+        warning: 'هشدار',
+        notAvailable: 'در دسترس نیست',
+        deleteAccountWarning:
+            'لطفاً با احتیاط ادامه دهید، این کار قابل بازگشت نیست.',
+        deleteAccountAdminManaged:
+            'اگر این حساب مربوط به یکی از اعضای تیم رستورانت است، مدیر باید آن را از بخش کاربران مدیریت کند.',
+        confirmDeleteAccountTitle:
+            'آیا مطمئن هستید که می‌خواهید حساب خود را حذف کنید؟',
+        confirmDeleteAccountDescription:
+            'پس از حذف حساب شما، تمام منابع و داده‌های مربوط به آن نیز به‌طور دایمی حذف می‌شود. لطفاً برای تأیید حذف دایمی حساب، رمز عبور خود را وارد کنید.',
         appearanceTitle: 'تنظیمات ظاهر',
         appearanceDescription: 'تنظیمات ظاهر حساب خود را به‌روزرسانی کنید',
         languageTitle: 'تنظیمات زبان',

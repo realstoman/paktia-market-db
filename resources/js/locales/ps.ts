@@ -7,6 +7,7 @@ const ps = {
         cancel: 'لغوه',
         saved: 'خوندي شول',
         open: 'پرانستل',
+        close: 'بندول',
         reset: 'بیا تنظیمول',
         dashboard: 'ډشبورډ',
         settings: 'ترتیبات',
@@ -631,6 +632,77 @@ const ps = {
     settings: {
         title: 'ترتیبات',
         description: 'خپل پروفایل او د حساب ترتیبات سمبال کړئ',
+        profileTitle: 'د پروفایل ترتیبات',
+        profileInformationTitle: 'د پروفایل معلومات',
+        profileInformationDescription:
+            'خپل نوم او ایمېل پته تازه کړئ',
+        nameLabel: 'نوم',
+        fullNamePlaceholder: 'بشپړ نوم',
+        emailAddressLabel: 'د ایمېل پته',
+        emailAddressPlaceholder: 'د ایمېل پته',
+        emailUnverified: 'ستاسو د ایمېل پته لا نه ده تایید شوې.',
+        resendVerificationEmail:
+            'د تایید ایمېل د بیا لېږلو لپاره دلته کلیک وکړئ.',
+        verificationLinkSent:
+            'یو نوی تاییدي لینک ستاسو ایمېل پتې ته ولېږل شو.',
+        passwordTitle: 'د پسورډ ترتیبات',
+        updatePasswordTitle: 'پسورډ تازه کړئ',
+        updatePasswordDescription:
+            'ډاډ ترلاسه کړئ چې ستاسو حساب د امنیت لپاره اوږد او تصادفي پسورډ کاروي',
+        currentPasswordLabel: 'اوسنی پسورډ',
+        currentPasswordPlaceholder: 'اوسنی پسورډ',
+        newPasswordLabel: 'نوی پسورډ',
+        newPasswordPlaceholder: 'نوی پسورډ',
+        confirmPasswordLabel: 'پسورډ تایید کړئ',
+        confirmPasswordPlaceholder: 'پسورډ تایید کړئ',
+        savePassword: 'پسورډ خوندي کړئ',
+        twoFactorTitle: 'دوه پړاوه تصدیق',
+        twoFactorDescription: 'د خپل دوه پړاوه تصدیق ترتیبات سمبال کړئ',
+        enabled: 'فعال',
+        disabled: 'غیرفعال',
+        twoFactorEnabledDescription:
+            'کله چې دوه پړاوه تصدیق فعال وي، د ننوتلو پر مهال به له تاسو څخه خوندي او تصادفي کوډ وغوښتل شي چې تاسو یې د خپل موبایل له TOTP ملاتړي اپلېکېشن څخه ترلاسه کولی شئ.',
+        twoFactorDisabledDescription:
+            'کله چې تاسو دوه پړاوه تصدیق فعال کړئ، د ننوتلو پر مهال به له تاسو څخه خوندي کوډ وغوښتل شي. دا کوډ ستاسو د موبایل له TOTP ملاتړي اپلېکېشن څخه ترلاسه کېدای شي.',
+        enable2fa: '۲FA فعال کړئ',
+        disable2fa: '۲FA غیرفعال کړئ',
+        continueSetup: 'تنظیم ته دوام ورکړئ',
+        continue: 'دوام',
+        back: 'شاته',
+        confirm: 'تایید',
+        twoFactorManualEntry: 'یا کوډ په لاسي ډول دننه کړئ',
+        twoFactorEnabledTitle: 'دوه پړاوه تصدیق فعال شو',
+        twoFactorEnabledModalDescription:
+            'دوه پړاوه تصدیق اوس فعال دی. QR کوډ اسکن کړئ یا د تنظیم کیلي په خپل تصدیق اپلېکېشن کې دننه کړئ.',
+        verifyAuthenticationCodeTitle: 'د تصدیق کوډ تایید کړئ',
+        verifyAuthenticationCodeDescription:
+            'د خپل تصدیق اپلېکېشن ۶-عددي کوډ دننه کړئ',
+        enableTwoFactorTitle: 'دوه پړاوه تصدیق فعال کړئ',
+        enableTwoFactorModalDescription:
+            'د دوه پړاوه تصدیق د بشپړ فعالولو لپاره QR کوډ اسکن کړئ یا د تنظیم کیلي په خپل تصدیق اپلېکېشن کې دننه کړئ',
+        recoveryCodesTitle: 'د ۲FA د بیا لاسرسي کوډونه',
+        recoveryCodesDescription:
+            'د بیا لاسرسي کوډونه تاسو سره مرسته کوي که د ۲FA وسیله مو له لاسه ولاړه شي. دا کوډونه په یو خوندي پاسورډ منېجر کې وساتئ.',
+        viewRecoveryCodes: 'د بیا لاسرسي کوډونه وګورئ',
+        hideRecoveryCodes: 'د بیا لاسرسي کوډونه پټ کړئ',
+        regenerateCodes: 'کوډونه بیا جوړ کړئ',
+        loadingRecoveryCodes: 'د بیا لاسرسي کوډونه بارېږي',
+        recoveryCodesWarning:
+            'هر د بیا لاسرسي کوډ یوازې یو ځل ستاسو حساب ته د لاسرسي لپاره کارېدلی شي او له کارولو وروسته به لرې شي. که نورو کوډونو ته اړتیا لرئ، پورته پر «کوډونه بیا جوړ کړئ» کلیک وکړئ.',
+        deleteAccountTitle: 'حساب حذف کړئ',
+        deleteAccountDescription: 'خپل حساب او ټولې اړوندې سرچینې حذف کړئ',
+        deleteAccountUnavailableDescription:
+            'د رستورانت د داخلي کارکوونکو حسابونه د پروفایل له ترتیباتو حذف کېدای نه شي',
+        warning: 'خبرتیا',
+        notAvailable: 'شته نه دی',
+        deleteAccountWarning:
+            'مهرباني وکړئ په احتیاط دوام ورکړئ، دا عمل بېرته نه راګرځي.',
+        deleteAccountAdminManaged:
+            'که دا حساب د رستورانت د ټیم غړي پورې اړه ولري، ادمین باید یې د کاروونکو له برخې څخه مدیریت کړي.',
+        confirmDeleteAccountTitle:
+            'ایا تاسو ډاډه یاست چې خپل حساب حذف کول غواړئ؟',
+        confirmDeleteAccountDescription:
+            'کله چې ستاسو حساب حذف شي، د هغه ټولې سرچینې او معلومات به هم دایمي حذف شي. مهرباني وکړئ خپل پسورډ دننه کړئ ترڅو د خپل حساب دایمي حذف تایید کړئ.',
         appearanceTitle: 'د سیستم د ښودلو ترتیبات',
         appearanceDescription: 'د خپل حساب د بڼې ترتیبات تازه کړئ',
         languageTitle: 'د ژبې ترتیبات',
