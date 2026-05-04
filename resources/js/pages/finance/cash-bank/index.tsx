@@ -1,5 +1,6 @@
 import { CashBankClient } from '@/components/tables/cash-bank/client';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     BreadcrumbItem,
@@ -8,12 +9,6 @@ import {
     FinanceAccount,
 } from '@/types';
 import { Head } from '@inertiajs/react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'Cash & Bank', href: '/finance/cash-bank' },
-];
 
 interface CashBankPageProps {
     movements: CashMovement[];
@@ -32,9 +27,19 @@ export default function CashBankPage({
     movementTypes,
     printMovementId,
 }: CashBankPageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t('financeCashBank.pageTitle', 'Cash & Bank'),
+            href: '/finance/cash-bank',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Cash & Bank" />
+            <Head title={t('financeCashBank.pageTitle', 'Cash & Bank')} />
             <CashBankClient
                 movements={movements}
                 branches={branches}

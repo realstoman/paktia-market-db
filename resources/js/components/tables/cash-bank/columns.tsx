@@ -55,6 +55,7 @@ function tone(status?: string) {
 }
 
 interface BuildColumnsProps {
+    t: (key: string, fallback?: string) => string;
     onEdit: (movement: CashMovement) => void;
     onApprove: (movement: CashMovement) => void;
     onViewAttachment: (path: string) => void;
@@ -62,6 +63,7 @@ interface BuildColumnsProps {
 }
 
 export function buildColumns({
+    t,
     onEdit,
     onApprove,
     onViewAttachment,
@@ -70,7 +72,7 @@ export function buildColumns({
     return [
         {
             accessorKey: 'movement_date',
-            header: 'Date',
+            header: t('financeCashBank.table.date', 'Date'),
             cell: ({ row }) => {
                 const dateText = formatMovementDate(row.original.movement_date);
                 const timeText = formatMovementTime(row.original.created_at);
@@ -89,19 +91,21 @@ export function buildColumns({
         },
         {
             accessorKey: 'movement_type',
-            header: 'Movement',
+            header: t('financeCashBank.table.movement', 'Movement'),
             cell: ({ row }) => movementTypeLabel(row.original.movement_type),
         },
         {
             id: 'branch.name',
-            accessorFn: (row) => row.branch?.name ?? 'All Branches',
-            header: 'Branch',
+            accessorFn: (row) =>
+                row.branch?.name ??
+                t('financeCashBank.filters.allBranches', 'All Branches'),
+            header: t('financeCashBank.table.branch', 'Branch'),
         },
         {
             id: 'account.name',
             accessorFn: (row) =>
                 row.account ? `${row.account.code} - ${row.account.name}` : '-',
-            header: 'Account',
+            header: t('financeCashBank.table.account', 'Account'),
         },
         {
             id: 'counterparty_account.name',
@@ -109,17 +113,22 @@ export function buildColumns({
                 row.counterparty_account
                     ? `${row.counterparty_account.code} - ${row.counterparty_account.name}`
                     : '-',
-            header: 'Counterparty',
+            header: t('financeCashBank.table.counterparty', 'Counterparty'),
         },
         {
             accessorKey: 'direction',
-            header: 'Direction',
+            header: t('financeCashBank.table.direction', 'Direction'),
             cell: ({ row }) =>
-                row.original.direction === 'in' ? 'Inflow' : 'Outflow',
+                row.original.direction === 'in'
+                    ? t('financeCashBank.directions.in', 'Inflow')
+                    : t('financeCashBank.directions.out', 'Outflow'),
         },
         {
             accessorKey: 'payment_method',
-            header: 'Payment Method',
+            header: t(
+                'financeCashBank.table.paymentMethod',
+                'Payment Method',
+            ),
             cell: ({ row }) =>
                 row.original.payment_method
                     .replaceAll('_', ' ')
@@ -127,12 +136,12 @@ export function buildColumns({
         },
         {
             accessorKey: 'amount',
-            header: 'Amount',
+            header: t('financeCashBank.table.amount', 'Amount'),
             cell: ({ row }) => formatAfn(row.original.amount),
         },
         {
             id: 'attachment',
-            header: 'Attachment',
+            header: t('financeCashBank.table.attachment', 'Attachment'),
             cell: ({ row }) => {
                 const attachmentPath = row.original.attachment_path;
 
@@ -146,27 +155,30 @@ export function buildColumns({
                         onClick={() => onViewAttachment(attachmentPath)}
                         className="text-sm font-medium text-primary underline-offset-4 hover:underline"
                     >
-                        View
+                        {t('financeCashBank.table.view', 'View')}
                     </button>
                 );
             },
         },
         {
             accessorKey: 'approval_status',
-            header: 'Status',
+            header: t('financeCashBank.table.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone(
                         row.original.approval_status,
                     )}`}
                 >
-                    {row.original.approval_status ?? 'draft'}
+                    {t(
+                        `financeCashBank.statuses.${row.original.approval_status ?? 'draft'}`,
+                        row.original.approval_status ?? 'draft',
+                    )}
                 </span>
             ),
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financeCashBank.table.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}
