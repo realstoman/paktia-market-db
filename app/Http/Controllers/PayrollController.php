@@ -84,6 +84,7 @@ class PayrollController extends Controller
                     'advances_total' => $advances,
                     'overtime_total' => $overtime,
                     'net_total' => $net,
+                    'payroll_period_label' => $this->resolveRunPeriodLabel($run),
                     'items' => $run->items->map(function (PayrollRunItem $item) {
                         $employeeName = $item->employee
                             ? trim(($item->employee->first_name ?? '').' '.($item->employee->last_name ?? ''))
@@ -167,6 +168,10 @@ class PayrollController extends Controller
             'outstandingAdvances' => (float) $outstandingAdvances,
         ];
 
+        $payrollGeneration = $this->buildPayrollGenerationStateMap(
+            Branch::query()->orderBy('name')->get(['id', 'name', 'address'])
+        );
+
         $contracts = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
             ? EmployeeContract::query()
                 ->with([
@@ -234,10 +239,11 @@ class PayrollController extends Controller
         return Inertia::render('finance/payroll/index', [
             'runs' => $runs,
             'contracts' => $contracts,
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
+            'branches' => $payrollGeneration['branches'],
             'employees' => $activeEmployees,
-            'afghanPayrollMonths' => AfghanCalendar::payrollMonthOptions(),
-            'currentAfghanPayrollMonth' => AfghanCalendar::currentMonth(),
+            'afghanPayrollMonths' => $payrollGeneration['months'],
+            'currentAfghanPayrollMonth' => $payrollGeneration['defaultMonth'],
+            'payrollGeneration' => $payrollGeneration['stateByBranch'],
             'summary' => $summary,
             'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
             'canApprove' => Gate::allows(PermissionEnum::PAYROLL_APPROVE->value),
