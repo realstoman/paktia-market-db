@@ -1198,7 +1198,7 @@ const en = {
             grossProfitPending:
                 'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
             cashPosition:
-                'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+                'All-time cash sales - cash expenses + approved cash movements.',
         },
         charts: {
             revenueExpenseTitle: 'Revenue, Expense, and Operating Result',

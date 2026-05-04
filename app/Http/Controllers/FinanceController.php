@@ -704,7 +704,7 @@ class FinanceController extends Controller
                     'grossProfit' => $grossProfit === null
                         ? 'Gross profit will become exact after inventory valuation and COGS posting are active.'
                         : 'Gross profit is using posted inventory cost movements.',
-                    'cashPosition' => 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+                    'cashPosition' => 'All-time cash sales - cash expenses + approved cash movements.',
                 ],
             ],
         ]);
