@@ -81,7 +81,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
             <div className="flex flex-col lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
+                    <nav
+                        className={cn('flex flex-col space-y-1 space-x-0', {
+                            'text-right': isRtl,
+                        })}
+                    >
                         {translatedNavItems.map((item, index) => (
                             <Button
                                 key={`${resolveUrl(item.href)}-${index}`}
@@ -102,10 +106,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 })}
                             >
                                 <Link href={item.href}>
+                                    <span className="w-full text-inherit">
+                                        {item.title}
+                                    </span>
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {item.title}
                                 </Link>
                             </Button>
                         ))}
@@ -115,7 +121,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 <Separator className="my-6 lg:hidden" />
 
                 <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
+                    <section
+                        className={cn('max-w-xl space-y-12', {
+                            'text-right': isRtl,
+                        })}
+                    >
                         {children}
                     </section>
                 </div>
