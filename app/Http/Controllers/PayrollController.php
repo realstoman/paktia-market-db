@@ -826,6 +826,7 @@ class PayrollController extends Controller
                 $advance->update([
                     'deducted_amount' => (float) $advance->deducted_amount + $applied,
                     'remaining_balance' => max(0, $available - $applied),
+                    'status' => max(0, $available - $applied) <= 0 ? 'paid' : ($advance->status ?? 'approved'),
                 ]);
 
                 $remainingToApply -= $applied;
@@ -860,6 +861,7 @@ class PayrollController extends Controller
             $advance->update([
                 'deducted_amount' => (float) $advance->deducted_amount + $applied,
                 'remaining_balance' => max(0, $available - $applied),
+                'status' => max(0, $available - $applied) <= 0 ? 'paid' : ($advance->status ?? 'approved'),
             ]);
 
             $remainingToApply -= $applied;

@@ -272,6 +272,7 @@ export interface PayrollRun {
     advances_total?: number;
     overtime_total?: number;
     net_total?: number;
+    payroll_period_label?: string;
     items?: PayrollRunItem[];
     [key: string]: unknown;
 }
