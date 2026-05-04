@@ -151,6 +151,7 @@ interface PayrollClientProps {
     employees: Employee[];
     afghanPayrollMonths: AfghanPayrollMonth[];
     currentAfghanPayrollMonth: AfghanPayrollMonth;
+    payrollGeneration: Record<string, PayrollGenerationState>;
     canCreate: boolean;
     canApprove: boolean;
     canPay: boolean;
@@ -171,6 +172,18 @@ interface AfghanPayrollMonth {
     label: string;
     start: string;
     end: string;
+}
+
+interface PayrollGenerationState {
+    next_due_month: AfghanPayrollMonth | null;
+    open_run: {
+        id: number;
+        status: string;
+        period_start?: string | null;
+        period_end?: string | null;
+        label: string;
+    } | null;
+    latest_paid_month?: string | null;
 }
 
 function employeeName(employee?: Employee | null) {
