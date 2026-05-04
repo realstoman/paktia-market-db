@@ -31,12 +31,6 @@ import { Plus, Tags, Trash2 } from 'lucide-react';
 import React from 'react';
 import { buildColumns } from './columns';
 
-const DIRECTION_OPTIONS = [
-    { value: '', label: 'Flexible' },
-    { value: 'in', label: 'Inflow' },
-    { value: 'out', label: 'Outflow' },
-];
-
 interface MovementTypeFormState {
     name: string;
     slug: string;
@@ -194,34 +188,56 @@ export function CashMovementTypeClient({
         [canDelete, openEdit, remove, t],
     );
 
+    const statusOptions = React.useMemo(
+        () => [
+            {
+                value: 'all',
+                label: t(
+                    'financeCashMovementTypes.filters.allStatuses',
+                    'All Statuses',
+                ),
+            },
+            {
+                value: 'active',
+                label: t('financeCashMovementTypes.statuses.active', 'Active'),
+            },
+            {
+                value: 'inactive',
+                label: t(
+                    'financeCashMovementTypes.statuses.inactive',
+                    'Inactive',
+                ),
+            },
+        ],
+        [t],
+    );
+
+    const directionOptions = React.useMemo(
+        () => [
+            {
+                value: '',
+                label: t(
+                    'financeCashMovementTypes.directions.flexible',
+                    'Flexible',
+                ),
+            },
+            {
+                value: 'in',
+                label: t('financeCashMovementTypes.directions.in', 'Inflow'),
+            },
+            {
+                value: 'out',
+                label: t('financeCashMovementTypes.directions.out', 'Outflow'),
+            },
+        ],
+        [t],
+    );
+
     const toolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
                 value={statusFilter}
-                options={[
-                    { value: 'all', label: 'All Statuses' },
-                    {
-                        value: 'all',
-                        label: t(
-                            'financeCashMovementTypes.filters.allStatuses',
-                            'All Statuses',
-                        ),
-                    },
-                    {
-                        value: 'active',
-                        label: t(
-                            'financeCashMovementTypes.statuses.active',
-                            'Active',
-                        ),
-                    },
-                    {
-                        value: 'inactive',
-                        label: t(
-                            'financeCashMovementTypes.statuses.inactive',
-                            'Inactive',
-                        ),
-                    },
-                ]}
+                options={statusOptions}
                 onValueChange={setStatusFilter}
                 placeholder={t(
                     'financeCashMovementTypes.filters.status',
@@ -380,29 +396,7 @@ export function CashMovementTypeClient({
                             </Label>
                             <SearchableDropdown
                                 value={form.default_direction}
-                                options={[
-                                    {
-                                        value: '',
-                                        label: t(
-                                            'financeCashMovementTypes.directions.flexible',
-                                            'Flexible',
-                                        ),
-                                    },
-                                    {
-                                        value: 'in',
-                                        label: t(
-                                            'financeCashMovementTypes.directions.in',
-                                            'Inflow',
-                                        ),
-                                    },
-                                    {
-                                        value: 'out',
-                                        label: t(
-                                            'financeCashMovementTypes.directions.out',
-                                            'Outflow',
-                                        ),
-                                    },
-                                ]}
+                                options={directionOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
@@ -613,7 +607,6 @@ export function CashMovementTypeClient({
                                 {deleteTarget.movement_count &&
                                 replacementMovementOptions.length === 0 ? (
                                     <p className="text-xs text-amber-600">
-                                        Create another movement type before
                                         {t(
                                             'financeCashMovementTypes.delete.createAnotherMovementType',
                                             'Create another movement type before deleting this one.',

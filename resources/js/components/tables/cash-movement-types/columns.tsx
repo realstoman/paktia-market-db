@@ -2,11 +2,6 @@ import { CashMovementType } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 
-function directionLabel(direction?: string | null) {
-    if (!direction) return 'Flexible';
-    return direction === 'in' ? 'Inflow' : 'Outflow';
-}
-
 function statusTone(isActive?: boolean) {
     return isActive
         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200'
@@ -26,6 +21,19 @@ export function buildColumns({
     onDelete,
     canDelete,
 }: BuildColumnsProps): ColumnDef<CashMovementType>[] {
+    const directionLabel = (direction?: string | null) => {
+        if (!direction) {
+            return t(
+                'financeCashMovementTypes.directions.flexible',
+                'Flexible',
+            );
+        }
+
+        return direction === 'in'
+            ? t('financeCashMovementTypes.directions.in', 'Inflow')
+            : t('financeCashMovementTypes.directions.out', 'Outflow');
+    };
+
     return [
         {
             id: 'name',
