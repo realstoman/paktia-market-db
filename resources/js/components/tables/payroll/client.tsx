@@ -150,7 +150,7 @@ interface PayrollClientProps {
     branches: Branch[];
     employees: Employee[];
     afghanPayrollMonths: AfghanPayrollMonth[];
-    currentAfghanPayrollMonth: AfghanPayrollMonth;
+    currentAfghanPayrollMonth: AfghanPayrollMonth | null;
     payrollGeneration: Record<string, PayrollGenerationState>;
     canCreate: boolean;
     canApprove: boolean;
@@ -263,6 +263,7 @@ export function PayrollClient({
     employees,
     afghanPayrollMonths,
     currentAfghanPayrollMonth,
+    payrollGeneration,
     canCreate,
     canApprove,
     canPay,
@@ -300,6 +301,8 @@ export function PayrollClient({
         React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [deleteContractTarget, setDeleteContractTarget] =
         React.useState<EmployeeContract | null>(null);
+    const [deleteRunTarget, setDeleteRunTarget] =
+        React.useState<PayrollRun | null>(null);
     const [scheduleAttachmentTarget, setScheduleAttachmentTarget] =
         React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
@@ -444,16 +447,18 @@ export function PayrollClient({
             })),
         [afghanPayrollMonths],
     );
-    const payrollMonthsByKey = React.useMemo(
-        () =>
-            new Map(
-                afghanPayrollMonths.map((month) => [
-                    `${month.year}-${month.month}`,
-                    month,
-                ]),
-            ),
-        [afghanPayrollMonths],
-    );
+    const selectedPayrollGeneration = React.useMemo(() => {
+        const branchKey = form.branch_id || 'all';
+
+        return (
+            payrollGeneration[branchKey] ??
+            payrollGeneration.all ?? {
+                next_due_month: null,
+                open_run: null,
+                latest_paid_month: null,
+            }
+        );
+    }, [form.branch_id, payrollGeneration]);
 
     const statusOptions = React.useMemo(
         () => [
@@ -532,7 +537,10 @@ export function PayrollClient({
 
     const openCreate = React.useCallback(() => {
         const month =
-            currentAfghanPayrollMonth ?? afghanPayrollMonths[0] ?? null;
+            payrollGeneration.all?.next_due_month ??
+            currentAfghanPayrollMonth ??
+            afghanPayrollMonths[0] ??
+            null;
 
         setForm({
             ...emptyForm,
@@ -541,7 +549,22 @@ export function PayrollClient({
             period_end: month?.end ?? emptyForm.period_end,
         });
         setIsOpen(true);
-    }, [afghanPayrollMonths, currentAfghanPayrollMonth]);
+    }, [afghanPayrollMonths, currentAfghanPayrollMonth, payrollGeneration]);
+
+    React.useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const month = selectedPayrollGeneration.next_due_month;
+
+        setForm((current) => ({
+            ...current,
+            afghan_month_key: month ? `${month.year}-${month.month}` : '',
+            period_start: month?.start ?? current.period_start,
+            period_end: month?.end ?? current.period_end,
+        }));
+    }, [isOpen, selectedPayrollGeneration]);
 
     const openContractCreate = React.useCallback(() => {
         setEditingContract(null);
@@ -899,6 +922,12 @@ export function PayrollClient({
         );
     }, []);
 
+    const deleteRun = React.useCallback((run: PayrollRun) => {
+        router.delete(`/finance/payroll/${run.id}`, {
+            preserveScroll: true,
+        });
+    }, []);
+
     const deleteSchedule = React.useCallback(
         (schedule: EmployeeContractPaymentSchedule) => {
             router.delete(
@@ -924,10 +953,12 @@ export function PayrollClient({
                 onView: setSelectedRun,
                 onReviewApproval: setApprovalTarget,
                 onMarkPaid: markPaid,
+                onDelete: setDeleteRunTarget,
                 canApprove,
                 canPay,
+                canDelete,
             }),
-        [canApprove, canPay, markPaid, t],
+        [canApprove, canDelete, canPay, markPaid, t],
     );
 
     const scheduleColumns = React.useMemo(
@@ -1158,7 +1189,14 @@ export function PayrollClient({
                         </Link>
                     </Button>
                     {canCreate ? (
-                        <Button onClick={openCreate} className="gap-2">
+                        <Button
+                            onClick={openCreate}
+                            className="gap-2"
+                            disabled={
+                                Boolean(payrollGeneration.all?.open_run) ||
+                                !payrollGeneration.all?.next_due_month
+                            }
+                        >
                             <Plus className="h-4 w-4" />
                             {t(
                                 'financePayroll.actions.generatePayroll',
@@ -1222,6 +1260,38 @@ export function PayrollClient({
                             </p>
                         </div>
                     </div>
+                </div>
+                <div className="mt-5 rounded-2xl border border-neutral-200/80 bg-white/90 px-4 py-3 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-200">
+                    {payrollGeneration.all?.open_run ? (
+                        <span>
+                            {t(
+                                'financePayroll.notices.resolveOpenRun',
+                                'Finish or delete payroll run',
+                            )}{' '}
+                            #{payrollGeneration.all.open_run.id}{' '}
+                            {t('financePayroll.notices.forMonth', 'for')}{' '}
+                            {payrollGeneration.all.open_run.label}{' '}
+                            {t(
+                                'financePayroll.notices.beforeAnotherRun',
+                                'before generating another payroll run.',
+                            )}
+                        </span>
+                    ) : payrollGeneration.all?.next_due_month ? (
+                        <span>
+                            {t(
+                                'financePayroll.notices.nextDueMonth',
+                                'Next due payroll month',
+                            )}
+                            : {payrollGeneration.all.next_due_month.label}
+                        </span>
+                    ) : (
+                        <span>
+                            {t(
+                                'financePayroll.notices.noDueMonth',
+                                'No payroll month is due yet. Payroll becomes available after the current month is fully closed.',
+                            )}
+                        </span>
+                    )}
                 </div>
             </section>
 
@@ -1445,7 +1515,7 @@ export function PayrollClient({
                             </CardTitle>
                             <CardDescription>
                                 {selectedRun
-                                    ? `${formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? t('financePayroll.filters.allBranches', 'All Branches')}`
+                                    ? `${selectedRun.payroll_period_label ?? formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? t('financePayroll.filters.allBranches', 'All Branches')}`
                                     : t(
                                           'financePayroll.details.description',
                                           'Select a payroll run to review employee-level payroll items.',
@@ -1809,6 +1879,38 @@ export function PayrollClient({
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
+                        <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900/60 dark:text-neutral-300 md:col-span-2">
+                            {selectedPayrollGeneration.open_run ? (
+                                <span>
+                                    {t(
+                                        'financePayroll.notices.resolveOpenRun',
+                                        'Finish or delete payroll run',
+                                    )}{' '}
+                                    #{selectedPayrollGeneration.open_run.id}{' '}
+                                    {t('financePayroll.notices.forMonth', 'for')}{' '}
+                                    {selectedPayrollGeneration.open_run.label}{' '}
+                                    {t(
+                                        'financePayroll.notices.beforeAnotherRun',
+                                        'before generating another payroll run.',
+                                    )}
+                                </span>
+                            ) : selectedPayrollGeneration.next_due_month ? (
+                                <span>
+                                    {t(
+                                        'financePayroll.notices.nextDueMonth',
+                                        'Next due payroll month',
+                                    )}
+                                    : {selectedPayrollGeneration.next_due_month.label}
+                                </span>
+                            ) : (
+                                <span>
+                                    {t(
+                                        'financePayroll.notices.noDueMonth',
+                                        'No payroll month is due yet. Payroll becomes available after the current month is fully closed.',
+                                    )}
+                                </span>
+                            )}
+                        </div>
                         <div className="grid gap-2">
                             <Label>{t('financePayroll.filters.branch', 'Branch')}</Label>
                             <SearchableDropdown
@@ -1868,20 +1970,18 @@ export function PayrollClient({
                             </Label>
                             <SearchableDropdown
                                 value={form.afghan_month_key}
-                                options={payrollMonthOptions}
-                                onValueChange={(value) => {
-                                    const month = payrollMonthsByKey.get(value);
-
-                                    setForm((current) => ({
-                                        ...current,
-                                        afghan_month_key: value,
-                                        period_start:
-                                            month?.start ??
-                                            current.period_start,
-                                        period_end:
-                                            month?.end ?? current.period_end,
-                                    }));
-                                }}
+                                options={
+                                    selectedPayrollGeneration.next_due_month
+                                        ? [
+                                              {
+                                                  value: `${selectedPayrollGeneration.next_due_month.year}-${selectedPayrollGeneration.next_due_month.month}`,
+                                                  label: selectedPayrollGeneration
+                                                      .next_due_month.label,
+                                              },
+                                          ]
+                                        : payrollMonthOptions
+                                }
+                                onValueChange={() => undefined}
                                 placeholder={t(
                                     'financePayroll.form.selectAfghanMonth',
                                     'Select Afghan month',
@@ -2001,7 +2101,13 @@ export function PayrollClient({
                         >
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={submit}>
+                        <Button
+                            onClick={submit}
+                            disabled={
+                                Boolean(selectedPayrollGeneration.open_run) ||
+                                !selectedPayrollGeneration.next_due_month
+                            }
+                        >
                             {t(
                                 'financePayroll.actions.generateRun',
                                 'Generate Run',
@@ -2464,6 +2570,46 @@ export function PayrollClient({
 
             {canDelete ? (
                 <>
+                    <AlertDialog
+                        open={deleteRunTarget !== null}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setDeleteRunTarget(null);
+                            }
+                        }}
+                    >
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Delete Payroll Run
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will remove the selected unpaid payroll
+                                    run and all of its employee payroll items.
+                                    Paid payroll runs stay protected and cannot
+                                    be deleted.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel
+                                    onClick={() => setDeleteRunTarget(null)}
+                                >
+                                    Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => {
+                                        if (deleteRunTarget) {
+                                            deleteRun(deleteRunTarget);
+                                        }
+                                        setDeleteRunTarget(null);
+                                    }}
+                                >
+                                    Delete Run
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
                     <AlertDialog
                         open={deleteContractTarget !== null}
                         onOpenChange={(open) => {

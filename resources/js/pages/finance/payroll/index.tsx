@@ -16,7 +16,8 @@ interface PayrollPageProps {
     branches: Branch[];
     employees: Employee[];
     afghanPayrollMonths: AfghanPayrollMonth[];
-    currentAfghanPayrollMonth: AfghanPayrollMonth;
+    currentAfghanPayrollMonth: AfghanPayrollMonth | null;
+    payrollGeneration: Record<string, unknown>;
     canCreate: boolean;
     canApprove: boolean;
     canPay: boolean;
@@ -46,6 +47,7 @@ export default function PayrollPage({
     employees,
     afghanPayrollMonths,
     currentAfghanPayrollMonth,
+    payrollGeneration,
     canCreate,
     canApprove,
     canPay,
@@ -71,6 +73,7 @@ export default function PayrollPage({
                 employees={employees}
                 afghanPayrollMonths={afghanPayrollMonths}
                 currentAfghanPayrollMonth={currentAfghanPayrollMonth}
+                payrollGeneration={payrollGeneration}
                 canCreate={canCreate}
                 canApprove={canApprove}
                 canPay={canPay}
