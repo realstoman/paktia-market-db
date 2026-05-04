@@ -84,6 +84,7 @@ class PayrollController extends Controller
                     'advances_total' => $advances,
                     'overtime_total' => $overtime,
                     'net_total' => $net,
+                    'payroll_period_label' => $this->resolveRunPeriodLabel($run),
                     'items' => $run->items->map(function (PayrollRunItem $item) {
                         $employeeName = $item->employee
                             ? trim(($item->employee->first_name ?? '').' '.($item->employee->last_name ?? ''))
@@ -109,6 +110,7 @@ class PayrollController extends Controller
                             'payment_method' => $item->payment_method,
                             'payment_status' => $item->payment_status,
                             'payment_date' => optional($item->payment_date)->toDateString(),
+                            'advance_breakdown' => $this->transformAdvanceBreakdown($item->advance_breakdown),
                             'covered_period_dates' => collect($item->covered_period_dates ?? [])
                                 ->filter()
                                 ->values()
@@ -165,6 +167,10 @@ class PayrollController extends Controller
                 ->sum('net_total'),
             'outstandingAdvances' => (float) $outstandingAdvances,
         ];
+
+        $payrollGeneration = $this->buildPayrollGenerationStateMap(
+            Branch::query()->orderBy('name')->get(['id', 'name', 'address'])
+        );
 
         $contracts = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
             ? EmployeeContract::query()
@@ -233,10 +239,11 @@ class PayrollController extends Controller
         return Inertia::render('finance/payroll/index', [
             'runs' => $runs,
             'contracts' => $contracts,
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
+            'branches' => $payrollGeneration['branches'],
             'employees' => $activeEmployees,
-            'afghanPayrollMonths' => AfghanCalendar::payrollMonthOptions(),
-            'currentAfghanPayrollMonth' => AfghanCalendar::currentMonth(),
+            'afghanPayrollMonths' => $payrollGeneration['months'],
+            'currentAfghanPayrollMonth' => $payrollGeneration['defaultMonth'],
+            'payrollGeneration' => $payrollGeneration['stateByBranch'],
             'summary' => $summary,
             'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
             'canApprove' => Gate::allows(PermissionEnum::PAYROLL_APPROVE->value),
@@ -266,6 +273,34 @@ class PayrollController extends Controller
             : AfghanCalendar::monthForDate($validated['period_end'] ?? null);
         $periodStart = $payrollMonth['start'];
         $periodEnd = $payrollMonth['end'];
+        $generationState = $this->resolvePayrollGenerationState($branchId);
+
+        if ($generationState['open_run']) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors([
+                    'payroll' => 'Resolve or delete payroll run #'.$generationState['open_run']['id'].' for '.$generationState['open_run']['label'].' before generating another payroll run.',
+                ]);
+        }
+
+        if (! $generationState['next_due_month']) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors([
+                    'payroll' => 'No payroll month is due yet. Payroll runs can only be generated after the current month has fully ended.',
+                ]);
+        }
+
+        if (
+            (int) $generationState['next_due_month']['year'] !== (int) $payrollMonth['year']
+            || (int) $generationState['next_due_month']['month'] !== (int) $payrollMonth['month']
+        ) {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors([
+                    'payroll' => 'The next payroll month available is '.$generationState['next_due_month']['label'].'. Finish payroll sequentially from the last processed month.',
+                ]);
+        }
 
         $employees = Employee::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -356,13 +391,8 @@ class PayrollController extends Controller
                     continue;
                 }
 
-                $outstandingAdvance = (float) EmployeeAdvance::query()
-                    ->where('employee_id', $employee->id)
-                    ->where('status', 'approved')
-                    ->where('remaining_balance', '>', 0)
-                    ->sum('remaining_balance');
-
-                $advanceDeduction = min($grossSalary, $outstandingAdvance);
+                $advanceBreakdown = $this->buildAdvanceBreakdown($employee->id, $grossSalary);
+                $advanceDeduction = (float) collect($advanceBreakdown)->sum('amount');
                 $netSalary = max(0, $grossSalary - $advanceDeduction);
 
                 PayrollRunItem::create([
@@ -378,6 +408,7 @@ class PayrollController extends Controller
                     'payment_method' => $validated['payment_method'] ?? PaymentMethod::CASH->value,
                     'payment_status' => 'unpaid',
                     'payment_date' => null,
+                    'advance_breakdown' => $advanceBreakdown,
                     'covered_period_dates' => $coveredPeriods,
                     'covered_month_count' => $salaryType === 'fixed_salary'
                         ? max(1, count($coveredPeriods))
@@ -450,34 +481,7 @@ class PayrollController extends Controller
                 $remainingToApply = (float) $item->advances_deducted;
 
                 if ($remainingToApply > 0) {
-                    $advances = EmployeeAdvance::query()
-                        ->where('employee_id', $item->employee_id)
-                        ->where('status', 'approved')
-                        ->where('remaining_balance', '>', 0)
-                        ->orderBy('advance_date')
-                        ->orderBy('id')
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($advances as $advance) {
-                        if ($remainingToApply <= 0) {
-                            break;
-                        }
-
-                        $available = (float) $advance->remaining_balance;
-                        if ($available <= 0) {
-                            continue;
-                        }
-
-                        $applied = min($available, $remainingToApply);
-
-                        $advance->update([
-                            'deducted_amount' => (float) $advance->deducted_amount + $applied,
-                            'remaining_balance' => max(0, $available - $applied),
-                        ]);
-
-                        $remainingToApply -= $applied;
-                    }
+                    $remainingToApply = $this->applyAdvanceBreakdown($item, $remainingToApply);
                 }
 
                 if ($item->salary_type === 'contract_payment' && Schema::hasTable('employee_contract_payment_schedules')) {
@@ -529,6 +533,30 @@ class PayrollController extends Controller
                 'priority' => 'high',
                 'meta' => 'Net payroll • '.number_format((float) $payrollRun->items->sum('net_salary'), 0).' ؋',
             ]);
+    }
+
+    public function destroy(PayrollRun $payrollRun)
+    {
+        Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
+
+        if (! request()->user()?->hasRole('super-admin')) {
+            abort(403);
+        }
+
+        if ($payrollRun->status === 'paid') {
+            return redirect()
+                ->route('finance.payroll.index')
+                ->withErrors(['payroll' => 'Paid payroll runs cannot be deleted.']);
+        }
+
+        DB::transaction(function () use ($payrollRun) {
+            $payrollRun->items()->delete();
+            $payrollRun->delete();
+        });
+
+        return redirect()
+            ->route('finance.payroll.index')
+            ->with('success', 'Payroll run deleted successfully.');
     }
 
     /**
@@ -604,6 +632,274 @@ class PayrollController extends Controller
         }
 
         return $anchor->startOfDay();
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, Branch>  $branches
+     * @return array{branches:\Illuminate\Support\Collection<int, Branch>, months:array<int, array<string, mixed>>, defaultMonth:?array<string, mixed>, stateByBranch:array<string, mixed>}
+     */
+    private function buildPayrollGenerationStateMap($branches): array
+    {
+        $closedThrough = Carbon::today()->subDay();
+        $months = collect(AfghanCalendar::payrollMonthOptions(previous: 6, next: 0))
+            ->filter(fn (array $month) => Carbon::parse($month['end'])->lte($closedThrough))
+            ->values()
+            ->all();
+
+        $defaultMonth = ! empty($months) ? end($months) : null;
+
+        $stateByBranch = [
+            'all' => $this->resolvePayrollGenerationState(null),
+        ];
+
+        foreach ($branches as $branch) {
+            $stateByBranch[(string) $branch->id] = $this->resolvePayrollGenerationState($branch->id);
+        }
+
+        return [
+            'branches' => $branches,
+            'months' => $months,
+            'defaultMonth' => $defaultMonth,
+            'stateByBranch' => $stateByBranch,
+        ];
+    }
+
+    /**
+     * @return array{next_due_month:?array<string, mixed>, open_run:?array<string, mixed>, latest_paid_month:?string}
+     */
+    private function resolvePayrollGenerationState(?int $branchId): array
+    {
+        $query = PayrollRun::query()
+            ->when(
+                $branchId !== null,
+                fn ($runQuery) => $runQuery->where('branch_id', $branchId),
+                fn ($runQuery) => $runQuery->whereNull('branch_id'),
+            );
+
+        $openRun = (clone $query)
+            ->whereIn('status', ['draft', 'submitted', 'approved'])
+            ->orderBy('period_end')
+            ->orderBy('id')
+            ->first();
+
+        $latestPaidRun = (clone $query)
+            ->where('status', 'paid')
+            ->orderByDesc('period_end')
+            ->orderByDesc('id')
+            ->first();
+
+        $latestClosedMonth = AfghanCalendar::monthForDate(Carbon::today()->subDay());
+
+        if ($openRun) {
+            return [
+                'next_due_month' => null,
+                'open_run' => [
+                    'id' => $openRun->id,
+                    'status' => $openRun->status,
+                    'period_start' => optional($openRun->period_start)->toDateString(),
+                    'period_end' => optional($openRun->period_end)->toDateString(),
+                    'label' => $this->resolveRunPeriodLabel($openRun),
+                ],
+                'latest_paid_month' => $latestPaidRun
+                    ? AfghanCalendar::formatMonthLabel($latestPaidRun->period_end)
+                    : null,
+            ];
+        }
+
+        $nextDueMonth = $latestPaidRun
+            ? AfghanCalendar::monthForDate(Carbon::parse($latestPaidRun->period_end)->addDay())
+            : $latestClosedMonth;
+
+        if (Carbon::parse($nextDueMonth['end'])->gt(Carbon::parse($latestClosedMonth['end']))) {
+            $nextDueMonth = null;
+        }
+
+        return [
+            'next_due_month' => $nextDueMonth,
+            'open_run' => null,
+            'latest_paid_month' => $latestPaidRun
+                ? AfghanCalendar::formatMonthLabel($latestPaidRun->period_end)
+                : null,
+        ];
+    }
+
+    private function resolveRunPeriodLabel(PayrollRun $run): string
+    {
+        $coveredMonths = $run->items
+            ? $run->items
+                ->flatMap(fn (PayrollRunItem $item) => collect($item->covered_period_dates ?? [])->filter())
+                ->map(fn (string $date) => AfghanCalendar::formatMonthLabel($date))
+                ->unique()
+                ->values()
+                ->all()
+            : [];
+
+        if (! empty($coveredMonths)) {
+            return implode(', ', $coveredMonths);
+        }
+
+        return AfghanCalendar::formatMonthLabel($run->period_end);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildAdvanceBreakdown(int $employeeId, float $grossSalary): array
+    {
+        $remainingToAllocate = max(0, $grossSalary);
+
+        if ($remainingToAllocate <= 0) {
+            return [];
+        }
+
+        $advances = EmployeeAdvance::query()
+            ->where('employee_id', $employeeId)
+            ->where('status', 'approved')
+            ->where('remaining_balance', '>', 0)
+            ->orderBy('advance_date')
+            ->orderBy('id')
+            ->get();
+
+        $breakdown = [];
+
+        foreach ($advances as $advance) {
+            if ($remainingToAllocate <= 0) {
+                break;
+            }
+
+            $available = (float) $advance->remaining_balance;
+            if ($available <= 0) {
+                continue;
+            }
+
+            $applied = min($available, $remainingToAllocate);
+            $reason = trim((string) ($advance->reason ?? ''));
+
+            $breakdown[] = [
+                'advance_id' => $advance->id,
+                'amount' => round($applied, 2),
+                'reason' => $reason ?: 'Salary advance deduction',
+                'type' => $this->resolveAdvanceBreakdownType($reason),
+            ];
+
+            $remainingToAllocate -= $applied;
+        }
+
+        return $breakdown;
+    }
+
+    private function applyAdvanceBreakdown(PayrollRunItem $item, float $remainingToApply): float
+    {
+        $breakdown = collect($item->advance_breakdown ?? [])
+            ->filter(fn ($entry) => is_array($entry) && ! empty($entry['advance_id']) && (float) ($entry['amount'] ?? 0) > 0)
+            ->values();
+
+        if ($breakdown->isNotEmpty()) {
+            foreach ($breakdown as $entry) {
+                if ($remainingToApply <= 0) {
+                    break;
+                }
+
+                $advance = EmployeeAdvance::query()
+                    ->where('employee_id', $item->employee_id)
+                    ->whereKey((int) $entry['advance_id'])
+                    ->where('status', 'approved')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $advance) {
+                    continue;
+                }
+
+                $available = (float) $advance->remaining_balance;
+                if ($available <= 0) {
+                    continue;
+                }
+
+                $requested = (float) ($entry['amount'] ?? 0);
+                if ($requested <= 0) {
+                    continue;
+                }
+
+                $applied = min($available, $requested, $remainingToApply);
+
+                $advance->update([
+                    'deducted_amount' => (float) $advance->deducted_amount + $applied,
+                    'remaining_balance' => max(0, $available - $applied),
+                    'status' => max(0, $available - $applied) <= 0 ? 'paid' : ($advance->status ?? 'approved'),
+                ]);
+
+                $remainingToApply -= $applied;
+            }
+        }
+
+        if ($remainingToApply <= 0) {
+            return 0;
+        }
+
+        $advances = EmployeeAdvance::query()
+            ->where('employee_id', $item->employee_id)
+            ->where('status', 'approved')
+            ->where('remaining_balance', '>', 0)
+            ->orderBy('advance_date')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($advances as $advance) {
+            if ($remainingToApply <= 0) {
+                break;
+            }
+
+            $available = (float) $advance->remaining_balance;
+            if ($available <= 0) {
+                continue;
+            }
+
+            $applied = min($available, $remainingToApply);
+
+            $advance->update([
+                'deducted_amount' => (float) $advance->deducted_amount + $applied,
+                'remaining_balance' => max(0, $available - $applied),
+                'status' => max(0, $available - $applied) <= 0 ? 'paid' : ($advance->status ?? 'approved'),
+            ]);
+
+            $remainingToApply -= $applied;
+        }
+
+        return $remainingToApply;
+    }
+
+    private function resolveAdvanceBreakdownType(?string $reason): string
+    {
+        $normalized = strtolower(trim((string) $reason));
+
+        return str_starts_with($normalized, 'employee covered order #')
+            ? 'employee_order'
+            : 'advance';
+    }
+
+    /**
+     * @param  array<int, mixed>|null  $breakdown
+     * @return array<int, array<string, mixed>>
+     */
+    private function transformAdvanceBreakdown(?array $breakdown): array
+    {
+        return collect($breakdown ?? [])
+            ->filter(fn ($entry) => is_array($entry) && (float) ($entry['amount'] ?? 0) > 0)
+            ->map(function (array $entry) {
+                $reason = trim((string) ($entry['reason'] ?? ''));
+                $type = (string) ($entry['type'] ?? $this->resolveAdvanceBreakdownType($reason));
+
+                return [
+                    'advance_id' => isset($entry['advance_id']) ? (int) $entry['advance_id'] : null,
+                    'amount' => round((float) ($entry['amount'] ?? 0), 2),
+                    'reason' => $reason ?: 'Salary advance deduction',
+                    'type' => $type,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function storeContract(Request $request)

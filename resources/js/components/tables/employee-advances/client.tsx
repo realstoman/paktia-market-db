@@ -36,6 +36,7 @@ const STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
     { value: 'submitted', label: 'Submitted' },
     { value: 'approved', label: 'Approved' },
+    { value: 'paid', label: 'Paid' },
 ];
 
 const REPAYMENT_METHODS = [
@@ -74,6 +75,7 @@ interface EmployeeAdvanceClientProps {
         outstandingBalance: number;
         submittedCount: number;
         approvedCount: number;
+        paidCount?: number;
     };
 }
 

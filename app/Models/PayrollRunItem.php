@@ -25,6 +25,7 @@ class PayrollRunItem extends Model
         'payment_method',
         'payment_status',
         'payment_date',
+        'advance_breakdown',
         'covered_period_dates',
         'covered_month_count',
     ];
@@ -37,6 +38,7 @@ class PayrollRunItem extends Model
         'overtime_amount' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'payment_date' => 'date',
+        'advance_breakdown' => 'array',
         'covered_period_dates' => 'array',
         'covered_month_count' => 'integer',
     ];

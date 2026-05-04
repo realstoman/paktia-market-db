@@ -10,8 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PayrollRun } from '@/types';
 import {
+    AlertTriangle,
     BadgeCheck,
     CreditCard,
+    Trash2,
     Eye,
     MoreHorizontal,
     RotateCcw,
@@ -23,8 +25,10 @@ interface CellActionProps {
     onView: (run: PayrollRun) => void;
     onReviewApproval: (run: PayrollRun) => void;
     onMarkPaid: (run: PayrollRun) => void;
+    onDelete: (run: PayrollRun) => void;
     canApprove: boolean;
     canPay: boolean;
+    canDelete: boolean;
 }
 
 export function CellAction({
@@ -32,8 +36,10 @@ export function CellAction({
     onView,
     onReviewApproval,
     onMarkPaid,
+    onDelete,
     canApprove,
     canPay,
+    canDelete,
 }: CellActionProps) {
     const { t } = useLocalization();
 
@@ -77,6 +83,27 @@ export function CellAction({
                     <DropdownMenuItem onClick={() => onMarkPaid(data)}>
                         <CreditCard className="mr-2 h-4 w-4" />
                         {t('financePayroll.actions.markPaid', 'Mark Paid')}
+                    </DropdownMenuItem>
+                ) : null}
+                {canDelete && data.status !== 'paid' ? (
+                    <DropdownMenuItem
+                        onClick={() => onDelete(data)}
+                        className="text-red-600 focus:text-red-600"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {t(
+                            'financePayroll.actions.deleteRun',
+                            'Delete Run',
+                        )}
+                    </DropdownMenuItem>
+                ) : null}
+                {canDelete && data.status === 'paid' ? (
+                    <DropdownMenuItem disabled>
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        {t(
+                            'financePayroll.actions.paidRunLocked',
+                            'Paid run is locked',
+                        )}
                     </DropdownMenuItem>
                 ) : null}
             </DropdownMenuContent>

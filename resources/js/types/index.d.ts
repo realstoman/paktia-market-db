@@ -231,6 +231,12 @@ export interface PayrollRunItem {
     payment_method?: string | null;
     payment_status: string;
     payment_date?: string | null;
+    advance_breakdown?: {
+        advance_id?: number | null;
+        amount: number;
+        reason?: string | null;
+        type?: string | null;
+    }[];
     covered_period_dates?: string[];
     covered_month_count?: number;
     payroll_run?: {
@@ -266,6 +272,7 @@ export interface PayrollRun {
     advances_total?: number;
     overtime_total?: number;
     net_total?: number;
+    payroll_period_label?: string;
     items?: PayrollRunItem[];
     [key: string]: unknown;
 }

@@ -249,6 +249,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'can:'.PermissionEnum::PAYROLL_CREATE->value,
         'role:super-admin',
     ])->group(function () {
+        Route::delete('finance/payroll/{payrollRun}', [PayrollController::class, 'destroy'])->name('finance.payroll.destroy');
         Route::delete('finance/payroll/contracts/{contract}', [PayrollController::class, 'destroyContract'])->name('finance.payroll.contracts.destroy');
         Route::delete('finance/payroll/contract-schedules/{schedule}', [PayrollController::class, 'destroySchedule'])->name('finance.payroll.contract-schedules.destroy');
     });

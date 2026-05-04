@@ -21,8 +21,10 @@ interface BuildColumnsProps {
     onView: (run: PayrollRun) => void;
     onReviewApproval: (run: PayrollRun) => void;
     onMarkPaid: (run: PayrollRun) => void;
+    onDelete: (run: PayrollRun) => void;
     canApprove: boolean;
     canPay: boolean;
+    canDelete: boolean;
 }
 
 export function buildColumns({
@@ -30,8 +32,10 @@ export function buildColumns({
     onView,
     onReviewApproval,
     onMarkPaid,
+    onDelete,
     canApprove,
     canPay,
+    canDelete,
 }: BuildColumnsProps): ColumnDef<PayrollRun>[] {
     return [
         {
@@ -41,10 +45,12 @@ export function buildColumns({
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
-                        {row.original.period_start} to {row.original.period_end}
+                        {row.original.payroll_period_label ??
+                            formatAfghanMonthLabel(row.original.period_end)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {formatAfghanMonthLabel(row.original.period_end)} •{' '}
+                        {row.original.period_start} to {row.original.period_end}{' '}
+                        •{' '}
                         {row.original.branch?.name ??
                             t(
                                 'financePayroll.filters.allBranches',
@@ -108,8 +114,10 @@ export function buildColumns({
                     onView={onView}
                     onReviewApproval={onReviewApproval}
                     onMarkPaid={onMarkPaid}
+                    onDelete={onDelete}
                     canApprove={canApprove}
                     canPay={canPay}
+                    canDelete={canDelete}
                 />
             ),
         },

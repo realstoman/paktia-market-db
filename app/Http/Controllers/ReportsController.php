@@ -489,7 +489,11 @@ class ReportsController extends Controller
         ?int $branchId,
     ): array {
         $ordersQuery = Order::query()
-            ->with(['branch:id,name', 'user:id,name'])
+            ->with([
+                'branch:id,name',
+                'user:id,name',
+                'coveredByEmployee:id,first_name,last_name',
+            ])
             ->withCount('items')
             ->whereBetween('created_at', [$startDate, $endDate]);
 
@@ -572,20 +576,41 @@ class ReportsController extends Controller
                 ['key' => 'items', 'label' => 'Items'],
                 ['key' => 'total', 'label' => 'Total'],
                 ['key' => 'paid', 'label' => 'Paid'],
+                ['key' => 'paymentNote', 'label' => 'Payment Note'],
                 ['key' => 'servedBy', 'label' => 'User'],
             ],
-            'rows' => $orders->map(fn (Order $order) => [
-                'reference' => '#'.$order->id,
-                'date' => optional($order->created_at)->format('Y-m-d H:i') ?? '-',
-                'branch' => $order->branch?->name ?? 'Unassigned',
-                'customer' => $order->customer_name ?: 'Walk-in',
-                'type' => ucfirst((string) ($order->order_type?->value ?? $order->order_type ?? '-')),
-                'status' => str_replace('_', ' ', ucfirst((string) ($order->status?->value ?? $order->status ?? 'pending'))),
-                'items' => (int) ($order->items_count ?? 0),
-                'total' => (float) $order->total_amount,
-                'paid' => (float) $order->paid_amount,
-                'servedBy' => $order->user?->name ?? '-',
-            ])->values()->all(),
+            'rows' => $orders->map(function (Order $order) {
+                $coverageType = (string) ($order->covered_by_type ?? 'customer');
+                $employeeName = trim(collect([
+                    $order->coveredByEmployee?->first_name,
+                    $order->coveredByEmployee?->last_name,
+                ])->filter()->join(' '));
+
+                $paymentNote = match ($coverageType) {
+                    'employee' => $employeeName !== ''
+                        ? 'Employee Cover ('.$employeeName.')'
+                        : 'Employee Cover',
+                    'house', 'restaurant' => 'Restaurant Hospitality',
+                    default => ((float) $order->paid_amount <= 0
+                        && (string) ($order->status?->value ?? $order->status ?? '') === 'completed')
+                        ? 'No payment recorded'
+                        : '-',
+                };
+
+                return [
+                    'reference' => '#'.$order->id,
+                    'date' => optional($order->created_at)->format('Y-m-d H:i') ?? '-',
+                    'branch' => $order->branch?->name ?? 'Unassigned',
+                    'customer' => $order->customer_name ?: 'Walk-in',
+                    'type' => ucfirst((string) ($order->order_type?->value ?? $order->order_type ?? '-')),
+                    'status' => str_replace('_', ' ', ucfirst((string) ($order->status?->value ?? $order->status ?? 'pending'))),
+                    'items' => (int) ($order->items_count ?? 0),
+                    'total' => (float) $order->total_amount,
+                    'paid' => (float) $order->paid_amount,
+                    'paymentNote' => $paymentNote,
+                    'servedBy' => $order->user?->name ?? '-',
+                ];
+            })->values()->all(),
             'summary' => [
                 [
                     'label' => 'Orders',

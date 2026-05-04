@@ -113,6 +113,16 @@ class EmployeeController extends Controller
                         'payment_method' => $item->payment_method,
                         'payment_status' => $item->payment_status,
                         'payment_date' => $item->payment_date?->toDateString(),
+                        'advance_breakdown' => collect($item->advance_breakdown ?? [])
+                            ->filter(fn ($entry) => is_array($entry) && (float) ($entry['amount'] ?? 0) > 0)
+                            ->map(fn (array $entry) => [
+                                'advance_id' => isset($entry['advance_id']) ? (int) $entry['advance_id'] : null,
+                                'amount' => round((float) ($entry['amount'] ?? 0), 2),
+                                'reason' => trim((string) ($entry['reason'] ?? '')) ?: 'Salary advance deduction',
+                                'type' => (string) ($entry['type'] ?? 'advance'),
+                            ])
+                            ->values()
+                            ->all(),
                         'covered_period_dates' => $item->covered_period_dates,
                         'covered_month_count' => $item->covered_month_count,
                         'payroll_run' => $item->payrollRun ? [
@@ -249,6 +259,11 @@ class EmployeeController extends Controller
 
         $validated = $request->validate($this->rules());
 
+        $attachmentsToRemove = collect($validated['remove_attachment_paths'] ?? [])
+            ->filter(fn ($path) => is_string($path) && $path !== '')
+            ->values()
+            ->all();
+
         if ($request->hasFile('profile_picture')) {
             if (! empty($employee->profile_picture)) {
                 Storage::disk('public')->delete($employee->profile_picture);
@@ -260,11 +275,18 @@ class EmployeeController extends Controller
         }
 
         $attachments = $request->file('attachments', []);
-        if (! empty($attachments)) {
-            $currentAttachments = is_array($employee->attachments)
-                ? $employee->attachments
-                : [];
+        $currentAttachments = array_values(
+            array_diff(
+                is_array($employee->attachments) ? $employee->attachments : [],
+                $attachmentsToRemove,
+            ),
+        );
 
+        if (! empty($attachmentsToRemove)) {
+            Storage::disk('public')->delete($attachmentsToRemove);
+        }
+
+        if (! empty($attachments)) {
             if ((count($currentAttachments) + count($attachments)) > 25) {
                 return back()->withErrors([
                     'attachments' => 'Total attachments cannot exceed 25 files.',
@@ -279,6 +301,8 @@ class EmployeeController extends Controller
             $validated['attachments'] = array_values(
                 array_merge($currentAttachments, $storedAttachments),
             );
+        } elseif (! empty($attachmentsToRemove)) {
+            $validated['attachments'] = $currentAttachments;
         }
 
         $this->normalizeCompensationPayload($validated);
@@ -520,6 +544,8 @@ class EmployeeController extends Controller
                 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,csv,txt',
                 'max:5120',
             ],
+            'remove_attachment_paths' => ['nullable', 'array'],
+            'remove_attachment_paths.*' => ['string'],
             'status' => [
                 'required',
                 Rule::in(array_map(static fn (EmployeeStatus $status) => $status->value, EmployeeStatus::cases())),

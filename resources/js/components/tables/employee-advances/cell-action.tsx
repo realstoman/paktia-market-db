@@ -52,7 +52,7 @@ export function CellAction({
                 <DropdownMenuLabel>
                     {t('financeEmployeeAdvances.actions.title', 'Actions')}
                 </DropdownMenuLabel>
-                {data.status !== 'approved' ? (
+                {!['approved', 'paid'].includes(data.status ?? '') ? (
                     <DropdownMenuItem onClick={() => onEdit(data)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         {t('financeEmployeeAdvances.actions.edit', 'Edit')}
@@ -65,7 +65,7 @@ export function CellAction({
                         'Print Voucher',
                     )}
                 </DropdownMenuItem>
-                {data.status !== 'approved' ? (
+                {!['approved', 'paid'].includes(data.status ?? '') ? (
                     <DropdownMenuItem onClick={() => onApprove(data)}>
                         <CheckCircle2 className="mr-2 h-4 w-4" />
                         {t(

@@ -64,6 +64,29 @@ function coveredMonthLabels(item: PayrollRunItem) {
     return dates.map((date) => formatAfghanMonthLabel(date));
 }
 
+function deductionBreakdown(item: PayrollRunItem) {
+    return (item.advance_breakdown ?? []).filter(
+        (entry) => Number(entry.amount ?? 0) > 0,
+    );
+}
+
+function deductionBreakdownTotals(item: PayrollRunItem) {
+    return deductionBreakdown(item).reduce(
+        (totals, entry) => {
+            const amount = Number(entry.amount ?? 0);
+
+            if ((entry.type ?? 'advance') === 'employee_order') {
+                totals.employeeOrder += amount;
+            } else {
+                totals.advance += amount;
+            }
+
+            return totals;
+        },
+        { employeeOrder: 0, advance: 0 },
+    );
+}
+
 export function PayrollVoucherPrintDialog({
     open,
     onOpenChange,
@@ -77,6 +100,10 @@ export function PayrollVoucherPrintDialog({
             ? coveredMonthLabels(item).join(', ') ||
               formatAfghanMonthLabel(run.period_end)
             : '-';
+    const breakdown = item ? deductionBreakdown(item) : [];
+    const breakdownTotals = item
+        ? deductionBreakdownTotals(item)
+        : { employeeOrder: 0, advance: 0 };
 
     const printVoucher = () => {
         if (!run || !item) {
@@ -94,6 +121,12 @@ export function PayrollVoucherPrintDialog({
         const paymentMethod = paymentMethodLabel(item.payment_method);
         const gross = formatAfn(Number(item.gross_salary ?? 0));
         const advances = formatAfn(Number(item.advances_deducted ?? 0));
+        const employeeOrderDeductions = formatAfn(
+            deductionBreakdownTotals(item).employeeOrder,
+        );
+        const otherAdvances = formatAfn(
+            deductionBreakdownTotals(item).advance,
+        );
         const net = formatAfn(Number(item.net_salary ?? 0));
         const createdAt = formatAfghanDate(run.created_at);
         const title =
@@ -106,6 +139,27 @@ export function PayrollVoucherPrintDialog({
                       'financePayroll.voucher.salaryPaymentVoucher',
                       'Salary Payment Voucher',
                   );
+        const deductionBreakdownRows = deductionBreakdown(item)
+            .map(
+                (entry) => `
+                    <div class="deduction-row">
+                        <div>
+                            <div class="deduction-title">${escapeHtml(
+                                entry.type === 'employee_order'
+                                    ? 'Employee-covered order'
+                                    : 'Salary advance',
+                            )}</div>
+                            <div class="deduction-reason">${escapeHtml(
+                                entry.reason ?? '-',
+                            )}</div>
+                        </div>
+                        <div class="deduction-amount">${escapeHtml(
+                            formatAfn(Number(entry.amount ?? 0)),
+                        )}</div>
+                    </div>
+                `,
+            )
+            .join('');
 
         printWindow.document.write(`
             <html>
@@ -139,6 +193,12 @@ export function PayrollVoucherPrintDialog({
                         .note-box { margin-top: 20px; background: linear-gradient(180deg, #fafafa, #f8fafc); border-radius: 12px; padding: 16px 18px; }
                         .note-title { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
                         .note-text { margin: 0; font-size: 13px; line-height: 1.7; color: #334155; }
+                        .deduction-list { margin-top: 18px; border: 1px dashed #dbe4ee; border-radius: 12px; padding: 14px 16px; background: #fcfcfd; }
+                        .deduction-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; padding: 10px 0; border-bottom: 1px solid #eef2f7; }
+                        .deduction-row:last-child { border-bottom: none; padding-bottom: 0; }
+                        .deduction-title { font-size: 12px; font-weight: 600; color: #0f172a; }
+                        .deduction-reason { margin-top: 4px; font-size: 12px; line-height: 1.5; color: #64748b; }
+                        .deduction-amount { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; }
                         .summary { margin-top: 24px; width: 320px; margin-left: auto; }
                         .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #dbe4ee; font-size: 14px; }
                         .summary-row.total { font-size: 18px; font-weight: 700; border-bottom: 2px solid #0f172a; padding-top: 16px; }
@@ -197,9 +257,21 @@ export function PayrollVoucherPrintDialog({
                                 <p class="note-title">Notes</p>
                                 <p class="note-text">This voucher is prepared for review before salary payout approval. It shows the planned payment amount and any advance deduction for the selected payroll period.</p>
                             </div>
+                            ${
+                                deductionBreakdownRows
+                                    ? `
+                                <div class="deduction-list">
+                                    <p class="note-title">Deduction Breakdown</p>
+                                    ${deductionBreakdownRows}
+                                </div>
+                            `
+                                    : ''
+                            }
                             <div class="summary">
                                 <div class="summary-row"><span>Gross Pay</span><span>${escapeHtml(gross)}</span></div>
                                 <div class="summary-row"><span>Advance Deduction</span><span>${escapeHtml(advances)}</span></div>
+                                <div class="summary-row"><span>Employee Orders</span><span>${escapeHtml(employeeOrderDeductions)}</span></div>
+                                <div class="summary-row"><span>Other Advances</span><span>${escapeHtml(otherAdvances)}</span></div>
                                 <div class="summary-row total"><span>Net Payable</span><span>${escapeHtml(net)}</span></div>
                             </div>
                             <div class="signatures">
@@ -424,6 +496,51 @@ export function PayrollVoucherPrintDialog({
                                         )}
                                     </p>
                                 </div>
+                                {breakdown.length ? (
+                                    <div className="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-xs tracking-[0.08em] text-muted-foreground uppercase">
+                                            {t(
+                                                'financePayroll.details.deductionBreakdown',
+                                                'Deduction breakdown',
+                                            )}
+                                        </p>
+                                        <div className="mt-3 space-y-2">
+                                            {breakdown.map((entry, index) => (
+                                                <div
+                                                    key={`${item.id}-voucher-deduction-${entry.advance_id ?? index}`}
+                                                    className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2"
+                                                >
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-medium text-slate-900">
+                                                            {entry.type ===
+                                                            'employee_order'
+                                                                ? t(
+                                                                      'financePayroll.details.employeeCoveredOrder',
+                                                                      'Employee-covered order',
+                                                                  )
+                                                                : t(
+                                                                      'financePayroll.details.salaryAdvance',
+                                                                      'Salary advance',
+                                                                  )}
+                                                        </p>
+                                                        <p className="truncate text-xs text-slate-500">
+                                                            {entry.reason ??
+                                                                '-'}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-sm font-semibold whitespace-nowrap text-slate-900">
+                                                        {formatAfn(
+                                                            Number(
+                                                                entry.amount ??
+                                                                    0,
+                                                            ),
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
 
                                 <div className="mt-6 ml-auto w-full max-w-sm space-y-3">
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
@@ -446,6 +563,32 @@ export function PayrollVoucherPrintDialog({
                                         </span>
                                         <span>
                                             {formatAfn(item.advances_deducted)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
+                                        <span>
+                                            {t(
+                                                'financePayroll.details.employeeOrderDeduction',
+                                                'Employee order deduction',
+                                            )}
+                                        </span>
+                                        <span>
+                                            {formatAfn(
+                                                breakdownTotals.employeeOrder,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
+                                        <span>
+                                            {t(
+                                                'financePayroll.details.otherAdvanceDeduction',
+                                                'Other advances',
+                                            )}
+                                        </span>
+                                        <span>
+                                            {formatAfn(
+                                                breakdownTotals.advance,
+                                            )}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3 text-lg font-semibold">

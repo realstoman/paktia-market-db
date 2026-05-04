@@ -7,6 +7,7 @@ const fa = {
         cancel: 'لغو',
         saved: 'ذخیره شد',
         open: 'باز کردن',
+        close: 'بستن',
         reset: 'بازنشانی',
         dashboard: 'داشبورد',
         settings: 'تنظیمات',
@@ -355,7 +356,8 @@ const fa = {
         modals: {
             create: {
                 title: 'ایجاد شعبه',
-                description: 'یک شعبه جدید ایجاد کنید و موقعیت آن را تعیین کنید.',
+                description:
+                    'یک شعبه جدید ایجاد کنید و موقعیت آن را تعیین کنید.',
                 submit: 'ایجاد شعبه',
             },
             edit: {
@@ -379,7 +381,8 @@ const fa = {
             },
             deleteTable: {
                 title: 'حذف میز',
-                description: 'این کار میز انتخاب‌شده را به‌صورت دایمی حذف می‌کند.',
+                description:
+                    'این کار میز انتخاب‌شده را به‌صورت دایمی حذف می‌کند.',
                 descriptionWithName:
                     'این کار میز :number:name را به‌صورت دایمی حذف می‌کند.',
             },
@@ -506,12 +509,14 @@ const fa = {
         modals: {
             create: {
                 title: 'ایجاد کاربر',
-                description: 'یک کاربر جدید اضافه کنید و نقش و موقعیت او را تعیین کنید.',
+                description:
+                    'یک کاربر جدید اضافه کنید و نقش و موقعیت او را تعیین کنید.',
                 submit: 'ایجاد کاربر',
             },
             edit: {
                 title: 'ویرایش کاربر',
-                description: 'جزئیات پروفایل و نقش‌های کاربر را به‌روزرسانی کنید.',
+                description:
+                    'جزئیات پروفایل و نقش‌های کاربر را به‌روزرسانی کنید.',
             },
             resetPassword: {
                 title: 'بازنشانی رمز عبور کاربر',
@@ -633,6 +638,77 @@ const fa = {
     settings: {
         title: 'تنظیمات',
         description: 'پروفایل و تنظیمات حساب خود را مدیریت کنید',
+        profileTitle: 'تنظیمات پروفایل',
+        profileInformationTitle: 'اطلاعات پروفایل',
+        profileInformationDescription:
+            'نام و ایمیل آدرس خود را به‌روزرسانی کنید',
+        nameLabel: 'نام',
+        fullNamePlaceholder: 'نام کامل',
+        emailAddressLabel: 'ایمیل آدرس',
+        emailAddressPlaceholder: 'ایمیل آدرس',
+        emailUnverified: 'ایمیل آدرس شما تأیید نشده است.',
+        resendVerificationEmail:
+            'برای ارسال دوباره ایمیل تأیید اینجا کلیک کنید.',
+        verificationLinkSent: 'یک لینک تأیید جدید به ایمیل آدرس شما ارسال شد.',
+        passwordTitle: 'تنظیمات رمز عبور',
+        updatePasswordTitle: 'به‌روزرسانی رمز عبور',
+        updatePasswordDescription:
+            'اطمینان حاصل کنید حساب شما از یک رمز عبور طولانی و تصادفی برای امنیت بیشتر استفاده می‌کند',
+        currentPasswordLabel: 'رمز عبور فعلی',
+        currentPasswordPlaceholder: 'رمز عبور فعلی',
+        newPasswordLabel: 'رمز عبور جدید',
+        newPasswordPlaceholder: 'رمز عبور جدید',
+        confirmPasswordLabel: 'تأیید رمز عبور',
+        confirmPasswordPlaceholder: 'تأیید رمز عبور',
+        savePassword: 'ذخیره رمز عبور',
+        twoFactorTitle: 'احراز هویت دو مرحله‌ای',
+        twoFactorDescription:
+            'تنظیمات احراز هویت دو مرحله‌ای خود را مدیریت کنید',
+        enabled: 'فعال',
+        disabled: 'غیرفعال',
+        twoFactorEnabledDescription:
+            'با فعال بودن احراز هویت دو مرحله‌ای، هنگام ورود از شما یک کُد امن و تصادفی خواسته می‌شود که می‌توانید آن را از برنامه پشتیبان TOTP در تلفن خود دریافت کنید.',
+        twoFactorDisabledDescription:
+            'وقتی احراز هویت دو مرحله‌ای را فعال کنید، هنگام ورود از شما یک کُد امن خواسته می‌شود. این کُد را می‌توان از یک برنامه پشتیبان TOTP در تلفن شما دریافت کرد.',
+        enable2fa: 'فعال‌سازی ۲FA',
+        disable2fa: 'غیرفعال‌سازی ۲FA',
+        continueSetup: 'ادامه راه‌اندازی',
+        continue: 'ادامه',
+        back: 'بازگشت',
+        confirm: 'تأیید',
+        twoFactorManualEntry: 'یا کد را به‌صورت دستی وارد کنید',
+        twoFactorEnabledTitle: 'احراز هویت دو مرحله‌ای فعال شد',
+        twoFactorEnabledModalDescription:
+            'احراز هویت دو مرحله‌ای اکنون فعال است. کد QR را اسکن کنید یا کلید تنظیم را در برنامه تأییدکننده خود وارد کنید.',
+        verifyAuthenticationCodeTitle: 'تأیید کد احراز هویت',
+        verifyAuthenticationCodeDescription:
+            'کد ۶ رقمی برنامه تأییدکننده خود را وارد کنید',
+        enableTwoFactorTitle: 'فعال‌سازی احراز هویت دو مرحله‌ای',
+        enableTwoFactorModalDescription:
+            'برای تکمیل فعال‌سازی احراز هویت دو مرحله‌ای، کد QR را اسکن کنید یا کلید تنظیم را در برنامه تأییدکننده خود وارد کنید',
+        recoveryCodesTitle: 'کدهای بازیابی ۲FA',
+        recoveryCodesDescription:
+            'کدهای بازیابی به شما کمک می‌کنند اگر دستگاه ۲FA خود را از دست دادید دوباره به حساب‌تان دسترسی پیدا کنید. آنها را در یک مدیر رمز عبور امن نگه دارید.',
+        viewRecoveryCodes: 'نمایش کدهای بازیابی',
+        hideRecoveryCodes: 'پنهان کردن کدهای بازیابی',
+        regenerateCodes: 'تولید دوباره کدها',
+        loadingRecoveryCodes: 'در حال بارگذاری کدهای بازیابی',
+        recoveryCodesWarning:
+            'هر کد بازیابی فقط یک‌بار برای دسترسی به حساب شما قابل استفاده است و پس از استفاده حذف می‌شود. اگر به کدهای بیشتری نیاز دارید، روی «تولید دوباره کدها» در بالا کلیک کنید.',
+        deleteAccountTitle: 'حذف حساب',
+        deleteAccountDescription: 'حساب و تمام منابع آن را حذف کنید',
+        deleteAccountUnavailableDescription:
+            'حساب‌های کارمندان داخلی رستورانت از تنظیمات پروفایل قابل حذف نیستند',
+        warning: 'هشدار',
+        notAvailable: 'در دسترس نیست',
+        deleteAccountWarning:
+            'لطفاً با احتیاط ادامه دهید، این کار قابل بازگشت نیست.',
+        deleteAccountAdminManaged:
+            'اگر این حساب مربوط به یکی از اعضای تیم رستورانت است، مدیر باید آن را از بخش کاربران مدیریت کند.',
+        confirmDeleteAccountTitle:
+            'آیا مطمئن هستید که می‌خواهید حساب خود را حذف کنید؟',
+        confirmDeleteAccountDescription:
+            'پس از حذف حساب شما، تمام منابع و داده‌های مربوط به آن نیز به‌طور دایمی حذف می‌شود. لطفاً برای تأیید حذف دایمی حساب، رمز عبور خود را وارد کنید.',
         appearanceTitle: 'تنظیمات ظاهر',
         appearanceDescription: 'تنظیمات ظاهر حساب خود را به‌روزرسانی کنید',
         languageTitle: 'تنظیمات زبان',
@@ -898,14 +974,14 @@ const fa = {
             description:
                 'پروفایل کارمند، نوع استخدام، سمت و جزئیات پرداخت را اضافه کنید.',
             button: 'افزودن کارمند',
-            attachmentsLimit: 'شما می‌توانید حداکثر :count پیوست بارگذاری کنید.',
+            attachmentsLimit:
+                'شما می‌توانید حداکثر :count پیوست بارگذاری کنید.',
         },
         edit: {
             title: 'ویرایش کارمند',
             description:
                 'پروفایل کارمند، نوع استخدام، سمت، جزئیات معاش و فایل‌ها را به‌روزرسانی کنید.',
-            attachmentsLimit:
-                'مجموع پیوست‌ها نمی‌تواند بیشتر از :count باشد.',
+            attachmentsLimit: 'مجموع پیوست‌ها نمی‌تواند بیشتر از :count باشد.',
             profilePictureHelp: 'عکس پروفایل کارمند را تغییر دهید.',
             currentProfile: 'پروفایل فعلی',
             newProfilePreview: 'پیش‌نمایش پروفایل جدید',
@@ -973,8 +1049,7 @@ const fa = {
         statusDialog: {
             markInactiveTitle: 'غیرفعال‌سازی کارمند',
             markActiveTitle: 'فعال‌سازی کارمند',
-            markInactiveDescription:
-                'این کارمند در سیستم غیرفعال خواهد شد.',
+            markInactiveDescription: 'این کارمند در سیستم غیرفعال خواهد شد.',
             markActiveDescription: 'این کارمند در سیستم فعال خواهد شد.',
         },
         delete: {
@@ -985,7 +1060,8 @@ const fa = {
         employmentTypes: {
             managerButton: 'نوعیت‌های استخدام',
             managerTitle: 'مدیریت نوعیت استخدام',
-            managerDescription: 'نوعیت‌های استخدام را اضافه، ویرایش و حذف کنید.',
+            managerDescription:
+                'نوعیت‌های استخدام را اضافه، ویرایش و حذف کنید.',
             typeName: 'نام نوعیت',
             typeNamePlaceholder: 'مثلاً تمام وقت',
             addButton: 'افزودن نوعیت استخدام',
@@ -1000,7 +1076,8 @@ const fa = {
         shifts: {
             managerButton: 'شیفت‌ها',
             managerTitle: 'مدیریت شیفت',
-            managerDescription: 'شیفت‌های کارمندان را اضافه، ویرایش و حذف کنید.',
+            managerDescription:
+                'شیفت‌های کارمندان را اضافه، ویرایش و حذف کنید.',
             shiftName: 'نام شیفت',
             shiftNamePlaceholder: 'مثلاً شیفت روز',
             startTime: 'زمان شروع',
@@ -1067,8 +1144,7 @@ const fa = {
                     'داده‌های پروجکشن برای نمای مالی انتخاب‌شده به‌روز هستند.',
                 lagging:
                     'برخی پروجکشن‌های شعبه از بازه مالی انتخاب‌شده عقب مانده‌اند.',
-                stale:
-                    'داده‌های پروجکشن کهنه شده‌اند. تا زمان تازه‌سازی، شاخص‌های مالی ممکن است قدیمی باشند.',
+                stale: 'داده‌های پروجکشن کهنه شده‌اند. تا زمان تازه‌سازی، شاخص‌های مالی ممکن است قدیمی باشند.',
                 unavailable:
                     'وضعیت پروجکشن فعلاً در دسترس نیست. شاخص‌های مالی به خوانش‌های تراکنشی برمی‌گردند.',
             },
@@ -1103,8 +1179,7 @@ const fa = {
             expensesSubtitle: 'مصارف عملیاتی ثبت‌شده',
             grossProfit: 'سود ناخالص',
             netProfit: 'سود خالص',
-            netProfitSubtitle:
-                'فروش منهای مصارف، قبل از تعدیلات مالی ثبت‌نشده',
+            netProfitSubtitle: 'فروش منهای مصارف، قبل از تعدیلات مالی ثبت‌نشده',
             cashPosition: 'موقعیت نقدی',
             employeeCovered: 'پرداخت‌شده توسط کارمند',
             employeeCoveredSubtitle:
@@ -1131,12 +1206,11 @@ const fa = {
             grossProfitPending:
                 'داده‌های بهای موجودی هنوز کامل نیست، بنابراین سود ناخالص تا تکمیل پوشش ارزش‌گذاری موجودی در انتظار می‌ماند.',
             cashPosition:
-                'موقعیت نقدی یک مانده جاری از فروش‌های نقدی تمام‌وقت (شامل سفارش‌های تکمیل‌شده قدیمی بدون ردیف پرداخت)، مصارف نقدی و حرکات نقدی تاییدشده است. فیلتر تاریخ این مانده را کاهش نمی‌دهد.',
+                'فروش نقدی تمام‌وقت - مصارف نقدی + حرکات نقدی تأییدشده.',
         },
         charts: {
             revenueExpenseTitle: 'درآمد، مصرف و نتیجه عملیاتی',
-            revenueExpenseDescription:
-                'روند روزانه برای بازه مالی انتخاب‌شده.',
+            revenueExpenseDescription: 'روند روزانه برای بازه مالی انتخاب‌شده.',
             coverageTitle: 'فروش در برابر سفارش‌های تحت پوشش',
             coverageDescription:
                 'فروش شناسایی‌شده را با حجم پرداخت‌شده توسط کارمند و مهمان‌نوازی رستورانت در بازه انتخابی مقایسه کنید.',
@@ -1144,8 +1218,7 @@ const fa = {
             branchRevenueDescription:
                 'درآمد سفارش‌های تکمیل‌شده را به تفکیک شعبه مقایسه کنید.',
             expenseCategoriesTitle: 'برترین کتگوری‌های مصرف',
-            expenseCategoriesDescription:
-                'تمرکز مصارف در بازه انتخاب‌شده.',
+            expenseCategoriesDescription: 'تمرکز مصارف در بازه انتخاب‌شده.',
             noExpenseCategories:
                 'برای فیلترهای انتخاب‌شده هیچ کتگوری مصرفی یافت نشد.',
         },
@@ -1163,8 +1236,7 @@ const fa = {
             approvalQueue: 'صف تاییدی',
             approvalQueueDescription:
                 'ریکارډهای ارسال‌شده که منتظر تایید مدیر هستند',
-            note:
-                'این ارقام اکنون فعالیت واقعی مالی عملیات را نشان می‌دهند. زمانی که ثبت خودکار ژورنال به‌طور کامل فعال شود، همین بخش بدون تغییر در روند کاری تیم شما از ثبت‌های عملیاتی به ژورنال‌های دقیق حسابداری منتقل خواهد شد.',
+            note: 'این ارقام اکنون فعالیت واقعی مالی عملیات را نشان می‌دهند. زمانی که ثبت خودکار ژورنال به‌طور کامل فعال شود، همین بخش بدون تغییر در روند کاری تیم شما از ثبت‌های عملیاتی به ژورنال‌های دقیق حسابداری منتقل خواهد شد.',
         },
         modules: {
             title: 'ماژول‌های مالی',
@@ -1250,8 +1322,7 @@ const fa = {
             },
             cashBank: {
                 title: 'نقد و بانک',
-                description:
-                    'کش‌دراور، سپرده‌ها، پول‌خرد و حرکات دستی',
+                description: 'کش‌دراور، سپرده‌ها، پول‌خرد و حرکات دستی',
             },
             inventoryValuation: {
                 title: 'ارزش‌گذاری موجودی',
@@ -1292,13 +1363,11 @@ const fa = {
         },
         summary: {
             inventoryValue: 'ارزش موجودی',
-            inventoryValueDescription:
-                'ارزش فعلی موجودی در شعبات انتخاب‌شده',
+            inventoryValueDescription: 'ارزش فعلی موجودی در شعبات انتخاب‌شده',
             stockOnHand: 'موجودی در دست',
             stockOnHandDescription: 'در مجموع :count قلم موجودی',
             cogs: 'بهای تمام‌شده / مصرف',
-            cogsDescription:
-                'ارزش تخمینی که در این دوره به مصرف منتقل شده است',
+            cogsDescription: 'ارزش تخمینی که در این دوره به مصرف منتقل شده است',
             adjustmentsNet: 'خالص تعدیلات',
             adjustmentsNetDescription: 'ورودی: :in | خروجی: :out',
         },
@@ -1310,8 +1379,7 @@ const fa = {
             quantity: 'مقدار',
             avgCost: 'میانگین هزینه',
             stockValue: 'ارزش موجودی',
-            empty:
-                'برای شعبه انتخاب‌شده هیچ قلم ارزش‌گذاری موجودی یافت نشد.',
+            empty: 'برای شعبه انتخاب‌شده هیچ قلم ارزش‌گذاری موجودی یافت نشد.',
         },
         costSections: {
             title: 'بخش‌های هزینه',
@@ -1324,13 +1392,11 @@ const fa = {
             wastageDescription:
                 'این مقدار تا زمانی صفر می‌ماند که تراکنش‌های ضایعات به‌صورت مشخص به جریان موجودی اضافه شوند.',
             adjustments: 'تعدیلات',
-            adjustmentsDescription:
-                'تعدیلات مثبت: :in | تعدیلات منفی: :out',
+            adjustmentsDescription: 'تعدیلات مثبت: :in | تعدیلات منفی: :out',
         },
         movements: {
             title: 'تاریخچه حرکات',
-            description:
-                'حرکات مالی موجودی و تاریخچه تاثیر هزینه‌ها.',
+            description: 'حرکات مالی موجودی و تاریخچه تاثیر هزینه‌ها.',
             showing: 'نمایش :from تا :to از :total حرکت.',
             date: 'تاریخ',
             action: 'عملیات',
@@ -1338,8 +1404,7 @@ const fa = {
             unitCost: 'هزینه فی واحد',
             waAfter: 'میانگین موزون بعدی:',
             totalCost: 'هزینه مجموعی',
-            empty:
-                'برای فیلترهای انتخاب‌شده هیچ حرکت مالی موجودی یافت نشد.',
+            empty: 'برای فیلترهای انتخاب‌شده هیچ حرکت مالی موجودی یافت نشد.',
         },
         pagination: {
             pageOf: 'صفحه :page از :total',
@@ -1432,8 +1497,7 @@ const fa = {
             title: 'حذف حساب دفترکل',
             description:
                 'این عمل حساب دفترکل انتخاب‌شده را به‌گونه دایمی حذف می‌کند.',
-            systemAccountsCannotBeDeleted:
-                'حساب‌های سیستمی قابل حذف نیستند.',
+            systemAccountsCannotBeDeleted: 'حساب‌های سیستمی قابل حذف نیستند.',
             reassignBeforeDeleting:
                 'این حساب قبلاً در ریکارډهای مالی استفاده شده است. پیش از حذف، آن ریکارډها را دوباره تعیین کنید.',
             linkedRecordsNeedReassignment:
@@ -1486,8 +1550,7 @@ const fa = {
         },
         entries: {
             title: 'ثبت‌های دفترکل',
-            description:
-                'جریان کامل مالی عملیاتی برای فیلترهای انتخاب‌شده.',
+            description: 'جریان کامل مالی عملیاتی برای فیلترهای انتخاب‌شده.',
             summary: ' نمایش :from تا :to از :total ثبت.',
             empty: 'برای فیلترهای انتخاب‌شده هیچ ثبت دفترکلی یافت نشد.',
         },
@@ -1499,8 +1562,7 @@ const fa = {
         pageTitle: 'مصارف',
         heading: {
             title: 'مصارف',
-            description:
-                'مصارف عملیاتی را ایجاد، بررسی، تایید و مدیریت کنید.',
+            description: 'مصارف عملیاتی را ایجاد، بررسی، تایید و مدیریت کنید.',
         },
         actions: {
             backToFinance: 'بازگشت به مالی',
@@ -1572,21 +1634,16 @@ const fa = {
             searchVendors: 'جستجوی فروشندگان...',
             noVendorFound: 'هیچ فروشنده‌ای یافت نشد.',
             expenseLedgerAccount: 'حساب دفترکل مصرف',
-            selectExpenseLedgerAccount:
-                'حساب دفترکل مصرف را انتخاب کنید',
-            searchExpenseLedgerAccounts:
-                'جستجوی حساب‌های دفترکل مصرف...',
+            selectExpenseLedgerAccount: 'حساب دفترکل مصرف را انتخاب کنید',
+            searchExpenseLedgerAccounts: 'جستجوی حساب‌های دفترکل مصرف...',
             paymentSourceAccount: 'حساب منبع پرداخت',
-            selectPaymentSourceAccount:
-                'حساب منبع پرداخت را انتخاب کنید',
-            searchPaymentSourceAccounts:
-                'جستجوی حساب‌های منبع پرداخت...',
+            selectPaymentSourceAccount: 'حساب منبع پرداخت را انتخاب کنید',
+            searchPaymentSourceAccounts: 'جستجوی حساب‌های منبع پرداخت...',
             noAccountFound: 'هیچ حسابی یافت نشد.',
             approvalStatus: 'وضعیت تاییدی',
             selectApprovalStatus: 'وضعیت تاییدی را انتخاب کنید',
             descriptionLabel: 'توضیح',
-            descriptionPlaceholder:
-                'یادداشت‌ها یا جزئیات رسید به‌صورت اختیاری',
+            descriptionPlaceholder: 'یادداشت‌ها یا جزئیات رسید به‌صورت اختیاری',
             receiptAttachment: 'ضمیمه بل / رسید',
             replaceCurrentReceipt: 'جایگزینی رسید فعلی',
             uploadReceipt: 'بارگذاری رسید (JPG, PNG, PDF)',
@@ -1712,8 +1769,7 @@ const fa = {
             replacementCategory: 'دسته‌بندی جایگزین',
             selectReplacementCategory: 'دسته‌بندی جایگزین را انتخاب کنید',
             searchCategories: 'جستجوی دسته‌بندی‌ها...',
-            noReplacementCategoryFound:
-                'هیچ دسته‌بندی جایگزینی یافت نشد.',
+            noReplacementCategoryFound: 'هیچ دسته‌بندی جایگزینی یافت نشد.',
             createAnotherCategory:
                 'اگر دسته‌بندی جایگزین وجود ندارد، ابتدا یکی دیگر ایجاد کنید.',
         },
@@ -2188,8 +2244,7 @@ const fa = {
             searchDirections: 'جستجوی جهت‌ها...',
             noDirectionFound: 'هیچ جهتی یافت نشد.',
             searchMovementTypes: 'نوع‌های حرکت را جستجو کنید...',
-            requiresTargetAccount:
-                'نیازمند حساب هدف (حرکت به سبک انتقال)',
+            requiresTargetAccount: 'نیازمند حساب هدف (حرکت به سبک انتقال)',
             activeInNewMovement: 'فعال و قابل استفاده در حرکت جدید',
             sortOrder: 'ترتیب نمایش',
             descriptionLabel: 'توضیحات',
@@ -2198,7 +2253,8 @@ const fa = {
         },
         delete: {
             title: 'حذف نوع حرکت',
-            description: 'این کار نوع حرکت انتخاب‌شده را برای همیشه حذف می‌کند.',
+            description:
+                'این کار نوع حرکت انتخاب‌شده را برای همیشه حذف می‌کند.',
             reassignBeforeDeleting:
                 'این نوع حرکت از قبل به سوابق حرکات نقدی اختصاص داده شده است. قبل از حذف، آن سوابق را دوباره تعیین کنید.',
             movementRecordsWillBeMoved:
@@ -2206,10 +2262,8 @@ const fa = {
             noMovementRecords:
                 'در حال حاضر هیچ سابقه حرکت نقدی به این نوع اختصاص داده نشده است.',
             replacementMovementType: 'نوع حرکت جایگزین',
-            selectReplacementMovementType:
-                'نوع حرکت جایگزین را انتخاب کنید',
-            noReplacementMovementTypeFound:
-                'هیچ نوع حرکت جایگزینی یافت نشد.',
+            selectReplacementMovementType: 'نوع حرکت جایگزین را انتخاب کنید',
+            noReplacementMovementTypeFound: 'هیچ نوع حرکت جایگزینی یافت نشد.',
             createAnotherMovementType:
                 'قبل از حذف این مورد، نوع حرکت دیگری ایجاد کنید.',
         },

@@ -15,7 +15,7 @@ class EmployeeAdvanceController extends Controller
         $validated = $request->validate([
             'branch_id' => ['nullable', 'exists:branches,id'],
             'employee_id' => ['nullable', 'exists:employees,id'],
-            'status' => ['nullable', 'in:draft,submitted,approved'],
+            'status' => ['nullable', 'in:draft,submitted,approved,paid'],
         ]);
 
         $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
@@ -54,6 +54,7 @@ class EmployeeAdvanceController extends Controller
                 'outstandingBalance' => (float) (clone $summaryQuery)->sum('remaining_balance'),
                 'submittedCount' => (int) (clone $summaryQuery)->where('status', 'submitted')->count(),
                 'approvedCount' => (int) (clone $summaryQuery)->where('status', 'approved')->count(),
+                'paidCount' => (int) (clone $summaryQuery)->where('status', 'paid')->count(),
             ],
             'advances' => $advances,
             'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
@@ -99,10 +100,10 @@ class EmployeeAdvanceController extends Controller
 
     public function update(Request $request, EmployeeAdvance $employeeAdvance)
     {
-        if (($employeeAdvance->status ?? 'draft') === 'approved') {
+        if (in_array(($employeeAdvance->status ?? 'draft'), ['approved', 'paid'], true)) {
             return redirect()
                 ->route('finance.employee-advances.index')
-                ->withErrors(['advance' => 'Approved advance cannot be edited.']);
+                ->withErrors(['advance' => 'Approved or paid advance cannot be edited.']);
         }
 
         $validated = $this->validateAdvance($request);
@@ -167,7 +168,7 @@ class EmployeeAdvanceController extends Controller
             'advance_date' => ['required', 'date_format:Y-m-d'],
             'amount' => ['required', 'numeric', 'min:1'],
             'repayment_method' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', 'in:draft,submitted,approved'],
+            'status' => ['nullable', 'in:draft,submitted,approved,paid'],
             'reason' => ['nullable', 'string', 'max:1000'],
         ]);
     }
