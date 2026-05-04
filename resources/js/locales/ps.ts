@@ -2093,6 +2093,7 @@ const ps = {
             selectDirection: 'لوری وټاکئ',
             searchDirections: 'لوري ولټوئ...',
             noDirectionFound: 'هیڅ لوری ونه موندل شو.',
+            searchMovementTypes: 'د خوځښت ډولونه ولټوئ...',
             requiresTargetAccount:
                 'د هدف حساب ته اړتیا لري (د لېږد ډول خوځښت)',
             activeInNewMovement: 'فعال او په نوي خوځښت کې د کارولو وړ',

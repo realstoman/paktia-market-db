@@ -2100,6 +2100,7 @@ const fa = {
             selectDirection: 'جهت را انتخاب کنید',
             searchDirections: 'جستجوی جهت‌ها...',
             noDirectionFound: 'هیچ جهتی یافت نشد.',
+            searchMovementTypes: 'نوع‌های حرکت را جستجو کنید...',
             requiresTargetAccount:
                 'نیازمند حساب هدف (حرکت به سبک انتقال)',
             activeInNewMovement: 'فعال و قابل استفاده در حرکت جدید',

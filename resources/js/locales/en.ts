@@ -2101,6 +2101,7 @@ const en = {
             selectDirection: 'Select direction',
             searchDirections: 'Search directions...',
             noDirectionFound: 'No direction found.',
+            searchMovementTypes: 'Search movement types...',
             requiresTargetAccount:
                 'Requires target account (transfer-style movement)',
             activeInNewMovement: 'Active and available in New Movement',
