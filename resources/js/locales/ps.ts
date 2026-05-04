@@ -6,6 +6,9 @@ const ps = {
         save: 'خوندي کول',
         cancel: 'لغوه',
         saved: 'خوندي شول',
+        open: 'پرانستل',
+        reset: 'بیا تنظیمول',
+        dashboard: 'ډشبورډ',
         settings: 'ترتیبات',
         profile: 'پروفایل',
         password: 'پسورډ',
@@ -1034,6 +1037,1185 @@ const ps = {
             shiftCreated: 'شیفټ جوړ شو.',
             shiftUpdated: 'شیفټ نوي شو.',
             shiftDeleted: 'شیفټ ړنګ شو.',
+        },
+    },
+    financeDashboard: {
+        pageTitle: 'مالي ډشبورډ',
+        eyebrow: 'مالي ډشبورډ',
+        hero: {
+            title: 'د عاید، معاش، لګښتونو، موجودۍ او نغدو لپاره مالي کنټرول مرکز.',
+            description:
+                'دا مالي ډشبورډ د حسابدارۍ پر بنسټ جوړ شوی: د حسابونو چارټ، د لیجر ثبتونه، معاش، مخکېني ورکړې، نغدي خوځښتونه او د موجودۍ ارزښت ټاکنه.',
+            ledgerAccounts: 'د لیجر حسابونه',
+            approvalQueue: 'د تایید کتار',
+        },
+        projection: {
+            title: 'د پروجکشن وضعیت',
+            transactionalFallback:
+                'دا فلټر شوی لید د تراکنشي لوستنو څخه کار اخلي، ځکه ټاکل شوي فلټرونه د اوسني پروجکشن له کچې ډېر مشخص دي.',
+            lastProjectedAt: 'وروستی پروجکشن په :date',
+            noTimestamp: 'تر اوسه د پروجکشن وخت نه دی ثبت شوی',
+            message: {
+                current:
+                    'د ټاکل شوي مالي لید لپاره د پروجکشن معلومات تازه دي.',
+                lagging:
+                    'د ځینو څانګو پروجکشنونه د ټاکل شوي مالي مودې څخه وروسته پاتې دي.',
+                stale:
+                    'د پروجکشن معلومات زاړه شوي دي. تر تازه کېدو پورې مالي شاخصونه ښايي زاړه وي.',
+                unavailable:
+                    'د پروجکشن وضعیت اوس مهال شتون نه لري. مالي شاخصونه به تراکنشي لوستنو ته وګرځي.',
+            },
+        },
+        filters: {
+            title: 'فلټرونه',
+            description:
+                'مالي ډشبورډ د مودې، څانګې، د تادیې طریقې او د لګښت کتګورۍ له مخې فلټر کړئ.',
+            branch: 'څانګه',
+            paymentMethod: 'د تادیې طریقه',
+            expenseCategory: 'د لګښت کتګوري',
+            startDate: 'د پیل نېټه',
+            endDate: 'د پای نېټه',
+            apply: 'فلټرونه عملي کړئ',
+            allBranches: 'ټولې څانګې',
+            allMethods: 'ټولې طریقې',
+            allCategories: 'ټولې کتګورۍ',
+            searchExpenseCategory: 'د لګښت کتګوري ولټوئ...',
+            noExpenseCategoryFound: 'د لګښت هېڅ کتګوري ونه موندل شوه.',
+            range: {
+                today: 'نن',
+                yesterday: 'پرون',
+                this_week: 'دا اونۍ',
+                this_month: 'دا میاشت',
+                custom: 'سفارشي',
+            },
+        },
+        summary: {
+            sales: 'پلور',
+            salesSubtitle: 'په ټاکلې موده کې د بشپړو شویو امرونو عاید',
+            expenses: 'لګښتونه',
+            expensesSubtitle: 'ثبت شوي عملیاتي لګښتونه',
+            grossProfit: 'ناخالصه ګټه',
+            netProfit: 'خالصه ګټه',
+            netProfitSubtitle:
+                'پلور منفي لګښتونه، د نه‌ثبت شویو مالي تعدیلاتو څخه مخکې',
+            cashPosition: 'نغدي موقعیت',
+            employeeCovered: 'د کارکوونکي له خوا ورکړل شوي',
+            employeeCoveredSubtitle:
+                'هغه امرونه چې کارکوونکو د مېلمنو پر ځای ورکړي دي',
+            restaurantHospitality: 'د رستورانت مېلمه پالنه',
+            restaurantHospitalitySubtitle:
+                'د مېلمه پالنې او وړیا امرونه چې له پلور څخه جلا شوي دي',
+            unpaidSalaries: 'نه‌ورکړل شوي معاشونه',
+            unpaidSalariesSubtitle:
+                'د روانې میاشتې معاش او مهالوېش شوي قراردادي مکلفیتونه',
+            inventoryValue: 'د موجودۍ ارزښت',
+            inventoryValueSubtitle:
+                'د مقدار او واحد لګښت له مخې د موجودۍ اوسنی ارزښت',
+            supplierBalances: 'د عرضه کوونکو مانده',
+            supplierBalancesSubtitle:
+                'د موجودۍ د پېرودونو له امله د پلورونکو نه‌ورکړل شوې مانده',
+            pending: 'په تمه',
+        },
+        notes: {
+            grossProfitRecognized:
+                'د ثبت شوي پلور منفي د موجودۍ د اوسط لګښت پر بنسټ محاسبه شوې ده.',
+            grossProfitPosted:
+                'ناخالصه ګټه د موجودۍ د لګښت د ثبت شويو خوځښتونو پر بنسټ محاسبه کېږي.',
+            grossProfitPending:
+                'د موجودۍ د لګښت معلومات لا بشپړ نه دي، نو ناخالصه ګټه به د موجودۍ د ارزښت ټاکنې تر بشپړېدو پورې په تمه وي.',
+            cashPosition:
+                'نغدي موقعیت د ټولو وختونو نغدي پلور (په شمول د پخوانیو بشپړو شویو امرونو چې د تادیې کرښې نه لري)، نغدي لګښتونو او تایید شویو نغدي خوځښتونو روانه مانده ده. د نېټې فلټر دا مانده نه کموي.',
+        },
+        charts: {
+            revenueExpenseTitle: 'عاید، لګښت او عملیاتي پایله',
+            revenueExpenseDescription:
+                'د ټاکل شوې مالي مودې ورځنی بهیر.',
+            coverageTitle: 'پلور د پوښل شويو امرونو پر وړاندې',
+            coverageDescription:
+                'پیژندل شوی پلور د کارکوونکو له خوا ورکړل شوي او د رستورانت د مېلمه پالنې حجم سره په ټاکلې موده کې پرتله کړئ.',
+            branchRevenueTitle: 'د څانګې له مخې عاید',
+            branchRevenueDescription:
+                'د بشپړو شویو امرونو عاید د څانګو له مخې پرتله کړئ.',
+            expenseCategoriesTitle: 'تر ټولو لوړې د لګښت کتګورۍ',
+            expenseCategoriesDescription:
+                'په ټاکلې موده کې د لګښت تمرکز.',
+            noExpenseCategories:
+                'د ټاکل شويو فلټرونو لپاره د لګښت هېڅ کتګوري ونه موندل شوه.',
+        },
+        ledger: {
+            title: 'د لیجر چمتووالی',
+            description:
+                'له ثبت شويو عملیاتو او انتظار کېدونکو مالي ریکارډونو څخه ژوندی حسابدارۍ فعالیت.',
+            accounts: 'حسابونه',
+            postedEntries: 'ثبت شوي داخلې',
+            postedEntriesDescription:
+                'تایید شوي لګښتونه، تایید شوي نغدي خوځښتونه، بشپړ شوي پلور او ثبت شوي ژورنالونه',
+            draftEntries: 'مسوده داخلې',
+            draftEntriesDescription:
+                'مسوده لګښتونه، مسوده نغدي خوځښتونه او نه‌ثبت شوې ژورنالي مسودې',
+            approvalQueue: 'د تایید کتار',
+            approvalQueueDescription:
+                'سپارل شوي ریکارډونه چې د مدیر تایید ته انتظار باسي',
+            note:
+                'دا شمېرې اوس د عملیاتو ریښتینی مالي فعالیت ښيي. کله چې د ژورنال اتومات ثبت په بشپړ ډول فعال شي، همدا برخه به ستاسو د ټیم د کاري بهیر له بدلېدو پرته له عملیاتي داخلې څخه سختو حسابدارۍ ژورنالونو ته واوړي.',
+        },
+        modules: {
+            title: 'مالي ماډیولونه',
+            description:
+                'مالي برخې له همدې ځایه پرانیزئ څو د ډشبورډ فلټرونه پر تحلیلونو متمرکز پاتې شي.',
+            names: {
+                chartOfAccounts: 'د حسابونو چارټ',
+                generalLedger: 'عمومي لیجر',
+                expenses: 'لګښتونه',
+                payroll: 'معاش',
+                employeeAdvances: 'د کارکوونکو مخکېني ورکړې',
+                cashBank: 'نغدې او بانک',
+                inventoryValuation: 'د موجودۍ ارزښت ټاکنه',
+            },
+            descriptions: {
+                chartOfAccounts:
+                    'د شتمنیو، پورونو، پانګې، عاید، د پلور لګښت او مصارفو لپاره د حسابونو جوړښت اداره کړئ.',
+                generalLedger:
+                    'هغه داخلې وڅېړئ چې له بشپړو شویو امرونو، تایید شویو لګښتونو او لاسي ژورنالونو څخه جوړې شوې دي.',
+                expenses:
+                    'د سوداګرۍ لګښتونه د تایید وضعیت او حسابدارۍ اغېز سره تعقیب کړئ.',
+                payroll:
+                    'میاشتنی معاش، قراردادي تادیات او له معاش سره تړلي کسرونه پروسس کړئ.',
+                employeeAdvances:
+                    'د کارکوونکو مخکېني ورکړې ثبت کړئ او د معاش کسرونه له تسویې سره همغږي وساتئ.',
+                cashBank:
+                    'کیش درازونه، سپارښتې، د مالک تمویل او لاسي داخلې یا وتلې وڅارئ.',
+                inventoryValuation:
+                    'د وزن‌دار اوسط لګښت، د موجودۍ ارزښت او د پلور لګښت چمتووالی تعقیب کړئ.',
+            },
+            status: {
+                ready: 'چمتو',
+                needsUpgrade: 'ارتقا ته اړتیا لري',
+                pendingMigration: 'د مایګریشن په تمه',
+            },
+            stats: {
+                accounts: 'حسابونه',
+                journals: 'ژورنالونه',
+                drafts: 'مسودې',
+                employees: 'کارکوونکي',
+                advances: 'مخکېني ورکړې',
+                draft: 'مسوده',
+                submitted: 'سپارل شوي',
+                active: 'فعال',
+                balance: 'مانده',
+                skus: 'توکي',
+                value: 'ارزښت',
+            },
+        },
+        generalLedger: {
+            title: 'د عمومي لیجر مخکتنه',
+            description:
+                'د مالي ثبتونو یوه نوې لنډه کتنه. بشپړ لیجر د مالي ماډیولونو له لارې پرانیزئ.',
+            open: 'عمومي لیجر پرانیزئ',
+            empty: 'د ټاکل شويو فلټرونو لپاره د لیجر نوې داخلې ونه موندل شوې.',
+            status: {
+                posted: 'ثبت شوی',
+                approved: 'تایید شوی',
+                submitted: 'سپارل شوی',
+            },
+            columns: {
+                date: 'نېټه',
+                reference: 'مرجع',
+                type: 'ډول',
+                branch: 'څانګه',
+                account: 'حساب',
+                description: 'تشریح',
+                debit: 'بدهکار',
+                credit: 'طلبکار',
+                status: 'حالت',
+            },
+        },
+        quickCards: {
+            chartOfAccounts: {
+                title: 'د حسابونو چارټ',
+                description:
+                    'شتمنۍ، پورونه، پانګه، عاید، د پلور لګښت او مصارف',
+            },
+            branchControl: {
+                title: 'د څانګې له مخې کنټرول',
+                description:
+                    'یوځای شوی راپور ورکول د څانګې-کچې فلټرونو او ماندو سره',
+            },
+            cashBank: {
+                title: 'نغدې او بانک',
+                description:
+                    'کیش درازونه، سپارښتې، خرد نغدې او لاسي خوځښتونه',
+            },
+            inventoryValuation: {
+                title: 'د موجودۍ ارزښت ټاکنه',
+                description:
+                    'د موجودۍ ارزښت او د پلور لګښت لپاره وزن‌دار اوسط لګښت',
+            },
+        },
+    },
+    financeInventoryValuation: {
+        pageTitle: 'د موجودۍ ارزښت ټاکنه',
+        hero: {
+            eyebrow: 'مالي ماډیول',
+            title: 'د موجودۍ ارزښت ټاکنه',
+            description:
+                'دا پاڼه ښيي چې د رستورانت موجودي څومره ارزښت لري، څومره ارزښت د پخلنځي مصرف ته تللی، کوم تعدیلات ثبت شوي او د موجودۍ لګښتونه څنګه پر مالي چارو اغېز کوي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            applyFilters: 'فلټرونه تطبیق کړئ',
+        },
+        ranges: {
+            today: 'نن',
+            yesterday: 'پرون',
+            thisWeek: 'دا اونۍ',
+            thisMonth: 'دا میاشت',
+            custom: 'سفارشي',
+        },
+        filters: {
+            title: 'فلټرونه',
+            description: 'ارزښت ټاکنه د مودې او څانګې له مخې وڅېړئ.',
+            startDate: 'د پیل نېټه',
+            endDate: 'د پای نېټه',
+            branch: 'څانګه',
+            allBranches: 'ټولې څانګې',
+            selectBranch: 'څانګه وټاکئ',
+            searchBranches: 'څانګې ولټوئ...',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+        },
+        summary: {
+            inventoryValue: 'د موجودۍ ارزښت',
+            inventoryValueDescription:
+                'په ټاکل شویو څانګو کې د موجودې ذخیرې اوسنی ارزښت',
+            stockOnHand: 'په لاس موجودي',
+            stockOnHandDescription: 'په ټولیزه توګه :count د موجودۍ توکي',
+            cogs: 'د پلور لګښت / مصرف',
+            cogsDescription:
+                'اټکلی ارزښت چې په دې موده کې مصرف ته تللی',
+            adjustmentsNet: 'خالص تعدیلات',
+            adjustmentsNetDescription: 'ورودي: :in | خروجي: :out',
+        },
+        valuation: {
+            title: 'د توکي له مخې ارزښت ټاکنه',
+            description:
+                'د هر موجودي توکي لپاره وزن‌دار یا اټکلی اوسط لګښت او د اوسنۍ ذخیرې ارزښت.',
+            branchVendor: ':branch | پلورونکی: :vendor',
+            quantity: 'مقدار',
+            avgCost: 'اوسط لګښت',
+            stockValue: 'د موجودۍ ارزښت',
+            empty:
+                'د ټاکل شوې څانګې لپاره د موجودۍ هېڅ د ارزښت ټاکنې توکي ونه موندل شول.',
+        },
+        costSections: {
+            title: 'د لګښت برخې',
+            description:
+                'په ټاکل شوې موده کې د مصرف، ضایعاتو او تعدیلاتو مالي لید.',
+            cogs: 'د پلور لګښت / مصرف',
+            cogsDescription:
+                'د `usage_cycle` او هر ډول راتلونکو `issue` یا `consumed` تراکنشونو پر بنسټ.',
+            wastage: 'ضایعات / خرابېدنه',
+            wastageDescription:
+                'دا اندازه تر هغې صفر پاتې کېږي څو چې د ضایعاتو تراکنشونه په ښکاره ډول د موجودۍ بهیر ته اضافه نه شي.',
+            adjustments: 'تعدیلات',
+            adjustmentsDescription:
+                'مثبت تعدیلات: :in | منفي تعدیلات: :out',
+        },
+        movements: {
+            title: 'د خوځښت تاریخچه',
+            description: 'د موجودۍ مالي خوځښتونه او د لګښت اغېز تاریخچه.',
+            showing: 'له :total خوځښتونو څخه :from تر :to پورې ښودل کېږي.',
+            date: 'نېټه',
+            action: 'عمل',
+            quantity: 'مقدار',
+            unitCost: 'د واحد لګښت',
+            waAfter: 'له دې وروسته اوسط:',
+            totalCost: 'ټول لګښت',
+            empty:
+                'د ټاکل شویو فلټرونو لپاره د موجودۍ هېڅ مالي خوځښت ونه موندل شو.',
+        },
+        pagination: {
+            pageOf: 'پاڼه :page له :total څخه',
+            previousPage: 'مخکنۍ پاڼه',
+            nextPage: 'راتلونکې پاڼه',
+        },
+    },
+    financeChartOfAccounts: {
+        pageTitle: 'د حسابونو چارټ',
+        heading: {
+            title: 'د حسابونو چارټ',
+            description:
+                'هغه د لیجر حسابونه جوړ او اداره کړئ چې په لګښتونو، معاش، موجودۍ او راپور ورکولو کې کارېږي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            newLedgerAccount: 'نوی لیجر حساب',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمول',
+            delete: 'ړنګول',
+        },
+        ledgerAccounts: {
+            title: 'د لیجر حسابونه',
+            description:
+                'د مالي لګښتونو د جدول په شان سیستم، له لټون، فلټرونو، پاڼه بندۍ او د قطار عملیاتو سره.',
+        },
+        filters: {
+            type: 'ډول',
+            status: 'حالت',
+            branch: 'څانګه',
+            allTypes: 'ټول ډولونه',
+            allStatuses: 'ټول حالتونه',
+            allBranches: 'ټولې څانګې',
+            searchAccountTypes: 'د حساب ډولونه ولټوئ...',
+            searchStatuses: 'حالتونه ولټوئ...',
+            searchBranches: 'څانګې ولټوئ...',
+            noTypeFound: 'هیڅ ډول ونه موندل شو.',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+        },
+        table: {
+            searchPlaceholder:
+                'حسابونه د کوډ، نوم، ډول، والد، څانګې یا حالت له مخې ولټوئ...',
+            code: 'کوډ',
+            accountName: 'د حساب نوم',
+            type: 'ډول',
+            parentAccount: 'والد حساب',
+            branch: 'څانګه',
+            currency: 'اسعار',
+            postable: 'د ثبت وړ',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د لیجر حساب جوړول',
+            editTitle: 'د لیجر حساب سمول',
+            description:
+                'د مالي عملیاتو لپاره د حساب کوډ، نوم، ډول، د والد ډلې بندي او د ثبت چلند تعریف کړئ.',
+            codeOptional: 'کوډ (اختیاري)',
+            codePlaceholder: 'د اتومات جوړېدو لپاره یې تش پرېږدئ',
+            generateCode: 'کوډ جوړ کړئ',
+            accountName: 'د حساب نوم',
+            accountNamePlaceholder: 'د انټرنېټ لګښت',
+            accountType: 'د حساب ډول',
+            selectAccountType: 'د حساب ډول وټاکئ',
+            searchAccountType: 'د حساب ډول ولټوئ...',
+            noAccountTypeFound: 'د حساب هېڅ ډول ونه موندل شو.',
+            parentAccount: 'والد حساب',
+            optionalParentAccount: 'اختیاري والد حساب',
+            searchParentAccounts: 'والد حسابونه ولټوئ...',
+            noAccountFound: 'هیڅ حساب ونه موندل شو.',
+            branch: 'څانګه',
+            currency: 'اسعار',
+            noCurrency: 'بې له اسعارو',
+            selectCurrency: 'اسعار وټاکئ',
+            searchCurrencies: 'اسعار ولټوئ...',
+            noCurrencyFound: 'هیڅ اسعار ونه موندل شول.',
+            status: 'حالت',
+            selectStatus: 'حالت وټاکئ',
+            searchStatus: 'حالت ولټوئ...',
+            postableAccount: 'د ثبت وړ حساب',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder:
+                'د مالي ټیم د کارونې لپاره اختیاري یادښتونه.',
+            updateLedgerAccount: 'د لیجر حساب نوي کول',
+            createLedgerAccount: 'د لیجر حساب جوړول',
+        },
+        delete: {
+            title: 'د لیجر حساب ړنګول',
+            description:
+                'دا به ټاکل شوی د لیجر حساب په بشپړ ډول ړنګ کړي.',
+            systemAccountsCannotBeDeleted:
+                'سیسټمي حسابونه نه شي ړنګېدای.',
+            reassignBeforeDeleting:
+                'دا حساب لا دمخه په مالي ریکارډونو کې کارول شوی دی. د ړنګولو مخکې هغه ریکارډونه بیا وټاکئ.',
+            linkedRecordsNeedReassignment:
+                ':count تړلي مالي ریکارډونه بیا ټاکنې ته اړتیا لري.',
+            noLinkedRecords:
+                'د دې حساب لپاره هیڅ تړلی مالي ریکارډ ونه موندل شو.',
+            replacementAccount: 'بدیل حساب',
+            selectReplacementAccount: 'بدیل حساب وټاکئ',
+            searchAccounts: 'حسابونه ولټوئ...',
+            noReplacementAccountFound: 'هیڅ بدیل حساب ونه موندل شو.',
+            createAnotherAccount:
+                'د دې حساب تر ړنګولو مخکې د :type بل حساب جوړ کړئ.',
+        },
+        accountTypes: {
+            asset: 'شتمني',
+            liability: 'پور',
+            equity: 'پانګه',
+            revenue: 'عاید',
+            cogs: 'د پلور لګښت',
+            expense: 'لګښت',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+    },
+    financeGeneralLedger: {
+        pageTitle: 'عمومي لیجر',
+        hero: {
+            eyebrow: 'مالي ماډیول',
+            title: 'عمومي لیجر',
+            description:
+                'دا د مالي لیجر بشپړه پاڼه ده. دا د پلور، لګښتونو، نغدي خوځښتونو او ثبت شويو ژورنال کرښو مخ پر زیاتېدونکی جریان په یوه ځای کې ښيي، څو ډشبورډ پر لنډیزي تحلیلونو متمرکز پاتې شي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+        },
+        filters: {
+            title: 'فلټرونه',
+            description:
+                'لیجر د مودې، څانګې، د تادیې طریقې او د لګښت کتګورۍ له مخې محدود کړئ.',
+            selectBranch: 'څانګه وټاکئ',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+            selectPaymentMethod: 'د تادیې طریقه وټاکئ',
+            searchPaymentMethods: 'د تادیې طریقې ولټوئ...',
+            noMethodFound: 'هیڅ طریقه ونه موندل شوه.',
+            selectCategory: 'کتګوري وټاکئ',
+            searchCategories: 'کتګورۍ ولټوئ...',
+            noCategoryFound: 'هیڅ کتګوري ونه موندل شوه.',
+        },
+        entries: {
+            title: 'د لیجر داخلې',
+            description:
+                'د ټاکل شويو فلټرونو لپاره بشپړ عملیاتي مالي جریان.',
+            summary: ' د :total داخلو څخه :from تر :to ښودل کېږي.',
+            empty: 'د ټاکل شويو فلټرونو لپاره د لیجر هېڅ داخله ونه موندل شوه.',
+        },
+        pagination: {
+            pageOf: 'پاڼه :current له :last څخه',
+        },
+    },
+    financeExpenses: {
+        pageTitle: 'لګښتونه',
+        heading: {
+            title: 'لګښتونه',
+            description:
+                'عملیاتي لګښتونه جوړ، بیاکتنه، تایید او اداره کړئ.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            expenseCategories: 'د لګښت کتګورۍ',
+            newExpense: 'نوی لګښت',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمول',
+            printVoucher: 'ووچر چاپ',
+            approve: 'تایید',
+            reject: 'رد',
+            cancelExpense: 'لګښت لغوه کړئ',
+        },
+        register: {
+            title: 'د لګښت ثبت',
+            description:
+                'د نورو مدیریتي برخو په شان د جدول سیستم، له لټون، فلټرونو او پاڼه بندۍ سره.',
+        },
+        filters: {
+            branch: 'څانګه',
+            category: 'کتګوري',
+            status: 'حالت',
+            allBranches: 'ټولې څانګې',
+            allCategories: 'ټولې کتګورۍ',
+            allStatuses: 'ټول حالتونه',
+            searchBranches: 'څانګې ولټوئ...',
+            searchCategories: 'کتګورۍ ولټوئ...',
+            searchStatuses: 'حالتونه ولټوئ...',
+            noBranchesFound: 'هیڅ څانګه ونه موندل شوه.',
+            noCategoriesFound: 'هیڅ کتګوري ونه موندل شوه.',
+            noStatusesFound: 'هیڅ حالت ونه موندل شو.',
+        },
+        table: {
+            searchPlaceholder:
+                'لګښتونه د عنوان، څانګې، کتګورۍ یا حالت له مخې ولټوئ...',
+            date: 'نېټه',
+            title: 'عنوان',
+            branch: 'څانګه',
+            category: 'کتګوري',
+            paymentMethod: 'د تادیې طریقه',
+            amount: 'مقدار',
+            attachment: 'ضمیمه',
+            view: 'وګورئ',
+            status: 'حالت',
+            actions: 'عملیات',
+            description: 'تشریح',
+        },
+        form: {
+            createTitle: 'لګښت جوړول',
+            editTitle: 'لګښت سمول',
+            description:
+                'یو مالي لګښت د څانګې، کتګورۍ، د تادیې طریقې، مقدار او اختیاري تاییدي حالت سره ثبت کړئ.',
+            branch: 'څانګه',
+            selectBranch: 'څانګه وټاکئ',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+            expenseCategory: 'د لګښت کتګوري',
+            selectExpenseCategory: 'د لګښت کتګوري وټاکئ',
+            searchExpenseCategories: 'د لګښت کتګورۍ ولټوئ...',
+            noExpenseCategoryFound: 'د لګښت هېڅ کتګوري ونه موندل شوه.',
+            title: 'عنوان',
+            titlePlaceholder: 'د انټرنېټ بل - مارچ',
+            amount: 'مقدار',
+            amountPlaceholder: '0',
+            paymentMethod: 'د تادیې طریقه',
+            selectPaymentMethod: 'د تادیې طریقه وټاکئ',
+            expenseDate: 'د لګښت نېټه',
+            vendorPayee: 'پلورونکی / اخیستونکی',
+            selectVendorPayee: 'پلورونکی یا اخیستونکی وټاکئ',
+            searchVendors: 'پلورونکي ولټوئ...',
+            noVendorFound: 'هیڅ پلورونکی ونه موندل شو.',
+            expenseLedgerAccount: 'د لګښت لیجر حساب',
+            selectExpenseLedgerAccount:
+                'د لګښت لیجر حساب وټاکئ',
+            searchExpenseLedgerAccounts:
+                'د لګښت لیجر حسابونه ولټوئ...',
+            paymentSourceAccount: 'د تادیې سرچینې حساب',
+            selectPaymentSourceAccount:
+                'د تادیې سرچینې حساب وټاکئ',
+            searchPaymentSourceAccounts:
+                'د تادیې سرچینې حسابونه ولټوئ...',
+            noAccountFound: 'هیڅ حساب ونه موندل شو.',
+            approvalStatus: 'د تایید حالت',
+            selectApprovalStatus: 'د تایید حالت وټاکئ',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder:
+                'اختیاري یادښتونه یا د رسید جزئیات',
+            receiptAttachment: 'د بل / رسید ضمیمه',
+            replaceCurrentReceipt: 'اوسنی رسید بدل کړئ',
+            uploadReceipt: 'رسید پورته کړئ (JPG, PNG, PDF)',
+            browseFiles: 'د فایلونو د لټون لپاره کلیک وکړئ (تر 5MB پورې)',
+            updateExpense: 'لګښت نوي کړئ',
+            createExpense: 'لګښت جوړ کړئ',
+        },
+        review: {
+            title: 'د لګښت سپارلو بیاکتنه',
+            description:
+                'تایید کړئ چې دا لګښت تاییدوئ یا یې د اصلاح لپاره بېرته لېږئ. تایید شوي لګښتونه وروسته لغوه کېدای شي، خو نور نه شي سمېدای.',
+        },
+        print: {
+            dialogTitle: 'د لګښت ووچر چاپ',
+            dialogDescription:
+                'دا د لګښت ووچر وڅېړئ، بیا یې د مدیر د لاسلیک لپاره چاپ کړئ.',
+            printExpenseVoucher: 'د لګښت ووچر چاپ',
+            voucherTitle: 'د لګښت ووچر',
+            voucher: 'ووچر',
+            no: 'شمېره',
+            date: 'نېټه',
+            document: 'سند',
+            created: 'جوړ شوی',
+            expenseDate: 'د لګښت نېټه',
+            notes: 'یادښتونه',
+            subtotal: 'فرعي مجموعه',
+            total: 'ټولټال',
+            preparedBy: 'ترتیب کوونکی',
+            financeManager: 'مالي مدیر',
+            approvedBy: 'تایید کوونکی',
+            footerNote:
+                'دا سند د مالي ماډیول څخه د داخلي بیاکتنې، د لاسلیک بهیر او د رستورانت د لګښت ریکارډونو لپاره تولید شوی دی.',
+            footerStamp: 'د بابا مالي کاپي',
+            mainBranch: 'اصلي څانګه',
+            addressNotSet: 'پته نه ده ټاکل شوې',
+        },
+        status: {
+            draft: 'مسوده',
+            submitted: 'سپارل شوی',
+            approved: 'تایید شوی',
+            cancelled: 'لغوه شوی',
+        },
+        attachmentTitle: 'د لګښت ضمیمه',
+        toasts: {
+            updateFailed: 'د لګښت نوي کول ناکام شول.',
+            createFailed: 'د لګښت جوړول ناکام شول.',
+        },
+    },
+    financeExpenseCategories: {
+        pageTitle: 'د لګښت کټګورۍ',
+        heading: {
+            title: 'د لګښت کټګورۍ',
+            description:
+                'د مالي عملیاتو لپاره د لګښت کټګوریو فهرست، د لیجر نښلونې، او د فعالېدو حالت مدیریت کړئ.',
+        },
+        actions: {
+            backToExpenses: 'بېرته لګښتونو ته',
+            addCategory: 'کټګوري اضافه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'د لګښت کټګوریو ثبت',
+            description:
+                'د لګښت د ثبت هماغه جدولي سیستم، له لټون، فلټرونو، مخ‌بندۍ او د کټګورۍ مدیریت له عملیاتو سره.',
+        },
+        filters: {
+            status: 'حالت',
+            ledgerMapping: 'د لیجر نښلون',
+            allStatuses: 'ټول حالتونه',
+            allMappings: 'ټولې نښلونې',
+            mapped: 'نښلول شوی',
+            unmapped: 'بې‌نښلونې',
+            searchStatuses: 'حالتونه ولټوئ...',
+            searchMappingStatus: 'د نښلونې حالت ولټوئ...',
+            noStatusesFound: 'هیڅ حالت ونه موندل شو.',
+            noMappingStatusFound: 'د نښلونې هېڅ حالت ونه موندل شو.',
+        },
+        table: {
+            searchPlaceholder:
+                'کټګورۍ د نوم، سلګ، لیجر حساب یا کارونې له مخې ولټوئ...',
+            name: 'نوم',
+            slug: 'سلګ',
+            ledgerAccount: 'د لیجر حساب',
+            notMapped: 'نه دی نښلول شوی',
+            sort: 'ترتیب',
+            status: 'حالت',
+            usedInExpenses: 'په لګښتونو کې کارول شوی',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د لګښت کټګوري جوړه کړئ',
+            editTitle: 'د لګښت کټګوري سمه کړئ',
+            description:
+                'کټګوري، اختیاري لیجر نښلون، د ښودلو ترتیب، او دا چې د نوو لګښت ثبتونو لپاره فعاله وي که نه، وټاکئ.',
+            name: 'نوم',
+            namePlaceholder: 'انټرنېټ',
+            slug: 'سلګ',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'د لیجر حساب',
+            selectLedgerAccount: 'د لیجر حساب وټاکئ',
+            searchLedgerAccounts: 'د لیجر حسابونه ولټوئ...',
+            noAccountFound: 'هیڅ حساب ونه موندل شو.',
+            sortOrder: 'د ښودلو ترتیب',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder: 'د انټرنېټ او اتصال میاشتني لګښتونه.',
+            activeLabel: 'د نوو لګښت ثبتونو لپاره فعال او د کارولو وړ وي',
+            updateCategory: 'کټګوري تازه کړئ',
+            createCategory: 'کټګوري جوړه کړئ',
+        },
+        delete: {
+            title: 'د لګښت کټګوري حذف کړئ',
+            description:
+                'دا کار به ټاکل شوې د لګښت کټګوري د تل لپاره حذف کړي.',
+            reassignBeforeDeleting:
+                'دا کټګوري لا له وړاندې لګښتونو ته ټاکل شوې ده. د حذف کولو مخکې، هغه ریکارډونه بېرته وټاکئ.',
+            expensesWillBeMoved:
+                ':count لګښتونه به بلې کټګورۍ ته ولېږدول شي.',
+            noExpensesAssigned:
+                'اوس مهال هېڅ لګښت دې کټګورۍ ته نه دی ټاکل شوی.',
+            replacementCategory: 'بدیله کټګوري',
+            selectReplacementCategory: 'بدیله کټګوري وټاکئ',
+            searchCategories: 'کټګورۍ ولټوئ...',
+            noReplacementCategoryFound:
+                'هیڅ بدیله کټګوري ونه موندل شوه.',
+            createAnotherCategory:
+                'که بدیله کټګوري نه وي، لومړی بله کټګوري جوړه کړئ.',
+        },
+    },
+    financePayroll: {
+        pageTitle: 'معاش',
+        heading: {
+            title: 'د معاش دورې',
+            description:
+                'د معاش دورې جوړې کړئ، د کارکوونکو تایید شوي مخکېني ورکړې کسر کړئ، او د تایید او تادیې بهیر په یوه منظم جریان کې تعقیب کړئ.',
+        },
+        hero: {
+            eyebrow: 'مالي ماډیول',
+            title: 'معاش',
+            description:
+                'دلته مالي برخه فعال کارکوونکي، د معاش تنظیمات او تایید شوې مخکېنۍ ورکړې په یوه منظمه د معاش دوره بدلوي چې د تایید او تادیې لپاره چمتو وي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            generatePayroll: 'معاش جوړ کړئ',
+            generateRun: 'دوره جوړه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            viewRun: 'دوره وګورئ',
+            reviewApproval: 'د تایید بیاکتنه',
+            approveReject: 'تایید / رد',
+            markPaid: 'د پرداخت شوي په توګه نښه کړئ',
+            edit: 'سمون',
+            delete: 'حذف',
+            printVoucher: 'ووچر چاپ',
+            printVouchers: 'ووچرونه چاپ',
+            printSummary: 'لنډیز چاپ',
+            viewAttachment: 'ضمیمه وګورئ',
+            newContractPlan: 'نوی قراردادي پلان',
+            newSchedule: 'نوی مهالویش',
+        },
+        summary: {
+            activeStaff: 'فعال کارکوونکي',
+            unpaidPayroll: 'ناورکړل شوی معاش',
+            advancesToDeduct: 'د کسر وړ مخکېنۍ ورکړې',
+            draftRuns: 'مسوده دورې',
+            submittedRuns: 'سپارل شوې دورې',
+            paidThisMonth: 'همدې میاشت کې ورکړل شوی',
+            employeesInFocus: 'تر تمرکز لاندې کارکوونکي',
+        },
+        filters: {
+            branch: 'څانګه',
+            employee: 'کارکوونکی',
+            status: 'حالت',
+            scheduleStatus: 'د مهالویش حالت',
+            allBranches: 'ټولې څانګې',
+            allEmployees: 'ټول کارکوونکي',
+            allStatuses: 'ټول حالتونه',
+            searchBranches: 'څانګې ولټوئ...',
+            searchEmployees: 'کارکوونکي ولټوئ...',
+            searchStatuses: 'حالتونه ولټوئ...',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+            noEmployeeFound: 'هیڅ کارکوونکی ونه موندل شو.',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+        },
+        register: {
+            title: 'د معاش ثبت',
+            description:
+                'وروستۍ د معاش دورې له کارکوونکو شمېر، ناخالص معاش، د مخکېنیو ورکړو له کسرونو او د تادیې له حالت سره.',
+            searchPlaceholder:
+                'د معاش دورې د مودې، څانګې یا حالت له مخې ولټوئ...',
+        },
+        contracts: {
+            title: 'قراردادي پلانونه',
+            description:
+                'د کارکوونکو قراردادي د تادیې پلانونه اداره کړئ او د قرارداد د لنډیز ووچرونه چاپ کړئ.',
+            searchPlaceholder:
+                'قراردادي پلانونه د کارکوونکي، مودې، د پلان ډول یا حالت له مخې ولټوئ...',
+        },
+        schedules: {
+            title: 'د قرارداد د تادیې مهالویشونه',
+            description:
+                'د قرارداد د تادیې پلانونه او د سررسید مهالویشي توکي اداره کړئ څو معاش یې د خام قرارداد مبلغ پر ځای راوباسي.',
+            searchPlaceholder:
+                'مهالویشونه د کارکوونکي، سرلیک، سررسید نېټې یا حالت له مخې ولټوئ...',
+        },
+        table: {
+            period: 'موده',
+            employees: 'کارکوونکي',
+            gross: 'ناخالص',
+            advances: 'مخکېنۍ ورکړې',
+            netPayroll: 'خالص معاش',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        contractTable: {
+            employee: 'کارکوونکی',
+            period: 'موده',
+            openEnded: 'بې پای',
+            planType: 'د پلان ډول',
+            installments: 'قسطونه',
+            customCount: 'سفارشي شمېر',
+            contractAmount: 'د قرارداد مبلغ',
+            schedules: 'مهالویشونه',
+            paidUnpaid: 'ورکړل شوی / ناورکړل شوی',
+            scheduled: 'مهالویش شوی',
+            paid: 'ورکړل شوی',
+            unpaid: 'ناورکړل شوی',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        scheduleTable: {
+            employee: 'کارکوونکی',
+            dueDate: 'د سررسید نېټه',
+            title: 'سرلیک',
+            contractSchedule: 'د قرارداد مهالویش',
+            amount: 'مبلغ',
+            attachment: 'ضمیمه',
+            view: 'لیدل',
+            noFile: 'فایل نشته',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        details: {
+            title: 'د معاش جزئیات',
+            run: 'د معاش دوره',
+            description:
+                'د کارکوونکو د معاش توکو د بیاکتنې لپاره د معاش یوه دوره وټاکئ.',
+            paymentForMonth: 'د دې میاشتې لپاره تادیه',
+            advanceDeduction: 'د مخکېنۍ ورکړې کسر',
+            netSalary: 'خالص معاش',
+            paymentDate: 'د تادیې نېټه',
+            empty: 'تر اوسه د معاش هېڅ دوره نه ده ټاکل شوې.',
+        },
+        form: {
+            generateTitle: 'د معاش دوره جوړه کړئ',
+            generateDescription:
+                'د افغاني میاشتې له مخې د معاش یوه دوره جوړه کړئ. هغه کارکوونکي چې معاش یا قراردادي مبلغ لري په اوتومات ډول به شامل شي، او تایید شوې مخکېنۍ ورکړې به د کسر په توګه وړاندیز شي.',
+            afghanPayrollMonth: 'د افغاني معاش میاشت',
+            selectAfghanMonth: 'افغاني میاشت وټاکئ',
+            searchAfghanMonths: 'افغاني میاشتې ولټوئ...',
+            noAfghanMonthFound: 'هیڅ افغاني میاشت ونه موندل شوه.',
+            gregorianStart: 'میلادي پیل',
+            gregorianEnd: 'میلادي پای',
+            defaultPaymentMethod: 'د تادیې اصلي طریقه',
+            selectPaymentMethod: 'د تادیې طریقه وټاکئ',
+            searchMethods: 'طریقې ولټوئ...',
+            noMethodFound: 'هیڅ طریقه ونه موندل شوه.',
+            notes: 'یادښتونه',
+            notesPlaceholder:
+                'د مودې، څانګې یا د تادیې لارښوونو لپاره اختیاري یادښت.',
+            selectStatus: 'حالت وټاکئ',
+            whatThisWillDo: 'دا به څه وکړي',
+            equalInstallments: 'برابر قسطونه',
+            customSchedule: 'سفارشي مهالویش',
+            manualMilestones: 'لاسي پړاوونه',
+        },
+        voucher: {
+            printTitle: 'د معاش د ووچر چاپ',
+            printDescription:
+                'دا د معاش ووچر وګورئ او بیا یې د مدیر د بیاکتنې او د معاش د تادیې د تایید لپاره چاپ کړئ.',
+            voucher: 'ووچر',
+            paymentMonth: 'د تادیې میاشت',
+            document: 'سند',
+            created: 'جوړ شوی',
+            employee: 'کارکوونکی',
+            salaryType: 'د معاش ډول',
+            paymentMethod: 'د تادیې طریقه',
+            description: 'تشریح',
+            amount: 'مبلغ',
+            contractPaymentVoucher: 'د قرارداد د تادیې ووچر',
+            salaryPaymentVoucher: 'د معاش د تادیې ووچر',
+            contractPaymentVoucherLower: 'د قرارداد د تادیې ووچر',
+            salaryPaymentVoucherLower: 'د معاش د تادیې ووچر',
+            forMonth: 'د میاشتې لپاره',
+            notesText:
+                'د مدیر تر تایید مخکې د معاش د تادیې د بیاکتنې لپاره چمتو شوی. د مخکېنیو ورکړو کسرونه له مخکې نه په خالص قابل پرداخت مبلغ کې شامل شوي دي.',
+            grossPay: 'ناخالصه تادیه',
+            advanceDeduction: 'د مخکېنۍ ورکړې کسر',
+            netPayable: 'خالص قابل پرداخت',
+            preparedBy: 'چمتو کوونکی',
+            financeManager: 'مالي مدیر',
+            approvedBy: 'تاییدوونکی',
+        },
+        notices: {
+            approvalHidden:
+                'د تایید عملیات پټ دي. یوازې هغه کاروونکي چې د معاش د تایید اجازه لري، د ووچرونو تر بیاکتنې وروسته کولای شي د معاش دورې تایید یا رد کړي.',
+            paymentHidden:
+                'د تادیې عملیات پټ دي. یوازې هغه کاروونکي چې د معاش د تادیې اجازه لري، کولای شي د معاش دورې د ورکړل شوې په توګه نښه کړي.',
+            scheduleApprovalHidden:
+                'د قراردادي مهالویش د تایید عملیات پټ دي. یوازې هغه کاروونکي چې د معاش د تایید اجازه لري، کولای شي د مهالویشي تادیو تایید یا رد وکړي.',
+        },
+        statuses: {
+            draft: 'مسوده',
+            submitted: 'سپارل شوی',
+            approved: 'تایید شوی',
+            paid: 'ورکړل شوی',
+            active: 'فعال',
+        },
+        toasts: {
+            generateRunFailed: 'د معاش د دورې جوړول ناکام شول.',
+            contractUpdated: 'قراردادي پلان په بریالیتوب سره تازه شو.',
+            contractUpdateFailed: 'د قراردادي پلان تازه کول ناکام شول.',
+            contractCreated: 'قراردادي پلان په بریالیتوب سره جوړ شو.',
+            contractCreateFailed: 'د قراردادي پلان جوړول ناکام شول.',
+            scheduleUpdated: 'د قرارداد مهالویش په بریالیتوب سره تازه شو.',
+            scheduleUpdateFailed: 'د مهالویش تازه کول ناکام شول.',
+            scheduleCreated: 'د قرارداد مهالویش په بریالیتوب سره جوړ شو.',
+            scheduleCreateFailed: 'د مهالویش جوړول ناکام شول.',
+        },
+    },
+    financeEmployeeAdvances: {
+        pageTitle: 'د کارکوونکو مخکېنۍ ورکړې',
+        heading: {
+            title: 'د کارکوونکو مخکېنۍ ورکړې',
+            description:
+                'د کارکوونکو برداشتونه، د بېرته ورکړې طریقې، پاتې ماندې او د تایید بهیر په یوه منظم ثبت کې تعقیب کړئ.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            newAdvance: 'نوې مخکېنۍ ورکړه',
+            createAdvance: 'مخکېنۍ ورکړه جوړه کړئ',
+            updateAdvance: 'مخکېنۍ ورکړه تازه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            printVoucher: 'ووچر چاپ',
+            approve: 'تایید',
+            rejectToDraft: 'مسودې ته ردول',
+        },
+        summary: {
+            totalAdvances: 'د مخکېنیو ورکړو ټولیزه اندازه',
+            outstandingBalance: 'پاتې مانده',
+            submitted: 'سپارل شوی',
+            approved: 'تایید شوی',
+        },
+        records: {
+            title: 'د مخکېنۍ ورکړې ریکارډونه',
+            description:
+                'د کارکوونکو وروستۍ مخکېنۍ ورکړې د جدول له لټون، فلټرونو، عملیاتو او په هره پاڼه کې د ۱۰ قطارونو سره.',
+            searchPlaceholder:
+                'د کارکوونکي، نېټې، دلیل، د بېرته ورکړې طریقې یا حالت له مخې ولټوئ...',
+        },
+        filters: {
+            employee: 'کارکوونکی',
+            branch: 'څانګه',
+            status: 'حالت',
+            repayment: 'بېرته ورکول',
+            allEmployees: 'ټول کارکوونکي',
+            allBranches: 'ټولې څانګې',
+            allStatuses: 'ټول حالتونه',
+            allRepaymentMethods: 'د بېرته ورکړې ټولې طریقې',
+            searchEmployees: 'کارکوونکي ولټوئ...',
+            searchBranches: 'څانګې ولټوئ...',
+            searchStatuses: 'حالتونه ولټوئ...',
+            searchRepaymentMethods: 'د بېرته ورکړې طریقې ولټوئ...',
+            noEmployeeFound: 'هیڅ کارکوونکی ونه موندل شو.',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+            noMethodFound: 'هیڅ طریقه ونه موندل شوه.',
+        },
+        table: {
+            employee: 'کارکوونکی',
+            date: 'نېټه',
+            reason: 'دلیل',
+            amount: 'مبلغ',
+            deducted: 'کسر شوی',
+            remaining: 'پاتې',
+            repaymentMethod: 'د بېرته ورکړې طریقه',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د کارکوونکي مخکېنۍ ورکړه جوړه کړئ',
+            editTitle: 'د کارکوونکي مخکېنۍ ورکړه سمه کړئ',
+            description:
+                'د کارکوونکي یو برداشت ثبت کړئ څو وروسته د معاش له کسر یا تصفیې لپاره چمتو وي.',
+            employee: 'کارکوونکی',
+            selectEmployee: 'کارکوونکی وټاکئ',
+            branch: 'څانګه',
+            selectBranch: 'څانګه وټاکئ',
+            advanceDate: 'د مخکېنۍ ورکړې نېټه',
+            amount: 'مبلغ',
+            repaymentMethod: 'د بېرته ورکړې طریقه',
+            selectRepaymentMethod: 'د بېرته ورکړې طریقه وټاکئ',
+            status: 'حالت',
+            selectStatus: 'حالت وټاکئ',
+            reason: 'دلیل',
+            reasonPlaceholder:
+                'د سفر، بیړنۍ مرستې یا بل تایید شوي دلیل لپاره مخکېنۍ ورکړه.',
+        },
+        voucher: {
+            printTitle: 'د کارکوونکي د مخکېنۍ ورکړې د ووچر چاپ',
+            printDescription:
+                'دا د مخکېنۍ ورکړې ووچر وګورئ او بیا یې د مدیر د بیاکتنې او لاسلیک لپاره چاپ کړئ.',
+        },
+        statuses: {
+            draft: 'مسوده',
+            submitted: 'سپارل شوی',
+            approved: 'تایید شوی',
+        },
+        repaymentMethods: {
+            salary_deduction: 'له معاشه کسر',
+            cash_return: 'نغدي بېرته ورکول',
+            manual_settlement: 'لاسي تصفیه',
+        },
+        toasts: {
+            saveFailed: 'د کارکوونکي د مخکېنۍ ورکړې خوندي کول ناکام شول.',
+        },
+    },
+    financeCashBank: {
+        pageTitle: 'نغدې او بانک',
+        heading: {
+            title: 'د نغدو او بانک خوځښتونه',
+            description:
+                'د مالک تمویل، له نغدو څخه بانک ته انتقال او د خرد نغدو زیاتوالی د څانګې په کچه کنټرول سره ثبت کړئ.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            movementTypes: 'د خوځښت ډولونه',
+            newMovement: 'نوی خوځښت',
+            updateMovement: 'خوځښت تازه کړئ',
+            saveMovement: 'خوځښت خوندي کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            printVoucher: 'ووچر چاپ',
+            approve: 'تایید',
+            reject: 'رد',
+        },
+        register: {
+            title: 'د نغدو او بانک ثبت',
+            description:
+                'د لاس نغدو تمویل، بانکي تمویل او خرد نغدو یا نورو څانګو ته انتقالونه اضافه کړئ.',
+            searchPlaceholder:
+                'د خوځښت ډول، څانګه، حساب، طریقه یا حالت ولټوئ...',
+        },
+        filters: {
+            status: 'حالت',
+            branch: 'څانګه',
+            allStatuses: 'ټول حالتونه',
+            allBranches: 'ټولې څانګې',
+            searchStatuses: 'حالتونه ولټوئ...',
+            searchBranches: 'څانګې ولټوئ...',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+        },
+        table: {
+            date: 'نېټه',
+            movement: 'خوځښت',
+            branch: 'څانګه',
+            account: 'حساب',
+            counterparty: 'مقابل لوری',
+            direction: 'لوری',
+            paymentMethod: 'د تادیې طریقه',
+            amount: 'مبلغ',
+            attachment: 'ضمیمه',
+            view: 'لیدل',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د نغدو خوځښت جوړول',
+            editTitle: 'د نغدو خوځښت سمول',
+            description:
+                'له دې برخې څخه د مالک تمویل او د نغدو، بانک او خرد نغدو حسابونو ترمنځ د مبلغ لېږد لپاره کار واخلئ.',
+            movementType: 'د خوځښت ډول',
+            selectMovementType: 'د خوځښت ډول وټاکئ',
+            searchMovementTypes: 'د خوځښت ډولونه ولټوئ...',
+            noMovementTypeFound: 'د خوځښت هېڅ ډول ونه موندل شو.',
+            paymentMethod: 'د تادیې طریقه',
+            selectPaymentMethod: 'د تادیې طریقه وټاکئ',
+            searchPaymentMethods: 'د تادیې طریقې ولټوئ...',
+            noPaymentMethodFound: 'د تادیې هېڅ طریقه ونه موندل شوه.',
+            sourceBranch: 'د مبدأ څانګه',
+            selectSourceBranch: 'د مبدأ څانګه وټاکئ',
+            destinationBranch: 'د مقصد څانګه',
+            selectDestinationBranch: 'د مقصد څانګه وټاکئ',
+            sourceAccount: 'د مبدأ حساب',
+            selectSourceAccount: 'د مبدأ حساب وټاکئ',
+            searchSourceAccounts: 'د مبدأ حسابونه ولټوئ...',
+            targetAccount: 'د مقصد حساب',
+            selectTargetAccount: 'د مقصد حساب وټاکئ',
+            searchTargetAccounts: 'د مقصد حسابونه ولټوئ...',
+            noAccountFound: 'هیڅ حساب ونه موندل شو.',
+            direction: 'لوری',
+            selectDirection: 'لوری وټاکئ',
+            searchDirections: 'لوري ولټوئ...',
+            noDirectionFound: 'هیڅ لوری ونه موندل شو.',
+            amount: 'مبلغ',
+            movementDate: 'د خوځښت نېټه',
+            approvalStatus: 'د تایید حالت',
+            selectApprovalStatus: 'د تایید حالت وټاکئ',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder:
+                'مالک د کار د پیل نغدې تمویل کړې او بیا یې یوه برخه خرد نغدو ته ولېږدوله.',
+            receiptAttachment: 'د بل / رسید ضمیمه',
+            replaceCurrentReceipt: 'اوسنی رسید بدل کړئ',
+            uploadReceipt: 'رسید پورته کړئ (JPG, PNG, PDF)',
+            browseFiles: 'د فایلونو د ټاکلو لپاره کلیک وکړئ (اعظمي ۵MB)',
+        },
+        approval: {
+            title: 'د نغدو خوځښت بیاکتنه',
+            description:
+                'تایید کړئ چې غواړئ دا خوځښت تایید کړئ او که د سمون لپاره یې بېرته مسودې ته واستوئ.',
+        },
+        voucher: {
+            printTitle: 'د نغدو / بانک د ووچر چاپ',
+            printDescription:
+                'دا ووچر وګورئ او بیا یې د مدیر د لاسلیک لپاره چاپ کړئ.',
+        },
+        statuses: {
+            draft: 'مسوده',
+            submitted: 'سپارل شوی',
+            approved: 'تایید شوی',
+        },
+        directions: {
+            in: 'ورودي',
+            out: 'خروجي',
+        },
+        attachmentTitle: 'د نغدو / بانک ضمیمه',
+        toasts: {
+            saveFailed: 'د نغدو خوځښت خوندي کول ناکام شول.',
+        },
+    },
+    financeCashMovementTypes: {
+        metaTitle: 'د نغدو خوځښت ډولونه',
+        pageTitle: 'د خوځښت ډولونه',
+        heading: {
+            title: 'د خوځښت ډولونه',
+            description:
+                'هغه د خوځښت ډولونه اداره کړئ چې د نغدو او بانک په برخه کې په نوي خوځښت کې کارول کېږي.',
+        },
+        actions: {
+            backToCashBank: 'نغدو او بانک ته بېرته',
+            newMovementType: 'د خوځښت نوی ډول',
+            createType: 'ډول جوړ کړئ',
+            updateType: 'ډول تازه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'د نغدو خوځښت ډولونه',
+            description:
+                'د موجودو خوځښت ډولونو، د هغوی د اصلي لوري او د لېږد د چلند لپاره جدولي مدیریت.',
+            searchPlaceholder:
+                'د خوځښت ډول، سلګ، لوری یا تشریح ولټوئ...',
+        },
+        filters: {
+            status: 'حالت',
+            allStatuses: 'ټول حالتونه',
+            searchStatuses: 'حالتونه ولټوئ...',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+        },
+        table: {
+            name: 'نوم',
+            slug: 'سلګ',
+            defaultDirection: 'اصلي لوری',
+            needsTarget: 'هدف ته اړتیا لري',
+            sort: 'ترتیب',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د خوځښت ډول جوړول',
+            editTitle: 'د خوځښت ډول سمول',
+            description:
+                'نوم، سلګ، د لوري چلند، او دا چې دا ډول د هدف حساب ته اړتیا لري که نه، تنظیم کړئ.',
+            name: 'نوم',
+            namePlaceholder: 'د مالک اېښودنه',
+            slug: 'سلګ',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'اصلي لوری',
+            selectDirection: 'لوری وټاکئ',
+            searchDirections: 'لوري ولټوئ...',
+            noDirectionFound: 'هیڅ لوری ونه موندل شو.',
+            searchMovementTypes: 'د خوځښت ډولونه ولټوئ...',
+            requiresTargetAccount:
+                'د هدف حساب ته اړتیا لري (د لېږد ډول خوځښت)',
+            activeInNewMovement: 'فعال او په نوي خوځښت کې د کارولو وړ',
+            sortOrder: 'د ترتیب شمېره',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder:
+                'د مالک تمویل، لېږد یا تعدیلي خوځښتونو لپاره وکاروئ.',
+        },
+        delete: {
+            title: 'د خوځښت ډول حذف کړئ',
+            description: 'دا کار به ټاکل شوی د خوځښت ډول د تل لپاره حذف کړي.',
+            reassignBeforeDeleting:
+                'دا د خوځښت ډول له مخکې نه د نغدو خوځښت ریکارډونو ته ټاکل شوی دی. د حذف مخکې، هغه ریکارډونه بیا وټاکئ.',
+            movementRecordsWillBeMoved:
+                ':count د خوځښت ریکارډونه به بل ډول ته ولېږدول شي.',
+            noMovementRecords:
+                'اوس مهال هېڅ د نغدو خوځښت ریکارډ دې ډول ته نه دی ټاکل شوی.',
+            replacementMovementType: 'بدیل د خوځښت ډول',
+            selectReplacementMovementType: 'بدیل د خوځښت ډول وټاکئ',
+            noReplacementMovementTypeFound:
+                'هیڅ بدیل د خوځښت ډول ونه موندل شو.',
+            createAnotherMovementType:
+                'له دې د حذفولو مخکې بل د خوځښت ډول جوړ کړئ.',
+        },
+        directions: {
+            flexible: 'انعطاف منونکی',
+            in: 'ورودي',
+            out: 'خروجي',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+        common: {
+            yes: 'هو',
+            no: 'نه',
         },
     },
     orders: {

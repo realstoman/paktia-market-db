@@ -16,13 +16,11 @@ class TopOrderedDishService
         $topRows = OrderItem::query()
             ->selectRaw('order_items.product_id, SUM(order_items.quantity) as total_quantity')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->join('products', 'products.id', '=', 'order_items.product_id')
             ->whereNotNull('order_items.product_id')
             ->where('orders.status', '!=', 'cancelled')
-            ->where('products.type', 'food')
             ->groupBy('order_items.product_id')
             ->orderByDesc('total_quantity')
-            ->limit($limit)
+            ->limit(max($limit * 10, 50))
             ->get();
 
         if ($topRows->isEmpty()) {
@@ -40,7 +38,7 @@ class TopOrderedDishService
                 /** @var Product|null $product */
                 $product = $products->get($row->product_id);
 
-                if (! $product) {
+                if (! $product || ! $this->isDishProduct($product)) {
                     return null;
                 }
 
@@ -61,6 +59,44 @@ class TopOrderedDishService
                 ];
             })
             ->filter()
+            ->take($limit)
             ->values();
+    }
+
+    private function isDishProduct(Product $product): bool
+    {
+        $categoryName = Str::lower(trim((string) ($product->category?->name ?? '')));
+        $typeName = Str::lower(trim((string) ($product->type ?? '')));
+
+        $nonDishTokens = [
+            'drink',
+            'drinks',
+            'beverage',
+            'beverages',
+            'juice',
+            'juices',
+            'tea',
+            'coffee',
+            'water',
+            'cola',
+            'pepsi',
+            'sprite',
+            'soda',
+            'soft drink',
+            'soft drinks',
+            'dessert',
+            'desserts',
+            'ice cream',
+            'milkshake',
+            'smoothie',
+        ];
+
+        foreach ($nonDishTokens as $token) {
+            if (Str::contains($categoryName, $token) || Str::contains($typeName, $token)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

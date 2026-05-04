@@ -3,6 +3,7 @@
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -95,6 +96,7 @@ export function EmployeeAdvanceClient({
     printAdvanceId = null,
     summary,
 }: EmployeeAdvanceClientProps) {
+    const { t } = useLocalization();
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingAdvance, setEditingAdvance] =
         React.useState<EmployeeAdvance | null>(null);
@@ -171,12 +173,15 @@ export function EmployeeAdvanceClient({
             reason: form.reason || null,
         };
 
-        const onError = (errors: Record<string, string>) => {
+    const onError = (errors: Record<string, string>) => {
             const firstError = Object.values(errors)[0];
             toast.error(
                 typeof firstError === 'string' && firstError
                     ? firstError
-                    : 'Failed to save employee advance.',
+                    : t(
+                          'financeEmployeeAdvances.toasts.saveFailed',
+                          'Failed to save employee advance.',
+                      ),
             );
         };
 
@@ -198,7 +203,7 @@ export function EmployeeAdvanceClient({
             onSuccess: () => setIsOpen(false),
             onError,
         });
-    }, [editingAdvance, form]);
+    }, [editingAdvance, form, t]);
 
     React.useEffect(() => {
         if (!printAdvanceId) {
@@ -273,12 +278,13 @@ export function EmployeeAdvanceClient({
     const columns = React.useMemo(
         () =>
             buildColumns({
+                t,
                 onEdit: openEdit,
                 onApprove: approve,
                 onReject: reject,
                 onPrint: openPrint,
             }),
-        [approve, openEdit, openPrint, reject],
+        [approve, openEdit, openPrint, reject, t],
     );
 
     const toolbar = (
@@ -287,48 +293,109 @@ export function EmployeeAdvanceClient({
                 value={employeeFilter}
                 options={[
                     { value: 'all', label: 'All Employees' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeEmployeeAdvances.filters.allEmployees',
+                            'All Employees',
+                        ),
+                    },
                     ...employeeOptions,
                 ]}
                 onValueChange={setEmployeeFilter}
-                placeholder="Employee"
-                searchPlaceholder="Search employees..."
-                emptyText="No employee found."
+                placeholder={t(
+                    'financeEmployeeAdvances.filters.employee',
+                    'Employee',
+                )}
+                searchPlaceholder={t(
+                    'financeEmployeeAdvances.filters.searchEmployees',
+                    'Search employees...',
+                )}
+                emptyText={t(
+                    'financeEmployeeAdvances.filters.noEmployeeFound',
+                    'No employee found.',
+                )}
                 className="w-[220px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={branchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeEmployeeAdvances.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branch found."
+                placeholder={t(
+                    'financeEmployeeAdvances.filters.branch',
+                    'Branch',
+                )}
+                searchPlaceholder={t(
+                    'financeEmployeeAdvances.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financeEmployeeAdvances.filters.noBranchFound',
+                    'No branch found.',
+                )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeEmployeeAdvances.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
                     ...STATUS_OPTIONS,
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t(
+                    'financeEmployeeAdvances.filters.status',
+                    'Status',
+                )}
+                searchPlaceholder={t(
+                    'financeEmployeeAdvances.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeEmployeeAdvances.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={repaymentFilter}
                 options={[
-                    { value: 'all', label: 'All Repayment Methods' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeEmployeeAdvances.filters.allRepaymentMethods',
+                            'All Repayment Methods',
+                        ),
+                    },
                     ...REPAYMENT_METHODS,
                 ]}
                 onValueChange={setRepaymentFilter}
-                placeholder="Repayment"
-                searchPlaceholder="Search repayment methods..."
-                emptyText="No method found."
+                placeholder={t(
+                    'financeEmployeeAdvances.filters.repayment',
+                    'Repayment',
+                )}
+                searchPlaceholder={t(
+                    'financeEmployeeAdvances.filters.searchRepaymentMethods',
+                    'Search repayment methods...',
+                )}
+                emptyText={t(
+                    'financeEmployeeAdvances.filters.noMethodFound',
+                    'No method found.',
+                )}
                 className="w-[220px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -338,8 +405,11 @@ export function EmployeeAdvanceClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Employee Advances: ${formatNumber(filteredAdvances.length)}`}
-                    description="Track employee takeouts, repayment methods, outstanding balances, and approval flow in one structured register."
+                    title={`${t('financeEmployeeAdvances.heading.title', 'Employee Advances')}: ${formatNumber(filteredAdvances.length)}`}
+                    description={t(
+                        'financeEmployeeAdvances.heading.description',
+                        'Track employee takeouts, repayment methods, outstanding balances, and approval flow in one structured register.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -347,12 +417,18 @@ export function EmployeeAdvanceClient({
                             href="/finance"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Finance
+                            {t(
+                                'financeEmployeeAdvances.actions.backToFinance',
+                                'Back to Finance',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        New Advance
+                        {t(
+                            'financeEmployeeAdvances.actions.newAdvance',
+                            'New Advance',
+                        )}
                     </Button>
                 </div>
             </div>
@@ -362,13 +438,23 @@ export function EmployeeAdvanceClient({
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
-                        <CardDescription>Total Advances</CardDescription>
+                        <CardDescription>
+                            {t(
+                                'financeEmployeeAdvances.summary.totalAdvances',
+                                'Total Advances',
+                            )}
+                        </CardDescription>
                         <CardTitle>{formatAfn(summary.totalAmount)}</CardTitle>
                     </CardHeader>
                 </Card>
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
-                        <CardDescription>Outstanding Balance</CardDescription>
+                        <CardDescription>
+                            {t(
+                                'financeEmployeeAdvances.summary.outstandingBalance',
+                                'Outstanding Balance',
+                            )}
+                        </CardDescription>
                         <CardTitle>
                             {formatAfn(summary.outstandingBalance)}
                         </CardTitle>
@@ -376,7 +462,12 @@ export function EmployeeAdvanceClient({
                 </Card>
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
-                        <CardDescription>Submitted</CardDescription>
+                        <CardDescription>
+                            {t(
+                                'financeEmployeeAdvances.summary.submitted',
+                                'Submitted',
+                            )}
+                        </CardDescription>
                         <CardTitle>
                             {formatNumber(summary.submittedCount)}
                         </CardTitle>
@@ -384,7 +475,12 @@ export function EmployeeAdvanceClient({
                 </Card>
                 <Card className="border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader className="gap-2">
-                        <CardDescription>Approved</CardDescription>
+                        <CardDescription>
+                            {t(
+                                'financeEmployeeAdvances.summary.approved',
+                                'Approved',
+                            )}
+                        </CardDescription>
                         <CardTitle>
                             {formatNumber(summary.approvedCount)}
                         </CardTitle>
@@ -396,11 +492,16 @@ export function EmployeeAdvanceClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <HandCoins className="h-5 w-5" />
-                        Advance Records
+                        {t(
+                            'financeEmployeeAdvances.records.title',
+                            'Advance Records',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Recent employee advances with table search, filters,
-                        actions, and 10 rows per page.
+                        {t(
+                            'financeEmployeeAdvances.records.description',
+                            'Recent employee advances with table search, filters, actions, and 10 rows per page.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -416,7 +517,10 @@ export function EmployeeAdvanceClient({
                         'repayment_method',
                         'status',
                     ]}
-                    searchPlaceholder="Search by employee, date, reason, repayment method, or status..."
+                    searchPlaceholder={t(
+                        'financeEmployeeAdvances.records.searchPlaceholder',
+                        'Search by employee, date, reason, repayment method, or status...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -426,18 +530,31 @@ export function EmployeeAdvanceClient({
                     <DialogHeader>
                         <DialogTitle>
                             {editingAdvance
-                                ? 'Edit Employee Advance'
-                                : 'Create Employee Advance'}
+                                ? t(
+                                      'financeEmployeeAdvances.form.editTitle',
+                                      'Edit Employee Advance',
+                                  )
+                                : t(
+                                      'financeEmployeeAdvances.form.createTitle',
+                                      'Create Employee Advance',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Record an employee takeout and keep it ready for
-                            salary deduction or settlement later.
+                            {t(
+                                'financeEmployeeAdvances.form.description',
+                                'Record an employee takeout and keep it ready for salary deduction or settlement later.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Employee</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.employee',
+                                    'Employee',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.employee_id}
                                 options={employeeOptions}
@@ -457,14 +574,28 @@ export function EmployeeAdvanceClient({
                                             selectedBranchId,
                                     }));
                                 }}
-                                placeholder="Select employee"
-                                searchPlaceholder="Search employees..."
-                                emptyText="No employee found."
+                                placeholder={t(
+                                    'financeEmployeeAdvances.form.selectEmployee',
+                                    'Select employee',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeEmployeeAdvances.filters.searchEmployees',
+                                    'Search employees...',
+                                )}
+                                emptyText={t(
+                                    'financeEmployeeAdvances.filters.noEmployeeFound',
+                                    'No employee found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.branch',
+                                    'Branch',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.branch_id}
                                 options={branchOptions}
@@ -474,14 +605,28 @@ export function EmployeeAdvanceClient({
                                         branch_id: value,
                                     }))
                                 }
-                                placeholder="Select branch"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder={t(
+                                    'financeEmployeeAdvances.form.selectBranch',
+                                    'Select branch',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeEmployeeAdvances.filters.searchBranches',
+                                    'Search branches...',
+                                )}
+                                emptyText={t(
+                                    'financeEmployeeAdvances.filters.noBranchFound',
+                                    'No branch found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Advance Date</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.advanceDate',
+                                    'Advance Date',
+                                )}
+                            </Label>
                             <Input
                                 type="date"
                                 value={form.advance_date}
@@ -495,7 +640,12 @@ export function EmployeeAdvanceClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Amount</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.amount',
+                                    'Amount',
+                                )}
+                            </Label>
                             <NumericInput
                                 value={form.amount}
                                 onValueChange={(value) =>
@@ -509,41 +659,86 @@ export function EmployeeAdvanceClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Repayment Method</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.repaymentMethod',
+                                    'Repayment Method',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.repayment_method}
-                                options={REPAYMENT_METHODS}
+                                options={REPAYMENT_METHODS.map((option) => ({
+                                    value: option.value,
+                                    label: t(
+                                        `financeEmployeeAdvances.repaymentMethods.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         repayment_method: value,
                                     }))
                                 }
-                                placeholder="Select repayment method"
-                                searchPlaceholder="Search repayment methods..."
-                                emptyText="No method found."
+                                placeholder={t(
+                                    'financeEmployeeAdvances.form.selectRepaymentMethod',
+                                    'Select repayment method',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeEmployeeAdvances.filters.searchRepaymentMethods',
+                                    'Search repayment methods...',
+                                )}
+                                emptyText={t(
+                                    'financeEmployeeAdvances.filters.noMethodFound',
+                                    'No method found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Status</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.status',
+                                    'Status',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.status}
-                                options={STATUS_OPTIONS}
+                                options={STATUS_OPTIONS.map((option) => ({
+                                    value: option.value,
+                                    label: t(
+                                        `financeEmployeeAdvances.statuses.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         status: value,
                                     }))
                                 }
-                                placeholder="Select status"
-                                searchPlaceholder="Search statuses..."
-                                emptyText="No status found."
+                                placeholder={t(
+                                    'financeEmployeeAdvances.form.selectStatus',
+                                    'Select status',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeEmployeeAdvances.filters.searchStatuses',
+                                    'Search statuses...',
+                                )}
+                                emptyText={t(
+                                    'financeEmployeeAdvances.filters.noStatusFound',
+                                    'No status found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Reason</Label>
+                            <Label>
+                                {t(
+                                    'financeEmployeeAdvances.form.reason',
+                                    'Reason',
+                                )}
+                            </Label>
                             <Textarea
                                 value={form.reason}
                                 onChange={(event) =>
@@ -553,7 +748,10 @@ export function EmployeeAdvanceClient({
                                     }))
                                 }
                                 rows={4}
-                                placeholder="Advance for travel, emergency support, or another approved reason."
+                                placeholder={t(
+                                    'financeEmployeeAdvances.form.reasonPlaceholder',
+                                    'Advance for travel, emergency support, or another approved reason.',
+                                )}
                             />
                         </div>
                     </div>
@@ -563,12 +761,18 @@ export function EmployeeAdvanceClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
                             {editingAdvance
-                                ? 'Update Advance'
-                                : 'Create Advance'}
+                                ? t(
+                                      'financeEmployeeAdvances.actions.updateAdvance',
+                                      'Update Advance',
+                                  )
+                                : t(
+                                      'financeEmployeeAdvances.actions.createAdvance',
+                                      'Create Advance',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>

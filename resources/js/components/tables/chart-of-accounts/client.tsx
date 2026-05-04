@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocalization } from '@/lib/localization';
 import { Branch, Currency, FinanceAccount, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -81,6 +82,7 @@ export function ChartOfAccountsClient({
     currencies,
 }: ChartOfAccountsClientProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingAccount, setEditingAccount] =
@@ -118,13 +120,19 @@ export function ChartOfAccountsClient({
 
     const currencyOptions = React.useMemo(
         () => [
-            { value: '', label: 'No Currency' },
+            {
+                value: '',
+                label: t(
+                    'financeChartOfAccounts.form.noCurrency',
+                    'No Currency',
+                ),
+            },
             ...currencies.map((currency) => ({
                 value: currency.code,
                 label: `${currency.code} - ${currency.name} (${currency.symbol})`,
             })),
         ],
-        [currencies],
+        [currencies, t],
     );
 
     const defaultCurrencyCode = React.useMemo(
@@ -302,8 +310,9 @@ export function ChartOfAccountsClient({
                 onEdit: openEdit,
                 onDelete: remove,
                 canDelete,
+                t,
             }),
-        [canDelete, openEdit, remove],
+        [canDelete, openEdit, remove, t],
     );
 
     const toolbar = (
@@ -311,37 +320,79 @@ export function ChartOfAccountsClient({
             <SearchableDropdown
                 value={typeFilter}
                 options={[
-                    { value: 'all', label: 'All Types' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeChartOfAccounts.filters.allTypes',
+                            'All Types',
+                        ),
+                    },
                     ...ACCOUNT_TYPE_OPTIONS,
                 ]}
                 onValueChange={setTypeFilter}
-                placeholder="Type"
-                searchPlaceholder="Search account types..."
-                emptyText="No type found."
+                placeholder={t('financeChartOfAccounts.filters.type', 'Type')}
+                searchPlaceholder={t(
+                    'financeChartOfAccounts.filters.searchAccountTypes',
+                    'Search account types...',
+                )}
+                emptyText={t(
+                    'financeChartOfAccounts.filters.noTypeFound',
+                    'No type found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeChartOfAccounts.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
                     ...STATUS_OPTIONS,
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t(
+                    'financeChartOfAccounts.filters.status',
+                    'Status',
+                )}
+                searchPlaceholder={t(
+                    'financeChartOfAccounts.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeChartOfAccounts.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={branchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeChartOfAccounts.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branch found."
+                placeholder={t(
+                    'financeChartOfAccounts.filters.branch',
+                    'Branch',
+                )}
+                searchPlaceholder={t(
+                    'financeChartOfAccounts.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financeChartOfAccounts.filters.noBranchFound',
+                    'No branch found.',
+                )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -351,8 +402,14 @@ export function ChartOfAccountsClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Chart of Accounts: ${formatNumber(filteredAccounts.length)}`}
-                    description="Create and manage ledger accounts used across expenses, payroll, inventory, and reporting."
+                    title={`${t(
+                        'financeChartOfAccounts.heading.title',
+                        'Chart of Accounts',
+                    )}: ${formatNumber(filteredAccounts.length)}`}
+                    description={t(
+                        'financeChartOfAccounts.heading.description',
+                        'Create and manage ledger accounts used across expenses, payroll, inventory, and reporting.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -360,12 +417,18 @@ export function ChartOfAccountsClient({
                             href="/finance"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Finance
+                            {t(
+                                'financeChartOfAccounts.actions.backToFinance',
+                                'Back to Finance',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        New Ledger Account
+                        {t(
+                            'financeChartOfAccounts.actions.newLedgerAccount',
+                            'New Ledger Account',
+                        )}
                     </Button>
                 </div>
             </div>
@@ -376,11 +439,16 @@ export function ChartOfAccountsClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <BookOpenText className="h-5 w-5" />
-                        Ledger Accounts
+                        {t(
+                            'financeChartOfAccounts.ledgerAccounts.title',
+                            'Ledger Accounts',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Same table system as finance expenses, with search,
-                        filters, pagination, and row actions.
+                        {t(
+                            'financeChartOfAccounts.ledgerAccounts.description',
+                            'Same table system as finance expenses, with search, filters, pagination, and row actions.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -397,7 +465,10 @@ export function ChartOfAccountsClient({
                         'branch.name',
                         'status',
                     ]}
-                    searchPlaceholder="Search accounts by code, name, type, parent, branch, or status..."
+                    searchPlaceholder={t(
+                        'financeChartOfAccounts.table.searchPlaceholder',
+                        'Search accounts by code, name, type, parent, branch, or status...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -407,19 +478,30 @@ export function ChartOfAccountsClient({
                     <DialogHeader>
                         <DialogTitle>
                             {editingAccount
-                                ? 'Edit Ledger Account'
-                                : 'Create Ledger Account'}
+                                ? t(
+                                      'financeChartOfAccounts.form.editTitle',
+                                      'Edit Ledger Account',
+                                  )
+                                : t(
+                                      'financeChartOfAccounts.form.createTitle',
+                                      'Create Ledger Account',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Define account code, name, type, parent grouping,
-                            and posting behavior for finance operations.
+                            {t(
+                                'financeChartOfAccounts.form.description',
+                                'Define account code, name, type, parent grouping, and posting behavior for finance operations.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor="account-code">
-                                Code (optional)
+                                {t(
+                                    'financeChartOfAccounts.form.codeOptional',
+                                    'Code (optional)',
+                                )}
                             </Label>
                             <div className="flex gap-2">
                                 <Input
@@ -431,7 +513,10 @@ export function ChartOfAccountsClient({
                                             code: event.target.value,
                                         }))
                                     }
-                                    placeholder="Leave empty to auto-generate"
+                                    placeholder={t(
+                                        'financeChartOfAccounts.form.codePlaceholder',
+                                        'Leave empty to auto-generate',
+                                    )}
                                 />
                                 <Button
                                     type="button"
@@ -445,13 +530,21 @@ export function ChartOfAccountsClient({
                                         }))
                                     }
                                 >
-                                    Generate Code
+                                    {t(
+                                        'financeChartOfAccounts.form.generateCode',
+                                        'Generate Code',
+                                    )}
                                 </Button>
                             </div>
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="account-name">Account Name</Label>
+                            <Label htmlFor="account-name">
+                                {t(
+                                    'financeChartOfAccounts.form.accountName',
+                                    'Account Name',
+                                )}
+                            </Label>
                             <Input
                                 id="account-name"
                                 value={form.name}
@@ -461,29 +554,57 @@ export function ChartOfAccountsClient({
                                         name: event.target.value,
                                     }))
                                 }
-                                placeholder="Internet Expense"
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.accountNamePlaceholder',
+                                    'Internet Expense',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Account Type</Label>
+                            <Label>
+                                {t(
+                                    'financeChartOfAccounts.form.accountType',
+                                    'Account Type',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.type}
-                                options={ACCOUNT_TYPE_OPTIONS}
+                                options={ACCOUNT_TYPE_OPTIONS.map((option) => ({
+                                    ...option,
+                                    label: t(
+                                        `financeChartOfAccounts.accountTypes.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         type: value,
                                     }))
                                 }
-                                placeholder="Select account type"
-                                searchPlaceholder="Search account type..."
-                                emptyText="No account type found."
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.selectAccountType',
+                                    'Select account type',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeChartOfAccounts.form.searchAccountType',
+                                    'Search account type...',
+                                )}
+                                emptyText={t(
+                                    'financeChartOfAccounts.form.noAccountTypeFound',
+                                    'No account type found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Parent Account</Label>
+                            <Label>
+                                {t(
+                                    'financeChartOfAccounts.form.parentAccount',
+                                    'Parent Account',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.parent_id}
                                 options={parentOptions}
@@ -493,14 +614,28 @@ export function ChartOfAccountsClient({
                                         parent_id: value,
                                     }))
                                 }
-                                placeholder="Optional parent account"
-                                searchPlaceholder="Search parent accounts..."
-                                emptyText="No account found."
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.optionalParentAccount',
+                                    'Optional parent account',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeChartOfAccounts.form.searchParentAccounts',
+                                    'Search parent accounts...',
+                                )}
+                                emptyText={t(
+                                    'financeChartOfAccounts.form.noAccountFound',
+                                    'No account found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>
+                                {t(
+                                    'financeChartOfAccounts.form.branch',
+                                    'Branch',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.branch_id}
                                 options={branchOptions}
@@ -510,14 +645,28 @@ export function ChartOfAccountsClient({
                                         branch_id: value,
                                     }))
                                 }
-                                placeholder="All branches"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder={t(
+                                    'financeChartOfAccounts.filters.allBranches',
+                                    'All branches',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeChartOfAccounts.filters.searchBranches',
+                                    'Search branches...',
+                                )}
+                                emptyText={t(
+                                    'financeChartOfAccounts.filters.noBranchFound',
+                                    'No branch found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Currency</Label>
+                            <Label>
+                                {t(
+                                    'financeChartOfAccounts.form.currency',
+                                    'Currency',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.currency_code}
                                 options={currencyOptions}
@@ -527,26 +676,55 @@ export function ChartOfAccountsClient({
                                         currency_code: value,
                                     }))
                                 }
-                                placeholder="Select currency"
-                                searchPlaceholder="Search currencies..."
-                                emptyText="No currency found."
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.selectCurrency',
+                                    'Select currency',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeChartOfAccounts.form.searchCurrencies',
+                                    'Search currencies...',
+                                )}
+                                emptyText={t(
+                                    'financeChartOfAccounts.form.noCurrencyFound',
+                                    'No currency found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Status</Label>
+                            <Label>
+                                {t(
+                                    'financeChartOfAccounts.form.status',
+                                    'Status',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.status}
-                                options={STATUS_OPTIONS}
+                                options={STATUS_OPTIONS.map((option) => ({
+                                    ...option,
+                                    label: t(
+                                        `financeChartOfAccounts.statuses.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         status: value,
                                     }))
                                 }
-                                placeholder="Select status"
-                                searchPlaceholder="Search status..."
-                                emptyText="No status found."
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.selectStatus',
+                                    'Select status',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeChartOfAccounts.form.searchStatus',
+                                    'Search status...',
+                                )}
+                                emptyText={t(
+                                    'financeChartOfAccounts.filters.noStatusFound',
+                                    'No status found.',
+                                )}
                             />
                         </div>
 
@@ -562,12 +740,18 @@ export function ChartOfAccountsClient({
                                 }
                                 className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
                             />
-                            Postable account
+                            {t(
+                                'financeChartOfAccounts.form.postableAccount',
+                                'Postable account',
+                            )}
                         </label>
 
                         <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor="account-description">
-                                Description
+                                {t(
+                                    'financeChartOfAccounts.form.descriptionLabel',
+                                    'Description',
+                                )}
                             </Label>
                             <Textarea
                                 id="account-description"
@@ -578,7 +762,10 @@ export function ChartOfAccountsClient({
                                         description: event.target.value,
                                     }))
                                 }
-                                placeholder="Optional notes for finance team usage."
+                                placeholder={t(
+                                    'financeChartOfAccounts.form.descriptionPlaceholder',
+                                    'Optional notes for finance team usage.',
+                                )}
                                 rows={4}
                             />
                         </div>
@@ -589,12 +776,18 @@ export function ChartOfAccountsClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
                             {editingAccount
-                                ? 'Update Ledger Account'
-                                : 'Create Ledger Account'}
+                                ? t(
+                                      'financeChartOfAccounts.form.updateLedgerAccount',
+                                      'Update Ledger Account',
+                                  )
+                                : t(
+                                      'financeChartOfAccounts.form.createLedgerAccount',
+                                      'Create Ledger Account',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -612,13 +805,27 @@ export function ChartOfAccountsClient({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Delete Ledger Account</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'financeChartOfAccounts.delete.title',
+                                'Delete Ledger Account',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
                             {deleteTarget?.is_system
-                                ? 'System accounts cannot be deleted.'
+                                ? t(
+                                      'financeChartOfAccounts.delete.systemAccountsCannotBeDeleted',
+                                      'System accounts cannot be deleted.',
+                                  )
                                 : deleteTarget?.dependency_count
-                                  ? 'This account is already used in finance records. Reassign those records before deleting it.'
-                                  : 'This will permanently remove the selected ledger account.'}
+                                  ? t(
+                                        'financeChartOfAccounts.delete.reassignBeforeDeleting',
+                                        'This account is already used in finance records. Reassign those records before deleting it.',
+                                    )
+                                  : t(
+                                        'financeChartOfAccounts.delete.description',
+                                        'This will permanently remove the selected ledger account.',
+                                    )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -630,20 +837,45 @@ export function ChartOfAccountsClient({
                                 </div>
                                 <div className="mt-1 text-muted-foreground">
                                     {deleteTarget.dependency_count
-                                        ? `${formatNumber(deleteTarget.dependency_count)} linked finance records need reassignment.`
-                                        : 'No linked finance records were detected for this account.'}
+                                        ? t(
+                                              'financeChartOfAccounts.delete.linkedRecordsNeedReassignment',
+                                              ':count linked finance records need reassignment.',
+                                          ).replace(
+                                              ':count',
+                                              formatNumber(
+                                                  deleteTarget.dependency_count,
+                                              ),
+                                          )
+                                        : t(
+                                              'financeChartOfAccounts.delete.noLinkedRecords',
+                                              'No linked finance records were detected for this account.',
+                                          )}
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Replacement Account</Label>
+                                <Label>
+                                    {t(
+                                        'financeChartOfAccounts.delete.replacementAccount',
+                                        'Replacement Account',
+                                    )}
+                                </Label>
                                 <SearchableDropdown
                                     value={replacementAccountId}
                                     options={replacementAccountOptions}
                                     onValueChange={setReplacementAccountId}
-                                    placeholder="Select replacement account"
-                                    searchPlaceholder="Search accounts..."
-                                    emptyText="No replacement account found."
+                                    placeholder={t(
+                                        'financeChartOfAccounts.delete.selectReplacementAccount',
+                                        'Select replacement account',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeChartOfAccounts.delete.searchAccounts',
+                                        'Search accounts...',
+                                    )}
+                                    emptyText={t(
+                                        'financeChartOfAccounts.delete.noReplacementAccountFound',
+                                        'No replacement account found.',
+                                    )}
                                 />
                                 <InputError
                                     message={deleteErrors.replacement_account_id}
@@ -651,8 +883,13 @@ export function ChartOfAccountsClient({
                                 {deleteTarget.dependency_count &&
                                 replacementAccountOptions.length === 0 ? (
                                     <p className="text-xs text-amber-600">
-                                        Create another {deleteTarget.type}{' '}
-                                        account before deleting this one.
+                                        {t(
+                                            'financeChartOfAccounts.delete.createAnotherAccount',
+                                            'Create another :type account before deleting this one.',
+                                        ).replace(
+                                            ':type',
+                                            deleteTarget.type,
+                                        )}
                                     </p>
                                 ) : null}
                             </div>
@@ -669,7 +906,7 @@ export function ChartOfAccountsClient({
                             }}
                             disabled={isDeleteSubmitting}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -682,7 +919,10 @@ export function ChartOfAccountsClient({
                             }
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t(
+                                'financeChartOfAccounts.actions.delete',
+                                'Delete',
+                            )}
                         </Button>
                     </div>
                 </DialogContent>

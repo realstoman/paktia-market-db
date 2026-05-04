@@ -1,4 +1,5 @@
 import { brand } from '@/config/brand';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -61,6 +62,7 @@ export function MovementVoucherPrintDialog({
     branch,
     movementType,
 }: MovementVoucherPrintDialogProps) {
+    const { t } = useLocalization();
     const printVoucher = () => {
         if (!movement) {
             return;
@@ -75,7 +77,10 @@ export function MovementVoucherPrintDialog({
         const amount = formatAfn(Number(movement.amount ?? 0));
         const createdAt = formatDateTime(movement.created_at);
         const movementDate = formatDateOnly(movement.movement_date);
-        const direction = movement.direction === 'in' ? 'Inflow' : 'Outflow';
+        const direction =
+            movement.direction === 'in'
+                ? t('financeCashBank.directions.in', 'Inflow')
+                : t('financeCashBank.directions.out', 'Outflow');
         const paymentMethod = (movement.payment_method ?? 'other')
             .replaceAll('_', ' ')
             .replace(/\b\w/g, (char) => char.toUpperCase());
@@ -206,11 +211,16 @@ export function MovementVoucherPrintDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Cash / Bank Voucher Print
+                        {t(
+                            'financeCashBank.voucher.printTitle',
+                            'Cash / Bank Voucher Print',
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        Review this voucher, then print it for manager
-                        signature.
+                        {t(
+                            'financeCashBank.voucher.printDescription',
+                            'Review this voucher, then print it for manager signature.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -219,7 +229,10 @@ export function MovementVoucherPrintDialog({
                         <div className="flex justify-end">
                             <Button onClick={printVoucher} className="gap-2">
                                 <Printer className="h-4 w-4" />
-                                Print Movement Voucher
+                                {t(
+                                    'financeCashBank.actions.printVoucher',
+                                    'Print Movement Voucher',
+                                )}
                             </Button>
                         </div>
                         <ScrollArea className="h-[560px] rounded-lg border bg-slate-50 p-4">

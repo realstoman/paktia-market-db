@@ -10,6 +10,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -111,6 +118,7 @@ interface OperationsPageProps {
 interface CartLine {
     productId: number;
     productSizeId: number | null;
+    productSizeName?: string | null;
     name: string;
     imageUrl?: string | null;
     price: number;
@@ -257,6 +265,9 @@ export default function OperationsPage({
     const [selectedReceiptOrder, setSelectedReceiptOrder] =
         useState<Order | null>(null);
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
+    const [sizePickerProduct, setSizePickerProduct] = useState<Product | null>(
+        null,
+    );
     const workspaceRef = useRef<HTMLDivElement | null>(null);
 
     const localizedProductName = useCallback(
@@ -456,6 +467,10 @@ export default function OperationsPage({
             (selectedOrder.items ?? []).map((item) => ({
                 productId: item.product_id,
                 productSizeId: item.product_size_id ?? null,
+                productSizeName:
+                    item.product_size_name_snapshot ??
+                    item.product_size?.name ??
+                    null,
                 name:
                     localizedProductName(item.product) ??
                     item.product_name_snapshot ??
@@ -581,19 +596,23 @@ export default function OperationsPage({
         setSelectedChannel(order.order_type as Channel);
     };
 
-    const adjustQuantity = (product: Product, delta: number) => {
-        if (!canEditComposer) {
-            toast.error('You can only update orders you created.');
-            return;
-        }
-
+    const adjustQuantityForLine = (
+        product: Product,
+        productSizeId: number | null,
+        delta: number,
+    ) => {
         const basePrice = Number(product.base_price ?? 0);
+        const selectedSize =
+            (product.sizes ?? []).find((size) => size.id === productSizeId) ??
+            null;
+        const linePrice = Number(selectedSize?.pivot?.price ?? basePrice);
+        const lineSizeName = selectedSize?.name ?? null;
 
         setCartLines((current) => {
             const existing = current.find(
                 (line) =>
                     line.productId === product.id &&
-                    line.productSizeId === null,
+                    line.productSizeId === productSizeId,
             );
 
             if (!existing && delta < 0) {
@@ -605,10 +624,11 @@ export default function OperationsPage({
                     ...current,
                     {
                         productId: product.id,
-                        productSizeId: null,
+                        productSizeId,
+                        productSizeName: lineSizeName,
                         name: localizedProductName(product),
                         imageUrl: product.images?.[0]?.url ?? null,
-                        price: basePrice,
+                        price: linePrice,
                         quantity: 1,
                     },
                 ];
@@ -616,7 +636,8 @@ export default function OperationsPage({
 
             return current
                 .map((line) =>
-                    line.productId === product.id && line.productSizeId === null
+                    line.productId === product.id &&
+                    line.productSizeId === productSizeId
                         ? {
                               ...line,
                               quantity: Math.max(0, line.quantity + delta),
@@ -627,10 +648,45 @@ export default function OperationsPage({
         });
     };
 
+    const adjustQuantity = (product: Product, delta: number) => {
+        if (!canEditComposer) {
+            toast.error('You can only update orders you created.');
+            return;
+        }
+
+        const sizes = product.sizes ?? [];
+
+        if (sizes.length > 1) {
+            if (delta > 0) {
+                setSizePickerProduct(product);
+                return;
+            }
+
+            const existingProductLines = cartLines.filter(
+                (line) => line.productId === product.id,
+            );
+
+            if (existingProductLines.length === 0) {
+                return;
+            }
+
+            const lastLine = existingProductLines[existingProductLines.length - 1];
+            adjustQuantityForLine(product, lastLine.productSizeId, -1);
+            return;
+        }
+
+        const onlySize = sizes[0] ?? null;
+        adjustQuantityForLine(product, onlySize?.id ?? null, delta);
+    };
+
     const totalQuantity = cartLines.reduce(
         (sum, line) => sum + line.quantity,
         0,
     );
+    const getProductQuantity = (productId: number) =>
+        cartLines
+            .filter((line) => line.productId === productId)
+            .reduce((sum, line) => sum + line.quantity, 0);
     const subTotal = cartLines.reduce(
         (sum, line) => sum + line.quantity * line.price,
         0,
@@ -1242,11 +1298,12 @@ export default function OperationsPage({
                                         className={`grid gap-3 ${isOrderTakerMode ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'md:grid-cols-2'}`}
                                     >
                                         {filteredProducts.map((product) => {
-                                            const line = cartLines.find(
-                                                (entry) =>
-                                                    entry.productId ===
-                                                    product.id,
-                                            );
+                                            const productSizes =
+                                                product.sizes ?? [];
+                                            const hasMultipleSizes =
+                                                productSizes.length > 1;
+                                            const quantity =
+                                                getProductQuantity(product.id);
 
                                             return (
                                                 <div
@@ -1294,43 +1351,69 @@ export default function OperationsPage({
                                                                         ؋
                                                                     </span>
                                                                 </p>
-                                                                <div className="flex items-center justify-between gap-3">
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="icon"
-                                                                        className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
-                                                                        disabled={
-                                                                            !canEditComposer
-                                                                        }
-                                                                        onClick={() =>
-                                                                            adjustQuantity(
-                                                                                product,
-                                                                                -1,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Minus className="h-4 w-4" />
-                                                                    </Button>
-                                                                    <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
-                                                                        {line?.quantity ??
-                                                                            0}
-                                                                    </span>
-                                                                    <Button
-                                                                        size="icon"
-                                                                        className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
-                                                                        disabled={
-                                                                            !canEditComposer
-                                                                        }
-                                                                        onClick={() =>
-                                                                            adjustQuantity(
-                                                                                product,
-                                                                                1,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Plus className="h-4 w-4" />
-                                                                    </Button>
-                                                                </div>
+                                                                {hasMultipleSizes ? (
+                                                                    <div className="flex items-center justify-between gap-3">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            className="h-8 rounded-full px-3 text-xs sm:h-9"
+                                                                            disabled={
+                                                                                !canEditComposer
+                                                                            }
+                                                                            onClick={() =>
+                                                                                setSizePickerProduct(
+                                                                                    product,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            Select
+                                                                            size
+                                                                        </Button>
+                                                                        <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
+                                                                            {
+                                                                                quantity
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex items-center justify-between gap-3">
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                            disabled={
+                                                                                !canEditComposer
+                                                                            }
+                                                                            onClick={() =>
+                                                                                adjustQuantity(
+                                                                                    product,
+                                                                                    -1,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Minus className="h-4 w-4" />
+                                                                        </Button>
+                                                                        <span className="min-w-7 text-center text-sm font-medium sm:min-w-6 sm:text-sm">
+                                                                            {
+                                                                                quantity
+                                                                            }
+                                                                        </span>
+                                                                        <Button
+                                                                            size="icon"
+                                                                            className="h-8 w-8 shrink-0 rounded-full sm:h-6 sm:w-6"
+                                                                            disabled={
+                                                                                !canEditComposer
+                                                                            }
+                                                                            onClick={() =>
+                                                                                adjustQuantity(
+                                                                                    product,
+                                                                                    1,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Plus className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1465,6 +1548,11 @@ export default function OperationsPage({
                                                     <p className="truncate text-sm font-semibold text-[#2f1d0f]">
                                                         {line.name}
                                                     </p>
+                                                    {line.productSizeName ? (
+                                                        <p className="text-[11px] text-muted-foreground">
+                                                            {line.productSizeName}
+                                                        </p>
+                                                    ) : null}
                                                     <p className="text-xs text-muted-foreground">
                                                         {line.quantity} x{' '}
                                                         {formatCurrency(
@@ -1896,6 +1984,119 @@ export default function OperationsPage({
                         onCompletePayment={handleCompletePayment}
                         isCompletingPayment={isCompletingPayment}
                     />
+                    <Dialog
+                        open={sizePickerProduct !== null}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setSizePickerProduct(null);
+                            }
+                        }}
+                    >
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>
+                                    {sizePickerProduct
+                                        ? localizedProductName(
+                                              sizePickerProduct,
+                                          )
+                                        : 'Select size'}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Choose a size before adding this item to the
+                                    order.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-3">
+                                {(sizePickerProduct?.sizes ?? []).map(
+                                    (size) => {
+                                        const quantity = cartLines
+                                            .filter(
+                                                (line) =>
+                                                    line.productId ===
+                                                        sizePickerProduct?.id &&
+                                                    line.productSizeId ===
+                                                        size.id,
+                                            )
+                                            .reduce(
+                                                (sum, line) =>
+                                                    sum + line.quantity,
+                                                0,
+                                            );
+
+                                        return (
+                                            <div
+                                                key={size.id}
+                                                className="flex items-center justify-between rounded-2xl border border-neutral-200 p-3"
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-[#2f1d0f]">
+                                                        {size.name}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatCurrency(
+                                                            Number(
+                                                                size.pivot
+                                                                    ?.price ??
+                                                                    sizePickerProduct?.base_price ??
+                                                                    0,
+                                                            ),
+                                                        )}{' '}
+                                                        ؋
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-full"
+                                                        disabled={
+                                                            !canEditComposer
+                                                        }
+                                                        onClick={() => {
+                                                            if (
+                                                                sizePickerProduct
+                                                            ) {
+                                                                adjustQuantityForLine(
+                                                                    sizePickerProduct,
+                                                                    size.id,
+                                                                    -1,
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                    <span className="min-w-6 text-center text-sm font-medium">
+                                                        {quantity}
+                                                    </span>
+                                                    <Button
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-full"
+                                                        disabled={
+                                                            !canEditComposer
+                                                        }
+                                                        onClick={() => {
+                                                            if (
+                                                                sizePickerProduct
+                                                            ) {
+                                                                adjustQuantityForLine(
+                                                                    sizePickerProduct,
+                                                                    size.id,
+                                                                    1,
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    },
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             )}
         </AppLayout>

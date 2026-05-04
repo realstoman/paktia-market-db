@@ -4,6 +4,7 @@ import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { MovementVoucherPrintDialog } from '@/components/tables/cash-bank/movement-voucher-print-dialog';
 import {
     AlertDialog,
@@ -105,6 +106,7 @@ export function CashBankClient({
     movementTypes,
     printMovementId = null,
 }: CashBankClientProps) {
+    const { t } = useLocalization();
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingMovement, setEditingMovement] =
         React.useState<CashMovement | null>(null);
@@ -278,14 +280,19 @@ export function CashBankClient({
             payload.receipt = receiptFile;
         }
 
-        const onError = (errors: Record<string, string>) => {
+        const onLocalizedError = (errors: Record<string, string>) => {
             const firstError = Object.values(errors)[0];
             if (typeof firstError === 'string' && firstError.length > 0) {
                 toast.error(firstError);
                 return;
             }
 
-            toast.error('Failed to save cash movement.');
+            toast.error(
+                t(
+                    'financeCashBank.toasts.saveFailed',
+                    'Failed to save cash movement.',
+                ),
+            );
         };
 
         if (editingMovement) {
@@ -297,7 +304,7 @@ export function CashBankClient({
                     setReceiptFile(null);
                     setEditingMovement(null);
                 },
-                onError,
+                onError: onLocalizedError,
             });
             return;
         }
@@ -309,9 +316,9 @@ export function CashBankClient({
                 setIsOpen(false);
                 setReceiptFile(null);
             },
-            onError,
+            onError: onLocalizedError,
         });
-    }, [editingMovement, form, receiptFile]);
+    }, [editingMovement, form, receiptFile, t]);
 
     const approve = React.useCallback((movement: CashMovement) => {
         router.post(
@@ -332,6 +339,7 @@ export function CashBankClient({
     const columns = React.useMemo(
         () =>
             buildColumns({
+                t,
                 onEdit: openEdit,
                 onApprove: setApprovalTarget,
                 onViewAttachment: setAttachmentPath,
@@ -340,7 +348,7 @@ export function CashBankClient({
                     setIsPrintOpen(true);
                 },
             }),
-        [openEdit],
+        [openEdit, t],
     );
 
     const selectedMovementType = React.useMemo(
@@ -358,25 +366,49 @@ export function CashBankClient({
             <SearchableDropdown
                 value={statusFilter}
                 options={[
-                    { value: 'all', label: 'All Statuses' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeCashBank.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
                     ...APPROVAL_OPTIONS,
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t('financeCashBank.filters.status', 'Status')}
+                searchPlaceholder={t(
+                    'financeCashBank.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeCashBank.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
                 value={branchFilter}
                 options={[
-                    { value: 'all', label: 'All Branches' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeCashBank.filters.allBranches',
+                            'All Branches',
+                        ),
+                    },
                     ...branchOptions,
                 ]}
                 onValueChange={setBranchFilter}
-                placeholder="Branch"
-                searchPlaceholder="Search branches..."
-                emptyText="No branch found."
+                placeholder={t('financeCashBank.filters.branch', 'Branch')}
+                searchPlaceholder={t(
+                    'financeCashBank.filters.searchBranches',
+                    'Search branches...',
+                )}
+                emptyText={t(
+                    'financeCashBank.filters.noBranchFound',
+                    'No branch found.',
+                )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -386,8 +418,11 @@ export function CashBankClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Cash & Bank Movements: ${formatNumber(filteredMovements.length)}`}
-                    description="Record owner funding, cash to bank movements, and petty cash top-ups with branch-level control."
+                    title={`${t('financeCashBank.heading.title', 'Cash & Bank Movements')}: ${formatNumber(filteredMovements.length)}`}
+                    description={t(
+                        'financeCashBank.heading.description',
+                        'Record owner funding, cash to bank movements, and petty cash top-ups with branch-level control.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -395,7 +430,10 @@ export function CashBankClient({
                             href="/finance"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Finance
+                            {t(
+                                'financeCashBank.actions.backToFinance',
+                                'Back to Finance',
+                            )}
                         </Link>
                     </Button>
                     <Button variant="outline" asChild>
@@ -403,12 +441,18 @@ export function CashBankClient({
                             href="/finance/cash-movement-types"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Movement Types
+                            {t(
+                                'financeCashBank.actions.movementTypes',
+                                'Movement Types',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        New Movement
+                        {t(
+                            'financeCashBank.actions.newMovement',
+                            'New Movement',
+                        )}
                     </Button>
                 </div>
             </div>
@@ -419,11 +463,16 @@ export function CashBankClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <ArrowLeftRight className="h-5 w-5" />
-                        Cash & Bank Register
+                        {t(
+                            'financeCashBank.register.title',
+                            'Cash & Bank Register',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Add cash in hand funding, bank funding, and transfers to
-                        petty cash or other branches.
+                        {t(
+                            'financeCashBank.register.description',
+                            'Add cash in hand funding, bank funding, and transfers to petty cash or other branches.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -440,7 +489,10 @@ export function CashBankClient({
                         'payment_method',
                         'approval_status',
                     ]}
-                    searchPlaceholder="Search movement type, branch, account, method, or status..."
+                    searchPlaceholder={t(
+                        'financeCashBank.register.searchPlaceholder',
+                        'Search movement type, branch, account, method, or status...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -459,18 +511,31 @@ export function CashBankClient({
                     <DialogHeader>
                         <DialogTitle>
                             {editingMovement
-                                ? 'Edit Cash Movement'
-                                : 'Create Cash Movement'}
+                                ? t(
+                                      'financeCashBank.form.editTitle',
+                                      'Edit Cash Movement',
+                                  )
+                                : t(
+                                      'financeCashBank.form.createTitle',
+                                      'Create Cash Movement',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Use this to add owner funding and transfer amounts
-                            between cash, bank, and petty cash accounts.
+                            {t(
+                                'financeCashBank.form.description',
+                                'Use this to add owner funding and transfer amounts between cash, bank, and petty cash accounts.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>Movement Type</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.movementType',
+                                    'Movement Type',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.movement_type}
                                 options={movementTypeOptions}
@@ -493,31 +558,65 @@ export function CashBankClient({
                                         };
                                     })
                                 }
-                                placeholder="Select movement type"
-                                searchPlaceholder="Search movement types..."
-                                emptyText="No movement type found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectMovementType',
+                                    'Select movement type',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.form.searchMovementTypes',
+                                    'Search movement types...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.form.noMovementTypeFound',
+                                    'No movement type found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Payment Method</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.paymentMethod',
+                                    'Payment Method',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.payment_method}
-                                options={PAYMENT_METHODS}
+                                options={PAYMENT_METHODS.map((option) => ({
+                                    value: option.value,
+                                    label: t(
+                                        `orders.paymentMethod.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         payment_method: value,
                                     }))
                                 }
-                                placeholder="Select payment method"
-                                searchPlaceholder="Search payment methods..."
-                                emptyText="No payment method found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectPaymentMethod',
+                                    'Select payment method',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.form.searchPaymentMethods',
+                                    'Search payment methods...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.form.noPaymentMethodFound',
+                                    'No payment method found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Source Branch</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.sourceBranch',
+                                    'Source Branch',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.branch_id}
                                 options={branchOptions}
@@ -527,15 +626,29 @@ export function CashBankClient({
                                         branch_id: value,
                                     }))
                                 }
-                                placeholder="Select source branch"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectSourceBranch',
+                                    'Select source branch',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.filters.searchBranches',
+                                    'Search branches...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.filters.noBranchFound',
+                                    'No branch found.',
+                                )}
                             />
                         </div>
 
                         {isTransfer ? (
                             <div className="grid gap-2">
-                                <Label>Destination Branch</Label>
+                                <Label>
+                                    {t(
+                                        'financeCashBank.form.destinationBranch',
+                                        'Destination Branch',
+                                    )}
+                                </Label>
                                 <SearchableDropdown
                                     value={form.destination_branch_id}
                                     options={branchOptions}
@@ -545,15 +658,29 @@ export function CashBankClient({
                                             destination_branch_id: value,
                                         }))
                                     }
-                                    placeholder="Select destination branch"
-                                    searchPlaceholder="Search branches..."
-                                    emptyText="No branch found."
+                                    placeholder={t(
+                                        'financeCashBank.form.selectDestinationBranch',
+                                        'Select destination branch',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeCashBank.filters.searchBranches',
+                                        'Search branches...',
+                                    )}
+                                    emptyText={t(
+                                        'financeCashBank.filters.noBranchFound',
+                                        'No branch found.',
+                                    )}
                                 />
                             </div>
                         ) : null}
 
                         <div className="grid gap-2">
-                            <Label>Source Account</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.sourceAccount',
+                                    'Source Account',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.account_id}
                                 options={sourceAccountOptions}
@@ -563,15 +690,29 @@ export function CashBankClient({
                                         account_id: value,
                                     }))
                                 }
-                                placeholder="Select source account"
-                                searchPlaceholder="Search source accounts..."
-                                emptyText="No account found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectSourceAccount',
+                                    'Select source account',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.form.searchSourceAccounts',
+                                    'Search source accounts...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.form.noAccountFound',
+                                    'No account found.',
+                                )}
                             />
                         </div>
 
                         {isTransfer ? (
                             <div className="grid gap-2">
-                                <Label>Target Account</Label>
+                                <Label>
+                                    {t(
+                                        'financeCashBank.form.targetAccount',
+                                        'Target Account',
+                                    )}
+                                </Label>
                                 <SearchableDropdown
                                     value={form.counterparty_account_id}
                                     options={targetAccountOptions}
@@ -581,20 +722,46 @@ export function CashBankClient({
                                             counterparty_account_id: value,
                                         }))
                                     }
-                                    placeholder="Select target account"
-                                    searchPlaceholder="Search target accounts..."
-                                    emptyText="No account found."
+                                    placeholder={t(
+                                        'financeCashBank.form.selectTargetAccount',
+                                        'Select target account',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeCashBank.form.searchTargetAccounts',
+                                        'Search target accounts...',
+                                    )}
+                                    emptyText={t(
+                                        'financeCashBank.form.noAccountFound',
+                                        'No account found.',
+                                    )}
                                 />
                             </div>
                         ) : null}
 
                         <div className="grid gap-2">
-                            <Label>Direction</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.direction',
+                                    'Direction',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.direction}
                                 options={[
-                                    { value: 'in', label: 'Inflow' },
-                                    { value: 'out', label: 'Outflow' },
+                                    {
+                                        value: 'in',
+                                        label: t(
+                                            'financeCashBank.directions.in',
+                                            'Inflow',
+                                        ),
+                                    },
+                                    {
+                                        value: 'out',
+                                        label: t(
+                                            'financeCashBank.directions.out',
+                                            'Outflow',
+                                        ),
+                                    },
                                 ]}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
@@ -602,14 +769,25 @@ export function CashBankClient({
                                         direction: value,
                                     }))
                                 }
-                                placeholder="Select direction"
-                                searchPlaceholder="Search directions..."
-                                emptyText="No direction found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectDirection',
+                                    'Select direction',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.form.searchDirections',
+                                    'Search directions...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.form.noDirectionFound',
+                                    'No direction found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Amount</Label>
+                            <Label>
+                                {t('financeCashBank.form.amount', 'Amount')}
+                            </Label>
                             <NumericInput
                                 min="0"
                                 value={form.amount}
@@ -624,7 +802,12 @@ export function CashBankClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Movement Date</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.movementDate',
+                                    'Movement Date',
+                                )}
+                            </Label>
                             <Input
                                 type="date"
                                 value={form.movement_date}
@@ -638,24 +821,49 @@ export function CashBankClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Approval Status</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.approvalStatus',
+                                    'Approval Status',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.approval_status}
-                                options={APPROVAL_OPTIONS}
+                                options={APPROVAL_OPTIONS.map((option) => ({
+                                    value: option.value,
+                                    label: t(
+                                        `financeCashBank.statuses.${option.value}`,
+                                        option.label,
+                                    ),
+                                }))}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         approval_status: value,
                                     }))
                                 }
-                                placeholder="Select approval status"
-                                searchPlaceholder="Search statuses..."
-                                emptyText="No status found."
+                                placeholder={t(
+                                    'financeCashBank.form.selectApprovalStatus',
+                                    'Select approval status',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashBank.filters.searchStatuses',
+                                    'Search statuses...',
+                                )}
+                                emptyText={t(
+                                    'financeCashBank.filters.noStatusFound',
+                                    'No status found.',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.descriptionLabel',
+                                    'Description',
+                                )}
+                            </Label>
                             <Textarea
                                 value={form.description}
                                 onChange={(event) =>
@@ -664,13 +872,21 @@ export function CashBankClient({
                                         description: event.target.value,
                                     }))
                                 }
-                                placeholder="Owner funded start-up cash, then transferred part to petty cash."
+                                placeholder={t(
+                                    'financeCashBank.form.descriptionPlaceholder',
+                                    'Owner funded start-up cash, then transferred part to petty cash.',
+                                )}
                                 rows={4}
                             />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
-                            <Label>Bill / Receipt Attachment</Label>
+                            <Label>
+                                {t(
+                                    'financeCashBank.form.receiptAttachment',
+                                    'Bill / Receipt Attachment',
+                                )}
+                            </Label>
                             <label
                                 htmlFor="movement-receipt"
                                 className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition-[background-color,border-color,box-shadow] hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
@@ -695,11 +911,20 @@ export function CashBankClient({
                                             {receiptFile
                                                 ? receiptFile.name
                                                 : editingMovement?.attachment_path
-                                                  ? 'Replace current receipt'
-                                                  : 'Upload receipt (JPG, PNG, PDF)'}
+                                                  ? t(
+                                                        'financeCashBank.form.replaceCurrentReceipt',
+                                                        'Replace current receipt',
+                                                    )
+                                                  : t(
+                                                        'financeCashBank.form.uploadReceipt',
+                                                        'Upload receipt (JPG, PNG, PDF)',
+                                                    )}
                                         </p>
                                         <p className="text-xs text-slate-500">
-                                            Click to browse files (max 5MB)
+                                            {t(
+                                                'financeCashBank.form.browseFiles',
+                                                'Click to browse files (max 5MB)',
+                                            )}
                                         </p>
                                     </div>
                                     {receiptFile ? (
@@ -726,12 +951,18 @@ export function CashBankClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
                             {editingMovement
-                                ? 'Update Movement'
-                                : 'Save Movement'}
+                                ? t(
+                                      'financeCashBank.actions.updateMovement',
+                                      'Update Movement',
+                                  )
+                                : t(
+                                      'financeCashBank.actions.saveMovement',
+                                      'Save Movement',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -748,11 +979,16 @@ export function CashBankClient({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Review Cash Movement
+                            {t(
+                                'financeCashBank.approval.title',
+                                'Review Cash Movement',
+                            )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm whether you want to approve this movement or
-                            send it back to draft for correction.
+                            {t(
+                                'financeCashBank.approval.description',
+                                'Confirm whether you want to approve this movement or send it back to draft for correction.',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -769,7 +1005,7 @@ export function CashBankClient({
                                 setApprovalTarget(null);
                             }}
                         >
-                            Reject
+                            {t('financeCashBank.actions.reject', 'Reject')}
                         </AlertDialogAction>
                         <AlertDialogAction
                             onClick={() => {
@@ -779,7 +1015,7 @@ export function CashBankClient({
                                 setApprovalTarget(null);
                             }}
                         >
-                            Approve
+                            {t('financeCashBank.actions.approve', 'Approve')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -820,7 +1056,10 @@ export function CashBankClient({
                     }
                 }}
                 path={attachmentPath}
-                title="Cash / Bank Attachment"
+                title={t(
+                    'financeCashBank.attachmentTitle',
+                    'Cash / Bank Attachment',
+                )}
             />
         </div>
     );

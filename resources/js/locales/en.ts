@@ -6,6 +6,9 @@ const en = {
         save: 'Save',
         cancel: 'Cancel',
         saved: 'Saved',
+        open: 'Open',
+        reset: 'Reset',
+        dashboard: 'Dashboard',
         settings: 'Settings',
         profile: 'Profile',
         password: 'Password',
@@ -1037,6 +1040,1193 @@ const en = {
             shiftCreated: 'Shift created.',
             shiftUpdated: 'Shift updated.',
             shiftDeleted: 'Shift deleted.',
+        },
+    },
+    financeDashboard: {
+        pageTitle: 'Finance Dashboard',
+        eyebrow: 'Finance Dashboard',
+        hero: {
+            title: 'Financial control center for revenue, payroll, expenses, inventory, and cash.',
+            description:
+                'This is the finance dashboard which is designed around the accounting foundation: chart of accounts, ledger postings, payroll, advances, cash movements, and inventory valuation.',
+            ledgerAccounts: 'Ledger Accounts',
+            approvalQueue: 'Approval Queue',
+        },
+        projection: {
+            title: 'Projection Health',
+            transactionalFallback:
+                'This filtered view is using transactional reads because the selected filters are more specific than the current projection granularity.',
+            lastProjectedAt: 'Last projected at :date',
+            noTimestamp: 'No projection timestamp recorded yet',
+            message: {
+                current:
+                    'Projection data is current for the selected finance view.',
+                lagging:
+                    'Some branch projections are lagging behind the selected finance window.',
+                stale:
+                    'Projection data is stale. Finance metrics may be outdated until projections refresh.',
+                unavailable:
+                    'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
+            },
+        },
+        filters: {
+            title: 'Filters',
+            description:
+                'Slice the finance dashboard by period, branch, payment method, and expense category.',
+            branch: 'Branch',
+            paymentMethod: 'Payment Method',
+            expenseCategory: 'Expense Category',
+            startDate: 'Start Date',
+            endDate: 'End Date',
+            apply: 'Apply Filters',
+            allBranches: 'All branches',
+            allMethods: 'All methods',
+            allCategories: 'All categories',
+            searchExpenseCategory: 'Search expense category...',
+            noExpenseCategoryFound: 'No expense category found.',
+            range: {
+                today: 'Today',
+                yesterday: 'Yesterday',
+                this_week: 'This Week',
+                this_month: 'This Month',
+                custom: 'Custom',
+            },
+        },
+        summary: {
+            sales: 'Sales',
+            salesSubtitle: 'Completed order revenue in selected period',
+            expenses: 'Expenses',
+            expensesSubtitle: 'Recorded operational expenses',
+            grossProfit: 'Gross Profit',
+            netProfit: 'Net Profit',
+            netProfitSubtitle:
+                'Sales minus expenses, before unposted finance adjustments',
+            cashPosition: 'Cash Position',
+            employeeCovered: 'Employee Covered',
+            employeeCoveredSubtitle:
+                'Orders paid by employees on behalf of guests',
+            restaurantHospitality: 'Restaurant Hospitality',
+            restaurantHospitalitySubtitle:
+                'Hospitality and complimentary orders excluded from sales',
+            unpaidSalaries: 'Unpaid Salaries',
+            unpaidSalariesSubtitle:
+                'Current month salary and scheduled contract liabilities',
+            inventoryValue: 'Inventory Value',
+            inventoryValueSubtitle:
+                'Current stock value from quantity and unit cost',
+            supplierBalances: 'Supplier Balances',
+            supplierBalancesSubtitle:
+                'Unpaid vendor balance from stock purchases',
+            pending: 'Pending',
+        },
+        notes: {
+            grossProfitRecognized:
+                'Recognized using recorded sales minus average inventory cost.',
+            grossProfitPosted:
+                'Gross profit is using posted inventory cost movements.',
+            grossProfitPending:
+                'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
+            cashPosition:
+                'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+        },
+        charts: {
+            revenueExpenseTitle: 'Revenue, Expense, and Operating Result',
+            revenueExpenseDescription:
+                'Daily trend for the selected finance window.',
+            coverageTitle: 'Sales vs Covered Orders',
+            coverageDescription:
+                'Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.',
+            branchRevenueTitle: 'Branch-wise Revenue',
+            branchRevenueDescription:
+                'Compare completed order revenue by branch.',
+            expenseCategoriesTitle: 'Top Expense Categories',
+            expenseCategoriesDescription:
+                'Expense concentration in the selected period.',
+            noExpenseCategories:
+                'No expense categories were found for the selected filters.',
+        },
+        ledger: {
+            title: 'Ledger Readiness',
+            description:
+                'Live accounting activity from posted operations and pending finance records.',
+            accounts: 'Accounts',
+            postedEntries: 'Posted Entries',
+            postedEntriesDescription:
+                'Approved expenses, approved cash movements, completed sales, and posted journals',
+            draftEntries: 'Draft Entries',
+            draftEntriesDescription:
+                'Draft expenses, draft cash movements, and unposted journal drafts',
+            approvalQueue: 'Approval Queue',
+            approvalQueueDescription:
+                'Submitted records waiting for manager approval',
+            note:
+                'These numbers now reflect real operational finance activity. When automatic journal posting is fully enabled, this same area will transition from operational entries to strict accounting journals without changing the workflow for your team.',
+        },
+        modules: {
+            title: 'Finance Modules',
+            description:
+                'Open finance areas from here so the dashboard filters stay focused on analytics.',
+            names: {
+                chartOfAccounts: 'Chart of Accounts',
+                generalLedger: 'General Ledger',
+                expenses: 'Expenses',
+                payroll: 'Payroll',
+                employeeAdvances: 'Employee Advances',
+                cashBank: 'Cash & Bank',
+                inventoryValuation: 'Inventory Valuation',
+            },
+            descriptions: {
+                chartOfAccounts:
+                    'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
+                generalLedger:
+                    'Review entries generated from completed orders, approved expenses, and manual journals.',
+                expenses:
+                    'Track business expenses with approval status and accounting impact.',
+                payroll:
+                    'Process monthly payroll, contract payouts, and salary-linked deductions.',
+                employeeAdvances:
+                    'Record employee advances and keep payroll deductions aligned with settlement.',
+                cashBank:
+                    'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
+                inventoryValuation:
+                    'Follow weighted average costing, stock value, and cost of goods sold readiness.',
+            },
+            status: {
+                ready: 'Ready',
+                needsUpgrade: 'Needs upgrade',
+                pendingMigration: 'Pending migration',
+            },
+            stats: {
+                accounts: 'Accounts',
+                journals: 'Journals',
+                drafts: 'Drafts',
+                employees: 'Employees',
+                advances: 'Advances',
+                draft: 'Draft',
+                submitted: 'Submitted',
+                active: 'Active',
+                balance: 'Balance',
+                skus: 'SKUs',
+                value: 'Value',
+            },
+        },
+        generalLedger: {
+            title: 'General Ledger Preview',
+            description:
+                'A recent snapshot of financial entries. Open the full ledger from Finance Modules.',
+            open: 'Open General Ledger',
+            empty: 'No recent ledger entries were found for the selected filters.',
+            status: {
+                posted: 'Posted',
+                approved: 'Approved',
+                submitted: 'Submitted',
+            },
+            columns: {
+                date: 'Date',
+                reference: 'Reference',
+                type: 'Type',
+                branch: 'Branch',
+                account: 'Account',
+                description: 'Description',
+                debit: 'Debit',
+                credit: 'Credit',
+                status: 'Status',
+            },
+        },
+        quickCards: {
+            chartOfAccounts: {
+                title: 'Chart of Accounts',
+                description:
+                    'Assets, liabilities, equity, revenue, COGS, and expenses',
+            },
+            branchControl: {
+                title: 'Branch-wise Control',
+                description:
+                    'Consolidated reporting with branch-level filters and balances',
+            },
+            cashBank: {
+                title: 'Cash & Bank',
+                description:
+                    'Cash drawers, deposits, petty cash, and manual movements',
+            },
+            inventoryValuation: {
+                title: 'Inventory Valuation',
+                description:
+                    'Weighted average costing for stock value and COGS',
+            },
+        },
+    },
+    financeInventoryValuation: {
+        pageTitle: 'Inventory Valuation',
+        hero: {
+            eyebrow: 'Finance Module',
+            title: 'Inventory Valuation',
+            description:
+                'This page shows what the restaurant stock is worth, how much value moved into kitchen usage, what has been adjusted, and how inventory costs are affecting finance.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            applyFilters: 'Apply Filters',
+        },
+        ranges: {
+            today: 'Today',
+            yesterday: 'Yesterday',
+            thisWeek: 'This Week',
+            thisMonth: 'This Month',
+            custom: 'Custom',
+        },
+        filters: {
+            title: 'Filters',
+            description: 'Review valuation by period and branch.',
+            startDate: 'Start Date',
+            endDate: 'End Date',
+            branch: 'Branch',
+            allBranches: 'All Branches',
+            selectBranch: 'Select branch',
+            searchBranches: 'Search branches...',
+            noBranchFound: 'No branch found.',
+        },
+        summary: {
+            inventoryValue: 'Inventory Value',
+            inventoryValueDescription:
+                'Current stock value across selected branches',
+            stockOnHand: 'Stock on Hand',
+            stockOnHandDescription: 'Across :count inventory items',
+            cogs: 'COGS / Usage',
+            cogsDescription:
+                'Estimated value moved into usage in this period',
+            adjustmentsNet: 'Adjustments Net',
+            adjustmentsNetDescription: 'In: :in | Out: :out',
+        },
+        valuation: {
+            title: 'Valuation by Item',
+            description:
+                'Weighted or estimated average cost per inventory item and current stock value.',
+            branchVendor: ':branch | Vendor: :vendor',
+            quantity: 'Quantity',
+            avgCost: 'Avg Cost',
+            stockValue: 'Stock Value',
+            empty:
+                'No inventory valuation items were found for the selected branch.',
+        },
+        costSections: {
+            title: 'Cost Sections',
+            description:
+                'Finance view of consumption, wastage, and adjustments in the selected period.',
+            cogs: 'COGS / Usage',
+            cogsDescription:
+                'Based on `usage_cycle` and any future `issue` or `consumed` transactions.',
+            wastage: 'Wastage / Spoilage',
+            wastageDescription:
+                'This stays zero until wastage transactions are added explicitly into the inventory flow.',
+            adjustments: 'Adjustments',
+            adjustmentsDescription:
+                'Positive adjustments: :in | Negative adjustments: :out',
+        },
+        movements: {
+            title: 'Movement History',
+            description:
+                'Inventory finance movements and cost impact history.',
+            showing: 'Showing :from to :to of :total movements.',
+            date: 'Date',
+            action: 'Action',
+            quantity: 'Quantity',
+            unitCost: 'Unit Cost',
+            waAfter: 'WA after:',
+            totalCost: 'Total Cost',
+            empty:
+                'No inventory finance movements were found for the selected filters.',
+        },
+        pagination: {
+            pageOf: 'Page :page of :total',
+            previousPage: 'Previous page',
+            nextPage: 'Next page',
+        },
+    },
+    financeChartOfAccounts: {
+        pageTitle: 'Chart of Accounts',
+        heading: {
+            title: 'Chart of Accounts',
+            description:
+                'Create and manage ledger accounts used across expenses, payroll, inventory, and reporting.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            newLedgerAccount: 'New Ledger Account',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            delete: 'Delete',
+        },
+        ledgerAccounts: {
+            title: 'Ledger Accounts',
+            description:
+                'Same table system as finance expenses, with search, filters, pagination, and row actions.',
+        },
+        filters: {
+            type: 'Type',
+            status: 'Status',
+            branch: 'Branch',
+            allTypes: 'All Types',
+            allStatuses: 'All Statuses',
+            allBranches: 'All Branches',
+            searchAccountTypes: 'Search account types...',
+            searchStatuses: 'Search statuses...',
+            searchBranches: 'Search branches...',
+            noTypeFound: 'No type found.',
+            noStatusFound: 'No status found.',
+            noBranchFound: 'No branch found.',
+        },
+        table: {
+            searchPlaceholder:
+                'Search accounts by code, name, type, parent, branch, or status...',
+            code: 'Code',
+            accountName: 'Account Name',
+            type: 'Type',
+            parentAccount: 'Parent Account',
+            branch: 'Branch',
+            currency: 'Currency',
+            postable: 'Postable',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Ledger Account',
+            editTitle: 'Edit Ledger Account',
+            description:
+                'Define account code, name, type, parent grouping, and posting behavior for finance operations.',
+            codeOptional: 'Code (optional)',
+            codePlaceholder: 'Leave empty to auto-generate',
+            generateCode: 'Generate Code',
+            accountName: 'Account Name',
+            accountNamePlaceholder: 'Internet Expense',
+            accountType: 'Account Type',
+            selectAccountType: 'Select account type',
+            searchAccountType: 'Search account type...',
+            noAccountTypeFound: 'No account type found.',
+            parentAccount: 'Parent Account',
+            optionalParentAccount: 'Optional parent account',
+            searchParentAccounts: 'Search parent accounts...',
+            noAccountFound: 'No account found.',
+            branch: 'Branch',
+            currency: 'Currency',
+            noCurrency: 'No Currency',
+            selectCurrency: 'Select currency',
+            searchCurrencies: 'Search currencies...',
+            noCurrencyFound: 'No currency found.',
+            status: 'Status',
+            selectStatus: 'Select status',
+            searchStatus: 'Search status...',
+            postableAccount: 'Postable account',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Optional notes for finance team usage.',
+            updateLedgerAccount: 'Update Ledger Account',
+            createLedgerAccount: 'Create Ledger Account',
+        },
+        delete: {
+            title: 'Delete Ledger Account',
+            description:
+                'This will permanently remove the selected ledger account.',
+            systemAccountsCannotBeDeleted:
+                'System accounts cannot be deleted.',
+            reassignBeforeDeleting:
+                'This account is already used in finance records. Reassign those records before deleting it.',
+            linkedRecordsNeedReassignment:
+                ':count linked finance records need reassignment.',
+            noLinkedRecords:
+                'No linked finance records were detected for this account.',
+            replacementAccount: 'Replacement Account',
+            selectReplacementAccount: 'Select replacement account',
+            searchAccounts: 'Search accounts...',
+            noReplacementAccountFound: 'No replacement account found.',
+            createAnotherAccount:
+                'Create another :type account before deleting this one.',
+        },
+        accountTypes: {
+            asset: 'Asset',
+            liability: 'Liability',
+            equity: 'Equity',
+            revenue: 'Revenue',
+            cogs: 'COGS',
+            expense: 'Expense',
+        },
+        statuses: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+    },
+    financeGeneralLedger: {
+        pageTitle: 'General Ledger',
+        hero: {
+            eyebrow: 'Finance Module',
+            title: 'General Ledger',
+            description:
+                'This is the full finance ledger page. It shows the growing stream of sales, expenses, cash movements, and posted journal lines in one place, so the dashboard can stay focused on summary analytics.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+        },
+        filters: {
+            title: 'Filters',
+            description:
+                'Narrow the ledger by period, branch, payment method, and expense category.',
+            selectBranch: 'Select branch',
+            noBranchFound: 'No branch found.',
+            selectPaymentMethod: 'Select payment method',
+            searchPaymentMethods: 'Search payment methods...',
+            noMethodFound: 'No method found.',
+            selectCategory: 'Select category',
+            searchCategories: 'Search categories...',
+            noCategoryFound: 'No category found.',
+        },
+        entries: {
+            title: 'Ledger Entries',
+            description:
+                'Full operational finance stream for the selected filters.',
+            summary: ' Showing :from to :to of :total entries.',
+            empty: 'No ledger entries were found for the selected filters.',
+        },
+        pagination: {
+            pageOf: 'Page :current of :last',
+        },
+    },
+    financeExpenses: {
+        pageTitle: 'Expenses',
+        heading: {
+            title: 'Expenses',
+            description:
+                'Create, review, approve, and manage operating expenses.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            expenseCategories: 'Expense Categories',
+            newExpense: 'New Expense',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            printVoucher: 'Print Voucher',
+            approve: 'Approve',
+            reject: 'Reject',
+            cancelExpense: 'Cancel Expense',
+        },
+        register: {
+            title: 'Expense Register',
+            description:
+                'Same table system as the other management sections, with search, filters, and pagination.',
+        },
+        filters: {
+            branch: 'Branch',
+            category: 'Category',
+            status: 'Status',
+            allBranches: 'All Branches',
+            allCategories: 'All Categories',
+            allStatuses: 'All Statuses',
+            searchBranches: 'Search branches...',
+            searchCategories: 'Search categories...',
+            searchStatuses: 'Search statuses...',
+            noBranchesFound: 'No branches found.',
+            noCategoriesFound: 'No categories found.',
+            noStatusesFound: 'No statuses found.',
+        },
+        table: {
+            searchPlaceholder:
+                'Search expenses by title, branch, category, or status...',
+            date: 'Date',
+            title: 'Title',
+            branch: 'Branch',
+            category: 'Category',
+            paymentMethod: 'Payment Method',
+            amount: 'Amount',
+            attachment: 'Attachment',
+            view: 'View',
+            status: 'Status',
+            actions: 'Actions',
+            description: 'Description',
+        },
+        form: {
+            createTitle: 'Create Expense',
+            editTitle: 'Edit Expense',
+            description:
+                'Record a finance expense with branch, category, payment method, amount, and optional approval status.',
+            branch: 'Branch',
+            selectBranch: 'Select branch',
+            noBranchFound: 'No branch found.',
+            expenseCategory: 'Expense Category',
+            selectExpenseCategory: 'Select expense category',
+            searchExpenseCategories: 'Search expense categories...',
+            noExpenseCategoryFound: 'No expense category found.',
+            title: 'Title',
+            titlePlaceholder: 'Internet bill - March',
+            amount: 'Amount',
+            amountPlaceholder: '0',
+            paymentMethod: 'Payment Method',
+            selectPaymentMethod: 'Select payment method',
+            expenseDate: 'Expense Date',
+            vendorPayee: 'Vendor / Payee',
+            selectVendorPayee: 'Select vendor or payee',
+            searchVendors: 'Search vendors...',
+            noVendorFound: 'No vendor found.',
+            expenseLedgerAccount: 'Expense Ledger Account',
+            selectExpenseLedgerAccount:
+                'Select expense ledger account',
+            searchExpenseLedgerAccounts:
+                'Search expense ledger accounts...',
+            paymentSourceAccount: 'Payment Source Account',
+            selectPaymentSourceAccount:
+                'Select payment source account',
+            searchPaymentSourceAccounts:
+                'Search payment source accounts...',
+            noAccountFound: 'No account found.',
+            approvalStatus: 'Approval Status',
+            selectApprovalStatus: 'Select approval status',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Optional notes or receipt details',
+            receiptAttachment: 'Bill / Receipt Attachment',
+            replaceCurrentReceipt: 'Replace current receipt',
+            uploadReceipt: 'Upload receipt (JPG, PNG, PDF)',
+            browseFiles: 'Click to browse files (max 5MB)',
+            updateExpense: 'Update Expense',
+            createExpense: 'Create Expense',
+        },
+        review: {
+            title: 'Review Expense Submission',
+            description:
+                'Confirm whether you want to approve this expense or send it back for correction. Approved expenses can later be cancelled, but not edited.',
+        },
+        print: {
+            dialogTitle: 'Expense Voucher Print',
+            dialogDescription:
+                'Review this expense voucher, then print it for manager signature.',
+            printExpenseVoucher: 'Print Expense Voucher',
+            voucherTitle: 'Expense Voucher',
+            voucher: 'Voucher',
+            no: 'No',
+            date: 'Date',
+            document: 'Document',
+            created: 'Created',
+            expenseDate: 'Expense Date',
+            notes: 'Notes',
+            subtotal: 'Subtotal',
+            total: 'Total',
+            preparedBy: 'Prepared By',
+            financeManager: 'Finance Manager',
+            approvedBy: 'Approved By',
+            footerNote:
+                'Generated from the finance module for internal review, signature workflow, and restaurant expense records.',
+            footerStamp: 'Baba Finance Copy',
+            mainBranch: 'Main Branch',
+            addressNotSet: 'Address not set',
+        },
+        status: {
+            draft: 'Draft',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            cancelled: 'Cancelled',
+        },
+        attachmentTitle: 'Expense Attachment',
+        toasts: {
+            updateFailed: 'Failed to update expense.',
+            createFailed: 'Failed to create expense.',
+        },
+    },
+    financeExpenseCategories: {
+        pageTitle: 'Expense Categories',
+        heading: {
+            title: 'Expense Categories',
+            description:
+                'Manage the expense category catalog, ledger mappings, and activation state for finance operations.',
+        },
+        actions: {
+            backToExpenses: 'Back to Expenses',
+            addCategory: 'Add Category',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            delete: 'Delete',
+        },
+        register: {
+            title: 'Expense Category Register',
+            description:
+                'Same table system as the expense register, with search, filters, pagination, and category management actions.',
+        },
+        filters: {
+            status: 'Status',
+            ledgerMapping: 'Ledger Mapping',
+            allStatuses: 'All Statuses',
+            allMappings: 'All Mappings',
+            mapped: 'Mapped',
+            unmapped: 'Unmapped',
+            searchStatuses: 'Search statuses...',
+            searchMappingStatus: 'Search mapping status...',
+            noStatusesFound: 'No statuses found.',
+            noMappingStatusFound: 'No mapping status found.',
+        },
+        table: {
+            searchPlaceholder:
+                'Search categories by name, slug, ledger account, or usage...',
+            name: 'Name',
+            slug: 'Slug',
+            ledgerAccount: 'Ledger Account',
+            notMapped: 'Not mapped',
+            sort: 'Sort',
+            status: 'Status',
+            usedInExpenses: 'Used In Expenses',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Expense Category',
+            editTitle: 'Edit Expense Category',
+            description:
+                'Define the category, optional ledger mapping, display order, and whether it is active for new expense entries.',
+            name: 'Name',
+            namePlaceholder: 'Internet',
+            slug: 'Slug',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'Ledger Account',
+            selectLedgerAccount: 'Select ledger account',
+            searchLedgerAccounts: 'Search ledger accounts...',
+            noAccountFound: 'No account found.',
+            sortOrder: 'Sort Order',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Monthly internet and connectivity costs.',
+            activeLabel: 'Active and available for new expense entries',
+            updateCategory: 'Update Category',
+            createCategory: 'Create Category',
+        },
+        delete: {
+            title: 'Delete Expense Category',
+            description:
+                'This will permanently remove the selected expense category.',
+            reassignBeforeDeleting:
+                'This category is already assigned to expenses. Reassign those records before deleting it.',
+            expensesWillBeMoved:
+                ':count expenses will be moved to another category.',
+            noExpensesAssigned:
+                'No expenses are currently assigned to this category.',
+            replacementCategory: 'Replacement Category',
+            selectReplacementCategory: 'Select replacement category',
+            searchCategories: 'Search categories...',
+            noReplacementCategoryFound:
+                'No replacement category found.',
+            createAnotherCategory:
+                'Create another category before deleting this one.',
+        },
+        status: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+    },
+    financePayroll: {
+        pageTitle: 'Payroll',
+        heading: {
+            title: 'Payroll Runs',
+            description:
+                'Generate payroll runs, deduct approved employee advances, and track approval and payment in one clean workflow.',
+        },
+        hero: {
+            eyebrow: 'Finance Module',
+            title: 'Payroll',
+            description:
+                'This is where finance turns active employees, salary setup, and approved advances into a structured payroll run ready for approval and payout.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            generatePayroll: 'Generate Payroll',
+            generateRun: 'Generate Run',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            viewRun: 'View Run',
+            reviewApproval: 'Review Approval',
+            approveReject: 'Approve / Reject',
+            markPaid: 'Mark Paid',
+            edit: 'Edit',
+            delete: 'Delete',
+            printVoucher: 'Print Voucher',
+            printVouchers: 'Print Vouchers',
+            printSummary: 'Print Summary',
+            viewAttachment: 'View Attachment',
+            newContractPlan: 'New Contract Plan',
+            newSchedule: 'New Schedule',
+        },
+        summary: {
+            activeStaff: 'Active Staff',
+            unpaidPayroll: 'Unpaid Payroll',
+            advancesToDeduct: 'Advances To Deduct',
+            draftRuns: 'Draft Runs',
+            submittedRuns: 'Submitted Runs',
+            paidThisMonth: 'Paid This Month',
+            employeesInFocus: 'Employees In Focus',
+        },
+        filters: {
+            branch: 'Branch',
+            employee: 'Employee',
+            status: 'Status',
+            scheduleStatus: 'Schedule Status',
+            allBranches: 'All Branches',
+            allEmployees: 'All Employees',
+            allStatuses: 'All Statuses',
+            searchBranches: 'Search branches...',
+            searchEmployees: 'Search employees...',
+            searchStatuses: 'Search statuses...',
+            noBranchFound: 'No branch found.',
+            noEmployeeFound: 'No employee found.',
+            noStatusFound: 'No status found.',
+        },
+        register: {
+            title: 'Payroll Register',
+            description:
+                'Recent payroll runs with employee counts, gross pay, advance deductions, and payout status.',
+            searchPlaceholder:
+                'Search payroll runs by period, branch, or status...',
+        },
+        contracts: {
+            title: 'Contract Plans',
+            description:
+                'Manage employee contract payment plans and print contract summary vouchers.',
+            searchPlaceholder:
+                'Search contract plans by employee, period, plan type, or status...',
+        },
+        schedules: {
+            title: 'Contract Payment Schedules',
+            description:
+                'Manage contract payment plans and due schedule items that payroll will pull instead of raw contract amounts.',
+            searchPlaceholder:
+                'Search schedules by employee, title, due date, or status...',
+        },
+        table: {
+            period: 'Period',
+            employees: 'Employees',
+            gross: 'Gross',
+            advances: 'Advances',
+            netPayroll: 'Net Payroll',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        contractTable: {
+            employee: 'Employee',
+            period: 'Period',
+            openEnded: 'Open ended',
+            planType: 'Plan Type',
+            installments: 'installments',
+            customCount: 'Custom count',
+            contractAmount: 'Contract Amount',
+            schedules: 'Schedules',
+            paidUnpaid: 'Paid / Unpaid',
+            scheduled: 'Scheduled',
+            paid: 'Paid',
+            unpaid: 'Unpaid',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        scheduleTable: {
+            employee: 'Employee',
+            dueDate: 'Due Date',
+            title: 'Title',
+            contractSchedule: 'Contract Schedule',
+            amount: 'Amount',
+            attachment: 'Attachment',
+            view: 'View',
+            noFile: 'No file',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        details: {
+            title: 'Payroll Details',
+            run: 'Payroll Run',
+            description:
+                'Select a payroll run to review employee-level payroll items.',
+            paymentForMonth: 'Payment for month',
+            advanceDeduction: 'Advance Deduction',
+            netSalary: 'Net Salary',
+            paymentDate: 'Payment Date',
+            empty: 'No payroll run selected yet.',
+        },
+        form: {
+            generateTitle: 'Generate Payroll Run',
+            generateDescription:
+                'Create a payroll run by Afghan month. Employees with salary or contract amount will be included automatically, and approved employee advances will be proposed as deductions.',
+            afghanPayrollMonth: 'Afghan Payroll Month',
+            selectAfghanMonth: 'Select Afghan month',
+            searchAfghanMonths: 'Search Afghan months...',
+            noAfghanMonthFound: 'No Afghan month found.',
+            gregorianStart: 'Gregorian Start',
+            gregorianEnd: 'Gregorian End',
+            defaultPaymentMethod: 'Default Payment Method',
+            selectPaymentMethod: 'Select payment method',
+            searchMethods: 'Search methods...',
+            noMethodFound: 'No method found.',
+            notes: 'Notes',
+            notesPlaceholder:
+                'Optional payroll note for the period, branch context, or payout instructions.',
+            selectStatus: 'Select status',
+            whatThisWillDo: 'What this will do',
+            equalInstallments: 'Equal Installments',
+            customSchedule: 'Custom Schedule',
+            manualMilestones: 'Manual Milestones',
+        },
+        voucher: {
+            printTitle: 'Payroll Voucher Print',
+            printDescription:
+                'Review this payroll voucher, then print it for manager review and salary payment approval.',
+            voucher: 'Voucher',
+            paymentMonth: 'Payment Month',
+            document: 'Document',
+            created: 'Created',
+            employee: 'Employee',
+            salaryType: 'Salary Type',
+            paymentMethod: 'Payment Method',
+            description: 'Description',
+            amount: 'Amount',
+            contractPaymentVoucher: 'Contract Payment Voucher',
+            salaryPaymentVoucher: 'Salary Payment Voucher',
+            contractPaymentVoucherLower: 'Contract payment voucher',
+            salaryPaymentVoucherLower: 'Salary payment voucher',
+            forMonth: 'for month',
+            notesText:
+                'Prepared for salary payment review before manager approval. Advance deductions are already reflected in the net payable amount.',
+            grossPay: 'Gross Pay',
+            advanceDeduction: 'Advance Deduction',
+            netPayable: 'Net Payable',
+            preparedBy: 'Prepared By',
+            financeManager: 'Finance Manager',
+            approvedBy: 'Approved By',
+        },
+        notices: {
+            approvalHidden:
+                'Approval actions are hidden. Only users with payroll approval permission can approve or reject payroll runs after vouchers are reviewed.',
+            paymentHidden:
+                'Payment actions are hidden. Only users with payroll payment permission can mark payroll runs as paid.',
+            scheduleApprovalHidden:
+                'Contract schedule approval actions are hidden. Only users with payroll approval permission can approve or reject schedule payouts.',
+        },
+        statuses: {
+            draft: 'Draft',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            active: 'Active',
+        },
+        toasts: {
+            generateRunFailed: 'Failed to generate payroll run.',
+            contractUpdated: 'Contract plan updated successfully.',
+            contractUpdateFailed: 'Failed to update contract plan.',
+            contractCreated: 'Contract plan created successfully.',
+            contractCreateFailed: 'Failed to create contract plan.',
+            scheduleUpdated: 'Contract schedule updated successfully.',
+            scheduleUpdateFailed: 'Failed to update schedule.',
+            scheduleCreated: 'Contract schedule created successfully.',
+            scheduleCreateFailed: 'Failed to create schedule.',
+        },
+    },
+    financeEmployeeAdvances: {
+        pageTitle: 'Employee Advances',
+        heading: {
+            title: 'Employee Advances',
+            description:
+                'Track employee takeouts, repayment methods, outstanding balances, and approval flow in one structured register.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            newAdvance: 'New Advance',
+            createAdvance: 'Create Advance',
+            updateAdvance: 'Update Advance',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            printVoucher: 'Print Voucher',
+            approve: 'Approve',
+            rejectToDraft: 'Reject to Draft',
+        },
+        summary: {
+            totalAdvances: 'Total Advances',
+            outstandingBalance: 'Outstanding Balance',
+            submitted: 'Submitted',
+            approved: 'Approved',
+        },
+        records: {
+            title: 'Advance Records',
+            description:
+                'Recent employee advances with table search, filters, actions, and 10 rows per page.',
+            searchPlaceholder:
+                'Search by employee, date, reason, repayment method, or status...',
+        },
+        filters: {
+            employee: 'Employee',
+            branch: 'Branch',
+            status: 'Status',
+            repayment: 'Repayment',
+            allEmployees: 'All Employees',
+            allBranches: 'All Branches',
+            allStatuses: 'All Statuses',
+            allRepaymentMethods: 'All Repayment Methods',
+            searchEmployees: 'Search employees...',
+            searchBranches: 'Search branches...',
+            searchStatuses: 'Search statuses...',
+            searchRepaymentMethods: 'Search repayment methods...',
+            noEmployeeFound: 'No employee found.',
+            noBranchFound: 'No branch found.',
+            noStatusFound: 'No status found.',
+            noMethodFound: 'No method found.',
+        },
+        table: {
+            employee: 'Employee',
+            date: 'Date',
+            reason: 'Reason',
+            amount: 'Amount',
+            deducted: 'Deducted',
+            remaining: 'Remaining',
+            repaymentMethod: 'Repayment Method',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Employee Advance',
+            editTitle: 'Edit Employee Advance',
+            description:
+                'Record an employee takeout and keep it ready for salary deduction or settlement later.',
+            employee: 'Employee',
+            selectEmployee: 'Select employee',
+            branch: 'Branch',
+            selectBranch: 'Select branch',
+            advanceDate: 'Advance Date',
+            amount: 'Amount',
+            repaymentMethod: 'Repayment Method',
+            selectRepaymentMethod: 'Select repayment method',
+            status: 'Status',
+            selectStatus: 'Select status',
+            reason: 'Reason',
+            reasonPlaceholder:
+                'Advance for travel, emergency support, or another approved reason.',
+        },
+        voucher: {
+            printTitle: 'Employee Advance Voucher Print',
+            printDescription:
+                'Review this advance voucher, then print it for manager review and signature.',
+        },
+        statuses: {
+            draft: 'Draft',
+            submitted: 'Submitted',
+            approved: 'Approved',
+        },
+        repaymentMethods: {
+            salary_deduction: 'Salary Deduction',
+            cash_return: 'Cash Return',
+            manual_settlement: 'Manual Settlement',
+        },
+        toasts: {
+            saveFailed: 'Failed to save employee advance.',
+        },
+    },
+    financeCashBank: {
+        pageTitle: 'Cash & Bank',
+        heading: {
+            title: 'Cash & Bank Movements',
+            description:
+                'Record owner funding, cash to bank movements, and petty cash top-ups with branch-level control.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            movementTypes: 'Movement Types',
+            newMovement: 'New Movement',
+            updateMovement: 'Update Movement',
+            saveMovement: 'Save Movement',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            printVoucher: 'Print Voucher',
+            approve: 'Approve',
+            reject: 'Reject',
+        },
+        register: {
+            title: 'Cash & Bank Register',
+            description:
+                'Add cash in hand funding, bank funding, and transfers to petty cash or other branches.',
+            searchPlaceholder:
+                'Search movement type, branch, account, method, or status...',
+        },
+        filters: {
+            status: 'Status',
+            branch: 'Branch',
+            allStatuses: 'All Statuses',
+            allBranches: 'All Branches',
+            searchStatuses: 'Search statuses...',
+            searchBranches: 'Search branches...',
+            noStatusFound: 'No status found.',
+            noBranchFound: 'No branch found.',
+        },
+        table: {
+            date: 'Date',
+            movement: 'Movement',
+            branch: 'Branch',
+            account: 'Account',
+            counterparty: 'Counterparty',
+            direction: 'Direction',
+            paymentMethod: 'Payment Method',
+            amount: 'Amount',
+            attachment: 'Attachment',
+            view: 'View',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Cash Movement',
+            editTitle: 'Edit Cash Movement',
+            description:
+                'Use this to add owner funding and transfer amounts between cash, bank, and petty cash accounts.',
+            movementType: 'Movement Type',
+            selectMovementType: 'Select movement type',
+            searchMovementTypes: 'Search movement types...',
+            noMovementTypeFound: 'No movement type found.',
+            paymentMethod: 'Payment Method',
+            selectPaymentMethod: 'Select payment method',
+            searchPaymentMethods: 'Search payment methods...',
+            noPaymentMethodFound: 'No payment method found.',
+            sourceBranch: 'Source Branch',
+            selectSourceBranch: 'Select source branch',
+            destinationBranch: 'Destination Branch',
+            selectDestinationBranch: 'Select destination branch',
+            sourceAccount: 'Source Account',
+            selectSourceAccount: 'Select source account',
+            searchSourceAccounts: 'Search source accounts...',
+            targetAccount: 'Target Account',
+            selectTargetAccount: 'Select target account',
+            searchTargetAccounts: 'Search target accounts...',
+            noAccountFound: 'No account found.',
+            direction: 'Direction',
+            selectDirection: 'Select direction',
+            searchDirections: 'Search directions...',
+            noDirectionFound: 'No direction found.',
+            amount: 'Amount',
+            movementDate: 'Movement Date',
+            approvalStatus: 'Approval Status',
+            selectApprovalStatus: 'Select approval status',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Owner funded start-up cash, then transferred part to petty cash.',
+            receiptAttachment: 'Bill / Receipt Attachment',
+            replaceCurrentReceipt: 'Replace current receipt',
+            uploadReceipt: 'Upload receipt (JPG, PNG, PDF)',
+            browseFiles: 'Click to browse files (max 5MB)',
+        },
+        approval: {
+            title: 'Review Cash Movement',
+            description:
+                'Confirm whether you want to approve this movement or send it back to draft for correction.',
+        },
+        voucher: {
+            printTitle: 'Cash / Bank Voucher Print',
+            printDescription:
+                'Review this voucher, then print it for manager signature.',
+        },
+        statuses: {
+            draft: 'Draft',
+            submitted: 'Submitted',
+            approved: 'Approved',
+        },
+        directions: {
+            in: 'Inflow',
+            out: 'Outflow',
+        },
+        attachmentTitle: 'Cash / Bank Attachment',
+        toasts: {
+            saveFailed: 'Failed to save cash movement.',
+        },
+    },
+    financeCashMovementTypes: {
+        metaTitle: 'Cash Movement Types',
+        pageTitle: 'Movement Types',
+        heading: {
+            title: 'Movement Types',
+            description:
+                'Manage movement types used by New Movement in the cash and bank section.',
+        },
+        actions: {
+            backToCashBank: 'Back to Cash & Bank',
+            newMovementType: 'New Movement Type',
+            createType: 'Create Type',
+            updateType: 'Update Type',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            delete: 'Delete',
+        },
+        register: {
+            title: 'Cash Movement Types',
+            description:
+                'Data-table based management for available movement types, their default direction, and transfer behavior.',
+            searchPlaceholder:
+                'Search movement type, slug, direction, or description...',
+        },
+        filters: {
+            status: 'Status',
+            allStatuses: 'All Statuses',
+            searchStatuses: 'Search statuses...',
+            noStatusFound: 'No status found.',
+        },
+        table: {
+            name: 'Name',
+            slug: 'Slug',
+            defaultDirection: 'Default Direction',
+            needsTarget: 'Needs Target',
+            sort: 'Sort',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Movement Type',
+            editTitle: 'Edit Movement Type',
+            description:
+                'Configure name, slug, direction behavior, and whether this type needs a target account.',
+            name: 'Name',
+            namePlaceholder: 'Owner Deposit',
+            slug: 'Slug',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'Default Direction',
+            selectDirection: 'Select direction',
+            searchDirections: 'Search directions...',
+            noDirectionFound: 'No direction found.',
+            searchMovementTypes: 'Search movement types...',
+            requiresTargetAccount:
+                'Requires target account (transfer-style movement)',
+            activeInNewMovement: 'Active and available in New Movement',
+            sortOrder: 'Sort Order',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Use for owner funding, transfer, or adjustment movements.',
+        },
+        delete: {
+            title: 'Delete Movement Type',
+            description:
+                'This will permanently remove the selected movement type.',
+            reassignBeforeDeleting:
+                'This movement type is already assigned to cash movement records. Reassign those records before deleting it.',
+            movementRecordsWillBeMoved:
+                ':count movement records will be moved to another type.',
+            noMovementRecords:
+                'No cash movement records are currently assigned to this type.',
+            replacementMovementType: 'Replacement Movement Type',
+            selectReplacementMovementType:
+                'Select replacement movement type',
+            noReplacementMovementTypeFound:
+                'No replacement movement type found.',
+            createAnotherMovementType:
+                'Create another movement type before deleting this one.',
+        },
+        directions: {
+            flexible: 'Flexible',
+            in: 'Inflow',
+            out: 'Outflow',
+        },
+        statuses: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+        common: {
+            yes: 'Yes',
+            no: 'No',
         },
     },
     orders: {

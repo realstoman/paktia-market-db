@@ -1,5 +1,6 @@
 import { ExpenseClient } from '@/components/tables/expenses/client';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     BreadcrumbItem,
@@ -9,12 +10,6 @@ import {
     Vendor,
 } from '@/types';
 import { Head } from '@inertiajs/react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'Expenses', href: '/finance/expenses' },
-];
 
 interface ExpensesPageProps {
     expenses: Expense[];
@@ -35,9 +30,19 @@ export default function ExpensesPage({
     paidFromAccounts,
     printExpenseId,
 }: ExpensesPageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t('financeExpenses.pageTitle', 'Expenses'),
+            href: '/finance/expenses',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Expenses" />
+            <Head title={t('financeExpenses.pageTitle', 'Expenses')} />
             <ExpenseClient
                 expenses={expenses}
                 branches={branches}

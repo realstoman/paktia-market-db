@@ -8,6 +8,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useLocalization } from '@/lib/localization';
 import { ExpenseCategory } from '@/types';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 
@@ -24,24 +25,39 @@ export function CellAction({
     onDelete,
     canDelete,
 }: CellActionProps) {
+    const { t } = useLocalization();
+
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
+                    <span className="sr-only">
+                        {t(
+                            'financeExpenseCategories.actions.openMenu',
+                            'Open menu',
+                        )}
+                    </span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                    {t(
+                        'financeExpenseCategories.actions.title',
+                        'Actions',
+                    )}
+                </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => onEdit(data)}>
                     <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                    {t('financeExpenseCategories.actions.edit', 'Edit')}
                 </DropdownMenuItem>
                 {canDelete ? (
                     <DropdownMenuItem onClick={() => onDelete(data)}>
                         <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                        {t(
+                            'financeExpenseCategories.actions.delete',
+                            'Delete',
+                        )}
                     </DropdownMenuItem>
                 ) : null}
             </DropdownMenuContent>

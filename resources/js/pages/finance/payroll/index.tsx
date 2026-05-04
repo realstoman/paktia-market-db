@@ -1,5 +1,6 @@
 import { PayrollClient } from '@/components/tables/payroll/client';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import {
     Branch,
     BreadcrumbItem,
@@ -8,12 +9,6 @@ import {
     PayrollRun,
 } from '@/types';
 import { Head } from '@inertiajs/react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'Payroll', href: '/finance/payroll' },
-];
 
 interface PayrollPageProps {
     runs: PayrollRun[];
@@ -56,9 +51,19 @@ export default function PayrollPage({
     canPay,
     summary,
 }: PayrollPageProps) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t('financePayroll.pageTitle', 'Payroll'),
+            href: '/finance/payroll',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Payroll" />
+            <Head title={t('financePayroll.pageTitle', 'Payroll')} />
             <PayrollClient
                 runs={runs}
                 contracts={contracts}

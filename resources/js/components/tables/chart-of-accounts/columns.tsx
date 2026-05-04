@@ -20,18 +20,20 @@ interface BuildColumnsProps {
     onEdit: (account: FinanceAccount) => void;
     onDelete: (account: FinanceAccount) => void;
     canDelete: boolean;
+    t: (key: string, fallback?: string) => string;
 }
 
 export function buildColumns({
     onEdit,
     onDelete,
     canDelete,
+    t,
 }: BuildColumnsProps): ColumnDef<FinanceAccount>[] {
     return [
         {
             id: 'code',
             accessorKey: 'code',
-            header: 'Code',
+            header: t('financeChartOfAccounts.table.code', 'Code'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">{row.original.code}</p>
@@ -45,37 +47,42 @@ export function buildColumns({
         },
         {
             accessorKey: 'name',
-            header: 'Account Name',
+            header: t('financeChartOfAccounts.table.accountName', 'Account Name'),
         },
         {
             accessorKey: 'type',
-            header: 'Type',
+            header: t('financeChartOfAccounts.table.type', 'Type'),
             cell: ({ row }) => typeLabel(row.original.type),
         },
         {
             id: 'parent.name',
             accessorFn: (row) =>
                 row.parent ? `${row.parent.code} - ${row.parent.name}` : '-',
-            header: 'Parent Account',
+            header: t(
+                'financeChartOfAccounts.table.parentAccount',
+                'Parent Account',
+            ),
         },
         {
             id: 'branch.name',
-            accessorFn: (row) => row.branch?.name ?? 'All Branches',
-            header: 'Branch',
+            accessorFn: (row) =>
+                row.branch?.name ??
+                t('financeChartOfAccounts.filters.allBranches', 'All Branches'),
+            header: t('financeChartOfAccounts.table.branch', 'Branch'),
         },
         {
             accessorKey: 'currency_code',
-            header: 'Currency',
+            header: t('financeChartOfAccounts.table.currency', 'Currency'),
             cell: ({ row }) => row.original.currency_code ?? '-',
         },
         {
             accessorKey: 'is_postable',
-            header: 'Postable',
+            header: t('financeChartOfAccounts.table.postable', 'Postable'),
             cell: ({ row }) => (row.original.is_postable ? 'Yes' : 'No'),
         },
         {
             accessorKey: 'status',
-            header: 'Status',
+            header: t('financeChartOfAccounts.table.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(
@@ -88,7 +95,7 @@ export function buildColumns({
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financeChartOfAccounts.table.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

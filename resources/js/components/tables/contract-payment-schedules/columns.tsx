@@ -16,6 +16,7 @@ function statusTone(status?: string) {
 }
 
 interface BuildColumnsProps {
+    t: (key: string, fallback?: string) => string;
     onEdit: (schedule: EmployeeContractPaymentSchedule) => void;
     onDelete: (schedule: EmployeeContractPaymentSchedule) => void;
     onPrint: (schedule: EmployeeContractPaymentSchedule) => void;
@@ -26,6 +27,7 @@ interface BuildColumnsProps {
 }
 
 export function buildColumns({
+    t,
     onEdit,
     onDelete,
     onPrint,
@@ -41,7 +43,7 @@ export function buildColumns({
                 row.contract?.employee?.full_name ||
                 `${row.contract?.employee?.first_name ?? ''} ${row.contract?.employee?.last_name ?? ''}`.trim() ||
                 `Employee #${row.contract?.employee_id ?? '-'}`,
-            header: 'Employee',
+            header: t('financePayroll.scheduleTable.employee', 'Employee'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
@@ -50,7 +52,11 @@ export function buildColumns({
                             `Employee #${row.original.contract?.employee_id ?? '-'}`}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {row.original.contract?.branch?.name ?? 'All Branches'}
+                        {row.original.contract?.branch?.name ??
+                            t(
+                                'financePayroll.filters.allBranches',
+                                'All Branches',
+                            )}
                     </p>
                 </div>
             ),
@@ -58,16 +64,20 @@ export function buildColumns({
         {
             id: 'due_date',
             accessorFn: (row) => row.due_date,
-            header: 'Due Date',
+            header: t('financePayroll.scheduleTable.dueDate', 'Due Date'),
         },
         {
             id: 'title',
             accessorFn: (row) => row.title ?? '-',
-            header: 'Title',
+            header: t('financePayroll.scheduleTable.title', 'Title'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
-                        {row.original.title ?? 'Contract Schedule'}
+                        {row.original.title ??
+                            t(
+                                'financePayroll.scheduleTable.contractSchedule',
+                                'Contract Schedule',
+                            )}
                     </p>
                     <p className="text-xs text-muted-foreground">
                         {row.original.contract?.payment_plan_type?.replaceAll(
@@ -90,13 +100,13 @@ export function buildColumns({
         {
             id: 'amount',
             accessorFn: (row) => Number(row.amount ?? 0),
-            header: 'Amount',
+            header: t('financePayroll.scheduleTable.amount', 'Amount'),
             cell: ({ row }) => formatAfn(row.original.amount),
         },
         {
             id: 'attachment',
             accessorFn: (row) => row.attachment_path ?? '',
-            header: 'Attachment',
+            header: t('financePayroll.scheduleTable.attachment', 'Attachment'),
             cell: ({ row }) =>
                 row.original.attachment_path ? (
                     <button
@@ -104,31 +114,34 @@ export function buildColumns({
                         onClick={() => onViewAttachment(row.original)}
                         className="text-sm font-medium text-sky-700 hover:underline dark:text-sky-300"
                     >
-                        View
+                        {t('financePayroll.scheduleTable.view', 'View')}
                     </button>
                 ) : (
                     <span className="text-sm text-muted-foreground">
-                        No file
+                        {t('financePayroll.scheduleTable.noFile', 'No file')}
                     </span>
                 ),
         },
         {
             id: 'status',
             accessorFn: (row) => row.status,
-            header: 'Status',
+            header: t('financePayroll.scheduleTable.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(
                         row.original.status,
                     )}`}
                 >
-                    {row.original.status}
+                    {t(
+                        `financePayroll.statuses.${row.original.status}`,
+                        row.original.status,
+                    )}
                 </span>
             ),
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financePayroll.scheduleTable.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

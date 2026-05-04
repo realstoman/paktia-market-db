@@ -16,6 +16,7 @@ function statusTone(status?: string) {
 }
 
 interface BuildColumnsProps {
+    t: (key: string, fallback?: string) => string;
     onEdit: (contract: EmployeeContract) => void;
     onDelete: (contract: EmployeeContract) => void;
     onPrint: (contract: EmployeeContract) => void;
@@ -23,6 +24,7 @@ interface BuildColumnsProps {
 }
 
 export function buildColumns({
+    t,
     onEdit,
     onDelete,
     onPrint,
@@ -35,7 +37,7 @@ export function buildColumns({
                 row.employee?.full_name ||
                 `${row.employee?.first_name ?? ''} ${row.employee?.last_name ?? ''}`.trim() ||
                 `Employee #${row.employee_id}`,
-            header: 'Employee',
+            header: t('financePayroll.contractTable.employee', 'Employee'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
@@ -44,7 +46,11 @@ export function buildColumns({
                             `Employee #${row.original.employee_id}`}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {row.original.branch?.name ?? 'All Branches'}
+                        {row.original.branch?.name ??
+                            t(
+                                'financePayroll.filters.allBranches',
+                                'All Branches',
+                            )}
                     </p>
                 </div>
             ),
@@ -52,12 +58,16 @@ export function buildColumns({
         {
             id: 'period',
             accessorFn: (row) => `${row.start_date} ${row.end_date ?? ''}`,
-            header: 'Period',
+            header: t('financePayroll.contractTable.period', 'Period'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">{row.original.start_date}</p>
                     <p className="text-xs text-muted-foreground">
-                        {row.original.end_date ?? 'Open ended'}
+                        {row.original.end_date ??
+                            t(
+                                'financePayroll.contractTable.openEnded',
+                                'Open ended',
+                            )}
                     </p>
                 </div>
             ),
@@ -65,7 +75,7 @@ export function buildColumns({
         {
             id: 'payment_plan_type',
             accessorFn: (row) => row.payment_plan_type,
-            header: 'Plan Type',
+            header: t('financePayroll.contractTable.planType', 'Plan Type'),
             cell: ({ row }) => (
                 <div>
                     <p className="font-medium">
@@ -73,8 +83,11 @@ export function buildColumns({
                     </p>
                     <p className="text-xs text-muted-foreground">
                         {row.original.installment_count
-                            ? `${formatNumber(row.original.installment_count)} installments`
-                            : 'Custom count'}
+                            ? `${formatNumber(row.original.installment_count)} ${t('financePayroll.contractTable.installments', 'installments')}`
+                            : t(
+                                  'financePayroll.contractTable.customCount',
+                                  'Custom count',
+                              )}
                     </p>
                 </div>
             ),
@@ -82,13 +95,16 @@ export function buildColumns({
         {
             id: 'contract_amount',
             accessorFn: (row) => Number(row.contract_amount ?? 0),
-            header: 'Contract Amount',
+            header: t(
+                'financePayroll.contractTable.contractAmount',
+                'Contract Amount',
+            ),
             cell: ({ row }) => formatAfn(row.original.contract_amount),
         },
         {
             id: 'schedule_count',
             accessorFn: (row) => Number(row.schedules?.length ?? 0),
-            header: 'Schedules',
+            header: t('financePayroll.contractTable.schedules', 'Schedules'),
             cell: ({ row }) =>
                 formatNumber(row.original.schedules?.length ?? 0),
         },
@@ -96,21 +112,26 @@ export function buildColumns({
             id: 'payment_progress',
             accessorFn: (row) =>
                 `${row.paid_total ?? 0}-${row.unpaid_total ?? 0}`,
-            header: 'Paid / Unpaid',
+            header: t(
+                'financePayroll.contractTable.paidUnpaid',
+                'Paid / Unpaid',
+            ),
             cell: ({ row }) => (
                 <div>
                     <p className="text-xs text-muted-foreground">
-                        Scheduled{' '}
+                        {t('financePayroll.contractTable.scheduled', 'Scheduled')}{' '}
                         {formatAfn(
                             row.original.scheduled_total ??
                                 row.original.contract_amount,
                         )}
                     </p>
                     <p className="font-medium text-emerald-700 dark:text-emerald-300">
-                        Paid {formatAfn(row.original.paid_total ?? 0)}
+                        {t('financePayroll.contractTable.paid', 'Paid')}{' '}
+                        {formatAfn(row.original.paid_total ?? 0)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        Unpaid {formatAfn(row.original.unpaid_total ?? 0)}
+                        {t('financePayroll.contractTable.unpaid', 'Unpaid')}{' '}
+                        {formatAfn(row.original.unpaid_total ?? 0)}
                     </p>
                 </div>
             ),
@@ -118,20 +139,23 @@ export function buildColumns({
         {
             id: 'status',
             accessorFn: (row) => row.status,
-            header: 'Status',
+            header: t('financePayroll.contractTable.status', 'Status'),
             cell: ({ row }) => (
                 <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(
                         row.original.status,
                     )}`}
                 >
-                    {row.original.status}
+                    {t(
+                        `financePayroll.statuses.${row.original.status}`,
+                        row.original.status,
+                    )}
                 </span>
             ),
         },
         {
             id: 'actions',
-            header: 'Actions',
+            header: t('financePayroll.contractTable.actions', 'Actions'),
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}

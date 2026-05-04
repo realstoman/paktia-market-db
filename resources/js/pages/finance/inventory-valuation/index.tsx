@@ -10,6 +10,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { Branch, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
@@ -22,20 +23,6 @@ import {
     Wallet,
 } from 'lucide-react';
 import React from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Finance', href: '/finance' },
-    { title: 'Inventory Valuation', href: '/finance/inventory-valuation' },
-];
-
-const RANGE_OPTIONS = [
-    { value: 'today', label: 'Today' },
-    { value: 'yesterday', label: 'Yesterday' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'this_month', label: 'This Month' },
-    { value: 'custom', label: 'Custom' },
-] as const;
 
 interface InventoryValuationFilters {
     range: string;
@@ -161,6 +148,7 @@ export default function InventoryValuationPage({
     movementEntries,
     pagination,
 }: InventoryValuationPageProps) {
+    const { t } = useLocalization();
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
@@ -179,6 +167,50 @@ export default function InventoryValuationPage({
         () => buildPageNumbers(pagination.currentPage, pagination.lastPage),
         [pagination.currentPage, pagination.lastPage],
     );
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('common.dashboard', 'Dashboard'), href: '/dashboard' },
+        { title: t('navigation.finance', 'Finance'), href: '/finance' },
+        {
+            title: t(
+                'financeInventoryValuation.pageTitle',
+                'Inventory Valuation',
+            ),
+            href: '/finance/inventory-valuation',
+        },
+    ];
+
+    const rangeOptions = [
+        {
+            value: 'today',
+            label: t('financeInventoryValuation.ranges.today', 'Today'),
+        },
+        {
+            value: 'yesterday',
+            label: t(
+                'financeInventoryValuation.ranges.yesterday',
+                'Yesterday',
+            ),
+        },
+        {
+            value: 'this_week',
+            label: t(
+                'financeInventoryValuation.ranges.thisWeek',
+                'This Week',
+            ),
+        },
+        {
+            value: 'this_month',
+            label: t(
+                'financeInventoryValuation.ranges.thisMonth',
+                'This Month',
+            ),
+        },
+        {
+            value: 'custom',
+            label: t('financeInventoryValuation.ranges.custom', 'Custom'),
+        },
+    ] as const;
 
     const goToPage = (page: number) => {
         const params: Record<string, string> = {
@@ -206,42 +238,66 @@ export default function InventoryValuationPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Inventory Valuation" />
+            <Head
+                title={t(
+                    'financeInventoryValuation.pageTitle',
+                    'Inventory Valuation',
+                )}
+            />
 
             <div className="space-y-6 py-2">
                 <section className="rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f5f8f2_0%,#ffffff_55%,#edf7ef_100%)] p-6 dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#111827_0%,#10211a_55%,#0f172a_100%)]">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div className="space-y-2">
                             <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                Finance Module
+                                {t(
+                                    'financeInventoryValuation.hero.eyebrow',
+                                    'Finance Module',
+                                )}
                             </p>
                             <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 dark:text-neutral-50">
-                                Inventory Valuation
+                                {t(
+                                    'financeInventoryValuation.hero.title',
+                                    'Inventory Valuation',
+                                )}
                             </h1>
                             <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
-                                This page shows what the restaurant stock is
-                                worth, how much value moved into kitchen usage,
-                                what has been adjusted, and how inventory costs
-                                are affecting finance.
+                                {t(
+                                    'financeInventoryValuation.hero.description',
+                                    'This page shows what the restaurant stock is worth, how much value moved into kitchen usage, what has been adjusted, and how inventory costs are affecting finance.',
+                                )}
                             </p>
                         </div>
 
                         <Button variant="outline" asChild>
-                            <Link href="/finance">Back to Finance</Link>
+                            <Link href="/finance">
+                                {t(
+                                    'financeInventoryValuation.actions.backToFinance',
+                                    'Back to Finance',
+                                )}
+                            </Link>
                         </Button>
                     </div>
                 </section>
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader>
-                        <CardTitle>Filters</CardTitle>
+                        <CardTitle>
+                            {t(
+                                'financeInventoryValuation.filters.title',
+                                'Filters',
+                            )}
+                        </CardTitle>
                         <CardDescription>
-                            Review valuation by period and branch.
+                            {t(
+                                'financeInventoryValuation.filters.description',
+                                'Review valuation by period and branch.',
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-2">
-                            {RANGE_OPTIONS.map((option) => (
+                            {rangeOptions.map((option) => (
                                 <Button
                                     key={option.value}
                                     variant={
@@ -272,7 +328,10 @@ export default function InventoryValuationPage({
                                 <>
                                     <div className="grid gap-2">
                                         <label className="text-sm font-medium">
-                                            Start Date
+                                            {t(
+                                                'financeInventoryValuation.filters.startDate',
+                                                'Start Date',
+                                            )}
                                         </label>
                                         <input
                                             type="date"
@@ -285,7 +344,10 @@ export default function InventoryValuationPage({
                                     </div>
                                     <div className="grid gap-2">
                                         <label className="text-sm font-medium">
-                                            End Date
+                                            {t(
+                                                'financeInventoryValuation.filters.endDate',
+                                                'End Date',
+                                            )}
                                         </label>
                                         <input
                                             type="date"
@@ -301,12 +363,21 @@ export default function InventoryValuationPage({
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
-                                    Branch
+                                    {t(
+                                        'financeInventoryValuation.filters.branch',
+                                        'Branch',
+                                    )}
                                 </label>
                                 <SearchableDropdown
                                     value={branchId || 'all'}
                                     options={[
-                                        { value: 'all', label: 'All Branches' },
+                                        {
+                                            value: 'all',
+                                            label: t(
+                                                'financeInventoryValuation.filters.allBranches',
+                                                'All Branches',
+                                            ),
+                                        },
                                         ...branches.map((branch) => ({
                                             value: String(branch.id),
                                             label: branch.name,
@@ -317,9 +388,18 @@ export default function InventoryValuationPage({
                                             value === 'all' ? '' : value,
                                         )
                                     }
-                                    placeholder="Select branch"
-                                    searchPlaceholder="Search branches..."
-                                    emptyText="No branch found."
+                                    placeholder={t(
+                                        'financeInventoryValuation.filters.selectBranch',
+                                        'Select branch',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeInventoryValuation.filters.searchBranches',
+                                        'Search branches...',
+                                    )}
+                                    emptyText={t(
+                                        'financeInventoryValuation.filters.noBranchFound',
+                                        'No branch found.',
+                                    )}
                                 />
                             </div>
                         </div>
@@ -335,7 +415,10 @@ export default function InventoryValuationPage({
                                     })
                                 }
                             >
-                                Apply Filters
+                                {t(
+                                    'financeInventoryValuation.actions.applyFilters',
+                                    'Apply Filters',
+                                )}
                             </Button>
                         </div>
                     </CardContent>
@@ -346,13 +429,19 @@ export default function InventoryValuationPage({
                         <CardContent className="flex items-start justify-between p-5">
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                    Inventory Value
+                                    {t(
+                                        'financeInventoryValuation.summary.inventoryValue',
+                                        'Inventory Value',
+                                    )}
                                 </p>
                                 <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatAfn(summary.inventoryValue)}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Current stock value across selected branches
+                                    {t(
+                                        'financeInventoryValuation.summary.inventoryValueDescription',
+                                        'Current stock value across selected branches',
+                                    )}
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -365,14 +454,22 @@ export default function InventoryValuationPage({
                         <CardContent className="flex items-start justify-between p-5">
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                    Stock on Hand
+                                    {t(
+                                        'financeInventoryValuation.summary.stockOnHand',
+                                        'Stock on Hand',
+                                    )}
                                 </p>
                                 <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatNumber(summary.stockQuantity)}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Across {formatNumber(summary.stockItems)}{' '}
-                                    inventory items
+                                    {t(
+                                        'financeInventoryValuation.summary.stockOnHandDescription',
+                                        'Across :count inventory items',
+                                    ).replace(
+                                        ':count',
+                                        formatNumber(summary.stockItems),
+                                    )}
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -385,14 +482,19 @@ export default function InventoryValuationPage({
                         <CardContent className="flex items-start justify-between p-5">
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                    COGS / Usage
+                                    {t(
+                                        'financeInventoryValuation.summary.cogs',
+                                        'COGS / Usage',
+                                    )}
                                 </p>
                                 <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatAfn(summary.cogs)}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Estimated value moved into usage in this
-                                    period
+                                    {t(
+                                        'financeInventoryValuation.summary.cogsDescription',
+                                        'Estimated value moved into usage in this period',
+                                    )}
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -405,7 +507,10 @@ export default function InventoryValuationPage({
                         <CardContent className="flex items-start justify-between p-5">
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
-                                    Adjustments Net
+                                    {t(
+                                        'financeInventoryValuation.summary.adjustmentsNet',
+                                        'Adjustments Net',
+                                    )}
                                 </p>
                                 <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
                                     {formatAfn(
@@ -414,8 +519,18 @@ export default function InventoryValuationPage({
                                     )}
                                 </p>
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    In: {formatAfn(summary.adjustmentIn)} | Out:{' '}
-                                    {formatAfn(summary.adjustmentOut)}
+                                    {t(
+                                        'financeInventoryValuation.summary.adjustmentsNetDescription',
+                                        'In: :in | Out: :out',
+                                    )
+                                        .replace(
+                                            ':in',
+                                            formatAfn(summary.adjustmentIn),
+                                        )
+                                        .replace(
+                                            ':out',
+                                            formatAfn(summary.adjustmentOut),
+                                        )}
                                 </p>
                             </div>
                             <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
@@ -428,10 +543,17 @@ export default function InventoryValuationPage({
                 <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Valuation by Item</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeInventoryValuation.valuation.title',
+                                    'Valuation by Item',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Weighted or estimated average cost per inventory
-                                item and current stock value.
+                                {t(
+                                    'financeInventoryValuation.valuation.description',
+                                    'Weighted or estimated average cost per inventory item and current stock value.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -446,13 +568,26 @@ export default function InventoryValuationPage({
                                                 {item.name}
                                             </p>
                                             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                                {item.branch} | Vendor:{' '}
-                                                {item.vendor}
+                                                {t(
+                                                    'financeInventoryValuation.valuation.branchVendor',
+                                                    ':branch | Vendor: :vendor',
+                                                )
+                                                    .replace(
+                                                        ':branch',
+                                                        item.branch,
+                                                    )
+                                                    .replace(
+                                                        ':vendor',
+                                                        item.vendor,
+                                                    )}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                                Quantity
+                                                {t(
+                                                    'financeInventoryValuation.valuation.quantity',
+                                                    'Quantity',
+                                                )}
                                             </p>
                                             <p className="mt-1 font-medium">
                                                 {formatNumber(item.quantity)}{' '}
@@ -461,7 +596,10 @@ export default function InventoryValuationPage({
                                         </div>
                                         <div>
                                             <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                                Avg Cost
+                                                {t(
+                                                    'financeInventoryValuation.valuation.avgCost',
+                                                    'Avg Cost',
+                                                )}
                                             </p>
                                             <p className="mt-1 font-medium">
                                                 {item.currencySymbol}{' '}
@@ -470,7 +608,10 @@ export default function InventoryValuationPage({
                                         </div>
                                         <div>
                                             <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                                Stock Value
+                                                {t(
+                                                    'financeInventoryValuation.valuation.stockValue',
+                                                    'Stock Value',
+                                                )}
                                             </p>
                                             <p className="mt-1 font-semibold text-neutral-950 dark:text-neutral-50">
                                                 {formatAfn(item.stockValue)}
@@ -480,8 +621,10 @@ export default function InventoryValuationPage({
                                 ))
                             ) : (
                                 <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                    No inventory valuation items were found for
-                                    the selected branch.
+                                    {t(
+                                        'financeInventoryValuation.valuation.empty',
+                                        'No inventory valuation items were found for the selected branch.',
+                                    )}
                                 </div>
                             )}
                         </CardContent>
@@ -489,43 +632,62 @@ export default function InventoryValuationPage({
 
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                         <CardHeader>
-                            <CardTitle>Cost Sections</CardTitle>
+                            <CardTitle>
+                                {t(
+                                    'financeInventoryValuation.costSections.title',
+                                    'Cost Sections',
+                                )}
+                            </CardTitle>
                             <CardDescription>
-                                Finance view of consumption, wastage, and
-                                adjustments in the selected period.
+                                {t(
+                                    'financeInventoryValuation.costSections.description',
+                                    'Finance view of consumption, wastage, and adjustments in the selected period.',
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
                                 <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                    COGS / Usage
+                                    {t(
+                                        'financeInventoryValuation.costSections.cogs',
+                                        'COGS / Usage',
+                                    )}
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
                                     {formatAfn(summary.cogs)}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    Based on `usage_cycle` and any future
-                                    `issue` or `consumed` transactions.
+                                    {t(
+                                        'financeInventoryValuation.costSections.cogsDescription',
+                                        'Based on `usage_cycle` and any future `issue` or `consumed` transactions.',
+                                    )}
                                 </p>
                             </div>
 
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
                                 <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                    Wastage / Spoilage
+                                    {t(
+                                        'financeInventoryValuation.costSections.wastage',
+                                        'Wastage / Spoilage',
+                                    )}
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
                                     {formatAfn(summary.wastage)}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    This stays zero until wastage transactions
-                                    are added explicitly into the inventory
-                                    flow.
+                                    {t(
+                                        'financeInventoryValuation.costSections.wastageDescription',
+                                        'This stays zero until wastage transactions are added explicitly into the inventory flow.',
+                                    )}
                                 </p>
                             </div>
 
                             <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-950/40">
                                 <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                    Adjustments
+                                    {t(
+                                        'financeInventoryValuation.costSections.adjustments',
+                                        'Adjustments',
+                                    )}
                                 </p>
                                 <p className="mt-2 text-2xl font-semibold">
                                     {formatAfn(
@@ -534,10 +696,18 @@ export default function InventoryValuationPage({
                                     )}
                                 </p>
                                 <p className="mt-2 text-sm text-neutral-500">
-                                    Positive adjustments:{' '}
-                                    {formatAfn(summary.adjustmentIn)} | Negative
-                                    adjustments:{' '}
-                                    {formatAfn(summary.adjustmentOut)}
+                                    {t(
+                                        'financeInventoryValuation.costSections.adjustmentsDescription',
+                                        'Positive adjustments: :in | Negative adjustments: :out',
+                                    )
+                                        .replace(
+                                            ':in',
+                                            formatAfn(summary.adjustmentIn),
+                                        )
+                                        .replace(
+                                            ':out',
+                                            formatAfn(summary.adjustmentOut),
+                                        )}
                                 </p>
                             </div>
                         </CardContent>
@@ -546,11 +716,34 @@ export default function InventoryValuationPage({
 
                 <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
                     <CardHeader>
-                        <CardTitle>Movement History</CardTitle>
+                        <CardTitle>
+                            {t(
+                                'financeInventoryValuation.movements.title',
+                                'Movement History',
+                            )}
+                        </CardTitle>
                         <CardDescription>
-                            Inventory finance movements and cost impact history.
+                            {t(
+                                'financeInventoryValuation.movements.description',
+                                'Inventory finance movements and cost impact history.',
+                            )}
                             {pagination.total > 0
-                                ? ` Showing ${pagination.from} to ${pagination.to} of ${pagination.total} movements.`
+                                ? ` ${t(
+                                      'financeInventoryValuation.movements.showing',
+                                      'Showing :from to :to of :total movements.',
+                                  )
+                                      .replace(
+                                          ':from',
+                                          String(pagination.from ?? ''),
+                                      )
+                                      .replace(
+                                          ':to',
+                                          String(pagination.to ?? ''),
+                                      )
+                                      .replace(
+                                          ':total',
+                                          String(pagination.total),
+                                      )}`
                                 : ''}
                         </CardDescription>
                     </CardHeader>
@@ -563,7 +756,10 @@ export default function InventoryValuationPage({
                                 >
                                     <div>
                                         <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                            Date
+                                            {t(
+                                                'financeInventoryValuation.movements.date',
+                                                'Date',
+                                            )}
                                         </p>
                                         <p className="mt-1 font-medium">
                                             {entry.date}
@@ -571,7 +767,10 @@ export default function InventoryValuationPage({
                                     </div>
                                     <div>
                                         <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                            Action
+                                            {t(
+                                                'financeInventoryValuation.movements.action',
+                                                'Action',
+                                            )}
                                         </p>
                                         <p className="mt-1 font-medium">
                                             {entry.action}
@@ -592,7 +791,10 @@ export default function InventoryValuationPage({
                                     </div>
                                     <div>
                                         <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                            Quantity
+                                            {t(
+                                                'financeInventoryValuation.movements.quantity',
+                                                'Quantity',
+                                            )}
                                         </p>
                                         <p className="mt-1 font-medium">
                                             {formatNumber(entry.quantity)}{' '}
@@ -601,7 +803,10 @@ export default function InventoryValuationPage({
                                     </div>
                                     <div>
                                         <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                            Unit Cost
+                                            {t(
+                                                'financeInventoryValuation.movements.unitCost',
+                                                'Unit Cost',
+                                            )}
                                         </p>
                                         <p className="mt-1 font-medium">
                                             {formatAfn(entry.unitCost)}
@@ -609,7 +814,10 @@ export default function InventoryValuationPage({
                                         {entry.weightedAverageCostAfter !==
                                         null ? (
                                             <p className="text-xs text-neutral-500">
-                                                WA after:{' '}
+                                                {t(
+                                                    'financeInventoryValuation.movements.waAfter',
+                                                    'WA after:',
+                                                )}{' '}
                                                 {formatAfn(
                                                     entry.weightedAverageCostAfter,
                                                 )}
@@ -618,7 +826,10 @@ export default function InventoryValuationPage({
                                     </div>
                                     <div>
                                         <p className="text-xs tracking-[0.16em] text-neutral-500 uppercase">
-                                            Total Cost
+                                            {t(
+                                                'financeInventoryValuation.movements.totalCost',
+                                                'Total Cost',
+                                            )}
                                         </p>
                                         <p className="mt-1 font-semibold text-neutral-950 dark:text-neutral-50">
                                             {formatAfn(entry.totalCost)}
@@ -628,16 +839,28 @@ export default function InventoryValuationPage({
                             ))
                         ) : (
                             <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                No inventory finance movements were found for
-                                the selected filters.
+                                {t(
+                                    'financeInventoryValuation.movements.empty',
+                                    'No inventory finance movements were found for the selected filters.',
+                                )}
                             </div>
                         )}
 
                         {pagination.lastPage > 1 ? (
                             <div className="mt-6 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Page {pagination.currentPage} of{' '}
-                                    {pagination.lastPage}
+                                    {t(
+                                        'financeInventoryValuation.pagination.pageOf',
+                                        'Page :page of :total',
+                                    )
+                                        .replace(
+                                            ':page',
+                                            String(pagination.currentPage),
+                                        )
+                                        .replace(
+                                            ':total',
+                                            String(pagination.lastPage),
+                                        )}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -647,7 +870,10 @@ export default function InventoryValuationPage({
                                         onClick={() =>
                                             goToPage(pagination.currentPage - 1)
                                         }
-                                        aria-label="Previous page"
+                                        aria-label={t(
+                                            'financeInventoryValuation.pagination.previousPage',
+                                            'Previous page',
+                                        )}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Button>
@@ -689,7 +915,10 @@ export default function InventoryValuationPage({
                                         onClick={() =>
                                             goToPage(pagination.currentPage + 1)
                                         }
-                                        aria-label="Next page"
+                                        aria-label={t(
+                                            'financeInventoryValuation.pagination.nextPage',
+                                            'Next page',
+                                        )}
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>

@@ -1,4 +1,5 @@
 import { brand } from '@/config/brand';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -70,6 +71,7 @@ export function PayrollVoucherPrintDialog({
     item,
     branch,
 }: PayrollVoucherPrintDialogProps) {
+    const { t } = useLocalization();
     const monthLabel =
         item && run
             ? coveredMonthLabels(item).join(', ') ||
@@ -96,8 +98,14 @@ export function PayrollVoucherPrintDialog({
         const createdAt = formatAfghanDate(run.created_at);
         const title =
             item.salary_type === 'contract_payment'
-                ? 'Contract Payment Voucher'
-                : 'Salary Payment Voucher';
+                ? t(
+                      'financePayroll.voucher.contractPaymentVoucher',
+                      'Contract Payment Voucher',
+                  )
+                : t(
+                      'financePayroll.voucher.salaryPaymentVoucher',
+                      'Salary Payment Voucher',
+                  );
 
         printWindow.document.write(`
             <html>
@@ -225,11 +233,16 @@ export function PayrollVoucherPrintDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ReceiptText className="h-5 w-5" />
-                        Payroll Voucher Print
+                        {t(
+                            'financePayroll.voucher.printTitle',
+                            'Payroll Voucher Print',
+                        )}
                     </DialogTitle>
                     <DialogDescription>
-                        Review this payroll voucher, then print it for manager
-                        review and salary payment approval.
+                        {t(
+                            'financePayroll.voucher.printDescription',
+                            'Review this payroll voucher, then print it for manager review and salary payment approval.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -238,7 +251,10 @@ export function PayrollVoucherPrintDialog({
                         <div className="flex justify-end">
                             <Button onClick={printVoucher} className="gap-2">
                                 <Printer className="h-4 w-4" />
-                                Print Payroll Voucher
+                                {t(
+                                    'financePayroll.actions.printVoucher',
+                                    'Print Payroll Voucher',
+                                )}
                             </Button>
                         </div>
                         <ScrollArea className="h-[560px] rounded-lg border bg-slate-50 p-4">
@@ -246,13 +262,20 @@ export function PayrollVoucherPrintDialog({
                                 <div className="relative border-b pb-6">
                                     <div className="absolute top-0 left-0 text-sm">
                                         <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
-                                            Voucher
+                                            {t(
+                                                'financePayroll.voucher.voucher',
+                                                'Voucher',
+                                            )}
                                         </p>
                                         <p className="mt-2 font-medium">
                                             No: PAY-{run.id}-{item.id}
                                         </p>
                                         <p className="text-muted-foreground">
-                                            Payment Month: {monthLabel}
+                                            {t(
+                                                'financePayroll.voucher.paymentMonth',
+                                                'Payment Month',
+                                            )}
+                                            : {monthLabel}
                                         </p>
                                     </div>
                                     <div className="mx-auto max-w-sm text-center">
@@ -272,7 +295,10 @@ export function PayrollVoucherPrintDialog({
                                     </div>
                                     <div className="absolute top-0 right-0 text-right text-sm">
                                         <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
-                                            Document
+                                            {t(
+                                                'financePayroll.voucher.document',
+                                                'Document',
+                                            )}
                                         </p>
                                         <p className="mt-2 font-medium">
                                             {item.salary_type ===
@@ -281,7 +307,11 @@ export function PayrollVoucherPrintDialog({
                                                 : 'Salary Payment Voucher'}
                                         </p>
                                         <p className="text-muted-foreground">
-                                            Created:{' '}
+                                            {t(
+                                                'financePayroll.voucher.created',
+                                                'Created',
+                                            )}
+                                            :{' '}
                                             {formatAfghanDate(run.created_at)}
                                         </p>
                                     </div>
@@ -290,7 +320,10 @@ export function PayrollVoucherPrintDialog({
                                 <div className="mt-6 grid gap-3 md:grid-cols-3">
                                     <div className="rounded-xl bg-slate-50 p-4">
                                         <p className="text-xs text-muted-foreground">
-                                            Employee
+                                            {t(
+                                                'financePayroll.voucher.employee',
+                                                'Employee',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {employeeName(item)}
@@ -298,7 +331,10 @@ export function PayrollVoucherPrintDialog({
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
                                         <p className="text-xs text-muted-foreground">
-                                            Salary Type
+                                            {t(
+                                                'financePayroll.voucher.salaryType',
+                                                'Salary Type',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {salaryTypeLabel(item.salary_type)}
@@ -306,7 +342,10 @@ export function PayrollVoucherPrintDialog({
                                     </div>
                                     <div className="rounded-xl bg-slate-50 p-4">
                                         <p className="text-xs text-muted-foreground">
-                                            Payment Method
+                                            {t(
+                                                'financePayroll.voucher.paymentMethod',
+                                                'Payment Method',
+                                            )}
                                         </p>
                                         <p className="font-medium">
                                             {paymentMethodLabel(
@@ -321,13 +360,22 @@ export function PayrollVoucherPrintDialog({
                                         <thead>
                                             <tr className="border-b">
                                                 <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                                    Description
+                                                    {t(
+                                                        'financePayroll.voucher.description',
+                                                        'Description',
+                                                    )}
                                                 </th>
                                                 <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                                    Branch
+                                                    {t(
+                                                        'financePayroll.filters.branch',
+                                                        'Branch',
+                                                    )}
                                                 </th>
                                                 <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                                    Amount
+                                                    {t(
+                                                        'financePayroll.voucher.amount',
+                                                        'Amount',
+                                                    )}
                                                 </th>
                                             </tr>
                                         </thead>
@@ -336,9 +384,19 @@ export function PayrollVoucherPrintDialog({
                                                 <td className="px-2 py-4">
                                                     {item.salary_type ===
                                                     'contract_payment'
-                                                        ? 'Contract payment voucher'
-                                                        : 'Salary payment voucher'}{' '}
-                                                    for month {monthLabel}
+                                                        ? t(
+                                                              'financePayroll.voucher.contractPaymentVoucherLower',
+                                                              'Contract payment voucher',
+                                                          )
+                                                        : t(
+                                                              'financePayroll.voucher.salaryPaymentVoucherLower',
+                                                              'Salary payment voucher',
+                                                          )}{' '}
+                                                    {t(
+                                                        'financePayroll.voucher.forMonth',
+                                                        'for month',
+                                                    )}{' '}
+                                                    {monthLabel}
                                                 </td>
                                                 <td className="px-2 py-4">
                                                     {branch?.name ??
@@ -354,31 +412,49 @@ export function PayrollVoucherPrintDialog({
 
                                 <div className="mt-5 rounded-xl bg-slate-50 p-4">
                                     <p className="text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                        Notes
+                                        {t(
+                                            'financePayroll.form.notes',
+                                            'Notes',
+                                        )}
                                     </p>
                                     <p className="mt-2 text-sm text-slate-700">
-                                        Prepared for salary payment review
-                                        before manager approval. Advance
-                                        deductions are already reflected in the
-                                        net payable amount.
+                                        {t(
+                                            'financePayroll.voucher.notesText',
+                                            'Prepared for salary payment review before manager approval. Advance deductions are already reflected in the net payable amount.',
+                                        )}
                                     </p>
                                 </div>
 
                                 <div className="mt-6 ml-auto w-full max-w-sm space-y-3">
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
-                                        <span>Gross Pay</span>
+                                        <span>
+                                            {t(
+                                                'financePayroll.voucher.grossPay',
+                                                'Gross Pay',
+                                            )}
+                                        </span>
                                         <span>
                                             {formatAfn(item.gross_salary)}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">
-                                        <span>Advance Deduction</span>
+                                        <span>
+                                            {t(
+                                                'financePayroll.voucher.advanceDeduction',
+                                                'Advance Deduction',
+                                            )}
+                                        </span>
                                         <span>
                                             {formatAfn(item.advances_deducted)}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3 text-lg font-semibold">
-                                        <span>Net Payable</span>
+                                        <span>
+                                            {t(
+                                                'financePayroll.voucher.netPayable',
+                                                'Net Payable',
+                                            )}
+                                        </span>
                                         <span>
                                             {formatAfn(item.net_salary)}
                                         </span>
@@ -388,17 +464,26 @@ export function PayrollVoucherPrintDialog({
                                 <div className="mt-18 grid gap-6 pt-12 md:grid-cols-3">
                                     <div className="text-center">
                                         <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                            Prepared By
+                                            {t(
+                                                'financePayroll.voucher.preparedBy',
+                                                'Prepared By',
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-center">
                                         <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                            Finance Manager
+                                            {t(
+                                                'financePayroll.voucher.financeManager',
+                                                'Finance Manager',
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-center">
                                         <div className="border-t pt-3 text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                            Approved By
+                                            {t(
+                                                'financePayroll.voucher.approvedBy',
+                                                'Approved By',
+                                            )}
                                         </div>
                                     </div>
                                 </div>

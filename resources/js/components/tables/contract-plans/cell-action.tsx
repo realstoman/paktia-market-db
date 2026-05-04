@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EmployeeContract } from '@/types';
 import { FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { useLocalization } from '@/lib/localization';
 
 interface CellActionProps {
     data: EmployeeContract;
@@ -26,28 +27,37 @@ export function CellAction({
     onPrint,
     canDelete,
 }: CellActionProps) {
+    const { t } = useLocalization();
+
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
+                    <span className="sr-only">
+                        {t('financePayroll.actions.openMenu', 'Open menu')}
+                    </span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                    {t('financePayroll.actions.title', 'Actions')}
+                </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => onEdit(data)}>
                     <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                    {t('financePayroll.actions.edit', 'Edit')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onPrint(data)}>
                     <FileText className="mr-2 h-4 w-4" />
-                    Print Summary
+                    {t(
+                        'financePayroll.actions.printSummary',
+                        'Print Summary',
+                    )}
                 </DropdownMenuItem>
                 {canDelete ? (
                     <DropdownMenuItem onClick={() => onDelete(data)}>
                         <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                        {t('financePayroll.actions.delete', 'Delete')}
                     </DropdownMenuItem>
                 ) : null}
             </DropdownMenuContent>

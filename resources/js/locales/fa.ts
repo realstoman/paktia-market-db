@@ -6,6 +6,9 @@ const fa = {
         save: 'ذخیره',
         cancel: 'لغو',
         saved: 'ذخیره شد',
+        open: 'باز کردن',
+        reset: 'بازنشانی',
+        dashboard: 'داشبورد',
         settings: 'تنظیمات',
         profile: 'پروفایل',
         password: 'رمز عبور',
@@ -1041,6 +1044,1187 @@ const fa = {
             shiftCreated: 'شیفت ایجاد شد.',
             shiftUpdated: 'شیفت به‌روزرسانی شد.',
             shiftDeleted: 'شیفت حذف شد.',
+        },
+    },
+    financeDashboard: {
+        pageTitle: 'داشبورد مالی',
+        eyebrow: 'داشبورد مالی',
+        hero: {
+            title: 'مرکز کنترل مالی برای درآمد، معاش، مصارف، موجودی و وجه نقد.',
+            description:
+                'این داشبورد مالی بر بنیاد حسابداری طراحی شده است: چارت حساب‌ها، ثبت‌های دفترکل، معاش، پیش‌پرداخت‌ها، حرکات نقدی و ارزش‌گذاری موجودی.',
+            ledgerAccounts: 'حساب‌های دفترکل',
+            approvalQueue: 'صف تاییدی',
+        },
+        projection: {
+            title: 'وضعیت پروجکشن',
+            transactionalFallback:
+                'این نمای فیلترشده از خوانش‌های تراکنشی استفاده می‌کند، زیرا فیلترهای انتخاب‌شده از جزئیات فعلی پروجکشن دقیق‌تر هستند.',
+            lastProjectedAt: 'آخرین پروجکشن در :date',
+            noTimestamp: 'هنوز زمانی برای پروجکشن ثبت نشده است',
+            message: {
+                current:
+                    'داده‌های پروجکشن برای نمای مالی انتخاب‌شده به‌روز هستند.',
+                lagging:
+                    'برخی پروجکشن‌های شعبه از بازه مالی انتخاب‌شده عقب مانده‌اند.',
+                stale:
+                    'داده‌های پروجکشن کهنه شده‌اند. تا زمان تازه‌سازی، شاخص‌های مالی ممکن است قدیمی باشند.',
+                unavailable:
+                    'وضعیت پروجکشن فعلاً در دسترس نیست. شاخص‌های مالی به خوانش‌های تراکنشی برمی‌گردند.',
+            },
+        },
+        filters: {
+            title: 'فیلترها',
+            description:
+                'داشبورد مالی را بر اساس بازه زمانی، شعبه، روش پرداخت و کتگوری مصرف فیلتر کنید.',
+            branch: 'شعبه',
+            paymentMethod: 'روش پرداخت',
+            expenseCategory: 'کتگوری مصرف',
+            startDate: 'تاریخ شروع',
+            endDate: 'تاریخ پایان',
+            apply: 'اعمال فیلترها',
+            allBranches: 'همه شعبات',
+            allMethods: 'همه روش‌ها',
+            allCategories: 'همه کتگوری‌ها',
+            searchExpenseCategory: 'جستجوی کتگوری مصرف...',
+            noExpenseCategoryFound: 'هیچ کتگوری مصرفی یافت نشد.',
+            range: {
+                today: 'امروز',
+                yesterday: 'دیروز',
+                this_week: 'این هفته',
+                this_month: 'این ماه',
+                custom: 'سفارشی',
+            },
+        },
+        summary: {
+            sales: 'فروش',
+            salesSubtitle: 'درآمد سفارش‌های تکمیل‌شده در بازه انتخابی',
+            expenses: 'مصارف',
+            expensesSubtitle: 'مصارف عملیاتی ثبت‌شده',
+            grossProfit: 'سود ناخالص',
+            netProfit: 'سود خالص',
+            netProfitSubtitle:
+                'فروش منهای مصارف، قبل از تعدیلات مالی ثبت‌نشده',
+            cashPosition: 'موقعیت نقدی',
+            employeeCovered: 'پرداخت‌شده توسط کارمند',
+            employeeCoveredSubtitle:
+                'سفارش‌هایی که کارمندان به نمایندگی از مهمانان پرداخته‌اند',
+            restaurantHospitality: 'مهمان‌نوازی رستورانت',
+            restaurantHospitalitySubtitle:
+                'سفارش‌های مهمان‌نوازی و رایگان که از فروش مستثنا شده‌اند',
+            unpaidSalaries: 'معاش‌های پرداخت‌نشده',
+            unpaidSalariesSubtitle:
+                'معاش ماه جاری و تعهدات زمان‌بندی‌شده قراردادی',
+            inventoryValue: 'ارزش موجودی',
+            inventoryValueSubtitle:
+                'ارزش فعلی موجودی بر اساس مقدار و قیمت واحد',
+            supplierBalances: 'مانده تأمین‌کنندگان',
+            supplierBalancesSubtitle:
+                'مانده پرداخت‌نشده فروشندگان از خریدهای موجودی',
+            pending: 'در انتظار',
+        },
+        notes: {
+            grossProfitRecognized:
+                'بر اساس فروش ثبت‌شده منهای میانگین بهای موجودی شناسایی شده است.',
+            grossProfitPosted:
+                'سود ناخالص با استفاده از حرکات ثبت‌شده بهای موجودی محاسبه می‌شود.',
+            grossProfitPending:
+                'داده‌های بهای موجودی هنوز کامل نیست، بنابراین سود ناخالص تا تکمیل پوشش ارزش‌گذاری موجودی در انتظار می‌ماند.',
+            cashPosition:
+                'موقعیت نقدی یک مانده جاری از فروش‌های نقدی تمام‌وقت (شامل سفارش‌های تکمیل‌شده قدیمی بدون ردیف پرداخت)، مصارف نقدی و حرکات نقدی تاییدشده است. فیلتر تاریخ این مانده را کاهش نمی‌دهد.',
+        },
+        charts: {
+            revenueExpenseTitle: 'درآمد، مصرف و نتیجه عملیاتی',
+            revenueExpenseDescription:
+                'روند روزانه برای بازه مالی انتخاب‌شده.',
+            coverageTitle: 'فروش در برابر سفارش‌های تحت پوشش',
+            coverageDescription:
+                'فروش شناسایی‌شده را با حجم پرداخت‌شده توسط کارمند و مهمان‌نوازی رستورانت در بازه انتخابی مقایسه کنید.',
+            branchRevenueTitle: 'درآمد به تفکیک شعبه',
+            branchRevenueDescription:
+                'درآمد سفارش‌های تکمیل‌شده را به تفکیک شعبه مقایسه کنید.',
+            expenseCategoriesTitle: 'برترین کتگوری‌های مصرف',
+            expenseCategoriesDescription:
+                'تمرکز مصارف در بازه انتخاب‌شده.',
+            noExpenseCategories:
+                'برای فیلترهای انتخاب‌شده هیچ کتگوری مصرفی یافت نشد.',
+        },
+        ledger: {
+            title: 'آمادگی دفترکل',
+            description:
+                'فعالیت زنده حسابداری از عملیات ثبت‌شده و ریکارډهای مالی در انتظار.',
+            accounts: 'حساب‌ها',
+            postedEntries: 'ثبت‌های پست‌شده',
+            postedEntriesDescription:
+                'مصارف تاییدشده، حرکات نقدی تاییدشده، فروش‌های تکمیل‌شده و ژورنال‌های پست‌شده',
+            draftEntries: 'ثبت‌های پیش‌نویس',
+            draftEntriesDescription:
+                'مصارف پیش‌نویس، حرکات نقدی پیش‌نویس و ژورنال‌های ثبت‌نشده',
+            approvalQueue: 'صف تاییدی',
+            approvalQueueDescription:
+                'ریکارډهای ارسال‌شده که منتظر تایید مدیر هستند',
+            note:
+                'این ارقام اکنون فعالیت واقعی مالی عملیات را نشان می‌دهند. زمانی که ثبت خودکار ژورنال به‌طور کامل فعال شود، همین بخش بدون تغییر در روند کاری تیم شما از ثبت‌های عملیاتی به ژورنال‌های دقیق حسابداری منتقل خواهد شد.',
+        },
+        modules: {
+            title: 'ماژول‌های مالی',
+            description:
+                'بخش‌های مالی را از اینجا باز کنید تا فیلترهای داشبورد روی تحلیل‌ها متمرکز بمانند.',
+            names: {
+                chartOfAccounts: 'چارت حساب‌ها',
+                generalLedger: 'دفترکل عمومی',
+                expenses: 'مصارف',
+                payroll: 'معاش',
+                employeeAdvances: 'پیش‌پرداخت کارمندان',
+                cashBank: 'نقد و بانک',
+                inventoryValuation: 'ارزش‌گذاری موجودی',
+            },
+            descriptions: {
+                chartOfAccounts:
+                    'ساختار حساب‌ها برای دارایی‌ها، بدهی‌ها، سرمایه، درآمد، بهای تمام‌شده و مصارف را مدیریت کنید.',
+                generalLedger:
+                    'ثبت‌هایی را که از سفارش‌های تکمیل‌شده، مصارف تاییدشده و ژورنال‌های دستی ایجاد شده‌اند بررسی کنید.',
+                expenses:
+                    'مصارف تجاری را با وضعیت تاییدی و اثر حسابداری دنبال کنید.',
+                payroll:
+                    'معاش ماهانه، پرداخت‌های قراردادی و کسورات مرتبط با معاش را پردازش کنید.',
+                employeeAdvances:
+                    'پیش‌پرداخت کارمندان را ثبت کنید و کسورات معاش را با تسویه هماهنگ نگه دارید.',
+                cashBank:
+                    'کش‌دراور، سپرده‌ها، تمویل مالک و ورودی یا خروجی‌های دستی را نظارت کنید.',
+                inventoryValuation:
+                    'میانگین موزون قیمت، ارزش موجودی و آمادگی بهای تمام‌شده فروش را دنبال کنید.',
+            },
+            status: {
+                ready: 'آماده',
+                needsUpgrade: 'نیازمند ارتقا',
+                pendingMigration: 'در انتظار مایگریشن',
+            },
+            stats: {
+                accounts: 'حساب‌ها',
+                journals: 'ژورنال‌ها',
+                drafts: 'پیش‌نویس‌ها',
+                employees: 'کارمندان',
+                advances: 'پیش‌پرداخت‌ها',
+                draft: 'پیش‌نویس',
+                submitted: 'ارسال‌شده',
+                active: 'فعال',
+                balance: 'مانده',
+                skus: 'کالاها',
+                value: 'ارزش',
+            },
+        },
+        generalLedger: {
+            title: 'پیش‌نمایش دفترکل عمومی',
+            description:
+                'یک نمای تازه از ثبت‌های مالی. دفترکل کامل را از ماژول‌های مالی باز کنید.',
+            open: 'باز کردن دفترکل عمومی',
+            empty: 'برای فیلترهای انتخاب‌شده هیچ ثبت تازه دفترکل یافت نشد.',
+            status: {
+                posted: 'ثبت‌شده',
+                approved: 'تاییدشده',
+                submitted: 'ارسال‌شده',
+            },
+            columns: {
+                date: 'تاریخ',
+                reference: 'مرجع',
+                type: 'نوع',
+                branch: 'شعبه',
+                account: 'حساب',
+                description: 'توضیح',
+                debit: 'بدهکار',
+                credit: 'بستانکار',
+                status: 'وضعیت',
+            },
+        },
+        quickCards: {
+            chartOfAccounts: {
+                title: 'چارت حساب‌ها',
+                description:
+                    'دارایی‌ها، بدهی‌ها، سرمایه، درآمد، بهای تمام‌شده و مصارف',
+            },
+            branchControl: {
+                title: 'کنترول به تفکیک شعبه',
+                description:
+                    'گزارش‌گیری یکپارچه با فیلترها و مانده‌های سطح شعبه',
+            },
+            cashBank: {
+                title: 'نقد و بانک',
+                description:
+                    'کش‌دراور، سپرده‌ها، پول‌خرد و حرکات دستی',
+            },
+            inventoryValuation: {
+                title: 'ارزش‌گذاری موجودی',
+                description:
+                    'میانگین موزون قیمت برای ارزش موجودی و بهای تمام‌شده فروش',
+            },
+        },
+    },
+    financeInventoryValuation: {
+        pageTitle: 'ارزش‌گذاری موجودی',
+        hero: {
+            eyebrow: 'ماژول مالی',
+            title: 'ارزش‌گذاری موجودی',
+            description:
+                'این صفحه نشان می‌دهد موجودی رستورانت چه ارزشی دارد، چه مقدار ارزش به مصرف آشپزخانه منتقل شده، چه تعدیلاتی ثبت شده و هزینه‌های موجودی چگونه بر امور مالی تاثیر می‌گذارند.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            applyFilters: 'اعمال فیلترها',
+        },
+        ranges: {
+            today: 'امروز',
+            yesterday: 'دیروز',
+            thisWeek: 'این هفته',
+            thisMonth: 'این ماه',
+            custom: 'سفارشی',
+        },
+        filters: {
+            title: 'فیلترها',
+            description: 'ارزش‌گذاری را بر اساس بازه و شعبه بررسی کنید.',
+            startDate: 'تاریخ شروع',
+            endDate: 'تاریخ پایان',
+            branch: 'شعبه',
+            allBranches: 'همه شعبات',
+            selectBranch: 'شعبه را انتخاب کنید',
+            searchBranches: 'جستجوی شعبات...',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+        },
+        summary: {
+            inventoryValue: 'ارزش موجودی',
+            inventoryValueDescription:
+                'ارزش فعلی موجودی در شعبات انتخاب‌شده',
+            stockOnHand: 'موجودی در دست',
+            stockOnHandDescription: 'در مجموع :count قلم موجودی',
+            cogs: 'بهای تمام‌شده / مصرف',
+            cogsDescription:
+                'ارزش تخمینی که در این دوره به مصرف منتقل شده است',
+            adjustmentsNet: 'خالص تعدیلات',
+            adjustmentsNetDescription: 'ورودی: :in | خروجی: :out',
+        },
+        valuation: {
+            title: 'ارزش‌گذاری به تفکیک قلم',
+            description:
+                'میانگین موزون یا تخمینی هزینه هر قلم موجودی و ارزش فعلی ذخیره.',
+            branchVendor: ':branch | فروشنده: :vendor',
+            quantity: 'مقدار',
+            avgCost: 'میانگین هزینه',
+            stockValue: 'ارزش موجودی',
+            empty:
+                'برای شعبه انتخاب‌شده هیچ قلم ارزش‌گذاری موجودی یافت نشد.',
+        },
+        costSections: {
+            title: 'بخش‌های هزینه',
+            description:
+                'نمای مالی از مصرف، ضایعات و تعدیلات در بازه انتخاب‌شده.',
+            cogs: 'بهای تمام‌شده / مصرف',
+            cogsDescription:
+                'براساس `usage_cycle` و هرگونه تراکنش آینده `issue` یا `consumed`.',
+            wastage: 'ضایعات / خرابی',
+            wastageDescription:
+                'این مقدار تا زمانی صفر می‌ماند که تراکنش‌های ضایعات به‌صورت مشخص به جریان موجودی اضافه شوند.',
+            adjustments: 'تعدیلات',
+            adjustmentsDescription:
+                'تعدیلات مثبت: :in | تعدیلات منفی: :out',
+        },
+        movements: {
+            title: 'تاریخچه حرکات',
+            description:
+                'حرکات مالی موجودی و تاریخچه تاثیر هزینه‌ها.',
+            showing: 'نمایش :from تا :to از :total حرکت.',
+            date: 'تاریخ',
+            action: 'عملیات',
+            quantity: 'مقدار',
+            unitCost: 'هزینه فی واحد',
+            waAfter: 'میانگین موزون بعدی:',
+            totalCost: 'هزینه مجموعی',
+            empty:
+                'برای فیلترهای انتخاب‌شده هیچ حرکت مالی موجودی یافت نشد.',
+        },
+        pagination: {
+            pageOf: 'صفحه :page از :total',
+            previousPage: 'صفحه قبلی',
+            nextPage: 'صفحه بعدی',
+        },
+    },
+    financeChartOfAccounts: {
+        pageTitle: 'چارت حساب‌ها',
+        heading: {
+            title: 'چارت حساب‌ها',
+            description:
+                'حساب‌های دفترکل مورد استفاده در مصارف، معاش، موجودی و گزارش‌دهی را ایجاد و مدیریت کنید.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            newLedgerAccount: 'حساب جدید دفترکل',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            delete: 'حذف',
+        },
+        ledgerAccounts: {
+            title: 'حساب‌های دفترکل',
+            description:
+                'همان ساختار جدول مصارف مالی با جستجو، فیلترها، صفحه‌بندی و عملیات هر ردیف.',
+        },
+        filters: {
+            type: 'نوع',
+            status: 'وضعیت',
+            branch: 'شعبه',
+            allTypes: 'همه نوع‌ها',
+            allStatuses: 'همه وضعیت‌ها',
+            allBranches: 'همه شعبات',
+            searchAccountTypes: 'جستجوی نوع حساب...',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            searchBranches: 'جستجوی شعبات...',
+            noTypeFound: 'هیچ نوعی یافت نشد.',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+        },
+        table: {
+            searchPlaceholder:
+                'حساب‌ها را بر اساس کد، نام، نوع، والد، شعبه یا وضعیت جستجو کنید...',
+            code: 'کد',
+            accountName: 'نام حساب',
+            type: 'نوع',
+            parentAccount: 'حساب والد',
+            branch: 'شعبه',
+            currency: 'واحد پول',
+            postable: 'قابل ثبت',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد حساب دفترکل',
+            editTitle: 'ویرایش حساب دفترکل',
+            description:
+                'کد، نام، نوع، گروه‌بندی والد و رفتار ثبت حساب را برای عملیات مالی تعریف کنید.',
+            codeOptional: 'کد (اختیاری)',
+            codePlaceholder: 'برای تولید خودکار خالی بگذارید',
+            generateCode: 'تولید کد',
+            accountName: 'نام حساب',
+            accountNamePlaceholder: 'مصرف اینترنت',
+            accountType: 'نوع حساب',
+            selectAccountType: 'نوع حساب را انتخاب کنید',
+            searchAccountType: 'جستجوی نوع حساب...',
+            noAccountTypeFound: 'هیچ نوع حسابی یافت نشد.',
+            parentAccount: 'حساب والد',
+            optionalParentAccount: 'حساب والد اختیاری',
+            searchParentAccounts: 'جستجوی حساب‌های والد...',
+            noAccountFound: 'هیچ حسابی یافت نشد.',
+            branch: 'شعبه',
+            currency: 'واحد پول',
+            noCurrency: 'بدون واحد پول',
+            selectCurrency: 'واحد پول را انتخاب کنید',
+            searchCurrencies: 'جستجوی واحدهای پول...',
+            noCurrencyFound: 'هیچ واحد پولی یافت نشد.',
+            status: 'وضعیت',
+            selectStatus: 'وضعیت را انتخاب کنید',
+            searchStatus: 'جستجوی وضعیت...',
+            postableAccount: 'حساب قابل ثبت',
+            descriptionLabel: 'توضیح',
+            descriptionPlaceholder:
+                'یادداشت‌های اختیاری برای استفاده تیم مالی.',
+            updateLedgerAccount: 'به‌روزرسانی حساب دفترکل',
+            createLedgerAccount: 'ایجاد حساب دفترکل',
+        },
+        delete: {
+            title: 'حذف حساب دفترکل',
+            description:
+                'این عمل حساب دفترکل انتخاب‌شده را به‌گونه دایمی حذف می‌کند.',
+            systemAccountsCannotBeDeleted:
+                'حساب‌های سیستمی قابل حذف نیستند.',
+            reassignBeforeDeleting:
+                'این حساب قبلاً در ریکارډهای مالی استفاده شده است. پیش از حذف، آن ریکارډها را دوباره تعیین کنید.',
+            linkedRecordsNeedReassignment:
+                ':count ریکارډ مالی مرتبط نیاز به تعیین مجدد دارد.',
+            noLinkedRecords:
+                'هیچ ریکارډ مالی مرتبطی برای این حساب شناسایی نشد.',
+            replacementAccount: 'حساب جایگزین',
+            selectReplacementAccount: 'حساب جایگزین را انتخاب کنید',
+            searchAccounts: 'جستجوی حساب‌ها...',
+            noReplacementAccountFound: 'هیچ حساب جایگزینی یافت نشد.',
+            createAnotherAccount:
+                'پیش از حذف این حساب، یک حساب دیگر از نوع :type ایجاد کنید.',
+        },
+        accountTypes: {
+            asset: 'دارایی',
+            liability: 'بدهی',
+            equity: 'سرمایه',
+            revenue: 'درآمد',
+            cogs: 'بهای تمام‌شده',
+            expense: 'مصرف',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+    },
+    financeGeneralLedger: {
+        pageTitle: 'دفترکل عمومی',
+        hero: {
+            eyebrow: 'ماژول مالی',
+            title: 'دفترکل عمومی',
+            description:
+                'این صفحه کامل دفترکل مالی است. جریان رو‌به‌رشد فروش، مصارف، حرکات نقدی و خطوط ژورنال ثبت‌شده را در یک جا نشان می‌دهد تا داشبورد روی تحلیل‌های خلاصه متمرکز بماند.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+        },
+        filters: {
+            title: 'فیلترها',
+            description:
+                'دفترکل را بر اساس بازه زمانی، شعبه، روش پرداخت و کتگوری مصرف محدود کنید.',
+            selectBranch: 'شعبه را انتخاب کنید',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+            selectPaymentMethod: 'روش پرداخت را انتخاب کنید',
+            searchPaymentMethods: 'جستجوی روش‌های پرداخت...',
+            noMethodFound: 'هیچ روشی یافت نشد.',
+            selectCategory: 'کتگوری را انتخاب کنید',
+            searchCategories: 'جستجوی کتگوری‌ها...',
+            noCategoryFound: 'هیچ کتگوری‌ای یافت نشد.',
+        },
+        entries: {
+            title: 'ثبت‌های دفترکل',
+            description:
+                'جریان کامل مالی عملیاتی برای فیلترهای انتخاب‌شده.',
+            summary: ' نمایش :from تا :to از :total ثبت.',
+            empty: 'برای فیلترهای انتخاب‌شده هیچ ثبت دفترکلی یافت نشد.',
+        },
+        pagination: {
+            pageOf: 'صفحه :current از :last',
+        },
+    },
+    financeExpenses: {
+        pageTitle: 'مصارف',
+        heading: {
+            title: 'مصارف',
+            description:
+                'مصارف عملیاتی را ایجاد، بررسی، تایید و مدیریت کنید.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            expenseCategories: 'کتگوری‌های مصرف',
+            newExpense: 'مصرف جدید',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            printVoucher: 'چاپ ووچر',
+            approve: 'تایید',
+            reject: 'رد',
+            cancelExpense: 'لغو مصرف',
+        },
+        register: {
+            title: 'ثبت مصارف',
+            description:
+                'همان ساختار جدول سایر بخش‌های مدیریتی با جستجو، فیلتر و صفحه‌بندی.',
+        },
+        filters: {
+            branch: 'شعبه',
+            category: 'کتگوری',
+            status: 'وضعیت',
+            allBranches: 'همه شعبات',
+            allCategories: 'همه کتگوری‌ها',
+            allStatuses: 'همه وضعیت‌ها',
+            searchBranches: 'جستجوی شعبات...',
+            searchCategories: 'جستجوی کتگوری‌ها...',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            noBranchesFound: 'هیچ شعبه‌ای یافت نشد.',
+            noCategoriesFound: 'هیچ کتگوری‌ای یافت نشد.',
+            noStatusesFound: 'هیچ وضعیتی یافت نشد.',
+        },
+        table: {
+            searchPlaceholder:
+                'مصارف را بر اساس عنوان، شعبه، کتگوری یا وضعیت جستجو کنید...',
+            date: 'تاریخ',
+            title: 'عنوان',
+            branch: 'شعبه',
+            category: 'کتگوری',
+            paymentMethod: 'روش پرداخت',
+            amount: 'مبلغ',
+            attachment: 'ضمیمه',
+            view: 'نمایش',
+            status: 'وضعیت',
+            actions: 'عملیات',
+            description: 'توضیح',
+        },
+        form: {
+            createTitle: 'ایجاد مصرف',
+            editTitle: 'ویرایش مصرف',
+            description:
+                'یک مصرف مالی را با شعبه، کتگوری، روش پرداخت، مبلغ و وضعیت تاییدی اختیاری ثبت کنید.',
+            branch: 'شعبه',
+            selectBranch: 'شعبه را انتخاب کنید',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+            expenseCategory: 'کتگوری مصرف',
+            selectExpenseCategory: 'کتگوری مصرف را انتخاب کنید',
+            searchExpenseCategories: 'جستجوی کتگوری‌های مصرف...',
+            noExpenseCategoryFound: 'هیچ کتگوری مصرفی یافت نشد.',
+            title: 'عنوان',
+            titlePlaceholder: 'بل اینترنت - مارچ',
+            amount: 'مبلغ',
+            amountPlaceholder: '0',
+            paymentMethod: 'روش پرداخت',
+            selectPaymentMethod: 'روش پرداخت را انتخاب کنید',
+            expenseDate: 'تاریخ مصرف',
+            vendorPayee: 'فروشنده / دریافت‌کننده',
+            selectVendorPayee: 'فروشنده یا دریافت‌کننده را انتخاب کنید',
+            searchVendors: 'جستجوی فروشندگان...',
+            noVendorFound: 'هیچ فروشنده‌ای یافت نشد.',
+            expenseLedgerAccount: 'حساب دفترکل مصرف',
+            selectExpenseLedgerAccount:
+                'حساب دفترکل مصرف را انتخاب کنید',
+            searchExpenseLedgerAccounts:
+                'جستجوی حساب‌های دفترکل مصرف...',
+            paymentSourceAccount: 'حساب منبع پرداخت',
+            selectPaymentSourceAccount:
+                'حساب منبع پرداخت را انتخاب کنید',
+            searchPaymentSourceAccounts:
+                'جستجوی حساب‌های منبع پرداخت...',
+            noAccountFound: 'هیچ حسابی یافت نشد.',
+            approvalStatus: 'وضعیت تاییدی',
+            selectApprovalStatus: 'وضعیت تاییدی را انتخاب کنید',
+            descriptionLabel: 'توضیح',
+            descriptionPlaceholder:
+                'یادداشت‌ها یا جزئیات رسید به‌صورت اختیاری',
+            receiptAttachment: 'ضمیمه بل / رسید',
+            replaceCurrentReceipt: 'جایگزینی رسید فعلی',
+            uploadReceipt: 'بارگذاری رسید (JPG, PNG, PDF)',
+            browseFiles: 'برای مرور فایل‌ها کلیک کنید (حداکثر 5MB)',
+            updateExpense: 'به‌روزرسانی مصرف',
+            createExpense: 'ایجاد مصرف',
+        },
+        review: {
+            title: 'بررسی ارسال مصرف',
+            description:
+                'تایید کنید که می‌خواهید این مصرف را تایید کنید یا برای اصلاح برگردانید. مصارف تاییدشده بعداً قابل لغو هستند، اما قابل ویرایش نیستند.',
+        },
+        print: {
+            dialogTitle: 'چاپ ووچر مصرف',
+            dialogDescription:
+                'این ووچر مصرف را بررسی کرده و سپس برای امضای مدیر چاپ کنید.',
+            printExpenseVoucher: 'چاپ ووچر مصرف',
+            voucherTitle: 'ووچر مصرف',
+            voucher: 'ووچر',
+            no: 'شماره',
+            date: 'تاریخ',
+            document: 'سند',
+            created: 'ایجادشده',
+            expenseDate: 'تاریخ مصرف',
+            notes: 'یادداشت‌ها',
+            subtotal: 'جمع جزء',
+            total: 'مجموع',
+            preparedBy: 'ترتیب‌شده توسط',
+            financeManager: 'مدیر مالی',
+            approvedBy: 'تاییدشده توسط',
+            footerNote:
+                'این سند از ماژول مالی برای بازبینی داخلی، روند امضا و ریکارډهای مصرف رستورانت تولید شده است.',
+            footerStamp: 'کاپی مالی بابا',
+            mainBranch: 'شعبه اصلی',
+            addressNotSet: 'آدرس تنظیم نشده است',
+        },
+        status: {
+            draft: 'پیش‌نویس',
+            submitted: 'ارسال‌شده',
+            approved: 'تاییدشده',
+            cancelled: 'لغوشده',
+        },
+        attachmentTitle: 'ضمیمه مصرف',
+        toasts: {
+            updateFailed: 'به‌روزرسانی مصرف ناکام شد.',
+            createFailed: 'ایجاد مصرف ناکام شد.',
+        },
+    },
+    financeExpenseCategories: {
+        pageTitle: 'دسته‌بندی‌های مصرف',
+        heading: {
+            title: 'دسته‌بندی‌های مصرف',
+            description:
+                'فهرست دسته‌بندی‌های مصرف، پیوندهای دفترکل و وضعیت فعال‌سازی را برای عملیات مالی مدیریت کنید.',
+        },
+        actions: {
+            backToExpenses: 'بازگشت به مصرف‌ها',
+            addCategory: 'افزودن دسته‌بندی',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'ثبت دسته‌بندی‌های مصرف',
+            description:
+                'همان سیستم جدولی ثبت مصرف، همراه با جستجو، فیلترها، صفحه‌بندی و عملیات مدیریت دسته‌بندی.',
+        },
+        filters: {
+            status: 'وضعیت',
+            ledgerMapping: 'پیوند دفترکل',
+            allStatuses: 'همه وضعیت‌ها',
+            allMappings: 'همه پیوندها',
+            mapped: 'پیوند شده',
+            unmapped: 'بدون پیوند',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            searchMappingStatus: 'جستجوی وضعیت پیوند...',
+            noStatusesFound: 'هیچ وضعیتی یافت نشد.',
+            noMappingStatusFound: 'هیچ وضعیت پیوندی یافت نشد.',
+        },
+        table: {
+            searchPlaceholder:
+                'دسته‌بندی‌ها را بر اساس نام، اسلاگ، حساب دفترکل یا میزان استفاده جستجو کنید...',
+            name: 'نام',
+            slug: 'اسلاگ',
+            ledgerAccount: 'حساب دفترکل',
+            notMapped: 'پیوند نشده',
+            sort: 'ترتیب',
+            status: 'وضعیت',
+            usedInExpenses: 'استفاده‌شده در مصرف‌ها',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد دسته‌بندی مصرف',
+            editTitle: 'ویرایش دسته‌بندی مصرف',
+            description:
+                'دسته‌بندی، پیوند اختیاری دفترکل، ترتیب نمایش و فعال بودن آن برای ثبت‌های جدید مصرف را تعیین کنید.',
+            name: 'نام',
+            namePlaceholder: 'انترنت',
+            slug: 'اسلاگ',
+            slugPlaceholder: 'internet',
+            ledgerAccount: 'حساب دفترکل',
+            selectLedgerAccount: 'حساب دفترکل را انتخاب کنید',
+            searchLedgerAccounts: 'جستجوی حساب‌های دفترکل...',
+            noAccountFound: 'هیچ حسابی یافت نشد.',
+            sortOrder: 'ترتیب نمایش',
+            descriptionLabel: 'توضیحات',
+            descriptionPlaceholder: 'هزینه‌های ماهانه انترنت و اتصال.',
+            activeLabel: 'برای ثبت‌های جدید مصرف فعال و قابل استفاده باشد',
+            updateCategory: 'به‌روزرسانی دسته‌بندی',
+            createCategory: 'ایجاد دسته‌بندی',
+        },
+        delete: {
+            title: 'حذف دسته‌بندی مصرف',
+            description:
+                'این کار دسته‌بندی انتخاب‌شده مصرف را برای همیشه حذف می‌کند.',
+            reassignBeforeDeleting:
+                'این دسته‌بندی از قبل به مصرف‌ها اختصاص داده شده است. پیش از حذف، آن سوابق را دوباره تعیین کنید.',
+            expensesWillBeMoved:
+                ':count مصرف به دسته‌بندی دیگری منتقل خواهند شد.',
+            noExpensesAssigned:
+                'هیچ مصرفی در حال حاضر به این دسته‌بندی اختصاص داده نشده است.',
+            replacementCategory: 'دسته‌بندی جایگزین',
+            selectReplacementCategory: 'دسته‌بندی جایگزین را انتخاب کنید',
+            searchCategories: 'جستجوی دسته‌بندی‌ها...',
+            noReplacementCategoryFound:
+                'هیچ دسته‌بندی جایگزینی یافت نشد.',
+            createAnotherCategory:
+                'اگر دسته‌بندی جایگزین وجود ندارد، ابتدا یکی دیگر ایجاد کنید.',
+        },
+    },
+    financePayroll: {
+        pageTitle: 'معاش',
+        heading: {
+            title: 'دوره‌های معاش',
+            description:
+                'دوره‌های معاش را ایجاد کنید، پیش‌پرداخت‌های تاییدشده کارمندان را کسر کنید و تایید و پرداخت را در یک روند منظم پیگیری نمایید.',
+        },
+        hero: {
+            eyebrow: 'ماژول مالی',
+            title: 'معاش',
+            description:
+                'در این بخش، امور مالی کارمندان فعال، تنظیمات معاش و پیش‌پرداخت‌های تاییدشده را به یک دوره منظم معاش برای تایید و پرداخت تبدیل می‌کند.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            generatePayroll: 'ایجاد معاش',
+            generateRun: 'ایجاد دوره',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            viewRun: 'نمایش دوره',
+            reviewApproval: 'بررسی تایید',
+            approveReject: 'تایید / رد',
+            markPaid: 'علامت‌گذاری به‌عنوان پرداخت‌شده',
+            edit: 'ویرایش',
+            delete: 'حذف',
+            printVoucher: 'چاپ ووچر',
+            printVouchers: 'چاپ ووچرها',
+            printSummary: 'چاپ خلاصه',
+            viewAttachment: 'نمایش ضمیمه',
+            newContractPlan: 'پلن قراردادی جدید',
+            newSchedule: 'زمان‌بندی جدید',
+        },
+        summary: {
+            activeStaff: 'کارمندان فعال',
+            unpaidPayroll: 'معاش پرداخت‌نشده',
+            advancesToDeduct: 'پیش‌پرداخت قابل کسر',
+            draftRuns: 'دوره‌های پیش‌نویس',
+            submittedRuns: 'دوره‌های ارسال‌شده',
+            paidThisMonth: 'پرداخت‌شده این ماه',
+            employeesInFocus: 'کارمندان تحت بررسی',
+        },
+        filters: {
+            branch: 'شعبه',
+            employee: 'کارمند',
+            status: 'وضعیت',
+            scheduleStatus: 'وضعیت زمان‌بندی',
+            allBranches: 'همه شعبات',
+            allEmployees: 'همه کارمندان',
+            allStatuses: 'همه وضعیت‌ها',
+            searchBranches: 'جستجوی شعبات...',
+            searchEmployees: 'جستجوی کارمندان...',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+            noEmployeeFound: 'هیچ کارمندی یافت نشد.',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+        },
+        register: {
+            title: 'ثبت معاش',
+            description:
+                'دوره‌های تازه معاش همراه با تعداد کارمندان، معاش ناخالص، کسورات پیش‌پرداخت و وضعیت پرداخت.',
+            searchPlaceholder:
+                'دوره‌های معاش را بر اساس بازه، شعبه یا وضعیت جستجو کنید...',
+        },
+        contracts: {
+            title: 'پلن‌های قراردادی',
+            description:
+                'پلن‌های پرداخت قراردادی کارمندان را مدیریت کنید و ووچرهای خلاصه قرارداد را چاپ کنید.',
+            searchPlaceholder:
+                'پلن‌های قراردادی را بر اساس کارمند، بازه، نوع پلن یا وضعیت جستجو کنید...',
+        },
+        schedules: {
+            title: 'زمان‌بندی پرداخت قرارداد',
+            description:
+                'پلن‌های پرداخت قرارداد و آیتم‌های سررسید را مدیریت کنید تا معاش آن‌ها را به‌جای مبلغ خام قرارداد برداشت کند.',
+            searchPlaceholder:
+                'زمان‌بندی‌ها را بر اساس کارمند، عنوان، تاریخ سررسید یا وضعیت جستجو کنید...',
+        },
+        table: {
+            period: 'دوره',
+            employees: 'کارمندان',
+            gross: 'ناخالص',
+            advances: 'پیش‌پرداخت‌ها',
+            netPayroll: 'معاش خالص',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        contractTable: {
+            employee: 'کارمند',
+            period: 'دوره',
+            openEnded: 'بدون پایان',
+            planType: 'نوع پلن',
+            installments: 'قسط',
+            customCount: 'تعداد سفارشی',
+            contractAmount: 'مبلغ قرارداد',
+            schedules: 'زمان‌بندی‌ها',
+            paidUnpaid: 'پرداخت‌شده / پرداخت‌نشده',
+            scheduled: 'زمان‌بندی‌شده',
+            paid: 'پرداخت‌شده',
+            unpaid: 'پرداخت‌نشده',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        scheduleTable: {
+            employee: 'کارمند',
+            dueDate: 'تاریخ سررسید',
+            title: 'عنوان',
+            contractSchedule: 'زمان‌بندی قرارداد',
+            amount: 'مبلغ',
+            attachment: 'ضمیمه',
+            view: 'نمایش',
+            noFile: 'بدون فایل',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        details: {
+            title: 'جزئیات معاش',
+            run: 'دوره معاش',
+            description:
+                'برای بررسی آیتم‌های معاش در سطح کارمند، یک دوره معاش را انتخاب کنید.',
+            paymentForMonth: 'پرداخت برای ماه',
+            advanceDeduction: 'کسر پیش‌پرداخت',
+            netSalary: 'معاش خالص',
+            paymentDate: 'تاریخ پرداخت',
+            empty: 'هنوز هیچ دوره معاشی انتخاب نشده است.',
+        },
+        form: {
+            generateTitle: 'ایجاد دوره معاش',
+            generateDescription:
+                'یک دوره معاش را بر اساس ماه افغانی ایجاد کنید. کارمندانی که معاش یا مبلغ قرارداد دارند به‌صورت خودکار شامل می‌شوند و پیش‌پرداخت‌های تاییدشده به‌عنوان کسورات پیشنهاد می‌گردند.',
+            afghanPayrollMonth: 'ماه معاش افغانی',
+            selectAfghanMonth: 'ماه افغانی را انتخاب کنید',
+            searchAfghanMonths: 'جستجوی ماه‌های افغانی...',
+            noAfghanMonthFound: 'هیچ ماه افغانی یافت نشد.',
+            gregorianStart: 'شروع میلادی',
+            gregorianEnd: 'پایان میلادی',
+            defaultPaymentMethod: 'روش پرداخت پیش‌فرض',
+            selectPaymentMethod: 'روش پرداخت را انتخاب کنید',
+            searchMethods: 'جستجوی روش‌ها...',
+            noMethodFound: 'هیچ روشی یافت نشد.',
+            notes: 'یادداشت‌ها',
+            notesPlaceholder:
+                'یادداشت اختیاری برای دوره، زمینه شعبه یا دستور پرداخت.',
+            selectStatus: 'وضعیت را انتخاب کنید',
+            whatThisWillDo: 'این کار چه می‌کند',
+            equalInstallments: 'اقساط مساوی',
+            customSchedule: 'زمان‌بندی سفارشی',
+            manualMilestones: 'مراحل دستی',
+        },
+        voucher: {
+            printTitle: 'چاپ ووچر معاش',
+            printDescription:
+                'این ووچر معاش را بررسی کنید و سپس برای بازبینی مدیر و تایید پرداخت معاش چاپ نمایید.',
+            voucher: 'ووچر',
+            paymentMonth: 'ماه پرداخت',
+            document: 'سند',
+            created: 'ایجاد شده',
+            employee: 'کارمند',
+            salaryType: 'نوع معاش',
+            paymentMethod: 'روش پرداخت',
+            description: 'توضیح',
+            amount: 'مبلغ',
+            contractPaymentVoucher: 'ووچر پرداخت قرارداد',
+            salaryPaymentVoucher: 'ووچر پرداخت معاش',
+            contractPaymentVoucherLower: 'ووچر پرداخت قرارداد',
+            salaryPaymentVoucherLower: 'ووچر پرداخت معاش',
+            forMonth: 'برای ماه',
+            notesText:
+                'برای بازبینی پرداخت معاش پیش از تایید مدیر آماده شده است. کسورات پیش‌پرداخت از قبل در مبلغ خالص قابل پرداخت اعمال شده‌اند.',
+            grossPay: 'پرداخت ناخالص',
+            advanceDeduction: 'کسر پیش‌پرداخت',
+            netPayable: 'خالص قابل پرداخت',
+            preparedBy: 'تهیه‌شده توسط',
+            financeManager: 'مدیر مالی',
+            approvedBy: 'تاییدشده توسط',
+        },
+        notices: {
+            approvalHidden:
+                'عملیات تایید پنهان است. تنها کاربرانی که اجازه تایید معاش را دارند می‌توانند پس از بررسی ووچرها دوره‌های معاش را تایید یا رد کنند.',
+            paymentHidden:
+                'عملیات پرداخت پنهان است. تنها کاربرانی که اجازه پرداخت معاش را دارند می‌توانند دوره‌های معاش را پرداخت‌شده علامت‌گذاری کنند.',
+            scheduleApprovalHidden:
+                'عملیات تایید زمان‌بندی قرارداد پنهان است. تنها کاربران دارای اجازه تایید معاش می‌توانند پرداخت‌های زمان‌بندی‌شده را تایید یا رد کنند.',
+        },
+        statuses: {
+            draft: 'پیش‌نویس',
+            submitted: 'ارسال‌شده',
+            approved: 'تاییدشده',
+            paid: 'پرداخت‌شده',
+            active: 'فعال',
+        },
+        toasts: {
+            generateRunFailed: 'ایجاد دوره معاش ناکام شد.',
+            contractUpdated: 'پلن قراردادی با موفقیت به‌روزرسانی شد.',
+            contractUpdateFailed: 'به‌روزرسانی پلن قراردادی ناکام شد.',
+            contractCreated: 'پلن قراردادی با موفقیت ایجاد شد.',
+            contractCreateFailed: 'ایجاد پلن قراردادی ناکام شد.',
+            scheduleUpdated: 'زمان‌بندی قرارداد با موفقیت به‌روزرسانی شد.',
+            scheduleUpdateFailed: 'به‌روزرسانی زمان‌بندی ناکام شد.',
+            scheduleCreated: 'زمان‌بندی قرارداد با موفقیت ایجاد شد.',
+            scheduleCreateFailed: 'ایجاد زمان‌بندی ناکام شد.',
+        },
+    },
+    financeEmployeeAdvances: {
+        pageTitle: 'پیش‌پرداخت کارمندان',
+        heading: {
+            title: 'پیش‌پرداخت کارمندان',
+            description:
+                'برداشت‌های کارمندان، روش‌های بازپرداخت، مانده‌های باقی‌مانده و روند تایید را در یک ثبت منظم پیگیری کنید.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            newAdvance: 'پیش‌پرداخت جدید',
+            createAdvance: 'ایجاد پیش‌پرداخت',
+            updateAdvance: 'به‌روزرسانی پیش‌پرداخت',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            printVoucher: 'چاپ ووچر',
+            approve: 'تایید',
+            rejectToDraft: 'رد به پیش‌نویس',
+        },
+        summary: {
+            totalAdvances: 'مجموع پیش‌پرداخت‌ها',
+            outstandingBalance: 'مانده باقی‌مانده',
+            submitted: 'ارسال‌شده',
+            approved: 'تاییدشده',
+        },
+        records: {
+            title: 'سوابق پیش‌پرداخت',
+            description:
+                'پیش‌پرداخت‌های اخیر کارمندان با جستجوی جدول، فیلترها، عملیات و ۱۰ ردیف در هر صفحه.',
+            searchPlaceholder:
+                'بر اساس کارمند، تاریخ، دلیل، روش بازپرداخت یا وضعیت جستجو کنید...',
+        },
+        filters: {
+            employee: 'کارمند',
+            branch: 'شعبه',
+            status: 'وضعیت',
+            repayment: 'بازپرداخت',
+            allEmployees: 'همه کارمندان',
+            allBranches: 'همه شعبات',
+            allStatuses: 'همه وضعیت‌ها',
+            allRepaymentMethods: 'همه روش‌های بازپرداخت',
+            searchEmployees: 'جستجوی کارمندان...',
+            searchBranches: 'جستجوی شعبات...',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            searchRepaymentMethods: 'جستجوی روش‌های بازپرداخت...',
+            noEmployeeFound: 'هیچ کارمندی یافت نشد.',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+            noMethodFound: 'هیچ روشی یافت نشد.',
+        },
+        table: {
+            employee: 'کارمند',
+            date: 'تاریخ',
+            reason: 'دلیل',
+            amount: 'مبلغ',
+            deducted: 'کسرشده',
+            remaining: 'باقی‌مانده',
+            repaymentMethod: 'روش بازپرداخت',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد پیش‌پرداخت کارمند',
+            editTitle: 'ویرایش پیش‌پرداخت کارمند',
+            description:
+                'یک برداشت کارمند را ثبت کنید تا بعداً برای کسر از معاش یا تسویه آماده باشد.',
+            employee: 'کارمند',
+            selectEmployee: 'کارمند را انتخاب کنید',
+            branch: 'شعبه',
+            selectBranch: 'شعبه را انتخاب کنید',
+            advanceDate: 'تاریخ پیش‌پرداخت',
+            amount: 'مبلغ',
+            repaymentMethod: 'روش بازپرداخت',
+            selectRepaymentMethod: 'روش بازپرداخت را انتخاب کنید',
+            status: 'وضعیت',
+            selectStatus: 'وضعیت را انتخاب کنید',
+            reason: 'دلیل',
+            reasonPlaceholder:
+                'پیش‌پرداخت برای سفر، حمایت اضطراری یا دلیل تاییدشده دیگر.',
+        },
+        voucher: {
+            printTitle: 'چاپ ووچر پیش‌پرداخت کارمند',
+            printDescription:
+                'این ووچر پیش‌پرداخت را بررسی کنید و سپس برای بازبینی و امضای مدیر چاپ کنید.',
+        },
+        statuses: {
+            draft: 'پیش‌نویس',
+            submitted: 'ارسال‌شده',
+            approved: 'تاییدشده',
+        },
+        repaymentMethods: {
+            salary_deduction: 'کسر از معاش',
+            cash_return: 'بازپرداخت نقدی',
+            manual_settlement: 'تسویه دستی',
+        },
+        toasts: {
+            saveFailed: 'ذخیره پیش‌پرداخت کارمند ناکام شد.',
+        },
+    },
+    financeCashBank: {
+        pageTitle: 'نقد و بانک',
+        heading: {
+            title: 'حرکات نقد و بانک',
+            description:
+                'تمویل مالک، انتقال نقد به بانک و افزایش پول‌خرد را با کنترول در سطح شعبه ثبت کنید.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            movementTypes: 'نوع‌های حرکت',
+            newMovement: 'حرکت جدید',
+            updateMovement: 'به‌روزرسانی حرکت',
+            saveMovement: 'ذخیره حرکت',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            printVoucher: 'چاپ ووچر',
+            approve: 'تایید',
+            reject: 'رد',
+        },
+        register: {
+            title: 'ثبت نقد و بانک',
+            description:
+                'تمویل نقدی در دست، تمویل بانکی و انتقال‌ها به پول‌خرد یا سایر شعبات را اضافه کنید.',
+            searchPlaceholder:
+                'نوع حرکت، شعبه، حساب، روش یا وضعیت را جستجو کنید...',
+        },
+        filters: {
+            status: 'وضعیت',
+            branch: 'شعبه',
+            allStatuses: 'همه وضعیت‌ها',
+            allBranches: 'همه شعبات',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            searchBranches: 'جستجوی شعبات...',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+        },
+        table: {
+            date: 'تاریخ',
+            movement: 'حرکت',
+            branch: 'شعبه',
+            account: 'حساب',
+            counterparty: 'طرف مقابل',
+            direction: 'جهت',
+            paymentMethod: 'روش پرداخت',
+            amount: 'مبلغ',
+            attachment: 'ضمیمه',
+            view: 'نمایش',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد حرکت نقدی',
+            editTitle: 'ویرایش حرکت نقدی',
+            description:
+                'از این بخش برای افزودن تمویل مالک و انتقال مبلغ میان حساب‌های نقد، بانک و پول‌خرد استفاده کنید.',
+            movementType: 'نوع حرکت',
+            selectMovementType: 'نوع حرکت را انتخاب کنید',
+            searchMovementTypes: 'جستجوی نوع‌های حرکت...',
+            noMovementTypeFound: 'هیچ نوع حرکتی یافت نشد.',
+            paymentMethod: 'روش پرداخت',
+            selectPaymentMethod: 'روش پرداخت را انتخاب کنید',
+            searchPaymentMethods: 'جستجوی روش‌های پرداخت...',
+            noPaymentMethodFound: 'هیچ روش پرداختی یافت نشد.',
+            sourceBranch: 'شعبه مبدأ',
+            selectSourceBranch: 'شعبه مبدأ را انتخاب کنید',
+            destinationBranch: 'شعبه مقصد',
+            selectDestinationBranch: 'شعبه مقصد را انتخاب کنید',
+            sourceAccount: 'حساب مبدأ',
+            selectSourceAccount: 'حساب مبدأ را انتخاب کنید',
+            searchSourceAccounts: 'جستجوی حساب‌های مبدأ...',
+            targetAccount: 'حساب مقصد',
+            selectTargetAccount: 'حساب مقصد را انتخاب کنید',
+            searchTargetAccounts: 'جستجوی حساب‌های مقصد...',
+            noAccountFound: 'هیچ حسابی یافت نشد.',
+            direction: 'جهت',
+            selectDirection: 'جهت را انتخاب کنید',
+            searchDirections: 'جستجوی جهت‌ها...',
+            noDirectionFound: 'هیچ جهتی یافت نشد.',
+            amount: 'مبلغ',
+            movementDate: 'تاریخ حرکت',
+            approvalStatus: 'وضعیت تایید',
+            selectApprovalStatus: 'وضعیت تایید را انتخاب کنید',
+            descriptionLabel: 'توضیحات',
+            descriptionPlaceholder:
+                'مالک پول شروع کار را تمویل کرد و سپس بخشی را به پول‌خرد انتقال داد.',
+            receiptAttachment: 'ضمیمه بل / رسید',
+            replaceCurrentReceipt: 'رسید فعلی را جایگزین کنید',
+            uploadReceipt: 'رسید را بارگذاری کنید (JPG, PNG, PDF)',
+            browseFiles: 'برای انتخاب فایل کلیک کنید (حداکثر ۵MB)',
+        },
+        approval: {
+            title: 'بررسی حرکت نقدی',
+            description:
+                'تایید کنید که می‌خواهید این حرکت را تایید کنید یا برای اصلاح به پیش‌نویس برگردانید.',
+        },
+        voucher: {
+            printTitle: 'چاپ ووچر نقد / بانک',
+            printDescription:
+                'این ووچر را بررسی کنید و سپس برای امضای مدیر چاپ نمایید.',
+        },
+        statuses: {
+            draft: 'پیش‌نویس',
+            submitted: 'ارسال‌شده',
+            approved: 'تاییدشده',
+        },
+        directions: {
+            in: 'ورودی',
+            out: 'خروجی',
+        },
+        attachmentTitle: 'ضمیمه نقد / بانک',
+        toasts: {
+            saveFailed: 'ذخیره حرکت نقدی ناکام شد.',
+        },
+    },
+    financeCashMovementTypes: {
+        metaTitle: 'نوع‌های حرکت نقدی',
+        pageTitle: 'نوع‌های حرکت',
+        heading: {
+            title: 'نوع‌های حرکت',
+            description:
+                'نوع‌های حرکتی را که در حرکت جدید بخش نقد و بانک استفاده می‌شوند مدیریت کنید.',
+        },
+        actions: {
+            backToCashBank: 'بازگشت به نقد و بانک',
+            newMovementType: 'نوع حرکت جدید',
+            createType: 'ایجاد نوع',
+            updateType: 'به‌روزرسانی نوع',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'نوع‌های حرکت نقدی',
+            description:
+                'مدیریت مبتنی بر جدول برای نوع‌های حرکت، جهت پیش‌فرض آن‌ها و رفتار انتقال.',
+            searchPlaceholder:
+                'نوع حرکت، اسلاگ، جهت یا توضیحات را جستجو کنید...',
+        },
+        filters: {
+            status: 'وضعیت',
+            allStatuses: 'همه وضعیت‌ها',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+        },
+        table: {
+            name: 'نام',
+            slug: 'اسلاگ',
+            defaultDirection: 'جهت پیش‌فرض',
+            needsTarget: 'نیازمند هدف',
+            sort: 'ترتیب',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد نوع حرکت',
+            editTitle: 'ویرایش نوع حرکت',
+            description:
+                'نام، اسلاگ، رفتار جهت و این‌که آیا این نوع به حساب هدف نیاز دارد را تنظیم کنید.',
+            name: 'نام',
+            namePlaceholder: 'واریز مالک',
+            slug: 'اسلاگ',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'جهت پیش‌فرض',
+            selectDirection: 'جهت را انتخاب کنید',
+            searchDirections: 'جستجوی جهت‌ها...',
+            noDirectionFound: 'هیچ جهتی یافت نشد.',
+            searchMovementTypes: 'نوع‌های حرکت را جستجو کنید...',
+            requiresTargetAccount:
+                'نیازمند حساب هدف (حرکت به سبک انتقال)',
+            activeInNewMovement: 'فعال و قابل استفاده در حرکت جدید',
+            sortOrder: 'ترتیب نمایش',
+            descriptionLabel: 'توضیحات',
+            descriptionPlaceholder:
+                'برای تمویل مالک، انتقال یا حرکات تعدیلی استفاده کنید.',
+        },
+        delete: {
+            title: 'حذف نوع حرکت',
+            description: 'این کار نوع حرکت انتخاب‌شده را برای همیشه حذف می‌کند.',
+            reassignBeforeDeleting:
+                'این نوع حرکت از قبل به سوابق حرکات نقدی اختصاص داده شده است. قبل از حذف، آن سوابق را دوباره تعیین کنید.',
+            movementRecordsWillBeMoved:
+                ':count سابقه حرکت به نوع دیگری منتقل خواهد شد.',
+            noMovementRecords:
+                'در حال حاضر هیچ سابقه حرکت نقدی به این نوع اختصاص داده نشده است.',
+            replacementMovementType: 'نوع حرکت جایگزین',
+            selectReplacementMovementType:
+                'نوع حرکت جایگزین را انتخاب کنید',
+            noReplacementMovementTypeFound:
+                'هیچ نوع حرکت جایگزینی یافت نشد.',
+            createAnotherMovementType:
+                'قبل از حذف این مورد، نوع حرکت دیگری ایجاد کنید.',
+        },
+        directions: {
+            flexible: 'انعطاف‌پذیر',
+            in: 'ورودی',
+            out: 'خروجی',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+        common: {
+            yes: 'بلی',
+            no: 'نخیر',
         },
     },
     orders: {
