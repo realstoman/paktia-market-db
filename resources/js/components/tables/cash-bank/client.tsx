@@ -280,15 +280,6 @@ export function CashBankClient({
             payload.receipt = receiptFile;
         }
 
-        const onError = (errors: Record<string, string>) => {
-            const firstError = Object.values(errors)[0];
-            if (typeof firstError === 'string' && firstError.length > 0) {
-                toast.error(firstError);
-                return;
-            }
-
-            toast.error('Failed to save cash movement.');
-        };
         const onLocalizedError = (errors: Record<string, string>) => {
             const firstError = Object.values(errors)[0];
             if (typeof firstError === 'string' && firstError.length > 0) {
