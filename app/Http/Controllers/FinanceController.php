@@ -7,6 +7,7 @@ use App\Enums\PaymentMethod;
 use App\Models\Branch;
 use App\Models\BranchDailyMetric;
 use App\Models\CashMovement;
+use App\Models\EmployeeAdvance;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
@@ -1076,6 +1077,40 @@ class FinanceController extends Controller
                 'status' => str($movement->approval_status ?? 'draft')->headline()->toString(),
             ]);
 
+        $employeeAdvanceEntries = EmployeeAdvance::query()
+            ->with(['branch:id,name', 'employee:id,first_name,last_name'])
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('status', 'approved')
+            ->whereBetween('advance_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->orderByDesc('advance_date')
+            ->orderByDesc('id')
+            ->when($limit, fn ($query) => $query->limit($limit))
+            ->get()
+            ->map(function (EmployeeAdvance $advance) {
+                $employeeName = trim(($advance->employee?->first_name ?? '').' '.($advance->employee?->last_name ?? ''));
+                $reason = trim((string) ($advance->reason ?? ''));
+                $isEmployeeCoveredOrder = str_starts_with(
+                    strtolower($reason),
+                    'employee covered order #',
+                );
+
+                return [
+                    'date' => optional($advance->advance_date)?->toDateString(),
+                    'reference' => 'Advance #'.$advance->id,
+                    'type' => $isEmployeeCoveredOrder ? 'Employee Cover' : 'Employee Advance',
+                    'branch' => $advance->branch?->name ?? 'All Branches',
+                    'account' => $isEmployeeCoveredOrder ? 'Employee Receivable' : 'Employee Advances',
+                    'description' => $reason
+                        ?: trim('Advance payout'.($employeeName ? ' • '.$employeeName : '')),
+                    'debit' => (float) $advance->amount,
+                    'credit' => 0.0,
+                    'status' => str($advance->status ?? 'draft')->headline()->toString(),
+                ];
+            });
+
         $journalEntries = collect();
         if (Schema::hasTable('finance_journal_lines') && Schema::hasTable('finance_journals')) {
             $journalEntries = DB::table('finance_journal_lines')
@@ -1120,6 +1155,7 @@ class FinanceController extends Controller
         $entries = $entries
             ->concat($journalEntries)
             ->concat($salesEntries)
+            ->concat($employeeAdvanceEntries)
             ->concat($expenseEntries)
             ->concat($cashEntries)
             ->sortByDesc('date')
