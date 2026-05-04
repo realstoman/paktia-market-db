@@ -1256,6 +1256,93 @@ const en = {
             },
         },
     },
+    financeInventoryValuation: {
+        pageTitle: 'Inventory Valuation',
+        hero: {
+            eyebrow: 'Finance Module',
+            title: 'Inventory Valuation',
+            description:
+                'This page shows what the restaurant stock is worth, how much value moved into kitchen usage, what has been adjusted, and how inventory costs are affecting finance.',
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            applyFilters: 'Apply Filters',
+        },
+        ranges: {
+            today: 'Today',
+            yesterday: 'Yesterday',
+            thisWeek: 'This Week',
+            thisMonth: 'This Month',
+            custom: 'Custom',
+        },
+        filters: {
+            title: 'Filters',
+            description: 'Review valuation by period and branch.',
+            startDate: 'Start Date',
+            endDate: 'End Date',
+            branch: 'Branch',
+            allBranches: 'All Branches',
+            selectBranch: 'Select branch',
+            searchBranches: 'Search branches...',
+            noBranchFound: 'No branch found.',
+        },
+        summary: {
+            inventoryValue: 'Inventory Value',
+            inventoryValueDescription:
+                'Current stock value across selected branches',
+            stockOnHand: 'Stock on Hand',
+            stockOnHandDescription: 'Across :count inventory items',
+            cogs: 'COGS / Usage',
+            cogsDescription:
+                'Estimated value moved into usage in this period',
+            adjustmentsNet: 'Adjustments Net',
+            adjustmentsNetDescription: 'In: :in | Out: :out',
+        },
+        valuation: {
+            title: 'Valuation by Item',
+            description:
+                'Weighted or estimated average cost per inventory item and current stock value.',
+            branchVendor: ':branch | Vendor: :vendor',
+            quantity: 'Quantity',
+            avgCost: 'Avg Cost',
+            stockValue: 'Stock Value',
+            empty:
+                'No inventory valuation items were found for the selected branch.',
+        },
+        costSections: {
+            title: 'Cost Sections',
+            description:
+                'Finance view of consumption, wastage, and adjustments in the selected period.',
+            cogs: 'COGS / Usage',
+            cogsDescription:
+                'Based on `usage_cycle` and any future `issue` or `consumed` transactions.',
+            wastage: 'Wastage / Spoilage',
+            wastageDescription:
+                'This stays zero until wastage transactions are added explicitly into the inventory flow.',
+            adjustments: 'Adjustments',
+            adjustmentsDescription:
+                'Positive adjustments: :in | Negative adjustments: :out',
+        },
+        movements: {
+            title: 'Movement History',
+            description:
+                'Inventory finance movements and cost impact history.',
+            showing: 'Showing :from to :to of :total movements.',
+            date: 'Date',
+            action: 'Action',
+            quantity: 'Quantity',
+            unitCost: 'Unit Cost',
+            waAfter: 'WA after:',
+            totalCost: 'Total Cost',
+            empty:
+                'No inventory finance movements were found for the selected filters.',
+        },
+        pagination: {
+            pageOf: 'Page :page of :total',
+            previousPage: 'Previous page',
+            nextPage: 'Next page',
+        },
+    },
     financeChartOfAccounts: {
         pageTitle: 'Chart of Accounts',
         heading: {

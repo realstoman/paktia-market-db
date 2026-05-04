@@ -1253,6 +1253,92 @@ const ps = {
             },
         },
     },
+    financeInventoryValuation: {
+        pageTitle: 'د موجودۍ ارزښت ټاکنه',
+        hero: {
+            eyebrow: 'مالي ماډیول',
+            title: 'د موجودۍ ارزښت ټاکنه',
+            description:
+                'دا پاڼه ښيي چې د رستورانت موجودي څومره ارزښت لري، څومره ارزښت د پخلنځي مصرف ته تللی، کوم تعدیلات ثبت شوي او د موجودۍ لګښتونه څنګه پر مالي چارو اغېز کوي.',
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته بېرته',
+            applyFilters: 'فلټرونه تطبیق کړئ',
+        },
+        ranges: {
+            today: 'نن',
+            yesterday: 'پرون',
+            thisWeek: 'دا اونۍ',
+            thisMonth: 'دا میاشت',
+            custom: 'سفارشي',
+        },
+        filters: {
+            title: 'فلټرونه',
+            description: 'ارزښت ټاکنه د مودې او څانګې له مخې وڅېړئ.',
+            startDate: 'د پیل نېټه',
+            endDate: 'د پای نېټه',
+            branch: 'څانګه',
+            allBranches: 'ټولې څانګې',
+            selectBranch: 'څانګه وټاکئ',
+            searchBranches: 'څانګې ولټوئ...',
+            noBranchFound: 'هیڅ څانګه ونه موندل شوه.',
+        },
+        summary: {
+            inventoryValue: 'د موجودۍ ارزښت',
+            inventoryValueDescription:
+                'په ټاکل شویو څانګو کې د موجودې ذخیرې اوسنی ارزښت',
+            stockOnHand: 'په لاس موجودي',
+            stockOnHandDescription: 'په ټولیزه توګه :count د موجودۍ توکي',
+            cogs: 'د پلور لګښت / مصرف',
+            cogsDescription:
+                'اټکلی ارزښت چې په دې موده کې مصرف ته تللی',
+            adjustmentsNet: 'خالص تعدیلات',
+            adjustmentsNetDescription: 'ورودي: :in | خروجي: :out',
+        },
+        valuation: {
+            title: 'د توکي له مخې ارزښت ټاکنه',
+            description:
+                'د هر موجودي توکي لپاره وزن‌دار یا اټکلی اوسط لګښت او د اوسنۍ ذخیرې ارزښت.',
+            branchVendor: ':branch | پلورونکی: :vendor',
+            quantity: 'مقدار',
+            avgCost: 'اوسط لګښت',
+            stockValue: 'د موجودۍ ارزښت',
+            empty:
+                'د ټاکل شوې څانګې لپاره د موجودۍ هېڅ د ارزښت ټاکنې توکي ونه موندل شول.',
+        },
+        costSections: {
+            title: 'د لګښت برخې',
+            description:
+                'په ټاکل شوې موده کې د مصرف، ضایعاتو او تعدیلاتو مالي لید.',
+            cogs: 'د پلور لګښت / مصرف',
+            cogsDescription:
+                'د `usage_cycle` او هر ډول راتلونکو `issue` یا `consumed` تراکنشونو پر بنسټ.',
+            wastage: 'ضایعات / خرابېدنه',
+            wastageDescription:
+                'دا اندازه تر هغې صفر پاتې کېږي څو چې د ضایعاتو تراکنشونه په ښکاره ډول د موجودۍ بهیر ته اضافه نه شي.',
+            adjustments: 'تعدیلات',
+            adjustmentsDescription:
+                'مثبت تعدیلات: :in | منفي تعدیلات: :out',
+        },
+        movements: {
+            title: 'د خوځښت تاریخچه',
+            description: 'د موجودۍ مالي خوځښتونه او د لګښت اغېز تاریخچه.',
+            showing: 'له :total خوځښتونو څخه :from تر :to پورې ښودل کېږي.',
+            date: 'نېټه',
+            action: 'عمل',
+            quantity: 'مقدار',
+            unitCost: 'د واحد لګښت',
+            waAfter: 'له دې وروسته اوسط:',
+            totalCost: 'ټول لګښت',
+            empty:
+                'د ټاکل شویو فلټرونو لپاره د موجودۍ هېڅ مالي خوځښت ونه موندل شو.',
+        },
+        pagination: {
+            pageOf: 'پاڼه :page له :total څخه',
+            previousPage: 'مخکنۍ پاڼه',
+            nextPage: 'راتلونکې پاڼه',
+        },
+    },
     financeChartOfAccounts: {
         pageTitle: 'د حسابونو چارټ',
         heading: {

@@ -1260,6 +1260,93 @@ const fa = {
             },
         },
     },
+    financeInventoryValuation: {
+        pageTitle: 'ارزش‌گذاری موجودی',
+        hero: {
+            eyebrow: 'ماژول مالی',
+            title: 'ارزش‌گذاری موجودی',
+            description:
+                'این صفحه نشان می‌دهد موجودی رستورانت چه ارزشی دارد، چه مقدار ارزش به مصرف آشپزخانه منتقل شده، چه تعدیلاتی ثبت شده و هزینه‌های موجودی چگونه بر امور مالی تاثیر می‌گذارند.',
+        },
+        actions: {
+            backToFinance: 'بازگشت به مالی',
+            applyFilters: 'اعمال فیلترها',
+        },
+        ranges: {
+            today: 'امروز',
+            yesterday: 'دیروز',
+            thisWeek: 'این هفته',
+            thisMonth: 'این ماه',
+            custom: 'سفارشی',
+        },
+        filters: {
+            title: 'فیلترها',
+            description: 'ارزش‌گذاری را بر اساس بازه و شعبه بررسی کنید.',
+            startDate: 'تاریخ شروع',
+            endDate: 'تاریخ پایان',
+            branch: 'شعبه',
+            allBranches: 'همه شعبات',
+            selectBranch: 'شعبه را انتخاب کنید',
+            searchBranches: 'جستجوی شعبات...',
+            noBranchFound: 'هیچ شعبه‌ای یافت نشد.',
+        },
+        summary: {
+            inventoryValue: 'ارزش موجودی',
+            inventoryValueDescription:
+                'ارزش فعلی موجودی در شعبات انتخاب‌شده',
+            stockOnHand: 'موجودی در دست',
+            stockOnHandDescription: 'در مجموع :count قلم موجودی',
+            cogs: 'بهای تمام‌شده / مصرف',
+            cogsDescription:
+                'ارزش تخمینی که در این دوره به مصرف منتقل شده است',
+            adjustmentsNet: 'خالص تعدیلات',
+            adjustmentsNetDescription: 'ورودی: :in | خروجی: :out',
+        },
+        valuation: {
+            title: 'ارزش‌گذاری به تفکیک قلم',
+            description:
+                'میانگین موزون یا تخمینی هزینه هر قلم موجودی و ارزش فعلی ذخیره.',
+            branchVendor: ':branch | فروشنده: :vendor',
+            quantity: 'مقدار',
+            avgCost: 'میانگین هزینه',
+            stockValue: 'ارزش موجودی',
+            empty:
+                'برای شعبه انتخاب‌شده هیچ قلم ارزش‌گذاری موجودی یافت نشد.',
+        },
+        costSections: {
+            title: 'بخش‌های هزینه',
+            description:
+                'نمای مالی از مصرف، ضایعات و تعدیلات در بازه انتخاب‌شده.',
+            cogs: 'بهای تمام‌شده / مصرف',
+            cogsDescription:
+                'براساس `usage_cycle` و هرگونه تراکنش آینده `issue` یا `consumed`.',
+            wastage: 'ضایعات / خرابی',
+            wastageDescription:
+                'این مقدار تا زمانی صفر می‌ماند که تراکنش‌های ضایعات به‌صورت مشخص به جریان موجودی اضافه شوند.',
+            adjustments: 'تعدیلات',
+            adjustmentsDescription:
+                'تعدیلات مثبت: :in | تعدیلات منفی: :out',
+        },
+        movements: {
+            title: 'تاریخچه حرکات',
+            description:
+                'حرکات مالی موجودی و تاریخچه تاثیر هزینه‌ها.',
+            showing: 'نمایش :from تا :to از :total حرکت.',
+            date: 'تاریخ',
+            action: 'عملیات',
+            quantity: 'مقدار',
+            unitCost: 'هزینه فی واحد',
+            waAfter: 'میانگین موزون بعدی:',
+            totalCost: 'هزینه مجموعی',
+            empty:
+                'برای فیلترهای انتخاب‌شده هیچ حرکت مالی موجودی یافت نشد.',
+        },
+        pagination: {
+            pageOf: 'صفحه :page از :total',
+            previousPage: 'صفحه قبلی',
+            nextPage: 'صفحه بعدی',
+        },
+    },
     financeChartOfAccounts: {
         pageTitle: 'چارت حساب‌ها',
         heading: {
