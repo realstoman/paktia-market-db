@@ -1662,38 +1662,6 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="employee-salary">
-                                    {isContractBased
-                                        ? t(
-                                              'employees.form.contractAmount',
-                                              'Contract Amount',
-                                          )
-                                        : t('employees.table.salary', 'Salary')}
-                                </Label>
-                                <NumericInput
-                                    id="employee-salary"
-                                    min="0"
-                                    value={
-                                        isContractBased
-                                            ? contractAmount
-                                            : salary
-                                    }
-                                    onValueChange={(value) =>
-                                        isContractBased
-                                            ? setContractAmount(value)
-                                            : setSalary(value)
-                                    }
-                                    placeholder="0"
-                                />
-                                <InputError
-                                    message={
-                                        isContractBased
-                                            ? createErrors.contract_amount
-                                            : createErrors.salary
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
                                 <Label htmlFor="contract-start-date">
                                     {isContractBased
                                         ? t(
@@ -1739,6 +1707,39 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                                 <InputError
                                     message={createErrors.contract_end_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="employee-salary">
+                                    {isContractBased
+                                        ? t(
+                                              'employees.form.contractAmount',
+                                              'Contract Amount',
+                                          )
+                                        : t('employees.table.salary', 'Salary')}
+                                </Label>
+                                <NumericInput
+                                    id="employee-salary"
+                                    min="0"
+                                    showControls={false}
+                                    value={
+                                        isContractBased
+                                            ? contractAmount
+                                            : salary
+                                    }
+                                    onValueChange={(value) =>
+                                        isContractBased
+                                            ? setContractAmount(value)
+                                            : setSalary(value)
+                                    }
+                                    placeholder="0"
+                                />
+                                <InputError
+                                    message={
+                                        isContractBased
+                                            ? createErrors.contract_amount
+                                            : createErrors.salary
+                                    }
                                 />
                             </div>
                             <div className="grid gap-2">

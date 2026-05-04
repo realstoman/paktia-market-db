@@ -291,7 +291,8 @@ const en = {
             moreKitchens: '+:count more',
         },
         filters: {
-            searchPlaceholder: 'Search branches by name, country or province...',
+            searchPlaceholder:
+                'Search branches by name, country or province...',
             allCountries: 'All countries',
             allCities: 'All cities',
             searchCountries: 'Search countries...',
@@ -378,8 +379,7 @@ const en = {
             },
             deleteTable: {
                 title: 'Delete table',
-                description:
-                    'This will permanently delete the selected table.',
+                description: 'This will permanently delete the selected table.',
                 descriptionWithName:
                     'This will permanently delete table :number:name.',
             },
@@ -635,15 +635,13 @@ const en = {
         description: 'Manage your profile and account settings',
         profileTitle: 'Profile settings',
         profileInformationTitle: 'Profile information',
-        profileInformationDescription:
-            'Update your name and email address',
+        profileInformationDescription: 'Update your name and email address',
         nameLabel: 'Name',
         fullNamePlaceholder: 'Full name',
         emailAddressLabel: 'Email address',
         emailAddressPlaceholder: 'Email address',
         emailUnverified: 'Your email address is unverified.',
-        resendVerificationEmail:
-            'Click here to resend the verification email.',
+        resendVerificationEmail: 'Click here to resend the verification email.',
         verificationLinkSent:
             'A new verification link has been sent to your email address.',
         passwordTitle: 'Password settings',
@@ -658,8 +656,7 @@ const en = {
         confirmPasswordPlaceholder: 'Confirm password',
         savePassword: 'Save password',
         twoFactorTitle: 'Two-Factor Authentication',
-        twoFactorDescription:
-            'Manage your two-factor authentication settings',
+        twoFactorDescription: 'Manage your two-factor authentication settings',
         enabled: 'Enabled',
         disabled: 'Disabled',
         twoFactorEnabledDescription:
@@ -901,7 +898,7 @@ const en = {
         },
         filters: {
             branch: 'Branch',
-            employmentType: 'Employment Type',
+            employmentType: 'Employment type',
             position: 'Position',
             shift: 'Shift',
             allBranches: 'All Branches',
@@ -925,7 +922,7 @@ const en = {
             id: 'ID',
             name: 'Name',
             phone: 'Phone',
-            employmentType: 'Employment Type',
+            employmentType: 'Employment type',
             shift: 'Shift',
             position: 'Position',
             salary: 'Salary',
@@ -949,23 +946,23 @@ const en = {
             selectEmploymentType: 'Select employment type',
             selectPosition: 'Select position',
             selectShift: 'Select shift',
-            contractAmount: 'Contract Amount',
+            contractAmount: 'Contract amount',
             contractStartDate: 'Contract start date',
             contractEndDate: 'Contract end date',
-            workStartDate: 'Work start date',
-            workEndDate: 'Work end date',
-            paymentCurrency: 'Payment Currency',
+            workStartDate: 'Contract start date',
+            workEndDate: 'Contract end date',
+            paymentCurrency: 'Payment currency',
             selectCurrency: 'Select currency',
             selectStatus: 'Select status',
             descriptionPlaceholder: 'Notes about this employee',
             profilePicture: 'Profile picture',
             profilePictureHelp: 'Upload employee profile picture.',
-            selectPicture: 'Select Picture',
+            selectPicture: 'Select picture',
             profilePreview: 'Profile preview',
             attachments: 'Attachments',
             attachmentsLabel: 'Attachments (up to :count)',
             attachmentsHelp: 'Upload multiple files, documents, and images.',
-            selectFiles: 'Select Files',
+            selectFiles: 'Select files',
         },
         create: {
             title: 'Add Employee',
@@ -1082,7 +1079,8 @@ const en = {
             updateButton: 'Update Shift',
             empty: 'No shifts found.',
             deleteTitle: 'Delete shift',
-            deleteDescription: 'This will permanently delete the selected shift.',
+            deleteDescription:
+                'This will permanently delete the selected shift.',
             deleteDescriptionNamed: 'This will permanently delete :name.',
         },
         positions: {
@@ -1137,8 +1135,7 @@ const en = {
                     'Projection data is current for the selected finance view.',
                 lagging:
                     'Some branch projections are lagging behind the selected finance window.',
-                stale:
-                    'Projection data is stale. Finance metrics may be outdated until projections refresh.',
+                stale: 'Projection data is stale. Finance metrics may be outdated until projections refresh.',
                 unavailable:
                     'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
             },
@@ -1233,8 +1230,7 @@ const en = {
             approvalQueue: 'Approval Queue',
             approvalQueueDescription:
                 'Submitted records waiting for manager approval',
-            note:
-                'These numbers now reflect real operational finance activity. When automatic journal posting is fully enabled, this same area will transition from operational entries to strict accounting journals without changing the workflow for your team.',
+            note: 'These numbers now reflect real operational finance activity. When automatic journal posting is fully enabled, this same area will transition from operational entries to strict accounting journals without changing the workflow for your team.',
         },
         modules: {
             title: 'Finance Modules',
@@ -1367,8 +1363,7 @@ const en = {
             stockOnHand: 'Stock on Hand',
             stockOnHandDescription: 'Across :count inventory items',
             cogs: 'COGS / Usage',
-            cogsDescription:
-                'Estimated value moved into usage in this period',
+            cogsDescription: 'Estimated value moved into usage in this period',
             adjustmentsNet: 'Adjustments Net',
             adjustmentsNetDescription: 'In: :in | Out: :out',
         },
@@ -1380,8 +1375,7 @@ const en = {
             quantity: 'Quantity',
             avgCost: 'Avg Cost',
             stockValue: 'Stock Value',
-            empty:
-                'No inventory valuation items were found for the selected branch.',
+            empty: 'No inventory valuation items were found for the selected branch.',
         },
         costSections: {
             title: 'Cost Sections',
@@ -1399,8 +1393,7 @@ const en = {
         },
         movements: {
             title: 'Movement History',
-            description:
-                'Inventory finance movements and cost impact history.',
+            description: 'Inventory finance movements and cost impact history.',
             showing: 'Showing :from to :to of :total movements.',
             date: 'Date',
             action: 'Action',
@@ -1408,8 +1401,7 @@ const en = {
             unitCost: 'Unit Cost',
             waAfter: 'WA after:',
             totalCost: 'Total Cost',
-            empty:
-                'No inventory finance movements were found for the selected filters.',
+            empty: 'No inventory finance movements were found for the selected filters.',
         },
         pagination: {
             pageOf: 'Page :page of :total',
@@ -1493,8 +1485,7 @@ const en = {
             searchStatus: 'Search status...',
             postableAccount: 'Postable account',
             descriptionLabel: 'Description',
-            descriptionPlaceholder:
-                'Optional notes for finance team usage.',
+            descriptionPlaceholder: 'Optional notes for finance team usage.',
             updateLedgerAccount: 'Update Ledger Account',
             createLedgerAccount: 'Create Ledger Account',
         },
@@ -1502,8 +1493,7 @@ const en = {
             title: 'Delete Ledger Account',
             description:
                 'This will permanently remove the selected ledger account.',
-            systemAccountsCannotBeDeleted:
-                'System accounts cannot be deleted.',
+            systemAccountsCannotBeDeleted: 'System accounts cannot be deleted.',
             reassignBeforeDeleting:
                 'This account is already used in finance records. Reassign those records before deleting it.',
             linkedRecordsNeedReassignment:
@@ -1642,21 +1632,16 @@ const en = {
             searchVendors: 'Search vendors...',
             noVendorFound: 'No vendor found.',
             expenseLedgerAccount: 'Expense Ledger Account',
-            selectExpenseLedgerAccount:
-                'Select expense ledger account',
-            searchExpenseLedgerAccounts:
-                'Search expense ledger accounts...',
+            selectExpenseLedgerAccount: 'Select expense ledger account',
+            searchExpenseLedgerAccounts: 'Search expense ledger accounts...',
             paymentSourceAccount: 'Payment Source Account',
-            selectPaymentSourceAccount:
-                'Select payment source account',
-            searchPaymentSourceAccounts:
-                'Search payment source accounts...',
+            selectPaymentSourceAccount: 'Select payment source account',
+            searchPaymentSourceAccounts: 'Search payment source accounts...',
             noAccountFound: 'No account found.',
             approvalStatus: 'Approval Status',
             selectApprovalStatus: 'Select approval status',
             descriptionLabel: 'Description',
-            descriptionPlaceholder:
-                'Optional notes or receipt details',
+            descriptionPlaceholder: 'Optional notes or receipt details',
             receiptAttachment: 'Bill / Receipt Attachment',
             replaceCurrentReceipt: 'Replace current receipt',
             uploadReceipt: 'Upload receipt (JPG, PNG, PDF)',
@@ -1764,8 +1749,7 @@ const en = {
             noAccountFound: 'No account found.',
             sortOrder: 'Sort Order',
             descriptionLabel: 'Description',
-            descriptionPlaceholder:
-                'Monthly internet and connectivity costs.',
+            descriptionPlaceholder: 'Monthly internet and connectivity costs.',
             activeLabel: 'Active and available for new expense entries',
             updateCategory: 'Update Category',
             createCategory: 'Create Category',
@@ -1783,8 +1767,7 @@ const en = {
             replacementCategory: 'Replacement Category',
             selectReplacementCategory: 'Select replacement category',
             searchCategories: 'Search categories...',
-            noReplacementCategoryFound:
-                'No replacement category found.',
+            noReplacementCategoryFound: 'No replacement category found.',
             createAnotherCategory:
                 'Create another category before deleting this one.',
         },
@@ -2282,8 +2265,7 @@ const en = {
             noMovementRecords:
                 'No cash movement records are currently assigned to this type.',
             replacementMovementType: 'Replacement Movement Type',
-            selectReplacementMovementType:
-                'Select replacement movement type',
+            selectReplacementMovementType: 'Select replacement movement type',
             noReplacementMovementTypeFound:
                 'No replacement movement type found.',
             createAnotherMovementType:

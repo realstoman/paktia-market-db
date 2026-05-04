@@ -228,6 +228,16 @@ export const CellAction: React.FC<CellActionProps> = ({
         () => (Array.isArray(data.attachments) ? data.attachments : []),
         [data.attachments],
     );
+    const [removedAttachmentPaths, setRemovedAttachmentPaths] = useState<
+        string[]
+    >([]);
+    const visibleExistingAttachments = useMemo(
+        () =>
+            existingAttachments.filter(
+                (path) => !removedAttachmentPaths.includes(path),
+            ),
+        [existingAttachments, removedAttachmentPaths],
+    );
 
     const editEmploymentTypeName = useMemo(() => {
         if (!editEmploymentTypeId) {
@@ -369,6 +379,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditDescription(data.description ?? '');
         setEditProfilePicture(null);
         setEditAttachments([]);
+        setRemovedAttachmentPaths([]);
         setEditErrors({});
     };
 
@@ -384,7 +395,9 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setEditAttachments((current) => {
             const totalCount =
-                existingAttachments.length + current.length + selected.length;
+                visibleExistingAttachments.length +
+                current.length +
+                selected.length;
 
             if (totalCount > MAX_ATTACHMENTS) {
                 toast.error(
@@ -397,7 +410,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 const allowedNew = Math.max(
                     0,
                     MAX_ATTACHMENTS -
-                        existingAttachments.length -
+                        visibleExistingAttachments.length -
                         current.length,
                 );
 
@@ -411,6 +424,14 @@ export const CellAction: React.FC<CellActionProps> = ({
     const removeEditAttachment = (id: string) => {
         setEditAttachments((current) =>
             current.filter((attachment) => attachment.id !== id),
+        );
+    };
+
+    const removeExistingAttachment = (path: string) => {
+        setRemovedAttachmentPaths((current) =>
+            current.includes(path)
+                ? current
+                : [...current, path],
         );
     };
 
@@ -458,6 +479,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 description: editDescription.trim() || null,
                 profile_picture: editProfilePicture,
                 attachments: editAttachments.map((item) => item.file),
+                remove_attachment_paths: removedAttachmentPaths,
             },
             {
                 preserveScroll: true,
@@ -1132,37 +1154,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor={`edit-salary-${data.id}`}>
-                                    {editIsContractBased
-                                        ? t(
-                                              'employees.form.contractAmount',
-                                              'Contract Amount',
-                                          )
-                                        : t('employees.table.salary', 'Salary')}
-                                </Label>
-                                <NumericInput
-                                    id={`edit-salary-${data.id}`}
-                                    min="0"
-                                    value={
-                                        editIsContractBased
-                                            ? editContractAmount
-                                            : editSalary
-                                    }
-                                    onValueChange={(value) =>
-                                        editIsContractBased
-                                            ? setEditContractAmount(value)
-                                            : setEditSalary(value)
-                                    }
-                                />
-                                <InputError
-                                    message={
-                                        editIsContractBased
-                                            ? editErrors.contract_amount
-                                            : editErrors.salary
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-2">
                                 <Label
                                     htmlFor={`edit-contract-start-${data.id}`}
                                 >
@@ -1214,6 +1205,38 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                                 <InputError
                                     message={editErrors.contract_end_date}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`edit-salary-${data.id}`}>
+                                    {editIsContractBased
+                                        ? t(
+                                              'employees.form.contractAmount',
+                                              'Contract Amount',
+                                          )
+                                        : t('employees.table.salary', 'Salary')}
+                                </Label>
+                                <NumericInput
+                                    id={`edit-salary-${data.id}`}
+                                    min="0"
+                                    showControls={false}
+                                    value={
+                                        editIsContractBased
+                                            ? editContractAmount
+                                            : editSalary
+                                    }
+                                    onValueChange={(value) =>
+                                        editIsContractBased
+                                            ? setEditContractAmount(value)
+                                            : setEditSalary(value)
+                                    }
+                                />
+                                <InputError
+                                    message={
+                                        editIsContractBased
+                                            ? editErrors.contract_amount
+                                            : editErrors.salary
+                                    }
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -1424,7 +1447,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         }
                                     />
 
-                                    {existingAttachments.length > 0 ? (
+                                    {visibleExistingAttachments.length > 0 ? (
                                         <div className="mt-3 space-y-2">
                                             <p className="text-xs font-medium text-muted-foreground">
                                                 {t(
@@ -1432,24 +1455,39 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     'Current attachments',
                                                 )}
                                             </p>
-                                            {existingAttachments.map(
+                                            {visibleExistingAttachments.map(
                                                 (path, index) => (
-                                                    <a
+                                                    <div
                                                         key={`${path}-${index}`}
-                                                        href={publicStorageUrl(
-                                                            path,
-                                                        )}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
+                                                        className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm"
                                                     >
-                                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                                        <span className="truncate">
-                                                            {fileNameFromPath(
+                                                        <a
+                                                            href={publicStorageUrl(
                                                                 path,
                                                             )}
-                                                        </span>
-                                                    </a>
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="flex min-w-0 items-center gap-2 hover:text-primary"
+                                                        >
+                                                            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                                            <span className="truncate">
+                                                                {fileNameFromPath(
+                                                                    path,
+                                                                )}
+                                                            </span>
+                                                        </a>
+                                                        <button
+                                                            type="button"
+                                                            className="cursor-pointer rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                                                            onClick={() =>
+                                                                removeExistingAttachment(
+                                                                    path,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 ),
                                             )}
                                         </div>

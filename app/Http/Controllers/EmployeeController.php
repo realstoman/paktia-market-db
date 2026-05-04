@@ -249,6 +249,11 @@ class EmployeeController extends Controller
 
         $validated = $request->validate($this->rules());
 
+        $attachmentsToRemove = collect($validated['remove_attachment_paths'] ?? [])
+            ->filter(fn ($path) => is_string($path) && $path !== '')
+            ->values()
+            ->all();
+
         if ($request->hasFile('profile_picture')) {
             if (! empty($employee->profile_picture)) {
                 Storage::disk('public')->delete($employee->profile_picture);
@@ -260,11 +265,18 @@ class EmployeeController extends Controller
         }
 
         $attachments = $request->file('attachments', []);
-        if (! empty($attachments)) {
-            $currentAttachments = is_array($employee->attachments)
-                ? $employee->attachments
-                : [];
+        $currentAttachments = array_values(
+            array_diff(
+                is_array($employee->attachments) ? $employee->attachments : [],
+                $attachmentsToRemove,
+            ),
+        );
 
+        if (! empty($attachmentsToRemove)) {
+            Storage::disk('public')->delete($attachmentsToRemove);
+        }
+
+        if (! empty($attachments)) {
             if ((count($currentAttachments) + count($attachments)) > 25) {
                 return back()->withErrors([
                     'attachments' => 'Total attachments cannot exceed 25 files.',
@@ -279,6 +291,8 @@ class EmployeeController extends Controller
             $validated['attachments'] = array_values(
                 array_merge($currentAttachments, $storedAttachments),
             );
+        } elseif (! empty($attachmentsToRemove)) {
+            $validated['attachments'] = $currentAttachments;
         }
 
         $this->normalizeCompensationPayload($validated);
@@ -520,6 +534,8 @@ class EmployeeController extends Controller
                 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,csv,txt',
                 'max:5120',
             ],
+            'remove_attachment_paths' => ['nullable', 'array'],
+            'remove_attachment_paths.*' => ['string'],
             'status' => [
                 'required',
                 Rule::in(array_map(static fn (EmployeeStatus $status) => $status->value, EmployeeStatus::cases())),
