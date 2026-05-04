@@ -296,33 +296,80 @@ export const CellAction: React.FC<CellActionProps> = ({
                 ),
         }));
 
-        const payrollEntries = (data.payroll_items ?? []).map((item) => ({
-            id: `payroll-${item.id}`,
-            date:
-                item.payment_date ??
-                item.payroll_run?.period_end ??
-                item.payroll_run?.period_start,
-            type:
-                item.salary_type === 'contract'
-                    ? t('employees.finance.contractType', 'Contract Payment')
-                    : t('employees.finance.salaryType', 'Salary'),
-            amount: Number(item.net_salary ?? 0),
-            currency: data.salary_currency ?? 'AFN',
-            status: item.payment_status ?? item.payroll_run?.status ?? 'draft',
-            note:
-                item.payroll_run?.period_end
+        const payrollEntries = (data.payroll_items ?? []).map((item) => {
+            const employeeOrderTotal = (item.advance_breakdown ?? [])
+                .filter(
+                    (entry) =>
+                        (entry.type ?? 'advance') === 'employee_order',
+                )
+                .reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0);
+
+            const otherAdvanceTotal = (item.advance_breakdown ?? [])
+                .filter(
+                    (entry) => (entry.type ?? 'advance') !== 'employee_order',
+                )
+                .reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0);
+
+            const breakdownNotes = [
+                employeeOrderTotal > 0
                     ? t(
-                          'employees.finance.payrollPeriodNote',
-                          'Payroll period ending :date',
+                          'employees.finance.employeeOrderDeductionNote',
+                          'Employee-covered orders: :amount',
                       ).replace(
-                          ':date',
-                          formatLocalizedDate(item.payroll_run.period_end),
+                          ':amount',
+                          `${formatNumber(employeeOrderTotal)} ${data.salary_currency ?? 'AFN'}`,
                       )
-                    : t(
-                          'employees.finance.generatedFromPayroll',
-                          'Generated from payroll',
-                      ),
-        }));
+                    : null,
+                otherAdvanceTotal > 0
+                    ? t(
+                          'employees.finance.advanceDeductionNote',
+                          'Advances: :amount',
+                      ).replace(
+                          ':amount',
+                          `${formatNumber(otherAdvanceTotal)} ${data.salary_currency ?? 'AFN'}`,
+                      )
+                    : null,
+            ]
+                .filter(Boolean)
+                .join(' • ');
+
+            return {
+                id: `payroll-${item.id}`,
+                date:
+                    item.payment_date ??
+                    item.payroll_run?.period_end ??
+                    item.payroll_run?.period_start,
+                type:
+                    item.salary_type === 'contract' ||
+                    item.salary_type === 'contract_payment'
+                        ? t(
+                              'employees.finance.contractType',
+                              'Contract Payment',
+                          )
+                        : t('employees.finance.salaryType', 'Salary'),
+                amount: Number(item.net_salary ?? 0),
+                currency: data.salary_currency ?? 'AFN',
+                status:
+                    item.payment_status ?? item.payroll_run?.status ?? 'draft',
+                note: [
+                    item.payroll_run?.period_end
+                        ? t(
+                              'employees.finance.payrollPeriodNote',
+                              'Payroll period ending :date',
+                          ).replace(
+                              ':date',
+                              formatLocalizedDate(item.payroll_run.period_end),
+                          )
+                        : t(
+                              'employees.finance.generatedFromPayroll',
+                              'Generated from payroll',
+                          ),
+                    breakdownNotes || null,
+                ]
+                    .filter(Boolean)
+                    .join(' • '),
+            };
+        });
 
         return [...advanceEntries, ...payrollEntries].sort((a, b) => {
             const aTime = a.date ? new Date(a.date).getTime() : 0;
