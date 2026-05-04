@@ -2047,6 +2047,98 @@ const fa = {
             saveFailed: 'ذخیره حرکت نقدی ناکام شد.',
         },
     },
+    financeCashMovementTypes: {
+        metaTitle: 'نوع‌های حرکت نقدی',
+        pageTitle: 'نوع‌های حرکت',
+        heading: {
+            title: 'نوع‌های حرکت',
+            description:
+                'نوع‌های حرکتی را که در حرکت جدید بخش نقد و بانک استفاده می‌شوند مدیریت کنید.',
+        },
+        actions: {
+            backToCashBank: 'بازگشت به نقد و بانک',
+            newMovementType: 'نوع حرکت جدید',
+            createType: 'ایجاد نوع',
+            updateType: 'به‌روزرسانی نوع',
+            openMenu: 'باز کردن منو',
+            title: 'عملیات',
+            edit: 'ویرایش',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'نوع‌های حرکت نقدی',
+            description:
+                'مدیریت مبتنی بر جدول برای نوع‌های حرکت، جهت پیش‌فرض آن‌ها و رفتار انتقال.',
+            searchPlaceholder:
+                'نوع حرکت، اسلاگ، جهت یا توضیحات را جستجو کنید...',
+        },
+        filters: {
+            status: 'وضعیت',
+            allStatuses: 'همه وضعیت‌ها',
+            searchStatuses: 'جستجوی وضعیت‌ها...',
+            noStatusFound: 'هیچ وضعیتی یافت نشد.',
+        },
+        table: {
+            name: 'نام',
+            slug: 'اسلاگ',
+            defaultDirection: 'جهت پیش‌فرض',
+            needsTarget: 'نیازمند هدف',
+            sort: 'ترتیب',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'ایجاد نوع حرکت',
+            editTitle: 'ویرایش نوع حرکت',
+            description:
+                'نام، اسلاگ، رفتار جهت و این‌که آیا این نوع به حساب هدف نیاز دارد را تنظیم کنید.',
+            name: 'نام',
+            namePlaceholder: 'واریز مالک',
+            slug: 'اسلاگ',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'جهت پیش‌فرض',
+            selectDirection: 'جهت را انتخاب کنید',
+            searchDirections: 'جستجوی جهت‌ها...',
+            noDirectionFound: 'هیچ جهتی یافت نشد.',
+            requiresTargetAccount:
+                'نیازمند حساب هدف (حرکت به سبک انتقال)',
+            activeInNewMovement: 'فعال و قابل استفاده در حرکت جدید',
+            sortOrder: 'ترتیب نمایش',
+            descriptionLabel: 'توضیحات',
+            descriptionPlaceholder:
+                'برای تمویل مالک، انتقال یا حرکات تعدیلی استفاده کنید.',
+        },
+        delete: {
+            title: 'حذف نوع حرکت',
+            description: 'این کار نوع حرکت انتخاب‌شده را برای همیشه حذف می‌کند.',
+            reassignBeforeDeleting:
+                'این نوع حرکت از قبل به سوابق حرکات نقدی اختصاص داده شده است. قبل از حذف، آن سوابق را دوباره تعیین کنید.',
+            movementRecordsWillBeMoved:
+                ':count سابقه حرکت به نوع دیگری منتقل خواهد شد.',
+            noMovementRecords:
+                'در حال حاضر هیچ سابقه حرکت نقدی به این نوع اختصاص داده نشده است.',
+            replacementMovementType: 'نوع حرکت جایگزین',
+            selectReplacementMovementType:
+                'نوع حرکت جایگزین را انتخاب کنید',
+            noReplacementMovementTypeFound:
+                'هیچ نوع حرکت جایگزینی یافت نشد.',
+            createAnotherMovementType:
+                'قبل از حذف این مورد، نوع حرکت دیگری ایجاد کنید.',
+        },
+        directions: {
+            flexible: 'انعطاف‌پذیر',
+            in: 'ورودی',
+            out: 'خروجی',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+        common: {
+            yes: 'بلی',
+            no: 'نخیر',
+        },
+    },
     orders: {
         title: 'سفارش‌ها',
         breadcrumb: 'سفارش‌ها',

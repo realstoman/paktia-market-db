@@ -4,6 +4,7 @@ import Heading from '@/components/shared/heading';
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -64,6 +65,7 @@ export function CashMovementTypeClient({
     movementTypes,
 }: CashMovementTypeClientProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useLocalization();
     const canDelete = auth.is_super_admin === true;
     const [isOpen, setIsOpen] = React.useState(false);
     const [editingType, setEditingType] =
@@ -184,11 +186,12 @@ export function CashMovementTypeClient({
     const columns = React.useMemo(
         () =>
             buildColumns({
+                t,
                 onEdit: openEdit,
                 onDelete: remove,
                 canDelete,
             }),
-        [canDelete, openEdit, remove],
+        [canDelete, openEdit, remove, t],
     );
 
     const toolbar = (
@@ -197,13 +200,41 @@ export function CashMovementTypeClient({
                 value={statusFilter}
                 options={[
                     { value: 'all', label: 'All Statuses' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' },
+                    {
+                        value: 'all',
+                        label: t(
+                            'financeCashMovementTypes.filters.allStatuses',
+                            'All Statuses',
+                        ),
+                    },
+                    {
+                        value: 'active',
+                        label: t(
+                            'financeCashMovementTypes.statuses.active',
+                            'Active',
+                        ),
+                    },
+                    {
+                        value: 'inactive',
+                        label: t(
+                            'financeCashMovementTypes.statuses.inactive',
+                            'Inactive',
+                        ),
+                    },
                 ]}
                 onValueChange={setStatusFilter}
-                placeholder="Status"
-                searchPlaceholder="Search statuses..."
-                emptyText="No status found."
+                placeholder={t(
+                    'financeCashMovementTypes.filters.status',
+                    'Status',
+                )}
+                searchPlaceholder={t(
+                    'financeCashMovementTypes.filters.searchStatuses',
+                    'Search statuses...',
+                )}
+                emptyText={t(
+                    'financeCashMovementTypes.filters.noStatusFound',
+                    'No status found.',
+                )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
         </div>
@@ -213,8 +244,11 @@ export function CashMovementTypeClient({
         <div className="space-y-4 pt-3 pb-8">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`Movement Types: ${formatNumber(filteredMovementTypes.length)}`}
-                    description="Manage movement types used by New Movement in the cash and bank section."
+                    title={`${t('financeCashMovementTypes.heading.title', 'Movement Types')}: ${formatNumber(filteredMovementTypes.length)}`}
+                    description={t(
+                        'financeCashMovementTypes.heading.description',
+                        'Manage movement types used by New Movement in the cash and bank section.',
+                    )}
                 />
                 <div className="flex gap-3">
                     <Button variant="outline" asChild>
@@ -222,12 +256,18 @@ export function CashMovementTypeClient({
                             href="/finance/cash-bank"
                             className="bg-white dark:bg-neutral-900"
                         >
-                            Back to Cash & Bank
+                            {t(
+                                'financeCashMovementTypes.actions.backToCashBank',
+                                'Back to Cash & Bank',
+                            )}
                         </Link>
                     </Button>
                     <Button onClick={openCreate} className="gap-2">
                         <Plus className="h-4 w-4" />
-                        New Movement Type
+                        {t(
+                            'financeCashMovementTypes.actions.newMovementType',
+                            'New Movement Type',
+                        )}
                     </Button>
                 </div>
             </div>
@@ -238,11 +278,16 @@ export function CashMovementTypeClient({
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Tags className="h-5 w-5" />
-                        Cash Movement Types
+                        {t(
+                            'financeCashMovementTypes.register.title',
+                            'Cash Movement Types',
+                        )}
                     </CardTitle>
                     <CardDescription>
-                        Data-table based management for available movement
-                        types, their default direction, and transfer behavior.
+                        {t(
+                            'financeCashMovementTypes.register.description',
+                            'Data-table based management for available movement types, their default direction, and transfer behavior.',
+                        )}
                     </CardDescription>
                 </CardHeader>
             </Card>
@@ -257,7 +302,10 @@ export function CashMovementTypeClient({
                         'default_direction',
                         'description',
                     ]}
-                    searchPlaceholder="Search movement type, slug, direction, or description..."
+                    searchPlaceholder={t(
+                        'financeCashMovementTypes.register.searchPlaceholder',
+                        'Search movement type, slug, direction, or description...',
+                    )}
                     toolbar={toolbar}
                 />
             </div>
@@ -267,18 +315,28 @@ export function CashMovementTypeClient({
                     <DialogHeader>
                         <DialogTitle>
                             {editingType
-                                ? 'Edit Movement Type'
-                                : 'Create Movement Type'}
+                                ? t(
+                                      'financeCashMovementTypes.form.editTitle',
+                                      'Edit Movement Type',
+                                  )
+                                : t(
+                                      'financeCashMovementTypes.form.createTitle',
+                                      'Create Movement Type',
+                                  )}
                         </DialogTitle>
                         <DialogDescription>
-                            Configure name, slug, direction behavior, and
-                            whether this type needs a target account.
+                            {t(
+                                'financeCashMovementTypes.form.description',
+                                'Configure name, slug, direction behavior, and whether this type needs a target account.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2">
                         <div className="grid gap-2">
-                            <Label>Name</Label>
+                            <Label>
+                                {t('financeCashMovementTypes.form.name', 'Name')}
+                            </Label>
                             <Input
                                 value={form.name}
                                 onChange={(event) =>
@@ -287,12 +345,17 @@ export function CashMovementTypeClient({
                                         name: event.target.value,
                                     }))
                                 }
-                                placeholder="Owner Deposit"
+                                placeholder={t(
+                                    'financeCashMovementTypes.form.namePlaceholder',
+                                    'Owner Deposit',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Slug</Label>
+                            <Label>
+                                {t('financeCashMovementTypes.form.slug', 'Slug')}
+                            </Label>
                             <Input
                                 value={form.slug}
                                 onChange={(event) =>
@@ -301,24 +364,63 @@ export function CashMovementTypeClient({
                                         slug: event.target.value,
                                     }))
                                 }
-                                placeholder="owner_deposit"
+                                placeholder={t(
+                                    'financeCashMovementTypes.form.slugPlaceholder',
+                                    'owner_deposit',
+                                )}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Default Direction</Label>
+                            <Label>
+                                {t(
+                                    'financeCashMovementTypes.form.defaultDirection',
+                                    'Default Direction',
+                                )}
+                            </Label>
                             <SearchableDropdown
                                 value={form.default_direction}
-                                options={DIRECTION_OPTIONS}
+                                options={[
+                                    {
+                                        value: '',
+                                        label: t(
+                                            'financeCashMovementTypes.directions.flexible',
+                                            'Flexible',
+                                        ),
+                                    },
+                                    {
+                                        value: 'in',
+                                        label: t(
+                                            'financeCashMovementTypes.directions.in',
+                                            'Inflow',
+                                        ),
+                                    },
+                                    {
+                                        value: 'out',
+                                        label: t(
+                                            'financeCashMovementTypes.directions.out',
+                                            'Outflow',
+                                        ),
+                                    },
+                                ]}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
                                         default_direction: value,
                                     }))
                                 }
-                                placeholder="Select direction"
-                                searchPlaceholder="Search directions..."
-                                emptyText="No direction found."
+                                placeholder={t(
+                                    'financeCashMovementTypes.form.selectDirection',
+                                    'Select direction',
+                                )}
+                                searchPlaceholder={t(
+                                    'financeCashMovementTypes.form.searchDirections',
+                                    'Search directions...',
+                                )}
+                                emptyText={t(
+                                    'financeCashMovementTypes.form.noDirectionFound',
+                                    'No direction found.',
+                                )}
                             />
                         </div>
 
@@ -335,7 +437,10 @@ export function CashMovementTypeClient({
                                 }
                                 className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
                             />
-                            Requires target account (transfer-style movement)
+                            {t(
+                                'financeCashMovementTypes.form.requiresTargetAccount',
+                                'Requires target account (transfer-style movement)',
+                            )}
                         </label>
 
                         <label className="flex items-center gap-3 text-sm font-medium text-neutral-700 dark:text-neutral-200">
@@ -350,11 +455,19 @@ export function CashMovementTypeClient({
                                 }
                                 className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
                             />
-                            Active and available in New Movement
+                            {t(
+                                'financeCashMovementTypes.form.activeInNewMovement',
+                                'Active and available in New Movement',
+                            )}
                         </label>
 
                         <div className="grid gap-2">
-                            <Label>Sort Order</Label>
+                            <Label>
+                                {t(
+                                    'financeCashMovementTypes.form.sortOrder',
+                                    'Sort Order',
+                                )}
+                            </Label>
                             <NumericInput
                                 min="0"
                                 value={form.sort_order}
@@ -368,7 +481,12 @@ export function CashMovementTypeClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>Description</Label>
+                            <Label>
+                                {t(
+                                    'financeCashMovementTypes.form.descriptionLabel',
+                                    'Description',
+                                )}
+                            </Label>
                             <Textarea
                                 value={form.description}
                                 onChange={(event) =>
@@ -377,7 +495,10 @@ export function CashMovementTypeClient({
                                         description: event.target.value,
                                     }))
                                 }
-                                placeholder="Use for owner funding, transfer, or adjustment movements."
+                                placeholder={t(
+                                    'financeCashMovementTypes.form.descriptionPlaceholder',
+                                    'Use for owner funding, transfer, or adjustment movements.',
+                                )}
                                 rows={4}
                             />
                         </div>
@@ -388,10 +509,18 @@ export function CashMovementTypeClient({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button onClick={submit}>
-                            {editingType ? 'Update Type' : 'Create Type'}
+                            {editingType
+                                ? t(
+                                      'financeCashMovementTypes.actions.updateType',
+                                      'Update Type',
+                                  )
+                                : t(
+                                      'financeCashMovementTypes.actions.createType',
+                                      'Create Type',
+                                  )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -409,11 +538,22 @@ export function CashMovementTypeClient({
             >
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
-                        <DialogTitle>Delete Movement Type</DialogTitle>
+                        <DialogTitle>
+                            {t(
+                                'financeCashMovementTypes.delete.title',
+                                'Delete Movement Type',
+                            )}
+                        </DialogTitle>
                         <DialogDescription>
                             {deleteTarget?.movement_count
-                                ? 'This movement type is already assigned to cash movement records. Reassign those records before deleting it.'
-                                : 'This will permanently remove the selected movement type.'}
+                                ? t(
+                                      'financeCashMovementTypes.delete.reassignBeforeDeleting',
+                                      'This movement type is already assigned to cash movement records. Reassign those records before deleting it.',
+                                  )
+                                : t(
+                                      'financeCashMovementTypes.delete.description',
+                                      'This will permanently remove the selected movement type.',
+                                  )}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -425,20 +565,45 @@ export function CashMovementTypeClient({
                                 </div>
                                 <div className="mt-1 text-muted-foreground">
                                     {deleteTarget.movement_count
-                                        ? `${formatNumber(deleteTarget.movement_count)} movement records will be moved to another type.`
-                                        : 'No cash movement records are currently assigned to this type.'}
+                                        ? t(
+                                              'financeCashMovementTypes.delete.movementRecordsWillBeMoved',
+                                              ':count movement records will be moved to another type.',
+                                          ).replace(
+                                              ':count',
+                                              formatNumber(
+                                                  deleteTarget.movement_count,
+                                              ),
+                                          )
+                                        : t(
+                                              'financeCashMovementTypes.delete.noMovementRecords',
+                                              'No cash movement records are currently assigned to this type.',
+                                          )}
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Replacement Movement Type</Label>
+                                <Label>
+                                    {t(
+                                        'financeCashMovementTypes.delete.replacementMovementType',
+                                        'Replacement Movement Type',
+                                    )}
+                                </Label>
                                 <SearchableDropdown
                                     value={replacementTypeId}
                                     options={replacementMovementOptions}
                                     onValueChange={setReplacementTypeId}
-                                    placeholder="Select replacement movement type"
-                                    searchPlaceholder="Search movement types..."
-                                    emptyText="No replacement movement type found."
+                                    placeholder={t(
+                                        'financeCashMovementTypes.delete.selectReplacementMovementType',
+                                        'Select replacement movement type',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'financeCashMovementTypes.form.searchMovementTypes',
+                                        'Search movement types...',
+                                    )}
+                                    emptyText={t(
+                                        'financeCashMovementTypes.delete.noReplacementMovementTypeFound',
+                                        'No replacement movement type found.',
+                                    )}
                                 />
                                 <InputError
                                     message={
@@ -449,7 +614,10 @@ export function CashMovementTypeClient({
                                 replacementMovementOptions.length === 0 ? (
                                     <p className="text-xs text-amber-600">
                                         Create another movement type before
-                                        deleting this one.
+                                        {t(
+                                            'financeCashMovementTypes.delete.createAnotherMovementType',
+                                            'Create another movement type before deleting this one.',
+                                        )}
                                     </p>
                                 ) : null}
                             </div>
@@ -466,7 +634,7 @@ export function CashMovementTypeClient({
                             }}
                             disabled={isDeleteSubmitting}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -478,7 +646,10 @@ export function CashMovementTypeClient({
                             }
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t(
+                                'financeCashMovementTypes.actions.delete',
+                                'Delete',
+                            )}
                         </Button>
                     </div>
                 </DialogContent>

@@ -2048,6 +2048,99 @@ const en = {
             saveFailed: 'Failed to save cash movement.',
         },
     },
+    financeCashMovementTypes: {
+        metaTitle: 'Cash Movement Types',
+        pageTitle: 'Movement Types',
+        heading: {
+            title: 'Movement Types',
+            description:
+                'Manage movement types used by New Movement in the cash and bank section.',
+        },
+        actions: {
+            backToCashBank: 'Back to Cash & Bank',
+            newMovementType: 'New Movement Type',
+            createType: 'Create Type',
+            updateType: 'Update Type',
+            openMenu: 'Open menu',
+            title: 'Actions',
+            edit: 'Edit',
+            delete: 'Delete',
+        },
+        register: {
+            title: 'Cash Movement Types',
+            description:
+                'Data-table based management for available movement types, their default direction, and transfer behavior.',
+            searchPlaceholder:
+                'Search movement type, slug, direction, or description...',
+        },
+        filters: {
+            status: 'Status',
+            allStatuses: 'All Statuses',
+            searchStatuses: 'Search statuses...',
+            noStatusFound: 'No status found.',
+        },
+        table: {
+            name: 'Name',
+            slug: 'Slug',
+            defaultDirection: 'Default Direction',
+            needsTarget: 'Needs Target',
+            sort: 'Sort',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        form: {
+            createTitle: 'Create Movement Type',
+            editTitle: 'Edit Movement Type',
+            description:
+                'Configure name, slug, direction behavior, and whether this type needs a target account.',
+            name: 'Name',
+            namePlaceholder: 'Owner Deposit',
+            slug: 'Slug',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'Default Direction',
+            selectDirection: 'Select direction',
+            searchDirections: 'Search directions...',
+            noDirectionFound: 'No direction found.',
+            requiresTargetAccount:
+                'Requires target account (transfer-style movement)',
+            activeInNewMovement: 'Active and available in New Movement',
+            sortOrder: 'Sort Order',
+            descriptionLabel: 'Description',
+            descriptionPlaceholder:
+                'Use for owner funding, transfer, or adjustment movements.',
+        },
+        delete: {
+            title: 'Delete Movement Type',
+            description:
+                'This will permanently remove the selected movement type.',
+            reassignBeforeDeleting:
+                'This movement type is already assigned to cash movement records. Reassign those records before deleting it.',
+            movementRecordsWillBeMoved:
+                ':count movement records will be moved to another type.',
+            noMovementRecords:
+                'No cash movement records are currently assigned to this type.',
+            replacementMovementType: 'Replacement Movement Type',
+            selectReplacementMovementType:
+                'Select replacement movement type',
+            noReplacementMovementTypeFound:
+                'No replacement movement type found.',
+            createAnotherMovementType:
+                'Create another movement type before deleting this one.',
+        },
+        directions: {
+            flexible: 'Flexible',
+            in: 'Inflow',
+            out: 'Outflow',
+        },
+        statuses: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+        common: {
+            yes: 'Yes',
+            no: 'No',
+        },
+    },
     orders: {
         title: 'Orders',
         breadcrumb: 'Orders',

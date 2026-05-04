@@ -2040,6 +2040,97 @@ const ps = {
             saveFailed: 'د نغدو خوځښت خوندي کول ناکام شول.',
         },
     },
+    financeCashMovementTypes: {
+        metaTitle: 'د نغدو خوځښت ډولونه',
+        pageTitle: 'د خوځښت ډولونه',
+        heading: {
+            title: 'د خوځښت ډولونه',
+            description:
+                'هغه د خوځښت ډولونه اداره کړئ چې د نغدو او بانک په برخه کې په نوي خوځښت کې کارول کېږي.',
+        },
+        actions: {
+            backToCashBank: 'نغدو او بانک ته بېرته',
+            newMovementType: 'د خوځښت نوی ډول',
+            createType: 'ډول جوړ کړئ',
+            updateType: 'ډول تازه کړئ',
+            openMenu: 'مینو پرانیزئ',
+            title: 'عملیات',
+            edit: 'سمون',
+            delete: 'حذف',
+        },
+        register: {
+            title: 'د نغدو خوځښت ډولونه',
+            description:
+                'د موجودو خوځښت ډولونو، د هغوی د اصلي لوري او د لېږد د چلند لپاره جدولي مدیریت.',
+            searchPlaceholder:
+                'د خوځښت ډول، سلګ، لوری یا تشریح ولټوئ...',
+        },
+        filters: {
+            status: 'حالت',
+            allStatuses: 'ټول حالتونه',
+            searchStatuses: 'حالتونه ولټوئ...',
+            noStatusFound: 'هیڅ حالت ونه موندل شو.',
+        },
+        table: {
+            name: 'نوم',
+            slug: 'سلګ',
+            defaultDirection: 'اصلي لوری',
+            needsTarget: 'هدف ته اړتیا لري',
+            sort: 'ترتیب',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        form: {
+            createTitle: 'د خوځښت ډول جوړول',
+            editTitle: 'د خوځښت ډول سمول',
+            description:
+                'نوم، سلګ، د لوري چلند، او دا چې دا ډول د هدف حساب ته اړتیا لري که نه، تنظیم کړئ.',
+            name: 'نوم',
+            namePlaceholder: 'د مالک اېښودنه',
+            slug: 'سلګ',
+            slugPlaceholder: 'owner_deposit',
+            defaultDirection: 'اصلي لوری',
+            selectDirection: 'لوری وټاکئ',
+            searchDirections: 'لوري ولټوئ...',
+            noDirectionFound: 'هیڅ لوری ونه موندل شو.',
+            requiresTargetAccount:
+                'د هدف حساب ته اړتیا لري (د لېږد ډول خوځښت)',
+            activeInNewMovement: 'فعال او په نوي خوځښت کې د کارولو وړ',
+            sortOrder: 'د ترتیب شمېره',
+            descriptionLabel: 'تشریح',
+            descriptionPlaceholder:
+                'د مالک تمویل، لېږد یا تعدیلي خوځښتونو لپاره وکاروئ.',
+        },
+        delete: {
+            title: 'د خوځښت ډول حذف کړئ',
+            description: 'دا کار به ټاکل شوی د خوځښت ډول د تل لپاره حذف کړي.',
+            reassignBeforeDeleting:
+                'دا د خوځښت ډول له مخکې نه د نغدو خوځښت ریکارډونو ته ټاکل شوی دی. د حذف مخکې، هغه ریکارډونه بیا وټاکئ.',
+            movementRecordsWillBeMoved:
+                ':count د خوځښت ریکارډونه به بل ډول ته ولېږدول شي.',
+            noMovementRecords:
+                'اوس مهال هېڅ د نغدو خوځښت ریکارډ دې ډول ته نه دی ټاکل شوی.',
+            replacementMovementType: 'بدیل د خوځښت ډول',
+            selectReplacementMovementType: 'بدیل د خوځښت ډول وټاکئ',
+            noReplacementMovementTypeFound:
+                'هیڅ بدیل د خوځښت ډول ونه موندل شو.',
+            createAnotherMovementType:
+                'له دې د حذفولو مخکې بل د خوځښت ډول جوړ کړئ.',
+        },
+        directions: {
+            flexible: 'انعطاف منونکی',
+            in: 'ورودي',
+            out: 'خروجي',
+        },
+        statuses: {
+            active: 'فعال',
+            inactive: 'غیرفعال',
+        },
+        common: {
+            yes: 'هو',
+            no: 'نه',
+        },
+    },
     orders: {
         title: 'امرونه',
         breadcrumb: 'امرونه',
