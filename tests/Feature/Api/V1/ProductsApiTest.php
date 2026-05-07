@@ -280,7 +280,11 @@ test('api v1 type products endpoint returns products for the selected type', fun
 
 test('api v1 top ordered dishes endpoint returns only the top 6 dishes with card data', function () {
     [$branch, $kitchen] = createProductApiBaseData();
-    $category = ProductCategory::create(['name' => 'Afghan Dishes']);
+    $category = ProductCategory::create([
+        'name' => 'Afghan Dishes',
+        'dari_name' => 'غذاهای افغانی',
+        'pashto_name' => 'افغاني خواړه',
+    ]);
 
     $products = collect(range(1, 7))->map(function (int $index) use ($category, $kitchen) {
         $product = Product::create([
