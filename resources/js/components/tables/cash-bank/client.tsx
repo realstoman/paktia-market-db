@@ -4,6 +4,7 @@ import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { MovementVoucherPrintDialog } from '@/components/tables/cash-bank/movement-voucher-print-dialog';
 import {
@@ -130,6 +131,16 @@ export function CashBankClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
     );
     const movementTypeOptions = React.useMemo(
         () =>

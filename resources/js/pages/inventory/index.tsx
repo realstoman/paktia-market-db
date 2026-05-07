@@ -2,6 +2,7 @@
 
 import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { InventoryClient } from '@/components/tables/inventory/client';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
@@ -84,6 +85,21 @@ export default function InventoryPage({
     const LOW_STOCK_THRESHOLD = 10;
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
     const [isVendorOwedModalOpen, setIsVendorOwedModalOpen] = useState(false);
+    const branchOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        selectedBranchId,
+        setSelectedBranchId,
+        [BRANCH_FILTER_ALL],
+    );
 
     const statsItems = useMemo(() => {
         if (selectedBranchId === BRANCH_FILTER_ALL) {

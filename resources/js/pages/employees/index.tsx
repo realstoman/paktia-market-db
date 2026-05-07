@@ -2,6 +2,7 @@
 
 import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
 import { EmployeeClient } from '@/components/tables/employees/client';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     Select,
     SelectContent,
@@ -44,6 +45,21 @@ export default function EmployeesPage({
 }: EmployeesPageProps) {
     const { t } = useLocalization();
     const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
+    const branchOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        selectedBranchId,
+        setSelectedBranchId,
+        [BRANCH_FILTER_ALL],
+    );
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('navigation.dashboard', 'Dashboard'),
