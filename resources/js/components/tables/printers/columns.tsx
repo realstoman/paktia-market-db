@@ -24,7 +24,14 @@ function assignmentLabel(
                 ? `${t('printers.assignmentKitchen', 'Kitchen')}: ${assignment.kitchen.name}`
                 : t('printers.assignmentKitchen', 'Kitchen');
         case 'order_type':
-            return `${t('printers.assignmentOrderType', 'Order Type')}: ${assignment.order_type ?? '-'}`;
+            return `${t('printers.assignmentOrderType', 'Order Type')}: ${
+                assignment.order_type
+                    ? t(
+                          `orders.orderType.${assignment.order_type}`,
+                          assignment.order_type,
+                      )
+                    : '-'
+            }`;
         case 'order_taker':
             return `${t('printers.assignmentOrderTaker', 'Order-Taker')}: ${assignment.station_label ?? t('printers.defaultStation', 'Default')}`;
         case 'cashier':
