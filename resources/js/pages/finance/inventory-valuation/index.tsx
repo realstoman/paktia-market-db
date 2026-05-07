@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -155,6 +156,14 @@ export default function InventoryValuationPage({
     const [branchId, setBranchId] = React.useState(
         filters.branchId ? String(filters.branchId) : '',
     );
+    const branchOptions = React.useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
 
     React.useEffect(() => {
         setRange(filters.range);
@@ -162,6 +171,8 @@ export default function InventoryValuationPage({
         setEndDate(filters.endDate);
         setBranchId(filters.branchId ? String(filters.branchId) : '');
     }, [filters]);
+
+    useAutoSelectSingleOption(branchOptions, branchId, setBranchId);
 
     const visiblePages = React.useMemo(
         () => buildPageNumbers(pagination.currentPage, pagination.lastPage),

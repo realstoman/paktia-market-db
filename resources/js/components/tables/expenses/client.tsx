@@ -5,6 +5,7 @@ import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -145,6 +146,16 @@ export function ExpenseClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
     );
     const categoryOptions = React.useMemo(
         () =>

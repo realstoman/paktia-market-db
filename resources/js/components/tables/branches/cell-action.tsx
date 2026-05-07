@@ -127,6 +127,14 @@ export const CellAction: React.FC<CellActionProps> = ({
         setIsKitchenOpen(true);
     };
 
+    const toggleAllKitchens = () => {
+        setSelectedKitchenIds((prev) =>
+            prev.size === sortedKitchens.length
+                ? new Set<number>()
+                : new Set(sortedKitchens.map((kitchen) => kitchen.id)),
+        );
+    };
+
     const toggleKitchen = (kitchenId: number) => {
         setSelectedKitchenIds((prev) => {
             const next = new Set(prev);
@@ -486,14 +494,27 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <div className="grid gap-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>{t('branches.common.selected', 'Selected')}</span>
-                            <span>
-                                {t(
-                                    'branches.common.selectedCount',
-                                    ':selected of :total',
-                                )
-                                    .replace(':selected', String(selectedKitchenIds.size))
-                                    .replace(':total', String(kitchens.length))}
-                            </span>
+                            <div className="flex items-center gap-3">
+                                <span>
+                                    {t(
+                                        'branches.common.selectedCount',
+                                        ':selected of :total',
+                                    )
+                                        .replace(':selected', String(selectedKitchenIds.size))
+                                        .replace(':total', String(kitchens.length))}
+                                </span>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-auto px-2 py-1 text-xs"
+                                    onClick={toggleAllKitchens}
+                                >
+                                    {selectedKitchenIds.size === sortedKitchens.length
+                                        ? t('common.clearAll', 'Clear all')
+                                        : t('common.selectAll', 'Select all')}
+                                </Button>
+                            </div>
                         </div>
                         <div className="max-h-64 space-y-2 overflow-auto rounded-md border p-3">
                             {sortedKitchens.map((kitchen) => (

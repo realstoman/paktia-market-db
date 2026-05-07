@@ -76,6 +76,59 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+export interface PrinterAssignment {
+    id?: number;
+    printer_id?: number;
+    assignment_type: 'kitchen' | 'order_taker' | 'cashier' | 'order_type' | 'generic';
+    kitchen_id?: number | null;
+    kitchen?: Kitchen | null;
+    order_type?: 'dine_in' | 'takeaway' | 'delivery' | null;
+    station_label?: string | null;
+    is_active?: boolean;
+    priority?: number;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface PrintJob {
+    id: number;
+    printer_id?: number | null;
+    printer_assignment_id?: number | null;
+    branch_id?: number | null;
+    requested_by?: number | null;
+    job_type: string;
+    status: string;
+    title: string;
+    payload?: Record<string, unknown> | null;
+    attempts?: number;
+    last_error?: string | null;
+    processed_at?: string | null;
+    printed_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
+export interface Printer {
+    id: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
+    name: string;
+    ip_address: string;
+    port: number;
+    connection_type: 'network';
+    paper_width: '58mm' | '80mm';
+    copies: number;
+    is_active?: boolean;
+    notes?: string | null;
+    assignments?: PrinterAssignment[];
+    print_jobs?: PrintJob[];
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface AppNotification {
     id: string;
     category:

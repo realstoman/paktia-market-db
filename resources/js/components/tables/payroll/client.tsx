@@ -4,6 +4,7 @@ import { AttachmentViewDialog } from '@/components/shared/attachment-view-dialog
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { buildColumns as buildScheduleColumns } from '@/components/tables/contract-payment-schedules/columns';
 import { ContractPaymentVoucherPrintDialog } from '@/components/tables/contract-payment-schedules/contract-payment-voucher-print-dialog';
@@ -330,6 +331,26 @@ export function PayrollClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        contractForm.branch_id,
+        (value) =>
+            setContractForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
     );
 
     const employeeOptions = React.useMemo(

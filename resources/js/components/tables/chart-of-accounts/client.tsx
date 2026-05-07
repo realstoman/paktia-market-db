@@ -3,6 +3,7 @@
 import Heading from '@/components/shared/heading';
 import InputError from '@/components/input-error';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -107,6 +108,16 @@ export function ChartOfAccountsClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
     );
 
     const parentOptions = React.useMemo(

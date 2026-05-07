@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -201,6 +202,20 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const branchSelectOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchSelectOptions,
+        editBranchId,
+        setEditBranchId,
+    );
 
     const editProfilePicturePreview = useMemo(
         () =>

@@ -3,6 +3,7 @@
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { Button } from '@/components/ui/button';
 import {
@@ -118,6 +119,16 @@ export function EmployeeAdvanceClient({
                 label: branch.name,
             })),
         [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
     );
 
     const employeeOptions = React.useMemo(

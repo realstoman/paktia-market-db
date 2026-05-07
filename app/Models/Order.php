@@ -6,12 +6,14 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Support\Audit\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use Auditable;
 
     protected $fillable = [
+        'sync_uuid',
         'branch_id',
         'branch_table_id',
         'user_id',
@@ -19,6 +21,7 @@ class Order extends Model
         'customer_id',
         'order_type',
         'source',
+        'sync_origin',
         'customer_name',
         'customer_phone',
         'delivery_address',
@@ -61,6 +64,23 @@ class Order extends Model
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $order): void {
+            if (! $order->sync_uuid) {
+                $order->sync_uuid = (string) Str::uuid();
+            }
+
+            if (! $order->source) {
+                $order->source = 'pos';
+            }
+
+            if (! $order->sync_origin) {
+                $order->sync_origin = $order->source === 'pos' ? 'local' : 'remote';
+            }
+        });
+    }
 
     public function branch()
     {

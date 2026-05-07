@@ -11,6 +11,7 @@ class OrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'sync_uuid' => $this->sync_uuid,
             'branch_id' => $this->branch_id,
             'branch_name' => $this->branch?->name,
             'branch_table_id' => $this->branch_table_id,
@@ -21,6 +22,7 @@ class OrderResource extends JsonResource
             'client_name' => $this->client?->name,
             'order_type' => $this->order_type?->value ?? $this->order_type,
             'source' => $this->source,
+            'sync_origin' => $this->sync_origin,
             'status' => $this->status?->value ?? $this->status,
             'customer_name' => $this->customer_name,
             'customer_phone' => $this->customer_phone,

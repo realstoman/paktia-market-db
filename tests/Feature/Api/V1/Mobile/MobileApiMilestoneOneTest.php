@@ -86,11 +86,11 @@ function createMobileProductFixture(): array
 }
 
 test('mobile products endpoint requires a valid app key', function () {
-    $this->getJson('/api/v1/mobile/products')
+    $this->getJson('/api/v1/products')
         ->assertUnauthorized()
         ->assertJsonPath('message', 'Unauthorized app client.');
 
-    $this->getJson('/api/v1/mobile/products', mobileHeaders())->assertOk();
+    $this->getJson('/api/v1/products', mobileHeaders())->assertOk();
 });
 
 test('mobile top ordered dishes endpoint requires a valid app key and returns card fields', function () {
@@ -117,11 +117,11 @@ test('mobile top ordered dishes endpoint requires a valid app key and returns ca
         'line_total' => 5 * $product->base_price,
     ]);
 
-    $this->getJson('/api/v1/mobile/products/top-ordered-dishes')
+    $this->getJson('/api/v1/products/top-ordered-dishes')
         ->assertUnauthorized()
         ->assertJsonPath('message', 'Unauthorized app client.');
 
-    $this->getJson('/api/v1/mobile/products/top-ordered-dishes', mobileHeaders())
+    $this->getJson('/api/v1/products/top-ordered-dishes', mobileHeaders())
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Pepperoni Pizza')
         ->assertJsonPath('data.0.image_url', '/storage/products/pepperoni.jpg')
@@ -130,7 +130,7 @@ test('mobile top ordered dishes endpoint requires a valid app key and returns ca
 });
 
 test('guest session endpoint creates a guest session token', function () {
-    $this->postJson('/api/v1/mobile/guest/session', [
+    $this->postJson('/api/v1/guest/session', [
         'device_id' => 'device-001',
         'platform' => 'ios',
         'app_version' => '1.0.0',
@@ -151,7 +151,7 @@ test('firebase sync creates or updates a local client record', function () {
         'is_active' => true,
     ]);
 
-    $response = $this->postJson('/api/v1/mobile/auth/firebase/sync', [
+    $response = $this->postJson('/api/v1/auth/firebase/sync', [
         'provider' => 'google',
         'name' => 'Ahmad Khan',
         'email' => 'ahmad@example.com',
@@ -176,20 +176,20 @@ test('firebase sync creates or updates a local client record', function () {
 test('guest can fetch an active cart, add items, update items, and remove items', function () {
     [, $product, $small] = createMobileProductFixture();
 
-    $guestSessionResponse = $this->postJson('/api/v1/mobile/guest/session', [
+    $guestSessionResponse = $this->postJson('/api/v1/guest/session', [
         'device_id' => 'device-002',
         'platform' => 'ios',
     ], mobileHeaders())->assertCreated();
 
     $guestToken = $guestSessionResponse->json('data.guest_token');
 
-    $this->getJson('/api/v1/mobile/cart', mobileHeaders([
+    $this->getJson('/api/v1/cart', mobileHeaders([
         'X-Guest-Token' => $guestToken,
     ]))->assertOk()
         ->assertJsonPath('data.owner_type', 'guest')
         ->assertJsonCount(0, 'data.items');
 
-    $addResponse = $this->postJson('/api/v1/mobile/cart/items', [
+    $addResponse = $this->postJson('/api/v1/cart/items', [
         'product_id' => $product->id,
         'product_size_id' => $small->id,
         'quantity' => 2,
@@ -205,7 +205,7 @@ test('guest can fetch an active cart, add items, update items, and remove items'
 
     $cartItemId = $addResponse->json('data.items.0.id');
 
-    $this->patchJson("/api/v1/mobile/cart/items/{$cartItemId}", [
+    $this->patchJson("/api/v1/cart/items/{$cartItemId}", [
         'quantity' => 3,
         'note' => 'No olives',
     ], mobileHeaders([
@@ -215,7 +215,7 @@ test('guest can fetch an active cart, add items, update items, and remove items'
         ->assertJsonPath('data.items.0.note', 'No olives')
         ->assertJsonPath('data.totals.total', 1950);
 
-    $this->deleteJson("/api/v1/mobile/cart/items/{$cartItemId}", [], mobileHeaders([
+    $this->deleteJson("/api/v1/cart/items/{$cartItemId}", [], mobileHeaders([
         'X-Guest-Token' => $guestToken,
     ]))->assertOk()
         ->assertJsonCount(0, 'data.items')
@@ -233,7 +233,7 @@ test('firebase sync merges guest cart into the client cart', function () {
         'is_active' => true,
     ]);
 
-    $this->postJson('/api/v1/mobile/cart/items', [
+    $this->postJson('/api/v1/cart/items', [
         'product_id' => $product->id,
         'product_size_id' => $small->id,
         'quantity' => 2,
@@ -242,7 +242,7 @@ test('firebase sync merges guest cart into the client cart', function () {
         'X-Guest-Token' => $guestSession->token,
     ]))->assertOk();
 
-    $this->postJson('/api/v1/mobile/auth/firebase/sync', [
+    $this->postJson('/api/v1/auth/firebase/sync', [
         'provider' => 'google',
         'name' => 'Merge User',
         'email' => 'merge@example.com',
@@ -272,7 +272,7 @@ test('authenticated client can checkout a cart into a mobile order', function ()
         'is_active' => true,
     ]);
 
-    $this->postJson('/api/v1/mobile/cart/items', [
+    $this->postJson('/api/v1/cart/items', [
         'product_id' => $product->id,
         'product_size_id' => $small->id,
         'quantity' => 2,
@@ -282,7 +282,7 @@ test('authenticated client can checkout a cart into a mobile order', function ()
     ]))->assertOk()
         ->assertJsonPath('data.totals.total', 1300);
 
-    $response = $this->postJson('/api/v1/mobile/checkout', [
+    $response = $this->postJson('/api/v1/checkout', [
         'branch_id' => $branch->id,
         'order_type' => 'takeaway',
         'customer_note' => 'Please call my name',
@@ -371,7 +371,7 @@ test('authenticated client can view only their own order history', function () {
         'status' => 'pending',
     ]);
 
-    $this->getJson('/api/v1/mobile/me/orders', mobileHeaders([
+    $this->getJson('/api/v1/me/orders', mobileHeaders([
         'Authorization' => 'Bearer stub:history-user-001',
     ]))->assertOk()
         ->assertJsonCount(1, 'data')
@@ -379,7 +379,7 @@ test('authenticated client can view only their own order history', function () {
         ->assertJsonPath('data.0.client_id', $client->id)
         ->assertJsonPath('data.0.source', 'mobile_app');
 
-    $this->getJson("/api/v1/mobile/me/orders/{$ownOrder->id}", mobileHeaders([
+    $this->getJson("/api/v1/me/orders/{$ownOrder->id}", mobileHeaders([
         'Authorization' => 'Bearer stub:history-user-001',
     ]))->assertOk()
         ->assertJsonPath('data.id', $ownOrder->id)
@@ -391,7 +391,7 @@ test('authenticated client can view only their own order history', function () {
         'status' => 'ready',
     ]);
 
-    $this->getJson("/api/v1/mobile/me/orders/{$ownOrder->id}/status", mobileHeaders([
+    $this->getJson("/api/v1/me/orders/{$ownOrder->id}/status", mobileHeaders([
         'Authorization' => 'Bearer stub:history-user-001',
     ]))->assertOk()
         ->assertJsonPath('data.id', $ownOrder->id)
