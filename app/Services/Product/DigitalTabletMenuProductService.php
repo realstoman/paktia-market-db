@@ -22,10 +22,10 @@ class DigitalTabletMenuProductService
     public function categories(): Collection
     {
         return ProductCategory::query()
+            ->whereHas('products', fn ($query) => $query->where('is_active', true))
             ->withCount([
                 'products' => fn ($query) => $query->where('is_active', true),
             ])
-            ->having('products_count', '>', 0)
             ->orderBy('name')
             ->get();
     }
