@@ -45,6 +45,8 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
 
     $category = ProductCategory::create([
         'name' => 'Main Dishes',
+        'dari_name' => 'غذاهای اصلی',
+        'pashto_name' => 'اصلي خواړه',
     ]);
 
     $type = ProductType::create([
@@ -95,6 +97,8 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.pashto_name', 'قابلي پلو')
         ->assertJsonPath('data.0.product_category_id', $category->id)
         ->assertJsonPath('data.0.product_category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.product_category_dari_name', 'غذاهای اصلی')
+        ->assertJsonPath('data.0.product_category_pashto_name', 'اصلي خواړه')
         ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
         ->assertJsonPath('data.0.price', 450)
