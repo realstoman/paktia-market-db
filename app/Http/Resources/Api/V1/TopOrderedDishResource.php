@@ -15,6 +15,8 @@ class TopOrderedDishResource extends JsonResource
             'pashto_name' => $this['pashto_name'],
             'dari_name' => $this['dari_name'],
             'category_name' => $this['category_name'],
+            'category_dari_name' => $this['category_dari_name'],
+            'category_pashto_name' => $this['category_pashto_name'],
             'price' => (float) $this['price'],
             'image_url' => $this['image_url'],
             'link' => $this['link'],

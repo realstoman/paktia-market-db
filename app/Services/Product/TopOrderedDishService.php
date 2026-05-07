@@ -51,6 +51,8 @@ class TopOrderedDishService
                     'dari_name' => $product->dari_name,
                     'pashto_name' => $product->pashto_name,
                     'category_name' => $product->category?->name,
+                    'category_dari_name' => $product->category?->dari_name,
+                    'category_pashto_name' => $product->category?->pashto_name,
                     'price' => (float) $product->base_price,
                     'image_url' => $product->images->first()?->url,
                     'link' => '/products/'.Str::slug($product->name),
