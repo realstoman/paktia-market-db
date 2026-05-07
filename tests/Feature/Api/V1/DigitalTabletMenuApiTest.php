@@ -109,3 +109,141 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.image.path', 'products/qabuli-1.jpg')
         ->assertJsonPath('data.0.image.url', '/storage/products/qabuli-1.jpg');
 });
+
+test('digital tablet menu categories endpoint is public and only returns categories with active products', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $activeCategory = ProductCategory::create([
+        'name' => 'Afghan Food',
+        'dari_name' => 'غذا افغانی',
+        'pashto_name' => 'افغاني خواړه',
+        'image_path' => 'categories/afghan-food.jpg',
+    ]);
+
+    $inactiveCategory = ProductCategory::create([
+        'name' => 'Hidden Category',
+    ]);
+
+    Product::create([
+        'product_category_id' => $activeCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Mantu',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $inactiveCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Inactive Dish',
+        'type' => 'food',
+        'base_price' => 100,
+        'is_active' => false,
+    ]);
+
+    $this->getJson('/api/v1/digital-tablet-menu/categories')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $activeCategory->id)
+        ->assertJsonPath('data.0.name', 'Afghan Food')
+        ->assertJsonPath('data.0.products_count', 1)
+        ->assertJsonPath('data.0.image_url', '/storage/categories/afghan-food.jpg');
+});
+
+test('digital tablet menu products by category endpoint is public', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $mainCategory = ProductCategory::create(['name' => 'Main']);
+    $dessertCategory = ProductCategory::create(['name' => 'Dessert']);
+
+    $kabab = Product::create([
+        'product_category_id' => $mainCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Kabab',
+        'type' => 'food',
+        'base_price' => 320,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $dessertCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Firni',
+        'type' => 'dessert',
+        'base_price' => 120,
+        'is_active' => true,
+    ]);
+
+    $this->getJson("/api/v1/digital-tablet-menu/categories/{$mainCategory->id}/products")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $kabab->id)
+        ->assertJsonPath('data.0.name', 'Kabab');
+});
+
+test('digital tablet menu types endpoint is public and only returns types used by active products', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $foodType = ProductType::create([
+        'name' => 'food',
+        'dari_name' => 'غذا',
+        'pashto_name' => 'خواړه',
+        'image_path' => 'types/food.jpg',
+    ]);
+
+    ProductType::create([
+        'name' => 'dessert',
+    ]);
+
+    Product::create([
+        'product_category_id' => ProductCategory::create(['name' => 'Meals'])->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Bolani',
+        'type' => 'food',
+        'base_price' => 180,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/digital-tablet-menu/types')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $foodType->id)
+        ->assertJsonPath('data.0.name', 'food')
+        ->assertJsonPath('data.0.products_count', 1)
+        ->assertJsonPath('data.0.image_url', '/storage/types/food.jpg');
+});
+
+test('digital tablet menu products by type endpoint is public', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $foodType = ProductType::create(['name' => 'food']);
+    ProductType::create(['name' => 'drink']);
+
+    $category = ProductCategory::create(['name' => 'Meals']);
+
+    $foodProduct = Product::create([
+        'product_category_id' => $category->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Ashak',
+        'type' => 'food',
+        'base_price' => 280,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $category->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Tea',
+        'type' => 'drink',
+        'base_price' => 40,
+        'is_active' => true,
+    ]);
+
+    $this->getJson("/api/v1/digital-tablet-menu/types/{$foodType->id}/products")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $foodProduct->id)
+        ->assertJsonPath('data.0.name', 'Ashak')
+        ->assertJsonPath('data.0.product_type_id', $foodType->id);
+});

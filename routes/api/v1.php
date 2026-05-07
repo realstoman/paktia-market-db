@@ -18,6 +18,14 @@ Route::get('banners/{banner}', [BannerController::class, 'show'])->name('banners
 
 Route::get('digital-tablet-menu/products', [DigitalTabletMenuController::class, 'products'])
     ->name('digital-tablet-menu.products.index');
+Route::get('digital-tablet-menu/categories', [DigitalTabletMenuController::class, 'categories'])
+    ->name('digital-tablet-menu.categories.index');
+Route::get('digital-tablet-menu/categories/{category}/products', [DigitalTabletMenuController::class, 'productsByCategory'])
+    ->name('digital-tablet-menu.categories.products');
+Route::get('digital-tablet-menu/types', [DigitalTabletMenuController::class, 'types'])
+    ->name('digital-tablet-menu.types.index');
+Route::get('digital-tablet-menu/types/{type}/products', [DigitalTabletMenuController::class, 'productsByType'])
+    ->name('digital-tablet-menu.types.products');
 
 Route::middleware('app.auth')->group(function (): void {
     Route::get('products/categories', [ProductController::class, 'categories'])->name('products.categories.index');
