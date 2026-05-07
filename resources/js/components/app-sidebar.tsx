@@ -28,6 +28,7 @@ import {
     LayoutGrid,
     Package,
     ReceiptText,
+    Printer,
     ShieldCheck,
     Smartphone,
     Users,
@@ -167,6 +168,15 @@ export function AppSidebar() {
                 can: item.can,
                 canAny: item.canAny,
             })),
+        ...(isSuperAdmin
+            ? [
+                  {
+                      title: t('navigation.printers', 'Printers'),
+                      href: '/printers',
+                      icon: Printer,
+                  } satisfies NavItem,
+              ]
+            : []),
         ...(isSuperAdmin
             ? [
                   {
