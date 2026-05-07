@@ -192,9 +192,7 @@ export function PrintersClient({
         };
 
         const endpoint = editingPrinter ? `/printers/${editingPrinter.id}` : '/printers';
-        const method = editingPrinter ? router.put : router.post;
-
-        method(endpoint, payload, {
+        const options = {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(
@@ -205,11 +203,18 @@ export function PrintersClient({
                 setIsOpen(false);
                 resetForm();
             },
-            onError: (incomingErrors) => {
+            onError: (incomingErrors: Record<string, string>) => {
                 setErrors(incomingErrors);
             },
             onFinish: () => setIsSubmitting(false),
-        });
+        };
+
+        if (editingPrinter) {
+            router.put(endpoint, payload, options);
+            return;
+        }
+
+        router.post(endpoint, payload, options);
     }, [editingPrinter, form, isSubmitting, resetForm, t]);
 
     const testPrint = React.useCallback(
