@@ -5,11 +5,9 @@ namespace App\Services\BranchSync;
 use App\Models\Branch;
 use App\Models\BranchSyncCursor;
 use App\Models\Order;
-use App\Models\User;
 use App\Services\Order\OrderItemService;
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class BranchOrderSyncService
@@ -111,7 +109,7 @@ class BranchOrderSyncService
         return $this->importOrdersForBranch($branch, $orders);
     }
 
-    public function syncWithRemote(Branch $branch, ?User $actor = null): array
+    public function syncWithRemote(Branch $branch): array
     {
         $remoteBaseUrl = rtrim((string) config('pos.sync.remote_base_url'), '/');
         $token = (string) config('pos.sync.remote_branch_token');
