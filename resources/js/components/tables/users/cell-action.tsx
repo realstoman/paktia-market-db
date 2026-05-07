@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
@@ -158,6 +159,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                 return matchesCountry && matchesProvince;
             }),
         [branches, editCountryId, editProvinceId],
+    );
+    const editBranchSelectOptions = useMemo(
+        () =>
+            editBranchOptions.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [editBranchOptions],
+    );
+
+    useAutoSelectSingleOption(
+        editBranchSelectOptions,
+        editBranchId,
+        setEditBranchId,
     );
 
     const resetEdit = () => {

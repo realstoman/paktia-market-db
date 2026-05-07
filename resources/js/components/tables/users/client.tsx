@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
@@ -259,6 +260,16 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             }),
         [branches, countryId, provinceId],
     );
+    const createBranchSelectOptions = useMemo(
+        () =>
+            createBranchOptions.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [createBranchOptions],
+    );
+
+    useAutoSelectSingleOption(createBranchSelectOptions, branchId, setBranchId);
     const filteredUsers = useMemo(
         () =>
             data.filter((user) => {
