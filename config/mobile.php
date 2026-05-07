@@ -19,6 +19,12 @@ return [
     ],
 
     'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'keys_url' => env(
+            'FIREBASE_KEYS_URL',
+            'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com',
+        ),
+        'keys_cache_seconds' => (int) env('FIREBASE_KEYS_CACHE_SECONDS', 3600),
         'stub_mode' => (bool) env('MOBILE_FIREBASE_STUB_MODE', false),
     ],
 ];
