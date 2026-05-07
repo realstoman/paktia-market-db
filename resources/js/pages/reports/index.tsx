@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -482,6 +483,15 @@ export default function ReportsPage({
             label: branch.name,
         })),
     ];
+
+    useAutoSelectSingleOption(
+        branches.map((branch) => ({
+            value: String(branch.id),
+            label: branch.name,
+        })),
+        branchId,
+        setBranchId,
+    );
 
     const moduleOptions = reportCatalog.map((item) => ({
         value: item.key,
