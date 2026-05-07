@@ -162,11 +162,27 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
         );
     };
 
+    const toggleAllCuisines = () => {
+        setSelectedCuisineIds((current) =>
+            current.length === cuisines.length
+                ? []
+                : cuisines.map((cuisine) => cuisine.id),
+        );
+    };
+
     const toggleKitchenCategory = (kitchenCategoryId: number) => {
         setSelectedKitchenCategoryIds((current) =>
             current.includes(kitchenCategoryId)
                 ? current.filter((id) => id !== kitchenCategoryId)
                 : [...current, kitchenCategoryId],
+        );
+    };
+
+    const toggleAllKitchenCategories = () => {
+        setSelectedKitchenCategoryIds((current) =>
+            current.length === kitchenCategories.length
+                ? []
+                : kitchenCategories.map((category) => category.id),
         );
     };
 
@@ -623,12 +639,25 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>
-                            {t(
-                                'toolbarResources.kitchens.fields.cuisines',
-                                'Cuisines',
-                            )}
-                        </Label>
+                        <div className="flex items-center justify-between">
+                            <Label>
+                                {t(
+                                    'toolbarResources.kitchens.fields.cuisines',
+                                    'Cuisines',
+                                )}
+                            </Label>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto px-2 py-1 text-xs"
+                                onClick={toggleAllCuisines}
+                            >
+                                {selectedCuisineIds.length === cuisines.length
+                                    ? t('common.clearAll', 'Clear all')
+                                    : t('common.selectAll', 'Select all')}
+                            </Button>
+                        </div>
                         <ScrollArea className="h-44 rounded-md border p-3">
                             <div className="space-y-2">
                                 {cuisines.map((cuisine) => (
@@ -660,12 +689,26 @@ export const KitchensClient: React.FC<KitchensClientProps> = ({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>
-                            {t(
-                                'toolbarResources.kitchens.fields.categories',
-                                'Kitchen Categories',
-                            )}
-                        </Label>
+                        <div className="flex items-center justify-between">
+                            <Label>
+                                {t(
+                                    'toolbarResources.kitchens.fields.categories',
+                                    'Kitchen Categories',
+                                )}
+                            </Label>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto px-2 py-1 text-xs"
+                                onClick={toggleAllKitchenCategories}
+                            >
+                                {selectedKitchenCategoryIds.length ===
+                                kitchenCategories.length
+                                    ? t('common.clearAll', 'Clear all')
+                                    : t('common.selectAll', 'Select all')}
+                            </Button>
+                        </div>
                         <ScrollArea className="h-44 rounded-md border p-3">
                             <div className="space-y-2">
                                 {kitchenCategories.map((category) => (

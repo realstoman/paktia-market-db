@@ -70,6 +70,14 @@ export const RolesClient: React.FC<RolesClientProps> = ({
         });
     };
 
+    const toggleAllPermissions = () => {
+        setSelectedPermissionIds((current) =>
+            current.size === permissions.length
+                ? new Set<number>()
+                : new Set(permissions.map((permission) => permission.id)),
+        );
+    };
+
     const resetForm = () => {
         setName('');
         setSelectedPermissionIds(new Set());
@@ -262,14 +270,27 @@ export const RolesClient: React.FC<RolesClientProps> = ({
                                 <span className="text-sm font-medium">
                                     {t('roles.table.permissions', 'Permissions')}
                                 </span>
-                                <span className="text-xs text-muted-foreground">
-                                    {t(
-                                        'roles.common.selectedCount',
-                                        ':selected of :total selected',
-                                    )
-                                        .replace(':selected', String(selectedCount))
-                                        .replace(':total', String(totalPermissions))}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs text-muted-foreground">
+                                        {t(
+                                            'roles.common.selectedCount',
+                                            ':selected of :total selected',
+                                        )
+                                            .replace(':selected', String(selectedCount))
+                                            .replace(':total', String(totalPermissions))}
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-auto px-2 py-1 text-xs"
+                                        onClick={toggleAllPermissions}
+                                    >
+                                        {selectedCount === totalPermissions
+                                            ? t('common.clearAll', 'Clear all')
+                                            : t('common.selectAll', 'Select all')}
+                                    </Button>
+                                </div>
                             </div>
                             <ScrollArea className="h-64 rounded-md border p-3">
                                 <div className="grid gap-3 sm:grid-cols-2">
