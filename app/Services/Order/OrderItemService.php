@@ -135,11 +135,14 @@ class OrderItemService
         $status = (string) ($item->prep_status?->value ?? $item->prep_status ?? OrderItemPrepStatus::PENDING->value);
 
         return $item->kitchen_id !== null
-            && in_array($status, [
-                OrderItemPrepStatus::IN_PROGRESS->value,
-                OrderItemPrepStatus::READY->value,
-                OrderItemPrepStatus::DELIVERED->value,
-            ], true);
+            && (
+                $item->kitchen_receipt_printed_at !== null
+                || in_array($status, [
+                    OrderItemPrepStatus::IN_PROGRESS->value,
+                    OrderItemPrepStatus::READY->value,
+                    OrderItemPrepStatus::DELIVERED->value,
+                ], true)
+            );
     }
 
     private function existingItemPayload(OrderItem $item): array

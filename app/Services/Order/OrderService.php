@@ -16,6 +16,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Projection\ProjectionDispatchService;
+use App\Services\Printing\OrderPrintDispatchService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +26,7 @@ class OrderService
     public function __construct(
         private readonly OrderItemService $orderItemService,
         private readonly ProjectionDispatchService $projectionDispatchService,
+        private readonly OrderPrintDispatchService $orderPrintDispatchService,
     ) {}
 
     public function getIndexData(?string $selectedDate, bool $isAllTime, ?User $user = null): array
@@ -147,8 +149,9 @@ class OrderService
     {
         $data['branch_id'] = $this->resolveAllowedBranchId($data['branch_id'], $user);
         $this->validateOrderConstraints($data);
+        $createdOrder = null;
 
-        DB::transaction(function () use ($data, $userId) {
+        DB::transaction(function () use ($data, $userId, &$createdOrder) {
             $total = $this->orderItemService->calculateTotal($data['items']);
             $customerPayload = $this->resolveCustomerPayload($data);
 
@@ -189,7 +192,16 @@ class OrderService
                 $order->branch_id,
                 $order->created_at,
             );
+
+            $createdOrder = $order;
         });
+
+        if ($createdOrder) {
+            $this->orderPrintDispatchService->dispatchForCreatedOrder(
+                $createdOrder,
+                $user,
+            );
+        }
     }
 
     public function updateOrder(Order $order, array $data, ?User $user = null): void
@@ -200,8 +212,9 @@ class OrderService
         $this->validateOrderConstraints($data);
         $originalBranchId = $order->branch_id;
         $originalCreatedAt = $order->created_at;
+        $updatedOrder = null;
 
-        DB::transaction(function () use ($order, $data) {
+        DB::transaction(function () use ($order, $data, &$updatedOrder) {
             $customerPayload = $this->resolveCustomerPayload($data);
 
             $order->update([
@@ -226,6 +239,7 @@ class OrderService
             $this->orderItemService->replaceForOrder($order, $data['items']);
             $total = (float) $order->items()->sum('line_total');
             $this->syncOrderAmounts($order, $total);
+            $updatedOrder = $order;
         });
 
         $this->projectionDispatchService->queueBranchDailyMetric(
@@ -236,6 +250,13 @@ class OrderService
             $order->branch_id,
             $order->created_at,
         );
+
+        if ($updatedOrder) {
+            $this->orderPrintDispatchService->dispatchForUpdatedOrder(
+                $updatedOrder,
+                $user,
+            );
+        }
     }
 
     private function resolveAllowedBranchId(int|string|null $branchId, ?User $user): int
@@ -366,8 +387,9 @@ class OrderService
     {
         $this->assertActorCanManageOrder($order, $user);
         $this->assertOrderCanBeModified($order);
+        $updatedOrder = null;
 
-        DB::transaction(function () use ($order, $items) {
+        DB::transaction(function () use ($order, $items, &$updatedOrder) {
             $payload = $this->orderItemService->createManyForOrder($order, $items);
             $delta = $this->orderItemService->calculateTotalFromPayload($payload);
             $subTotal = (float) ($order->sub_total_amount ?? $order->total_amount) + $delta;
@@ -381,12 +403,21 @@ class OrderService
                     paymentMethod: $paymentMethod,
                 );
             }
+
+            $updatedOrder = $order;
         });
 
         $this->projectionDispatchService->queueBranchDailyMetric(
             $order->branch_id,
             $order->created_at,
         );
+
+        if ($updatedOrder) {
+            $this->orderPrintDispatchService->dispatchForUpdatedOrder(
+                $updatedOrder,
+                $user,
+            );
+        }
     }
 
     private function validateOrderConstraints(array $data): void
