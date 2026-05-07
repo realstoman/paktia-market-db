@@ -91,7 +91,11 @@ test('api v1 orders index returns paginated orders', function () {
 test('api v1 orders show returns a single order', function () {
     [$branch, $kitchen] = createOrderApiBaseData();
     $user = User::factory()->create();
-    $category = ProductCategory::create(['name' => 'Drinks']);
+    $category = ProductCategory::create([
+        'name' => 'Drinks',
+        'dari_name' => 'نوشیدنی‌ها',
+        'pashto_name' => 'څښاکونه',
+    ]);
 
     $product = Product::create([
         'product_category_id' => $category->id,
@@ -126,5 +130,8 @@ test('api v1 orders show returns a single order', function () {
         ->assertJsonPath('data.id', $order->id)
         ->assertJsonPath('data.status', 'ready')
         ->assertJsonPath('data.order_type', 'takeaway')
+        ->assertJsonPath('data.items.0.product_category_name', 'Drinks')
+        ->assertJsonPath('data.items.0.product_category_dari_name', 'نوشیدنی‌ها')
+        ->assertJsonPath('data.items.0.product_category_pashto_name', 'څښاکونه')
         ->assertJsonPath('data.items.0.line_total', 160);
 });

@@ -22,6 +22,8 @@ class OrderItemResource extends JsonResource
             'product_name' => $this->product_name_snapshot ?? $this->product?->name,
             'product_category_id' => $this->product?->product_category_id,
             'product_category_name' => $this->product?->category?->name,
+            'product_category_dari_name' => $this->product?->category?->dari_name,
+            'product_category_pashto_name' => $this->product?->category?->pashto_name,
             'product_size_id' => $this->product_size_id,
             'product_size_name' => $this->product_size_name_snapshot ?? $this->productSize?->name,
             'kitchen_id' => $this->kitchen_id,
