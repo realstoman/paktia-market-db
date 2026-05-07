@@ -19,6 +19,7 @@ class ProductResource extends JsonResource
             'dari_description' => $this->dari_description,
             'product_category_id' => $this->product_category_id,
             'category_name' => $this->category?->name,
+            'category_dari_name' => $this->category?->dari_name,
             'kitchen_id' => $this->kitchen_id,
             'kitchen_name' => $this->kitchen?->name,
             'type' => $this->type,

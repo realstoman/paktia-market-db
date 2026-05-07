@@ -171,7 +171,10 @@ test('api v1 product types index and show work', function () {
 
 test('api v1 category products endpoint returns products for the selected category', function () {
     [, $kitchen] = createProductApiBaseData();
-    $mainCategory = ProductCategory::create(['name' => 'Main Dishes']);
+    $mainCategory = ProductCategory::create([
+        'name' => 'Main Dishes',
+        'dari_name' => 'غذاهای اصلی',
+    ]);
     $drinkCategory = ProductCategory::create(['name' => 'Drinks']);
     $family = ProductSize::create(['name' => 'Family', 'code' => 'F']);
 
@@ -206,6 +209,7 @@ test('api v1 category products endpoint returns products for the selected catego
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $mainProduct->id)
         ->assertJsonPath('data.0.category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.category_dari_name', 'غذاهای اصلی')
         ->assertJsonPath('data.0.sizes.0.name', 'Family')
         ->assertJsonPath('data.0.sizes.0.price', 900)
         ->assertJsonPath('data.0.images.0.url', '/storage/products/pulao.jpg');
