@@ -2,6 +2,7 @@ import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -175,6 +176,16 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [selectedPositionFilter, setSelectedPositionFilter] =
         useState(FILTER_ALL);
     const [selectedShiftFilter, setSelectedShiftFilter] = useState(FILTER_ALL);
+    const branchSelectOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(branchSelectOptions, branchId, setBranchId);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),

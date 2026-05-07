@@ -2,6 +2,7 @@ import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -196,6 +197,17 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             images.forEach((image) => URL.revokeObjectURL(image.preview));
         };
     }, [images]);
+
+    const branchSelectOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(branchSelectOptions, branchId, setBranchId);
 
     const clearSelectedImages = () => {
         images.forEach((image) => URL.revokeObjectURL(image.preview));

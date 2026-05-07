@@ -3,6 +3,7 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
@@ -94,6 +95,24 @@ export function PrintersClient({
     const [form, setForm] = React.useState<PrinterFormState>(emptyForm);
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const branchOptions = React.useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: String(branch.id),
+                label: branch.name,
+            })),
+        [branches],
+    );
+
+    useAutoSelectSingleOption(
+        branchOptions,
+        form.branch_id,
+        (value) =>
+            setForm((current) => ({
+                ...current,
+                branch_id: value,
+            })),
+    );
 
     const resetForm = React.useCallback(() => {
         setEditingPrinter(null);
