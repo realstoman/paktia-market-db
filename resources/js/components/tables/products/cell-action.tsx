@@ -476,6 +476,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground">
+                                    {t('products.fields.cuisine', 'Cuisine')}
+                                </p>
+                                <p className="font-medium">{resolvedCuisine}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">
                                     {t('products.fields.kitchen', 'Kitchen')}
                                 </p>
                                 <p className="font-medium">{resolvedKitchen}</p>
@@ -707,6 +713,41 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError
                                     message={editErrors.product_category_id}
                                 />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>
+                                    {t('products.fields.cuisine', 'Cuisine')}
+                                </Label>
+                                <Select
+                                    value={cuisineId}
+                                    onValueChange={setCuisineId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectCuisine',
+                                                'Select cuisine',
+                                            )}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            {t(
+                                                'products.fields.noCuisine',
+                                                'No cuisine',
+                                            )}
+                                        </SelectItem>
+                                        {cuisines.map((cuisine) => (
+                                            <SelectItem
+                                                key={cuisine.id}
+                                                value={String(cuisine.id)}
+                                            >
+                                                {cuisine.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editErrors.cuisine_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>

@@ -558,8 +558,8 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     }, [types]);
 
     const tableColumns = useMemo(
-        () => buildColumns(categories, types, kitchens, sizes, t, canDelete),
-        [canDelete, categories, kitchens, sizes, t, types],
+        () => buildColumns(categories, cuisines, types, kitchens, sizes, t, canDelete),
+        [canDelete, categories, cuisines, kitchens, sizes, t, types],
     );
 
     const filteredData = useMemo(() => {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Branch;
+use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Kitchen;
 use App\Models\Order;
@@ -62,12 +63,14 @@ test('api v1 products index returns products with images', function () {
 
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Main Dishes']);
+    $cuisine = Cuisine::create(['name' => 'Afghan']);
     ProductType::create(['name' => 'food']);
     $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
     $large = ProductSize::create(['name' => 'Large', 'code' => 'L']);
 
     $product = Product::create([
         'product_category_id' => $category->id,
+        'cuisine_id' => $cuisine->id,
         'kitchen_id' => $kitchen->id,
         'name' => 'Kabuli Pulao',
         'type' => 'food',
@@ -88,6 +91,7 @@ test('api v1 products index returns products with images', function () {
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan')
         ->assertJsonPath('data.0.images_count', 2)
         ->assertJsonPath('data.0.sizes.0.name', 'Small')
         ->assertJsonPath('data.0.sizes.0.price', 400)
@@ -112,10 +116,12 @@ test('api v1 products show returns a single product', function () {
         'dari_name' => 'نوشیدنی‌ها',
         'pashto_name' => 'څښاکونه',
     ]);
+    $cuisine = Cuisine::create(['name' => 'Afghan']);
     $medium = ProductSize::create(['name' => 'Medium', 'code' => 'M']);
 
     $product = Product::create([
         'product_category_id' => $category->id,
+        'cuisine_id' => $cuisine->id,
         'kitchen_id' => $kitchen->id,
         'name' => 'Doogh',
         'type' => 'beverage',
@@ -136,6 +142,7 @@ test('api v1 products show returns a single product', function () {
     getJson('/api/v1/products/'.$product->id, appApiHeaders())
         ->assertOk()
         ->assertJsonPath('data.id', $product->id)
+        ->assertJsonPath('data.cuisine_name', 'Afghan')
         ->assertJsonPath('data.category_name', 'Drinks')
         ->assertJsonPath('data.category_dari_name', 'نوشیدنی‌ها')
         ->assertJsonPath('data.category_pashto_name', 'څښاکونه')
@@ -178,6 +185,62 @@ test('api v1 product categories index and show work', function () {
         ->assertJsonPath('data.pashto_description', 'د خوږو توکو کتګوري')
         ->assertJsonPath('data.dari_description', 'دسته‌بندی خوراکی‌های شیرین')
         ->assertJsonPath('data.image_path', 'product-categories/desserts-hero.jpg');
+});
+
+test('api v1 product cuisines index, show, and products endpoint work', function () {
+    config()->set('mobile.apps', [
+        [
+            'key' => 'test-mobile-key',
+            'platform' => 'ios',
+            'active' => true,
+        ],
+    ]);
+
+    [, $kitchen] = createProductApiBaseData();
+    $category = ProductCategory::create(['name' => 'Kababs']);
+    $cuisine = Cuisine::create([
+        'name' => 'Afghan',
+        'description' => 'Afghan cuisine.',
+    ]);
+    $otherCuisine = Cuisine::create(['name' => 'Turkish']);
+
+    $product = Product::create([
+        'product_category_id' => $category->id,
+        'cuisine_id' => $cuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Chapli Kabab',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $category->id,
+        'cuisine_id' => $otherCuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Turkish Kabab',
+        'type' => 'food',
+        'base_price' => 300,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/products/cuisines', appApiHeaders())
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Afghan');
+
+    $this->getJson('/api/v1/products/cuisines/'.$cuisine->id, appApiHeaders())
+        ->assertOk()
+        ->assertJsonPath('data.id', $cuisine->id)
+        ->assertJsonPath('data.name', 'Afghan')
+        ->assertJsonPath('data.description', 'Afghan cuisine.');
+
+    $this->getJson('/api/v1/products/cuisines/'.$cuisine->id.'/products', appApiHeaders())
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonPath('data.0.name', 'Chapli Kabab')
+        ->assertJsonPath('data.0.category_name', 'Kababs')
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan');
 });
 
 test('api v1 product types index and show work', function () {
