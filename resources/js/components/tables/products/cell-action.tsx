@@ -41,6 +41,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
+    Cuisine,
     Kitchen,
     Product,
     ProductCategory,
@@ -72,6 +73,7 @@ interface PendingImage {
 interface CellActionProps {
     data: Product;
     categories: ProductCategory[];
+    cuisines: Cuisine[];
     types: ProductType[];
     kitchens: Kitchen[];
     sizes: ProductSize[];
@@ -120,6 +122,7 @@ const resolveImageUrl = (image: ProductImage) => {
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     categories,
+    cuisines,
     types,
     kitchens,
     sizes,
@@ -140,6 +143,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [dariName, setDariName] = useState(data.dari_name ?? '');
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
+    );
+    const [cuisineId, setCuisineId] = useState(
+        data.cuisine_id ? String(data.cuisine_id) : 'none',
     );
     const [kitchenId, setKitchenId] = useState(
         data.kitchen_id ? String(data.kitchen_id) : 'none',
@@ -183,6 +189,10 @@ export const CellAction: React.FC<CellActionProps> = ({
         data.kitchen?.name ??
         kitchens.find((kitchen) => kitchen.id === data.kitchen_id)?.name ??
         t('products.columns.unassigned', 'Unassigned');
+    const resolvedCuisine =
+        data.cuisine?.name ??
+        cuisines.find((cuisine) => cuisine.id === data.cuisine_id)?.name ??
+        t('products.fields.noCuisine', 'No cuisine');
 
     useEffect(() => {
         return () => {
@@ -197,6 +207,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
         );
+        setCuisineId(data.cuisine_id ? String(data.cuisine_id) : 'none');
         setKitchenId(data.kitchen_id ? String(data.kitchen_id) : 'none');
         setType(data.type ?? types[0]?.name ?? 'food');
         setBasePrice(normalizePriceInput(data.base_price));
@@ -284,6 +295,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         formData.append('pashto_name', pashtoName.trim());
         formData.append('dari_name', dariName.trim());
         formData.append('product_category_id', String(Number(categoryId)));
+        if (cuisineId !== 'none') {
+            formData.append('cuisine_id', String(Number(cuisineId)));
+        }
         if (kitchenId !== 'none') {
             formData.append('kitchen_id', String(Number(kitchenId)));
         }
