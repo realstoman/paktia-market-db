@@ -47,6 +47,7 @@ class ProductApiService
         return $this->catalogCacheService->rememberProductCategories(
             fn () => ProductCategory::query()
                 ->withCount('products')
+                ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
         );
