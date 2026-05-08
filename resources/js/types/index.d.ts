@@ -661,8 +661,10 @@ export interface Product {
     pashto_description?: string | null;
     dari_description?: string | null;
     product_category_id?: number;
+    cuisine_id?: number | null;
     kitchen_id?: number | null;
     category?: ProductCategory | null;
+    cuisine?: Cuisine | null;
     kitchen?: Kitchen | null;
     type?: string;
     base_price?: number | string;

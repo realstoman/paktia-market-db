@@ -20,8 +20,12 @@ Route::get('digital-tablet-menu/products', [DigitalTabletMenuController::class, 
     ->name('digital-tablet-menu.products.index');
 Route::get('digital-tablet-menu/categories', [DigitalTabletMenuController::class, 'categories'])
     ->name('digital-tablet-menu.categories.index');
+Route::get('digital-tablet-menu/cuisines', [DigitalTabletMenuController::class, 'cuisines'])
+    ->name('digital-tablet-menu.cuisines.index');
 Route::get('digital-tablet-menu/categories/{category}/products', [DigitalTabletMenuController::class, 'productsByCategory'])
     ->name('digital-tablet-menu.categories.products');
+Route::get('digital-tablet-menu/cuisines/{cuisine}/products', [DigitalTabletMenuController::class, 'productsByCuisine'])
+    ->name('digital-tablet-menu.cuisines.products');
 Route::get('digital-tablet-menu/types', [DigitalTabletMenuController::class, 'types'])
     ->name('digital-tablet-menu.types.index');
 Route::get('digital-tablet-menu/types/{type}/products', [DigitalTabletMenuController::class, 'productsByType'])
@@ -31,6 +35,9 @@ Route::middleware('app.auth')->group(function (): void {
     Route::get('products/categories', [ProductController::class, 'categories'])->name('products.categories.index');
     Route::get('products/categories/{category}', [ProductController::class, 'showCategory'])->name('products.categories.show');
     Route::get('products/categories/{category}/products', [ProductController::class, 'productsByCategory'])->name('products.categories.products');
+    Route::get('products/cuisines', [ProductController::class, 'cuisines'])->name('products.cuisines.index');
+    Route::get('products/cuisines/{cuisine}', [ProductController::class, 'showCuisine'])->name('products.cuisines.show');
+    Route::get('products/cuisines/{cuisine}/products', [ProductController::class, 'productsByCuisine'])->name('products.cuisines.products');
     Route::get('products/types', [ProductController::class, 'types'])->name('products.types.index');
     Route::get('products/types/{type}', [ProductController::class, 'showType'])->name('products.types.show');
     Route::get('products/types/{type}/products', [ProductController::class, 'productsByType'])->name('products.types.products');
