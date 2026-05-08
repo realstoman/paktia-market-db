@@ -30,6 +30,8 @@ class DigitalTabletMenuProductResource extends JsonResource
             'product_category_name' => $this->category?->name,
             'product_category_dari_name' => $this->category?->dari_name,
             'product_category_pashto_name' => $this->category?->pashto_name,
+            'cuisine_id' => $this->cuisine_id,
+            'cuisine_name' => $this->cuisine?->name,
             'product_type' => $this->type,
             'product_type_id' => $this->product_type_id,
             'price' => (float) $this->base_price,

@@ -85,15 +85,14 @@ function createMobileProductFixture(): array
     return [$branch, $product, $small];
 }
 
-test('mobile products endpoint requires a valid app key', function () {
+test('mobile products endpoint is temporarily public for catalog testing', function () {
     $this->getJson('/api/v1/products')
-        ->assertUnauthorized()
-        ->assertJsonPath('message', 'Unauthorized app client.');
+        ->assertOk();
 
     $this->getJson('/api/v1/products', mobileHeaders())->assertOk();
 });
 
-test('mobile top ordered dishes endpoint requires a valid app key and returns card fields', function () {
+test('mobile top ordered dishes endpoint is temporarily public and returns card fields', function () {
     [$branch, $product] = createMobileProductFixture();
 
     $order = Order::create([
@@ -118,8 +117,11 @@ test('mobile top ordered dishes endpoint requires a valid app key and returns ca
     ]);
 
     $this->getJson('/api/v1/products/top-ordered-dishes')
-        ->assertUnauthorized()
-        ->assertJsonPath('message', 'Unauthorized app client.');
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.0.image_url', '/storage/products/pepperoni.jpg')
+        ->assertJsonPath('data.0.price', 500)
+        ->assertJsonPath('data.0.link', '/products/pepperoni-pizza');
 
     $this->getJson('/api/v1/products/top-ordered-dishes', mobileHeaders())
         ->assertOk()

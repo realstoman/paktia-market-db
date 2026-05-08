@@ -8,6 +8,7 @@ class ProductCategory extends Model
 {
     protected $fillable = [
         'name',
+        'sort_order',
         'pashto_name',
         'dari_name',
         'description',

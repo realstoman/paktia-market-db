@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+    Cuisine,
     Kitchen,
     Product,
     ProductCategory,
@@ -46,6 +47,7 @@ const getInitials = (value?: string) => {
 
 export const buildColumns = (
     categories: ProductCategory[],
+    cuisines: Cuisine[],
     types: ProductType[],
     kitchens: Kitchen[],
     sizes: ProductSize[],
@@ -227,6 +229,7 @@ export const buildColumns = (
                 <CellAction
                     data={row.original}
                     categories={categories}
+                    cuisines={cuisines}
                     types={types}
                     kitchens={kitchens}
                     sizes={sizes}

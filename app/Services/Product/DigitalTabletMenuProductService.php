@@ -2,6 +2,7 @@
 
 namespace App\Services\Product;
 
+use App\Models\Cuisine;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
@@ -26,6 +27,18 @@ class DigitalTabletMenuProductService
             ->withCount([
                 'products' => fn ($query) => $query->where('is_active', true),
             ])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function cuisines(): Collection
+    {
+        return Cuisine::query()
+            ->whereHas('products', fn ($query) => $query->where('is_active', true))
+            ->withCount([
+                'products' => fn ($query) => $query->where('is_active', true),
+            ])
             ->orderBy('name')
             ->get();
     }
@@ -35,6 +48,17 @@ class DigitalTabletMenuProductService
         return $this->applyTypeIds(
             $this->baseQuery()
                 ->where('product_category_id', $category->id)
+                ->orderBy('name')
+                ->get()
+        );
+    }
+
+    public function productsByCuisine(Cuisine $cuisine): Collection
+    {
+        return $this->applyTypeIds(
+            $this->baseQuery()
+                ->where('cuisine_id', $cuisine->id)
+                ->orderBy('product_category_id')
                 ->orderBy('name')
                 ->get()
         );
@@ -82,7 +106,7 @@ class DigitalTabletMenuProductService
     protected function baseQuery()
     {
         return Product::query()
-            ->with(['category', 'images', 'sizes'])
+            ->with(['category', 'cuisine', 'images', 'sizes'])
             ->where('is_active', true);
     }
 

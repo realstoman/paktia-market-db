@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\CuisineResource;
 use App\Http\Resources\Api\V1\DigitalTabletMenuProductResource;
 use App\Http\Resources\Api\V1\ProductCategoryResource;
 use App\Http\Resources\Api\V1\ProductTypeResource;
+use App\Models\Cuisine;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
 use App\Services\Product\DigitalTabletMenuProductService;
@@ -25,12 +27,27 @@ class DigitalTabletMenuController extends Controller
         return ProductCategoryResource::collection($service->categories());
     }
 
+    public function cuisines(
+        DigitalTabletMenuProductService $service,
+    ): AnonymousResourceCollection {
+        return CuisineResource::collection($service->cuisines());
+    }
+
     public function productsByCategory(
         ProductCategory $category,
         DigitalTabletMenuProductService $service,
     ): AnonymousResourceCollection {
         return DigitalTabletMenuProductResource::collection(
             $service->productsByCategory($category)
+        );
+    }
+
+    public function productsByCuisine(
+        Cuisine $cuisine,
+        DigitalTabletMenuProductService $service,
+    ): AnonymousResourceCollection {
+        return DigitalTabletMenuProductResource::collection(
+            $service->productsByCuisine($cuisine)
         );
     }
 

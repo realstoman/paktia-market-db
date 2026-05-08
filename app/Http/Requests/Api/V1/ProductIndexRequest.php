@@ -16,6 +16,7 @@ class ProductIndexRequest extends FormRequest
     {
         return [
             'category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
+            'cuisine_id' => ['nullable', 'integer', 'exists:cuisines,id'],
             'type' => ['nullable', 'string', 'max:50'],
             'kitchen_id' => ['nullable', 'integer', 'exists:kitchens,id'],
             'is_active' => ['nullable', 'boolean'],

@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
     BreadcrumbItem,
+    Cuisine,
     Kitchen,
     Product,
     ProductCategory,
@@ -20,6 +21,7 @@ import { useMemo } from 'react';
 interface ProductsPageProps {
     products: Product[];
     categories: ProductCategory[];
+    cuisines: Cuisine[];
     types: ProductType[];
     kitchens: Kitchen[];
     sizes: ProductSize[];
@@ -38,13 +40,13 @@ const normalizeKitchenTranslationKey = (name?: string | null) =>
 export default function ProductsPage({
     products,
     categories,
+    cuisines,
     types,
     kitchens,
     sizes,
 }: ProductsPageProps) {
     const { locale, t } = useLocalization();
     const totalProducts = products.length;
-    const totalCategories = categories.length;
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('navigation.dashboard', 'Dashboard'),
@@ -117,18 +119,6 @@ export default function ProductsPage({
                         className="md:col-span-4"
                     />
 
-                    <SummaryMetricCard
-                        title={t('products.totalCategories', 'Total Categories')}
-                        value={formatNumber(totalCategories)}
-                        description={t(
-                            'products.totalCategoriesDescription',
-                            'Categories currently organizing your products.',
-                        )}
-                        icon={Package}
-                        variant="green"
-                        className="md:col-span-4"
-                    />
-
                     {productsByKitchen.map((kitchenSummary) => {
                         const KitchenIcon = getKitchenIcon(
                             kitchenSummary.name,
@@ -167,6 +157,7 @@ export default function ProductsPage({
                     <ProductsClient
                         data={products}
                         categories={categories}
+                        cuisines={cuisines}
                         types={types}
                         kitchens={kitchens}
                         sizes={sizes}
