@@ -117,6 +117,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [sizePrices, setSizePrices] = useState<Record<number, string>>({});
     const [images, setImages] = useState<SelectedImage[]>([]);
     const [categoryName, setCategoryName] = useState('');
+    const [categorySortOrder, setCategorySortOrder] = useState('0');
     const [categoryPashtoName, setCategoryPashtoName] = useState('');
     const [categoryDariName, setCategoryDariName] = useState('');
     const [categoryDescription, setCategoryDescription] = useState('');
@@ -296,6 +297,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
         const payload = new FormData();
         payload.append('name', categoryName.trim());
+        payload.append('sort_order', String(Number(categorySortOrder || 0)));
         payload.append('pashto_name', categoryPashtoName.trim());
         payload.append('dari_name', categoryDariName.trim());
         payload.append('description', categoryDescription.trim());
@@ -359,6 +361,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
     const resetCategoryForm = () => {
         setCategoryName('');
+        setCategorySortOrder('0');
         setCategoryPashtoName('');
         setCategoryDariName('');
         setCategoryDescription('');
@@ -397,6 +400,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const handleCategoryEdit = (category: ProductCategory) => {
         setEditingCategoryId(category.id);
         setCategoryName(category.name);
+        setCategorySortOrder(String(category.sort_order ?? 0));
         setCategoryPashtoName(category.pashto_name ?? '');
         setCategoryDariName(category.dari_name ?? '');
         setCategoryDescription(category.description ?? '');

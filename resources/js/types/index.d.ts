@@ -601,6 +601,7 @@ export interface Province {
 export interface ProductCategory {
     id: number;
     name: string;
+    sort_order?: number;
     pashto_name?: string | null;
     dari_name?: string | null;
     description?: string | null;
