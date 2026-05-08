@@ -1261,6 +1261,19 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                     }
                                 />
                             </div>
+                            <Input
+                                type="number"
+                                min="0"
+                                placeholder={t(
+                                    'products.categoryMeta.sortOrderPlaceholder',
+                                    'Display order',
+                                )}
+                                value={categorySortOrder}
+                                onChange={(event) =>
+                                    setCategorySortOrder(event.target.value)
+                                }
+                            />
+                            <InputError message={metaErrors.sort_order} />
                             <Textarea
                                 placeholder={t(
                                     'products.categoryMeta.descriptionPlaceholder',
@@ -1373,6 +1386,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="truncate text-sm font-medium">
+                                                    {category.sort_order ?? 0}.{' '}
                                                     {category.name}
                                                 </p>
                                                 {category.pashto_name ? (

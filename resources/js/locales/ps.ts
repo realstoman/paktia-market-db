@@ -3019,6 +3019,7 @@ const ps = {
             title: 'د کټګوریو اداره',
             description: 'د محصول کټګورۍ جوړې، سمې او لرې کړئ.',
             namePlaceholder: 'د کټګورۍ نوم',
+            sortOrderPlaceholder: 'د ښودلو ترتیب',
             pashtoPlaceholder: 'پښتو سرلیک (اختیاري)',
             dariPlaceholder: 'دري سرلیک (اختیاري)',
             descriptionPlaceholder: 'د کټګورۍ تشریح (اختیاري)',

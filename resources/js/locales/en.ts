@@ -3016,6 +3016,7 @@ const en = {
             title: 'Manage Categories',
             description: 'Create, edit, and remove product categories.',
             namePlaceholder: 'Category name',
+            sortOrderPlaceholder: 'Display order',
             pashtoPlaceholder: 'Pashto title (optional)',
             dariPlaceholder: 'Dari title (optional)',
             descriptionPlaceholder: 'Category description (optional)',

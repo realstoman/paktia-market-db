@@ -163,6 +163,7 @@ test('api v1 product categories index and show work', function () {
 
     $category = ProductCategory::create([
         'name' => 'Desserts',
+        'sort_order' => 7,
         'pashto_name' => 'خواږه',
         'dari_name' => 'شیرینی',
         'description' => 'Sweet items',
@@ -174,6 +175,7 @@ test('api v1 product categories index and show work', function () {
     $this->getJson('/api/v1/products/categories', appApiHeaders())
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Desserts')
+        ->assertJsonPath('data.0.sort_order', 7)
         ->assertJsonPath('data.0.pashto_name', 'خواږه')
         ->assertJsonPath('data.0.dari_name', 'شیرینی')
         ->assertJsonPath('data.0.image_url', '/storage/product-categories/desserts-hero.jpg');
@@ -182,9 +184,30 @@ test('api v1 product categories index and show work', function () {
         ->assertOk()
         ->assertJsonPath('data.id', $category->id)
         ->assertJsonPath('data.name', 'Desserts')
+        ->assertJsonPath('data.sort_order', 7)
         ->assertJsonPath('data.pashto_description', 'د خوږو توکو کتګوري')
         ->assertJsonPath('data.dari_description', 'دسته‌بندی خوراکی‌های شیرین')
         ->assertJsonPath('data.image_path', 'product-categories/desserts-hero.jpg');
+});
+
+test('api v1 product categories index respects category sort order', function () {
+    config()->set('mobile.apps', [
+        [
+            'key' => 'test-mobile-key',
+            'platform' => 'ios',
+            'active' => true,
+        ],
+    ]);
+
+    ProductCategory::create(['name' => 'Afghan Cuisine', 'sort_order' => 3]);
+    ProductCategory::create(['name' => 'Pizza', 'sort_order' => 1]);
+    ProductCategory::create(['name' => 'Kababs', 'sort_order' => 2]);
+
+    $this->getJson('/api/v1/products/categories', appApiHeaders())
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Pizza')
+        ->assertJsonPath('data.1.name', 'Kababs')
+        ->assertJsonPath('data.2.name', 'Afghan Cuisine');
 });
 
 test('api v1 product cuisines index, show, and products endpoint work', function () {

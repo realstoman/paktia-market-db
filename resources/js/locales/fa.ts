@@ -3012,6 +3012,7 @@ const fa = {
             title: 'مدیریت کتگوری‌ها',
             description: 'ایجاد، ویرایش و حذف کتگوری‌های محصول.',
             namePlaceholder: 'نام کتگوری',
+            sortOrderPlaceholder: 'ترتیب نمایش',
             pashtoPlaceholder: 'عنوان پشتو (اختیاری)',
             dariPlaceholder: 'عنوان دری (اختیاری)',
             descriptionPlaceholder: 'توضیحات کتگوری (اختیاری)',
