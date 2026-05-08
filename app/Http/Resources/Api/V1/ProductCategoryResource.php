@@ -12,6 +12,7 @@ class ProductCategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'sort_order' => (int) ($this->sort_order ?? 0),
             'pashto_name' => $this->pashto_name,
             'dari_name' => $this->dari_name,
             'description' => $this->description,
