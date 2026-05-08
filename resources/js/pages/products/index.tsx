@@ -47,7 +47,6 @@ export default function ProductsPage({
 }: ProductsPageProps) {
     const { locale, t } = useLocalization();
     const totalProducts = products.length;
-    const totalCategories = categories.length;
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: t('navigation.dashboard', 'Dashboard'),
@@ -116,18 +115,6 @@ export default function ProductsPage({
                             'All products currently available in the system.',
                         )}
                         icon={Layers3}
-                        variant="green"
-                        className="md:col-span-4"
-                    />
-
-                    <SummaryMetricCard
-                        title={t('products.totalCategories', 'Total Categories')}
-                        value={formatNumber(totalCategories)}
-                        description={t(
-                            'products.totalCategoriesDescription',
-                            'Categories currently organizing your products.',
-                        )}
-                        icon={Package}
                         variant="green"
                         className="md:col-span-4"
                     />
