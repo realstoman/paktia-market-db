@@ -104,6 +104,8 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.product_category_pashto_name', 'اصلي خواړه')
         ->assertJsonPath('data.0.cuisine_id', $cuisine->id)
         ->assertJsonPath('data.0.cuisine_name', 'Afghan')
+        ->assertJsonPath('data.0.cuisine_pashto_name', null)
+        ->assertJsonPath('data.0.cuisine_dari_name', null)
         ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
         ->assertJsonPath('data.0.product_type_pashto_name', 'خواړه')
@@ -271,7 +273,9 @@ test('digital tablet menu cuisines and products by cuisine endpoints are public'
         ->assertJsonPath('data.0.id', $chapliKabab->id)
         ->assertJsonPath('data.0.name', 'Chapli Kabab')
         ->assertJsonPath('data.0.product_category_name', 'Kababs')
-        ->assertJsonPath('data.0.cuisine_name', 'Afghan');
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan')
+        ->assertJsonPath('data.0.cuisine_pashto_name', null)
+        ->assertJsonPath('data.0.cuisine_dari_name', null);
 });
 
 test('digital tablet menu types endpoint is public and only returns types used by active products', function () {
