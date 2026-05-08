@@ -12,8 +12,6 @@ class CuisineResource extends JsonResource
         return [
             'id' => $this->id,
             'cuisine' => $this->name,
-            'cuisine_pashto_name' => data_get($this->resource, 'pashto_name'),
-            'cuisine_dari_name' => data_get($this->resource, 'dari_name'),
             'name' => $this->name,
             'description' => $this->description,
             'products_count' => (int) ($this->products_count ?? 0),

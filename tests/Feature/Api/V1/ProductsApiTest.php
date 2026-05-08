@@ -88,8 +88,6 @@ test('api v1 products index returns products with images', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $product->id)
         ->assertJsonPath('data.0.cuisine_name', 'Afghan')
-        ->assertJsonPath('data.0.cuisine_pashto_name', null)
-        ->assertJsonPath('data.0.cuisine_dari_name', null)
         ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
         ->assertJsonPath('data.0.type_dari_name', 'غذا')
@@ -143,8 +141,6 @@ test('api v1 products show returns a single product', function () {
         ->assertOk()
         ->assertJsonPath('data.id', $product->id)
         ->assertJsonPath('data.cuisine_name', 'Afghan')
-        ->assertJsonPath('data.cuisine_pashto_name', null)
-        ->assertJsonPath('data.cuisine_dari_name', null)
         ->assertJsonPath('data.category_name', 'Drinks')
         ->assertJsonPath('data.category_dari_name', 'نوشیدنی‌ها')
         ->assertJsonPath('data.category_pashto_name', 'څښاکونه')
@@ -235,16 +231,12 @@ test('api v1 product cuisines index, show, and products endpoint work', function
     $this->getJson('/api/v1/products/cuisines')
         ->assertOk()
         ->assertJsonPath('data.0.name', 'Afghan')
-        ->assertJsonPath('data.0.cuisine', 'Afghan')
-        ->assertJsonPath('data.0.cuisine_pashto_name', null)
-        ->assertJsonPath('data.0.cuisine_dari_name', null);
+        ->assertJsonPath('data.0.cuisine', 'Afghan');
 
     $this->getJson('/api/v1/products/cuisines/'.$cuisine->id)
         ->assertOk()
         ->assertJsonPath('data.id', $cuisine->id)
         ->assertJsonPath('data.cuisine', 'Afghan')
-        ->assertJsonPath('data.cuisine_pashto_name', null)
-        ->assertJsonPath('data.cuisine_dari_name', null)
         ->assertJsonPath('data.name', 'Afghan')
         ->assertJsonPath('data.description', 'Afghan cuisine.');
 
@@ -254,9 +246,7 @@ test('api v1 product cuisines index, show, and products endpoint work', function
         ->assertJsonPath('data.0.id', $product->id)
         ->assertJsonPath('data.0.name', 'Chapli Kabab')
         ->assertJsonPath('data.0.category_name', 'Kababs')
-        ->assertJsonPath('data.0.cuisine_name', 'Afghan')
-        ->assertJsonPath('data.0.cuisine_pashto_name', null)
-        ->assertJsonPath('data.0.cuisine_dari_name', null);
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan');
 });
 
 test('api v1 product types index and show work', function () {
