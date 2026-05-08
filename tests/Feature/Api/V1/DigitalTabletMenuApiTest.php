@@ -117,6 +117,51 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.image.url', '/storage/products/qabuli-1.jpg');
 });
 
+test('digital tablet menu products endpoint respects category sort order in the main feed', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $lateCategory = ProductCategory::create([
+        'name' => 'Late Category',
+        'sort_order' => 2,
+    ]);
+
+    $earlyCategory = ProductCategory::create([
+        'name' => 'Early Category',
+        'sort_order' => 1,
+    ]);
+
+    ProductType::create([
+        'name' => 'food',
+        'pashto_name' => 'خواړه',
+        'dari_name' => 'غذا',
+    ]);
+
+    Product::create([
+        'product_category_id' => $lateCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Second In Feed',
+        'type' => 'food',
+        'base_price' => 200,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $earlyCategory->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'First In Feed',
+        'type' => 'food',
+        'base_price' => 150,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/digital-tablet-menu/products')
+        ->assertOk()
+        ->assertJsonPath('data.0.product_category_name', 'Early Category')
+        ->assertJsonPath('data.0.name', 'First In Feed')
+        ->assertJsonPath('data.1.product_category_name', 'Late Category')
+        ->assertJsonPath('data.1.name', 'Second In Feed');
+});
+
 test('digital tablet menu categories endpoint is public and only returns categories with active products', function () {
     [, $kitchen] = createDigitalTabletMenuBaseData();
 

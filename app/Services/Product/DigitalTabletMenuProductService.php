@@ -6,6 +6,7 @@ use App\Models\Cuisine;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class DigitalTabletMenuProductService
@@ -13,10 +14,11 @@ class DigitalTabletMenuProductService
     public function all(): Collection
     {
         return $this->applyTypeIds(
-            $this->baseQuery()
-            ->orderBy('product_category_id')
-            ->orderBy('name')
-            ->get()
+            $this->orderByCategorySort(
+                $this->baseQuery()
+            )
+                ->orderBy('name')
+                ->get()
         );
     }
 
@@ -56,9 +58,10 @@ class DigitalTabletMenuProductService
     public function productsByCuisine(Cuisine $cuisine): Collection
     {
         return $this->applyTypeIds(
-            $this->baseQuery()
+            $this->orderByCategorySort(
+                $this->baseQuery()
                 ->where('cuisine_id', $cuisine->id)
-                ->orderBy('product_category_id')
+            )
                 ->orderBy('name')
                 ->get()
         );
@@ -95,9 +98,10 @@ class DigitalTabletMenuProductService
     public function productsByType(ProductType $type): Collection
     {
         return $this->applyTypeIds(
-            $this->baseQuery()
+            $this->orderByCategorySort(
+                $this->baseQuery()
                 ->whereRaw('LOWER(TRIM(type)) = ?', [strtolower(trim($type->name))])
-                ->orderBy('product_category_id')
+            )
                 ->orderBy('name')
                 ->get()
         );
@@ -108,6 +112,23 @@ class DigitalTabletMenuProductService
         return Product::query()
             ->with(['category', 'cuisine', 'images', 'sizes'])
             ->where('is_active', true);
+    }
+
+    protected function orderByCategorySort(Builder $query): Builder
+    {
+        return $query
+            ->orderBy(
+                ProductCategory::query()
+                    ->select('sort_order')
+                    ->whereColumn('product_categories.id', 'products.product_category_id')
+                    ->limit(1)
+            )
+            ->orderBy(
+                ProductCategory::query()
+                    ->select('name')
+                    ->whereColumn('product_categories.id', 'products.product_category_id')
+                    ->limit(1)
+            );
     }
 
     protected function typeIdByName(): Collection
