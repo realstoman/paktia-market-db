@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\CuisineResource;
 use App\Http\Requests\Api\V1\ProductIndexRequest;
 use App\Http\Resources\Api\V1\ProductCategoryResource;
 use App\Http\Resources\Api\V1\ProductResource;
@@ -10,6 +11,7 @@ use App\Http\Resources\Api\V1\TopOrderedDishResource;
 use App\Http\Resources\Api\V1\ProductTypeResource;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Cuisine;
 use App\Models\ProductType;
 use App\Services\Product\ProductApiService;
 use App\Services\Product\TopOrderedDishService;
@@ -47,6 +49,21 @@ class ProductController extends Controller
     public function productsByCategory(ProductCategory $category, ProductApiService $service): AnonymousResourceCollection
     {
         return ProductResource::collection($service->productsByCategory($category));
+    }
+
+    public function cuisines(ProductApiService $service): AnonymousResourceCollection
+    {
+        return CuisineResource::collection($service->cuisines());
+    }
+
+    public function showCuisine(Cuisine $cuisine, ProductApiService $service): CuisineResource
+    {
+        return CuisineResource::make($service->cuisine($cuisine));
+    }
+
+    public function productsByCuisine(Cuisine $cuisine, ProductApiService $service): AnonymousResourceCollection
+    {
+        return ProductResource::collection($service->productsByCuisine($cuisine));
     }
 
     public function types(ProductApiService $service): AnonymousResourceCollection
