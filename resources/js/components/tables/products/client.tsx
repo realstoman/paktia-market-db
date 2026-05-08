@@ -38,6 +38,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
+    Cuisine,
     Kitchen,
     Product,
     ProductCategory,
@@ -71,6 +72,7 @@ interface SelectedImage {
 interface ProductsClientProps {
     data: Product[];
     categories: ProductCategory[];
+    cuisines: Cuisine[];
     types: ProductType[];
     kitchens: Kitchen[];
     sizes: ProductSize[];
@@ -85,6 +87,7 @@ const TYPE_IMAGE_DIMENSION_HINT = 'Recommended: 400x167';
 export const ProductsClient: React.FC<ProductsClientProps> = ({
     data,
     categories,
+    cuisines,
     types,
     kitchens,
     sizes,
@@ -103,6 +106,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [pashtoName, setPashtoName] = useState('');
     const [dariName, setDariName] = useState('');
     const [categoryId, setCategoryId] = useState('');
+    const [cuisineId, setCuisineId] = useState('none');
     const [kitchenId, setKitchenId] = useState('none');
     const [type, setType] = useState(types[0]?.name ?? 'food');
     const [basePrice, setBasePrice] = useState('');
@@ -174,6 +178,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         setPashtoName('');
         setDariName('');
         setCategoryId('');
+        setCuisineId('none');
         setKitchenId('none');
         setType(types[0]?.name ?? 'food');
         setBasePrice('');
@@ -247,6 +252,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 pashto_name: pashtoName.trim() || null,
                 dari_name: dariName.trim() || null,
                 product_category_id: Number(categoryId),
+                cuisine_id: cuisineId !== 'none' ? Number(cuisineId) : null,
                 kitchen_id: kitchenId !== 'none' ? Number(kitchenId) : null,
                 type,
                 base_price: Number(basePrice),
@@ -880,6 +886,39 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 <InputError
                                     message={createErrors.product_category_id}
                                 />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('products.fields.cuisine', 'Cuisine')}</Label>
+                                <Select
+                                    value={cuisineId}
+                                    onValueChange={setCuisineId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue
+                                            placeholder={t(
+                                                'products.fields.selectCuisine',
+                                                'Select cuisine',
+                                            )}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            {t(
+                                                'products.fields.noCuisine',
+                                                'No cuisine',
+                                            )}
+                                        </SelectItem>
+                                        {cuisines.map((cuisine) => (
+                                            <SelectItem
+                                                key={cuisine.id}
+                                                value={String(cuisine.id)}
+                                            >
+                                                {cuisine.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createErrors.cuisine_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>{t('products.fields.kitchen', 'Kitchen')}</Label>
