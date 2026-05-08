@@ -122,16 +122,27 @@ class DigitalTabletMenuProductService
     protected function applyTypeIds(Collection $products): Collection
     {
         $typeIdByName = $this->typeIdByName();
+        $typesByName = $this->typeByName();
 
-        return $products->map(function (Product $product) use ($typeIdByName) {
+        return $products->map(function (Product $product) use ($typeIdByName, $typesByName) {
             $normalizedType = strtolower(trim((string) $product->type));
+            $type = $typesByName->get($normalizedType);
 
             $product->setAttribute(
                 'product_type_id',
                 $typeIdByName[$normalizedType] ?? null,
             );
+            $product->setAttribute('product_type_pashto_name', $type?->pashto_name);
+            $product->setAttribute('product_type_dari_name', $type?->dari_name);
 
             return $product;
         });
+    }
+
+    protected function typeByName(): Collection
+    {
+        return ProductType::query()
+            ->get(['id', 'name', 'pashto_name', 'dari_name'])
+            ->keyBy(fn (ProductType $type) => strtolower(trim($type->name)));
     }
 }

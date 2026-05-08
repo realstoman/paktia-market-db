@@ -9,6 +9,7 @@ use App\Models\ProductType;
 use App\Services\Caching\CatalogCacheService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -30,16 +31,24 @@ class ProductApiService
 
         $this->applyFilters($query, $filters);
 
-        return $query
+        $products = $query
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage)
             ->withQueryString();
+
+        $this->applyTypeLocalization($products->getCollection());
+
+        return $products;
     }
 
     public function getById(Product $product): Product
     {
-        return $product->load(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+        $product = $product->load(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->loadCount('images');
+
+        $this->applyTypeLocalization(new EloquentCollection([$product]));
+
+        return $product;
     }
 
     public function categories(): Collection
@@ -60,13 +69,17 @@ class ProductApiService
 
     public function productsByCategory(ProductCategory $category): LengthAwarePaginator
     {
-        return Product::query()
+        $products = Product::query()
             ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('product_category_id', $category->id)
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
+
+        $this->applyTypeLocalization($products->getCollection());
+
+        return $products;
     }
 
     public function cuisines(): Collection
@@ -84,13 +97,17 @@ class ProductApiService
 
     public function productsByCuisine(Cuisine $cuisine): LengthAwarePaginator
     {
-        return Product::query()
+        $products = Product::query()
             ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('cuisine_id', $cuisine->id)
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
+
+        $this->applyTypeLocalization($products->getCollection());
+
+        return $products;
     }
 
     public function types(): Collection
@@ -126,13 +143,17 @@ class ProductApiService
 
     public function productsByType(ProductType $type): LengthAwarePaginator
     {
-        return Product::query()
+        $products = Product::query()
             ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('type', $type->name)
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
+
+        $this->applyTypeLocalization($products->getCollection());
+
+        return $products;
     }
 
     private function applyFilters(Builder $query, array $filters): void
@@ -169,5 +190,19 @@ class ProductApiService
                     });
                 }
             );
+    }
+
+    private function applyTypeLocalization(EloquentCollection $products): void
+    {
+        $typesByName = ProductType::query()
+            ->get(['name', 'pashto_name', 'dari_name'])
+            ->keyBy(fn (ProductType $type) => strtolower(trim($type->name)));
+
+        $products->each(function (Product $product) use ($typesByName): void {
+            $type = $typesByName->get(strtolower(trim((string) $product->type)));
+
+            $product->setAttribute('type_pashto_name', $type?->pashto_name);
+            $product->setAttribute('type_dari_name', $type?->dari_name);
+        });
     }
 }

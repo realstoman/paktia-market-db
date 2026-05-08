@@ -56,7 +56,11 @@ test('api v1 products index returns products with images', function () {
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Main Dishes']);
     $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
-    ProductType::create(['name' => 'food']);
+    ProductType::create([
+        'name' => 'food',
+        'pashto_name' => 'خواړه',
+        'dari_name' => 'غذا',
+    ]);
     $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
     $large = ProductSize::create(['name' => 'Large', 'code' => 'L']);
 
@@ -84,6 +88,8 @@ test('api v1 products index returns products with images', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $product->id)
         ->assertJsonPath('data.0.cuisine_name', 'Afghan')
+        ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.type_dari_name', 'غذا')
         ->assertJsonPath('data.0.images_count', 2)
         ->assertJsonPath('data.0.sizes.0.name', 'Small')
         ->assertJsonPath('data.0.sizes.0.price', 400)
@@ -102,6 +108,11 @@ test('api v1 products show returns a single product', function () {
     ]);
     $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
     $medium = ProductSize::create(['name' => 'Medium', 'code' => 'M']);
+    ProductType::create([
+        'name' => 'beverage',
+        'pashto_name' => 'څښاک',
+        'dari_name' => 'نوشیدنی',
+    ]);
 
     $product = Product::create([
         'product_category_id' => $category->id,
@@ -130,6 +141,8 @@ test('api v1 products show returns a single product', function () {
         ->assertJsonPath('data.category_name', 'Drinks')
         ->assertJsonPath('data.category_dari_name', 'نوشیدنی‌ها')
         ->assertJsonPath('data.category_pashto_name', 'څښاکونه')
+        ->assertJsonPath('data.type_pashto_name', 'څښاک')
+        ->assertJsonPath('data.type_dari_name', 'نوشیدنی')
         ->assertJsonPath('data.sizes.0.name', 'Medium')
         ->assertJsonPath('data.sizes.0.code', 'M')
         ->assertJsonPath('data.sizes.0.price', 120)
@@ -314,7 +327,11 @@ test('api v1 type products endpoint returns products for the selected type', fun
         'dari_name' => 'ترکیبی',
         'pashto_name' => 'ګډ',
     ]);
-    $foodType = ProductType::create(['name' => 'food']);
+    $foodType = ProductType::create([
+        'name' => 'food',
+        'pashto_name' => 'خواړه',
+        'dari_name' => 'غذا',
+    ]);
     ProductType::create(['name' => 'beverage']);
     $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
     $family = ProductSize::create(['name' => 'Family', 'code' => 'F']);
@@ -351,6 +368,8 @@ test('api v1 type products endpoint returns products for the selected type', fun
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodProduct->id)
         ->assertJsonPath('data.0.type', 'food')
+        ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.type_dari_name', 'غذا')
         ->assertJsonPath('data.0.sizes.0.name', 'Small')
         ->assertJsonPath('data.0.sizes.0.price', 300)
         ->assertJsonPath('data.0.sizes.1.name', 'Family')

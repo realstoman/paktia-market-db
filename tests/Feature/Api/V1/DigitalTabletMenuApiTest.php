@@ -106,6 +106,8 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.cuisine_name', 'Afghan')
         ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
+        ->assertJsonPath('data.0.product_type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.product_type_dari_name', 'غذا')
         ->assertJsonPath('data.0.price', 450)
         ->assertJsonPath('data.0.size_prices.0.name', 'Small')
         ->assertJsonPath('data.0.size_prices.0.price', 400)
@@ -307,7 +309,11 @@ test('digital tablet menu types endpoint is public and only returns types used b
 test('digital tablet menu products by type endpoint is public', function () {
     [, $kitchen] = createDigitalTabletMenuBaseData();
 
-    $foodType = ProductType::create(['name' => 'food']);
+    $foodType = ProductType::create([
+        'name' => 'food',
+        'pashto_name' => 'خواړه',
+        'dari_name' => 'غذا',
+    ]);
     ProductType::create(['name' => 'drink']);
 
     $category = ProductCategory::create(['name' => 'Meals']);
@@ -335,5 +341,7 @@ test('digital tablet menu products by type endpoint is public', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodProduct->id)
         ->assertJsonPath('data.0.name', 'Ashak')
-        ->assertJsonPath('data.0.product_type_id', $foodType->id);
+        ->assertJsonPath('data.0.product_type_id', $foodType->id)
+        ->assertJsonPath('data.0.product_type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.product_type_dari_name', 'غذا');
 });
