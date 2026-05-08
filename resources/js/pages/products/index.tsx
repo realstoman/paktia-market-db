@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
     BreadcrumbItem,
+    Cuisine,
     Kitchen,
     Product,
     ProductCategory,
@@ -20,6 +21,7 @@ import { useMemo } from 'react';
 interface ProductsPageProps {
     products: Product[];
     categories: ProductCategory[];
+    cuisines: Cuisine[];
     types: ProductType[];
     kitchens: Kitchen[];
     sizes: ProductSize[];
@@ -38,6 +40,7 @@ const normalizeKitchenTranslationKey = (name?: string | null) =>
 export default function ProductsPage({
     products,
     categories,
+    cuisines,
     types,
     kitchens,
     sizes,
@@ -167,6 +170,7 @@ export default function ProductsPage({
                     <ProductsClient
                         data={products}
                         categories={categories}
+                        cuisines={cuisines}
                         types={types}
                         kitchens={kitchens}
                         sizes={sizes}
