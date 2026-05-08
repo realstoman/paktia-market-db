@@ -33,7 +33,7 @@ class ProductController extends Controller
 
         return Inertia::render('products/index', [
             'products' => $products,
-            'categories' => ProductCategory::orderBy('name')->get(),
+            'categories' => ProductCategory::orderBy('sort_order')->orderBy('name')->get(),
             'cuisines' => Cuisine::orderBy('name')->get(),
             'types' => ProductType::orderBy('name')->get(),
             'kitchens' => Kitchen::orderBy('name')->get(),
@@ -235,6 +235,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name',
+            'sort_order' => 'nullable|integer|min:0',
             'pashto_name' => 'nullable|string|max:255',
             'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -247,6 +248,7 @@ class ProductController extends Controller
 
         ProductCategory::create([
             'name' => $validated['name'],
+            'sort_order' => $validated['sort_order'] ?? 0,
             'pashto_name' => $validated['pashto_name'] ?? null,
             'dari_name' => $validated['dari_name'] ?? null,
             'description' => $validated['description'] ?? null,
@@ -263,6 +265,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:product_categories,name,'.$category->id,
+            'sort_order' => 'nullable|integer|min:0',
             'pashto_name' => 'nullable|string|max:255',
             'dari_name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -273,6 +276,7 @@ class ProductController extends Controller
 
         $payload = [
             'name' => $validated['name'],
+            'sort_order' => $validated['sort_order'] ?? 0,
             'pashto_name' => $validated['pashto_name'] ?? null,
             'dari_name' => $validated['dari_name'] ?? null,
             'description' => $validated['description'] ?? null,
