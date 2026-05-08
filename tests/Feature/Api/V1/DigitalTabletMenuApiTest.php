@@ -301,6 +301,9 @@ test('digital tablet menu types endpoint is public and only returns types used b
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodType->id)
+        ->assertJsonPath('data.0.type', 'food')
+        ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.type_dari_name', 'غذا')
         ->assertJsonPath('data.0.name', 'food')
         ->assertJsonPath('data.0.products_count', 1)
         ->assertJsonPath('data.0.image_url', '/storage/types/food.jpg');
