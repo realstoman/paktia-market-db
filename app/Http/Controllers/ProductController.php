@@ -7,6 +7,7 @@ use App\Models\ProductCategory;
 use App\Models\ProductImage;
 use App\Models\ProductSize;
 use App\Models\ProductType;
+use App\Models\Cuisine;
 use App\Models\Kitchen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(['category', 'kitchen', 'sizes', 'images'])
+        $products = Product::with(['category', 'cuisine', 'kitchen', 'sizes', 'images'])
             ->orderBy('name')
             ->get()
             ->each(function (Product $product) {
@@ -33,6 +34,7 @@ class ProductController extends Controller
         return Inertia::render('products/index', [
             'products' => $products,
             'categories' => ProductCategory::orderBy('name')->get(),
+            'cuisines' => Cuisine::orderBy('name')->get(),
             'types' => ProductType::orderBy('name')->get(),
             'kitchens' => Kitchen::orderBy('name')->get(),
             'sizes' => ProductSize::orderBy('id')->get(),
@@ -49,6 +51,7 @@ class ProductController extends Controller
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
+            'cuisine_id' => 'nullable|exists:cuisines,id',
             'kitchen_id' => 'nullable|exists:kitchens,id',
             'type' => 'required|string|max:50',
             'base_price' => 'required|integer|min:0',
@@ -69,6 +72,7 @@ class ProductController extends Controller
                 'pashto_description' => $validated['pashto_description'] ?? null,
                 'dari_description' => $validated['dari_description'] ?? null,
                 'product_category_id' => $validated['product_category_id'],
+                'cuisine_id' => $validated['cuisine_id'] ?? null,
                 'kitchen_id' => $validated['kitchen_id'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
                 'base_price' => $validated['base_price'],
@@ -109,6 +113,7 @@ class ProductController extends Controller
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
+            'cuisine_id' => 'nullable|exists:cuisines,id',
             'kitchen_id' => 'nullable|exists:kitchens,id',
             'type' => 'required|string|max:50',
             'base_price' => 'required|integer|min:0',
@@ -157,6 +162,7 @@ class ProductController extends Controller
                 'pashto_description' => $validated['pashto_description'] ?? null,
                 'dari_description' => $validated['dari_description'] ?? null,
                 'product_category_id' => $validated['product_category_id'],
+                'cuisine_id' => $validated['cuisine_id'] ?? null,
                 'kitchen_id' => $validated['kitchen_id'] ?? null,
                 'type' => strtolower(trim($validated['type'])),
                 'base_price' => $validated['base_price'],

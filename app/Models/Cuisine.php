@@ -23,4 +23,9 @@ class Cuisine extends Model
     {
         return $this->belongsToMany(Kitchen::class)->withTimestamps();
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
