@@ -2,6 +2,7 @@
 
 namespace App\Services\Product;
 
+use App\Models\Cuisine;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductType;
@@ -24,7 +25,7 @@ class ProductApiService
         $sortDirection = $filters['sort_direction'] ?? 'asc';
 
         $query = Product::query()
-            ->with(['category', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images');
 
         $this->applyFilters($query, $filters);
@@ -37,7 +38,7 @@ class ProductApiService
 
     public function getById(Product $product): Product
     {
-        return $product->load(['category', 'kitchen', 'images', 'sizes'])
+        return $product->load(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->loadCount('images');
     }
 
@@ -59,9 +60,33 @@ class ProductApiService
     public function productsByCategory(ProductCategory $category): LengthAwarePaginator
     {
         return Product::query()
-            ->with(['category', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('product_category_id', $category->id)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+    }
+
+    public function cuisines(): Collection
+    {
+        return Cuisine::query()
+            ->withCount('products')
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function cuisine(Cuisine $cuisine): Cuisine
+    {
+        return $cuisine->loadCount('products');
+    }
+
+    public function productsByCuisine(Cuisine $cuisine): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+            ->withCount('images')
+            ->where('cuisine_id', $cuisine->id)
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -101,7 +126,7 @@ class ProductApiService
     public function productsByType(ProductType $type): LengthAwarePaginator
     {
         return Product::query()
-            ->with(['category', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('type', $type->name)
             ->orderBy('name')
@@ -115,6 +140,10 @@ class ProductApiService
             ->when(
                 $filters['category_id'] ?? null,
                 fn (Builder $q, int $categoryId) => $q->where('product_category_id', $categoryId)
+            )
+            ->when(
+                $filters['cuisine_id'] ?? null,
+                fn (Builder $q, int $cuisineId) => $q->where('cuisine_id', $cuisineId)
             )
             ->when(
                 $filters['type'] ?? null,
