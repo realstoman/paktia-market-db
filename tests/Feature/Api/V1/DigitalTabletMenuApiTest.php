@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Branch;
+use App\Models\Cuisine;
 use App\Models\Country;
 use App\Models\Kitchen;
 use App\Models\Product;
@@ -48,6 +49,7 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         'dari_name' => 'غذاهای اصلی',
         'pashto_name' => 'اصلي خواړه',
     ]);
+    $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
 
     $type = ProductType::create([
         'name' => 'food',
@@ -60,6 +62,7 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
 
     $product = Product::create([
         'product_category_id' => $category->id,
+        'cuisine_id' => $cuisine->id,
         'kitchen_id' => $kitchen->id,
         'name' => 'Qabuli Palaw',
         'pashto_name' => 'قابلي پلو',
@@ -99,6 +102,8 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.product_category_name', 'Main Dishes')
         ->assertJsonPath('data.0.product_category_dari_name', 'غذاهای اصلی')
         ->assertJsonPath('data.0.product_category_pashto_name', 'اصلي خواړه')
+        ->assertJsonPath('data.0.cuisine_id', $cuisine->id)
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan')
         ->assertJsonPath('data.0.product_type', 'food')
         ->assertJsonPath('data.0.product_type_id', $type->id)
         ->assertJsonPath('data.0.price', 450)
@@ -180,6 +185,46 @@ test('digital tablet menu products by category endpoint is public', function () 
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $kabab->id)
         ->assertJsonPath('data.0.name', 'Kabab');
+});
+
+test('digital tablet menu cuisines and products by cuisine endpoints are public', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $category = ProductCategory::create(['name' => 'Kababs']);
+    $afghanCuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
+    $turkishCuisine = Cuisine::firstOrCreate(['name' => 'Turkish']);
+
+    $chapliKabab = Product::create([
+        'product_category_id' => $category->id,
+        'cuisine_id' => $afghanCuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Chapli Kabab',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $category->id,
+        'cuisine_id' => $turkishCuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Turkish Kabab',
+        'type' => 'food',
+        'base_price' => 300,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/digital-tablet-menu/cuisines')
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Afghan');
+
+    $this->getJson("/api/v1/digital-tablet-menu/cuisines/{$afghanCuisine->id}/products")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $chapliKabab->id)
+        ->assertJsonPath('data.0.name', 'Chapli Kabab')
+        ->assertJsonPath('data.0.product_category_name', 'Kababs')
+        ->assertJsonPath('data.0.cuisine_name', 'Afghan');
 });
 
 test('digital tablet menu types endpoint is public and only returns types used by active products', function () {

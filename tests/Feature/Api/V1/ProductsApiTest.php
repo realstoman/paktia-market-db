@@ -63,7 +63,7 @@ test('api v1 products index returns products with images', function () {
 
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Main Dishes']);
-    $cuisine = Cuisine::create(['name' => 'Afghan']);
+    $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
     ProductType::create(['name' => 'food']);
     $small = ProductSize::create(['name' => 'Small', 'code' => 'S']);
     $large = ProductSize::create(['name' => 'Large', 'code' => 'L']);
@@ -116,7 +116,7 @@ test('api v1 products show returns a single product', function () {
         'dari_name' => 'نوشیدنی‌ها',
         'pashto_name' => 'څښاکونه',
     ]);
-    $cuisine = Cuisine::create(['name' => 'Afghan']);
+    $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
     $medium = ProductSize::create(['name' => 'Medium', 'code' => 'M']);
 
     $product = Product::create([
@@ -198,11 +198,13 @@ test('api v1 product cuisines index, show, and products endpoint work', function
 
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Kababs']);
-    $cuisine = Cuisine::create([
+    $cuisine = Cuisine::firstOrCreate([
+        'name' => 'Afghan',
+    ], [
         'name' => 'Afghan',
         'description' => 'Afghan cuisine.',
     ]);
-    $otherCuisine = Cuisine::create(['name' => 'Turkish']);
+    $otherCuisine = Cuisine::firstOrCreate(['name' => 'Turkish']);
 
     $product = Product::create([
         'product_category_id' => $category->id,
