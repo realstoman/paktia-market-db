@@ -120,6 +120,7 @@ test('digital tablet menu categories endpoint is public and only returns categor
 
     $activeCategory = ProductCategory::create([
         'name' => 'Afghan Food',
+        'sort_order' => 2,
         'dari_name' => 'غذا افغانی',
         'pashto_name' => 'افغاني خواړه',
         'image_path' => 'categories/afghan-food.jpg',
@@ -154,6 +155,50 @@ test('digital tablet menu categories endpoint is public and only returns categor
         ->assertJsonPath('data.0.name', 'Afghan Food')
         ->assertJsonPath('data.0.products_count', 1)
         ->assertJsonPath('data.0.image_url', '/storage/categories/afghan-food.jpg');
+});
+
+test('digital tablet menu categories endpoint respects category sort order', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $pizza = ProductCategory::create(['name' => 'Pizza', 'sort_order' => 1]);
+    $kababs = ProductCategory::create(['name' => 'Kababs', 'sort_order' => 2]);
+    $afghan = ProductCategory::create([
+        'name' => 'Afghan Cuisine',
+        'sort_order' => 3,
+    ]);
+
+    Product::create([
+        'product_category_id' => $afghan->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Mantu',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $pizza->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Pepperoni Pizza',
+        'type' => 'food',
+        'base_price' => 600,
+        'is_active' => true,
+    ]);
+
+    Product::create([
+        'product_category_id' => $kababs->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Chapli Kabab',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    $this->getJson('/api/v1/digital-tablet-menu/categories')
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Pizza')
+        ->assertJsonPath('data.1.name', 'Kababs')
+        ->assertJsonPath('data.2.name', 'Afghan Cuisine');
 });
 
 test('digital tablet menu products by category endpoint is public', function () {
