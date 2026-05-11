@@ -130,7 +130,7 @@ export default function AuthLayout({
                         {/* Main Hero Image Card */}
                         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                             <img
-                                src="https://images.pexels.com/photos/1566837/pexels-photo-1566837.jpeg?auto=compress&cs=tinysrgb&w=800"
+                                src="/brand/baba-outdoor.jpeg"
                                 alt={t(
                                     'auth.promo.imageAlt',
                                     'Restaurant dish',
