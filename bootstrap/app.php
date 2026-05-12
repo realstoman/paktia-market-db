@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateFirebaseUser;
+use App\Http\Middleware\AuthenticateCustomerSession;
 use App\Http\Middleware\EnsureAppAuthenticated;
 use App\Http\Middleware\EnsureBranchSyncAuthenticated;
 use App\Http\Middleware\EnsureCartActor;
@@ -32,10 +33,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
+        $middleware->encryptCookies(except: [
+            'appearance',
+            'sidebar_state',
+            'locale',
+            env('CUSTOMER_SESSION_COOKIE', 'baba_customer_session'),
+        ]);
 
         $middleware->alias([
             'app.auth' => EnsureAppAuthenticated::class,
+            'customer.auth' => AuthenticateCustomerSession::class,
             'branch.sync' => EnsureBranchSyncAuthenticated::class,
             'resolve.guest' => ResolveGuestSession::class,
             'resolve.firebase' => ResolveFirebaseUser::class,

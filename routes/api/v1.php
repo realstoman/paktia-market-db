@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\BannerController;
+use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\DigitalTabletMenuController;
 use App\Http\Controllers\Api\V1\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\V1\Mobile\CartController as MobileCartController;
@@ -43,6 +44,35 @@ Route::get('products/top-ordered-dishes', [ProductController::class, 'topOrdered
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
 
+Route::post('customer/auth/firebase/login', [CustomerAuthController::class, 'login'])
+    ->middleware('throttle:customer-auth')
+    ->name('customer-auth.login');
+Route::post('customer/auth/logout', [CustomerAuthController::class, 'logout'])
+    ->middleware(['customer.auth', 'throttle:customer-api'])
+    ->name('customer-auth.logout');
+Route::middleware(['customer.auth', 'throttle:customer-api'])->group(function (): void {
+    Route::get('me', [MobileMeController::class, 'show'])->name('customer.me.show');
+    Route::patch('me', [MobileMeController::class, 'update'])->name('customer.me.update');
+    Route::get('me/orders', [MobileMeController::class, 'orders'])->name('customer.me.orders.index');
+    Route::get('me/orders/{order}', [MobileMeController::class, 'showOrder'])->name('customer.me.orders.show');
+    Route::get('me/orders/{order}/status', [MobileMeController::class, 'orderStatus'])->name('customer.me.orders.status');
+    Route::middleware(['cart.actor'])->group(function (): void {
+        Route::get('me/cart', [MobileCartController::class, 'show'])->name('customer.cart.show');
+        Route::post('me/cart/items', [MobileCartController::class, 'storeItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.store');
+        Route::patch('me/cart/items/{cartItem}', [MobileCartController::class, 'updateItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.update');
+        Route::delete('me/cart/items/{cartItem}', [MobileCartController::class, 'destroyItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.destroy');
+    });
+    Route::post('checkout', [MobileCheckoutController::class, 'store'])
+        ->middleware(['throttle:mobile-cart', 'idempotency'])
+        ->name('customer.checkout.store');
+});
+
 Route::middleware('app.auth')->group(function (): void {
     Route::post('guest/session', [MobileGuestSessionController::class, 'store'])
         ->middleware(['throttle:mobile-auth', 'idempotency']);
@@ -59,14 +89,6 @@ Route::middleware('app.auth')->group(function (): void {
             ->middleware(['throttle:mobile-cart', 'idempotency']);
     });
 
-    Route::middleware(['firebase.auth', 'client.auth'])->group(function (): void {
-        Route::get('me', [MobileMeController::class, 'show']);
-        Route::get('me/orders', [MobileMeController::class, 'orders']);
-        Route::get('me/orders/{order}', [MobileMeController::class, 'showOrder']);
-        Route::get('me/orders/{order}/status', [MobileMeController::class, 'orderStatus']);
-        Route::post('checkout', [MobileCheckoutController::class, 'store'])
-            ->middleware(['throttle:mobile-cart', 'idempotency']);
-    });
 });
 
 Route::prefix('mobile')
