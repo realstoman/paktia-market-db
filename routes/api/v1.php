@@ -45,15 +45,15 @@ Route::get('products/top-ordered-dishes', [ProductController::class, 'topOrdered
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
 
-Route::post('auth/firebase/login', [CustomerAuthController::class, 'login'])
+Route::post('customer/auth/firebase/login', [CustomerAuthController::class, 'login'])
     ->middleware('throttle:customer-auth')
     ->name('customer-auth.login');
-Route::post('auth/logout', [CustomerAuthController::class, 'logout'])
+Route::post('customer/auth/logout', [CustomerAuthController::class, 'logout'])
     ->middleware(['customer.auth', 'throttle:customer-api'])
     ->name('customer-auth.logout');
 Route::middleware(['customer.auth', 'throttle:customer-api'])->group(function (): void {
-    Route::get('me', [CustomerMeController::class, 'show'])->name('customer.me.show');
-    Route::get('me/orders', [CustomerMeController::class, 'orders'])->name('customer.me.orders.index');
+    Route::get('customer/me', [CustomerMeController::class, 'show'])->name('customer.me.show');
+    Route::get('customer/me/orders', [CustomerMeController::class, 'orders'])->name('customer.me.orders.index');
 });
 
 Route::middleware('app.auth')->group(function (): void {
