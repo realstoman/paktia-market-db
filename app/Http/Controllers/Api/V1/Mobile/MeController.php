@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\OrderResource;
+use App\Models\Client;
 use App\Models\Order;
 use App\Services\Mobile\MobileOrderService;
 use Illuminate\Http\JsonResponse;
@@ -14,17 +15,13 @@ class MeController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
+        /** @var Client $client */
         $client = $request->attributes->get('client');
+        $payload = $this->transformClient($client);
 
         return response()->json([
-            'data' => [
-                'id' => $client->id,
-                'firebase_uid' => $client->firebase_uid,
-                'name' => $client->name,
-                'email' => $client->email,
-                'phone' => $client->phone,
-                'avatar_url' => $client->avatar_url,
-            ],
+            'data' => $payload,
+            'customer' => $payload,
         ]);
     }
 
@@ -62,5 +59,54 @@ class MeController extends Controller
                 'cancelled_at' => $order->cancelled_at?->toIso8601String(),
             ],
         ]);
+    }
+
+    public function update(Request $request): JsonResponse
+    {
+        /** @var Client $client */
+        $client = $request->attributes->get('client');
+
+        $payload = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'avatar_url' => ['nullable', 'url', 'max:2048'],
+        ]);
+
+        $client->fill($payload);
+        $client->save();
+
+        $data = $this->transformClient($client->fresh());
+
+        return response()->json([
+            'data' => $data,
+            'customer' => $data,
+        ]);
+    }
+
+    private function transformClient(Client $client): array
+    {
+        return [
+            'id' => $client->id,
+            'firebase_uid' => $client->firebase_uid,
+            'name' => $client->name,
+            'email' => $client->email,
+            'phone' => $client->phone,
+            'avatar_url' => $client->avatar_url,
+            'avatar' => $client->avatar_url,
+            'favorites_count' => 0,
+            'orders_count' => $client->orders()->count(),
+            'recent_orders' => $client->orders()
+                ->latest('id')
+                ->limit(5)
+                ->get()
+                ->map(fn (Order $order) => [
+                    'id' => $order->id,
+                    'code' => $order->sync_uuid,
+                    'status' => $order->status?->value ?? $order->status,
+                    'total' => (float) $order->total_amount,
+                    'created_at' => $order->created_at?->toIso8601String(),
+                ])
+                ->all(),
+        ];
     }
 }

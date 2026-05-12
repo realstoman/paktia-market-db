@@ -52,8 +52,14 @@ Route::post('customer/auth/logout', [CustomerAuthController::class, 'logout'])
     ->middleware(['customer.auth', 'throttle:customer-api'])
     ->name('customer-auth.logout');
 Route::middleware(['customer.auth', 'throttle:customer-api'])->group(function (): void {
-    Route::get('customer/me', [CustomerMeController::class, 'show'])->name('customer.me.show');
-    Route::get('customer/me/orders', [CustomerMeController::class, 'orders'])->name('customer.me.orders.index');
+    Route::get('me', [MobileMeController::class, 'show'])->name('customer.me.show');
+    Route::patch('me', [MobileMeController::class, 'update'])->name('customer.me.update');
+    Route::get('me/orders', [MobileMeController::class, 'orders'])->name('customer.me.orders.index');
+    Route::get('me/orders/{order}', [MobileMeController::class, 'showOrder'])->name('customer.me.orders.show');
+    Route::get('me/orders/{order}/status', [MobileMeController::class, 'orderStatus'])->name('customer.me.orders.status');
+    Route::post('checkout', [MobileCheckoutController::class, 'store'])
+        ->middleware(['throttle:mobile-cart', 'idempotency'])
+        ->name('customer.checkout.store');
 });
 
 Route::middleware('app.auth')->group(function (): void {
@@ -72,14 +78,6 @@ Route::middleware('app.auth')->group(function (): void {
             ->middleware(['throttle:mobile-cart', 'idempotency']);
     });
 
-    Route::middleware(['firebase.auth', 'client.auth'])->group(function (): void {
-        Route::get('me', [MobileMeController::class, 'show']);
-        Route::get('me/orders', [MobileMeController::class, 'orders']);
-        Route::get('me/orders/{order}', [MobileMeController::class, 'showOrder']);
-        Route::get('me/orders/{order}/status', [MobileMeController::class, 'orderStatus']);
-        Route::post('checkout', [MobileCheckoutController::class, 'store'])
-            ->middleware(['throttle:mobile-cart', 'idempotency']);
-    });
 });
 
 Route::prefix('mobile')
