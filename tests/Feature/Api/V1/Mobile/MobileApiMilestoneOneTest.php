@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
 use App\Models\Province;
+use App\Services\Web\CustomerSessionCookieService;
 
 beforeEach(function () {
     config()->set('mobile.apps', [
@@ -399,4 +400,86 @@ test('authenticated client can view only their own order history', function () {
         ->assertJsonPath('data.id', $ownOrder->id)
         ->assertJsonPath('data.status', 'ready')
         ->assertJsonPath('data.source', 'mobile_app');
+});
+
+test('web customer firebase login stores the client and returns a customer cookie', function () {
+    $response = $this->postJson('/api/v1/customer/auth/firebase/login', [
+        'name' => 'Web Customer',
+        'email' => 'web@example.com',
+        'phone' => '+93700123456',
+        'provider' => 'google',
+        'avatar_url' => 'https://example.com/web-avatar.jpg',
+        'idToken' => 'stub:web-customer-001',
+    ])->assertOk()
+        ->assertJsonPath('customer.firebase_uid', 'web-customer-001')
+        ->assertJsonPath('customer.name', 'Web Customer')
+        ->assertJsonPath('customer.email', 'web@example.com')
+        ->assertJsonPath('customer.phone', '+93700123456');
+
+    expect(Client::where('firebase_uid', 'web-customer-001')->exists())->toBeTrue();
+    expect($response->headers->getCookies())->not->toBeEmpty();
+});
+
+test('web customer can access me update profile and checkout with the customer cookie', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $client = Client::create([
+        'firebase_uid' => 'web-checkout-user-001',
+        'name' => 'Web Checkout User',
+        'email' => 'web-checkout@example.com',
+        'phone' => '+93700999111',
+        'is_active' => true,
+    ]);
+
+    $cookie = app(CustomerSessionCookieService::class)->makeCookie($client);
+
+    $this->withCookie($cookie->getName(), $cookie->getValue())
+        ->getJson('/api/v1/me')
+        ->assertOk()
+        ->assertJsonPath('customer.firebase_uid', 'web-checkout-user-001')
+        ->assertJsonPath('customer.name', 'Web Checkout User')
+        ->assertJsonPath('customer.email', 'web-checkout@example.com');
+
+    $this->withCookie($cookie->getName(), $cookie->getValue())
+        ->patchJson('/api/v1/me', [
+            'name' => 'Updated Web User',
+            'phone' => '+93700111000',
+        ])->assertOk()
+        ->assertJsonPath('customer.name', 'Updated Web User')
+        ->assertJsonPath('customer.phone', '+93700111000');
+
+    $this->withCookie($cookie->getName(), $cookie->getValue())
+        ->postJson('/api/v1/cart/items', [
+            'product_id' => $product->id,
+            'product_size_id' => $small->id,
+            'quantity' => 2,
+            'note' => 'Website checkout',
+        ])->assertOk()
+        ->assertJsonPath('data.items.0.product_id', $product->id)
+        ->assertJsonPath('data.items.0.product_size_id', $small->id)
+        ->assertJsonPath('data.totals.total', 1300);
+
+    $checkoutResponse = $this->withCookie($cookie->getName(), $cookie->getValue())
+        ->postJson('/api/v1/checkout', [
+            'branch_id' => $branch->id,
+            'order_type' => 'takeaway',
+            'customer_note' => 'Website order note',
+        ])->assertCreated()
+        ->assertJsonPath('data.client_id', $client->id)
+        ->assertJsonPath('data.customer_name', 'Updated Web User')
+        ->assertJsonPath('data.customer_phone', '+93700111000')
+        ->assertJsonPath('data.customer_note', 'Website order note')
+        ->assertJsonPath('data.items_count', 1)
+        ->assertJsonPath('data.items.0.product_id', $product->id)
+        ->assertJsonPath('data.items.0.product_size_id', $small->id)
+        ->assertJsonPath('data.items.0.note', 'Website checkout');
+
+    $orderId = $checkoutResponse->json('data.id');
+
+    expect(Order::whereKey($orderId)->where('client_id', $client->id)->exists())->toBeTrue();
+
+    $this->withCookie($cookie->getName(), $cookie->getValue())
+        ->getJson('/api/v1/me/orders')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $orderId);
 });
