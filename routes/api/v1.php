@@ -56,6 +56,18 @@ Route::middleware(['customer.auth', 'throttle:customer-api'])->group(function ()
     Route::get('me/orders', [MobileMeController::class, 'orders'])->name('customer.me.orders.index');
     Route::get('me/orders/{order}', [MobileMeController::class, 'showOrder'])->name('customer.me.orders.show');
     Route::get('me/orders/{order}/status', [MobileMeController::class, 'orderStatus'])->name('customer.me.orders.status');
+    Route::middleware(['cart.actor'])->group(function (): void {
+        Route::get('cart', [MobileCartController::class, 'show'])->name('customer.cart.show');
+        Route::post('cart/items', [MobileCartController::class, 'storeItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.store');
+        Route::patch('cart/items/{cartItem}', [MobileCartController::class, 'updateItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.update');
+        Route::delete('cart/items/{cartItem}', [MobileCartController::class, 'destroyItem'])
+            ->middleware(['throttle:mobile-cart', 'idempotency'])
+            ->name('customer.cart.items.destroy');
+    });
     Route::post('checkout', [MobileCheckoutController::class, 'store'])
         ->middleware(['throttle:mobile-cart', 'idempotency'])
         ->name('customer.checkout.store');
