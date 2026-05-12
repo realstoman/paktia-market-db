@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\V1\BannerController;
 use App\Http\Controllers\Api\V1\CustomerAuthController;
-use App\Http\Controllers\Api\V1\CustomerMeController;
 use App\Http\Controllers\Api\V1\DigitalTabletMenuController;
 use App\Http\Controllers\Api\V1\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\V1\Mobile\CartController as MobileCartController;
