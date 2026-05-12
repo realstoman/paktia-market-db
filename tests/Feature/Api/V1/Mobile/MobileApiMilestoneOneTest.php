@@ -435,38 +435,74 @@ test('web customer can access me update profile and checkout with the customer c
         ->firstOrFail();
     $cookie = $loginResponse->headers->getCookies()[0];
 
-    $this->withCookie($cookie->getName(), $cookie->getValue())
-        ->getJson('/api/v1/me')
+    $jsonServer = [
+        'HTTP_ACCEPT' => 'application/json',
+        'CONTENT_TYPE' => 'application/json',
+    ];
+
+    $meResponse = $this->call(
+        'GET',
+        '/api/v1/me',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+    );
+
+    $meResponse
         ->assertOk()
         ->assertJsonPath('customer.firebase_uid', 'web-checkout-user-001')
         ->assertJsonPath('customer.name', 'Web Checkout User')
         ->assertJsonPath('customer.email', 'web-checkout@example.com');
 
-    $this->withCookie($cookie->getName(), $cookie->getValue())
-        ->patchJson('/api/v1/me', [
+    $this->call(
+        'PATCH',
+        '/api/v1/me',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+        json_encode([
             'name' => 'Updated Web User',
             'phone' => '+93700111000',
-        ])->assertOk()
+        ], JSON_THROW_ON_ERROR),
+    )->assertOk()
         ->assertJsonPath('customer.name', 'Updated Web User')
         ->assertJsonPath('customer.phone', '+93700111000');
 
-    $this->withCookie($cookie->getName(), $cookie->getValue())
-        ->postJson('/api/v1/cart/items', [
+    $cartResponse = $this->call(
+        'POST',
+        '/api/v1/me/cart/items',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+        json_encode([
             'product_id' => $product->id,
             'product_size_id' => $small->id,
             'quantity' => 2,
             'note' => 'Website checkout',
-        ])->assertOk()
+        ], JSON_THROW_ON_ERROR),
+    );
+
+    $cartResponse->assertOk()
         ->assertJsonPath('data.items.0.product_id', $product->id)
         ->assertJsonPath('data.items.0.product_size_id', $small->id)
         ->assertJsonPath('data.totals.total', 1300);
 
-    $checkoutResponse = $this->withCookie($cookie->getName(), $cookie->getValue())
-        ->postJson('/api/v1/checkout', [
+    $checkoutResponse = $this->call(
+        'POST',
+        '/api/v1/checkout',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+        json_encode([
             'branch_id' => $branch->id,
             'order_type' => 'takeaway',
             'customer_note' => 'Website order note',
-        ])->assertCreated()
+        ], JSON_THROW_ON_ERROR),
+    )->assertCreated()
         ->assertJsonPath('data.client_id', $client->id)
         ->assertJsonPath('data.customer_name', 'Updated Web User')
         ->assertJsonPath('data.customer_phone', '+93700111000')
@@ -480,8 +516,13 @@ test('web customer can access me update profile and checkout with the customer c
 
     expect(Order::whereKey($orderId)->where('client_id', $client->id)->exists())->toBeTrue();
 
-    $this->withCookie($cookie->getName(), $cookie->getValue())
-        ->getJson('/api/v1/me/orders')
-        ->assertOk()
+    $this->call(
+        'GET',
+        '/api/v1/me/orders',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+    )->assertOk()
         ->assertJsonPath('data.0.id', $orderId);
 });
