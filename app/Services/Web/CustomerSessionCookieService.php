@@ -16,11 +16,11 @@ class CustomerSessionCookieService
     public function makeCookie(Client $client): Cookie
     {
         $minutes = max(60, (int) config('customer_session.ttl_minutes', 60 * 24 * 30));
-        $payload = Crypt::encryptString(json_encode([
+        $payload = rawurlencode(Crypt::encryptString(json_encode([
             'client_id' => $client->id,
             'firebase_uid' => $client->firebase_uid,
             'issued_at' => now()->toIso8601String(),
-        ], JSON_THROW_ON_ERROR));
+        ], JSON_THROW_ON_ERROR)));
 
         return cookie(
             name: (string) config('customer_session.cookie_name', 'baba_customer_session'),
@@ -53,7 +53,11 @@ class CustomerSessionCookieService
         }
 
         try {
-            $payload = json_decode(Crypt::decryptString($rawCookie), true, flags: JSON_THROW_ON_ERROR);
+            $payload = json_decode(
+                Crypt::decryptString(rawurldecode($rawCookie)),
+                true,
+                flags: JSON_THROW_ON_ERROR,
+            );
         } catch (DecryptException|\JsonException) {
             return null;
         }
