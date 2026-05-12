@@ -423,15 +423,18 @@ test('web customer firebase login stores the client and returns a customer cooki
 test('web customer can access me update profile and checkout with the customer cookie', function () {
     [$branch, $product, $small] = createMobileProductFixture();
 
-    $client = Client::create([
-        'firebase_uid' => 'web-checkout-user-001',
+    $loginResponse = $this->postJson('/api/v1/customer/auth/firebase/login', [
         'name' => 'Web Checkout User',
         'email' => 'web-checkout@example.com',
         'phone' => '+93700999111',
-        'is_active' => true,
-    ]);
+        'provider' => 'google',
+        'idToken' => 'stub:web-checkout-user-001',
+    ])->assertOk();
 
-    $cookie = app(CustomerSessionCookieService::class)->makeCookie($client);
+    $client = Client::query()
+        ->where('firebase_uid', 'web-checkout-user-001')
+        ->firstOrFail();
+    $cookie = $loginResponse->headers->getCookies()[0];
 
     $this->withCookie($cookie->getName(), $cookie->getValue())
         ->getJson('/api/v1/me')
