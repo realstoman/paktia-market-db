@@ -131,6 +131,17 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(30)->by('mobile-auth:'.sha1($appKey.'|'.$request->ip()));
         });
 
+        RateLimiter::for('customer-auth', function (Request $request) {
+            return Limit::perMinute(20)->by('customer-auth:'.$request->ip());
+        });
+
+        RateLimiter::for('customer-api', function (Request $request) {
+            $client = $request->attributes->get('client');
+            $key = $client?->id ? 'client:'.$client->id : 'ip:'.$request->ip();
+
+            return Limit::perMinute(120)->by('customer-api:'.$key);
+        });
+
         // Cart write operations get a moderately tight per-actor limit.
         RateLimiter::for('mobile-cart', function (Request $request) {
             $client = $request->attributes->get('client');

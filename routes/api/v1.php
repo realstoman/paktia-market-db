@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\BannerController;
+use App\Http\Controllers\Api\V1\CustomerAuthController;
+use App\Http\Controllers\Api\V1\CustomerMeController;
 use App\Http\Controllers\Api\V1\DigitalTabletMenuController;
 use App\Http\Controllers\Api\V1\Mobile\AuthController as MobileAuthController;
 use App\Http\Controllers\Api\V1\Mobile\CartController as MobileCartController;
@@ -42,6 +44,17 @@ Route::get('products/types/{type}/products', [ProductController::class, 'product
 Route::get('products/top-ordered-dishes', [ProductController::class, 'topOrderedDishes'])->name('products.top-ordered-dishes');
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+
+Route::post('auth/firebase/login', [CustomerAuthController::class, 'login'])
+    ->middleware('throttle:customer-auth')
+    ->name('customer-auth.login');
+Route::post('auth/logout', [CustomerAuthController::class, 'logout'])
+    ->middleware(['customer.auth', 'throttle:customer-api'])
+    ->name('customer-auth.logout');
+Route::middleware(['customer.auth', 'throttle:customer-api'])->group(function (): void {
+    Route::get('me', [CustomerMeController::class, 'show'])->name('customer.me.show');
+    Route::get('me/orders', [CustomerMeController::class, 'orders'])->name('customer.me.orders.index');
+});
 
 Route::middleware('app.auth')->group(function (): void {
     Route::post('guest/session', [MobileGuestSessionController::class, 'store'])

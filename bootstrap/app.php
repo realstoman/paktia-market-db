@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateFirebaseUser;
+use App\Http\Middleware\AuthenticateCustomerSession;
 use App\Http\Middleware\EnsureAppAuthenticated;
 use App\Http\Middleware\EnsureBranchSyncAuthenticated;
 use App\Http\Middleware\EnsureCartActor;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'app.auth' => EnsureAppAuthenticated::class,
+            'customer.auth' => AuthenticateCustomerSession::class,
             'branch.sync' => EnsureBranchSyncAuthenticated::class,
             'resolve.guest' => ResolveGuestSession::class,
             'resolve.firebase' => ResolveFirebaseUser::class,
