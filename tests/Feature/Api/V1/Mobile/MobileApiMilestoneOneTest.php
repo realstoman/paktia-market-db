@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductSize;
 use App\Models\Province;
-use App\Services\Web\CustomerSessionCookieService;
 
 beforeEach(function () {
     config()->set('mobile.apps', [
