@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $supportedLocales = config('localization.supported', []);
+        $languageOrder = ['en', 'fa', 'ps'];
         $currentLocale = app()->getLocale();
         $branding = app(SystemBrandingService::class)->getBranding();
 
@@ -57,6 +58,9 @@ class HandleInertiaRequests extends Middleware
                 'direction' => data_get($supportedLocales, "{$currentLocale}.direction", 'ltr'),
                 'isRtl' => data_get($supportedLocales, "{$currentLocale}.direction", 'ltr') === 'rtl',
                 'languages' => collect($supportedLocales)
+                    ->sortBy(fn (array $language, string $code) => array_search($code, $languageOrder, true) !== false
+                        ? array_search($code, $languageOrder, true)
+                        : count($languageOrder))
                     ->map(fn (array $language, string $code) => [
                         'code' => $code,
                         'label' => $language['label'] ?? strtoupper($code),
