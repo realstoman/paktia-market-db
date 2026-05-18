@@ -88,6 +88,7 @@ const en = {
         users: 'Users',
         roles: 'Roles',
         reports: 'Reports',
+        clients: 'Clients',
         printers: 'Printers',
         tools: 'Tools',
         runtimeHealth: 'Runtime Health',
@@ -170,6 +171,63 @@ const en = {
             updated: 'Printer updated successfully.',
             deleted: 'Printer deleted successfully.',
             testSent: 'Test print sent successfully.',
+        },
+    },
+    clients: {
+        title: 'Clients',
+        headingTitle: 'Clients:',
+        headingDescription:
+            'View customer accounts synced from the website and mobile app, along with their order activity.',
+        searchPlaceholder:
+            'Search clients by name, email, phone, or provider...',
+        table: {
+            name: 'Name',
+            email: 'Email',
+            phone: 'Phone',
+            provider: 'Provider',
+            totalOrders: 'Orders',
+            websiteOrders: 'Website',
+            mobileOrders: 'Mobile',
+            lastOrder: 'Last Order',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        actions: {
+            view: 'View',
+        },
+        status: {
+            active: 'Active',
+            inactive: 'Inactive',
+        },
+        details: {
+            title: 'Client Details',
+            description:
+                'Review the synced customer profile and online ordering activity.',
+            firebaseUid: 'Firebase UID',
+            lastLogin: 'Last Login',
+            createdAt: 'Registered At',
+        },
+        cards: {
+            total: {
+                title: 'Total Clients',
+                description:
+                    'All customer accounts synced from the website and mobile app.',
+            },
+            active: {
+                title: 'Active Clients',
+                description:
+                    'Customer accounts currently active for ordering and sign-in.',
+            },
+            website: {
+                title: 'Website Ordering Clients',
+                description:
+                    'Clients who have placed at least one website order.',
+            },
+            mobile: {
+                title: 'Mobile Ordering Clients',
+                description:
+                    'Clients who have placed at least one mobile app order.',
+            },
         },
     },
     toolsLauncher: {
