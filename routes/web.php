@@ -9,6 +9,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountCardController;
 use App\Http\Controllers\EmployeeAdvanceController;
@@ -169,6 +170,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
     });
     Route::middleware('can:'.PermissionEnum::ORDERS_VIEW->value)->group(function () {
+        Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/customers/search', [OrderController::class, 'searchCustomers'])
             ->name('orders.customers.search');
