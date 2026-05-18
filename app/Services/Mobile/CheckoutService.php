@@ -43,7 +43,7 @@ class CheckoutService
             }
         }
 
-        return DB::transaction(function () use ($cart, $client, $payload) {
+        return DB::transaction(function () use ($cart, $client, $payload, $source) {
             $order = Order::create([
                 'branch_id' => $payload['branch_id'],
                 'client_id' => $client->id,

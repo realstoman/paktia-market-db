@@ -309,6 +309,49 @@ test('authenticated client can checkout a cart into a mobile order', function ()
     expect(Cart::where('client_id', $client->id)->where('status', 'checked_out')->exists())->toBeTrue();
 });
 
+test('authenticated client can checkout a delivery cart with delivery contact details', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $client = Client::create([
+        'firebase_uid' => 'delivery-checkout-user-001',
+        'name' => 'Delivery User',
+        'email' => 'delivery@example.com',
+        'phone' => '0781996633',
+        'is_active' => true,
+    ]);
+
+    $this->postJson('/api/v1/cart/items', [
+        'product_id' => $product->id,
+        'product_size_id' => $small->id,
+        'quantity' => 1,
+        'note' => 'Ring the bell',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:delivery-checkout-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.totals.total', 650);
+
+    $this->postJson('/api/v1/checkout', [
+        'branch_id' => $branch->id,
+        'order_type' => 'delivery',
+        'customer_name' => 'Nangialai Stoman',
+        'customer_phone' => '0781996633',
+        'delivery_address' => 'Shahre Naw',
+        'customer_note' => 'sdfsdfdsf',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:delivery-checkout-user-001',
+    ]))->assertCreated()
+        ->assertJsonPath('data.source', 'mobile_app')
+        ->assertJsonPath('data.order_type', 'delivery')
+        ->assertJsonPath('data.customer_name', 'Nangialai Stoman')
+        ->assertJsonPath('data.customer_phone', '0781996633')
+        ->assertJsonPath('data.delivery_address', 'Shahre Naw')
+        ->assertJsonPath('data.customer_note', 'sdfsdfdsf')
+        ->assertJsonPath('data.items_count', 1)
+        ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza');
+
+    expect(Cart::where('client_id', $client->id)->where('status', 'checked_out')->exists())->toBeTrue();
+});
+
 test('authenticated client can view only their own order history', function () {
     [$branch, $product, $small] = createMobileProductFixture();
 
