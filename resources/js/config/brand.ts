@@ -35,11 +35,6 @@ export const brand = {
     tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8FAFD',
 };
 
-export const illustrations = {
-    babaChef: '/illustrations/baba-chef.png',
-    babaChefDark: '/illustrations/baba-chef2.png',
-};
-
 function normalizeHexColor(value?: string, fallback = '#102F33'): string {
     if (!value) {
         return fallback;
