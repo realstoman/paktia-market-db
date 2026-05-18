@@ -65,6 +65,7 @@ class CustomerAuthController extends Controller
             'email' => $client->email,
             'phone' => $client->phone,
             'avatar' => $client->avatar_url,
+            'created_at' => $client->created_at?->toIso8601String(),
             'favorites_count' => 0,
             'orders_count' => $client->orders()->count(),
             'recent_orders' => $client->orders()
