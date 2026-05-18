@@ -7,7 +7,6 @@ use App\Models\Province;
 use App\Services\BranchSync\BranchSyncCredentialService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 function createBranchSyncBranch(bool $isActive = true): Branch
 {
@@ -140,10 +139,10 @@ test('issue rejects wildcard abilities by default and accepts them with allowWil
     $service = app(BranchSyncCredentialService::class);
 
     expect(fn () => $service->issue($branch, 'wildcard', ['*']))
-        ->toThrow(InvalidArgumentException::class);
+        ->toThrow(\InvalidArgumentException::class);
 
     expect(fn () => $service->issue($branch, 'wildcard', ['health.read', '*']))
-        ->toThrow(InvalidArgumentException::class);
+        ->toThrow(\InvalidArgumentException::class);
 
     $issued = $service->issue($branch, 'wildcard', ['*'], allowWildcard: true);
     expect($issued['credential']->abilities)->toContain('*');
