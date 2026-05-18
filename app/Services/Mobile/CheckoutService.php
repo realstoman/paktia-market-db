@@ -14,7 +14,11 @@ class CheckoutService
 {
     public function __construct(private readonly CartService $cartService) {}
 
-    public function checkout(Client $client, array $payload): Order
+    public function checkout(
+        Client $client,
+        array $payload,
+        string $source = 'mobile_app',
+    ): Order
     {
         $cart = $this->cartService->getOrCreateForClient($client);
         $cart = $this->cartService->refreshTotals($cart);
@@ -44,7 +48,7 @@ class CheckoutService
                 'branch_id' => $payload['branch_id'],
                 'client_id' => $client->id,
                 'order_type' => $payload['order_type'],
-                'source' => 'mobile_app',
+                'source' => $source,
                 'customer_name' => $payload['customer_name'] ?? $client->name,
                 'customer_phone' => $payload['customer_phone'] ?? $client->phone,
                 'delivery_address' => $payload['delivery_address'] ?? null,

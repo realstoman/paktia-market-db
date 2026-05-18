@@ -25,9 +25,14 @@ class CheckoutController extends Controller
             'customer_note' => 'nullable|string|max:2000',
         ]);
 
+        $source = $request->route()?->named('customer.checkout.store')
+            ? 'website'
+            : 'mobile_app';
+
         $order = $checkoutService->checkout(
             $request->attributes->get('client'),
             $payload,
+            $source,
         );
 
         return OrderResource::make($order);
