@@ -31,6 +31,7 @@ import {
     Printer,
     ShieldCheck,
     Smartphone,
+    UserRoundSearch,
     Users,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -57,6 +58,13 @@ const mainNavItems: SidebarNavConfig[] = [
         fallbackTitle: 'Orders',
         href: '/orders',
         icon: ReceiptText,
+        can: 'orders.view',
+    },
+    {
+        titleKey: 'navigation.clients',
+        fallbackTitle: 'Clients',
+        href: '/clients',
+        icon: UserRoundSearch,
         can: 'orders.view',
     },
     {

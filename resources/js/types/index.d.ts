@@ -174,6 +174,26 @@ export interface User {
     [key: string]: unknown;
 }
 
+export interface Client {
+    id: number;
+    firebase_uid: string;
+    email?: string | null;
+    phone?: string | null;
+    name?: string | null;
+    avatar_url?: string | null;
+    provider?: string | null;
+    email_verified_at?: string | null;
+    last_login_at?: string | null;
+    is_active?: boolean;
+    orders_count?: number;
+    mobile_orders_count?: number;
+    website_orders_count?: number;
+    last_order_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface EmploymentType {
     id: number;
     name: string;
