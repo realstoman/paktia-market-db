@@ -49,6 +49,7 @@ import {
     X,
 } from 'lucide-react';
 import {
+    useCallback,
     type Dispatch,
     type SetStateAction,
     useEffect,
@@ -109,29 +110,32 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const { can } = useAuthorization();
     const { t, locale } = useLocalization();
     const canCreateOrder = can('orders.create');
-    const localizedProductName = (product?: Product | null) => {
-        if (!product) {
-            return '';
-        }
+    const localizedProductName = useCallback(
+        (product?: Product | null) => {
+            if (!product) {
+                return '';
+            }
 
-        if (locale === 'ps') {
-            return (
-                product.pashto_name?.trim() ||
-                product.dari_name?.trim() ||
-                product.name
-            );
-        }
+            if (locale === 'ps') {
+                return (
+                    product.pashto_name?.trim() ||
+                    product.dari_name?.trim() ||
+                    product.name
+                );
+            }
 
-        if (locale === 'fa') {
-            return (
-                product.dari_name?.trim() ||
-                product.pashto_name?.trim() ||
-                product.name
-            );
-        }
+            if (locale === 'fa') {
+                return (
+                    product.dari_name?.trim() ||
+                    product.pashto_name?.trim() ||
+                    product.name
+                );
+            }
 
-        return product.name;
-    };
+            return product.name;
+        },
+        [locale],
+    );
     const dateLocale = useMemo(() => {
         if (locale === 'fa') {
             return 'fa-AF';
@@ -877,6 +881,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         (table) =>
             String(table.branch_id) === branchId && table.is_active !== false,
     );
+    const branchTableOptions = useMemo(
+        () =>
+            filteredTablesByBranch.map((table) => ({
+                value: String(table.id),
+                label: `${table.table_number} - ${table.title}`,
+            })),
+        [filteredTablesByBranch],
+    );
+    const productOptions = useMemo(
+        () =>
+            products.map((entry) => ({
+                value: String(entry.id),
+                label: localizedProductName(entry),
+            })),
+        [localizedProductName, products],
+    );
 
     const users = useMemo(() => {
         const map = new Map<number, { id: number; name: string }>();
@@ -1464,33 +1484,23 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                             'Table Number',
                                         )}
                                     </Label>
-                                    <Select
+                                    <SearchableDropdown
                                         value={branchTableId}
                                         onValueChange={setBranchTableId}
-                                        disabled={!branchId}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'orders.form.tableNumberPlaceholder',
-                                                    'Select table number',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredTablesByBranch.map(
-                                                (table) => (
-                                                    <SelectItem
-                                                        key={table.id}
-                                                        value={String(table.id)}
-                                                    >
-                                                        {table.table_number} -{' '}
-                                                        {table.title}
-                                                    </SelectItem>
-                                                ),
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                        options={branchTableOptions}
+                                        placeholder={t(
+                                            'orders.form.tableNumberPlaceholder',
+                                            'Select table number',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'orders.form.tableSearch',
+                                            'Search tables...',
+                                        )}
+                                        emptyText={t(
+                                            'orders.form.noTablesFound',
+                                            'No tables found.',
+                                        )}
+                                    />
                                     <InputError
                                         message={createErrors.branch_table_id}
                                     />
@@ -1688,7 +1698,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                 'Product',
                                                             )}
                                                         </Label>
-                                                        <Select
+                                                        <SearchableDropdown
                                                             value={
                                                                 item.productId
                                                             }
@@ -1702,34 +1712,22 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                     value,
                                                                 )
                                                             }
-                                                        >
-                                                            <SelectTrigger>
-                                                                <SelectValue
-                                                                    placeholder={t(
-                                                                        'orders.form.productPlaceholder',
-                                                                        'Select product',
-                                                                    )}
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {products.map(
-                                                                    (entry) => (
-                                                                        <SelectItem
-                                                                            key={
-                                                                                entry.id
-                                                                            }
-                                                                            value={String(
-                                                                                entry.id,
-                                                                            )}
-                                                                        >
-                                                                            {localizedProductName(
-                                                                                entry,
-                                                                            )}
-                                                                        </SelectItem>
-                                                                    ),
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                            options={
+                                                                productOptions
+                                                            }
+                                                            placeholder={t(
+                                                                'orders.form.productPlaceholder',
+                                                                'Select product',
+                                                            )}
+                                                            searchPlaceholder={t(
+                                                                'orders.form.productSearch',
+                                                                'Search products...',
+                                                            )}
+                                                            emptyText={t(
+                                                                'orders.form.noProductsFound',
+                                                                'No products found.',
+                                                            )}
+                                                        />
                                                     </div>
                                                     {hasSizes ? (
                                                         <div className="grid gap-2">
@@ -1891,7 +1889,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                             'Product',
                                                         )}
                                                     </Label>
-                                                    <Select
+                                                    <SearchableDropdown
                                                         value={item.productId}
                                                         onValueChange={(
                                                             value,
@@ -1903,34 +1901,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                                 value,
                                                             )
                                                         }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue
-                                                                placeholder={t(
-                                                                    'orders.form.productPlaceholder',
-                                                                    'Select product',
-                                                                )}
-                                                            />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {products.map(
-                                                                (entry) => (
-                                                                    <SelectItem
-                                                                        key={
-                                                                            entry.id
-                                                                        }
-                                                                        value={String(
-                                                                            entry.id,
-                                                                        )}
-                                                                    >
-                                                                        {localizedProductName(
-                                                                            entry,
-                                                                        )}
-                                                                    </SelectItem>
-                                                                ),
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
+                                                        options={productOptions}
+                                                        placeholder={t(
+                                                            'orders.form.productPlaceholder',
+                                                            'Select product',
+                                                        )}
+                                                        searchPlaceholder={t(
+                                                            'orders.form.productSearch',
+                                                            'Search products...',
+                                                        )}
+                                                        emptyText={t(
+                                                            'orders.form.noProductsFound',
+                                                            'No products found.',
+                                                        )}
+                                                    />
                                                 </div>
                                                 {hasSizes ? (
                                                     <div className="grid gap-2">
@@ -2585,7 +2569,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                     'Product',
                                                 )}
                                             </Label>
-                                            <Select
+                                            <SearchableDropdown
                                                 value={item.productId}
                                                 onValueChange={(value) =>
                                                     handleProductChange(
@@ -2595,30 +2579,20 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                                         value,
                                                     )
                                                 }
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue
-                                                        placeholder={t(
-                                                            'orders.form.productPlaceholder',
-                                                            'Select product',
-                                                        )}
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {products.map((entry) => (
-                                                        <SelectItem
-                                                            key={entry.id}
-                                                            value={String(
-                                                                entry.id,
-                                                            )}
-                                                        >
-                                                            {localizedProductName(
-                                                                entry,
-                                                            )}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                options={productOptions}
+                                                placeholder={t(
+                                                    'orders.form.productPlaceholder',
+                                                    'Select product',
+                                                )}
+                                                searchPlaceholder={t(
+                                                    'orders.form.productSearch',
+                                                    'Search products...',
+                                                )}
+                                                emptyText={t(
+                                                    'orders.form.noProductsFound',
+                                                    'No products found.',
+                                                )}
+                                            />
                                         </div>
                                         {hasSizes ? (
                                             <div className="grid gap-2">
