@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Branch;
 use App\Models\BranchTable;
+use App\Models\Client;
 use App\Models\Customer;
 use App\Models\DiscountCard;
 use App\Models\Employee;
@@ -128,8 +129,9 @@ class OrderService
     public function searchCustomers(string $search, int $limit = 15)
     {
         $normalized = trim($search);
+        $resolvedLimit = max(1, min($limit, 25));
 
-        return Customer::query()
+        $customers = Customer::query()
             ->where('is_active', true)
             ->when($normalized !== '', function ($query) use ($normalized) {
                 $query->where(function ($innerQuery) use ($normalized) {
@@ -141,8 +143,52 @@ class OrderService
             ->orderByRaw("case when name is null or name = '' then 1 else 0 end")
             ->orderBy('name')
             ->orderBy('phone')
-            ->limit(max(1, min($limit, 25)))
-            ->get(['id', 'name', 'phone', 'email']);
+            ->limit($resolvedLimit)
+            ->get(['id', 'name', 'phone', 'email'])
+            ->map(fn (Customer $customer) => [
+                'id' => $customer->id,
+                'record_type' => 'customer',
+                'selection_value' => 'customer:'.$customer->id,
+                'name' => $customer->name,
+                'phone' => $customer->phone,
+                'email' => $customer->email,
+                'provider' => null,
+            ]);
+
+        $clients = Client::query()
+            ->where('is_active', true)
+            ->when($normalized !== '', function ($query) use ($normalized) {
+                $query->where(function ($innerQuery) use ($normalized) {
+                    $innerQuery
+                        ->where('name', 'like', "%{$normalized}%")
+                        ->orWhere('phone', 'like', "%{$normalized}%")
+                        ->orWhere('email', 'like', "%{$normalized}%");
+                });
+            })
+            ->orderByRaw("case when name is null or name = '' then 1 else 0 end")
+            ->orderBy('name')
+            ->orderBy('phone')
+            ->limit($resolvedLimit)
+            ->get(['id', 'name', 'phone', 'email', 'provider'])
+            ->map(fn (Client $client) => [
+                'id' => $client->id,
+                'record_type' => 'client',
+                'selection_value' => 'client:'.$client->id,
+                'name' => $client->name,
+                'phone' => $client->phone,
+                'email' => $client->email,
+                'provider' => $client->provider,
+            ]);
+
+        return $customers
+            ->concat($clients)
+            ->sortBy([
+                fn (array $entry) => blank($entry['name']) ? 1 : 0,
+                ['name', 'asc'],
+                ['phone', 'asc'],
+            ])
+            ->values()
+            ->take($resolvedLimit);
     }
 
     public function createOrder(array $data, ?int $userId, ?User $user = null): void
@@ -159,6 +205,7 @@ class OrderService
                 'branch_id' => $data['branch_id'],
                 'branch_table_id' => $data['branch_table_id'] ?? null,
                 'user_id' => $userId,
+                'client_id' => $customerPayload['client_id'],
                 'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
                 'customer_name' => $customerPayload['customer_name'],
@@ -222,6 +269,7 @@ class OrderService
                 'branch_table_id' => $data['order_type'] === OrderType::DINE_IN->value
                     ? ($data['branch_table_id'] ?? null)
                     : null,
+                'client_id' => $customerPayload['client_id'],
                 'customer_id' => $customerPayload['customer_id'],
                 'order_type' => $data['order_type'],
                 'customer_name' => $customerPayload['customer_name'],
@@ -697,6 +745,22 @@ class OrderService
         $customerId = isset($data['customer_id']) && $data['customer_id']
             ? (int) $data['customer_id']
             : null;
+        $clientId = isset($data['client_id']) && $data['client_id']
+            ? (int) $data['client_id']
+            : null;
+
+        if ($clientId) {
+            $client = Client::query()->find($clientId);
+
+            if ($client) {
+                return [
+                    'client_id' => $client->id,
+                    'customer_id' => null,
+                    'customer_name' => $customerName !== '' ? $customerName : $client->name,
+                    'customer_phone' => $customerPhone !== '' ? $customerPhone : $client->phone,
+                ];
+            }
+        }
 
         if ($customerId) {
             $customer = Customer::query()->find($customerId);
@@ -719,6 +783,7 @@ class OrderService
                 }
 
                 return [
+                    'client_id' => null,
                     'customer_id' => $customer->id,
                     'customer_name' => $customerName !== '' ? $customerName : $customer->name,
                     'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
@@ -728,6 +793,7 @@ class OrderService
 
         if ($customerName === '' && $customerPhone === '') {
             return [
+                'client_id' => null,
                 'customer_id' => null,
                 'customer_name' => null,
                 'customer_phone' => null,
@@ -755,6 +821,7 @@ class OrderService
         }
 
         return [
+            'client_id' => null,
             'customer_id' => $customer->id,
             'customer_name' => $customerName !== '' ? $customerName : $customer->name,
             'customer_phone' => $customerPhone !== '' ? $customerPhone : $customer->phone,
