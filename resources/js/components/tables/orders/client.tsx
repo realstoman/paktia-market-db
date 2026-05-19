@@ -457,7 +457,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                             ? customer.provider
                                 ? `${t('orders.form.clientPrefix', 'Client')} • ${customer.provider}`
                                 : t('orders.form.clientPrefix', 'Client')
-                            : t('orders.form.customerPrefix', 'Customer'),
+                            : null,
                     ]
                         .filter(Boolean)
                         .join(' • ') ||
