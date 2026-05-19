@@ -2394,35 +2394,35 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                         'Vendor (optional)',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={vendorId}
                                     onValueChange={setVendorId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectVendor',
-                                                'Select vendor',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value={VENDOR_NONE}>
-                                            {t(
+                                    options={[
+                                        {
+                                            value: VENDOR_NONE,
+                                            label: t(
                                                 'inventory.common.noVendor',
                                                 'No Vendor',
-                                            )}
-                                        </SelectItem>
-                                        {vendors.map((vendor) => (
-                                            <SelectItem
-                                                key={vendor.id}
-                                                value={String(vendor.id)}
-                                            >
-                                                {vendor.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            ),
+                                        },
+                                        ...vendors.map((vendor) => ({
+                                            value: String(vendor.id),
+                                            label: vendor.name,
+                                        })),
+                                    ]}
+                                    placeholder={t(
+                                        'inventory.common.selectVendor',
+                                        'Select vendor',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'inventory.filters.searchVendors',
+                                        'Search vendors...',
+                                    )}
+                                    emptyText={t(
+                                        'inventory.filters.noVendors',
+                                        'No vendors found.',
+                                    )}
+                                />
                                 <InputError message={errors.vendor_id} />
                             </div>
                             <div className="grid gap-2">
@@ -2459,29 +2459,26 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     {t('inventory.common.type', 'Type')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={inventoryTypeId}
                                     onValueChange={setInventoryTypeId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectType',
-                                                'Select type',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {inventoryTypes.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={inventoryTypes.map((entry) => ({
+                                        value: String(entry.id),
+                                        label: entry.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectType',
+                                        'Select type',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'inventory.filters.searchTypes',
+                                        'Search types...',
+                                    )}
+                                    emptyText={t(
+                                        'inventory.filters.noTypes',
+                                        'No types found.',
+                                    )}
+                                />
                                 <InputError
                                     message={errors.inventory_type_id}
                                 />
@@ -2490,58 +2487,52 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     {t('inventory.common.unitLabel', 'Unit')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={unitId}
                                     onValueChange={setUnitId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectUnit',
-                                                'Select unit',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {units.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name} ({entry.symbol})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={units.map((entry) => ({
+                                        value: String(entry.id),
+                                        label: `${entry.name} (${entry.symbol})`,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectUnit',
+                                        'Select unit',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'inventory.common.searchUnits',
+                                        'Search units...',
+                                    )}
+                                    emptyText={t(
+                                        'inventory.common.noUnitFound',
+                                        'No units found.',
+                                    )}
+                                />
                                 <InputError message={errors.unit_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
                                     {t('inventory.common.category', 'Category')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={categoryId}
                                     onValueChange={setCategoryId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectCategory',
-                                                'Select category',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={categories.map((entry) => ({
+                                        value: String(entry.id),
+                                        label: entry.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectCategory',
+                                        'Select category',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'inventory.common.searchCategories',
+                                        'Search categories...',
+                                    )}
+                                    emptyText={t(
+                                        'inventory.common.noCategoryFound',
+                                        'No categories found.',
+                                    )}
+                                />
                                 <InputError message={errors.category_id} />
                             </div>
                             <div className="grid gap-2">
@@ -2833,7 +2824,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                             'Usable Item',
                                                         )}
                                                     </Label>
-                                                    <Select
+                                                    <SearchableDropdown
                                                         value={
                                                             row.inventoryItemId
                                                         }
@@ -2846,54 +2837,36 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                                 value,
                                                             )
                                                         }
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue
-                                                                placeholder={t(
-                                                                    'inventory.usageModal.selectUsableItem',
-                                                                    'Select usable item',
-                                                                )}
-                                                            />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {usableItems.map(
-                                                                (item) => (
-                                                                    <SelectItem
-                                                                        key={
-                                                                            item.id
-                                                                        }
-                                                                        value={String(
-                                                                            item.id,
-                                                                        )}
-                                                                    >
-                                                                        {
-                                                                            item.name
-                                                                        }{' '}
-                                                                        (
-                                                                        {item
-                                                                            .branch
-                                                                            ?.name ??
-                                                                            `Branch #${item.branch_id}`}
-                                                                        ) -{' '}
-                                                                        {t(
-                                                                            'inventory.usageModal.available',
-                                                                            'Available',
-                                                                        )}
-                                                                        :{' '}
-                                                                        {Number(
-                                                                            item.quantity ||
-                                                                                0,
-                                                                        )}{' '}
-                                                                        {item.unit ??
-                                                                            t(
-                                                                                'inventory.common.unit',
-                                                                                'unit',
-                                                                            )}
-                                                                    </SelectItem>
+                                                        options={usableItems.map(
+                                                            (item) => ({
+                                                                value: String(
+                                                                    item.id,
                                                                 ),
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
+                                                                label: `${item.name} (${item.branch?.name ?? `Branch #${item.branch_id}`}) - ${t(
+                                                                    'inventory.usageModal.available',
+                                                                    'Available',
+                                                                )}: ${Number(
+                                                                    item.quantity ||
+                                                                        0,
+                                                                )} ${item.unit ?? t(
+                                                                    'inventory.common.unit',
+                                                                    'unit',
+                                                                )}`,
+                                                            }),
+                                                        )}
+                                                        placeholder={t(
+                                                            'inventory.usageModal.selectUsableItem',
+                                                            'Select usable item',
+                                                        )}
+                                                        searchPlaceholder={t(
+                                                            'inventory.usageModal.searchUsableItems',
+                                                            'Search usable items...',
+                                                        )}
+                                                        emptyText={t(
+                                                            'inventory.usageModal.noUsableItems',
+                                                            'No usable items found.',
+                                                        )}
+                                                    />
                                                     <InputError
                                                         message={
                                                             usageErrors[
