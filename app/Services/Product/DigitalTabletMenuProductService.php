@@ -49,7 +49,10 @@ class DigitalTabletMenuProductService
     {
         return $this->applyTypeIds(
             $this->baseQuery()
-                ->where('product_category_id', $category->id)
+                ->whereHas(
+                    'categories',
+                    fn (Builder $query) => $query->where('product_categories.id', $category->id),
+                )
                 ->orderBy('name')
                 ->get()
         );
@@ -110,7 +113,7 @@ class DigitalTabletMenuProductService
     protected function baseQuery()
     {
         return Product::query()
-            ->with(['category', 'cuisine', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'images', 'sizes'])
             ->where('is_active', true);
     }
 

@@ -26,7 +26,7 @@ class ProductApiService
         $sortDirection = $filters['sort_direction'] ?? 'asc';
 
         $query = Product::query()
-            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images');
 
         $this->applyFilters($query, $filters);
@@ -43,7 +43,7 @@ class ProductApiService
 
     public function getById(Product $product): Product
     {
-        $product = $product->load(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+        $product = $product->load(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->loadCount('images');
 
         $this->applyTypeLocalization(new EloquentCollection([$product]));
@@ -70,9 +70,9 @@ class ProductApiService
     public function productsByCategory(ProductCategory $category): LengthAwarePaginator
     {
         $products = Product::query()
-            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
-            ->where('product_category_id', $category->id)
+            ->whereHas('categories', fn (Builder $query) => $query->where('product_categories.id', $category->id))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -98,7 +98,7 @@ class ProductApiService
     public function productsByCuisine(Cuisine $cuisine): LengthAwarePaginator
     {
         $products = Product::query()
-            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('cuisine_id', $cuisine->id)
             ->orderBy('name')
@@ -144,7 +144,7 @@ class ProductApiService
     public function productsByType(ProductType $type): LengthAwarePaginator
     {
         $products = Product::query()
-            ->with(['category', 'cuisine', 'kitchen', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->withCount('images')
             ->where('type', $type->name)
             ->orderBy('name')
@@ -161,7 +161,10 @@ class ProductApiService
         $query
             ->when(
                 $filters['category_id'] ?? null,
-                fn (Builder $q, int $categoryId) => $q->where('product_category_id', $categoryId)
+                fn (Builder $q, int $categoryId) => $q->whereHas(
+                    'categories',
+                    fn (Builder $categoryQuery) => $categoryQuery->where('product_categories.id', $categoryId),
+                )
             )
             ->when(
                 $filters['cuisine_id'] ?? null,
