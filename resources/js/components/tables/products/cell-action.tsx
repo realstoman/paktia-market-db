@@ -31,9 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Textarea,
-} from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
@@ -140,6 +138,12 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [categoryId, setCategoryId] = useState(
         data.product_category_id ? String(data.product_category_id) : '',
     );
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(
+        data.product_category_ids?.length
+            ? data.product_category_ids
+            : data.categories?.map((category) => category.id) ??
+                  (data.product_category_id ? [data.product_category_id] : []),
+    );
     const [cuisineId, setCuisineId] = useState(
         data.cuisine_id ? String(data.cuisine_id) : 'none',
     );
@@ -202,6 +206,14 @@ export const CellAction: React.FC<CellActionProps> = ({
         setDariName(data.dari_name ?? '');
         setCategoryId(
             data.product_category_id ? String(data.product_category_id) : '',
+        );
+        setSelectedCategoryIds(
+            data.product_category_ids?.length
+                ? data.product_category_ids
+                : data.categories?.map((category) => category.id) ??
+                      (data.product_category_id
+                          ? [data.product_category_id]
+                          : []),
         );
         setCuisineId(data.cuisine_id ? String(data.cuisine_id) : 'none');
         setKitchenId(data.kitchen_id ? String(data.kitchen_id) : 'none');
@@ -272,6 +284,31 @@ export const CellAction: React.FC<CellActionProps> = ({
         }));
     };
 
+    const handlePrimaryCategoryChange = (value: string) => {
+        setCategoryId(value);
+
+        const numericCategoryId = Number(value);
+        if (Number.isNaN(numericCategoryId)) {
+            return;
+        }
+
+        setSelectedCategoryIds((prev) =>
+            Array.from(new Set([...prev, numericCategoryId])),
+        );
+    };
+
+    const toggleSelectedCategoryId = (targetCategoryId: number) => {
+        if (String(targetCategoryId) === categoryId) {
+            return;
+        }
+
+        setSelectedCategoryIds((prev) =>
+            prev.includes(targetCategoryId)
+                ? prev.filter((id) => id !== targetCategoryId)
+                : [...prev, targetCategoryId],
+        );
+    };
+
     const handleEditSubmit = () => {
         if (
             !name.trim() ||
@@ -291,6 +328,9 @@ export const CellAction: React.FC<CellActionProps> = ({
         formData.append('pashto_name', pashtoName.trim());
         formData.append('dari_name', dariName.trim());
         formData.append('product_category_id', String(Number(categoryId)));
+        selectedCategoryIds.forEach((selectedId, index) => {
+            formData.append(`category_ids[${index}]`, String(selectedId));
+        });
         if (cuisineId !== 'none') {
             formData.append('cuisine_id', String(Number(cuisineId)));
         }
