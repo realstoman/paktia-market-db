@@ -197,6 +197,48 @@ test('api v1 product categories index respects category sort order', function ()
         ->assertJsonPath('data.2.name', 'Afghan Cuisine');
 });
 
+test('api v1 products can appear in multiple display categories', function () {
+    [, $kitchen] = createProductApiBaseData();
+
+    $kababsCategory = ProductCategory::create(['name' => 'Kababs']);
+    $afghanCuisineCategory = ProductCategory::create([
+        'name' => 'Afghan Cuisine',
+    ]);
+    $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
+
+    $product = Product::create([
+        'product_category_id' => $kababsCategory->id,
+        'cuisine_id' => $cuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Chapli Kabab',
+        'type' => 'food',
+        'base_price' => 250,
+        'is_active' => true,
+    ]);
+
+    $product->categories()->syncWithoutDetaching([
+        $afghanCuisineCategory->id,
+    ]);
+
+    $this->getJson('/api/v1/products/categories/'.$kababsCategory->id.'/products')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonPath('data.0.product_category_id', $kababsCategory->id)
+        ->assertJsonFragment(['product_category_ids' => [$afghanCuisineCategory->id, $kababsCategory->id]]);
+
+    $this->getJson('/api/v1/products/categories/'.$afghanCuisineCategory->id.'/products')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonFragment(['name' => 'Afghan Cuisine']);
+
+    $this->getJson('/api/v1/products?category_id='.$afghanCuisineCategory->id)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id);
+});
+
 test('api v1 product cuisines index, show, and products endpoint work', function () {
     [, $kitchen] = createProductApiBaseData();
     $category = ProductCategory::create(['name' => 'Kababs']);

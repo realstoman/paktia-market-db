@@ -723,125 +723,187 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label>
                                     {t('products.fields.category', 'Category')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={categoryId}
-                                    onValueChange={setCategoryId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'products.fields.selectCategory',
-                                                'Select category',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem
-                                                key={category.id}
-                                                value={String(category.id)}
-                                            >
-                                                {category.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    onValueChange={handlePrimaryCategoryChange}
+                                    options={categories.map((category) => ({
+                                        value: String(category.id),
+                                        label: category.name,
+                                    }))}
+                                    placeholder={t(
+                                        'products.fields.selectCategory',
+                                        'Select category',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'products.filters.searchCategories',
+                                        'Search categories...',
+                                    )}
+                                    emptyText={t(
+                                        'products.filters.noCategories',
+                                        'No categories found.',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.product_category_id}
                                 />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    {t(
+                                        'products.fields.displayCategories',
+                                        'Display Categories',
+                                    )}
+                                </Label>
+                                <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+                                    <p className="text-sm text-muted-foreground">
+                                        {t(
+                                            'products.fields.displayCategoriesHelp',
+                                            'Choose every menu category where this product should appear. The primary category is always included.',
+                                        )}
+                                    </p>
+                                    <div className="mt-3 grid max-h-40 gap-3 overflow-y-auto pr-2 sm:grid-cols-2">
+                                        {categories.map((category) => {
+                                            const isPrimaryCategory =
+                                                String(category.id) ===
+                                                categoryId;
+                                            const isChecked =
+                                                isPrimaryCategory ||
+                                                selectedCategoryIds.includes(
+                                                    category.id,
+                                                );
+
+                                            return (
+                                                <label
+                                                    key={category.id}
+                                                    className="flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-800"
+                                                >
+                                                    <Checkbox
+                                                        checked={isChecked}
+                                                        disabled={
+                                                            isPrimaryCategory
+                                                        }
+                                                        onCheckedChange={() =>
+                                                            toggleSelectedCategoryId(
+                                                                category.id,
+                                                            )
+                                                        }
+                                                    />
+                                                    <span className="flex-1">
+                                                        {category.name}
+                                                    </span>
+                                                    {isPrimaryCategory ? (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {t(
+                                                                'products.fields.primaryCategoryBadge',
+                                                                'Primary',
+                                                            )}
+                                                        </span>
+                                                    ) : null}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <InputError message={editErrors.category_ids} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
                                     {t('products.fields.cuisine', 'Cuisine')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={cuisineId}
                                     onValueChange={setCuisineId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'products.fields.selectCuisine',
-                                                'Select cuisine',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">
-                                            {t(
+                                    options={[
+                                        {
+                                            value: 'none',
+                                            label: t(
                                                 'products.fields.noCuisine',
                                                 'No cuisine',
-                                            )}
-                                        </SelectItem>
-                                        {cuisines.map((cuisine) => (
-                                            <SelectItem
-                                                key={cuisine.id}
-                                                value={String(cuisine.id)}
-                                            >
-                                                {cuisine.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            ),
+                                        },
+                                        ...cuisines.map((cuisine) => ({
+                                            value: String(cuisine.id),
+                                            label: cuisine.name,
+                                        })),
+                                    ]}
+                                    placeholder={t(
+                                        'products.fields.selectCuisine',
+                                        'Select cuisine',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'products.filters.searchCuisines',
+                                        'Search cuisines...',
+                                    )}
+                                    emptyText={t(
+                                        'products.filters.noCuisines',
+                                        'No cuisines found.',
+                                    )}
+                                />
                                 <InputError message={editErrors.cuisine_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
                                     {t('products.fields.kitchen', 'Kitchen')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={kitchenId}
                                     onValueChange={setKitchenId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'products.fields.selectKitchen',
-                                                'Select kitchen',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">
-                                            No kitchen / direct serve
-                                        </SelectItem>
-                                        {kitchens.map((kitchen) => (
-                                            <SelectItem
-                                                key={kitchen.id}
-                                                value={String(kitchen.id)}
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={[
+                                        {
+                                            value: 'none',
+                                            label: t(
+                                                'products.fields.noKitchen',
+                                                'No kitchen / direct serve',
+                                            ),
+                                        },
+                                        ...kitchens.map((kitchen) => ({
+                                            value: String(kitchen.id),
+                                            label:
+                                                kitchen.name ??
+                                                `Kitchen #${kitchen.id}`,
+                                        })),
+                                    ]}
+                                    placeholder={t(
+                                        'products.fields.selectKitchen',
+                                        'Select kitchen',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'products.filters.searchKitchens',
+                                        'Search kitchens...',
+                                    )}
+                                    emptyText={t(
+                                        'products.filters.noKitchens',
+                                        'No kitchens found.',
+                                    )}
+                                />
                                 <InputError message={editErrors.kitchen_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>{t('products.fields.type', 'Type')}</Label>
-                                <Select value={type} onValueChange={setType}>
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'products.fields.selectType',
-                                                'Select type',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableTypes.map((productType) => (
-                                            <SelectItem
-                                                key={productType}
-                                                value={productType}
-                                            >
-                                                <span className="capitalize">
-                                                    {productType}
-                                                </span>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <SearchableDropdown
+                                    value={type}
+                                    onValueChange={setType}
+                                    options={availableTypes.map(
+                                        (productType) => ({
+                                            value: productType,
+                                            label:
+                                                productType.charAt(0).toUpperCase() +
+                                                productType.slice(1),
+                                        }),
+                                    )}
+                                    placeholder={t(
+                                        'products.fields.selectType',
+                                        'Select type',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'products.filters.searchTypes',
+                                        'Search types...',
+                                    )}
+                                    emptyText={t(
+                                        'products.filters.noTypes',
+                                        'No types found.',
+                                    )}
+                                />
                                 <InputError message={editErrors.type} />
                             </div>
                             <div className="grid gap-2">

@@ -248,6 +248,56 @@ test('digital tablet menu categories endpoint respects category sort order', fun
         ->assertJsonPath('data.2.name', 'Afghan Cuisine');
 });
 
+test('digital tablet menu category products include items assigned to multiple display categories', function () {
+    [, $kitchen] = createDigitalTabletMenuBaseData();
+
+    $kababsCategory = ProductCategory::create(['name' => 'Kababs']);
+    $afghanCuisineCategory = ProductCategory::create([
+        'name' => 'Afghan Cuisine',
+        'dari_name' => 'غذا افغانی',
+        'pashto_name' => 'افغاني خواړه',
+    ]);
+    $cuisine = Cuisine::firstOrCreate(['name' => 'Afghan']);
+
+    ProductType::create([
+        'name' => 'food',
+        'pashto_name' => 'خواړه',
+        'dari_name' => 'غذا',
+    ]);
+
+    $product = Product::create([
+        'product_category_id' => $kababsCategory->id,
+        'cuisine_id' => $cuisine->id,
+        'kitchen_id' => $kitchen->id,
+        'name' => 'Chef Kabab',
+        'pashto_name' => 'شف کباب',
+        'dari_name' => 'شف کباب',
+        'type' => 'food',
+        'base_price' => 320,
+        'is_active' => true,
+    ]);
+
+    $product->categories()->syncWithoutDetaching([
+        $afghanCuisineCategory->id,
+    ]);
+
+    $this->getJson(
+        '/api/v1/digital-tablet-menu/categories/'.$kababsCategory->id.'/products',
+    )
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonFragment(['product_category_ids' => [$afghanCuisineCategory->id, $kababsCategory->id]]);
+
+    $this->getJson(
+        '/api/v1/digital-tablet-menu/categories/'.$afghanCuisineCategory->id.'/products',
+    )
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $product->id)
+        ->assertJsonFragment(['name' => 'Afghan Cuisine']);
+});
+
 test('digital tablet menu products by category endpoint is public', function () {
     [, $kitchen] = createDigitalTabletMenuBaseData();
 

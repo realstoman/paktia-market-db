@@ -3051,9 +3051,14 @@ const en = {
             sizesEmpty: 'No size pricing set',
             imagesCount: 'Images',
             selectCategory: 'Select category',
+            displayCategories: 'Display Categories',
+            displayCategoriesHelp:
+                'Choose every menu category where this product should appear. The primary category is always included.',
+            primaryCategoryBadge: 'Primary',
             selectCuisine: 'Select cuisine',
             noCuisine: 'No cuisine',
             selectKitchen: 'Select kitchen',
+            noKitchen: 'No kitchen / direct serve',
             selectType: 'Select type',
         },
         imageUploadHelp:
