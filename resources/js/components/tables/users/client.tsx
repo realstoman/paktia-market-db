@@ -580,7 +580,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>{t('users.fields.role', 'Role')}</Label>
-                            <Select
+                            <SearchableDropdown
                                 value={roleId}
                                 onValueChange={(value) => {
                                     setRoleId(value);
@@ -593,26 +593,23 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                         setKitchenId('none');
                                     }
                                 }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectRole',
-                                            'Select role',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem
-                                            key={role.id}
-                                            value={String(role.id)}
-                                        >
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={roles.map((role) => ({
+                                    value: String(role.id),
+                                    label: role.name,
+                                }))}
+                                placeholder={t(
+                                    'users.placeholders.selectRole',
+                                    'Select role',
+                                )}
+                                searchPlaceholder={t(
+                                    'users.filters.searchRoles',
+                                    'Search roles...',
+                                )}
+                                emptyText={t(
+                                    'users.filters.noRolesFound',
+                                    'No roles found.',
+                                )}
+                            />
                             <InputError message={createRoleError} />
                         </div>
                         {isCreateKitchenRole ? (
