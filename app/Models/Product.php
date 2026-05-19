@@ -29,6 +29,14 @@ class Product extends Model
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(
+            ProductCategory::class,
+            'product_category_product',
+        )->withTimestamps()->orderBy('sort_order')->orderBy('name');
+    }
+
     public function cuisine()
     {
         return $this->belongsTo(Cuisine::class);
