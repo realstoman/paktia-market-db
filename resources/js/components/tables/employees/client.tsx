@@ -1618,29 +1618,26 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <Label>
                                     {t('employees.form.employeePosition', 'Employee position')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={employeePositionId}
                                     onValueChange={setEmployeePositionId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectPosition',
-                                                'Select position',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employeePositions.map((position) => (
-                                            <SelectItem
-                                                key={position.id}
-                                                value={String(position.id)}
-                                            >
-                                                {position.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={employeePositions.map((position) => ({
+                                        value: String(position.id),
+                                        label: position.name,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectPosition',
+                                        'Select position',
+                                    )}
+                                    searchPlaceholder={t(
+                                        'employees.filters.positionSearch',
+                                        'Search positions...',
+                                    )}
+                                    emptyText={t(
+                                        'employees.filters.noPositionsFound',
+                                        'No positions found.',
+                                    )}
+                                />
                                 <InputError
                                     message={createErrors.employee_position_id}
                                 />
