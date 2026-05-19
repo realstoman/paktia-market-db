@@ -452,20 +452,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 label:
                     [
                         customer.name,
-                        customer.phone,
-                        customer.record_type === 'client'
-                            ? customer.provider
-                                ? `${t('orders.form.clientPrefix', 'Client')} • ${customer.provider}`
-                                : t('orders.form.clientPrefix', 'Client')
-                            : null,
+                        customer.phone || customer.email,
                     ]
                         .filter(Boolean)
                         .join(' • ') ||
-                    `${
-                        customer.record_type === 'client'
-                            ? t('orders.form.clientPrefix', 'Client')
-                            : t('orders.form.customerPrefix', 'Customer')
-                    } #${customer.id}`,
+                    `${customer.name || t('orders.form.customerPrefix', 'Customer')} #${customer.id}`,
             })),
         ],
         [customerSearchResults, t],
