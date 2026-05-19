@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -31,13 +32,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+    Textarea,
+} from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
