@@ -30,7 +30,6 @@ import { useAuthorization } from '@/lib/permissions';
 import {
     Branch,
     BranchTable,
-    Customer,
     DiscountCard,
     Employee,
     Order,
@@ -73,10 +72,19 @@ interface OrdersClientProps {
     branches: Branch[];
     products: Product[];
     branchTables: BranchTable[];
-    customers: Customer[];
     discountCards: DiscountCard[];
     sponsorEmployees: Employee[];
     isLoading?: boolean;
+}
+
+interface CustomerSearchOption {
+    id: number;
+    record_type: 'customer' | 'client';
+    selection_value: string;
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    provider?: string | null;
 }
 
 const ORDER_STATUSES = [
@@ -101,7 +109,6 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     branches,
     products,
     branchTables,
-    customers,
     discountCards,
     sponsorEmployees,
     isLoading = false,
@@ -175,8 +182,9 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [customerSearch, setCustomerSearch] = useState('');
-    const [customerSearchResults, setCustomerSearchResults] =
-        useState<Customer[]>(customers);
+    const [customerSearchResults, setCustomerSearchResults] = useState<
+        CustomerSearchOption[]
+    >([]);
     const [isCustomerSearchLoading, setIsCustomerSearchLoading] =
         useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -412,7 +420,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 }
 
                 const payload = (await response.json()) as {
-                    data?: Customer[];
+                    data?: CustomerSearchOption[];
                 };
                 setCustomerSearchResults(payload.data ?? []);
             } catch (error) {
@@ -440,11 +448,24 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 ),
             },
             ...customerSearchResults.map((customer) => ({
-                value: String(customer.id),
+                value: customer.selection_value,
                 label:
-                    [customer.name, customer.phone]
+                    [
+                        customer.name,
+                        customer.phone,
+                        customer.record_type === 'client'
+                            ? customer.provider
+                                ? `${t('orders.form.clientPrefix', 'Client')} • ${customer.provider}`
+                                : t('orders.form.clientPrefix', 'Client')
+                            : t('orders.form.customerPrefix', 'Customer'),
+                    ]
                         .filter(Boolean)
-                        .join(' • ') || `Customer #${customer.id}`,
+                        .join(' • ') ||
+                    `${
+                        customer.record_type === 'client'
+                            ? t('orders.form.clientPrefix', 'Client')
+                            : t('orders.form.customerPrefix', 'Customer')
+                    } #${customer.id}`,
             })),
         ],
         [customerSearchResults, t],
@@ -526,7 +547,14 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
             branch_table_id:
                 orderType === 'dine_in' ? Number(branchTableId) : null,
             payment_method: paymentMethod,
-            customer_id: customerId ? Number(customerId) : null,
+            client_id:
+                customerId.startsWith('client:') && customerId.split(':')[1]
+                    ? Number(customerId.split(':')[1])
+                    : null,
+            customer_id:
+                customerId.startsWith('customer:') && customerId.split(':')[1]
+                    ? Number(customerId.split(':')[1])
+                    : null,
             customer_name: customerName.trim() || null,
             customer_phone: customerPhone.trim() || null,
             delivery_address:
@@ -732,18 +760,35 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         );
         setOrderType(order.order_type);
         setPaymentMethod(order.payments?.[0]?.method ?? 'cash');
-        setCustomerId(order.customer_id ? String(order.customer_id) : '');
+        setCustomerId(
+            order.client_id
+                ? `client:${order.client_id}`
+                : order.customer_id
+                  ? `customer:${order.customer_id}`
+                  : '',
+        );
         setCustomerName(order.customer_name ?? '');
         setCustomerPhone(order.customer_phone ?? '');
         setCustomerSearch('');
         setCustomerSearchResults(
-            order.customer_id
+            order.client_id || order.customer_id
                 ? [
                       {
-                          id: order.customer_id,
-                          name: order.customer_name ?? order.customer?.name,
-                          phone: order.customer_phone ?? order.customer?.phone,
-                          email: order.customer?.email,
+                          id: order.client_id ?? order.customer_id ?? 0,
+                          record_type: order.client_id ? 'client' : 'customer',
+                          selection_value: order.client_id
+                              ? `client:${order.client_id}`
+                              : `customer:${order.customer_id}`,
+                          name:
+                              order.customer_name ??
+                              order.client?.name ??
+                              order.customer?.name,
+                          phone:
+                              order.customer_phone ??
+                              order.client?.phone ??
+                              order.customer?.phone,
+                          email: order.client?.email ?? order.customer?.email,
+                          provider: order.client?.provider ?? null,
                       },
                   ]
                 : [],
@@ -1522,7 +1567,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                                         const selectedCustomer =
                                             customerSearchResults.find(
                                                 (customer) =>
-                                                    String(customer.id) ===
+                                                    customer.selection_value ===
                                                     value,
                                             );
 

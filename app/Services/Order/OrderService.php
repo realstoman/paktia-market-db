@@ -182,11 +182,12 @@ class OrderService
 
         return $customers
             ->concat($clients)
-            ->sortBy([
-                fn (array $entry) => blank($entry['name']) ? 1 : 0,
-                ['name', 'asc'],
-                ['phone', 'asc'],
-            ])
+            ->sortBy(fn (array $entry) => sprintf(
+                '%d|%s|%s',
+                blank($entry['name']) ? 1 : 0,
+                mb_strtolower((string) ($entry['name'] ?? '')),
+                mb_strtolower((string) ($entry['phone'] ?? '')),
+            ))
             ->values()
             ->take($resolvedLimit);
     }

@@ -910,6 +910,7 @@ export interface Order {
         name?: string | null;
         email?: string | null;
         phone?: string | null;
+        provider?: string | null;
         [key: string]: unknown;
     } | null;
     customer?: Customer | null;
