@@ -682,9 +682,11 @@ export interface Product {
     pashto_description?: string | null;
     dari_description?: string | null;
     product_category_id?: number;
+    product_category_ids?: number[];
     cuisine_id?: number | null;
     kitchen_id?: number | null;
     category?: ProductCategory | null;
+    categories?: ProductCategory[];
     cuisine?: Cuisine | null;
     kitchen?: Kitchen | null;
     type?: string;

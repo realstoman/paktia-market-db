@@ -99,6 +99,9 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
     const [pashtoName, setPashtoName] = useState('');
     const [dariName, setDariName] = useState('');
     const [categoryId, setCategoryId] = useState('');
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(
+        [],
+    );
     const [cuisineId, setCuisineId] = useState('none');
     const [kitchenId, setKitchenId] = useState('none');
     const [type, setType] = useState(types[0]?.name ?? 'food');
@@ -172,6 +175,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         setPashtoName('');
         setDariName('');
         setCategoryId('');
+        setSelectedCategoryIds([]);
         setCuisineId('none');
         setKitchenId('none');
         setType(types[0]?.name ?? 'food');
@@ -219,6 +223,31 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
         }));
     };
 
+    const handlePrimaryCategoryChange = (value: string) => {
+        setCategoryId(value);
+
+        const numericCategoryId = Number(value);
+        if (Number.isNaN(numericCategoryId)) {
+            return;
+        }
+
+        setSelectedCategoryIds((prev) =>
+            Array.from(new Set([...prev, numericCategoryId])),
+        );
+    };
+
+    const toggleSelectedCategoryId = (targetCategoryId: number) => {
+        if (String(targetCategoryId) === categoryId) {
+            return;
+        }
+
+        setSelectedCategoryIds((prev) =>
+            prev.includes(targetCategoryId)
+                ? prev.filter((id) => id !== targetCategoryId)
+                : [...prev, targetCategoryId],
+        );
+    };
+
     const handleCreateSubmit = () => {
         if (
             !name.trim() ||
@@ -246,6 +275,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                 pashto_name: pashtoName.trim() || null,
                 dari_name: dariName.trim() || null,
                 product_category_id: Number(categoryId),
+                category_ids: selectedCategoryIds,
                 cuisine_id: cuisineId !== 'none' ? Number(cuisineId) : null,
                 kitchen_id: kitchenId !== 'none' ? Number(kitchenId) : null,
                 type,
@@ -561,9 +591,16 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
 
     const filteredData = useMemo(() => {
         return data.filter((product) => {
+            const productCategoryIds =
+                product.product_category_ids?.length
+                    ? product.product_category_ids
+                    : product.categories?.map((category) => category.id) ??
+                      (product.product_category_id
+                          ? [product.product_category_id]
+                          : []);
             const byCategory =
                 categoryFilter === 'all' ||
-                String(product.product_category_id ?? '') === categoryFilter;
+                productCategoryIds.includes(Number(categoryFilter));
             const byKitchen =
                 kitchenFilter === 'all' ||
                 String(product.kitchen_id ?? '') === kitchenFilter;
@@ -859,7 +896,7 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 <Label>{t('products.fields.category', 'Category')}</Label>
                                 <SearchableDropdown
                                     value={categoryId}
-                                    onValueChange={setCategoryId}
+                                    onValueChange={handlePrimaryCategoryChange}
                                     options={categories.map((category) => ({
                                         value: String(category.id),
                                         label: category.name,
@@ -880,6 +917,69 @@ export const ProductsClient: React.FC<ProductsClientProps> = ({
                                 <InputError
                                     message={createErrors.product_category_id}
                                 />
+                            </div>
+                            <div className="grid gap-2 sm:col-span-2">
+                                <Label>
+                                    {t(
+                                        'products.fields.displayCategories',
+                                        'Display Categories',
+                                    )}
+                                </Label>
+                                <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+                                    <p className="text-sm text-muted-foreground">
+                                        {t(
+                                            'products.fields.displayCategoriesHelp',
+                                            'Choose every menu category where this product should appear. The primary category is always included.',
+                                        )}
+                                    </p>
+                                    <ScrollArea className="mt-3 h-40 pr-3">
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            {categories.map((category) => {
+                                                const isPrimaryCategory =
+                                                    String(category.id) ===
+                                                    categoryId;
+                                                const isChecked =
+                                                    isPrimaryCategory ||
+                                                    selectedCategoryIds.includes(
+                                                        category.id,
+                                                    );
+
+                                                return (
+                                                    <label
+                                                        key={category.id}
+                                                        className="flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-800"
+                                                    >
+                                                        <Checkbox
+                                                            checked={
+                                                                isChecked
+                                                            }
+                                                            disabled={
+                                                                isPrimaryCategory
+                                                            }
+                                                            onCheckedChange={() =>
+                                                                toggleSelectedCategoryId(
+                                                                    category.id,
+                                                                )
+                                                            }
+                                                        />
+                                                        <span className="flex-1">
+                                                            {category.name}
+                                                        </span>
+                                                        {isPrimaryCategory ? (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {t(
+                                                                    'products.fields.primaryCategoryBadge',
+                                                                    'Primary',
+                                                                )}
+                                                            </span>
+                                                        ) : null}
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
+                                <InputError message={createErrors.category_ids} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>{t('products.fields.cuisine', 'Cuisine')}</Label>

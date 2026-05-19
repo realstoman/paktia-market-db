@@ -3054,9 +3054,14 @@ const ps = {
             sizesEmpty: 'د سایز بیه نه ده ټاکل شوې',
             imagesCount: 'انځورونه',
             selectCategory: 'کټګوري وټاکئ',
+            displayCategories: 'د ښودلو کټګورۍ',
+            displayCategoriesHelp:
+                'ټولې هغه کټګورۍ وټاکئ چې دا محصول باید پکې ښکاره شي. اصلي کټګوري تل شامله وي.',
+            primaryCategoryBadge: 'اصلي',
             selectCuisine: 'د خوړو سبک وټاکئ',
             noCuisine: 'د خوړو سبک نشته',
             selectKitchen: 'پخلنځی وټاکئ',
+            noKitchen: 'پخلنځی نشته / مستقیم سرو',
             selectType: 'ډول وټاکئ',
         },
         imageUploadHelp:

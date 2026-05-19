@@ -3047,9 +3047,14 @@ const fa = {
             sizesEmpty: 'هیچ قیمت‌گذاری سایزی تنظیم نشده است',
             imagesCount: 'تصاویر',
             selectCategory: 'کتگوری را انتخاب کنید',
+            displayCategories: 'کتگوری‌های نمایش',
+            displayCategoriesHelp:
+                'همه کتگوری‌هایی را انتخاب کنید که این محصول باید در آن‌ها نمایش داده شود. کتگوری اصلی همیشه شامل می‌شود.',
+            primaryCategoryBadge: 'اصلی',
             selectCuisine: 'سبک غذایی را انتخاب کنید',
             noCuisine: 'بدون سبک غذایی',
             selectKitchen: 'آشپزخانه را انتخاب کنید',
+            noKitchen: 'بدون آشپزخانه / سرو مستقیم',
             selectType: 'نوع را انتخاب کنید',
         },
         imageUploadHelp:

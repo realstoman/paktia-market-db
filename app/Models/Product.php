@@ -24,9 +24,30 @@ class Product extends Model
         'is_active',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function (Product $product): void {
+            if (! $product->product_category_id) {
+                return;
+            }
+
+            $product->categories()->syncWithoutDetaching([
+                (int) $product->product_category_id,
+            ]);
+        });
+    }
+
     public function category()
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(
+            ProductCategory::class,
+            'product_category_product',
+        )->withTimestamps()->orderBy('sort_order')->orderBy('name');
     }
 
     public function cuisine()

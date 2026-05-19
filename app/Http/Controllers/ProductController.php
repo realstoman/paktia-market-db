@@ -24,7 +24,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(['category', 'cuisine', 'kitchen', 'sizes', 'images'])
+        $products = Product::with(['category', 'categories', 'cuisine', 'kitchen', 'sizes', 'images'])
             ->orderBy('name')
             ->get()
             ->each(function (Product $product) {
@@ -51,6 +51,8 @@ class ProductController extends Controller
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:product_categories,id',
             'cuisine_id' => 'nullable|exists:cuisines,id',
             'kitchen_id' => 'nullable|exists:kitchens,id',
             'type' => 'required|string|max:50',
@@ -89,6 +91,12 @@ class ProductController extends Controller
                 $product->sizes()->sync($syncData);
             }
 
+            $this->syncProductCategories(
+                $product,
+                $validated['product_category_id'],
+                $validated['category_ids'] ?? [],
+            );
+
             $images = $request->file('images', []);
             foreach ($images as $index => $image) {
                 $path = $image->store('products', 'public');
@@ -113,6 +121,8 @@ class ProductController extends Controller
             'pashto_description' => 'nullable|string|max:1000',
             'dari_description' => 'nullable|string|max:1000',
             'product_category_id' => 'required|exists:product_categories,id',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:product_categories,id',
             'cuisine_id' => 'nullable|exists:cuisines,id',
             'kitchen_id' => 'nullable|exists:kitchens,id',
             'type' => 'required|string|max:50',
@@ -179,6 +189,12 @@ class ProductController extends Controller
                 $product->sizes()->sync($syncData);
             }
 
+            $this->syncProductCategories(
+                $product,
+                $validated['product_category_id'],
+                $validated['category_ids'] ?? [],
+            );
+
             $removeImageIds = $request->user()?->hasRole('super-admin')
                 ? ($validated['remove_image_ids'] ?? [])
                 : [];
@@ -204,6 +220,22 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');
+    }
+
+    private function syncProductCategories(
+        Product $product,
+        int $primaryCategoryId,
+        array $categoryIds = [],
+    ): void {
+        $resolvedCategoryIds = collect($categoryIds)
+            ->map(fn ($id) => (int) $id)
+            ->push($primaryCategoryId)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $product->categories()->sync($resolvedCategoryIds);
     }
 
     public function destroy(Product $product)
