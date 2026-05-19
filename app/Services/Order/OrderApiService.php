@@ -37,6 +37,7 @@ class OrderApiService
                 'client:id,first_name,last_name,phone',
                 'items:id,order_id,product_id,product_size_id,kitchen_id,quantity,price,product_name_snapshot',
                 'items.product:id,name,product_category_id',
+                'items.product.categories:id,name',
                 'items.product.category:id,name',
                 'items.productSize:id,name',
                 'items.kitchen:id,name',
@@ -130,7 +131,10 @@ class OrderApiService
                                 $filters['category_id'] ?? null,
                                 fn (Builder $iq, int $categoryId) => $iq
                                     ->whereHas('product', fn (Builder $pq) => $pq
-                                        ->where('product_category_id', $categoryId))
+                                        ->whereHas(
+                                            'categories',
+                                            fn (Builder $categoryQuery) => $categoryQuery->where('product_categories.id', $categoryId),
+                                        ))
                             );
                     });
                 }

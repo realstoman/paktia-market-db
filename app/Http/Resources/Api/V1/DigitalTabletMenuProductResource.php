@@ -30,6 +30,20 @@ class DigitalTabletMenuProductResource extends JsonResource
             'product_category_name' => $this->category?->name,
             'product_category_dari_name' => $this->category?->dari_name,
             'product_category_pashto_name' => $this->category?->pashto_name,
+            'product_category_ids' => $this->whenLoaded(
+                'categories',
+                fn () => $this->categories->pluck('id')->values()->all(),
+                [$this->product_category_id],
+            ),
+            'product_categories' => $this->whenLoaded(
+                'categories',
+                fn () => $this->categories->map(fn ($category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'dari_name' => $category->dari_name,
+                    'pashto_name' => $category->pashto_name,
+                ])->values()->all(),
+            ),
             'cuisine_id' => $this->cuisine_id,
             'cuisine_name' => $this->cuisine?->name,
             'product_type' => $this->type,
