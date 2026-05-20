@@ -3,9 +3,8 @@
 namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class DigitalTabletMenuProductResource extends JsonResource
+class DigitalTabletMenuProductResource extends ProductResource
 {
     public function toArray(Request $request): array
     {
@@ -21,32 +20,38 @@ class DigitalTabletMenuProductResource extends JsonResource
             ->values()
             ->all() ?? [];
 
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'dari_name' => $this->dari_name,
-            'pashto_name' => $this->pashto_name,
-            'product_category_id' => $this->product_category_id,
+        $productCategories = $this->whenLoaded(
+            'categories',
+            fn () => $this->categories->map(fn ($category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'dari_name' => $category->dari_name,
+                'pashto_name' => $category->pashto_name,
+            ])->values()->all(),
+        );
+
+        $categoryIds = $this->whenLoaded(
+            'categories',
+            fn () => $this->categories->pluck('id')->values()->all(),
+            [$this->product_category_id],
+        );
+
+        $secondaryCategory = $this->whenLoaded(
+            'categories',
+            fn () => $this->categories
+                ->first(fn ($category) => (int) $category->id !== (int) $this->product_category_id),
+        );
+
+        return array_merge(parent::toArray($request), [
             'product_category_name' => $this->category?->name,
             'product_category_dari_name' => $this->category?->dari_name,
             'product_category_pashto_name' => $this->category?->pashto_name,
-            'product_category_ids' => $this->whenLoaded(
-                'categories',
-                fn () => $this->categories->pluck('id')->values()->all(),
-                [$this->product_category_id],
-            ),
-            'product_categories' => $this->whenLoaded(
-                'categories',
-                fn () => $this->categories->map(fn ($category) => [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'dari_name' => $category->dari_name,
-                    'pashto_name' => $category->pashto_name,
-                ])->values()->all(),
-            ),
-            'cuisine_id' => $this->cuisine_id,
-            'cuisine_name' => $this->cuisine?->name,
-            'product_type' => $this->type,
+            'product_category_ids' => $categoryIds,
+            'product_categories' => $productCategories,
+            'secondary_category_id' => $secondaryCategory?->id,
+            'secondary_category_name' => $secondaryCategory?->name,
+            'secondary_category_dari_name' => $secondaryCategory?->dari_name,
+            'secondary_category_pashto_name' => $secondaryCategory?->pashto_name,
             'product_type_id' => $this->product_type_id,
             'product_type_pashto_name' => $this->product_type_pashto_name,
             'product_type_dari_name' => $this->product_type_dari_name,
@@ -58,6 +63,6 @@ class DigitalTabletMenuProductResource extends JsonResource
                     'url' => $firstImage->url,
                 ]
                 : null,
-        ];
+        ]);
     }
 }

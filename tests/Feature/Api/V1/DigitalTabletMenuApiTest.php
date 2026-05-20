@@ -41,7 +41,7 @@ function createDigitalTabletMenuBaseData(): array
     return [$branch, $kitchen];
 }
 
-test('digital tablet menu products endpoint returns the dedicated tablet payload', function () {
+test('digital tablet menu products endpoint returns the full product payload plus tablet compatibility fields', function () {
     [, $kitchen] = createDigitalTabletMenuBaseData();
 
     $category = ProductCategory::create([
@@ -98,23 +98,48 @@ test('digital tablet menu products endpoint returns the dedicated tablet payload
         ->assertJsonPath('data.0.name', 'Qabuli Palaw')
         ->assertJsonPath('data.0.dari_name', 'قابلی پلو')
         ->assertJsonPath('data.0.pashto_name', 'قابلي پلو')
+        ->assertJsonPath('data.0.description', null)
+        ->assertJsonPath('data.0.pashto_description', null)
+        ->assertJsonPath('data.0.dari_description', null)
         ->assertJsonPath('data.0.product_category_id', $category->id)
+        ->assertJsonPath('data.0.category_name', 'Main Dishes')
+        ->assertJsonPath('data.0.category_dari_name', 'غذاهای اصلی')
+        ->assertJsonPath('data.0.category_pashto_name', 'اصلي خواړه')
         ->assertJsonPath('data.0.product_category_name', 'Main Dishes')
         ->assertJsonPath('data.0.product_category_dari_name', 'غذاهای اصلی')
         ->assertJsonPath('data.0.product_category_pashto_name', 'اصلي خواړه')
         ->assertJsonPath('data.0.cuisine_id', $cuisine->id)
         ->assertJsonPath('data.0.cuisine_name', 'Afghan')
+        ->assertJsonPath('data.0.kitchen_id', $kitchen->id)
+        ->assertJsonPath('data.0.kitchen_name', 'Hot Kitchen')
+        ->assertJsonPath('data.0.type', 'food')
         ->assertJsonPath('data.0.product_type', 'food')
+        ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.type_dari_name', 'غذا')
         ->assertJsonPath('data.0.product_type_id', $type->id)
         ->assertJsonPath('data.0.product_type_pashto_name', 'خواړه')
         ->assertJsonPath('data.0.product_type_dari_name', 'غذا')
         ->assertJsonPath('data.0.price', 450)
+        ->assertJsonPath('data.0.base_price', 450)
+        ->assertJsonPath('data.0.sizes.0.name', 'Small')
+        ->assertJsonPath('data.0.sizes.0.code', 'S')
+        ->assertJsonPath('data.0.sizes.0.price', 400)
+        ->assertJsonPath('data.0.sizes.1.name', 'Large')
+        ->assertJsonPath('data.0.sizes.1.code', 'L')
+        ->assertJsonPath('data.0.sizes.1.price', 650)
         ->assertJsonPath('data.0.size_prices.0.name', 'Small')
         ->assertJsonPath('data.0.size_prices.0.price', 400)
         ->assertJsonPath('data.0.size_prices.1.name', 'Large')
         ->assertJsonPath('data.0.size_prices.1.price', 650)
+        ->assertJsonPath('data.0.is_active', true)
+        ->assertJsonPath('data.0.images_count', 2)
         ->assertJsonPath('data.0.image.path', 'products/qabuli-1.jpg')
-        ->assertJsonPath('data.0.image.url', '/storage/products/qabuli-1.jpg');
+        ->assertJsonPath('data.0.image.url', '/storage/products/qabuli-1.jpg')
+        ->assertJsonPath('data.0.images.0.path', 'products/qabuli-1.jpg')
+        ->assertJsonPath('data.0.images.0.url', '/storage/products/qabuli-1.jpg')
+        ->assertJsonPath('data.0.images.0.sort_order', 0)
+        ->assertJsonPath('data.0.images.1.path', 'products/qabuli-2.jpg')
+        ->assertJsonPath('data.0.images.1.sort_order', 1);
 });
 
 test('digital tablet menu products endpoint respects category sort order in the main feed', function () {
@@ -326,7 +351,8 @@ test('digital tablet menu products by category endpoint is public', function () 
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $kabab->id)
-        ->assertJsonPath('data.0.name', 'Kabab');
+        ->assertJsonPath('data.0.name', 'Kabab')
+        ->assertJsonPath('data.0.category_name', 'Main');
 });
 
 test('digital tablet menu cuisines and products by cuisine endpoints are public', function () {
@@ -439,7 +465,10 @@ test('digital tablet menu products by type endpoint is public', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $foodProduct->id)
         ->assertJsonPath('data.0.name', 'Ashak')
+        ->assertJsonPath('data.0.type', 'food')
         ->assertJsonPath('data.0.product_type_id', $foodType->id)
+        ->assertJsonPath('data.0.type_pashto_name', 'خواړه')
+        ->assertJsonPath('data.0.type_dari_name', 'غذا')
         ->assertJsonPath('data.0.product_type_pashto_name', 'خواړه')
         ->assertJsonPath('data.0.product_type_dari_name', 'غذا');
 });

@@ -113,7 +113,7 @@ class DigitalTabletMenuProductService
     protected function baseQuery()
     {
         return Product::query()
-            ->with(['category', 'categories', 'cuisine', 'images', 'sizes'])
+            ->with(['category', 'categories', 'cuisine', 'kitchen', 'images', 'sizes'])
             ->where('is_active', true);
     }
 
@@ -156,6 +156,8 @@ class DigitalTabletMenuProductService
                 'product_type_id',
                 $typeIdByName[$normalizedType] ?? null,
             );
+            $product->setAttribute('type_pashto_name', $type?->pashto_name);
+            $product->setAttribute('type_dari_name', $type?->dari_name);
             $product->setAttribute('product_type_pashto_name', $type?->pashto_name);
             $product->setAttribute('product_type_dari_name', $type?->dari_name);
 
