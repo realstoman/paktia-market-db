@@ -140,7 +140,7 @@ export function NumericInput({
     }
 
     return (
-        <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]">
+        <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-colors transition-shadow focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]">
             <Button
                 type="button"
                 variant="ghost"
