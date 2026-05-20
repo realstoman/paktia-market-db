@@ -328,7 +328,7 @@ function MetricInline({
                                 <TooltipTrigger asChild>
                                     <button
                                         type="button"
-                                        className="inline-flex h-4 w-4 items-center justify-center text-muted-foreground/80 transition hover:text-foreground"
+                                        className="inline-flex h-4 w-4 items-center justify-center text-muted-foreground/80 transition-colors hover:text-foreground"
                                         aria-label={
                                             tooltipLabel ?? 'Show formula'
                                         }

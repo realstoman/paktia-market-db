@@ -920,7 +920,7 @@ export default function ReportsPage({
                                             </button>
                                             <button
                                                 type="button"
-                                                className="rounded-full p-1 text-muted-foreground transition hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800"
+                                                className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-foreground dark:hover:bg-neutral-800"
                                                 onClick={() =>
                                                     removeSavedPreset(preset.id)
                                                 }

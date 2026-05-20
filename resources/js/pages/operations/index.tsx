@@ -1115,7 +1115,7 @@ export default function OperationsPage({
                                                     onClick={() =>
                                                         handleTableSelect(table)
                                                     }
-                                                    className={`rounded-[1.4rem] border text-left transition ${isOrderTakerMode ? 'min-h-[180px] p-5' : 'p-4'} ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
+                                                    className={`rounded-[1.4rem] border text-left transition-colors transition-shadow ${isOrderTakerMode ? 'min-h-[180px] p-5' : 'p-4'} ${selectedTableId === table.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-[#fcfbf8] hover:border-[#d4b8a3]'} ${table.active_order ? 'shadow-[0_12px_30px_rgba(181,84,42,0.10)]' : ''}`}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div
@@ -1190,7 +1190,7 @@ export default function OperationsPage({
                                                     onClick={() =>
                                                         handleOrderSelect(order)
                                                     }
-                                                    className={`w-full rounded-[1.2rem] border p-4 text-left transition ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
+                                                    className={`w-full rounded-[1.2rem] border p-4 text-left transition-colors transition-shadow ${selectedOrderId === order.id ? 'border-[#b5542a] bg-[#fff7ef]' : 'border-neutral-200 bg-white hover:border-[#d4b8a3]'}`}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div>

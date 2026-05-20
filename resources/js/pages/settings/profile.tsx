@@ -151,9 +151,9 @@ export default function Profile({
 
                                     <Transition
                                         show={recentlySuccessful}
-                                        enter="transition ease-in-out"
+                                        enter="transition-opacity ease-in-out"
                                         enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
+                                        leave="transition-opacity ease-in-out"
                                         leaveTo="opacity-0"
                                     >
                                         <p className="text-sm text-neutral-600">
