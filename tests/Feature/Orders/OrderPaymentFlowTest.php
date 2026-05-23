@@ -129,6 +129,63 @@ test('order takers can not complete orders directly without payment permission',
         ->toThrow(ValidationException::class);
 });
 
+test('online orders operators can complete online orders after payment but cannot manage pos orders', function () {
+    $service = app(OrderService::class);
+    $branch = createBranchForOrders();
+    Permission::findOrCreate('orders.update', 'web');
+    Permission::findOrCreate('payments.create', 'web');
+
+    $operator = User::factory()->create([
+        'branch_id' => $branch->id,
+    ]);
+    $operator->assignRole('online-orders-operator');
+
+    $onlineOrder = Order::create([
+        'branch_id' => $branch->id,
+        'user_id' => null,
+        'order_type' => 'delivery',
+        'source' => 'website',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 1200,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'total_amount' => 1200,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'ready',
+    ]);
+
+    $service->updateStatus($onlineOrder, 'completed', 'cash', null, $operator);
+
+    $onlineOrder->refresh();
+
+    expect((string) $onlineOrder->status->value)->toBe('completed');
+    expect((float) $onlineOrder->paid_amount)->toBe(1200.0);
+    expect($onlineOrder->payments()->count())->toBe(1);
+
+    $posOrder = Order::create([
+        'branch_id' => $branch->id,
+        'user_id' => null,
+        'order_type' => 'takeaway',
+        'source' => 'pos',
+        'base_currency' => 'AFN',
+        'sub_total_amount' => 500,
+        'discount_amount' => 0,
+        'tax_amount' => 0,
+        'service_charge_amount' => 0,
+        'total_amount' => 500,
+        'paid_amount' => 0,
+        'change_amount' => 0,
+        'refund_amount' => 0,
+        'status' => 'ready',
+    ]);
+
+    expect(fn () => $service->updateStatus($posOrder, 'completed', 'cash', null, $operator))
+        ->toThrow(ValidationException::class);
+});
+
 test('employee covered orders become salary deductions for the next payroll', function () {
     $service = app(OrderService::class);
     $branch = createBranchForOrders();
