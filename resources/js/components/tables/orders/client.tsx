@@ -96,6 +96,7 @@ const ORDER_STATUSES = [
 ];
 
 const ORDER_TYPE_OPTIONS = ['dine_in', 'takeaway', 'delivery'] as const;
+const ONLINE_ORDER_SOURCES = ['mobile_app', 'website'] as const;
 
 const emptyItem = (): OrderItemDraft => ({
     productId: '',
@@ -116,6 +117,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const { auth } = usePage<SharedData>().props;
     const { can } = useAuthorization();
     const { t, locale } = useLocalization();
+    const isOnlineOrdersOperator = auth.roles.includes('online-orders-operator');
     const canCreateOrder = can('orders.create');
     const localizedProductName = useCallback(
         (product?: Product | null) => {
@@ -237,7 +239,11 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
     const getSourceLabel = (sourceValue: string) =>
         t(
             `orders.source.${sourceValue}`,
-            sourceValue === 'mobile_app' ? 'Mobile' : 'POS',
+            sourceValue === 'mobile_app'
+                ? 'Mobile'
+                : sourceValue === 'website'
+                  ? 'Website'
+                  : 'POS',
         );
 
     const paymentMethodOptions = [
@@ -1013,6 +1019,17 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 return false;
             }
 
+            if (
+                isOnlineOrdersOperator &&
+                !ONLINE_ORDER_SOURCES.includes(
+                    (order.source ?? 'pos') as
+                        | (typeof ONLINE_ORDER_SOURCES)[number]
+                        | 'pos',
+                )
+            ) {
+                return false;
+            }
+
             if (kitchenFilter !== 'all') {
                 const hasKitchen = (order.items ?? []).some(
                     (item) => String(item.kitchen_id ?? '') === kitchenFilter,
@@ -1033,6 +1050,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         statusFilter,
         coverageFilter,
         userFilter,
+        isOnlineOrdersOperator,
     ]);
 
     const branchFilterOptions = useMemo(
@@ -1113,6 +1131,10 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 value: 'mobile_app',
                 label: t('orders.source.mobile_app', 'Mobile'),
             },
+            {
+                value: 'website',
+                label: t('orders.source.website', 'Website'),
+            },
         ],
         [t],
     );
@@ -1158,7 +1180,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 emptyText={t('orders.filters.noBranches', 'No branches found.')}
                 className={filterControlClassName}
             />
-            {!isOrderTaker ? (
+            {!isOrderTaker && !isOnlineOrdersOperator ? (
                 <SearchableDropdown
                     value={userFilter}
                     options={userFilterOptions}
@@ -1220,18 +1242,23 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 emptyText={t('orders.filters.noCoverage', 'No coverage found.')}
                 className={filterControlClassName}
             />
-            <SearchableDropdown
-                value={sourceFilter}
-                options={sourceFilterOptions}
-                onValueChange={setSourceFilter}
-                placeholder={t('orders.filters.source', 'Source')}
-                searchPlaceholder={t(
-                    'orders.filters.searchSources',
-                    'Search sources...',
-                )}
-                emptyText={t('orders.filters.noSources', 'No sources found.')}
-                className={filterControlClassName}
-            />
+            {!isOnlineOrdersOperator ? (
+                <SearchableDropdown
+                    value={sourceFilter}
+                    options={sourceFilterOptions}
+                    onValueChange={setSourceFilter}
+                    placeholder={t('orders.filters.source', 'Source')}
+                    searchPlaceholder={t(
+                        'orders.filters.searchSources',
+                        'Search sources...',
+                    )}
+                    emptyText={t(
+                        'orders.filters.noSources',
+                        'No sources found.',
+                    )}
+                    className={filterControlClassName}
+                />
+            ) : null}
         </div>
     );
 
@@ -1239,10 +1266,19 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <Heading
-                    title={`${t('orders.toolbarTitle', 'Orders:')} ${formatNumber(filteredData.length)}`}
+                    title={`${t(
+                        isOnlineOrdersOperator
+                            ? 'orders.onlineToolbarTitle'
+                            : 'orders.toolbarTitle',
+                        isOnlineOrdersOperator ? 'Online Orders:' : 'Orders:',
+                    )} ${formatNumber(filteredData.length)}`}
                     description={t(
-                        'orders.toolbarDescription',
-                        'Track and manage orders (DESC order by ID)',
+                        isOnlineOrdersOperator
+                            ? 'orders.onlineToolbarDescription'
+                            : 'orders.toolbarDescription',
+                        isOnlineOrdersOperator
+                            ? 'Track and fulfill website and mobile app orders.'
+                            : 'Track and manage orders (DESC order by ID)',
                     )}
                 />
                 {canCreateOrder ? (

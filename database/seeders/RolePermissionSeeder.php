@@ -90,6 +90,12 @@ class RolePermissionSeeder extends Seeder
                 PermissionEnum::ORDERS_VIEW,
                 PermissionEnum::ORDERS_UPDATE,
             ],
+            'online-orders-operator' => [
+                PermissionEnum::ORDERS_VIEW,
+                PermissionEnum::ORDERS_UPDATE,
+                PermissionEnum::PAYMENTS_VIEW,
+                PermissionEnum::PAYMENTS_CREATE,
+            ],
         ];
 
         foreach ($roles as $name => $permissions) {

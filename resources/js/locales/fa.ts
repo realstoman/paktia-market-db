@@ -2451,6 +2451,7 @@ const fa = {
         source: {
             pos: 'صندوق',
             mobile_app: 'موبایل',
+            website: 'وب‌سایت',
         },
         orderType: {
             dine_in: 'صرف در محل',
@@ -2464,8 +2465,11 @@ const fa = {
             other: 'سایر',
         },
         toolbarTitle: 'سفارش‌ها:',
+        onlineToolbarTitle: 'سفارش‌های آنلاین:',
         toolbarDescription:
             'پیگیری و مدیریت سفارش‌ها (مرتب‌سازی نزولی بر اساس شناسه)',
+        onlineToolbarDescription:
+            'پیگیری و مدیریت سفارش‌های وب‌سایت و اپلیکیشن موبایل.',
         createOrder: 'ایجاد سفارش',
         editOrder: 'ویرایش سفارش',
         updateOrder: 'به‌روزرسانی سفارش',

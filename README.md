@@ -8,9 +8,12 @@ It currently includes:
 - roles and permissions with Spatie Permission
 - users and employees management
 - countries, cities, branches, kitchens, and products
-- orders and receipts
+- clients synced from website/mobile authentication
+- orders, receipts, kitchen workflow, and online-order operations
 - inventory and vendor balances
+- branch-local printers and thermal print jobs
 - finance dashboards, payroll, and reports
+- public and authenticated product/catalog APIs for website, mobile, and digital tablet menu
 
 ## Tech Stack
 
@@ -72,10 +75,12 @@ Current main sections:
 - Dashboard
 - Users
 - Roles and Permissions
+- Clients
 - Employees
 - Countries and Cities
 - Branches
 - Kitchens
+- Printers
 - Products
 - Orders
 - Inventory
@@ -159,6 +164,12 @@ If seeders exist and you want demo data:
 php artisan db:seed
 ```
 
+For roles and permissions after upgrades:
+
+```bash
+php artisan db:seed --class=RolePermissionSeeder
+```
+
 ### 6. Start the app
 
 In one terminal:
@@ -187,7 +198,9 @@ composer run dev
 php artisan serve
 php artisan migrate
 php artisan migrate:fresh --seed
+php artisan db:seed --class=RolePermissionSeeder
 php artisan queue:listen --tries=1
+php artisan queue:work --queue=high,default,audit
 php artisan pail
 php artisan test
 ```
@@ -318,6 +331,187 @@ Typical permission-related locations:
 - `resources/js/pages/admin/roles`
 - `resources/js/pages/admin/users`
 
+Current operational roles also include:
+
+- `cashier`
+- `order-taker`
+- `server`
+- `kitchen`
+- `inventory`
+- `finance`
+- `online-orders-operator`
+- `view-only`
+
+The `online-orders-operator` role is designed for website/mobile orders only:
+
+- lands directly on `/orders`
+- sees only orders with `source = website` or `source = mobile_app`
+- can update online order status, accept payment, complete orders, and print receipts
+- cannot create POS orders, edit order contents, or access the rest of the admin navigation
+
+After pulling permission changes, reseed:
+
+```bash
+php artisan db:seed --class=RolePermissionSeeder
+```
+
+## Orders and Fulfillment
+
+The platform supports multiple order channels and fulfillment types:
+
+- sources:
+  - `pos`
+  - `website`
+  - `mobile_app`
+- order types:
+  - `dine_in`
+  - `takeaway`
+  - `delivery`
+
+Important model rule:
+
+- `source` tells you where the order came from
+- `order_type` tells you how it should be fulfilled
+
+That means an online order is not always a delivery order. Website and mobile app orders can be:
+
+- `delivery`
+- `takeaway`
+- `dine_in`
+
+The website/mobile checkout API now accepts `dine_in` in the same family as takeaway, using:
+
+- `customer_name`
+- `customer_phone`
+- `customer_note`
+
+For example, the frontend can store guest information such as `4 guests` inside `customer_note` until a dedicated guest-count field is introduced.
+
+## Printing and Branch-Local Runtime
+
+The system includes a branch-local printer domain for thermal kitchen and operator printing.
+
+Main concepts:
+
+- `printers`
+- `printer_assignments`
+- `print_jobs`
+
+Current supported assignment styles:
+
+- kitchen printer
+- order-taker printer
+- cashier printer
+- order-type printer
+- generic printer
+
+Recommended branch-local flow:
+
+1. Run the app on a local Linux/branch server.
+2. Put printers on the same LAN using fixed IPs.
+3. Register printers in `/printers`.
+4. Use `Test Print` to verify connectivity.
+5. Let order create/update flows generate print jobs automatically.
+
+Printing is designed to stay local to the branch network and does not depend on the VPS or public internet.
+
+### Printer setup fields
+
+Each printer record supports:
+
+- name
+- branch
+- IP address
+- port
+- paper width
+- copies
+- active state
+- assignment rules
+
+### Print transport
+
+The current implementation uses LAN-first socket printing from the local server to the configured printer IP/port. Failed jobs should never block order creation; they are tracked separately as print jobs.
+
+## Product Catalog Model
+
+Products now support a richer catalog structure:
+
+- primary category via `product_category_id`
+- additional display categories through a pivot relation
+- separate `cuisine`
+- separate `kitchen`
+- separate `type`
+
+This allows a product such as `Chapli Kabab` to appear under:
+
+- `Kababs`
+- `Afghan Cuisine`
+
+without duplicating the product itself.
+
+### Category ordering
+
+Product categories now support `sort_order`, which is used by digital menu and catalog APIs when returning category lists.
+
+## API Surfaces
+
+The app currently exposes multiple catalog and ordering surfaces:
+
+- authenticated/admin web app
+- mobile/website customer checkout APIs
+- digital tablet menu APIs
+- branch-sync APIs
+
+### Digital tablet menu
+
+The digital tablet menu endpoints live under:
+
+- `/api/v1/digital-tablet-menu/products`
+- `/api/v1/digital-tablet-menu/categories`
+- `/api/v1/digital-tablet-menu/categories/{category}/products`
+- `/api/v1/digital-tablet-menu/cuisines`
+- `/api/v1/digital-tablet-menu/cuisines/{cuisine}/products`
+- `/api/v1/digital-tablet-menu/types`
+- `/api/v1/digital-tablet-menu/types/{type}/products`
+
+The digital tablet menu product endpoints now return the same product payload shape as `/api/v1/products`.
+
+### Public catalog mode
+
+For current integration testing, catalog-style endpoints may be temporarily configured as public so website/mobile/digital menu clients can fetch:
+
+- products
+- categories
+- types
+- cuisines
+- digital tablet menu products
+- banners
+
+without `X-App-Key` or Firebase auth.
+
+If you later restore app-key protection, make sure route/config caches are cleared on the server:
+
+```bash
+php artisan optimize:clear
+php artisan route:clear
+php artisan config:clear
+```
+
+## Sync Model
+
+The branch architecture is offline-first and supports two-way sync:
+
+- local branch server -> VPS
+  - POS orders
+  - operational updates
+  - finance/inventory effects
+- VPS -> local branch server
+  - website orders
+  - mobile app orders
+  - future centralized changes
+
+The current sync foundation includes branch order sync contracts and branch-local order ownership for execution.
+
 ## Frontend Patterns
 
 Common frontend conventions used in this project:
@@ -348,9 +542,11 @@ Main sections are available under routes such as:
 - `/dashboard`
 - `/users`
 - `/roles`
+- `/clients`
 - `/branches`
 - `/countries`
 - `/kitchens`
+- `/printers`
 - `/products`
 - `/orders`
 - `/inventory`
@@ -367,6 +563,7 @@ composer install --no-dev --optimize-autoloader --classmap-authoritative
 npm ci
 npm run build
 php artisan migrate --force
+php artisan db:seed --class=RolePermissionSeeder --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -403,6 +600,13 @@ POS_EXPORTS_ASYNC=true
 
 Also make sure to run a queue worker (`php artisan queue:work --queue=high,default,audit`)
 and schedule `php artisan schedule:run` every minute.
+
+If you are deploying a branch-local runtime with printing and sync, also verify:
+
+- the local server can reach printer IPs and ports
+- queue workers are running
+- branch sync credentials are issued
+- route/config caches are cleared after permission or API protection changes
 
 ## Troubleshooting
 
@@ -442,6 +646,7 @@ cp .env.example .env
 php artisan key:generate
 touch database/database.sqlite
 php artisan migrate
+php artisan db:seed --class=RolePermissionSeeder
 npm install
 npm run dev
 php artisan serve

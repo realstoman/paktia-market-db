@@ -74,6 +74,7 @@ export function OrderRowActions({
     const { auth } = usePage<SharedData>().props;
     const { t, isRtl } = useLocalization();
     const { can } = useAuthorization();
+    const isOnlineOrdersOperator = auth.roles.includes('online-orders-operator');
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [branchTableId, setBranchTableId] = useState(
@@ -87,9 +88,12 @@ export function OrderRowActions({
     const canPrintReceipt = ['ready', 'completed'].includes(
         order.status ?? 'pending',
     ) && canViewOrder;
-    const canEditOrder = canManageOrder && !isCompleted;
-    const canAddOrderItems = canManageOrder && !isCompleted;
-    const canAssignOrderTable = canManageOrder && !isCompleted;
+    const canEditOrder =
+        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
+    const canAddOrderItems =
+        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
+    const canAssignOrderTable =
+        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
     const canUpdateStatus =
         canManageOrder && (!isCompleted || auth.is_super_admin === true);
     const tableOptions = useMemo(
@@ -182,13 +186,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.viewDetails', 'Details')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canEditOrder ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleEdit}
-                    disabled={!canEditOrder}
                 >
                     <SquarePen
                         className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
@@ -196,13 +199,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.editOrder', 'Edit Order')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canAddOrderItems ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleAddItems}
-                    disabled={!canAddOrderItems}
                 >
                     <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                     {t('orders.rowActions.addItem', 'Add Item')}
@@ -220,13 +222,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.printReceipt', 'Print Receipt')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canAssignOrderTable ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleAssignOpen}
-                    disabled={!canAssignOrderTable}
                 >
                     <Utensils className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                     {t('orders.rowActions.assignTable', 'Assign Table')}

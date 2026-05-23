@@ -143,6 +143,7 @@ const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
 export function AppSidebar() {
     const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
+    const isOnlineOrdersOperator = hasRole('online-orders-operator');
     const dashboardHref = resolveUrl(dashboard());
     const financeHome =
         !isSuperAdmin && hasRole('finance') && can('finance.view');
@@ -152,9 +153,16 @@ export function AppSidebar() {
         ? '/finance'
         : inventoryHome
           ? '/inventory'
+          : isOnlineOrdersOperator
+            ? '/orders'
           : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
+            .filter((item) =>
+                isOnlineOrdersOperator
+                    ? resolveUrl(item.href) === '/orders'
+                    : true,
+            )
             .filter((item) => {
                 if (resolveUrl(item.href) === '/orders' && hasRole('kitchen')) {
                     return false;
@@ -227,10 +235,12 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
-                <NavFooter
-                    items={translatedFooterNavItems}
-                    className="mt-auto"
-                />
+                {!isOnlineOrdersOperator ? (
+                    <NavFooter
+                        items={translatedFooterNavItems}
+                        className="mt-auto"
+                    />
+                ) : null}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

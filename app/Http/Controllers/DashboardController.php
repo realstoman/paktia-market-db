@@ -23,6 +23,10 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        if ($user?->hasRole('online-orders-operator')) {
+            return redirect()->route('orders.index');
+        }
+
         abort_unless($user && $user->can(PermissionEnum::DASHBOARD_VIEW->value), 403);
 
         if ($user->hasAnyRole(['cashier', 'server', 'order-taker'])) {

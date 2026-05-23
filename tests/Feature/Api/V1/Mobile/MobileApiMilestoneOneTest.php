@@ -352,6 +352,48 @@ test('authenticated client can checkout a delivery cart with delivery contact de
     expect(Cart::where('client_id', $client->id)->where('status', 'checked_out')->exists())->toBeTrue();
 });
 
+test('authenticated client can checkout a dine in cart with contact details and guest note', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $client = Client::create([
+        'firebase_uid' => 'dine-in-checkout-user-001',
+        'name' => 'Dine In User',
+        'email' => 'dinein@example.com',
+        'phone' => '0781000001',
+        'is_active' => true,
+    ]);
+
+    $this->postJson('/api/v1/cart/items', [
+        'product_id' => $product->id,
+        'product_size_id' => $small->id,
+        'quantity' => 1,
+        'note' => 'Window side table if possible',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:dine-in-checkout-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.totals.total', 650);
+
+    $this->postJson('/api/v1/checkout', [
+        'branch_id' => $branch->id,
+        'order_type' => 'dine_in',
+        'customer_name' => 'Nangialai Stoman',
+        'customer_phone' => '0781000001',
+        'customer_note' => '4 guests',
+    ], mobileHeaders([
+        'Authorization' => 'Bearer stub:dine-in-checkout-user-001',
+    ]))->assertCreated()
+        ->assertJsonPath('data.source', 'mobile_app')
+        ->assertJsonPath('data.order_type', 'dine_in')
+        ->assertJsonPath('data.customer_name', 'Nangialai Stoman')
+        ->assertJsonPath('data.customer_phone', '0781000001')
+        ->assertJsonPath('data.customer_note', '4 guests')
+        ->assertJsonPath('data.delivery_address', null)
+        ->assertJsonPath('data.items_count', 1)
+        ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza');
+
+    expect(Cart::where('client_id', $client->id)->where('status', 'checked_out')->exists())->toBeTrue();
+});
+
 test('authenticated client can view only their own order history', function () {
     [$branch, $product, $small] = createMobileProductFixture();
 
@@ -568,4 +610,68 @@ test('web customer can access me update profile and checkout with the customer c
         $jsonServer,
     )->assertOk()
         ->assertJsonPath('data.0.id', $orderId);
+});
+
+test('web customer can checkout a dine in order with a guest note', function () {
+    [$branch, $product, $small] = createMobileProductFixture();
+
+    $loginResponse = $this->postJson('/api/v1/customer/auth/firebase/login', [
+        'name' => 'Web Dine In User',
+        'email' => 'web-dinein@example.com',
+        'phone' => '+93700999000',
+        'provider' => 'google',
+        'idToken' => 'stub:web-dinein-user-001',
+    ])->assertOk();
+
+    $client = Client::query()
+        ->where('firebase_uid', 'web-dinein-user-001')
+        ->firstOrFail();
+    $cookie = $loginResponse->headers->getCookies()[0];
+
+    $jsonServer = [
+        'HTTP_ACCEPT' => 'application/json',
+        'CONTENT_TYPE' => 'application/json',
+    ];
+
+    $this->call(
+        'POST',
+        '/api/v1/me/cart/items',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+        json_encode([
+            'product_id' => $product->id,
+            'product_size_id' => $small->id,
+            'quantity' => 1,
+            'note' => 'Front dining area',
+        ], JSON_THROW_ON_ERROR),
+    )->assertOk();
+
+    $checkoutResponse = $this->call(
+        'POST',
+        '/api/v1/checkout',
+        [],
+        [$cookie->getName() => $cookie->getValue()],
+        [],
+        $jsonServer,
+        json_encode([
+            'branch_id' => $branch->id,
+            'order_type' => 'dine_in',
+            'customer_name' => 'Web Dine In User',
+            'customer_phone' => '+93700999000',
+            'customer_note' => '2 guests',
+        ], JSON_THROW_ON_ERROR),
+    )->assertCreated()
+        ->assertJsonPath('data.client_id', $client->id)
+        ->assertJsonPath('data.order_type', 'dine_in')
+        ->assertJsonPath('data.customer_name', 'Web Dine In User')
+        ->assertJsonPath('data.customer_phone', '+93700999000')
+        ->assertJsonPath('data.customer_note', '2 guests')
+        ->assertJsonPath('data.delivery_address', null)
+        ->assertJsonPath('data.items_count', 1);
+
+    $orderId = $checkoutResponse->json('data.id');
+
+    expect(Order::whereKey($orderId)->where('client_id', $client->id)->where('order_type', 'dine_in')->exists())->toBeTrue();
 });

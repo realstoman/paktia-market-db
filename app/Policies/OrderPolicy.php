@@ -17,6 +17,17 @@ class OrderPolicy
         return $user->hasRole('kitchen') && ! $user->hasRole('super-admin');
     }
 
+    private function isOnlineOrdersOperator(User $user): bool
+    {
+        return $user->hasRole('online-orders-operator')
+            && ! $user->hasRole('super-admin');
+    }
+
+    private function isOnlineOrder(Order $order): bool
+    {
+        return in_array((string) ($order->source ?? 'pos'), ['website', 'mobile_app'], true);
+    }
+
     public function viewAny(User $user): bool
     {
         if ($this->isKitchenOnly($user)) {
@@ -28,12 +39,16 @@ class OrderPolicy
 
     public function view(User $user, Order $order): bool
     {
+        if ($this->isOnlineOrdersOperator($user) && ! $this->isOnlineOrder($order)) {
+            return false;
+        }
+
         return $this->viewAny($user);
     }
 
     public function create(User $user): bool
     {
-        if ($this->isKitchenOnly($user)) {
+        if ($this->isKitchenOnly($user) || $this->isOnlineOrdersOperator($user)) {
             return false;
         }
 
@@ -43,6 +58,10 @@ class OrderPolicy
     public function update(User $user, Order $order): bool
     {
         if ($this->isKitchenOnly($user)) {
+            return false;
+        }
+
+        if ($this->isOnlineOrdersOperator($user) && ! $this->isOnlineOrder($order)) {
             return false;
         }
 
@@ -56,7 +75,7 @@ class OrderPolicy
      */
     public function manage(User $user): bool
     {
-        if ($this->isKitchenOnly($user)) {
+        if ($this->isKitchenOnly($user) || $this->isOnlineOrdersOperator($user)) {
             return false;
         }
 
