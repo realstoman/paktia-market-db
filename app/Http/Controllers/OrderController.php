@@ -17,6 +17,11 @@ class OrderController extends Controller
 {
     use AuthorizesRequests;
 
+    private function isOnlineOrdersOperator(Request $request): bool
+    {
+        return (bool) $request->user()?->hasRole('online-orders-operator');
+    }
+
     public function index(Request $request, OrderService $service)
     {
         // Kitchen users do not have an orders surface in the UI; redirect
@@ -53,6 +58,7 @@ class OrderController extends Controller
 
     public function store(Request $request, OrderService $service)
     {
+        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('create', Order::class);
 
         $validated = $request->validate([
@@ -87,6 +93,7 @@ class OrderController extends Controller
 
     public function update(Request $request, OrderService $service, Order $order)
     {
+        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
@@ -154,6 +161,7 @@ class OrderController extends Controller
 
     public function updateTable(Request $request, OrderService $service, Order $order)
     {
+        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
@@ -168,6 +176,7 @@ class OrderController extends Controller
 
     public function addItems(Request $request, OrderService $service, Order $order)
     {
+        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
