@@ -2460,6 +2460,7 @@ const ps = {
         source: {
             pos: 'POS',
             mobile_app: 'موبایل',
+            website: 'وېب‌سایټ',
         },
         orderType: {
             dine_in: 'په ځای کې',
@@ -2473,8 +2474,11 @@ const ps = {
             other: 'نور',
         },
         toolbarTitle: 'امرونه:',
+        onlineToolbarTitle: 'آنلاین امرونه:',
         toolbarDescription:
             'امرونه وڅارئ او اداره یې کړئ (د ID له مخې نزولي ترتیب)',
+        onlineToolbarDescription:
+            'د وېب‌سایټ او موبایل اپ امرونه وڅارئ او بشپړ یې کړئ.',
         createOrder: 'امر جوړول',
         editOrder: 'امر سمول',
         updateOrder: 'امر تازه کول',

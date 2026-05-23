@@ -2455,6 +2455,7 @@ const en = {
         source: {
             pos: 'POS',
             mobile_app: 'Mobile',
+            website: 'Website',
         },
         orderType: {
             dine_in: 'Dine In',
@@ -2468,7 +2469,10 @@ const en = {
             other: 'Other',
         },
         toolbarTitle: 'Orders:',
+        onlineToolbarTitle: 'Online Orders:',
         toolbarDescription: 'Track and manage orders (DESC order by ID)',
+        onlineToolbarDescription:
+            'Track and fulfill website and mobile app orders.',
         createOrder: 'Create Order',
         editOrder: 'Edit Order',
         updateOrder: 'Update Order',
