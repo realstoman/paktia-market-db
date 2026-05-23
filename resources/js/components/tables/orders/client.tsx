@@ -1180,7 +1180,7 @@ export const OrdersClient: React.FC<OrdersClientProps> = ({
                 emptyText={t('orders.filters.noBranches', 'No branches found.')}
                 className={filterControlClassName}
             />
-            {!isOrderTaker ? (
+            {!isOrderTaker && !isOnlineOrdersOperator ? (
                 <SearchableDropdown
                     value={userFilter}
                     options={userFilterOptions}

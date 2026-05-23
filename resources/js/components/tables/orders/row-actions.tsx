@@ -186,13 +186,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.viewDetails', 'Details')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canEditOrder ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleEdit}
-                    disabled={!canEditOrder}
                 >
                     <SquarePen
                         className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'}
@@ -200,13 +199,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.editOrder', 'Edit Order')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canAddOrderItems ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleAddItems}
-                    disabled={!canAddOrderItems}
                 >
                     <Plus className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                     {t('orders.rowActions.addItem', 'Add Item')}
@@ -224,13 +222,12 @@ export function OrderRowActions({
                     {t('orders.rowActions.printReceipt', 'Print Receipt')}
                 </Button>
             ) : null}
-            {canManageOrder ? (
+            {canAssignOrderTable ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="h-10 w-full justify-start"
                     onClick={handleAssignOpen}
-                    disabled={!canAssignOrderTable}
                 >
                     <Utensils className={isRtl ? 'ml-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                     {t('orders.rowActions.assignTable', 'Assign Table')}

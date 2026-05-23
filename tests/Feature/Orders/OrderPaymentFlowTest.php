@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Province;
 use App\Models\User;
 use App\Services\Order\OrderService;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
@@ -130,6 +131,7 @@ test('order takers can not complete orders directly without payment permission',
 });
 
 test('online orders operators can complete online orders after payment but cannot manage pos orders', function () {
+    $this->seed(RolePermissionSeeder::class);
     $service = app(OrderService::class);
     $branch = createBranchForOrders();
     Permission::findOrCreate('orders.update', 'web');
