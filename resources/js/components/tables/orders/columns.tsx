@@ -126,16 +126,19 @@ export const buildColumns = ({
         cell: ({ row }) => {
             const source = row.original.source ?? 'pos';
             const isMobile = source === 'mobile_app';
+            const isWebsite = source === 'website';
 
             return (
                 <Badge
                     className={
                         isMobile
                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+                            : isWebsite
+                              ? 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200'
                             : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
                     }
                 >
-                    {getSourceLabel(isMobile ? 'mobile_app' : 'pos')}
+                    {getSourceLabel(source)}
                 </Badge>
             );
         },
