@@ -74,7 +74,6 @@ export function OrderRowActions({
     const { auth } = usePage<SharedData>().props;
     const { t, isRtl } = useLocalization();
     const { can } = useAuthorization();
-    const isOnlineOrdersOperator = auth.roles.includes('online-orders-operator');
     const [isAssignTableOpen, setIsAssignTableOpen] = useState(false);
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [branchTableId, setBranchTableId] = useState(
@@ -88,12 +87,9 @@ export function OrderRowActions({
     const canPrintReceipt = ['ready', 'completed'].includes(
         order.status ?? 'pending',
     ) && canViewOrder;
-    const canEditOrder =
-        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
-    const canAddOrderItems =
-        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
-    const canAssignOrderTable =
-        canManageOrder && !isCompleted && !isOnlineOrdersOperator;
+    const canEditOrder = canManageOrder && !isCompleted;
+    const canAddOrderItems = canManageOrder && !isCompleted;
+    const canAssignOrderTable = canManageOrder && !isCompleted;
     const canUpdateStatus =
         canManageOrder && (!isCompleted || auth.is_super_admin === true);
     const tableOptions = useMemo(

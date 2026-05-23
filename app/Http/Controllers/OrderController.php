@@ -93,7 +93,6 @@ class OrderController extends Controller
 
     public function update(Request $request, OrderService $service, Order $order)
     {
-        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
@@ -161,7 +160,6 @@ class OrderController extends Controller
 
     public function updateTable(Request $request, OrderService $service, Order $order)
     {
-        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
@@ -176,7 +174,6 @@ class OrderController extends Controller
 
     public function addItems(Request $request, OrderService $service, Order $order)
     {
-        abort_if($this->isOnlineOrdersOperator($request), 403);
         $this->authorize('update', $order);
 
         $validated = $request->validate([
