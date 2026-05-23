@@ -16,6 +16,7 @@ class CheckoutController extends Controller
         $payload = $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'order_type' => ['required', Rule::in([
+                OrderType::DINE_IN->value,
                 OrderType::TAKEAWAY->value,
                 OrderType::DELIVERY->value,
             ])],
