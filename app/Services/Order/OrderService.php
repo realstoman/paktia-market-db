@@ -24,6 +24,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    private const ONLINE_ORDER_SOURCES = ['website', 'mobile_app'];
+
     public function __construct(
         private readonly OrderItemService $orderItemService,
         private readonly ProjectionDispatchService $projectionDispatchService,
@@ -35,6 +37,7 @@ class OrderService
         $isSuperAdmin = $user?->hasRole('super-admin') ?? false;
         $isOrderTaker = $user?->hasRole('order-taker') ?? false;
         $isKitchen = $user?->hasRole('kitchen') ?? false;
+        $isOnlineOrdersOperator = $this->isOnlineOrdersOperator($user);
         $allowedBranchId = ! $isSuperAdmin ? $user?->branch_id : null;
         $allowedKitchenId = $isKitchen ? $user?->kitchen_id : null;
 
@@ -54,6 +57,10 @@ class OrderService
 
         if (! $isAllTime && $selectedDate) {
             $ordersQuery->whereDate('created_at', $selectedDate);
+        }
+
+        if ($isOnlineOrdersOperator) {
+            $ordersQuery->whereIn('source', self::ONLINE_ORDER_SOURCES);
         }
 
         if ($isKitchen && ! $allowedKitchenId) {
@@ -597,6 +604,16 @@ class OrderService
             return;
         }
 
+        if ($this->isOnlineOrdersOperator($actor)) {
+            if (! in_array((string) ($order->source ?? 'pos'), self::ONLINE_ORDER_SOURCES, true)) {
+                throw ValidationException::withMessages([
+                    'order' => 'You can only manage online orders from the website or mobile app.',
+                ]);
+            }
+
+            return;
+        }
+
         $canManageAllOrders = $actor->hasRole('super-admin')
             || $actor->can(PermissionEnum::PAYMENTS_CREATE->value);
 
@@ -618,6 +635,11 @@ class OrderService
             'house', 'restaurant' => 'house',
             default => 'customer',
         };
+    }
+
+    private function isOnlineOrdersOperator(?User $user): bool
+    {
+        return $user?->hasRole('online-orders-operator') ?? false;
     }
 
     private function syncOrderPayment(
