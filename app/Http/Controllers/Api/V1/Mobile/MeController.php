@@ -97,6 +97,9 @@ class MeController extends Controller
             'favorites_count' => 0,
             'orders_count' => $client->orders()->count(),
             'recent_orders' => $client->orders()
+                ->with([
+                    'items.product.images',
+                ])
                 ->latest('id')
                 ->limit(5)
                 ->get()
@@ -106,6 +109,13 @@ class MeController extends Controller
                     'status' => $order->status?->value ?? $order->status,
                     'total' => (float) $order->total_amount,
                     'created_at' => $order->created_at?->toIso8601String(),
+                    'items' => $order->items->map(fn ($item) => [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name_snapshot ?? $item->product?->name,
+                        'product_image_url' => $item->product?->images?->first()?->url,
+                        'quantity' => (int) $item->quantity,
+                    ])->values()->all(),
                 ])
                 ->all(),
         ];

@@ -16,6 +16,7 @@ class MobileOrderService
                 'branch',
                 'client',
                 'items.product.category',
+                'items.product.images',
                 'items.productSize',
                 'items.kitchen',
             ])
@@ -33,6 +34,7 @@ class MobileOrderService
             'branch',
             'client',
             'items.product.category',
+            'items.product.images',
             'items.productSize',
             'items.kitchen',
         ])->loadCount('items');

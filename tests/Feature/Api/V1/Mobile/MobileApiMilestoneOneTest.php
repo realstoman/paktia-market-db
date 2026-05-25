@@ -440,6 +440,11 @@ test('authenticated client can view only their own order history', function () {
         'line_total' => 650,
     ]);
 
+    $product->images()->create([
+        'path' => 'products/history-pepperoni.jpg',
+        'sort_order' => 0,
+    ]);
+
     Order::create([
         'branch_id' => $branch->id,
         'client_id' => $otherClient->id,
@@ -464,6 +469,7 @@ test('authenticated client can view only their own order history', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $ownOrder->id)
         ->assertJsonPath('data.0.client_id', $client->id)
+        ->assertJsonPath('data.0.items.0.product_image_url', '/storage/products/history-pepperoni.jpg')
         ->assertJsonPath('data.0.source', 'mobile_app');
 
     $this->getJson("/api/v1/me/orders/{$ownOrder->id}", mobileHeaders([
@@ -471,6 +477,7 @@ test('authenticated client can view only their own order history', function () {
     ]))->assertOk()
         ->assertJsonPath('data.id', $ownOrder->id)
         ->assertJsonPath('data.items.0.product_name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.items.0.product_image_url', '/storage/products/history-pepperoni.jpg')
         ->assertJsonPath('data.items.0.product_size_name', 'Small')
         ->assertJsonPath('data.items.0.line_total', 650);
 
@@ -484,6 +491,13 @@ test('authenticated client can view only their own order history', function () {
         ->assertJsonPath('data.id', $ownOrder->id)
         ->assertJsonPath('data.status', 'ready')
         ->assertJsonPath('data.source', 'mobile_app');
+
+    $this->getJson('/api/v1/me', mobileHeaders([
+        'Authorization' => 'Bearer stub:history-user-001',
+    ]))->assertOk()
+        ->assertJsonPath('data.recent_orders.0.id', $ownOrder->id)
+        ->assertJsonPath('data.recent_orders.0.items.0.product_name', 'Pepperoni Pizza')
+        ->assertJsonPath('data.recent_orders.0.items.0.product_image_url', '/storage/products/history-pepperoni.jpg');
 });
 
 test('web customer firebase login stores the client and returns a customer cookie', function () {
