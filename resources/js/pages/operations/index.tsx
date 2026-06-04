@@ -45,6 +45,7 @@ import {
     Armchair,
     Bike,
     CheckCircle2,
+    ChevronsRight,
     Clock3,
     CookingPot,
     CreditCard,
@@ -1255,39 +1256,44 @@ export default function OperationsPage({
                                     />
                                 </div>
                                 <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div className="flex flex-wrap gap-2">
-                                        <Button
-                                            variant={
-                                                selectedCategory === 'all'
-                                                    ? 'default'
-                                                    : 'outline'
-                                            }
-                                            className="rounded-full"
-                                            onClick={() =>
-                                                setSelectedCategory('all')
-                                            }
-                                        >
-                                            All Menu
-                                        </Button>
-                                        {categories.map((category) => (
+                                    <div className="relative min-w-0 max-w-full flex-1 overflow-hidden">
+                                        <div className="flex w-full max-w-full gap-2 overflow-x-auto whitespace-nowrap pb-1 [scrollbar-width:thin]">
                                             <Button
-                                                key={category.id}
                                                 variant={
-                                                    selectedCategory ===
-                                                    String(category.id)
+                                                    selectedCategory === 'all'
                                                         ? 'default'
                                                         : 'outline'
                                                 }
-                                                className="rounded-full"
+                                                className="shrink-0 rounded-full"
                                                 onClick={() =>
-                                                    setSelectedCategory(
-                                                        String(category.id),
-                                                    )
+                                                    setSelectedCategory('all')
                                                 }
                                             >
-                                                {category.name}
+                                                All Menu
                                             </Button>
-                                        ))}
+                                            {categories.map((category) => (
+                                                <Button
+                                                    key={category.id}
+                                                    variant={
+                                                        selectedCategory ===
+                                                        String(category.id)
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
+                                                    className="shrink-0 rounded-full"
+                                                    onClick={() =>
+                                                        setSelectedCategory(
+                                                            String(category.id),
+                                                        )
+                                                    }
+                                                >
+                                                    {category.name}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-12 items-center justify-end bg-gradient-to-l from-white via-white/90 to-transparent pr-1 sm:flex">
+                                            <ChevronsRight className="h-4 w-4 text-muted-foreground/65" />
+                                        </div>
                                     </div>
                                     <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
                                         {products.length} products
