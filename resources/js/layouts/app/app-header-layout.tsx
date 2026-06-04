@@ -24,8 +24,16 @@ export default function AppHeaderLayout({
             setIsNavigating(false);
         };
 
-        const removeStart = router.on('start', () => {
+        const removeStart = router.on('start', (event) => {
             clearNavigationState();
+
+            if (
+                event.detail.visit.async ||
+                event.detail.visit.showProgress === false
+            ) {
+                return;
+            }
+
             navigationTimeoutRef.current = window.setTimeout(() => {
                 setIsNavigating(true);
             }, 180);
