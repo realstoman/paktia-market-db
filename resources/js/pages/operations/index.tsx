@@ -504,8 +504,10 @@ export default function OperationsPage({
             }
 
             router.reload({
-                // preserveScroll: true,
-                // preserveState: true,
+                preserveScroll: true,
+                preserveState: true,
+                async: true,
+                showProgress: false,
                 only: [
                     'mode',
                     'branchId',

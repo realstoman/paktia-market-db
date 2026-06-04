@@ -151,9 +151,15 @@ export function KitchenDashboard({
 
     useEffect(() => {
         const interval = window.setInterval(() => {
+            if (document.visibilityState === 'hidden') {
+                return;
+            }
+
             router.reload({
                 preserveScroll: true,
                 preserveState: true,
+                async: true,
+                showProgress: false,
                 only: [
                     'mode',
                     'branchId',
