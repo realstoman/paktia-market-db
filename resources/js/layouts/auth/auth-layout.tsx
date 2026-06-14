@@ -1,7 +1,7 @@
 import { brand } from '@/config/brand';
 import LanguageDropdown from '@/components/language-dropdown';
 import { useLocalization } from '@/lib/localization';
-import { ChefHat, Copyright, ShieldCheck, Utensils } from 'lucide-react';
+import { Boxes, Building2, Copyright, ShieldCheck } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -80,7 +80,7 @@ export default function AuthLayout({
                                         : copyrightYear}
                                     <span className="pr-1 pl-1 text-brand-secondary/80">
                                         {t(
-                                            'brand.restaurantName',
+                                        'brand.marketName',
                                             brand.name,
                                         )}
                                         .
@@ -134,13 +134,13 @@ export default function AuthLayout({
                                 <h3 className="mb-2 text-2xl font-bold text-white">
                                     {t(
                                         'auth.promo.heroTitle',
-                                        'Manage Your Restaurant',
+                                        'Manage Paktia Market',
                                     )}
                                 </h3>
                                 <p className="text-sm text-white/90">
                                     {t(
                                         'auth.promo.heroDescription',
-                                        'Complete ERP solution for modern restaurant operations',
+                                        'Complete ERP solution for modern market operations',
                                     )}
                                 </p>
                             </div>
@@ -150,36 +150,36 @@ export default function AuthLayout({
                         <div className="grid grid-cols-2 gap-4">
                             <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
-                                    <ChefHat className="h-6 w-6 text-white" />
+                                    <Building2 className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
                                     {t(
-                                        'auth.promo.kitchenTitle',
-                                        'Kitchen Management',
+                                        'auth.promo.branchTitle',
+                                        'Branch Management',
                                     )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
                                     {t(
-                                        'auth.promo.kitchenDescription',
-                                        'Real-time order tracking',
+                                        'auth.promo.branchDescription',
+                                        'Organize locations and staff',
                                     )}
                                 </p>
                             </div>
 
                             <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
-                                    <Utensils className="h-6 w-6 text-white" />
+                                    <Boxes className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
                                     {t(
-                                        'auth.promo.menuTitle',
-                                        'Menu Control',
+                                        'auth.promo.inventoryTitle',
+                                        'Inventory Control',
                                     )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
                                     {t(
-                                        'auth.promo.menuDescription',
-                                        'Dynamic pricing & inventory',
+                                        'auth.promo.inventoryDescription',
+                                        'Track stock and valuation',
                                     )}
                                 </p>
                             </div>

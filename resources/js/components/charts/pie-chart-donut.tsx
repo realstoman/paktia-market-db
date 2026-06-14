@@ -72,7 +72,7 @@ export function PieChartDonutText({
 }: PieChartDonutTextProps) {
     const resolvedLabels = {
         title: labels?.title ?? 'Inventory Status Overview',
-        description: labels?.description ?? 'Restaurant items',
+        description: labels?.description ?? 'Market items',
         items: labels?.items ?? 'Items',
         summaryTitle:
             labels?.summaryTitle ?? 'Inventory distribution overview',

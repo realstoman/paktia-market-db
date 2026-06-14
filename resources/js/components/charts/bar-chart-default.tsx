@@ -43,7 +43,7 @@ interface BarChartDefaultProps {
 
 export function BarChartDefault({
     data = [],
-    title = 'Restaurant Net Profit',
+    title = 'Market Net Profit',
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,

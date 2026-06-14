@@ -188,7 +188,7 @@ export function MovementVoucherPrintDialog({
                         </div>
                         <div class="footer">
                             <div class="footer-note">
-                                Generated from the finance module for internal review, signature workflow, and restaurant cash and bank records.
+                                Generated from the finance module for internal review, signature workflow, and market cash and bank records.
                             </div>
                             <div class="footer-stamp">Paktia Market Finance Copy</div>
                         </div>
@@ -395,7 +395,7 @@ export function MovementVoucherPrintDialog({
                                     <p className="max-w-xl leading-6">
                                         Generated from the finance module for
                                         internal review, signature workflow, and
-                                        restaurant cash and bank records.
+                                        market cash and bank records.
                                     </p>
                                     <p className="tracking-[0.16em] uppercase">
                                         Paktia Market Finance Copy

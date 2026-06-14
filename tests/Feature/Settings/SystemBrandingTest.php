@@ -35,8 +35,8 @@ test('super admin can update system branding settings', function () {
     $this->actingAs($user)
         ->from(route('system-branding.edit'))
         ->put(route('system-branding.update'), [
-            'restaurant_name' => 'Paktia Market Plus',
-            'restaurant_short_name' => 'Paktia',
+            'market_name' => 'Paktia Market Plus',
+            'market_short_name' => 'Paktia',
             'primary_color' => '#123456',
             'secondary_color' => '#654321',
             'tertiary_color' => '#FAFAFA',

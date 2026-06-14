@@ -197,7 +197,7 @@ export function ExpenseVoucherPrintDialog({
                         </div>
                         <div class="footer">
                             <div class="footer-note">
-                                ${escapeHtml(t('financeExpenses.print.footerNote', 'Generated from the finance module for internal review, signature workflow, and restaurant expense records.'))}
+                                ${escapeHtml(t('financeExpenses.print.footerNote', 'Generated from the finance module for internal review, signature workflow, and market expense records.'))}
                             </div>
                             <div class="footer-stamp">${escapeHtml(t('financeExpenses.print.footerStamp', 'Paktia Market Finance Copy'))}</div>
                         </div>
@@ -457,7 +457,7 @@ export function ExpenseVoucherPrintDialog({
                                     <p className="max-w-xl leading-6">
                                         {t(
                                             'financeExpenses.print.footerNote',
-                                            'Generated from the finance module for internal review, signature workflow, and restaurant expense records.',
+                                            'Generated from the finance module for internal review, signature workflow, and market expense records.',
                                         )}
                                     </p>
                                     <p className="tracking-[0.16em] uppercase">

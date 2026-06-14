@@ -97,8 +97,6 @@ interface FinanceDashboardData {
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
-        employeeCoveredTotal: number;
-        houseCompTotal: number;
     };
     trend: Array<{
         date: string;
@@ -119,11 +117,6 @@ interface FinanceDashboardData {
     paymentBreakdown: Array<{
         method: string;
         amount: number;
-    }>;
-    coverageComparison: Array<{
-        label: string;
-        amount: number;
-        tone: 'sales' | 'employee' | 'house' | string;
     }>;
     ledgerStats: {
         accounts: number;
@@ -409,25 +402,6 @@ function localizeModuleStatLabel(
     return labelMap[label] ?? label;
 }
 
-function localizeCoverageLabel(
-    label: string,
-    t: (key: string, fallback?: string) => string,
-) {
-    const labelMap: Record<string, string> = {
-        Sales: t('financeDashboard.summary.sales', 'Sales'),
-        'Employee Covered': t(
-            'financeDashboard.summary.employeeCovered',
-            'Employee Covered',
-        ),
-        'Restaurant Hospitality': t(
-            'financeDashboard.summary.restaurantHospitality',
-            'Restaurant Hospitality',
-        ),
-    };
-
-    return labelMap[label] ?? label;
-}
-
 function localizeLedgerStatus(
     status: string,
     t: (key: string, fallback?: string) => string,
@@ -652,11 +626,7 @@ export default function FinancePage({
     }));
     const paymentMethods = PAYMENT_METHOD_VALUES.map((value) => ({
         value,
-        label: t(`orders.paymentMethod.${value}`, value.replace('_', ' ')),
-    }));
-    const coverageComparison = dashboard.coverageComparison.map((entry) => ({
-        ...entry,
-        label: localizeCoverageLabel(entry.label, t),
+        label: t(`paymentMethods.${value}`, value.replace('_', ' ')),
     }));
 
     React.useEffect(() => {
@@ -1095,30 +1065,6 @@ export default function FinancePage({
                     />
                     <SummaryCard
                         title={t(
-                            'financeDashboard.summary.employeeCovered',
-                            'Employee Covered',
-                        )}
-                        value={formatAfn(dashboard.summary.employeeCoveredTotal)}
-                        subtitle={t(
-                            'financeDashboard.summary.employeeCoveredSubtitle',
-                            'Orders paid by employees on behalf of guests',
-                        )}
-                        icon={<Users className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
-                            'financeDashboard.summary.restaurantHospitality',
-                            'Restaurant Hospitality',
-                        )}
-                        value={formatAfn(dashboard.summary.houseCompTotal)}
-                        subtitle={t(
-                            'financeDashboard.summary.restaurantHospitalitySubtitle',
-                            'Hospitality and complimentary orders excluded from sales',
-                        )}
-                        icon={<Coins className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
                             'financeDashboard.summary.unpaidSalaries',
                             'Unpaid Salaries',
                         )}
@@ -1254,46 +1200,6 @@ export default function FinancePage({
                         </CardContent>
                     </Card>
 
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardHeader>
-                            <CardTitle>
-                                {t(
-                                    'financeDashboard.charts.coverageTitle',
-                                    'Sales vs Covered Orders',
-                                )}
-                            </CardTitle>
-                            <CardDescription>
-                                {t(
-                                    'financeDashboard.charts.coverageDescription',
-                                    'Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.',
-                                )}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-[320px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={coverageComparison}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                        <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                                        <YAxis
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(value) => formatNumber(Number(value))}
-                                        />
-                                        <Tooltip formatter={(value: number) => formatAfn(value)} />
-                                        <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
-                                            {coverageComparison.map((entry) => (
-                                                <Cell
-                                                    key={entry.label}
-                                                    fill={coverageChartColor(entry.tone)}
-                                                />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">

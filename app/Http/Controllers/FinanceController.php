@@ -306,7 +306,7 @@ class FinanceController extends Controller
             ->value('total');
         $supplierBalances = (float) InventoryItem::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->selectRaw('COALESCE(SUM(MAX((quantity * unit_price) - paid_amount, 0)), 0) as total')
+            ->selectRaw('COALESCE(SUM(CASE WHEN (quantity * unit_price) > paid_amount THEN (quantity * unit_price) - paid_amount ELSE 0 END), 0) as total')
             ->value('total');
         $cashPosition = (float) CashMovement::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
@@ -373,14 +373,11 @@ class FinanceController extends Controller
                     'unpaidSalaries' => $unpaidSalaries,
                     'inventoryValue' => $inventoryValue,
                     'supplierBalances' => $supplierBalances,
-                    'employeeCoveredTotal' => 0,
-                    'houseCompTotal' => 0,
                 ],
                 'trend' => $trend,
                 'branchRevenue' => [],
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],
-                'coverageComparison' => [],
                 'ledgerStats' => [
                     'accounts' => FinanceAccount::query()->count(),
                     'journals' => Schema::hasTable('finance_journals') ? DB::table('finance_journals')->count() : 0,
@@ -453,4 +450,3 @@ class FinanceController extends Controller
     }
 
 }
-
