@@ -30,7 +30,6 @@ class AuthUserResource extends JsonResource
             'country_id' => $user->country_id,
             'province_id' => $user->province_id,
             'branch_id' => $user->branch_id,
-            'kitchen_id' => $user->kitchen_id,
             'is_internal_user' => (bool) $user->is_internal_user,
             'created_at' => optional($user->created_at)->toIso8601String(),
             'updated_at' => optional($user->updated_at)->toIso8601String(),

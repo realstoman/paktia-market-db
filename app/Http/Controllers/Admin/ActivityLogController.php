@@ -171,7 +171,7 @@ class ActivityLogController extends Controller
     {
         $this->authorize('view', $auditLog);
 
-        $auditLog->load(['user:id,name,email', 'branch:id,name', 'kitchen:id,name']);
+        $auditLog->load(['user:id,name,email', 'branch:id,name']);
 
         return Inertia::render('admin/activity-logs/show', [
             'log' => (new ActivityLogResource($auditLog))->resolve(),

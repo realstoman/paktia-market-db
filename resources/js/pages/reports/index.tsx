@@ -266,27 +266,6 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
         return null;
     }
 
-    if (activeReport.key === 'orders') {
-        const grouped = new Map<string, number>();
-
-        for (const row of rows) {
-            const key = String(row.status ?? 'Unknown');
-            grouped.set(key, (grouped.get(key) ?? 0) + 1);
-        }
-
-        return {
-            title: 'Order mix',
-            description: 'Distribution of orders by fulfillment state.',
-            type: 'pie',
-            data: Array.from(grouped.entries()).map(([name, value]) => ({
-                name,
-                value,
-            })),
-            dataKey: 'value',
-            labelKey: 'name',
-        };
-    }
-
     if (activeReport.key === 'inventory') {
         return {
             title: 'Stock movement',
@@ -326,30 +305,6 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
             })),
             dataKey: 'value',
             labelKey: 'label',
-        };
-    }
-
-    if (activeReport.key === 'products') {
-        const grouped = new Map<string, number>();
-
-        for (const row of rows) {
-            const key = String(row.category ?? 'Uncategorized');
-            grouped.set(
-                key,
-                (grouped.get(key) ?? 0) + parseNumericValue(row.salesTotal),
-            );
-        }
-
-        return {
-            title: 'Sales mix',
-            description: 'Category contribution to product sales.',
-            type: 'pie',
-            data: Array.from(grouped.entries())
-                .map(([name, value]) => ({ name, value }))
-                .sort((a, b) => b.value - a.value)
-                .slice(0, 6),
-            dataKey: 'value',
-            labelKey: 'name',
         };
     }
 

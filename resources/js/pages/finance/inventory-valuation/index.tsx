@@ -275,7 +275,7 @@ export default function InventoryValuationPage({
                             <p className="max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">
                                 {t(
                                     'financeInventoryValuation.hero.description',
-                                    'This page shows what the restaurant stock is worth, how much value moved into kitchen usage, what has been adjusted, and how inventory costs are affecting finance.',
+                                    'This page shows what the market stock is worth, how much value moved through inventory usage, what has been adjusted, and how inventory costs are affecting finance.',
                                 )}
                             </p>
                         </div>

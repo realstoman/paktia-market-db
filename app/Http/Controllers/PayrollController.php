@@ -870,11 +870,7 @@ class PayrollController extends Controller
 
     private function resolveAdvanceBreakdownType(?string $reason): string
     {
-        $normalized = strtolower(trim((string) $reason));
-
-        return str_starts_with($normalized, 'employee covered order #')
-            ? 'employee_order'
-            : 'advance';
+        return 'advance';
     }
 
     /**

@@ -43,7 +43,6 @@ class AuditLogger
             'method' => $context['method'],
             'batch_uuid' => $batchUuid ?? (string) Str::uuid(),
             'branch_id' => $this->resolveBranchId($subject, $causer),
-            'kitchen_id' => $this->resolveKitchenId($subject, $causer),
             'meta' => $meta,
         ];
 
@@ -102,16 +101,4 @@ class AuditLogger
         return $causer?->branch_id;
     }
 
-    private function resolveKitchenId(?Model $subject, ?User $causer): ?int
-    {
-        if ($subject !== null) {
-            $kitchenId = $subject->getAttribute('kitchen_id');
-
-            if ($kitchenId !== null) {
-                return (int) $kitchenId;
-            }
-        }
-
-        return $causer?->kitchen_id;
-    }
 }

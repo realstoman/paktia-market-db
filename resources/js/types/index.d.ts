@@ -101,8 +101,6 @@ export interface User {
     province_id?: number | null;
     branch?: string | null;
     branch_id?: number | null;
-    kitchen?: string | Kitchen | null;
-    kitchen_id?: number | null;
     is_active?: boolean;
     is_internal_user?: boolean;
     avatar?: string;
@@ -438,8 +436,6 @@ export interface Branch {
     province?: Province | string | null;
     province_id?: number | null;
     province_object?: Province | null;
-    kitchens?: Kitchen[];
-    tables?: BranchTable[];
     is_active?: boolean;
     address: string;
     description: string;

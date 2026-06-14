@@ -34,12 +34,10 @@ interface ActivityLogEntry {
     method: string | null;
     batch_uuid: string | null;
     branch_id: number | null;
-    kitchen_id: number | null;
     meta: Record<string, unknown> | null;
     created_at: string | null;
     user?: { id: number; name: string; email: string } | null;
     branch?: { id: number; name: string } | null;
-    kitchen?: { id: number; name: string } | null;
 }
 
 interface Archive {
@@ -689,9 +687,6 @@ export default function ActivityLogsIndexPage({
                                     </Badge>
                                     <Badge variant="secondary">
                                         Branch: {selected.branch?.name ?? '—'}
-                                    </Badge>
-                                    <Badge variant="secondary">
-                                        Kitchen: {selected.kitchen?.name ?? '—'}
                                     </Badge>
                                 </div>
 
