@@ -36,7 +36,7 @@ test('super admin can update system branding settings', function () {
         ->from(route('system-branding.edit'))
         ->put(route('system-branding.update'), [
             'restaurant_name' => 'Paktia Market Plus',
-            'restaurant_short_name' => 'Taste',
+            'restaurant_short_name' => 'Paktia',
             'primary_color' => '#123456',
             'secondary_color' => '#654321',
             'tertiary_color' => '#FAFAFA',
@@ -47,7 +47,7 @@ test('super admin can update system branding settings', function () {
     $branding = app(SystemBrandingService::class)->getBranding();
 
     expect($branding['name'])->toBe('Paktia Market Plus')
-        ->and($branding['shortName'])->toBe('Taste')
+        ->and($branding['shortName'])->toBe('Paktia')
         ->and($branding['primaryColor'])->toBe('#123456')
         ->and($branding['secondaryColor'])->toBe('#654321')
         ->and($branding['tertiaryColor'])->toBe('#FAFAFA');

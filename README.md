@@ -1,6 +1,6 @@
-# Baba Core
+# Paktia Market
 
-Baba Core is a restaurant operations platform built with Laravel, Inertia, React, and TypeScript.
+Paktia Market is an ERP platform built with Laravel, Inertia, React, and TypeScript.
 
 It currently includes:
 
@@ -234,7 +234,7 @@ Use `.env.example` as the starting point.
 ### Minimal required variables
 
 ```env
-APP_NAME="Baba Core"
+APP_NAME="Paktia Market"
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true

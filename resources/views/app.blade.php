@@ -119,16 +119,10 @@
         <title inertia>{{ $branding['name'] }}</title>
 
         @php
-            $faviconIcoVersion = filemtime(public_path('favicon.ico'));
-            $favicon16Version = filemtime(public_path('favicon-16x16.png'));
-            $favicon32Version = filemtime(public_path('favicon-32x32.png'));
-            $appleTouchVersion = filemtime(public_path('apple-touch-icon.png'));
+            $faviconVersion = filemtime(public_path('favicon.svg'));
         @endphp
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v={{ $appleTouchVersion }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v={{ $favicon32Version }}">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v={{ $favicon16Version }}">
-        <link rel="icon" type="image/x-icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
-        <link rel="shortcut icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v={{ $faviconVersion }}">
+        <link rel="shortcut icon" href="/favicon.svg?v={{ $faviconVersion }}">
         <link rel="manifest" href="/site.webmanifest">
         <meta name="theme-color" content="{{ $branding['primaryColor'] }}">
 

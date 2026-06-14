@@ -15,7 +15,7 @@ class BranchSeeder extends Seeder
         $province = Province::where('name', 'Kabul')->first();
 
         Branch::create([
-            'name' => 'Karte 3',
+            'name' => 'Paktia Market – Kabul',
             'country_id' => $country->id,
             'province_id' => $province->id,
             'description' => 'Main branch in the Kabul',
