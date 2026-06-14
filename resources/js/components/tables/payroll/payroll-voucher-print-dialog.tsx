@@ -73,17 +73,11 @@ function deductionBreakdown(item: PayrollRunItem) {
 function deductionBreakdownTotals(item: PayrollRunItem) {
     return deductionBreakdown(item).reduce(
         (totals, entry) => {
-            const amount = Number(entry.amount ?? 0);
-
-            if ((entry.type ?? 'advance') === 'employee_order') {
-                totals.employeeOrder += amount;
-            } else {
-                totals.advance += amount;
-            }
+            totals.advance += Number(entry.amount ?? 0);
 
             return totals;
         },
-        { employeeOrder: 0, advance: 0 },
+        { advance: 0 },
     );
 }
 
@@ -103,7 +97,7 @@ export function PayrollVoucherPrintDialog({
     const breakdown = item ? deductionBreakdown(item) : [];
     const breakdownTotals = item
         ? deductionBreakdownTotals(item)
-        : { employeeOrder: 0, advance: 0 };
+        : { advance: 0 };
 
     const printVoucher = () => {
         if (!run || !item) {
@@ -121,9 +115,6 @@ export function PayrollVoucherPrintDialog({
         const paymentMethod = paymentMethodLabel(item.payment_method);
         const gross = formatAfn(Number(item.gross_salary ?? 0));
         const advances = formatAfn(Number(item.advances_deducted ?? 0));
-        const employeeOrderDeductions = formatAfn(
-            deductionBreakdownTotals(item).employeeOrder,
-        );
         const otherAdvances = formatAfn(
             deductionBreakdownTotals(item).advance,
         );
@@ -145,9 +136,7 @@ export function PayrollVoucherPrintDialog({
                     <div class="deduction-row">
                         <div>
                             <div class="deduction-title">${escapeHtml(
-                                entry.type === 'employee_order'
-                                    ? 'Employee-covered order'
-                                    : 'Salary advance',
+                                'Salary advance',
                             )}</div>
                             <div class="deduction-reason">${escapeHtml(
                                 entry.reason ?? '-',
@@ -270,7 +259,6 @@ export function PayrollVoucherPrintDialog({
                             <div class="summary">
                                 <div class="summary-row"><span>Gross Pay</span><span>${escapeHtml(gross)}</span></div>
                                 <div class="summary-row"><span>Advance Deduction</span><span>${escapeHtml(advances)}</span></div>
-                                <div class="summary-row"><span>Employee Orders</span><span>${escapeHtml(employeeOrderDeductions)}</span></div>
                                 <div class="summary-row"><span>Other Advances</span><span>${escapeHtml(otherAdvances)}</span></div>
                                 <div class="summary-row total"><span>Net Payable</span><span>${escapeHtml(net)}</span></div>
                             </div>
@@ -512,16 +500,10 @@ export function PayrollVoucherPrintDialog({
                                                 >
                                                     <div className="min-w-0">
                                                         <p className="truncate text-sm font-medium text-slate-900">
-                                                            {entry.type ===
-                                                            'employee_order'
-                                                                ? t(
-                                                                      'financePayroll.details.employeeCoveredOrder',
-                                                                      'Employee-covered order',
-                                                                  )
-                                                                : t(
-                                                                      'financePayroll.details.salaryAdvance',
-                                                                      'Salary advance',
-                                                                  )}
+                                                            {t(
+                                                                'financePayroll.details.salaryAdvance',
+                                                                'Salary advance',
+                                                            )}
                                                         </p>
                                                         <p className="truncate text-xs text-slate-500">
                                                             {entry.reason ??
@@ -563,19 +545,6 @@ export function PayrollVoucherPrintDialog({
                                         </span>
                                         <span>
                                             {formatAfn(item.advances_deducted)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
-                                        <span>
-                                            {t(
-                                                'financePayroll.details.employeeOrderDeduction',
-                                                'Employee order deduction',
-                                            )}
-                                        </span>
-                                        <span>
-                                            {formatAfn(
-                                                breakdownTotals.employeeOrder,
-                                            )}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">

@@ -312,36 +312,17 @@ export const CellAction: React.FC<CellActionProps> = ({
         }));
 
         const payrollEntries = (data.payroll_items ?? []).map((item) => {
-            const employeeOrderTotal = (item.advance_breakdown ?? [])
-                .filter(
-                    (entry) =>
-                        (entry.type ?? 'advance') === 'employee_order',
-                )
-                .reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0);
-
-            const otherAdvanceTotal = (item.advance_breakdown ?? [])
-                .filter(
-                    (entry) => (entry.type ?? 'advance') !== 'employee_order',
-                )
+            const advanceTotal = (item.advance_breakdown ?? [])
                 .reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0);
 
             const breakdownNotes = [
-                employeeOrderTotal > 0
-                    ? t(
-                          'employees.finance.employeeOrderDeductionNote',
-                          'Employee-covered orders: :amount',
-                      ).replace(
-                          ':amount',
-                          `${formatNumber(employeeOrderTotal)} ${data.salary_currency ?? 'AFN'}`,
-                      )
-                    : null,
-                otherAdvanceTotal > 0
+                advanceTotal > 0
                     ? t(
                           'employees.finance.advanceDeductionNote',
                           'Advances: :amount',
                       ).replace(
                           ':amount',
-                          `${formatNumber(otherAdvanceTotal)} ${data.salary_currency ?? 'AFN'}`,
+                          `${formatNumber(advanceTotal)} ${data.salary_currency ?? 'AFN'}`,
                       )
                     : null,
             ]
