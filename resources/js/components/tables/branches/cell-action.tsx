@@ -10,7 +10,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -38,10 +37,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Branch, Country, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
-    CookingPot,
     Edit,
     Eye,
     MapPin,
@@ -59,14 +57,12 @@ interface CellActionProps {
     data: Branch;
     countries: Country[];
     provinces: Province[];
-    kitchens: Kitchen[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
     countries,
     provinces,
-    kitchens,
 }) => {
     const { t } = useLocalization();
     const { can } = useAuthorization();
@@ -76,7 +72,6 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDisableOpen, setIsDisableOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [isKitchenOpen, setIsKitchenOpen] = useState(false);
     const [name, setName] = useState(data.name);
     const [countryId, setCountryId] = useState(
         data.country_id ? String(data.country_id) : '',
@@ -88,17 +83,6 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [description, setDescription] = useState(data.description ?? '');
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedKitchenIds, setSelectedKitchenIds] = useState<Set<number>>(
-        new Set(data.kitchens?.map((kitchen) => kitchen.id)),
-    );
-
-    const sortedKitchens = useMemo(
-        () =>
-            [...kitchens].sort((a, b) =>
-                (a.name ?? '').localeCompare(b.name ?? ''),
-            ),
-        [kitchens],
-    );
     const editProvinceOptions = useMemo(
         () =>
             provinces.filter((province) => {
@@ -118,63 +102,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         setAddress(data.address ?? '');
         setDescription(data.description ?? '');
         setEditErrors({});
-    };
-
-    const openKitchenAssign = () => {
-        setSelectedKitchenIds(
-            new Set(data.kitchens?.map((kitchen) => kitchen.id)),
-        );
-        setIsKitchenOpen(true);
-    };
-
-    const toggleAllKitchens = () => {
-        setSelectedKitchenIds((prev) =>
-            prev.size === sortedKitchens.length
-                ? new Set<number>()
-                : new Set(sortedKitchens.map((kitchen) => kitchen.id)),
-        );
-    };
-
-    const toggleKitchen = (kitchenId: number) => {
-        setSelectedKitchenIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(kitchenId)) {
-                next.delete(kitchenId);
-            } else {
-                next.add(kitchenId);
-            }
-            return next;
-        });
-    };
-
-    const handleAssignKitchens = () => {
-        if (isSubmitting) {
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        router.post(
-            `/branches/${data.id}/kitchens`,
-            {
-                kitchens: Array.from(selectedKitchenIds),
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success(
-                        t(
-                            'branches.feedback.kitchensUpdated',
-                            'Branch kitchens updated successfully.',
-                        ),
-                    );
-                    setIsKitchenOpen(false);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
-            },
-        );
     };
 
     const handleEditSubmit = () => {
@@ -300,12 +227,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                             >
                                 <Edit className="mr-2 h-4 w-4" />
                                 {t('branches.actions.edit', 'Edit')}
-                            </DropdownMenuItem>
-                        ) : null}
-                        {canManageBranch ? (
-                            <DropdownMenuItem onClick={openKitchenAssign}>
-                                <CookingPot className="mr-2 h-4 w-4" />
-                                {t('branches.actions.assignKitchens', 'Assign Kitchens')}
                             </DropdownMenuItem>
                         ) : null}
                         {canManageBranch ? (
@@ -469,94 +390,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                         >
                             <Save className="mr-2 h-5 w-5" />
                             {t('branches.actions.saveChanges', 'Save Changes')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={isKitchenOpen} onOpenChange={setIsKitchenOpen}>
-                <DialogContent className="sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {t(
-                                'branches.modals.kitchens.title',
-                                'Assign Kitchens',
-                            )}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {t(
-                                'branches.modals.kitchens.description',
-                                'Select kitchens available for :name.',
-                            ).replace(':name', data.name)}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="grid gap-2">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{t('branches.common.selected', 'Selected')}</span>
-                            <div className="flex items-center gap-3">
-                                <span>
-                                    {t(
-                                        'branches.common.selectedCount',
-                                        ':selected of :total',
-                                    )
-                                        .replace(':selected', String(selectedKitchenIds.size))
-                                        .replace(':total', String(kitchens.length))}
-                                </span>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-auto px-2 py-1 text-xs"
-                                    onClick={toggleAllKitchens}
-                                >
-                                    {selectedKitchenIds.size === sortedKitchens.length
-                                        ? t('common.clearAll', 'Clear all')
-                                        : t('common.selectAll', 'Select all')}
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="max-h-64 space-y-2 overflow-auto rounded-md border p-3">
-                            {sortedKitchens.map((kitchen) => (
-                                <label
-                                    key={kitchen.id}
-                                    className="flex items-center gap-2 text-sm"
-                                >
-                                    <Checkbox
-                                        checked={selectedKitchenIds.has(
-                                            kitchen.id,
-                                        )}
-                                        onCheckedChange={() =>
-                                            toggleKitchen(kitchen.id)
-                                        }
-                                    />
-                                    <span>
-                                        {kitchen.name ??
-                                            t(
-                                                'branches.common.kitchenFallback',
-                                                'Kitchen #:id',
-                                            ).replace(':id', String(kitchen.id))}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsKitchenOpen(false)}
-                            disabled={isSubmitting}
-                        >
-                            <X className="mr-2 h-5 w-5" />
-                            {t('common.cancel', 'Cancel')}
-                        </Button>
-                        <Button
-                            onClick={handleAssignKitchens}
-                            disabled={isSubmitting}
-                        >
-                            <Save className="mr-2 h-5 w-5" />
-                            {t('branches.actions.saveKitchens', 'Save Kitchens')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

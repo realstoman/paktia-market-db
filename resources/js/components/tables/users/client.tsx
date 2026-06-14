@@ -24,7 +24,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
+import { Branch, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -45,7 +45,6 @@ interface UsersClientProps {
     countries: Country[];
     provinces: Province[];
     branches: Branch[];
-    kitchens: Kitchen[];
     isLoading?: boolean;
 }
 
@@ -55,7 +54,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     countries,
     provinces,
     branches,
-    kitchens,
     isLoading = false,
 }) => {
     const { t, locale } = useLocalization();
@@ -73,7 +71,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     const [countryId, setCountryId] = useState<string>('');
     const [provinceId, setProvinceId] = useState<string>('');
     const [branchId, setBranchId] = useState<string>('');
-    const [kitchenId, setKitchenId] = useState<string>('none');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [showPasswords, setShowPasswords] = useState(false);
@@ -81,11 +78,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         {},
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const selectedCreateRole = useMemo(
-        () => roles.find((role) => String(role.id) === roleId) ?? null,
-        [roleId, roles],
-    );
-    const isCreateKitchenRole = selectedCreateRole?.name === 'kitchen';
 
     const resetForm = () => {
         setName('');
@@ -94,7 +86,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         setCountryId('');
         setProvinceId('');
         setBranchId('');
-        setKitchenId('none');
         setPassword('');
         setPasswordConfirmation('');
         setShowPasswords(false);
@@ -119,10 +110,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 country_id: countryId ? Number(countryId) : null,
                 province_id: provinceId ? Number(provinceId) : null,
                 branch_id: branchId ? Number(branchId) : null,
-                kitchen_id:
-                    isCreateKitchenRole && kitchenId !== 'none'
-                        ? Number(kitchenId)
-                        : null,
             },
             {
                 preserveScroll: true,
@@ -153,17 +140,8 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         )?.[1];
 
     const tableColumns = useMemo(
-        () =>
-            buildColumns(
-                roles,
-                countries,
-                provinces,
-                branches,
-                kitchens,
-                t,
-                locale,
-            ),
-        [roles, countries, provinces, branches, kitchens, t, locale],
+        () => buildColumns(roles, countries, provinces, branches, t, locale),
+        [roles, countries, provinces, branches, t, locale],
     );
     const roleFilterOptions = useMemo(
         () => [
@@ -582,17 +560,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <Label>{t('users.fields.role', 'Role')}</Label>
                             <SearchableDropdown
                                 value={roleId}
-                                onValueChange={(value) => {
-                                    setRoleId(value);
-
-                                    const selectedRole = roles.find(
-                                        (role) => String(role.id) === value,
-                                    );
-
-                                    if (selectedRole?.name !== 'kitchen') {
-                                        setKitchenId('none');
-                                    }
-                                }}
+                                onValueChange={setRoleId}
                                 options={roles.map((role) => ({
                                     value: String(role.id),
                                     label: role.name,
@@ -612,38 +580,6 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             />
                             <InputError message={createRoleError} />
                         </div>
-                        {isCreateKitchenRole ? (
-                            <div className="grid gap-2">
-                                <Label>
-                                    {t('users.fields.kitchen', 'Kitchen')}
-                                </Label>
-                                <Select
-                                    value={kitchenId}
-                                    onValueChange={setKitchenId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'users.placeholders.selectKitchen',
-                                                'Select kitchen',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {kitchens.map((kitchen) => (
-                                            <SelectItem
-                                                key={kitchen.id}
-                                                value={String(kitchen.id)}
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={createErrors.kitchen_id} />
-                            </div>
-                        ) : null}
                         <div className="grid gap-2">
                             <Label>
                                 {t('users.fields.country', 'Country')}

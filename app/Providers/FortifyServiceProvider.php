@@ -122,36 +122,6 @@ class FortifyServiceProvider extends ServiceProvider
                 : Limit::perMinute(60)->by('ip:'.$request->ip());
         });
 
-        // Stricter limits for unauthenticated mobile entry points (guest
-        // session / firebase sync). Keyed by app key + IP so a single
-        // misbehaving device cannot exhaust budget for the whole app.
-        RateLimiter::for('mobile-auth', function (Request $request) {
-            $appKey = (string) $request->header('X-App-Key', 'unknown');
-
-            return Limit::perMinute(30)->by('mobile-auth:'.sha1($appKey.'|'.$request->ip()));
-        });
-
-        RateLimiter::for('customer-auth', function (Request $request) {
-            return Limit::perMinute(20)->by('customer-auth:'.$request->ip());
-        });
-
-        RateLimiter::for('customer-api', function (Request $request) {
-            $client = $request->attributes->get('client');
-            $key = $client?->id ? 'client:'.$client->id : 'ip:'.$request->ip();
-
-            return Limit::perMinute(120)->by('customer-api:'.$key);
-        });
-
-        // Cart write operations get a moderately tight per-actor limit.
-        RateLimiter::for('mobile-cart', function (Request $request) {
-            $client = $request->attributes->get('client');
-            $guest = $request->attributes->get('guestSession');
-            $key = $client?->id ? 'client:'.$client->id
-                : ($guest?->id ? 'guest:'.$guest->id : 'ip:'.$request->ip());
-
-            return Limit::perMinute(120)->by('mobile-cart:'.$key);
-        });
-
         // Branch-sync traffic is keyed by credential (when present) so a
         // healthy poll loop on one branch cannot starve another.
         RateLimiter::for('branch-sync', function (Request $request) {

@@ -30,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'appearance',
             'sidebar_state',
             'locale',
-            env('CUSTOMER_SESSION_COOKIE', 'paktia_market_customer_session'),
         ]);
 
         $middleware->alias([

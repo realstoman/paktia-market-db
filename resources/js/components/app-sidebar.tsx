@@ -24,11 +24,7 @@ import {
     Building2,
     ChartLine,
     LayoutGrid,
-    Package,
-    ReceiptText,
-    Printer,
     ShieldCheck,
-    UserRoundSearch,
     Users,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -49,27 +45,6 @@ const mainNavItems: SidebarNavConfig[] = [
         href: dashboard(),
         icon: LayoutGrid,
         can: 'dashboard.view',
-    },
-    {
-        titleKey: 'navigation.orders',
-        fallbackTitle: 'Orders',
-        href: '/orders',
-        icon: ReceiptText,
-        can: 'orders.view',
-    },
-    {
-        titleKey: 'navigation.clients',
-        fallbackTitle: 'Clients',
-        href: '/clients',
-        icon: UserRoundSearch,
-        can: 'orders.view',
-    },
-    {
-        titleKey: 'navigation.products',
-        fallbackTitle: 'Products',
-        href: '/products',
-        icon: Package,
-        can: 'products.view',
     },
     {
         titleKey: 'navigation.inventory',
@@ -125,7 +100,6 @@ const mainNavItems: SidebarNavConfig[] = [
 export function AppSidebar() {
     const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
-    const isOnlineOrdersOperator = hasRole('online-orders-operator');
     const dashboardHref = resolveUrl(dashboard());
     const financeHome =
         !isSuperAdmin && hasRole('finance') && can('finance.view');
@@ -135,21 +109,10 @@ export function AppSidebar() {
         ? '/finance'
         : inventoryHome
           ? '/inventory'
-          : isOnlineOrdersOperator
-            ? '/orders'
           : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
-            .filter((item) =>
-                isOnlineOrdersOperator
-                    ? resolveUrl(item.href) === '/orders'
-                    : true,
-            )
             .filter((item) => {
-                if (resolveUrl(item.href) === '/orders' && hasRole('kitchen')) {
-                    return false;
-                }
-
                 if (
                     resolveUrl(item.href) === dashboardHref &&
                     (financeHome || inventoryHome)
@@ -166,15 +129,6 @@ export function AppSidebar() {
                 can: item.can,
                 canAny: item.canAny,
             })),
-        ...(isSuperAdmin
-            ? [
-                  {
-                      title: t('navigation.printers', 'Printers'),
-                      href: '/printers',
-                      icon: Printer,
-                  } satisfies NavItem,
-              ]
-            : []),
         ...(isSuperAdmin
             ? [
                   {

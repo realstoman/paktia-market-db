@@ -522,7 +522,7 @@ export function PayrollClient({
             PAYMENT_METHOD_OPTIONS.map((option) => ({
                 value: option.value,
                 label: t(
-                    `orders.paymentMethod.${option.value}`,
+                    `paymentMethods.${option.value}`,
                     option.label,
                 ),
             })),

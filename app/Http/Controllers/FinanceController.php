@@ -29,679 +29,6 @@ class FinanceController extends Controller
     public function index(Request $request)
     {
         return $this->marketIndex($request);
-
-        $this->payrollExpenseSyncService->syncMissingPaidItems();
-
-        $validated = $request->validate([
-            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
-            'start_date' => ['nullable', 'date_format:Y-m-d'],
-            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
-            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
-            'category' => ['nullable', 'exists:expense_categories,id'],
-        ]);
-
-        [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
-
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
-        $paymentMethod = $validated['payment_method'] ?? null;
-        $category = $validated['category'] ?? null;
-        // The finance dashboard is heavily filter-driven, so we prefer live
-        // transactional reads here. Projection rows can lag behind current
-        // activity and are bucketed by projection date, which can hide valid
-        // order/expense data for the selected finance range.
-        $canUseProjectedFinanceData = false;
-        $hasProjectedFinanceData = false;
-        $useProjectedFinanceData = false;
-
-        $salesTotal = $useProjectedFinanceData
-            ? $this->branchDailyMetricReader->sumCompletedSales($startDate, $endDate, $branchId)
-            : (float) $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
-                ->sum('total_amount');
-
-        $houseCompTotal = (float) Order::query()
-            ->where('status', OrderStatus::COMPLETED->value)
-            ->where('covered_by_type', 'house')
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
-            ->sum('total_amount');
-
-        $employeeCoveredTotal = Schema::hasTable('payments')
-            ? (float) DB::table('payments')
-                ->join('orders', 'orders.id', '=', 'payments.order_id')
-                ->where('orders.status', OrderStatus::COMPLETED->value)
-                ->where('payments.status', 'covered_by_employee')
-                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
-                ->sum('payments.amount')
-            : 0.0;
-
-        $coverageComparison = collect([
-            [
-                'label' => 'Sales',
-                'amount' => (float) $salesTotal,
-                'tone' => 'sales',
-            ],
-            [
-                'label' => 'Employee Covered',
-                'amount' => (float) $employeeCoveredTotal,
-                'tone' => 'employee',
-            ],
-            [
-                'label' => 'Restaurant Hospitality',
-                'amount' => (float) $houseCompTotal,
-                'tone' => 'house',
-            ],
-        ])->values();
-
-        $expensesTotal = $useProjectedFinanceData
-            ? $this->branchDailyMetricReader->sumExpenses($startDate, $endDate, $branchId)
-            : (float) Expense::query()
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->when($category, fn ($query) => $query->where('expense_category_id', $category))
-                ->where('approval_status', 'approved')
-                ->whereBetween('expense_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
-                ->sum('amount');
-
-        $inventoryValue = Schema::hasTable('inventory_items')
-            ? (float) DB::table('inventory_items')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
-                ->value('total')
-            : 0.0;
-
-        $supplierBalances = Schema::hasTable('inventory_items')
-            ? (float) DB::table('inventory_items')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->selectRaw(
-                    'COALESCE(SUM(CASE WHEN ((quantity * unit_price) - paid_amount) > 0 THEN ((quantity * unit_price) - paid_amount) ELSE 0 END), 0) as total'
-                )
-                ->value('total')
-            : 0.0;
-
-        $cashSalesFromPayments = Schema::hasTable('payments')
-            ? (float) DB::table('payments')
-                ->join('orders', 'orders.id', '=', 'payments.order_id')
-                ->where('orders.status', OrderStatus::COMPLETED->value)
-                ->where('payments.method', 'cash')
-                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->sum('payments.amount')
-            : 0.0;
-
-        $cashSalesFromLegacyOrders = Schema::hasTable('orders')
-            ? (float) Order::query()
-                ->where('orders.status', OrderStatus::COMPLETED->value)
-                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->doesntHave('payments')
-                ->sum('paid_amount')
-            : 0.0;
-
-        $cashSales = $cashSalesFromPayments + $cashSalesFromLegacyOrders;
-
-        $cashExpenses = Schema::hasColumn('expenses', 'payment_method')
-            ? (float) DB::table('expenses')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('payment_method', 'cash')
-                ->where('approval_status', 'approved')
-                ->sum('amount')
-            : 0.0;
-
-        $cashMovementsNet = Schema::hasTable('cash_movements')
-            ? (float) DB::table('cash_movements')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'approved')
-                ->selectRaw(
-                    "COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total"
-                )
-                ->value('total')
-            : 0.0;
-
-        $cashPosition = $cashSales - $cashExpenses + $cashMovementsNet;
-
-        $liabilityMonthStart = $endDate->copy()->startOfMonth()->toDateString();
-        $liabilityMonthEnd = $endDate->copy()->endOfMonth()->toDateString();
-
-        $fixedSalaryPayrollItems = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'fixed_salary')
-                ->where('payroll_run_items.payment_status', '!=', 'paid')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->select('payroll_run_items.employee_id')
-                ->selectRaw('COALESCE(SUM(payroll_run_items.net_salary), 0) as total')
-                ->groupBy('payroll_run_items.employee_id')
-                ->get()
-            : collect();
-
-        $fixedSalaryHandledEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'fixed_salary')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->distinct()
-                ->pluck('payroll_run_items.employee_id')
-            : collect();
-
-        $paidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'fixed_salary')
-                ->where('payroll_run_items.payment_status', 'paid')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->distinct()
-                ->pluck('payroll_run_items.employee_id')
-            : collect();
-
-        $unpaidFixedSalaryEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'fixed_salary')
-                ->where('payroll_run_items.payment_status', '!=', 'paid')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->distinct()
-                ->pluck('payroll_run_items.employee_id')
-            : collect();
-
-        $unpaidFixedSalaryTotal = (float) $fixedSalaryPayrollItems->sum('total');
-
-        $fallbackFixedSalaryTotal = Schema::hasTable('employees')
-            ? (float) DB::table('employees')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('is_active', true)
-                ->where('salary', '>', 0)
-                ->when(
-                    $fixedSalaryHandledEmployeeIds->isNotEmpty(),
-                    fn ($query) => $query->whereNotIn('id', $fixedSalaryHandledEmployeeIds->all()),
-                )
-                ->sum('salary')
-            : 0.0;
-
-        $upcomingFixedSalaryTotal = Schema::hasTable('employees') && $endDate->isCurrentMonth()
-            ? (float) DB::table('employees')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('is_active', true)
-                ->where('salary', '>', 0)
-                ->when(
-                    $paidFixedSalaryEmployeeIds->isNotEmpty(),
-                    fn ($query) => $query->whereIn('id', $paidFixedSalaryEmployeeIds->all()),
-                    fn ($query) => $query->whereRaw('1 = 0'),
-                )
-                ->when(
-                    $unpaidFixedSalaryEmployeeIds->isNotEmpty(),
-                    fn ($query) => $query->whereNotIn('id', $unpaidFixedSalaryEmployeeIds->all()),
-                )
-                ->sum('salary')
-            : 0.0;
-
-        $contractPayrollItems = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'contract_payment')
-                ->where('payroll_run_items.payment_status', '!=', 'paid')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->select('payroll_run_items.employee_id')
-                ->selectRaw('COALESCE(SUM(payroll_run_items.net_salary), 0) as total')
-                ->groupBy('payroll_run_items.employee_id')
-                ->get()
-            : collect();
-
-        $contractHandledEmployeeIds = Schema::hasTable('payroll_run_items') && Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_run_items')
-                ->join('payroll_runs', 'payroll_runs.id', '=', 'payroll_run_items.payroll_run_id')
-                ->when($branchId, fn ($query) => $query->where('payroll_runs.branch_id', $branchId))
-                ->where('payroll_run_items.salary_type', 'contract_payment')
-                ->whereDate('payroll_runs.period_start', '<=', $liabilityMonthEnd)
-                ->whereDate('payroll_runs.period_end', '>=', $liabilityMonthStart)
-                ->distinct()
-                ->pluck('payroll_run_items.employee_id')
-            : collect();
-
-        $unpaidContractPayrollTotal = (float) $contractPayrollItems->sum('total');
-
-        $fallbackContractScheduleTotal = Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
-            ? (float) DB::table('employee_contract_payment_schedules')
-                ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
-                ->when($branchId, fn ($query) => $query->where('employee_contracts.branch_id', $branchId))
-                ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
-                ->whereBetween('employee_contract_payment_schedules.due_date', [
-                    $liabilityMonthStart,
-                    $liabilityMonthEnd,
-                ])
-                ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
-                ->when(
-                    $contractHandledEmployeeIds->isNotEmpty(),
-                    fn ($query) => $query->whereNotIn('employee_contracts.employee_id', $contractHandledEmployeeIds->all()),
-                )
-                ->sum('employee_contract_payment_schedules.amount')
-            : 0.0;
-
-        $upcomingContractScheduleTotal = Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
-            ? (float) DB::table('employee_contract_payment_schedules')
-                ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
-                ->when($branchId, fn ($query) => $query->where('employee_contracts.branch_id', $branchId))
-                ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
-                ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
-                ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
-                ->whereIn('employee_contract_payment_schedules.id', function ($query) use ($branchId, $liabilityMonthEnd) {
-                    $query->selectRaw('MIN(employee_contract_payment_schedules.id)')
-                        ->from('employee_contract_payment_schedules')
-                        ->join('employee_contracts', 'employee_contracts.id', '=', 'employee_contract_payment_schedules.employee_contract_id')
-                        ->when($branchId, fn ($subQuery) => $subQuery->where('employee_contracts.branch_id', $branchId))
-                        ->whereIn('employee_contracts.status', ['submitted', 'approved', 'active'])
-                        ->where('employee_contract_payment_schedules.due_date', '>', $liabilityMonthEnd)
-                        ->whereIn('employee_contract_payment_schedules.status', ['submitted', 'approved'])
-                        ->groupBy('employee_contract_payment_schedules.employee_contract_id');
-                })
-                ->sum('employee_contract_payment_schedules.amount')
-            : 0.0;
-
-        $unpaidSalaries = $unpaidFixedSalaryTotal
-            + $fallbackFixedSalaryTotal
-            + $upcomingFixedSalaryTotal
-            + $unpaidContractPayrollTotal
-            + $fallbackContractScheduleTotal
-            + $upcomingContractScheduleTotal;
-
-        $weightedCogs = Schema::hasColumn('inventory_transactions', 'total_cost')
-            ? (float) DB::table('inventory_transactions')
-                ->join('inventory_items', 'inventory_items.id', '=', 'inventory_transactions.inventory_item_id')
-                ->when($branchId, fn ($query) => $query->where('inventory_items.branch_id', $branchId))
-                ->whereIn('inventory_transactions.action', ['issue', 'consumed', 'wastage', 'adjustment_out'])
-                ->whereBetween('inventory_transactions.created_at', [$startDate, $endDate])
-                ->sum('inventory_transactions.total_cost')
-            : null;
-
-        $grossProfit = $weightedCogs === null
-            ? null
-            : (float) $salesTotal - (float) $weightedCogs;
-
-        $netProfit = ($grossProfit ?? (float) $salesTotal) - (float) $expensesTotal;
-
-        if ($useProjectedFinanceData) {
-            $trend = $this->branchDailyMetricReader
-                ->trend($startDate, $endDate, $branchId)
-                ->map(fn (array $row) => [
-                    ...$row,
-                    'net' => $row['sales'] - $row['expenses'],
-                ])
-                ->values()
-                ->all();
-
-            $branchRevenue = $this->branchDailyMetricReader
-                ->branchRevenue($startDate, $endDate, $branchId)
-                ->values();
-        } else {
-            $salesTrend = $this->salesQuery($startDate, $endDate, $branchId, $paymentMethod)
-                ->selectRaw('DATE(COALESCE(completed_at, created_at)) as bucket, COALESCE(SUM(total_amount), 0) as total')
-                ->groupBy('bucket')
-                ->pluck('total', 'bucket');
-
-            $expenseTrend = Expense::query()
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->when($category, fn ($query) => $query->where('expense_category_id', $category))
-                ->where('approval_status', 'approved')
-                ->whereBetween('expense_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
-                ->selectRaw('DATE(expense_date) as bucket, COALESCE(SUM(amount), 0) as total')
-                ->groupBy('bucket')
-                ->pluck('total', 'bucket');
-
-            $trend = [];
-            foreach (CarbonPeriod::create($startDate->copy()->startOfDay(), $endDate->copy()->startOfDay()) as $date) {
-                $bucket = $date->toDateString();
-                $sales = (float) ($salesTrend[$bucket] ?? 0);
-                $expenses = (float) ($expenseTrend[$bucket] ?? 0);
-
-                $trend[] = [
-                    'date' => $bucket,
-                    'label' => $date->format('M d'),
-                    'sales' => $sales,
-                    'expenses' => $expenses,
-                    'net' => $sales - $expenses,
-                ];
-            }
-
-            $branchRevenue = Order::query()
-                ->join('branches', 'branches.id', '=', 'orders.branch_id')
-                ->where('orders.status', OrderStatus::COMPLETED->value)
-                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->when($paymentMethod, function ($query, $method) {
-                    $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
-                })
-                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
-                ->selectRaw('branches.name as branch, COALESCE(SUM(orders.total_amount), 0) as revenue')
-                ->groupBy('branches.id', 'branches.name')
-                ->orderByDesc('revenue')
-                ->get()
-                ->map(fn ($row) => [
-                    'branch' => $row->branch,
-                    'revenue' => (float) $row->revenue,
-                ])
-                ->values();
-        }
-
-        $expenseCategoryOptions = ExpenseCategory::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn (ExpenseCategory $expenseCategory) => [
-                'value' => (string) $expenseCategory->id,
-                'label' => $expenseCategory->name,
-            ])
-            ->values();
-
-        $topExpenseCategories = Expense::query()
-            ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($category, fn ($query) => $query->where('expenses.expense_category_id', $category))
-            ->where('expenses.approval_status', 'approved')
-            ->whereBetween('expense_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->selectRaw('COALESCE(expense_categories.name, expenses.expense_type, "Uncategorized") as category_name')
-            ->selectRaw('COALESCE(expense_categories.slug, expenses.expense_type, "uncategorized") as category_slug')
-            ->selectRaw('COALESCE(SUM(amount), 0) as total')
-            ->groupBy('category_name', 'category_slug')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get()
-            ->map(fn ($row) => [
-                'value' => (string) $row->category_slug,
-                'category' => (string) $row->category_name,
-                'amount' => (float) $row->total,
-            ])
-            ->values();
-
-        $paymentBreakdown = Schema::hasTable('payments')
-            ? DB::table('payments')
-                ->join('orders', 'orders.id', '=', 'payments.order_id')
-                ->where('orders.status', OrderStatus::COMPLETED->value)
-                ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-                ->when($paymentMethod, fn ($query, $method) => $query->where('payments.method', $method))
-                ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
-                ->select(['payments.method', 'payments.status'])
-                ->selectRaw('COALESCE(SUM(payments.amount), 0) as total')
-                ->groupBy('payments.method', 'payments.status')
-                ->orderByDesc('total')
-                ->get()
-                ->map(fn ($row) => [
-                    'method' => $row->status === 'covered_by_employee'
-                        ? 'Employee Cover · '.str($row->method)->replace('_', ' ')->title()->toString()
-                        : str($row->method)->replace('_', ' ')->title()->toString(),
-                    'amount' => (float) $row->total,
-                ])
-                ->values()
-            : collect();
-
-        if ($houseCompTotal > 0) {
-            $paymentBreakdown->push([
-                'method' => 'Restaurant Hospitality',
-                'amount' => $houseCompTotal,
-            ]);
-        }
-
-        $unassignedPaymentAmount = Order::query()
-            ->where('orders.status', OrderStatus::COMPLETED->value)
-            ->when($branchId, fn ($query) => $query->where('orders.branch_id', $branchId))
-            ->whereBetween(DB::raw('COALESCE(orders.completed_at, orders.created_at)'), [$startDate, $endDate])
-            ->doesntHave('payments')
-            ->sum('paid_amount');
-
-        if ($unassignedPaymentAmount > 0) {
-            $paymentBreakdown->push([
-                'method' => 'Unassigned',
-                'amount' => (float) $unassignedPaymentAmount,
-            ]);
-        }
-
-        $submittedJournals = Schema::hasTable('finance_journals')
-            ? DB::table('finance_journals')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'submitted')
-                ->count()
-            : 0;
-
-        $submittedExpenses = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
-            ? DB::table('expenses')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'submitted')
-                ->count()
-            : 0;
-
-        $submittedCashMovements = Schema::hasTable('cash_movements')
-            ? DB::table('cash_movements')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'submitted')
-                ->count()
-            : 0;
-
-        $submittedPayrollRuns = Schema::hasTable('payroll_runs')
-            ? DB::table('payroll_runs')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('status', 'submitted')
-                ->count()
-            : 0;
-
-        $submittedEmployeeAdvances = Schema::hasTable('employee_advances')
-            ? DB::table('employee_advances')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('status', 'submitted')
-                ->count()
-            : 0;
-
-        $approvedJournalCount = Schema::hasTable('finance_journals')
-            ? DB::table('finance_journals')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->whereIn('posting_status', ['posted', 'approved'])
-                ->count()
-            : 0;
-
-        $draftJournalCount = Schema::hasTable('finance_journals')
-            ? DB::table('finance_journals')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'draft')
-                ->count()
-            : 0;
-
-        $approvedExpensesCount = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
-            ? DB::table('expenses')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'approved')
-                ->count()
-            : 0;
-
-        $draftExpensesCount = Schema::hasTable('expenses') && Schema::hasColumn('expenses', 'approval_status')
-            ? DB::table('expenses')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'draft')
-                ->count()
-            : 0;
-
-        $approvedCashMovementsCount = Schema::hasTable('cash_movements')
-            ? DB::table('cash_movements')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'approved')
-                ->count()
-            : 0;
-
-        $draftCashMovementsCount = Schema::hasTable('cash_movements')
-            ? DB::table('cash_movements')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('approval_status', 'draft')
-                ->count()
-            : 0;
-
-        $draftEmployeeAdvancesCount = Schema::hasTable('employee_advances')
-            ? DB::table('employee_advances')
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('status', 'draft')
-                ->count()
-            : 0;
-
-        $completedSalesCount = $canUseProjectedFinanceData
-            ? ($useProjectedFinanceData
-                ? $this->branchDailyMetricReader->sumCompletedOrders($startDate, $endDate, $branchId)
-                : Order::query()
-                    ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                    ->where('status', OrderStatus::COMPLETED->value)
-                    ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
-                    ->count())
-            : Order::query()
-                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                ->where('status', OrderStatus::COMPLETED->value)
-                ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
-                ->count();
-
-        $ledgerStats = [
-            'accounts' => Schema::hasTable('finance_accounts')
-                ? DB::table('finance_accounts')->count()
-                : 0,
-            'journals' => $approvedJournalCount
-                + $approvedExpensesCount
-                + $approvedCashMovementsCount
-                + $completedSalesCount,
-            'draft_journals' => $draftJournalCount
-                + $draftExpensesCount
-                + $draftCashMovementsCount
-                + $draftEmployeeAdvancesCount,
-            'approval_queue' => $submittedJournals
-                + $submittedExpenses
-                + $submittedCashMovements
-                + $submittedPayrollRuns
-                + $submittedEmployeeAdvances,
-        ];
-
-        $generalLedger = $this->buildGeneralLedger(
-            startDate: $startDate,
-            endDate: $endDate,
-            branchId: $branchId,
-            paymentMethod: $paymentMethod,
-            category: $category,
-        );
-
-        $modules = collect([
-            [
-                'name' => 'Chart of Accounts',
-                'description' => 'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.',
-                'status' => Schema::hasTable('finance_accounts') ? 'Ready' : 'Pending migration',
-            ],
-            [
-                'name' => 'General Ledger',
-                'description' => 'Journal headers and lines for every approved financial event.',
-                'status' => Schema::hasTable('finance_journal_lines') ? 'Ready' : 'Pending migration',
-            ],
-            [
-                'name' => 'Expenses',
-                'description' => 'Operational expenses with approval and account mapping support.',
-                'status' => Schema::hasColumn('expenses', 'approval_status') ? 'Ready' : 'Needs upgrade',
-            ],
-            [
-                'name' => 'Payroll',
-                'description' => 'Payroll runs, payroll items, and unpaid salary visibility.',
-                'status' => Schema::hasTable('payroll_run_items') ? 'Ready' : 'Pending migration',
-            ],
-            [
-                'name' => 'Employee Advances',
-                'description' => 'Employee takeouts and automatic payroll deductions.',
-                'status' => Schema::hasTable('employee_advances') ? 'Ready' : 'Pending migration',
-                'stats' => Schema::hasTable('employee_advances')
-                    ? [
-                        [
-                            'label' => 'Total Advances',
-                            'value' => (float) DB::table('employee_advances')
-                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                                ->sum('amount'),
-                            'format' => 'currency',
-                        ],
-                        [
-                            'label' => 'Outstanding',
-                            'value' => (float) DB::table('employee_advances')
-                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                                ->sum('remaining_balance'),
-                            'format' => 'currency',
-                        ],
-                        [
-                            'label' => 'Submitted',
-                            'value' => (int) DB::table('employee_advances')
-                                ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-                                ->where('status', 'submitted')
-                                ->count(),
-                            'format' => 'number',
-                        ],
-                    ]
-                    : [],
-            ],
-            [
-                'name' => 'Cash & Bank',
-                'description' => 'Manual cash movements, deposits, withdrawals, and branch petty cash.',
-                'status' => Schema::hasTable('cash_movements') ? 'Ready' : 'Pending migration',
-            ],
-            [
-                'name' => 'Inventory Valuation',
-                'description' => 'Weighted average costing and inventory-to-COGS movement tracking.',
-                'status' => Schema::hasColumn('inventory_transactions', 'weighted_average_cost_after') ? 'Ready' : 'Needs upgrade',
-            ],
-        ])->values();
-
-        return Inertia::render('finance/index', [
-            'filters' => [
-                'range' => $range,
-                'startDate' => $startDate->toDateString(),
-                'endDate' => $endDate->toDateString(),
-                'branchId' => $branchId,
-                'paymentMethod' => $paymentMethod,
-                'category' => $category,
-            ],
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
-            'expenseCategories' => $expenseCategoryOptions->values(),
-            'projectionHealth' => $this->projectionHealthService->snapshot($useProjectedFinanceData),
-            'dashboard' => [
-                'summary' => [
-                    'sales' => (float) $salesTotal,
-                    'expenses' => (float) $expensesTotal,
-                    'grossProfit' => $grossProfit,
-                    'netProfit' => (float) $netProfit,
-                    'cashPosition' => (float) $cashPosition,
-                    'unpaidSalaries' => (float) $unpaidSalaries,
-                    'inventoryValue' => (float) $inventoryValue,
-                    'supplierBalances' => (float) $supplierBalances,
-                    'employeeCoveredTotal' => (float) $employeeCoveredTotal,
-                    'houseCompTotal' => (float) $houseCompTotal,
-                ],
-                'trend' => $trend,
-                'branchRevenue' => $branchRevenue,
-                'topExpenseCategories' => $topExpenseCategories,
-                'paymentBreakdown' => $paymentBreakdown,
-                'coverageComparison' => $coverageComparison,
-                'ledgerStats' => $ledgerStats,
-                'generalLedger' => $generalLedger,
-                'generalLedgerPreview' => $generalLedger->take(5)->values(),
-                'modules' => $modules,
-                'notes' => [
-                    'grossProfit' => $grossProfit === null
-                        ? 'Gross profit will become exact after inventory valuation and COGS posting are active.'
-                        : 'Gross profit is using posted inventory cost movements.',
-                    'cashPosition' => 'All-time cash sales - cash expenses + approved cash movements.',
-                ],
-            ],
-        ]);
     }
 
     public function generalLedger(Request $request)
@@ -722,11 +49,10 @@ class FinanceController extends Controller
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
 
-        $allEntries = $this->buildGeneralLedger(
+        $allEntries = $this->buildMarketLedger(
             startDate: $startDate,
             endDate: $endDate,
             branchId: $branchId,
-            paymentMethod: $paymentMethod,
             category: $category,
             limit: null,
         );
@@ -949,210 +275,182 @@ class FinanceController extends Controller
         };
     }
 
-    protected function salesQuery(
-        Carbon $startDate,
-        Carbon $endDate,
-        ?int $branchId,
-        ?string $paymentMethod,
-    ) {
-        return Expense::query()->whereRaw('1 = 0');
-    }
+    private function marketIndex(Request $request)
+    {
+        $this->payrollExpenseSyncService->syncMissingPaidItems();
 
-    protected function buildGeneralLedger(
-        Carbon $startDate,
-        Carbon $endDate,
-        ?int $branchId,
-        ?string $paymentMethod,
-        ?string $category,
-        ?int $limit = 12,
-    ) {
-        return $this->buildMarketLedger($startDate, $endDate, $branchId, $category, $limit);
+        $validated = $request->validate([
+            'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
+            'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'category' => ['nullable', 'exists:expense_categories,id'],
+        ]);
 
-        $entries = collect();
+        [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
+        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $paymentMethod = $validated['payment_method'] ?? null;
+        $category = $validated['category'] ?? null;
 
-        $salesEntries = Order::query()
-            ->with(['branch:id,name'])
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($paymentMethod, function ($query, $method) {
-                $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
-            })
-            ->where('status', OrderStatus::COMPLETED->value)
-            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
-            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
-            ->orderByDesc(DB::raw('COALESCE(completed_at, created_at)'))
-            ->when($limit, fn ($query) => $query->limit($limit))
-            ->get()
-            ->map(fn (Order $order) => [
-                'date' => optional($order->completed_at ?? $order->created_at)?->toDateTimeString(),
-                'reference' => 'Order #'.$order->id,
-                'type' => 'Sale',
-                'branch' => $order->branch?->name ?? 'All Branches',
-                'account' => 'Food Sales',
-                'description' => 'Completed '.$order->order_type?->value.' order',
-                'debit' => 0.0,
-                'credit' => (float) $order->total_amount,
-                'status' => 'Posted',
-            ]);
-
-        $houseCompEntries = Order::query()
-            ->with(['branch:id,name'])
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->where('status', OrderStatus::COMPLETED->value)
-            ->where('covered_by_type', 'house')
-            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate])
-            ->orderByDesc(DB::raw('COALESCE(completed_at, created_at)'))
-            ->when($limit, fn ($query) => $query->limit($limit))
-            ->get()
-            ->map(fn (Order $order) => [
-                'date' => optional($order->completed_at ?? $order->created_at)?->toDateTimeString(),
-                'reference' => 'Order #'.$order->id,
-                'type' => 'Restaurant Hospitality',
-                'branch' => $order->branch?->name ?? 'All Branches',
-                'account' => 'Hospitality / Comp',
-                'description' => $order->covered_by_note ?: 'Completed hospitality order',
-                'debit' => (float) $order->total_amount,
-                'credit' => 0.0,
-                'status' => 'Posted',
-            ]);
-
-        $expenseEntries = Expense::query()
-            ->with(['branch:id,name', 'expenseCategory:id,name', 'account:id,code,name'])
+        $expenseQuery = Expense::query()
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->when($category, fn ($query) => $query->where('expense_category_id', $category))
-            ->whereBetween('expense_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->orderByDesc('expense_date')
-            ->orderByDesc('id')
-            ->when($limit, fn ($query) => $query->limit($limit))
+            ->where('approval_status', 'approved')
+            ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
+
+        $expensesTotal = (float) (clone $expenseQuery)->sum('amount');
+        $inventoryValue = (float) InventoryItem::query()
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
+            ->value('total');
+        $supplierBalances = (float) InventoryItem::query()
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->selectRaw('COALESCE(SUM(MAX((quantity * unit_price) - paid_amount, 0)), 0) as total')
+            ->value('total');
+        $cashPosition = (float) CashMovement::query()
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->where('approval_status', 'approved')
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
+            ->value('total');
+        $unpaidSalaries = Schema::hasTable('payroll_run_items')
+            ? (float) DB::table('payroll_run_items')->where('payment_status', '!=', 'paid')->sum('net_salary')
+            : 0.0;
+
+        $expenseTrend = (clone $expenseQuery)
+            ->selectRaw('DATE(expense_date) as bucket, COALESCE(SUM(amount), 0) as total')
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket');
+        $trend = collect(CarbonPeriod::create($startDate->copy()->startOfDay(), $endDate->copy()->startOfDay()))
+            ->map(fn (Carbon $date) => [
+                'date' => $date->toDateString(),
+                'label' => $date->format('M d'),
+                'sales' => 0,
+                'expenses' => (float) ($expenseTrend[$date->toDateString()] ?? 0),
+                'net' => -(float) ($expenseTrend[$date->toDateString()] ?? 0),
+            ])->values();
+
+        $topExpenseCategories = (clone $expenseQuery)
+            ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
+            ->selectRaw('COALESCE(expense_categories.slug, expenses.expense_type, "uncategorized") as value')
+            ->selectRaw('COALESCE(expense_categories.name, expenses.expense_type, "Uncategorized") as category')
+            ->selectRaw('COALESCE(SUM(expenses.amount), 0) as amount')
+            ->groupBy('value', 'category')
+            ->orderByDesc('amount')
+            ->limit(6)
+            ->get();
+
+        $generalLedger = $this->buildMarketLedger($startDate, $endDate, $branchId, $category, 12);
+
+        return Inertia::render('finance/index', [
+            'filters' => [
+                'range' => $range,
+                'startDate' => $startDate->toDateString(),
+                'endDate' => $endDate->toDateString(),
+                'branchId' => $branchId,
+                'paymentMethod' => $paymentMethod,
+                'category' => $category,
+            ],
+            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'expenseCategories' => ExpenseCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name'])->map(fn ($item) => ['value' => (string) $item->id, 'label' => $item->name]),
+            'projectionHealth' => [
+                'usesProjectionData' => false,
+                'status' => 'unavailable',
+                'message' => 'Finance metrics use live accounting records.',
+                'latestProjectionAt' => null,
+                'staleBranchCount' => 0,
+                'criticalBranchCount' => 0,
+                'warningBranchCount' => 0,
+                'branches' => [],
+            ],
+            'dashboard' => [
+                'summary' => [
+                    'sales' => 0,
+                    'expenses' => $expensesTotal,
+                    'grossProfit' => null,
+                    'netProfit' => -$expensesTotal,
+                    'cashPosition' => $cashPosition,
+                    'unpaidSalaries' => $unpaidSalaries,
+                    'inventoryValue' => $inventoryValue,
+                    'supplierBalances' => $supplierBalances,
+                    'employeeCoveredTotal' => 0,
+                    'houseCompTotal' => 0,
+                ],
+                'trend' => $trend,
+                'branchRevenue' => [],
+                'topExpenseCategories' => $topExpenseCategories,
+                'paymentBreakdown' => [],
+                'coverageComparison' => [],
+                'ledgerStats' => [
+                    'accounts' => FinanceAccount::query()->count(),
+                    'journals' => Schema::hasTable('finance_journals') ? DB::table('finance_journals')->count() : 0,
+                    'draft_journals' => Schema::hasTable('finance_journals') ? DB::table('finance_journals')->where('approval_status', 'draft')->count() : 0,
+                    'approval_queue' => Expense::query()->where('approval_status', 'submitted')->count(),
+                ],
+                'generalLedger' => $generalLedger,
+                'generalLedgerPreview' => $generalLedger->take(5)->values(),
+                'modules' => [
+                    ['name' => 'Chart of Accounts', 'description' => 'Assets, liabilities, equity, revenue, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'General Ledger', 'description' => 'Approved accounting activity and journals.', 'status' => 'Ready'],
+                    ['name' => 'Expenses', 'description' => 'Expense recording and approval workflows.', 'status' => 'Ready'],
+                    ['name' => 'Payroll', 'description' => 'Payroll runs and outstanding salary visibility.', 'status' => 'Ready'],
+                    ['name' => 'Cash & Bank', 'description' => 'Cash movements, deposits, and withdrawals.', 'status' => 'Ready'],
+                    ['name' => 'Inventory Valuation', 'description' => 'Stock valuation and inventory cost movements.', 'status' => 'Ready'],
+                ],
+                'notes' => [
+                    'grossProfit' => 'Revenue recognition will be configured with the market sales workflow.',
+                    'cashPosition' => 'Approved cash inflows minus approved cash outflows.',
+                ],
+            ],
+        ]);
+    }
+
+    private function buildMarketLedger(
+        Carbon $startDate,
+        Carbon $endDate,
+        ?int $branchId,
+        ?string $category,
+        ?int $limit,
+    ) {
+        $expenses = Expense::query()
+            ->with('branch:id,name')
+            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($category, fn ($query) => $query->where('expense_category_id', $category))
+            ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->map(fn (Expense $expense) => [
-                'date' => optional($expense->expense_date)?->toDateString(),
+                'date' => (string) $expense->expense_date,
                 'reference' => 'Expense #'.$expense->id,
                 'type' => 'Expense',
-                'branch' => $expense->branch?->name ?? 'All Branches',
-                'account' => $expense->account?->name
-                    ?? $expense->expenseCategory?->name
-                    ?? 'Expense',
+                'branch' => $expense->branch?->name ?? 'Unassigned',
+                'account' => $expense->expense_type ?? 'Expense',
                 'description' => $expense->title,
                 'debit' => (float) $expense->amount,
-                'credit' => 0.0,
-                'status' => str($expense->approval_status ?? 'draft')->headline()->toString(),
+                'credit' => 0,
+                'status' => $expense->approval_status ?? 'draft',
             ]);
 
-        $cashEntries = CashMovement::query()
-            ->with(['branch:id,name', 'account:id,code,name', 'counterpartyAccount:id,code,name'])
+        $movements = CashMovement::query()
+            ->with('branch:id,name')
             ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($paymentMethod, fn ($query, $method) => $query->where('payment_method', $method))
-            ->whereBetween('movement_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->orderByDesc('movement_date')
-            ->orderByDesc('id')
-            ->when($limit, fn ($query) => $query->limit($limit))
+            ->whereBetween('movement_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->map(fn (CashMovement $movement) => [
-                'date' => optional($movement->movement_date)?->toDateString(),
-                'reference' => 'Movement #'.$movement->id,
+                'date' => (string) $movement->movement_date,
+                'reference' => 'Cash #'.$movement->id,
                 'type' => 'Cash Movement',
-                'branch' => $movement->branch?->name ?? 'All Branches',
-                'account' => $movement->account?->name ?? 'Cash / Bank',
-                'description' => str($movement->movement_type)->replace('_', ' ')->title()->toString(),
-                'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0.0,
-                'credit' => $movement->direction === 'in' ? (float) $movement->amount : 0.0,
-                'status' => str($movement->approval_status ?? 'draft')->headline()->toString(),
+                'branch' => $movement->branch?->name ?? 'Unassigned',
+                'account' => $movement->movement_type ?? 'Cash',
+                'description' => $movement->description ?? $movement->title ?? 'Cash movement',
+                'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0,
+                'credit' => $movement->direction === 'in' ? (float) $movement->amount : 0,
+                'status' => $movement->approval_status ?? 'draft',
             ]);
 
-        $employeeAdvanceEntries = EmployeeAdvance::query()
-            ->with(['branch:id,name', 'employee:id,first_name,last_name'])
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->where('status', 'approved')
-            ->whereBetween('advance_date', [
-                $startDate->toDateString(),
-                $endDate->toDateString(),
-            ])
-            ->orderByDesc('advance_date')
-            ->orderByDesc('id')
-            ->when($limit, fn ($query) => $query->limit($limit))
-            ->get()
-            ->map(function (EmployeeAdvance $advance) {
-                $employeeName = trim(($advance->employee?->first_name ?? '').' '.($advance->employee?->last_name ?? ''));
-                $reason = trim((string) ($advance->reason ?? ''));
-                $isEmployeeCoveredOrder = str_starts_with(
-                    strtolower($reason),
-                    'employee covered order #',
-                );
+        $entries = $expenses->merge($movements)->sortByDesc('date')->values();
 
-                return [
-                    'date' => optional($advance->advance_date)?->toDateString(),
-                    'reference' => 'Advance #'.$advance->id,
-                    'type' => $isEmployeeCoveredOrder ? 'Employee Cover' : 'Employee Advance',
-                    'branch' => $advance->branch?->name ?? 'All Branches',
-                    'account' => $isEmployeeCoveredOrder ? 'Employee Receivable' : 'Employee Advances',
-                    'description' => $reason
-                        ?: trim('Advance payout'.($employeeName ? ' • '.$employeeName : '')),
-                    'debit' => (float) $advance->amount,
-                    'credit' => 0.0,
-                    'status' => str($advance->status ?? 'draft')->headline()->toString(),
-                ];
-            });
-
-        $journalEntries = collect();
-        if (Schema::hasTable('finance_journal_lines') && Schema::hasTable('finance_journals')) {
-            $journalEntries = DB::table('finance_journal_lines')
-                ->join('finance_journals', 'finance_journals.id', '=', 'finance_journal_lines.journal_id')
-                ->leftJoin('branches', 'branches.id', '=', 'finance_journal_lines.branch_id')
-                ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'finance_journal_lines.account_id')
-                ->when($branchId, fn ($query) => $query->where('finance_journal_lines.branch_id', $branchId))
-                ->whereBetween('finance_journals.journal_date', [
-                    $startDate->toDateString(),
-                    $endDate->toDateString(),
-                ])
-                ->orderByDesc('finance_journals.journal_date')
-                ->orderByDesc('finance_journal_lines.id')
-                ->when($limit, fn ($query) => $query->limit($limit))
-                ->get([
-                    'finance_journals.id as journal_id',
-                    'finance_journals.journal_date',
-                    'finance_journals.reference_type',
-                    'finance_journals.reference_id',
-                    'finance_journals.approval_status',
-                    'finance_journals.posting_status',
-                    'branches.name as branch_name',
-                    'finance_accounts.name as account_name',
-                    'finance_journal_lines.debit',
-                    'finance_journal_lines.credit',
-                    'finance_journal_lines.memo',
-                ])
-                ->map(fn ($row) => [
-                    'date' => $row->journal_date,
-                    'reference' => 'Journal #'.$row->journal_id,
-                    'type' => 'Journal Line',
-                    'branch' => $row->branch_name ?? 'All Branches',
-                    'account' => $row->account_name ?? 'Ledger Account',
-                    'description' => $row->memo
-                        ?? trim(($row->reference_type ?? 'journal').' #'.($row->reference_id ?? $row->journal_id)),
-                    'debit' => (float) $row->debit,
-                    'credit' => (float) $row->credit,
-                    'status' => str($row->posting_status ?? $row->approval_status ?? 'draft')->headline()->toString(),
-                ]);
-        }
-
-        $entries = $entries
-            ->concat($journalEntries)
-            ->concat($salesEntries)
-            ->concat($employeeAdvanceEntries)
-            ->concat($expenseEntries)
-            ->concat($cashEntries)
-            ->sortByDesc('date')
-            ->values();
-
-        if ($limit) {
-            return $entries->take($limit)->values();
-        }
-
-        return $entries;
+        return $limit === null ? $entries : $entries->take($limit)->values();
     }
+
 }
+

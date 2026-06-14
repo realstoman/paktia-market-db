@@ -1,23 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Branch, Country, Kitchen, Province } from '@/types';
+import { Branch, Country, Province } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
 
-const MAX_VISIBLE_KITCHENS = 3;
 type TranslateFn = (key: string, fallback?: string) => string;
 
 export const buildColumns = (
     countries: Country[],
     provinces: Province[],
-    kitchens: Kitchen[],
     t: TranslateFn,
     locale: string,
 ): ColumnDef<Branch>[] => [
@@ -59,66 +51,6 @@ export const buildColumns = (
         header: t('branches.table.province', 'Province'),
     },
     {
-        id: 'kitchens',
-        header: t('branches.table.kitchens', 'Kitchens'),
-        cell: ({ row }) => {
-            const kitchens = row.original.kitchens ?? [];
-            const visible = kitchens.slice(0, MAX_VISIBLE_KITCHENS);
-            const hidden = kitchens.slice(MAX_VISIBLE_KITCHENS);
-
-            if (kitchens.length === 0) {
-                return (
-                    <span className="text-xs text-muted-foreground">
-                        {t('branches.common.noKitchens', 'No kitchens')}
-                    </span>
-                );
-            }
-
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {visible.map((kitchen) => (
-                        <Badge
-                            key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                            variant="secondary"
-                        >
-                            {kitchen.name ?? `Kitchen #${kitchen.id}`}
-                        </Badge>
-                    ))}
-                    {hidden.length > 0 && (
-                        <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge
-                                        variant="outline"
-                                        className="cursor-help"
-                                    >
-                                        {t(
-                                            'branches.table.moreKitchens',
-                                            '+:count more',
-                                        ).replace(':count', String(hidden.length))}
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                        {hidden.map((kitchen) => (
-                                            <Badge
-                                                key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                variant="secondary"
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                </div>
-            );
-        },
-    },
-    {
         accessorKey: 'address',
         header: t('branches.table.address', 'Address'),
     },
@@ -158,7 +90,6 @@ export const buildColumns = (
                 data={row.original}
                 countries={countries}
                 provinces={provinces}
-                kitchens={kitchens}
             />
         ),
     },
