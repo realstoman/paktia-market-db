@@ -2,21 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Models\Branch;
-use App\Models\BranchDailyMetric;
 use App\Models\CashMovement;
 use App\Models\EmployeeAdvance;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
-use App\Models\Order;
 use App\Services\Finance\PayrollExpenseSyncService;
-use App\Services\Projection\BranchDailyMetricReader;
-use App\Services\Projection\ProjectionHealthService;
-use App\Services\Projection\ProjectionDispatchService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -29,14 +23,13 @@ use Inertia\Inertia;
 class FinanceController extends Controller
 {
     public function __construct(
-        private readonly ProjectionDispatchService $projectionDispatchService,
-        private readonly BranchDailyMetricReader $branchDailyMetricReader,
-        private readonly ProjectionHealthService $projectionHealthService,
         private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
     public function index(Request $request)
     {
+        return $this->marketIndex($request);
+
         $this->payrollExpenseSyncService->syncMissingPaidItems();
 
         $validated = $request->validate([
@@ -962,14 +955,7 @@ class FinanceController extends Controller
         ?int $branchId,
         ?string $paymentMethod,
     ) {
-        return Order::query()
-            ->where('status', OrderStatus::COMPLETED->value)
-            ->where(fn ($query) => $query->whereNull('covered_by_type')->orWhere('covered_by_type', '!=', 'house'))
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
-            ->when($paymentMethod, function ($query, $method) {
-                $query->whereHas('payments', fn ($paymentQuery) => $paymentQuery->where('method', $method));
-            })
-            ->whereBetween(DB::raw('COALESCE(completed_at, created_at)'), [$startDate, $endDate]);
+        return Expense::query()->whereRaw('1 = 0');
     }
 
     protected function buildGeneralLedger(
@@ -980,6 +966,8 @@ class FinanceController extends Controller
         ?string $category,
         ?int $limit = 12,
     ) {
+        return $this->buildMarketLedger($startDate, $endDate, $branchId, $category, $limit);
+
         $entries = collect();
 
         $salesEntries = Order::query()
