@@ -22,7 +22,7 @@ test('non super admin cannot access user and branch management pages', function 
     $this->seed(RolePermissionSeeder::class);
 
     $user = User::factory()->create();
-    $user->assignRole('cashier');
+    $user->assignRole('inventory');
 
     $this->actingAs($user)
         ->get(route('users.index'))
