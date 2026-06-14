@@ -21,13 +21,6 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             UserSeeder::class,
 
-            KitchenSeeder::class,
-
-            ProductCategorySeeder::class,
-            ProductTypeSeeder::class,
-            ProductSizeSeeder::class,
-            ProductSeeder::class,
-
             InventorySeeder::class,
             FinanceAccountSeeder::class,
         ]);

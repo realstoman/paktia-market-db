@@ -23,35 +23,10 @@ class RolePermissionSeeder extends Seeder
 
         $roles = [
             'super-admin' => PermissionEnum::cases(),
-            'cashier' => [
-                PermissionEnum::DASHBOARD_VIEW,
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::ORDERS_CREATE,
-                PermissionEnum::ORDERS_UPDATE,
-                PermissionEnum::PRODUCTS_VIEW,
-                PermissionEnum::PAYMENTS_VIEW,
-                PermissionEnum::PAYMENTS_CREATE,
-                PermissionEnum::REPORTS_VIEW,
-            ],
-            'order-taker' => [
-                PermissionEnum::DASHBOARD_VIEW,
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::ORDERS_CREATE,
-                PermissionEnum::ORDERS_UPDATE,
-                PermissionEnum::PRODUCTS_VIEW,
-            ],
-            'server' => [
-                PermissionEnum::DASHBOARD_VIEW,
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::ORDERS_UPDATE,
-                PermissionEnum::PRODUCTS_VIEW,
-            ],
             'finance' => [
                 PermissionEnum::DASHBOARD_VIEW,
                 PermissionEnum::FINANCE_VIEW,
                 PermissionEnum::FINANCE_MANAGE,
-                PermissionEnum::PAYMENTS_VIEW,
-                PermissionEnum::PAYMENTS_CREATE,
                 PermissionEnum::EXPENSES_VIEW,
                 PermissionEnum::EXPENSES_CREATE,
                 PermissionEnum::PAYROLL_VIEW,
@@ -72,29 +47,14 @@ class RolePermissionSeeder extends Seeder
                 PermissionEnum::DASHBOARD_VIEW,
                 PermissionEnum::INVENTORY_VIEW,
                 PermissionEnum::INVENTORY_ADJUST,
-                PermissionEnum::PRODUCTS_VIEW,
                 PermissionEnum::REPORTS_VIEW,
             ],
             'view-only' => [
                 PermissionEnum::DASHBOARD_VIEW,
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::PRODUCTS_VIEW,
                 PermissionEnum::INVENTORY_VIEW,
                 PermissionEnum::EMPLOYEES_VIEW,
                 PermissionEnum::FINANCE_VIEW,
                 PermissionEnum::REPORTS_VIEW,
-            ],
-            'kitchen' => [
-                PermissionEnum::DASHBOARD_VIEW,
-                PermissionEnum::KITCHEN_VIEW,
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::ORDERS_UPDATE,
-            ],
-            'online-orders-operator' => [
-                PermissionEnum::ORDERS_VIEW,
-                PermissionEnum::ORDERS_UPDATE,
-                PermissionEnum::PAYMENTS_VIEW,
-                PermissionEnum::PAYMENTS_CREATE,
             ],
         ];
 

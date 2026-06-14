@@ -38,8 +38,4 @@ class Branch extends Model
         return $this->hasMany(InventoryItem::class);
     }
 
-    public function tables()
-    {
-        return $this->hasMany(BranchTable::class);
-    }
 }

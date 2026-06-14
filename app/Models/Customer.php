@@ -18,8 +18,4 @@ class Customer extends Model
         'is_active' => 'boolean',
     ];
 
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
 }
