@@ -2000,7 +2000,7 @@ export function ToolsLauncher() {
                                     placeholder={
                                         bannerLinkType === 'internal'
                                             ? '/products/qabuli-palaw'
-                                            : 'https://facebook.com/babataste'
+                                            : 'https://example.com/paktia-market'
                                     }
                                 />
                                 <p className="text-xs text-muted-foreground">

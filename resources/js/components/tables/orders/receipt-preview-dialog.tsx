@@ -60,9 +60,7 @@ interface ReceiptPreviewDialogProps {
 
 const RECEIPT_WIDTH_PX = 302;
 const RESTAURANT_CONTACT = {
-    address:
-        'Dar-ul-Aman Road, Next to Ministry of Industry and Commerce, Katawazi Tower, Kabul, Afghanistan.',
-    whatsapp: ['+93 780 59 59 59'],
+    address: 'Paktia Market, Afghanistan.',
 };
 
 const RECEIPT_FOOTER_NOTE = {
@@ -235,12 +233,7 @@ export function ReceiptPreviewDialog({
         ? brand.logo
         : `${window.location.origin}${brand.logo}`;
     const whatsappQrTarget = useMemo(() => {
-        const phone = RESTAURANT_CONTACT.whatsapp[0]?.replace(/\D+/g, '') ?? '';
-        const message = encodeURIComponent(
-            'Hello Paktia Market, I would like to get in touch.',
-        );
-
-        return `https://wa.me/${phone}?text=${message}`;
+        return window.location.origin;
     }, []);
     const qrCodeSrc = useMemo(
         () =>
