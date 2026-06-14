@@ -1,6 +1,6 @@
 const en = {
     brand: {
-        restaurantName: 'Paktia Market',
+        marketName: 'Paktia Market',
     },
     common: {
         save: 'Save',
@@ -66,14 +66,14 @@ const en = {
         },
         securedBy: 'Secured by industry-standard encryption',
         promo: {
-            imageAlt: 'Restaurant dish',
-            heroTitle: 'Manage Your Restaurant',
+            imageAlt: 'Paktia Market',
+            heroTitle: 'Manage Paktia Market',
             heroDescription:
-                'Complete ERP solution for modern restaurant operations',
-            kitchenTitle: 'Kitchen Management',
-            kitchenDescription: 'Real-time order tracking and management',
-            menuTitle: 'Menu Control',
-            menuDescription: 'Dynamic pricing & inventory management',
+                'Complete ERP solution for modern market operations',
+            branchTitle: 'Branch Management',
+            branchDescription: 'Organize locations and staff',
+            inventoryTitle: 'Inventory Control',
+            inventoryDescription: 'Track stock and valuation',
         },
     },
     navigation: {
@@ -93,8 +93,8 @@ const en = {
     branches: {
         page: {
             metaTitle: 'Branches',
-            title: 'Restaurant Branches',
-            description: 'Manage restaurant branches',
+            title: 'Market Branches',
+            description: 'Manage market branches',
         },
         cards: {
             total: {
@@ -121,7 +121,6 @@ const en = {
             status: 'Status',
             createdAt: 'Created At',
             actions: 'Actions',
-            moreKitchens: '+:count more',
         },
         filters: {
             searchPlaceholder:
@@ -154,13 +153,11 @@ const en = {
             openMenu: 'Open menu',
             view: 'View',
             edit: 'Edit',
-            assignKitchens: 'Assign Kitchens',
             activate: 'Activate',
             deactivate: 'Deactivate',
             delete: 'Delete',
             trash: 'Trash',
             saveChanges: 'Save Changes',
-            saveKitchens: 'Save Kitchens',
             update: 'Update',
         },
         statuses: {
@@ -168,11 +165,9 @@ const en = {
             inactive: 'Inactive',
         },
         common: {
-            noKitchens: 'No kitchens',
             noDescription: 'No description',
             selected: 'Selected',
             selectedCount: ':selected of :total',
-            kitchenFallback: 'Kitchen #:id',
         },
         feedback: {
             branchCreated: 'Branch created successfully.',
@@ -180,7 +175,6 @@ const en = {
             branchDeleted: 'Branch deleted successfully.',
             branchDisabled: 'Branch disabled successfully.',
             branchActivated: 'Branch activated successfully.',
-            kitchensUpdated: 'Branch kitchens updated successfully.',
             tableCreated: 'Table number created successfully.',
             tableUpdated: 'Table number updated successfully.',
             tableDeleted: 'Table number deleted successfully.',
@@ -194,10 +188,6 @@ const en = {
             edit: {
                 title: 'Edit Branch',
                 description: 'Update the branch information and location.',
-            },
-            kitchens: {
-                title: 'Assign Kitchens',
-                description: 'Select kitchens available for :name.',
             },
             tables: {
                 title: 'Manage Branch Tables',
@@ -525,13 +515,13 @@ const en = {
         deleteAccountDescription:
             'Delete your account and all of its resources',
         deleteAccountUnavailableDescription:
-            'Internal restaurant staff accounts cannot be deleted from profile settings',
+            'Internal staff accounts cannot be deleted from profile settings',
         warning: 'Warning',
         notAvailable: 'Not available',
         deleteAccountWarning:
             'Please proceed with caution, this cannot be undone.',
         deleteAccountAdminManaged:
-            'If this account belongs to a restaurant team member, an administrator should manage it from the users section instead.',
+            'If this account belongs to a staff member, an administrator should manage it from the users section instead.',
         confirmDeleteAccountTitle:
             'Are you sure you want to delete your account?',
         confirmDeleteAccountDescription:
@@ -551,8 +541,8 @@ const en = {
             'Manage the shared logo and theme colors used across the system.',
         systemBrandingRestricted:
             'Only super-admin can update system branding settings.',
-        restaurantNameLabel: 'Restaurant name',
-        restaurantShortNameLabel: 'Short name',
+        marketNameLabel: 'Market name',
+        marketShortNameLabel: 'Short name',
         primaryColorLabel: 'Primary color',
         secondaryColorLabel: 'Secondary color',
         tertiaryColorLabel: 'Tertiary color',
@@ -565,7 +555,7 @@ const en = {
         systemBrandingUpdateFailed: 'Unable to update branding settings.',
         confirmBrandingUpdateTitle: 'Apply branding changes?',
         confirmBrandingUpdateDescription:
-            'This will update the shared restaurant name, logo, and colors across the system after reload.',
+            'This will update the shared market name, logo, and colors across the system after reload.',
         savingBranding: 'Saving...',
     },
     userMenu: {
@@ -912,12 +902,6 @@ const en = {
             netProfitSubtitle:
                 'Sales minus expenses, before unposted finance adjustments',
             cashPosition: 'Cash Position',
-            employeeCovered: 'Employee Covered',
-            employeeCoveredSubtitle:
-                'Orders paid by employees on behalf of guests',
-            restaurantHospitality: 'Restaurant Hospitality',
-            restaurantHospitalitySubtitle:
-                'Hospitality and complimentary orders excluded from sales',
             unpaidSalaries: 'Unpaid Salaries',
             unpaidSalariesSubtitle:
                 'Current month salary and scheduled contract liabilities',
@@ -943,12 +927,9 @@ const en = {
             revenueExpenseTitle: 'Revenue, Expense, and Operating Result',
             revenueExpenseDescription:
                 'Daily trend for the selected finance window.',
-            coverageTitle: 'Sales vs Covered Orders',
-            coverageDescription:
-                'Compare recognized sales with employee-covered and restaurant hospitality volume for the selected period.',
             branchRevenueTitle: 'Branch-wise Revenue',
             branchRevenueDescription:
-                'Compare completed order revenue by branch.',
+                'Compare financial activity by branch.',
             expenseCategoriesTitle: 'Top Expense Categories',
             expenseCategoriesDescription:
                 'Expense concentration in the selected period.',
@@ -1071,7 +1052,7 @@ const en = {
             eyebrow: 'Finance Module',
             title: 'Inventory Valuation',
             description:
-                'This page shows what the restaurant stock is worth, how much value moved into kitchen usage, what has been adjusted, and how inventory costs are affecting finance.',
+                'This page shows what the market stock is worth, how much value moved through inventory usage, what has been adjusted, and how inventory costs are affecting finance.',
         },
         actions: {
             backToFinance: 'Back to Finance',
@@ -1412,7 +1393,7 @@ const en = {
             financeManager: 'Finance Manager',
             approvedBy: 'Approved By',
             footerNote:
-                'Generated from the finance module for internal review, signature workflow, and restaurant expense records.',
+                'Generated from the finance module for internal review, signature workflow, and market expense records.',
             footerStamp: 'Paktia Market Finance Copy',
             mainBranch: 'Main Branch',
             addressNotSet: 'Address not set',

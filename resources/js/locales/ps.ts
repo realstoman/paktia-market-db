@@ -1,6 +1,6 @@
 const ps = {
     brand: {
-        restaurantName: 'پکتیا مارکیټ',
+        marketName: 'پکتیا مارکیټ',
     },
     common: {
         save: 'خوندي کول',
@@ -67,13 +67,13 @@ const ps = {
         },
         securedBy: 'د صنعت د معیاري کوډګذارۍ له لارې خوندي شوی',
         promo: {
-            imageAlt: 'د رستورانت خواړه',
-            heroTitle: 'خپل رستورانت په ښه توګه مدیریت کړئ',
-            heroDescription: 'د عصري رستورانت عملیاتو لپاره بشپړ ERP سیستم',
-            kitchenTitle: 'د پخلنځي مدیریت',
-            kitchenDescription: 'د فرمایشاتو پر وخت تعقیب او مدیریت',
-            menuTitle: 'د مینو کنټرول',
-            menuDescription: 'متحرک قیمت‌ ټاکنه او د ګدام مدیریت',
+            imageAlt: 'پکتیا مارکیټ',
+            heroTitle: 'پکتیا مارکیټ مدیریت کړئ',
+            heroDescription: 'د عصري مارکیټ عملیاتو لپاره بشپړ ERP سیستم',
+            branchTitle: 'د څانګو مدیریت',
+            branchDescription: 'ځایونه او کارکوونکي تنظیم کړئ',
+            inventoryTitle: 'د ګدام مدیریت',
+            inventoryDescription: 'موجودي او ارزښت تعقیب کړئ',
         },
     },
     navigation: {
@@ -82,7 +82,7 @@ const ps = {
         inventory: 'د ګدام برخه',
         employees: 'کارکوونکي',
         finance: 'د مالي برخه',
-        branches: 'د رستورانت څانګې',
+        branches: 'د مارکیټ څانګې',
         users: 'د سیستم کارونکي',
         roles: 'صلایحتونه',
         reports: 'راپورونه',
@@ -93,8 +93,8 @@ const ps = {
     branches: {
         page: {
             metaTitle: 'څانګې',
-            title: 'د رستورانت څانګې',
-            description: 'د رستورانت څانګې مدیریت کړئ',
+            title: 'د مارکیټ څانګې',
+            description: 'د مارکیټ څانګې مدیریت کړئ',
         },
         cards: {
             total: {
@@ -121,7 +121,6 @@ const ps = {
             status: 'حالت',
             createdAt: 'د جوړېدو نېټه',
             actions: 'عملیات',
-            moreKitchens: '+:count نور',
         },
         filters: {
             searchPlaceholder: 'څانګې د نوم، هیواد یا ولایت له مخې وپلټئ...',
@@ -153,13 +152,11 @@ const ps = {
             openMenu: 'مېنو پرانیزئ',
             view: 'لیدل',
             edit: 'سمول',
-            assignKitchens: 'پخلنځي وټاکئ',
             activate: 'فعالول',
             deactivate: 'غیرفعالول',
             delete: 'حذف',
             trash: 'حذف',
             saveChanges: 'بدلونونه خوندي کړئ',
-            saveKitchens: 'پخلنځي خوندي کړئ',
             update: 'نوی کول',
         },
         statuses: {
@@ -167,11 +164,9 @@ const ps = {
             inactive: 'غیرفعال',
         },
         common: {
-            noKitchens: 'هیڅ پخلنځی نشته',
             noDescription: 'بې تشریحه',
             selected: 'ټاکل شوي',
             selectedCount: ':selected له :total',
-            kitchenFallback: 'پخلنځی #:id',
         },
         feedback: {
             branchCreated: 'څانګه په بریالیتوب سره جوړه شوه.',
@@ -179,7 +174,6 @@ const ps = {
             branchDeleted: 'څانګه په بریالیتوب سره حذف شوه.',
             branchDisabled: 'څانګه په بریالیتوب سره غیرفعاله شوه.',
             branchActivated: 'څانګه په بریالیتوب سره فعاله شوه.',
-            kitchensUpdated: 'د څانګې پخلنځي په بریالیتوب سره نوي شول.',
             tableCreated: 'د مېز شمېره په بریالیتوب سره جوړه شوه.',
             tableUpdated: 'د مېز شمېره په بریالیتوب سره نوې شوه.',
             tableDeleted: 'د مېز شمېره په بریالیتوب سره حذف شوه.',
@@ -193,10 +187,6 @@ const ps = {
             edit: {
                 title: 'څانګه سمه کړئ',
                 description: 'د څانګې معلومات او ځای نوي کړئ.',
-            },
-            kitchens: {
-                title: 'پخلنځي وټاکئ',
-                description: 'د :name لپاره موجود پخلنځي وټاکئ.',
             },
             tables: {
                 title: 'د څانګې میزونه مدیریت کړئ',
@@ -550,8 +540,8 @@ const ps = {
             'هغه ګډ لوګو او رنګونه سمبال کړئ چې په ټول سيستم کې کارېږي.',
         systemBrandingRestricted:
             'يوازې سوپر اېډمين د سيستم د هويت تنظيمات بدلولی شي.',
-        restaurantNameLabel: 'د رستورانت نوم',
-        restaurantShortNameLabel: 'لنډ نوم',
+        marketNameLabel: 'د مارکیټ نوم',
+        marketShortNameLabel: 'لنډ نوم',
         primaryColorLabel: 'اصلي رنګ',
         secondaryColorLabel: 'دويم رنګ',
         tertiaryColorLabel: 'درېيم رنګ',

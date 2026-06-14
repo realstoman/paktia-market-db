@@ -1,6 +1,6 @@
 const fa = {
     brand: {
-        restaurantName: 'پکتیا مارکیت',
+        marketName: 'پکتیا مارکیت',
     },
     common: {
         save: 'ذخیره',
@@ -68,13 +68,13 @@ const fa = {
         },
         securedBy: 'محافظت‌ شده با رمزگذاری استاندارد صنعتی',
         promo: {
-            imageAlt: 'غذای رستورانت',
-            heroTitle: 'رستورانت خود را مدیریت کنید',
-            heroDescription: 'سیستم کامل ERP برای مدیریت رستورانت',
-            kitchenTitle: 'مدیریت آشپزخانه',
-            kitchenDescription: 'تعقیب و مدیریت سفارش ‌ها به‌ صورت لحظه‌ای',
-            menuTitle: 'کنترول مینو',
-            menuDescription: 'قیمت‌ گذاری هوشمند و مدیریت گدام',
+            imageAlt: 'پکتیا مارکیت',
+            heroTitle: 'پکتیا مارکیت را مدیریت کنید',
+            heroDescription: 'سیستم کامل ERP برای عملیات مارکیت',
+            branchTitle: 'مدیریت شعبه‌ها',
+            branchDescription: 'موقعیت‌ها و کارمندان را تنظیم کنید',
+            inventoryTitle: 'مدیریت گدام',
+            inventoryDescription: 'موجودی و ارزش گدام را تعقیب کنید',
         },
     },
     navigation: {
@@ -83,7 +83,7 @@ const fa = {
         inventory: 'بخش گدام',
         employees: 'کارمندان',
         finance: 'بخش مالی',
-        branches: 'شعبات رستورانت',
+        branches: 'شعبات مارکیت',
         users: 'کاربران سیستم',
         roles: 'صلاحیت ها',
         reports: 'گزارش‌ ها',
@@ -94,8 +94,8 @@ const fa = {
     branches: {
         page: {
             metaTitle: 'شعبات',
-            title: 'شعبات رستورانت',
-            description: 'شعبات رستورانت را مدیریت کنید',
+            title: 'شعبات مارکیت',
+            description: 'شعبات مارکیت را مدیریت کنید',
         },
         cards: {
             total: {
@@ -122,7 +122,6 @@ const fa = {
             status: 'وضعیت',
             createdAt: 'تاریخ ایجاد',
             actions: 'عملیات',
-            moreKitchens: '+:count بیشتر',
         },
         filters: {
             searchPlaceholder: 'شعبات را با نام، کشور یا ولایت جستجو کنید...',
@@ -154,13 +153,11 @@ const fa = {
             openMenu: 'باز کردن منو',
             view: 'نمایش',
             edit: 'ویرایش',
-            assignKitchens: 'تخصیص آشپزخانه‌ها',
             activate: 'فعال‌سازی',
             deactivate: 'غیرفعال‌سازی',
             delete: 'حذف',
             trash: 'حذف',
             saveChanges: 'ذخیره تغییرات',
-            saveKitchens: 'ذخیره آشپزخانه‌ها',
             update: 'به‌روزرسانی',
         },
         statuses: {
@@ -168,11 +165,9 @@ const fa = {
             inactive: 'غیرفعال',
         },
         common: {
-            noKitchens: 'آشپزخانه‌ای نیست',
             noDescription: 'بدون توضیحات',
             selected: 'انتخاب‌شده',
             selectedCount: ':selected از :total',
-            kitchenFallback: 'آشپزخانه #:id',
         },
         feedback: {
             branchCreated: 'شعبه با موفقیت ایجاد شد.',
@@ -180,7 +175,6 @@ const fa = {
             branchDeleted: 'شعبه با موفقیت حذف شد.',
             branchDisabled: 'شعبه با موفقیت غیرفعال شد.',
             branchActivated: 'شعبه با موفقیت فعال شد.',
-            kitchensUpdated: 'آشپزخانه‌های شعبه با موفقیت به‌روزرسانی شد.',
             tableCreated: 'نمبر میز با موفقیت ایجاد شد.',
             tableUpdated: 'نمبر میز با موفقیت به‌روزرسانی شد.',
             tableDeleted: 'نمبر میز با موفقیت حذف شد.',
@@ -195,10 +189,6 @@ const fa = {
             edit: {
                 title: 'ویرایش شعبه',
                 description: 'اطلاعات و موقعیت شعبه را به‌روزرسانی کنید.',
-            },
-            kitchens: {
-                title: 'تخصیص آشپزخانه‌ها',
-                description: 'آشپزخانه‌های موجود برای :name را انتخاب کنید.',
             },
             tables: {
                 title: 'مدیریت میزهای شعبه',
@@ -556,8 +546,8 @@ const fa = {
             'لوگو و رنگ‌های مشترک که در سراسر سیستم استفاده می‌شوند را مدیریت کنید.',
         systemBrandingRestricted:
             'فقط سوپر ادمین می‌تواند تنظیمات هویت سیستم را تغییر دهد.',
-        restaurantNameLabel: 'نام رستورانت',
-        restaurantShortNameLabel: 'نام کوتاه',
+        marketNameLabel: 'نام مارکیت',
+        marketShortNameLabel: 'نام کوتاه',
         primaryColorLabel: 'رنگ اصلی',
         secondaryColorLabel: 'رنگ ثانوی',
         tertiaryColorLabel: 'رنگ سوم',
