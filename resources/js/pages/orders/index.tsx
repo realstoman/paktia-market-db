@@ -526,7 +526,7 @@ export default function OrdersPage({
                                     ? brand.logoFull
                                     : `${window.location.origin}${brand.logoFull}`
                             }"
-                            alt="Baba Restaurant Logo"
+                            alt="Paktia Market Logo"
                             class="meta-logo"
                         />
                     </div>
@@ -744,7 +744,7 @@ export default function OrdersPage({
                                 <CardTitle className="text-xl text-neutral-900 dark:text-white">
                                     {t(
                                         'brand.restaurantName',
-                                        'Baba Restaurant',
+                                        'Paktia Market',
                                     )}
                                 </CardTitle>
                                 <CardDescription className="text-sm text-neutral-600 dark:text-neutral-300">

@@ -66,7 +66,7 @@ const RESTAURANT_CONTACT = {
 };
 
 const RECEIPT_FOOTER_NOTE = {
-    title: 'Thank You for Choosing Baba Restaurant',
+    title: 'Thank You for Choosing Paktia Market',
     message:
         'We truly appreciate your order and look forward to serving you again soon.',
 };
@@ -237,7 +237,7 @@ export function ReceiptPreviewDialog({
     const whatsappQrTarget = useMemo(() => {
         const phone = RESTAURANT_CONTACT.whatsapp[0]?.replace(/\D+/g, '') ?? '';
         const message = encodeURIComponent(
-            'Hello Baba Restaurant, I would like to get in touch.',
+            'Hello Paktia Market, I would like to get in touch.',
         );
 
         return `https://wa.me/${phone}?text=${message}`;

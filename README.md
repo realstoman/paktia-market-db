@@ -104,7 +104,7 @@ Before running the project, make sure you have:
 
 ```bash
 git clone <your-repository-url>
-cd baba-core
+cd paktia-market-db
 ```
 
 ### 2. Install dependencies
@@ -147,7 +147,7 @@ If you want MySQL instead, update:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=baba_core
+DB_DATABASE=paktia_market_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -255,7 +255,7 @@ MySQL example:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=baba_core
+DB_DATABASE=paktia_market_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```

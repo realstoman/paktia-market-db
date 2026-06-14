@@ -137,7 +137,7 @@ export function MovementVoucherPrintDialog({
                             </div>
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
-                                <h1>Baba Restaurant</h1>
+                                <h1>Paktia Market</h1>
                                 <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
@@ -190,7 +190,7 @@ export function MovementVoucherPrintDialog({
                             <div class="footer-note">
                                 Generated from the finance module for internal review, signature workflow, and restaurant cash and bank records.
                             </div>
-                            <div class="footer-stamp">Baba Finance Copy</div>
+                            <div class="footer-stamp">Paktia Market Finance Copy</div>
                         </div>
                     </div>
                     <script>
@@ -255,11 +255,11 @@ export function MovementVoucherPrintDialog({
                                     <div className="mx-auto max-w-sm text-center">
                                         <img
                                             src={brand.logoFull}
-                                            alt="Baba Restaurant Logo"
+                                            alt="Paktia Market Logo"
                                             className="mx-auto mb-3 h-16 w-16 object-contain"
                                         />
                                         <p className="text-2xl font-semibold tracking-wide">
-                                            Baba Restaurant
+                                            Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {branch?.name ?? 'Main Branch'} •{' '}
@@ -398,7 +398,7 @@ export function MovementVoucherPrintDialog({
                                         restaurant cash and bank records.
                                     </p>
                                     <p className="tracking-[0.16em] uppercase">
-                                        Baba Finance Copy
+                                        Paktia Market Finance Copy
                                     </p>
                                 </div>
                             </div>

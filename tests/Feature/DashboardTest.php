@@ -52,7 +52,7 @@ test('dashboard order status overview filters stats by selected date', function 
     ]);
 
     $branch = Branch::create([
-        'name' => 'Baba Main',
+        'name' => 'Paktia Main',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'is_active' => true,
@@ -120,7 +120,7 @@ test('dashboard finance snapshot uses live totals for net profit', function () {
     ]);
 
     $branch = Branch::create([
-        'name' => 'Baba Main',
+        'name' => 'Paktia Main',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'is_active' => true,
@@ -169,7 +169,7 @@ test('dashboard top ordered dishes shows the top 6 all time dishes with names', 
     ]);
 
     $branch = Branch::create([
-        'name' => 'Baba Main',
+        'name' => 'Paktia Main',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'is_active' => true,

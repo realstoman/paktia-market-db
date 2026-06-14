@@ -502,7 +502,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 }
                                 placeholder={t(
                                     'users.placeholders.email',
-                                    'user@babataste.com',
+                                    'user@paktiamarket.com',
                                 )}
                             />
                             <InputError message={createErrors.email} />

@@ -1,6 +1,6 @@
 const en = {
     brand: {
-        restaurantName: 'Baba Restaurant',
+        restaurantName: 'Paktia Market',
     },
     common: {
         save: 'Save',
@@ -46,7 +46,7 @@ const en = {
             heading: 'Welcome back!',
             description: 'Sign in to continue to your account.',
             email: 'Email address',
-            emailPlaceholder: 'you@babarestaurant.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             password: 'Password',
             passwordPlaceholder: 'Enter your password',
             remember: 'Keep me logged in',
@@ -59,7 +59,7 @@ const en = {
             title: 'Forgot password',
             description: 'Enter your email to receive a password reset link',
             email: 'Email address',
-            emailPlaceholder: 'you@babarestaurant.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             submit: 'Email password reset link',
             returnTo: 'Or, return to',
             login: 'login',
@@ -604,7 +604,7 @@ const en = {
         },
         placeholders: {
             fullName: 'Full name',
-            email: 'user@babataste.com',
+            email: 'user@paktiamarket.com',
             selectRole: 'Select role',
             selectKitchen: 'Select kitchen',
             selectCountry: 'Select country',
@@ -1815,7 +1815,7 @@ const en = {
             approvedBy: 'Approved By',
             footerNote:
                 'Generated from the finance module for internal review, signature workflow, and restaurant expense records.',
-            footerStamp: 'Baba Finance Copy',
+            footerStamp: 'Paktia Market Finance Copy',
             mainBranch: 'Main Branch',
             addressNotSet: 'Address not set',
         },

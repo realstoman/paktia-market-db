@@ -97,7 +97,7 @@ const RANGE_OPTIONS = [
 const QUICK_PRESETS = RANGE_OPTIONS.filter(
     (option) => option.value !== 'custom',
 );
-const SAVED_PRESETS_KEY = 'baba-reports-saved-presets';
+const SAVED_PRESETS_KEY = 'paktia-market-reports-saved-presets';
 const CHART_COLORS = [
     '#14532d',
     '#15803d',

@@ -10,7 +10,7 @@ import { formatPrice } from '@/utils/format';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
-export const description = 'Baba Bar Chart';
+export const description = 'Paktia Market Bar Chart';
 
 const chartConfig = {
     netProfit: {

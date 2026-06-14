@@ -23,7 +23,7 @@ class CustomerSessionCookieService
         ], JSON_THROW_ON_ERROR)));
 
         return cookie(
-            name: (string) config('customer_session.cookie_name', 'baba_customer_session'),
+            name: (string) config('customer_session.cookie_name', 'paktia_market_customer_session'),
             value: $payload,
             minutes: $minutes,
             path: '/',
@@ -38,7 +38,7 @@ class CustomerSessionCookieService
     public function expireCookie(): Cookie
     {
         return cookie()->forget(
-            (string) config('customer_session.cookie_name', 'baba_customer_session'),
+            (string) config('customer_session.cookie_name', 'paktia_market_customer_session'),
             '/',
             config('customer_session.domain'),
         );
@@ -46,7 +46,7 @@ class CustomerSessionCookieService
 
     public function resolveClientFromRequest(Request $request): ?Client
     {
-        $rawCookie = $request->cookie((string) config('customer_session.cookie_name', 'baba_customer_session'));
+        $rawCookie = $request->cookie((string) config('customer_session.cookie_name', 'paktia_market_customer_session'));
 
         if (! is_string($rawCookie) || $rawCookie === '') {
             return null;

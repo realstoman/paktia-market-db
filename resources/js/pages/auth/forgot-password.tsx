@@ -54,7 +54,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     autoFocus
                                     placeholder={t(
                                         'auth.forgotPassword.emailPlaceholder',
-                                        'you@babarestaurant.com',
+                                        'you@paktiamarket.com',
                                     )}
                                     className={`h-11 border-slate-700 bg-white text-base placeholder:text-slate-600 focus:border-brand-secondary focus:ring-brand-secondary/20 ${
                                         isRtl ? 'text-right' : ''

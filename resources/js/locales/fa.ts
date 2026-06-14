@@ -1,6 +1,6 @@
 const fa = {
     brand: {
-        restaurantName: 'رستورانت بابا',
+        restaurantName: 'پکتیا مارکیت',
     },
     common: {
         save: 'ذخیره',
@@ -47,7 +47,7 @@ const fa = {
             heading: 'خوش آمدید!',
             description: 'برای ادامه به حساب خود وارد شوید.',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@babataste.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             password: 'رمز عبور',
             passwordPlaceholder: 'رمز عبور خود را وارد کنید',
             remember: 'من را به یاد داشته باش',
@@ -61,7 +61,7 @@ const fa = {
             description:
                 'برای دریافت لینک بازنشانی رمز عبور، ایمیل خود را وارد کنید',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@babataste.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             submit: 'ارسال لینک تغیر رمز عبور',
             returnTo: 'یا، بازگشت به',
             login: 'صفحه ورود',
@@ -607,7 +607,7 @@ const fa = {
         },
         placeholders: {
             fullName: 'نام کامل',
-            email: 'user@babataste.com',
+            email: 'user@paktiamarket.com',
             selectRole: 'نقش را انتخاب کنید',
             selectKitchen: 'آشپزخانه را انتخاب کنید',
             selectCountry: 'کشور را انتخاب کنید',
@@ -1817,7 +1817,7 @@ const fa = {
             approvedBy: 'تاییدشده توسط',
             footerNote:
                 'این سند از ماژول مالی برای بازبینی داخلی، روند امضا و ریکارډهای مصرف رستورانت تولید شده است.',
-            footerStamp: 'کاپی مالی بابا',
+            footerStamp: 'کاپی مالی پکتیا مارکیت',
             mainBranch: 'شعبه اصلی',
             addressNotSet: 'آدرس تنظیم نشده است',
         },

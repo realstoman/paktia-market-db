@@ -138,7 +138,7 @@ class PrinterService
         };
 
         return implode("\n", [
-            'Baba Restaurant',
+            'Paktia Market',
             'Printer Connectivity Test',
             now()->format('Y-m-d H:i:s'),
             '',

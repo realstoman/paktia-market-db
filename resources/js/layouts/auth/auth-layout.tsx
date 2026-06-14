@@ -78,18 +78,13 @@ export default function AuthLayout({
                                     {locale === 'en'
                                         ? `Copyright ${copyrightYear}`
                                         : copyrightYear}
-                                    <a
-                                        href="https://babataste.com"
-                                        className="pr-1 pl-1 text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
+                                    <span className="pr-1 pl-1 text-brand-secondary/80">
                                         {t(
                                             'brand.restaurantName',
                                             brand.name,
                                         )}
                                         .
-                                    </a>
+                                    </span>
                                     {t(
                                         'footer.allRightsReserved',
                                         'All rights reserved.',
@@ -127,17 +122,14 @@ export default function AuthLayout({
                 <div className="relative z-10 max-w-lg">
                     {/* Feature Cards */}
                     <div className="mb-12 space-y-6">
-                        {/* Main Hero Image Card */}
-                        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                        {/* Main Hero Card */}
+                        <div className="relative flex h-80 items-center justify-center overflow-hidden rounded-2xl bg-brand-primary shadow-2xl">
                             <img
-                                src="/brand/baba-outdoor.jpeg"
-                                alt={t(
-                                    'auth.promo.imageAlt',
-                                    'Restaurant dish',
-                                )}
-                                className="h-80 w-full object-cover"
+                                src={brand.logoFull}
+                                alt={brand.name}
+                                className="max-h-40 w-3/4 object-contain"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                             <div className="absolute right-6 bottom-6 left-6">
                                 <h3 className="mb-2 text-2xl font-bold text-white">
                                     {t(

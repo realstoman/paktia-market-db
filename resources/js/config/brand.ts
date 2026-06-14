@@ -26,8 +26,8 @@ const runtimeBranding =
     typeof window !== 'undefined' ? window.__APP_BRANDING__ : undefined;
 
 export const brand = {
-    name: runtimeBranding?.name ?? 'Baba Restaurant ERP',
-    shortName: runtimeBranding?.shortName ?? 'Baba',
+    name: runtimeBranding?.name ?? 'Paktia Market ERP',
+    shortName: runtimeBranding?.shortName ?? 'Paktia Market',
     logo: runtimeBranding?.logoUrl ?? '/brand/logo.svg',
     logoFull: runtimeBranding?.logoFullUrl ?? '/brand/logo-full.svg',
     primaryColor: runtimeBranding?.primaryColor ?? '#102F33',

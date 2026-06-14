@@ -1,4 +1,3 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ToolsLauncher } from '@/components/tools-launcher';
@@ -24,13 +23,11 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
-    Globe,
     LayoutGrid,
     Package,
     ReceiptText,
     Printer,
     ShieldCheck,
-    Smartphone,
     UserRoundSearch,
     Users,
 } from 'lucide-react';
@@ -125,21 +122,6 @@ const mainNavItems: SidebarNavConfig[] = [
     },
 ];
 
-const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
-    {
-        titleKey: 'navigation.mobileApp',
-        fallbackTitle: 'Mobile App',
-        href: 'https://play.google.com/store/apps/details?id=com.babataste',
-        icon: Smartphone,
-    },
-    {
-        titleKey: 'navigation.website',
-        fallbackTitle: 'Website',
-        href: 'https://babataste.com',
-        icon: Globe,
-    },
-];
-
 export function AppSidebar() {
     const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
@@ -203,12 +185,6 @@ export function AppSidebar() {
               ]
             : []),
     ];
-    const translatedFooterNavItems: NavItem[] = footerNavItems.map((item) => ({
-        title: t(item.titleKey, item.fallbackTitle),
-        href: item.href,
-        icon: item.icon,
-    }));
-
     return (
         <Sidebar
             collapsible="icon"
@@ -235,12 +211,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
-                {!isOnlineOrdersOperator ? (
-                    <NavFooter
-                        items={translatedFooterNavItems}
-                        className="mt-auto"
-                    />
-                ) : null}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

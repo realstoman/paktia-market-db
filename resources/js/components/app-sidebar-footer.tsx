@@ -9,14 +9,9 @@ export function AppSidebarFooter() {
             <div className="mx-auto flex w-full items-center justify-between">
                 <span>
                     © {new Date().getFullYear()}{' '}
-                    <a
-                        href="https://babataste.com"
-                        className="font-medium text-foreground transition-all duration-300 hover:underline"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
+                    <span className="font-medium text-foreground">
                         {brand.name}.
-                    </a>{' '}
+                    </span>{' '}
                     {t('footer.allRightsReserved', 'All rights reserved.')}
                 </span>
                 <div>

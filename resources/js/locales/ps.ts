@@ -1,6 +1,6 @@
 const ps = {
     brand: {
-        restaurantName: 'بابا رستورانت',
+        restaurantName: 'پکتیا مارکیټ',
     },
     common: {
         save: 'خوندي کول',
@@ -46,7 +46,7 @@ const ps = {
             heading: 'ښه راغلاست!',
             description: 'خپل اکونټ ته د دوام لپاره ننوځئ.',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@babataste.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             password: 'پسورډ / رمز',
             passwordPlaceholder: 'خپل پسورډ ولیکئ',
             remember: 'ما په یاد ولرئ',
@@ -60,7 +60,7 @@ const ps = {
             description:
                 'د پسورډ د بیا تنظیم لینک د ترلاسه کولو لپاره خپل ایمیل آدرس ولیکئ',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@babataste.com',
+            emailPlaceholder: 'you@paktiamarket.com',
             submit: 'د پسورډ د تغیرولو لینک ولیږئ',
             returnTo: 'یا، بیرته لاړ شئ',
             login: 'سیستم ته ننوتل',
@@ -603,7 +603,7 @@ const ps = {
         },
         placeholders: {
             fullName: 'بشپړ نوم',
-            email: 'user@babataste.com',
+            email: 'user@paktiamarket.com',
             selectRole: 'رول وټاکئ',
             selectKitchen: 'پخلنځی وټاکئ',
             selectCountry: 'هیواد وټاکئ',
@@ -1824,7 +1824,7 @@ const ps = {
             approvedBy: 'تایید کوونکی',
             footerNote:
                 'دا سند د مالي ماډیول څخه د داخلي بیاکتنې، د لاسلیک بهیر او د رستورانت د لګښت ریکارډونو لپاره تولید شوی دی.',
-            footerStamp: 'د بابا مالي کاپي',
+            footerStamp: 'د پکتیا مارکیټ مالي کاپي',
             mainBranch: 'اصلي څانګه',
             addressNotSet: 'پته نه ده ټاکل شوې',
         },

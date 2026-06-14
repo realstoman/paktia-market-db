@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import ReactDOMServer from 'react-dom/server';
 
-const appName = 'Baba Restaurant';
+const appName = 'Paktia Market';
 
 createServer((page) =>
     createInertiaApp({

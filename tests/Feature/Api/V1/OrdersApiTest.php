@@ -26,7 +26,7 @@ function createOrderApiBaseData(): array
     ]);
 
     $branch = Branch::create([
-        'name' => 'Baba Main',
+        'name' => 'Paktia Main',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'is_active' => true,

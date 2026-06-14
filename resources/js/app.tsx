@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = 'Baba Restaurant';
+const appName = 'Paktia Market';
 
 function AppWithGlobalOverlays({
     App,

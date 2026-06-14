@@ -219,7 +219,7 @@ class OrderPrintDispatchService
         $kitchenName = $firstItem?->kitchen?->name ?? 'Kitchen';
         $orderType = $this->humanizeOrderType((string) ($order->order_type?->value ?? $order->order_type));
         $headerLines = [
-            config('app.name', 'Baba Restaurant'),
+            config('app.name', 'Paktia Market'),
             $kitchenName,
             $contextLabel,
             'Order #'.$order->id,
@@ -267,7 +267,7 @@ class OrderPrintDispatchService
     private function buildOperatorReceipt(Order $order, string $contextLabel): string
     {
         $lines = [
-            config('app.name', 'Baba Restaurant'),
+            config('app.name', 'Paktia Market'),
             $contextLabel,
             'Order #'.$order->id,
             'Type: '.$this->humanizeOrderType((string) ($order->order_type?->value ?? $order->order_type)),

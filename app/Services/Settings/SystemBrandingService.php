@@ -104,8 +104,8 @@ class SystemBrandingService
     private function defaults(): array
     {
         return [
-            'restaurant_name' => 'Baba Restaurant ERP',
-            'restaurant_short_name' => 'Baba',
+            'restaurant_name' => 'Paktia Market ERP',
+            'restaurant_short_name' => 'Paktia Market',
             'logo_path' => '',
             'logo_full_path' => '',
             'primary_color' => '#102F33',
