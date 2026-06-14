@@ -279,7 +279,6 @@ const ps = {
             newPassword: 'نوی پاسورډ',
             confirmPassword: 'پاسورډ تایید کړئ',
             role: 'رول',
-            kitchen: 'پخلنځی',
             country: 'هیواد',
             province: 'ولایت',
             branch: 'څانګه',
@@ -288,7 +287,6 @@ const ps = {
             fullName: 'بشپړ نوم',
             email: 'user@paktiamarket.com',
             selectRole: 'رول وټاکئ',
-            selectKitchen: 'پخلنځی وټاکئ',
             selectCountry: 'هیواد وټاکئ',
             selectProvince: 'ولایت وټاکئ',
             selectBranch: 'څانګه وټاکئ',
@@ -898,12 +896,6 @@ const ps = {
             netProfitSubtitle:
                 'پلور منفي لګښتونه، د نه‌ثبت شویو مالي تعدیلاتو څخه مخکې',
             cashPosition: 'نغدي موقعیت',
-            employeeCovered: 'د کارکوونکي له خوا ورکړل شوي',
-            employeeCoveredSubtitle:
-                'هغه امرونه چې کارکوونکو د مېلمنو پر ځای ورکړي دي',
-            restaurantHospitality: 'د رستورانت مېلمه پالنه',
-            restaurantHospitalitySubtitle:
-                'د مېلمه پالنې او وړیا امرونه چې له پلور څخه جلا شوي دي',
             unpaidSalaries: 'نه‌ورکړل شوي معاشونه',
             unpaidSalariesSubtitle:
                 'د روانې میاشتې معاش او مهالوېش شوي قراردادي مکلفیتونه',

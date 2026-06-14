@@ -281,7 +281,6 @@ const fa = {
             newPassword: 'رمز عبور جدید',
             confirmPassword: 'تایید رمز عبور',
             role: 'نقش',
-            kitchen: 'آشپزخانه',
             country: 'کشور',
             province: 'ولایت',
             branch: 'شعبه',
@@ -290,7 +289,6 @@ const fa = {
             fullName: 'نام کامل',
             email: 'user@paktiamarket.com',
             selectRole: 'نقش را انتخاب کنید',
-            selectKitchen: 'آشپزخانه را انتخاب کنید',
             selectCountry: 'کشور را انتخاب کنید',
             selectProvince: 'ولایت را انتخاب کنید',
             selectBranch: 'شعبه را انتخاب کنید',
@@ -912,12 +910,6 @@ const fa = {
             netProfit: 'سود خالص',
             netProfitSubtitle: 'فروش منهای مصارف، قبل از تعدیلات مالی ثبت‌نشده',
             cashPosition: 'موقعیت نقدی',
-            employeeCovered: 'پرداخت‌شده توسط کارمند',
-            employeeCoveredSubtitle:
-                'سفارش‌هایی که کارمندان به نمایندگی از مهمانان پرداخته‌اند',
-            restaurantHospitality: 'مهمان‌نوازی رستورانت',
-            restaurantHospitalitySubtitle:
-                'سفارش‌های مهمان‌نوازی و رایگان که از فروش مستثنا شده‌اند',
             unpaidSalaries: 'معاش‌های پرداخت‌نشده',
             unpaidSalariesSubtitle:
                 'معاش ماه جاری و تعهدات زمان‌بندی‌شده قراردادی',
