@@ -28,11 +28,6 @@ class Branch extends Model
         return $this->belongsTo(Province::class);
     }
 
-    public function kitchens()
-    {
-        return $this->belongsToMany(Kitchen::class)->withTimestamps();
-    }
-
     public function inventoryItems()
     {
         return $this->hasMany(InventoryItem::class);

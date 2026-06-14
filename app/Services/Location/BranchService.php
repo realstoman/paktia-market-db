@@ -3,8 +3,6 @@
 namespace App\Services\Location;
 
 use App\Models\Branch;
-use App\Models\BranchTable;
-use App\Models\Kitchen;
 use App\Services\Caching\CatalogCacheService;
 
 class BranchService
@@ -43,15 +41,9 @@ class BranchService
         $this->catalogCacheService->invalidateReferenceData();
     }
 
-    public function syncKitchens(Branch $branch, array $kitchenIds): void
-    {
-        $branch->kitchens()->sync($kitchenIds);
-        $this->catalogCacheService->invalidateBranch($branch->load('kitchens'));
-    }
-
     public function getIndexData(): array
     {
-        $branches = Branch::with(['country', 'province', 'kitchens', 'tables'])->get();
+        $branches = Branch::with(['country', 'province'])->get();
 
         $branches->transform(function (Branch $branch) {
             return [
@@ -68,18 +60,11 @@ class BranchService
                 'province' => $branch->province?->name,
                 'province_id' => $branch->province_id,
                 'province_object' => $branch->province,
-                'kitchens' => $branch->kitchens,
-                'tables' => $branch->tables,
             ];
         });
 
         return [
             'branches' => $branches,
-            'kitchens' => Kitchen::orderBy('name')->get(),
-            'branchTables' => BranchTable::with('branch')
-                ->orderBy('branch_id')
-                ->orderBy('table_number')
-                ->get(),
         ];
     }
 }
