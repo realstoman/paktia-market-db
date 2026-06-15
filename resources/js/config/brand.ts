@@ -30,12 +30,12 @@ export const brand = {
     shortName: runtimeBranding?.shortName ?? 'Paktia Market',
     logo: runtimeBranding?.logoUrl ?? '/brand/logo.svg',
     logoFull: runtimeBranding?.logoFullUrl ?? '/brand/logo-full.svg',
-    primaryColor: runtimeBranding?.primaryColor ?? '#102F33',
-    secondaryColor: runtimeBranding?.secondaryColor ?? '#CC924B',
+    primaryColor: runtimeBranding?.primaryColor ?? '#0B5AA5',
+    secondaryColor: runtimeBranding?.secondaryColor ?? '#F2A20C',
     tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8FAFD',
 };
 
-function normalizeHexColor(value?: string, fallback = '#102F33'): string {
+function normalizeHexColor(value?: string, fallback = '#0B5AA5'): string {
     if (!value) {
         return fallback;
     }

@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = 'Paktia Market';
+const appName = 'Paktiawal Group';
 
 function AppWithGlobalOverlays({
     App,
@@ -35,9 +35,9 @@ function AppWithGlobalOverlays({
                 unauthorizedAccess={sharedProps.unauthorizedAccess ?? null}
                 localization={
                     sharedProps.localization ?? {
-                        locale: 'en',
-                        direction: 'ltr',
-                        isRtl: false,
+                        locale: 'fa',
+                        direction: 'rtl',
+                        isRtl: true,
                         languages: [],
                     }
                 }
@@ -67,7 +67,7 @@ createInertiaApp({
     },
     progress: {
         // color: '#4B5563',
-        color: '#CC924B',
+        color: '#F2A20C',
     },
 });
 

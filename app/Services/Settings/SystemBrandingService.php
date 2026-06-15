@@ -108,8 +108,8 @@ class SystemBrandingService
             'market_short_name' => 'Paktia Market',
             'logo_path' => '',
             'logo_full_path' => '',
-            'primary_color' => '#102F33',
-            'secondary_color' => '#CC924B',
+            'primary_color' => '#0B5AA5',
+            'secondary_color' => '#F2A20C',
             'tertiary_color' => '#F8FAFD',
         ];
     }
@@ -131,7 +131,7 @@ class SystemBrandingService
             return $normalized;
         }
 
-        return '#102F33';
+        return '#0B5AA5';
     }
 
     private function storeLogo(

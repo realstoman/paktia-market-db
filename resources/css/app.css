@@ -116,8 +116,8 @@ body {
 }
 
 :root {
-    --brand-primary: #102f33;
-    --brand-secondary: #cc924b;
+    --brand-primary: #0b5aa5;
+    --brand-secondary: #f2a20c;
     --brand-tertiary: #f8fafd;
     --app-body-font:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,

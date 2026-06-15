@@ -28,8 +28,8 @@ function getNestedValue(
 
 export function useLocalization() {
     const { localization } = usePage<SharedData>().props;
-    const locale = (localization?.locale ?? 'en') as LocaleCode;
-    const activeTranslations = translations[locale] ?? translations.en;
+    const locale = (localization?.locale ?? 'fa') as LocaleCode;
+    const activeTranslations = translations[locale] ?? translations.fa;
 
     const t = (key: string, fallback?: string): string => {
         const translated =

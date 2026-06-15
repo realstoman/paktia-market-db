@@ -33,7 +33,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $supportedLocales = config('localization.supported', []);
-        $languageOrder = ['en', 'fa', 'ps'];
+        $languageOrder = ['fa', 'ps', 'en'];
         $currentLocale = app()->getLocale();
         $branding = app(SystemBrandingService::class)->getBranding();
 
