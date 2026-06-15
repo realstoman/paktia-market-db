@@ -68,6 +68,7 @@ const en = {
             submit: 'Email password reset link',
             returnTo: 'Or, return to',
             login: 'login',
+            returnToLogin: 'Return to login',
         },
         securedBy: 'Secured by industry-standard encryption',
         promo: {
