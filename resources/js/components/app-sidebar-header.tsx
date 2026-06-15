@@ -1,5 +1,5 @@
-import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { HeaderNotifications } from '@/components/header-notifications';
+import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,12 +8,12 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
+import { useLocalization } from '@/lib/localization';
 import {
     type BreadcrumbItem as BreadcrumbItemType,
     type SharedData,
 } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { useLocalization } from '@/lib/localization';
 import { ClipboardList } from 'lucide-react';
 import AppearanceToggleDropdown from './appearance-dropdown';
 import LanguageDropdown from './language-dropdown';
@@ -28,7 +28,7 @@ export function AppSidebarHeader({
     const { isRtl, t } = useLocalization();
 
     return (
-        <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-2xl border border-white bg-white px-4 shadow-sm shadow-neutral-950/[0.03] transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 dark:border-neutral-800 dark:bg-brand-bg-dark">
+        <header className="dark:bg-brand-bg-dark mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-2xl border border-white bg-white px-4 shadow-sm shadow-neutral-950/[0.03] transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 dark:border-neutral-800">
             <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <div className="min-w-0 flex-1">

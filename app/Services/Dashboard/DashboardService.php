@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\PayrollRunItem;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 class DashboardService
 {
@@ -46,6 +47,18 @@ class DashboardService
         }
 
         if ($user->can(PermissionEnum::FINANCE_VIEW->value)) {
+            $trendStart = CarbonImmutable::now()->startOfMonth()->subMonths(9);
+            $monthlyCashMovements = CashMovement::query()
+                ->where('approval_status', 'approved')
+                ->whereDate('movement_date', '>=', $trendStart)
+                ->get(['movement_date', 'direction', 'amount'])
+                ->groupBy(fn (CashMovement $movement) => $movement->movement_date->format('Y-m'))
+                ->map(fn ($movements) => round($movements->sum(
+                    fn (CashMovement $movement) => $movement->direction === 'in'
+                        ? (float) $movement->amount
+                        : -((float) $movement->amount),
+                ), 2));
+
             $approvedExpenses = (float) Expense::query()
                 ->where('approval_status', 'approved')
                 ->sum('amount');
@@ -62,6 +75,16 @@ class DashboardService
                 'cashPosition' => $cashPosition,
                 'unpaidPayroll' => $unpaidPayroll,
                 'pendingExpenses' => Expense::query()->where('approval_status', 'submitted')->count(),
+                'trend' => collect(range(0, 9))
+                    ->map(function (int $monthOffset) use ($monthlyCashMovements, $trendStart) {
+                        $month = $trendStart->addMonths($monthOffset);
+
+                        return [
+                            'period' => $month->format('Y-m'),
+                            'value' => (float) ($monthlyCashMovements->get($month->format('Y-m')) ?? 0),
+                        ];
+                    })
+                    ->all(),
                 'recentExpenses' => Expense::query()
                     ->with('branch:id,name')
                     ->latest('expense_date')

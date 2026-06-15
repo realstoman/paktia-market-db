@@ -162,7 +162,7 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="bg-white dark:bg-brand-bg-dark">
+            <SidebarContent className="dark:bg-brand-bg-dark bg-white">
                 <NavMain
                     items={navigationItems}
                     trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}

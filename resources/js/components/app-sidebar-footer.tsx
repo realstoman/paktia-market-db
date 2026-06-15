@@ -1,17 +1,21 @@
-import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
 
 export function AppSidebarFooter() {
     const { t } = useLocalization();
 
     return (
-        <footer className="sticky bottom-0 z-10 mx-auto mt-4 w-full rounded-lg border border-neutral-100/90 bg-white px-6 py-3 text-xs text-muted-foreground md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
+        <footer className="dark:bg-brand-bg-dark sticky bottom-0 z-10 mx-auto mt-4 w-full rounded-lg border border-neutral-100/90 bg-white px-6 py-3 text-xs text-muted-foreground md:px-4 dark:border-neutral-800/90">
             <div className="mx-auto flex w-full items-center justify-between">
                 <span>
                     © {new Date().getFullYear()}{' '}
-                    <span className="font-medium text-foreground">
-                        {brand.name}.
-                    </span>{' '}
+                    <a
+                        href="https://paktiawalgroup.com"
+                        className="font-medium text-foreground hover:underline"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        {t('brand.marketName', 'Paktiawal Group')}.
+                    </a>{' '}
                     {t('footer.allRightsReserved', 'All rights reserved.')}
                 </span>
                 <div>
