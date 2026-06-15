@@ -44,12 +44,17 @@ const en = {
         login: {
             title: 'Log in',
             heading: 'Welcome back!',
-            description: 'Sign in to continue to your account.',
+            welcomeBack: 'Welcome back to :name',
+            description:
+                'Sign in to manage branches, inventory, finance, and daily market operations.',
+            mallImageAlt: 'Modern shopping mall interior',
+            mallQuote: 'Everything your market needs, in one place.',
+            mallQuoteCaption: 'Retail operations and management',
             email: 'Email address',
             emailPlaceholder: 'you@paktiamarket.com',
             password: 'Password',
             passwordPlaceholder: 'Enter your password',
-            remember: 'Keep me logged in',
+            remember: 'Remember sign in details',
             forgotPassword: 'Forgot password?',
             submit: 'Login',
             showPassword: 'Show password',
@@ -926,8 +931,7 @@ const en = {
             revenueExpenseDescription:
                 'Daily trend for the selected finance window.',
             branchRevenueTitle: 'Branch-wise Revenue',
-            branchRevenueDescription:
-                'Compare financial activity by branch.',
+            branchRevenueDescription: 'Compare financial activity by branch.',
             expenseCategoriesTitle: 'Top Expense Categories',
             expenseCategoriesDescription:
                 'Expense concentration in the selected period.',
