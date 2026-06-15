@@ -1,30 +1,11 @@
-import { brand } from '@/config/brand';
-import { useLocalization } from '@/lib/localization';
-import { cn } from '@/lib/utils';
-
 export default function AppLogo() {
-    const { isRtl } = useLocalization();
-
     return (
-        <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
-                <img
-                    src={`${brand.logo}`}
-                    width="120"
-                    height="120"
-                    alt="Logo"
-                />
-            </div>
-            <div
-                className={cn('grid flex-1 text-sm', {
-                    'ml-1 pt-2 text-left': !isRtl,
-                    'mr-1 pt-2 text-right text-xl': isRtl,
-                })}
-            >
-                <span className="truncate leading-none font-semibold tracking-wide">
-                    {brand.name}
-                </span>
-            </div>
-        </>
+        <img
+            src="/brand/logo.png"
+            width="500"
+            height="500"
+            alt="Paktiawal Group logo"
+            className="h-20 w-full object-contain group-data-[collapsible=icon]:h-8"
+        />
     );
 }

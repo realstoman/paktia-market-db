@@ -145,11 +145,15 @@ export function AppSidebar() {
             variant="floating"
             side={isRtl ? 'right' : 'left'}
         >
-            <SidebarHeader className="rounded-t-lg bg-white dark:bg-brand-bg-dark">
+            <SidebarHeader className="dark:bg-brand-bg-dark gap-0 rounded-t-lg bg-white p-0">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={homeHref}>
+                        <SidebarMenuButton
+                            size="lg"
+                            className="h-20 justify-center rounded-none p-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0! hover:bg-transparent"
+                            asChild
+                        >
+                            <Link href={homeHref} aria-label="Dashboard">
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -157,14 +161,14 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="bg-white dark:bg-brand-bg-dark">
+            <SidebarContent className="dark:bg-brand-bg-dark bg-white">
                 <NavMain
                     items={navigationItems}
                     trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}
                 />
             </SidebarContent>
 
-            <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
+            <SidebarFooter className="dark:bg-brand-bg-dark rounded-b-lg bg-white">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
