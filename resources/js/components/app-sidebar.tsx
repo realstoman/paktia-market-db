@@ -144,6 +144,7 @@ export function AppSidebar() {
             collapsible="icon"
             variant="floating"
             side={isRtl ? 'right' : 'left'}
+            className="[--sidebar-width:17rem]"
         >
             <SidebarHeader className="dark:bg-brand-bg-dark gap-0 rounded-t-lg bg-white p-0">
                 <SidebarMenu>
@@ -161,7 +162,7 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="dark:bg-brand-bg-dark bg-white">
+            <SidebarContent className="bg-white dark:bg-brand-bg-dark">
                 <NavMain
                     items={navigationItems}
                     trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}

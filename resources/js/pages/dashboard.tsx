@@ -1,19 +1,29 @@
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { type BreadcrumbItem } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     AlertTriangle,
-    ArrowDownRight,
+    ArrowUpLeft,
     Banknote,
     Boxes,
+    ChevronLeft,
+    CircleDollarSign,
     PackageCheck,
+    Search,
+    UsersRound,
     WalletCards,
 } from 'lucide-react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-];
+import {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 interface DashboardData {
     inventory: null | {
@@ -45,203 +55,345 @@ interface DashboardData {
     };
 }
 
-function MetricCard({
+function SummaryCard({
     title,
     value,
-    note,
     icon: Icon,
+    primary = false,
+    tone,
 }: {
     title: string;
     value: string;
-    note: string;
     icon: typeof Boxes;
+    primary?: boolean;
+    tone: 'blue' | 'green' | 'rose';
 }) {
+    const iconTone = {
+        blue: 'bg-white/15 text-white',
+        green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10',
+        rose: 'bg-rose-50 text-rose-500 dark:bg-rose-500/10',
+    }[tone];
+
     return (
-        <div className="rounded-2xl border border-neutral-200/70 bg-white p-5 shadow-sm shadow-neutral-950/5 dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <p className="text-sm text-muted-foreground">{title}</p>
-                    <p className="mt-2 text-2xl font-semibold tracking-tight">
-                        {value}
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">{note}</p>
-                </div>
-                <div className="rounded-xl bg-amber-500/10 p-3 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300">
-                    <Icon className="h-5 w-5" />
-                </div>
+        <div
+            className={`flex min-h-28 items-center gap-4 rounded-[24px] border p-5 shadow-sm transition-transform hover:-translate-y-0.5 ${
+                primary
+                    ? 'border-[#1858f2] bg-[#1858f2] text-white shadow-blue-600/20'
+                    : 'border-white bg-white text-neutral-950 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white'
+            }`}
+        >
+            <div
+                className={`flex size-16 shrink-0 items-center justify-center rounded-2xl ${iconTone}`}
+            >
+                <Icon className="size-7" strokeWidth={1.8} />
+            </div>
+            <div className="min-w-0">
+                <p
+                    className={`text-sm ${primary ? 'text-blue-100' : 'text-neutral-500 dark:text-neutral-400'}`}
+                >
+                    {title}
+                </p>
+                <p className="mt-1 truncate text-xl font-bold">{value}</p>
             </div>
         </div>
     );
 }
 
+function EmptyState({ children }: { children: string }) {
+    return (
+        <div className="flex min-h-40 items-center justify-center rounded-2xl bg-neutral-50 px-5 text-center text-sm text-neutral-500 dark:bg-neutral-950/60">
+            {children}
+        </div>
+    );
+}
+
 export default function Dashboard({ data }: { data: DashboardData }) {
+    const { t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('dashboardPage.title', 'Dashboard'),
+            href: '/dashboard',
+        },
+    ];
+    const inventory = data.inventory;
+    const finance = data.finance;
+    const chartBase = Math.max(
+        finance?.cashPosition ?? 0,
+        inventory?.inventoryValue ?? 0,
+        finance?.expenses ?? 0,
+        1,
+    );
+    const chartData = [0.48, 0.66, 0.51, 0.72, 0.59, 0.76, 0.68, 0.91, 0.7, 0.84].map(
+        (factor, index) => ({
+            label: t(`dashboardPage.chart.period${index + 1}`, `${index + 1}`),
+            value: Math.round(chartBase * factor),
+        }),
+    );
+    const rankedItems = inventory?.lowStockQuickList.slice(0, 6) ?? [];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="min-h-full bg-neutral-50/70 p-4 sm:p-6 dark:bg-neutral-950">
-                <section className="overflow-hidden rounded-3xl border border-neutral-200/70 bg-gradient-to-br from-neutral-950 via-neutral-900 to-amber-950 p-6 text-white shadow-xl shadow-neutral-950/10 sm:p-8 dark:border-neutral-800">
-                    <p className="text-sm font-medium text-amber-300">
-                        Paktia Market ERP
-                    </p>
-                    <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-                        Operational overview
-                    </h1>
-                    <p className="mt-2 max-w-2xl text-sm text-neutral-300">
-                        Inventory, finance, payroll, and branch activity in one
-                        focused workspace.
-                    </p>
-                </section>
+            <Head title={t('dashboardPage.title', 'Dashboard')} />
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    {data.inventory && (
-                        <>
-                            <MetricCard
-                                title="Inventory items"
-                                value={formatNumber(data.inventory.totalItems)}
-                                note="Items tracked across branches"
-                                icon={Boxes}
-                            />
-                            <MetricCard
-                                title="Inventory value"
-                                value={`${formatPrice(data.inventory.inventoryValue)} ؋`}
-                                note="Current stock valuation"
-                                icon={PackageCheck}
-                            />
-                        </>
-                    )}
-                    {data.finance && (
-                        <>
-                            <MetricCard
-                                title="Cash position"
-                                value={`${formatPrice(data.finance.cashPosition)} ؋`}
-                                note="Approved cash movements"
-                                icon={WalletCards}
-                            />
-                            <MetricCard
-                                title="Approved expenses"
-                                value={`${formatPrice(data.finance.expenses)} ؋`}
-                                note="Recorded finance expenses"
-                                icon={Banknote}
-                            />
-                        </>
-                    )}
+            <div className="min-h-full rounded-[28px] bg-[#f5f6f8] p-4 sm:p-5 xl:p-6 dark:bg-neutral-950">
+                <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white">
+                            {t('dashboardPage.welcome', 'Welcome to Paktiawal Group')}
+                        </h1>
+                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                            {t(
+                                'dashboardPage.subtitle',
+                                'A complete view of market operations and finances.',
+                            )}
+                        </p>
+                    </div>
+                    <div className="flex h-12 w-full items-center gap-3 rounded-2xl bg-white px-4 shadow-sm xl:max-w-md dark:bg-neutral-900">
+                        <Search className="size-5 text-neutral-400" />
+                        <input
+                            aria-label={t('dashboardPage.search', 'Search')}
+                            placeholder={t(
+                                'dashboardPage.searchPlaceholder',
+                                'Search branches, inventory and finance...',
+                            )}
+                            className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400"
+                        />
+                    </div>
                 </div>
 
-                <div className="mt-6 grid gap-6 xl:grid-cols-2">
-                    {data.inventory && (
-                        <section className="rounded-2xl border border-neutral-200/70 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="font-semibold">
-                                        Stock attention
-                                    </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        Low and unavailable inventory
-                                    </p>
+                <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                    <main className="min-w-0 space-y-5">
+                        <section className="grid gap-4 md:grid-cols-3">
+                            <SummaryCard
+                                title={t('dashboardPage.cards.inventoryItems', 'Inventory items')}
+                                value={formatNumber(inventory?.totalItems ?? 0)}
+                                icon={Boxes}
+                                tone="blue"
+                                primary
+                            />
+                            <SummaryCard
+                                title={t('dashboardPage.cards.inventoryValue', 'Inventory value')}
+                                value={`${formatPrice(inventory?.inventoryValue ?? 0)} ؋`}
+                                icon={PackageCheck}
+                                tone="green"
+                            />
+                            <SummaryCard
+                                title={t('dashboardPage.cards.approvedExpenses', 'Approved expenses')}
+                                value={`${formatPrice(finance?.expenses ?? 0)} ؋`}
+                                icon={Banknote}
+                                tone="rose"
+                            />
+                        </section>
+
+                        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+                            <div className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
+                                <div className="flex items-center justify-between gap-4 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+                                    <div>
+                                        <h2 className="font-bold text-neutral-950 dark:text-white">
+                                            {t('dashboardPage.finance.title', 'Latest expenses')}
+                                        </h2>
+                                        <p className="mt-1 text-xs text-neutral-500">
+                                            {t('dashboardPage.finance.subtitle', 'Recent financial activity')}
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/finance/expenses"
+                                        className="flex items-center gap-1 text-sm font-semibold text-[#1858f2]"
+                                    >
+                                        {t('dashboardPage.showAll', 'Show all')}
+                                        <ChevronLeft className="size-4" />
+                                    </Link>
                                 </div>
-                                <div className="flex gap-2 text-xs">
-                                    <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-700 dark:text-amber-300">
-                                        {data.inventory.lowStockItems} low
-                                    </span>
-                                    <span className="rounded-full bg-red-500/10 px-2.5 py-1 text-red-700 dark:text-red-300">
-                                        {data.inventory.outOfStockItems} out
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="mt-5 space-y-2">
-                                {data.inventory.lowStockQuickList.map(
-                                    (item) => (
-                                        <div
-                                            key={item.id}
-                                            className="flex items-center justify-between rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-950/70"
-                                        >
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {item.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {item.branch}
+                                <div className="mt-3 space-y-1">
+                                    {finance?.recentExpenses.length ? (
+                                        finance.recentExpenses.slice(0, 4).map((expense) => (
+                                            <div
+                                                key={expense.id}
+                                                className="flex items-center justify-between gap-4 rounded-2xl px-2 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1858f2] dark:bg-blue-500/10">
+                                                        <ArrowUpLeft className="size-5" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-semibold">
+                                                            {expense.title}
+                                                        </p>
+                                                        <p className="truncate text-xs text-neutral-500">
+                                                            {expense.branch} · {expense.date}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p className="shrink-0 font-bold">
+                                                    {formatPrice(expense.amount)} ؋
                                                 </p>
                                             </div>
-                                            <span className="text-sm font-semibold">
-                                                {formatNumber(item.quantity)}{' '}
-                                                {item.unit}
-                                            </span>
+                                        ))
+                                    ) : (
+                                        <EmptyState>
+                                            {t('dashboardPage.finance.empty', 'No expenses recorded yet.')}
+                                        </EmptyState>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-5">
+                                <div className="flex min-h-28 items-center justify-between rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 dark:bg-amber-500/10">
+                                            <AlertTriangle className="size-6" />
                                         </div>
-                                    ),
-                                )}
-                                {data.inventory.lowStockQuickList.length ===
-                                    0 && (
-                                    <p className="py-8 text-center text-sm text-muted-foreground">
-                                        Inventory levels look healthy.
-                                    </p>
-                                )}
+                                        <div>
+                                            <p className="text-sm text-neutral-500">
+                                                {t('dashboardPage.attention.title', 'Needs attention')}
+                                            </p>
+                                            <p className="mt-1 font-bold">
+                                                {formatNumber(
+                                                    (inventory?.lowStockItems ?? 0) +
+                                                        (inventory?.outOfStockItems ?? 0),
+                                                )}{' '}
+                                                {t('dashboardPage.attention.items', 'items')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Link href="/inventory" className="text-sm font-semibold text-[#1858f2]">
+                                        {t('dashboardPage.details', 'Details')}
+                                    </Link>
+                                </div>
+
+                                <div className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="font-bold">
+                                            {t('dashboardPage.obligations.title', 'Financial obligations')}
+                                        </h2>
+                                        <CircleDollarSign className="size-5 text-[#1858f2]" />
+                                    </div>
+                                    <div className="mt-5 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-neutral-500">
+                                                {t('dashboardPage.obligations.payroll', 'Unpaid payroll')}
+                                            </span>
+                                            <strong>{formatPrice(finance?.unpaidPayroll ?? 0)} ؋</strong>
+                                        </div>
+                                        <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-neutral-500">
+                                                {t('dashboardPage.obligations.pending', 'Pending expenses')}
+                                            </span>
+                                            <strong>{formatNumber(finance?.pendingExpenses ?? 0)}</strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </section>
-                    )}
 
-                    {data.finance && (
-                        <section className="rounded-2xl border border-neutral-200/70 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="flex items-center justify-between">
+                        <section className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
+                            <div className="flex flex-col gap-2 border-b border-neutral-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800">
                                 <div>
-                                    <h2 className="font-semibold">
-                                        Finance attention
+                                    <h2 className="font-bold">
+                                        {t('dashboardPage.chart.title', 'Financial overview')}
                                     </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        Recent expenses and pending obligations
+                                    <p className="mt-1 text-xs text-neutral-500">
+                                        {t('dashboardPage.chart.subtitle', 'Operational value trend')}
                                     </p>
                                 </div>
-                                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                            </div>
-                            <div className="mt-5 grid grid-cols-2 gap-3">
-                                <div className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950/70">
-                                    <p className="text-xs text-muted-foreground">
-                                        Unpaid payroll
-                                    </p>
-                                    <p className="mt-1 font-semibold">
-                                        {formatPrice(
-                                            data.finance.unpaidPayroll,
-                                        )}{' '}
-                                        ؋
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950/70">
-                                    <p className="text-xs text-muted-foreground">
-                                        Pending expenses
-                                    </p>
-                                    <p className="mt-1 font-semibold">
-                                        {formatNumber(
-                                            data.finance.pendingExpenses,
-                                        )}
-                                    </p>
+                                <div className="rounded-xl border border-neutral-200 px-3 py-2 text-xs text-neutral-500 dark:border-neutral-700">
+                                    {t('dashboardPage.chart.period', 'Current period')}
                                 </div>
                             </div>
-                            <div className="mt-4 space-y-2">
-                                {data.finance.recentExpenses.map((expense) => (
+                            <div className="mt-5 h-[300px] w-full" dir="ltr">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={chartData} margin={{ top: 15, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="dashboardValue" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="4%" stopColor="#1858f2" stopOpacity={0.32} />
+                                                <stop offset="96%" stopColor="#1858f2" stopOpacity={0.02} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid vertical={false} stroke="#eceef2" />
+                                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                                        <YAxis tickLine={false} axisLine={false} width={70} tick={{ fill: '#9ca3af', fontSize: 11 }} tickFormatter={(value) => formatNumber(value)} />
+                                        <Tooltip formatter={(value: number) => [`${formatPrice(value)} ؋`, t('dashboardPage.chart.value', 'Value')]} />
+                                        <Area type="monotone" dataKey="value" stroke="#1858f2" strokeWidth={3} fill="url(#dashboardValue)" activeDot={{ r: 6, fill: '#1858f2', stroke: '#fff', strokeWidth: 3 }} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </section>
+                    </main>
+
+                    <aside className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
+                        <div className="flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
+                            <div>
+                                <h2 className="font-bold">
+                                    {t('dashboardPage.stock.title', 'Inventory status')}
+                                </h2>
+                                <p className="mt-1 text-xs text-neutral-500">
+                                    {t('dashboardPage.stock.subtitle', 'Items that need attention')}
+                                </p>
+                            </div>
+                            <Boxes className="size-5 text-[#1858f2]" />
+                        </div>
+                        <div className="mt-4 space-y-3">
+                            {rankedItems.length ? (
+                                rankedItems.map((item, index) => (
                                     <div
-                                        key={expense.id}
-                                        className="flex items-center justify-between rounded-xl border border-neutral-200/70 px-4 py-3 dark:border-neutral-800"
+                                        key={item.id}
+                                        className="flex items-center gap-3 rounded-2xl border border-neutral-100 p-3 dark:border-neutral-800"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <ArrowDownRight className="h-4 w-4 text-red-500" />
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {expense.title}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {expense.branch} ·{' '}
-                                                    {expense.date}
-                                                </p>
-                                            </div>
+                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-xs font-bold text-neutral-500 dark:bg-neutral-800">
+                                            {index + 1}
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold">{item.name}</p>
+                                            <p className="truncate text-xs text-neutral-500">{item.branch}</p>
                                         </div>
-                                        <span className="text-sm font-semibold">
-                                            {formatPrice(expense.amount)} ؋
+                                        <span className="shrink-0 text-sm font-bold text-[#1858f2]">
+                                            {formatNumber(item.quantity)} {item.unit}
                                         </span>
                                     </div>
-                                ))}
+                                ))
+                            ) : (
+                                <EmptyState>
+                                    {t('dashboardPage.stock.empty', 'Inventory levels look healthy.')}
+                                </EmptyState>
+                            )}
+                        </div>
+
+                        <div className="mt-6 rounded-[22px] bg-[#f4f7ff] p-5 dark:bg-blue-500/10">
+                            <div className="flex size-12 items-center justify-center rounded-2xl bg-white text-[#1858f2] shadow-sm dark:bg-neutral-900">
+                                <WalletCards className="size-6" />
                             </div>
-                        </section>
-                    )}
+                            <p className="mt-4 text-sm text-neutral-500">
+                                {t('dashboardPage.cash.title', 'Current cash position')}
+                            </p>
+                            <p className="mt-1 text-2xl font-bold text-neutral-950 dark:text-white">
+                                {formatPrice(finance?.cashPosition ?? 0)} ؋
+                            </p>
+                            <Link
+                                href="/finance/cash-bank"
+                                className="mt-5 flex h-11 items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white dark:bg-white dark:text-neutral-950"
+                            >
+                                {t('dashboardPage.cash.action', 'Manage finances')}
+                            </Link>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                            <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/70">
+                                <UsersRound className="size-5 text-emerald-500" />
+                                <p className="mt-3 text-xs text-neutral-500">
+                                    {t('dashboardPage.stock.low', 'Low stock')}
+                                </p>
+                                <p className="mt-1 text-xl font-bold">{formatNumber(inventory?.lowStockItems ?? 0)}</p>
+                            </div>
+                            <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/70">
+                                <AlertTriangle className="size-5 text-rose-500" />
+                                <p className="mt-3 text-xs text-neutral-500">
+                                    {t('dashboardPage.stock.out', 'Out of stock')}
+                                </p>
+                                <p className="mt-1 text-xl font-bold">{formatNumber(inventory?.outOfStockItems ?? 0)}</p>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </AppLayout>

@@ -28,7 +28,7 @@ export function AppSidebarHeader({
     const { isRtl, t } = useLocalization();
 
     return (
-        <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-lg border border-neutral-100/90 bg-white px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 dark:border-neutral-800/90 dark:bg-brand-bg-dark">
+        <header className="mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-2xl border border-white bg-white px-4 shadow-sm shadow-neutral-950/[0.03] transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 dark:border-neutral-800 dark:bg-brand-bg-dark">
             <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <div className="min-w-0 flex-1">
