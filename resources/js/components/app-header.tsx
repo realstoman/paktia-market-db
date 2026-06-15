@@ -32,7 +32,6 @@ import {
     ClipboardList,
     LayoutGrid,
     Menu,
-    Search,
     ShieldCheck,
     Users,
 } from 'lucide-react';
@@ -169,18 +168,6 @@ export function AppHeader({
                 <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
                     {navLinks()}
                 </nav>
-
-                <div className="hidden max-w-xs min-w-48 flex-1 items-center gap-2 rounded-2xl border border-[#dfe7e9] bg-white px-4 xl:flex dark:border-neutral-800 dark:bg-neutral-900">
-                    <Search className="size-4 text-slate-400" />
-                    <input
-                        aria-label={t('dashboardPage.search', 'Search')}
-                        placeholder={t(
-                            'dashboardPage.searchPlaceholder',
-                            'Search...',
-                        )}
-                        className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none"
-                    />
-                </div>
 
                 <div className="ms-auto flex shrink-0 items-center gap-2">
                     <AppearanceToggleDropdown />
