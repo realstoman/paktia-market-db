@@ -47,17 +47,69 @@ interface HeaderNavConfig {
 }
 
 const navConfig: HeaderNavConfig[] = [
-    { titleKey: 'navigation.dashboard', fallbackTitle: 'Dashboard', href: dashboard(), icon: LayoutGrid, can: 'dashboard.view' },
-    { titleKey: 'navigation.branches', fallbackTitle: 'Properties', href: '/branches', icon: Building2, can: 'branch.view' },
-    { titleKey: 'navigation.inventory', fallbackTitle: 'Inventory', href: '/inventory', icon: Boxes, can: 'inventory.view' },
-    { titleKey: 'navigation.employees', fallbackTitle: 'Employees', href: '/employees', icon: BriefcaseBusiness, can: 'employees.view' },
-    { titleKey: 'navigation.finance', fallbackTitle: 'Finance', href: '/finance', icon: Banknote, canAny: ['finance.view', 'payroll.view'] },
-    { titleKey: 'navigation.users', fallbackTitle: 'Users', href: '/users', icon: Users, can: 'user.view' },
-    { titleKey: 'navigation.roles', fallbackTitle: 'Roles', href: '/roles', icon: ShieldCheck, can: 'role.view' },
-    { titleKey: 'navigation.reports', fallbackTitle: 'Reports', href: '/reports', icon: ChartLine, can: 'reports.view' },
+    {
+        titleKey: 'navigation.dashboard',
+        fallbackTitle: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        can: 'dashboard.view',
+    },
+    {
+        titleKey: 'navigation.branches',
+        fallbackTitle: 'Properties',
+        href: '/branches',
+        icon: Building2,
+        can: 'branch.view',
+    },
+    {
+        titleKey: 'navigation.inventory',
+        fallbackTitle: 'Inventory',
+        href: '/inventory',
+        icon: Boxes,
+        can: 'inventory.view',
+    },
+    {
+        titleKey: 'navigation.employees',
+        fallbackTitle: 'Employees',
+        href: '/employees',
+        icon: BriefcaseBusiness,
+        can: 'employees.view',
+    },
+    {
+        titleKey: 'navigation.finance',
+        fallbackTitle: 'Finance',
+        href: '/finance',
+        icon: Banknote,
+        canAny: ['finance.view', 'payroll.view'],
+    },
+    {
+        titleKey: 'navigation.users',
+        fallbackTitle: 'Users',
+        href: '/users',
+        icon: Users,
+        can: 'user.view',
+    },
+    {
+        titleKey: 'navigation.roles',
+        fallbackTitle: 'Roles',
+        href: '/roles',
+        icon: ShieldCheck,
+        can: 'role.view',
+    },
+    {
+        titleKey: 'navigation.reports',
+        fallbackTitle: 'Reports',
+        href: '/reports',
+        icon: ChartLine,
+        can: 'reports.view',
+    },
 ];
 
-export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[] }) {
+export function AppHeader({
+    breadcrumbs = [],
+}: {
+    breadcrumbs?: BreadcrumbItem[];
+}) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const { can, canAny, isSuperAdmin } = useAuthorization();
@@ -67,7 +119,14 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
             item.canAny?.length ? canAny(item.canAny) : can(item.can),
         ),
         ...(isSuperAdmin
-            ? [{ titleKey: 'navigation.runtimeHealth', fallbackTitle: 'Runtime Health', href: '/operations/runtime-health', icon: Activity }]
+            ? [
+                  {
+                      titleKey: 'navigation.runtimeHealth',
+                      fallbackTitle: 'Runtime Health',
+                      href: '/operations/runtime-health',
+                      icon: Activity,
+                  },
+              ]
             : []),
     ];
 
@@ -96,19 +155,29 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
     return (
         <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
             <div className="mx-auto flex h-20 w-full items-center gap-4 px-4 lg:px-7">
-                <Link href={dashboard()} className="flex w-32 shrink-0 items-center justify-center">
-                    <img src="/brand/logo.png" alt="Paktiawal Group logo" className="h-16 w-auto object-contain" />
+                <Link
+                    href={dashboard()}
+                    className="flex w-32 shrink-0 items-center justify-center"
+                >
+                    <img
+                        src="/brand/logo.png"
+                        alt="Paktiawal Group logo"
+                        className="h-16 w-auto object-contain"
+                    />
                 </Link>
 
                 <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
                     {navLinks()}
                 </nav>
 
-                <div className="hidden min-w-48 max-w-xs flex-1 items-center gap-2 rounded-2xl border border-[#dfe7e9] bg-white px-4 xl:flex dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="hidden max-w-xs min-w-48 flex-1 items-center gap-2 rounded-2xl border border-[#dfe7e9] bg-white px-4 xl:flex dark:border-neutral-800 dark:bg-neutral-900">
                     <Search className="size-4 text-slate-400" />
                     <input
                         aria-label={t('dashboardPage.search', 'Search')}
-                        placeholder={t('dashboardPage.searchPlaceholder', 'Search...')}
+                        placeholder={t(
+                            'dashboardPage.searchPlaceholder',
+                            'Search...',
+                        )}
                         className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none"
                     />
                 </div>
@@ -117,8 +186,19 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                     <AppearanceToggleDropdown />
                     <LanguageDropdown className="hidden sm:block" />
                     {auth.is_super_admin ? (
-                        <Button asChild variant="ghost" size="icon" className="size-10 rounded-full border border-[#dfe7e9] bg-white dark:border-neutral-800 dark:bg-neutral-900">
-                            <Link href="/admin/activity-logs" aria-label={t('navigation.activityLogs', 'Activity Logs')}>
+                        <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="size-10 rounded-full border border-[#dfe7e9] bg-white dark:border-neutral-800 dark:bg-neutral-900"
+                        >
+                            <Link
+                                href="/admin/activity-logs"
+                                aria-label={t(
+                                    'navigation.activityLogs',
+                                    'Activity Logs',
+                                )}
+                            >
                                 <ClipboardList className="size-4" />
                             </Link>
                         </Button>
@@ -126,27 +206,48 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                     <HeaderNotifications />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-11 rounded-full border border-[#dfe7e9] bg-white px-2 dark:border-neutral-800 dark:bg-neutral-900">
+                            <Button
+                                variant="ghost"
+                                className="h-11 rounded-full border border-[#dfe7e9] bg-white px-2 dark:border-neutral-800 dark:bg-neutral-900"
+                            >
                                 <UserInfo user={auth.user} showName={false} />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className={`w-56 ${isRtl ? 'text-right' : ''}`} align="end">
+                        <DropdownMenuContent
+                            className={`w-56 ${isRtl ? 'text-right' : ''}`}
+                            align="end"
+                        >
                             <UserMenuContent user={auth.user} />
                         </DropdownMenuContent>
                     </DropdownMenu>
 
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-10 rounded-full border border-[#dfe7e9] bg-white lg:hidden dark:border-neutral-800 dark:bg-neutral-900">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-10 rounded-full border border-[#dfe7e9] bg-white lg:hidden dark:border-neutral-800 dark:bg-neutral-900"
+                            >
                                 <Menu className="size-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side={isRtl ? 'right' : 'left'} className="w-72 bg-[#f8fbfb] p-5 dark:bg-neutral-950">
+                        <SheetContent
+                            side={isRtl ? 'right' : 'left'}
+                            className="w-72 bg-[#f8fbfb] p-5 dark:bg-neutral-950"
+                        >
                             <SheetHeader>
-                                <SheetTitle className="sr-only">Navigation</SheetTitle>
+                                <SheetTitle className="sr-only">
+                                    Navigation
+                                </SheetTitle>
                             </SheetHeader>
-                            <img src="/brand/logo.png" alt="Paktiawal Group logo" className="mx-auto h-20 w-auto" />
-                            <div className="mt-6 space-y-2">{navLinks(true)}</div>
+                            <img
+                                src="/brand/logo.png"
+                                alt="Paktiawal Group logo"
+                                className="mx-auto h-20 w-auto"
+                            />
+                            <div className="mt-6 space-y-2">
+                                {navLinks(true)}
+                            </div>
                             <LanguageDropdown className="mt-6 sm:hidden" />
                         </SheetContent>
                     </Sheet>

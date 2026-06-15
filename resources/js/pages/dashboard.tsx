@@ -1,561 +1,911 @@
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { type BreadcrumbItem } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import {
-    AlertTriangle,
-    ArrowUpLeft,
     Banknote,
-    Boxes,
-    ChevronLeft,
+    Building2,
     CircleDollarSign,
-    PackageCheck,
-    Search,
+    DoorOpen,
+    Layers3,
+    ReceiptText,
+    Store,
     UsersRound,
-    WalletCards,
 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
-    Area,
-    AreaChart,
+    Bar,
+    BarChart,
     CartesianGrid,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from 'recharts';
 
+interface ExpenseRow {
+    id: number;
+    title: string;
+    amount: number;
+    date: string;
+    status: string;
+}
+
+interface PortfolioProject {
+    id: number;
+    name: string;
+    address?: string | null;
+    isActive: boolean;
+    floors: number;
+    shops: number;
+    occupiedShops: number;
+    availableShops: number;
+    registeredTenants: number;
+    inventoryItems: number;
+    employees: number;
+    rent: {
+        collectedAfn: number;
+        remainingAfn: number;
+        collectedUsd: number;
+        remainingUsd: number;
+    };
+    expensesAfn: number;
+    cashPositionAfn: number;
+    recentExpenses: ExpenseRow[];
+}
+
 interface DashboardData {
+    portfolio: {
+        totalProjects: number;
+        activeProjects: number;
+        totalFloors: number;
+        totalShops: number;
+        registeredTenants: number;
+        projects: PortfolioProject[];
+    };
     inventory: null | {
         totalItems: number;
-        lowStockItems: number;
-        outOfStockItems: number;
         inventoryValue: number;
-        lowStockQuickList: Array<{
-            id: number;
-            name: string;
-            quantity: number;
-            unit?: string | null;
-            branch: string;
-        }>;
     };
     finance: null | {
         expenses: number;
         cashPosition: number;
-        unpaidPayroll: number;
         pendingExpenses: number;
-        trend: Array<{
-            period: string;
-            value: number;
-        }>;
-        recentExpenses: Array<{
-            id: number;
-            title: string;
-            amount: number;
-            date: string;
-            status: string;
-            branch: string;
-        }>;
+        recentExpenses: Array<ExpenseRow & { branch: string }>;
     };
 }
 
-function SummaryCard({
-    title,
+const COLORS = {
+    teal: '#123f4a',
+    green: '#2da56d',
+    coral: '#ef786f',
+    blue: '#5d91c9',
+    mist: '#e8eff0',
+};
+
+function StatCard({
+    label,
     value,
     icon: Icon,
-    primary = false,
-    tone,
+    accent = 'teal',
 }: {
-    title: string;
+    label: string;
     value: string;
-    icon: typeof Boxes;
-    primary?: boolean;
-    tone: 'blue' | 'green' | 'rose';
+    icon: typeof Building2;
+    accent?: 'teal' | 'green' | 'coral' | 'blue';
 }) {
-    const iconTone = {
-        blue: 'bg-white/15 text-white',
-        green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10',
-        rose: 'bg-rose-50 text-rose-500 dark:bg-rose-500/10',
-    }[tone];
+    const tones = {
+        teal: 'bg-[#e8f0f1] text-[#123f4a]',
+        green: 'bg-emerald-50 text-emerald-600',
+        coral: 'bg-rose-50 text-[#ef786f]',
+        blue: 'bg-blue-50 text-[#5d91c9]',
+    };
 
     return (
-        <div
-            className={`flex min-h-28 items-center gap-4 rounded-[24px] border p-5 shadow-sm transition-transform hover:-translate-y-0.5 ${
-                primary
-                    ? 'border-[#1858f2] bg-[#1858f2] text-white shadow-blue-600/20'
-                    : 'border-white bg-white text-neutral-950 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white'
-            }`}
-        >
+        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 shadow-[0_8px_24px_rgba(18,63,74,0.04)] dark:border-neutral-800 dark:bg-neutral-900">
             <div
-                className={`flex size-16 shrink-0 items-center justify-center rounded-2xl ${iconTone}`}
+                className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
             >
-                <Icon className="size-7" strokeWidth={1.8} />
+                <Icon className="size-5" />
             </div>
             <div className="min-w-0">
-                <p
-                    className={`text-sm ${primary ? 'text-blue-100' : 'text-neutral-500 dark:text-neutral-400'}`}
-                >
-                    {title}
+                <p className="truncate text-xs text-slate-500">{label}</p>
+                <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    {value}
                 </p>
-                <p className="mt-1 truncate text-xl font-bold">{value}</p>
             </div>
         </div>
     );
 }
 
-function EmptyState({ children }: { children: string }) {
+function MoneyCard({
+    title,
+    collected,
+    remaining,
+    currency,
+    t,
+}: {
+    title: string;
+    collected: number;
+    remaining: number;
+    currency: string;
+    t: (key: string, fallback?: string) => string;
+}) {
     return (
-        <div className="flex min-h-40 items-center justify-center rounded-2xl bg-neutral-50 px-5 text-center text-sm text-neutral-500 dark:bg-neutral-950/60">
-            {children}
+        <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-xs text-slate-500">{title}</p>
+                    <p className="mt-1 text-2xl font-bold text-[#123f4a] dark:text-white">
+                        {formatPrice(collected)} {currency}
+                    </p>
+                </div>
+                <div className="flex size-11 items-center justify-center rounded-xl bg-[#e8f0f1] text-[#123f4a]">
+                    <Banknote className="size-5" />
+                </div>
+            </div>
+            <div className="mt-5 flex items-center justify-between border-t border-[#edf1f2] pt-4 text-sm dark:border-neutral-800">
+                <span className="text-slate-500">
+                    {t('propertyDashboard.remaining', 'Remaining')}
+                </span>
+                <strong className="text-[#ef786f]">
+                    {formatPrice(remaining)} {currency}
+                </strong>
+            </div>
+        </div>
+    );
+}
+
+function EmptyChart({ label }: { label: string }) {
+    return (
+        <div className="flex h-full items-center justify-center rounded-xl bg-[#f8fbfb] text-sm text-slate-400 dark:bg-neutral-950">
+            {label}
         </div>
     );
 }
 
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { locale, t } = useLocalization();
-    const breadcrumbs: BreadcrumbItem[] = [
+    const { t } = useLocalization();
+    const [activeTab, setActiveTab] = useState<string>('overall');
+    const selectedProject = data.portfolio.projects.find(
+        (project) => String(project.id) === activeTab,
+    );
+
+    const overallProjectChart = useMemo(
+        () =>
+            data.portfolio.projects.map((project) => ({
+                name: project.name,
+                expenses: project.expensesAfn,
+                cash: project.cashPositionAfn,
+            })),
+        [data.portfolio.projects],
+    );
+    const overallPie = [
         {
-            title: t('dashboardPage.title', 'Dashboard'),
-            href: '/dashboard',
+            name: t('propertyDashboard.activeProjects', 'Active projects'),
+            value: data.portfolio.activeProjects,
+            color: COLORS.green,
+        },
+        {
+            name: t('propertyDashboard.inactiveProjects', 'Inactive projects'),
+            value: Math.max(
+                0,
+                data.portfolio.totalProjects - data.portfolio.activeProjects,
+            ),
+            color: COLORS.coral,
         },
     ];
-    const inventory = data.inventory;
-    const finance = data.finance;
-    const chartLocale =
-        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
-    const chartData = (finance?.trend ?? []).map((point) => ({
-        label: new Intl.DateTimeFormat(chartLocale, {
-            month: 'short',
-        }).format(new Date(`${point.period}-01T00:00:00`)),
-        value: point.value,
-    }));
-    const rankedItems = inventory?.lowStockQuickList.slice(0, 6) ?? [];
+    const projectRentChart = selectedProject
+        ? [
+              {
+                  name: t('propertyDashboard.afn', 'AFN'),
+                  collected: selectedProject.rent.collectedAfn,
+                  remaining: selectedProject.rent.remainingAfn,
+              },
+              {
+                  name: t('propertyDashboard.usd', 'USD'),
+                  collected: selectedProject.rent.collectedUsd,
+                  remaining: selectedProject.rent.remainingUsd,
+              },
+          ]
+        : [];
+    const occupancyPie = selectedProject
+        ? [
+              {
+                  name: t('propertyDashboard.occupied', 'Occupied'),
+                  value: selectedProject.occupiedShops,
+                  color: COLORS.green,
+              },
+              {
+                  name: t('propertyDashboard.available', 'Available'),
+                  value: selectedProject.availableShops,
+                  color: COLORS.mist,
+              },
+          ]
+        : [];
+    const hasOverallChart = overallProjectChart.some(
+        (item) => item.expenses !== 0 || item.cash !== 0,
+    );
+    const hasOverallPie = overallPie.some((item) => item.value > 0);
+    const hasProjectRent = projectRentChart.some(
+        (item) => item.collected !== 0 || item.remaining !== 0,
+    );
+    const hasOccupancy = occupancyPie.some((item) => item.value > 0);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('dashboardPage.title', 'Dashboard')} />
+        <AppLayout>
+            <Head title={t('propertyDashboard.title', 'Property dashboard')} />
 
-            <div className="min-h-full rounded-[28px] bg-[#f5f6f8] p-4 sm:p-5 xl:p-6 dark:bg-neutral-950">
-                <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 shadow-[0_18px_50px_rgba(18,63,74,0.06)] sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-neutral-950 dark:text-white">
+                        <p className="text-xs font-semibold tracking-[0.2em] text-[#2da56d] uppercase">
                             {t(
-                                'dashboardPage.welcome',
-                                'Welcome to Paktiawal Group',
+                                'propertyDashboard.eyebrow',
+                                'Portfolio reporting',
+                            )}
+                        </p>
+                        <h1 className="mt-2 text-2xl font-bold text-[#123f4a] dark:text-white">
+                            {t(
+                                'propertyDashboard.title',
+                                'Markets and properties',
                             )}
                         </h1>
-                        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                        <p className="mt-1 text-sm text-slate-500">
                             {t(
-                                'dashboardPage.subtitle',
-                                'A complete view of market operations and finances.',
+                                'propertyDashboard.subtitle',
+                                'Overall and project-level rent, occupancy and expense reporting.',
                             )}
                         </p>
                     </div>
-                    <div className="flex h-12 w-full items-center gap-3 rounded-2xl bg-white px-4 shadow-sm xl:max-w-md dark:bg-neutral-900">
-                        <Search className="size-5 text-neutral-400" />
-                        <input
-                            aria-label={t('dashboardPage.search', 'Search')}
-                            placeholder={t(
-                                'dashboardPage.searchPlaceholder',
-                                'Search branches, inventory and finance...',
-                            )}
-                            className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                        />
-                    </div>
+                    <button className="h-11 rounded-xl bg-[#123f4a] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#0d343d]">
+                        + {t('propertyDashboard.newRecord', 'New record')}
+                    </button>
                 </div>
 
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px] 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                    <main className="min-w-0 space-y-5">
-                        <section className="grid gap-4 md:grid-cols-3">
-                            <SummaryCard
-                                title={t(
-                                    'dashboardPage.cards.inventoryItems',
-                                    'Inventory items',
+                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#e8eff0] p-1.5">
+                    <button
+                        onClick={() => setActiveTab('overall')}
+                        className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                            activeTab === 'overall'
+                                ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                : 'text-slate-500 hover:text-[#123f4a]'
+                        }`}
+                    >
+                        {t('propertyDashboard.overall', 'Overall statistics')}
+                    </button>
+                    {data.portfolio.projects.map((project) => (
+                        <button
+                            key={project.id}
+                            onClick={() => setActiveTab(String(project.id))}
+                            className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                                activeTab === String(project.id)
+                                    ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                    : 'text-slate-500 hover:text-[#123f4a]'
+                            }`}
+                        >
+                            {project.name}
+                        </button>
+                    ))}
+                </div>
+
+                {activeTab === 'overall' ? (
+                    <div className="mt-5 space-y-5">
+                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalProjects',
+                                    'Total projects',
                                 )}
-                                value={formatNumber(inventory?.totalItems ?? 0)}
-                                icon={Boxes}
-                                tone="blue"
-                                primary
+                                value={formatNumber(
+                                    data.portfolio.totalProjects,
+                                )}
+                                icon={Building2}
                             />
-                            <SummaryCard
-                                title={t(
-                                    'dashboardPage.cards.inventoryValue',
-                                    'Inventory value',
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.activeProjects',
+                                    'Active projects',
                                 )}
-                                value={`${formatPrice(inventory?.inventoryValue ?? 0)} ؋`}
-                                icon={PackageCheck}
-                                tone="green"
+                                value={formatNumber(
+                                    data.portfolio.activeProjects,
+                                )}
+                                icon={Store}
+                                accent="green"
                             />
-                            <SummaryCard
-                                title={t(
-                                    'dashboardPage.cards.approvedExpenses',
-                                    'Approved expenses',
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalFloors',
+                                    'Total floors',
                                 )}
-                                value={`${formatPrice(finance?.expenses ?? 0)} ؋`}
-                                icon={Banknote}
-                                tone="rose"
+                                value={formatNumber(data.portfolio.totalFloors)}
+                                icon={Layers3}
+                                accent="blue"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalShops',
+                                    'Total shops',
+                                )}
+                                value={formatNumber(data.portfolio.totalShops)}
+                                icon={DoorOpen}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.registeredTenants',
+                                    'Registered tenants',
+                                )}
+                                value={formatNumber(
+                                    data.portfolio.registeredTenants,
+                                )}
+                                icon={UsersRound}
+                                accent="green"
                             />
                         </section>
 
-                        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-                            <div className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
-                                <div className="flex items-center justify-between gap-4 border-b border-neutral-100 pb-4 dark:border-neutral-800">
-                                    <div>
-                                        <h2 className="font-bold text-neutral-950 dark:text-white">
-                                            {t(
-                                                'dashboardPage.finance.title',
-                                                'Latest expenses',
-                                            )}
-                                        </h2>
-                                        <p className="mt-1 text-xs text-neutral-500">
-                                            {t(
-                                                'dashboardPage.finance.subtitle',
-                                                'Recent financial activity',
-                                            )}
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href="/finance/expenses"
-                                        className="flex items-center gap-1 text-sm font-semibold text-[#1858f2]"
-                                    >
-                                        {t('dashboardPage.showAll', 'Show all')}
-                                        <ChevronLeft className="size-4" />
-                                    </Link>
-                                </div>
-                                <div className="mt-3 space-y-1">
-                                    {finance?.recentExpenses.length ? (
-                                        finance.recentExpenses
-                                            .slice(0, 4)
-                                            .map((expense) => (
-                                                <div
-                                                    key={expense.id}
-                                                    className="flex items-center justify-between gap-4 rounded-2xl px-2 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/70"
-                                                >
-                                                    <div className="flex min-w-0 items-center gap-3">
-                                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1858f2] dark:bg-blue-500/10">
-                                                            <ArrowUpLeft className="size-5" />
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="truncate text-sm font-semibold">
-                                                                {expense.title}
-                                                            </p>
-                                                            <p className="truncate text-xs text-neutral-500">
-                                                                {expense.branch}{' '}
-                                                                · {expense.date}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <p className="shrink-0 font-bold">
-                                                        {formatPrice(
-                                                            expense.amount,
-                                                        )}{' '}
-                                                        ؋
-                                                    </p>
-                                                </div>
-                                            ))
-                                    ) : (
-                                        <EmptyState>
-                                            {t(
-                                                'dashboardPage.finance.empty',
-                                                'No expenses recorded yet.',
-                                            )}
-                                        </EmptyState>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="space-y-5">
-                                <div className="flex min-h-28 items-center justify-between rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 dark:bg-amber-500/10">
-                                            <AlertTriangle className="size-6" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-neutral-500">
-                                                {t(
-                                                    'dashboardPage.attention.title',
-                                                    'Needs attention',
-                                                )}
-                                            </p>
-                                            <p className="mt-1 font-bold">
-                                                {formatNumber(
-                                                    (inventory?.lowStockItems ??
-                                                        0) +
-                                                        (inventory?.outOfStockItems ??
-                                                            0),
-                                                )}{' '}
-                                                {t(
-                                                    'dashboardPage.attention.items',
-                                                    'items',
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Link
-                                        href="/inventory"
-                                        className="text-sm font-semibold text-[#1858f2]"
-                                    >
-                                        {t('dashboardPage.details', 'Details')}
-                                    </Link>
-                                </div>
-
-                                <div className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="font-bold">
-                                            {t(
-                                                'dashboardPage.obligations.title',
-                                                'Financial obligations',
-                                            )}
-                                        </h2>
-                                        <CircleDollarSign className="size-5 text-[#1858f2]" />
-                                    </div>
-                                    <div className="mt-5 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-neutral-500">
-                                                {t(
-                                                    'dashboardPage.obligations.payroll',
-                                                    'Unpaid payroll',
-                                                )}
-                                            </span>
-                                            <strong>
-                                                {formatPrice(
-                                                    finance?.unpaidPayroll ?? 0,
-                                                )}{' '}
-                                                ؋
-                                            </strong>
-                                        </div>
-                                        <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-neutral-500">
-                                                {t(
-                                                    'dashboardPage.obligations.pending',
-                                                    'Pending expenses',
-                                                )}
-                                            </span>
-                                            <strong>
-                                                {formatNumber(
-                                                    finance?.pendingExpenses ??
-                                                        0,
-                                                )}
-                                            </strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
-                            <div className="flex flex-col gap-2 border-b border-neutral-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800">
-                                <div>
-                                    <h2 className="font-bold">
+                        <section className="grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5">
+                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
                                         {t(
-                                            'dashboardPage.chart.title',
-                                            'Financial overview',
+                                            'propertyDashboard.projectPerformance',
+                                            'Project performance',
                                         )}
                                     </h2>
-                                    <p className="mt-1 text-xs text-neutral-500">
+                                    <p className="mt-1 text-xs text-slate-500">
                                         {t(
-                                            'dashboardPage.chart.subtitle',
-                                            'Operational value trend',
+                                            'propertyDashboard.projectPerformanceHelp',
+                                            'Cash position and approved expenses by project',
                                         )}
                                     </p>
                                 </div>
-                                <div className="rounded-xl border border-neutral-200 px-3 py-2 text-xs text-neutral-500 dark:border-neutral-700">
-                                    {t(
-                                        'dashboardPage.chart.period',
-                                        'Current period',
+                                <div className="h-80" dir="ltr">
+                                    {hasOverallChart ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <BarChart
+                                                data={overallProjectChart}
+                                                barGap={6}
+                                            >
+                                                <CartesianGrid
+                                                    vertical={false}
+                                                    stroke="#e8eff0"
+                                                />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
+                                                />
+                                                <YAxis
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
+                                                    tickFormatter={(value) =>
+                                                        formatNumber(value)
+                                                    }
+                                                />
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) =>
+                                                        `${formatPrice(value)} ؋`
+                                                    }
+                                                />
+                                                <Legend />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.cashPosition',
+                                                        'Cash position',
+                                                    )}
+                                                    dataKey="cash"
+                                                    fill={COLORS.teal}
+                                                    radius={[6, 6, 0, 0]}
+                                                />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.expenses',
+                                                        'Expenses',
+                                                    )}
+                                                    dataKey="expenses"
+                                                    fill={COLORS.coral}
+                                                    radius={[6, 6, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noFinanceData',
+                                                'No financial records are available yet.',
+                                            )}
+                                        />
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-5 h-[300px] w-full" dir="ltr">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart
-                                        data={chartData}
-                                        margin={{
-                                            top: 15,
-                                            right: 10,
-                                            left: 0,
-                                            bottom: 0,
-                                        }}
-                                    >
-                                        <defs>
-                                            <linearGradient
-                                                id="dashboardValue"
-                                                x1="0"
-                                                y1="0"
-                                                x2="0"
-                                                y2="1"
-                                            >
-                                                <stop
-                                                    offset="4%"
-                                                    stopColor="#1858f2"
-                                                    stopOpacity={0.32}
-                                                />
-                                                <stop
-                                                    offset="96%"
-                                                    stopColor="#1858f2"
-                                                    stopOpacity={0.02}
-                                                />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid
-                                            vertical={false}
-                                            stroke="#eceef2"
-                                        />
-                                        <XAxis
-                                            dataKey="label"
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tick={{
-                                                fill: '#9ca3af',
-                                                fontSize: 11,
-                                            }}
-                                        />
-                                        <YAxis
-                                            tickLine={false}
-                                            axisLine={false}
-                                            width={70}
-                                            tick={{
-                                                fill: '#9ca3af',
-                                                fontSize: 11,
-                                            }}
-                                            tickFormatter={(value) =>
-                                                formatNumber(value)
-                                            }
-                                        />
-                                        <Tooltip
-                                            formatter={(value: number) => [
-                                                `${formatPrice(value)} ؋`,
-                                                t(
-                                                    'dashboardPage.chart.value',
-                                                    'Value',
-                                                ),
-                                            ]}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="value"
-                                            stroke="#1858f2"
-                                            strokeWidth={3}
-                                            fill="url(#dashboardValue)"
-                                            activeDot={{
-                                                r: 6,
-                                                fill: '#1858f2',
-                                                stroke: '#fff',
-                                                strokeWidth: 3,
-                                            }}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </section>
-                    </main>
 
-                    <aside className="rounded-[26px] bg-white p-5 shadow-sm dark:bg-neutral-900">
-                        <div className="flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
-                            <div>
-                                <h2 className="font-bold">
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
                                     {t(
-                                        'dashboardPage.stock.title',
-                                        'Inventory status',
+                                        'propertyDashboard.portfolioStatus',
+                                        'Portfolio status',
                                     )}
                                 </h2>
-                                <p className="mt-1 text-xs text-neutral-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     {t(
-                                        'dashboardPage.stock.subtitle',
-                                        'Items that need attention',
+                                        'propertyDashboard.portfolioStatusHelp',
+                                        'Active and inactive projects',
                                     )}
                                 </p>
-                            </div>
-                            <Boxes className="size-5 text-[#1858f2]" />
-                        </div>
-                        <div className="mt-4 space-y-3">
-                            {rankedItems.length ? (
-                                rankedItems.map((item, index) => (
-                                    <div
-                                        key={item.id}
-                                        className="flex items-center gap-3 rounded-2xl border border-neutral-100 p-3 dark:border-neutral-800"
-                                    >
-                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-xs font-bold text-neutral-500 dark:bg-neutral-800">
-                                            {index + 1}
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold">
-                                                {item.name}
-                                            </p>
-                                            <p className="truncate text-xs text-neutral-500">
-                                                {item.branch}
-                                            </p>
-                                        </div>
-                                        <span className="shrink-0 text-sm font-bold text-[#1858f2]">
-                                            {formatNumber(item.quantity)}{' '}
-                                            {item.unit}
-                                        </span>
-                                    </div>
-                                ))
-                            ) : (
-                                <EmptyState>
-                                    {t(
-                                        'dashboardPage.stock.empty',
-                                        'Inventory levels look healthy.',
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasOverallPie ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <PieChart>
+                                                <Pie
+                                                    data={overallPie}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    innerRadius={62}
+                                                    outerRadius={98}
+                                                    paddingAngle={4}
+                                                >
+                                                    {overallPie.map((item) => (
+                                                        <Cell
+                                                            key={item.name}
+                                                            fill={item.color}
+                                                        />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatNumber(value)}
+                                                />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noProjectData',
+                                                'No project records are available yet.',
+                                            )}
+                                        />
                                     )}
-                                </EmptyState>
-                            )}
-                        </div>
+                                </div>
+                            </div>
+                        </section>
 
-                        <div className="mt-6 rounded-[22px] bg-[#f4f7ff] p-5 dark:bg-blue-500/10">
-                            <div className="flex size-12 items-center justify-center rounded-2xl bg-white text-[#1858f2] shadow-sm dark:bg-neutral-900">
-                                <WalletCards className="size-6" />
+                        <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                            <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                {t('propertyDashboard.projects', 'Projects')}
+                            </h2>
+                            <div className="mt-4 overflow-x-auto">
+                                <table className="w-full min-w-[760px] text-sm">
+                                    <thead className="text-slate-400">
+                                        <tr className="border-b border-[#edf1f2] text-start dark:border-neutral-800">
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.project',
+                                                    'Project',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.shops',
+                                                    'Shops',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.tenants',
+                                                    'Tenants',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.expenses',
+                                                    'Expenses',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.status',
+                                                    'Status',
+                                                )}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.portfolio.projects.map(
+                                            (project) => (
+                                                <tr
+                                                    key={project.id}
+                                                    className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                >
+                                                    <td className="px-3 py-4">
+                                                        <strong>
+                                                            {project.name}
+                                                        </strong>
+                                                        <p className="mt-1 text-xs text-slate-400">
+                                                            {project.address ||
+                                                                '—'}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatNumber(
+                                                            project.shops,
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatNumber(
+                                                            project.registeredTenants,
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatPrice(
+                                                            project.expensesAfn,
+                                                        )}{' '}
+                                                        ؋
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        <span
+                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
+                                                        >
+                                                            {project.isActive
+                                                                ? t(
+                                                                      'propertyDashboard.active',
+                                                                      'Active',
+                                                                  )
+                                                                : t(
+                                                                      'propertyDashboard.inactive',
+                                                                      'Inactive',
+                                                                  )}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ),
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
-                            <p className="mt-4 text-sm text-neutral-500">
-                                {t(
-                                    'dashboardPage.cash.title',
-                                    'Current cash position',
+                        </section>
+                    </div>
+                ) : selectedProject ? (
+                    <div className="mt-5 space-y-5">
+                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                            <StatCard
+                                label={t('propertyDashboard.floors', 'Floors')}
+                                value={formatNumber(selectedProject.floors)}
+                                icon={Layers3}
+                            />
+                            <StatCard
+                                label={t('propertyDashboard.shops', 'Shops')}
+                                value={formatNumber(selectedProject.shops)}
+                                icon={DoorOpen}
+                                accent="blue"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.occupied',
+                                    'Occupied shops',
                                 )}
-                            </p>
-                            <p className="mt-1 text-2xl font-bold text-neutral-950 dark:text-white">
-                                {formatPrice(finance?.cashPosition ?? 0)} ؋
-                            </p>
-                            <Link
-                                href="/finance/cash-bank"
-                                className="mt-5 flex h-11 items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white dark:bg-white dark:text-neutral-950"
-                            >
-                                {t(
-                                    'dashboardPage.cash.action',
-                                    'Manage finances',
+                                value={formatNumber(
+                                    selectedProject.occupiedShops,
                                 )}
-                            </Link>
-                        </div>
+                                icon={Store}
+                                accent="green"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.available',
+                                    'Available shops',
+                                )}
+                                value={formatNumber(
+                                    selectedProject.availableShops,
+                                )}
+                                icon={Building2}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.tenants',
+                                    'Tenants',
+                                )}
+                                value={formatNumber(
+                                    selectedProject.registeredTenants,
+                                )}
+                                icon={UsersRound}
+                                accent="green"
+                            />
+                        </section>
 
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/70">
-                                <UsersRound className="size-5 text-emerald-500" />
-                                <p className="mt-3 text-xs text-neutral-500">
-                                    {t('dashboardPage.stock.low', 'Low stock')}
-                                </p>
-                                <p className="mt-1 text-xl font-bold">
-                                    {formatNumber(
-                                        inventory?.lowStockItems ?? 0,
-                                    )}
-                                </p>
-                            </div>
-                            <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/70">
-                                <AlertTriangle className="size-5 text-rose-500" />
-                                <p className="mt-3 text-xs text-neutral-500">
+                        <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                            <MoneyCard
+                                title={t(
+                                    'propertyDashboard.collectedRentAfn',
+                                    'Collected rent in AFN',
+                                )}
+                                collected={selectedProject.rent.collectedAfn}
+                                remaining={selectedProject.rent.remainingAfn}
+                                currency="؋"
+                                t={t}
+                            />
+                            <MoneyCard
+                                title={t(
+                                    'propertyDashboard.collectedRentUsd',
+                                    'Collected rent in USD',
+                                )}
+                                collected={selectedProject.rent.collectedUsd}
+                                remaining={selectedProject.rent.remainingUsd}
+                                currency="$"
+                                t={t}
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.expenses',
+                                    'Approved expenses',
+                                )}
+                                value={`${formatPrice(selectedProject.expensesAfn)} ؋`}
+                                icon={ReceiptText}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.cashPosition',
+                                    'Cash position',
+                                )}
+                                value={`${formatPrice(selectedProject.cashPositionAfn)} ؋`}
+                                icon={CircleDollarSign}
+                                accent="teal"
+                            />
+                        </section>
+
+                        <section className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
                                     {t(
-                                        'dashboardPage.stock.out',
-                                        'Out of stock',
+                                        'propertyDashboard.rentCollection',
+                                        'Rent collection',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.rentCollectionHelp',
+                                        'Collected and remaining rent for last month',
                                     )}
                                 </p>
-                                <p className="mt-1 text-xl font-bold">
-                                    {formatNumber(
-                                        inventory?.outOfStockItems ?? 0,
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasProjectRent ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <BarChart data={projectRentChart}>
+                                                <CartesianGrid
+                                                    vertical={false}
+                                                    stroke="#e8eff0"
+                                                />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickFormatter={(value) =>
+                                                        formatNumber(value)
+                                                    }
+                                                />
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatPrice(value)}
+                                                />
+                                                <Legend />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.collected',
+                                                        'Collected',
+                                                    )}
+                                                    dataKey="collected"
+                                                    fill={COLORS.green}
+                                                    radius={[7, 7, 0, 0]}
+                                                />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.remaining',
+                                                        'Remaining',
+                                                    )}
+                                                    dataKey="remaining"
+                                                    fill={COLORS.coral}
+                                                    radius={[7, 7, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noRentData',
+                                                'Rent records will appear after the lease module is added.',
+                                            )}
+                                        />
                                     )}
-                                </p>
+                                </div>
                             </div>
-                        </div>
-                    </aside>
-                </div>
+
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    {t(
+                                        'propertyDashboard.shopOccupancy',
+                                        'Shop occupancy',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.shopOccupancyHelp',
+                                        'Occupied and available shops',
+                                    )}
+                                </p>
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasOccupancy ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <PieChart>
+                                                <Pie
+                                                    data={occupancyPie}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    innerRadius={60}
+                                                    outerRadius={100}
+                                                    paddingAngle={4}
+                                                >
+                                                    {occupancyPie.map(
+                                                        (item) => (
+                                                            <Cell
+                                                                key={item.name}
+                                                                fill={
+                                                                    item.color
+                                                                }
+                                                            />
+                                                        ),
+                                                    )}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatNumber(value)}
+                                                />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noShopData',
+                                                'Shop records will appear after floors and shops are registered.',
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.marketExpenses',
+                                            'Market expenses',
+                                        )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {t(
+                                            'propertyDashboard.marketExpensesHelp',
+                                            'Electricity, maintenance and other approved costs',
+                                        )}
+                                    </p>
+                                </div>
+                                <ReceiptText className="size-5 text-[#123f4a]" />
+                            </div>
+                            <div className="mt-4 overflow-x-auto">
+                                <table className="w-full min-w-[680px] text-sm">
+                                    <thead>
+                                        <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.expense',
+                                                    'Expense',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.date',
+                                                    'Date',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.amount',
+                                                    'Amount',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.status',
+                                                    'Status',
+                                                )}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedProject.recentExpenses
+                                            .length ? (
+                                            selectedProject.recentExpenses.map(
+                                                (expense) => (
+                                                    <tr
+                                                        key={expense.id}
+                                                        className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                    >
+                                                        <td className="px-3 py-4 font-semibold">
+                                                            {expense.title}
+                                                        </td>
+                                                        <td className="px-3 py-4 text-slate-500">
+                                                            {expense.date}
+                                                        </td>
+                                                        <td className="px-3 py-4 font-semibold">
+                                                            {formatPrice(
+                                                                expense.amount,
+                                                            )}{' '}
+                                                            ؋
+                                                        </td>
+                                                        <td className="px-3 py-4">
+                                                            <span className="rounded-full bg-[#e8f0f1] px-3 py-1 text-xs font-semibold text-[#123f4a]">
+                                                                {expense.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan={4}
+                                                    className="py-12 text-center text-sm text-slate-400"
+                                                >
+                                                    {t(
+                                                        'propertyDashboard.noExpenses',
+                                                        'No expenses have been recorded for this project.',
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                ) : null}
             </div>
         </AppLayout>
     );
