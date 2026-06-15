@@ -4,7 +4,6 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { brand } from '@/config/brand';
 import { useLocalization } from '@/lib/localization';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
@@ -17,6 +16,9 @@ interface LoginProps {
     canResetPassword: boolean;
     canRegister: boolean;
 }
+
+const LOGIN_BRAND_NAME = 'Paktiawal Group';
+const LOGIN_BRAND_LOGO = '/brand/logo.png';
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { t, locale, isRtl } = useLocalization();
@@ -42,17 +44,17 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,16,0.18)_0%,rgba(4,15,16,0.04)_42%,rgba(4,15,16,0.78)_100%)]" />
 
-                    <div className="absolute inset-x-0 top-0 flex items-center gap-3 p-9 text-white xl:p-11">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/95 p-2 shadow-sm">
+                    <div className="absolute inset-x-0 top-0 flex items-center gap-3 p-9 text-white xl:p-4">
+                        <span className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 shadow-sm">
                             <img
-                                src={brand.logo}
+                                src={LOGIN_BRAND_LOGO}
                                 alt=""
                                 className="h-full w-full object-contain"
                             />
                         </span>
-                        <span className="text-xl font-bold tracking-tight">
-                            {brand.shortName}
-                        </span>
+                        {/* <span className="text-xl font-bold tracking-tight">
+                            {LOGIN_BRAND_NAME}
+                        </span> */}
                     </div>
 
                     <div className="absolute inset-x-0 bottom-0 p-9 text-white xl:p-11">
@@ -64,7 +66,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         </p>
                         <div className="mt-7 h-px w-14 bg-white/70" />
                         <p className="mt-4 text-sm font-semibold">
-                            {brand.name}
+                            {LOGIN_BRAND_NAME}
                         </p>
                         <p className="mt-1 text-xs text-white/75">
                             {t(
@@ -88,8 +90,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         <div className="mb-10 text-center">
                             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-50 p-3 shadow-sm ring-1 ring-neutral-200 lg:hidden">
                                 <img
-                                    src={brand.logo}
-                                    alt={brand.shortName}
+                                    src={LOGIN_BRAND_LOGO}
+                                    alt={LOGIN_BRAND_NAME}
                                     className="h-full w-full object-contain"
                                 />
                             </div>
@@ -97,7 +99,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {t(
                                     'auth.login.welcomeBack',
                                     'Welcome back to :name',
-                                ).replace(':name', brand.shortName)}
+                                ).replace(':name', LOGIN_BRAND_NAME)}
                             </h1>
                             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-neutral-500">
                                 {t(
@@ -260,22 +262,22 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                         <div className="my-8 flex items-center gap-4 text-[11px] tracking-[0.2em] text-neutral-400 uppercase">
                             <span className="h-px flex-1 bg-neutral-200" />
-                            <span>{brand.shortName}</span>
+                            <span>{LOGIN_BRAND_NAME}</span>
                             <span className="h-px flex-1 bg-neutral-200" />
                         </div>
 
                         <div className="rounded-2xl bg-neutral-50 px-5 py-4 text-center ring-1 ring-neutral-100">
-                            <p className="flex items-center justify-center gap-2 text-xs text-neutral-600">
+                            <p className="flex items-center justify-center gap-2 text-[13px] text-neutral-600">
                                 <Copyright className="h-3.5 w-3.5" />
                                 <span>
-                                    {copyrightYear} {brand.name}.{' '}
+                                    {copyrightYear} {LOGIN_BRAND_NAME}.{' '}
                                     {t(
                                         'footer.allRightsReserved',
                                         'All rights reserved.',
                                     )}
                                 </span>
                             </p>
-                            <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
+                            <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] text-neutral-400">
                                 <ShieldCheck className="h-3.5 w-3.5" />
                                 {t(
                                     'auth.securedBy',

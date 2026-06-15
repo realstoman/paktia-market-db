@@ -45,14 +45,14 @@ const fa = {
         login: {
             title: 'ورود به سیستم',
             heading: 'خوش آمدید!',
-            welcomeBack: 'دوباره به :name خوش آمدید',
+            welcomeBack: 'خوش آمدید!',
             description:
-                'برای مدیریت شعبات، گدام، امور مالی و عملیات روزانه مارکیت وارد شوید.',
+                'مدیریت مارکیت ها، جایداد ها، شعبات، گدام، امور مالی و عملیات روزانه.',
             mallImageAlt: 'نمای داخلی مارکیت مدرن',
             mallQuote: 'هر آنچه مارکیت شما نیاز دارد، در یک‌جا.',
             mallQuoteCaption: 'عملیات و مدیریت فروشگاه',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@paktiamarket.com',
+            emailPlaceholder: 'you@paktiawalgroup.com',
             password: 'رمز عبور',
             passwordPlaceholder: 'رمز عبور خود را وارد کنید',
             remember: 'مشخصات ورود را به یاد داشته باش',
@@ -66,7 +66,7 @@ const fa = {
             description:
                 'برای دریافت لینک بازنشانی رمز عبور، ایمیل خود را وارد کنید',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@paktiamarket.com',
+            emailPlaceholder: 'you@paktiawalgroup.com',
             submit: 'ارسال لینک تغیر رمز عبور',
             returnTo: 'یا، بازگشت به',
             login: 'صفحه ورود',
@@ -292,7 +292,7 @@ const fa = {
         },
         placeholders: {
             fullName: 'نام کامل',
-            email: 'user@paktiamarket.com',
+            email: 'user@paktiawalgroup.com',
             selectRole: 'نقش را انتخاب کنید',
             selectCountry: 'کشور را انتخاب کنید',
             selectProvince: 'ولایت را انتخاب کنید',

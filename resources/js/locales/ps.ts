@@ -1,6 +1,6 @@
 const ps = {
     brand: {
-        marketName: 'پکتیا مارکیټ',
+        marketName: 'پکتیاوال گروپ',
     },
     common: {
         save: 'خوندي کول',
@@ -44,14 +44,14 @@ const ps = {
         login: {
             title: 'سیستم ته ننوتل',
             heading: 'ښه راغلاست!',
-            welcomeBack: ':name ته بیا ښه راغلاست',
+            welcomeBack: 'ښه راغلاست!',
             description:
-                'د څانګو، ګدام، مالي چارو او ورځنیو مارکیټ عملیاتو د مدیریت لپاره ننوځئ.',
+                'د مارکیټونو، جایدادونو، ګدام، مالي چارو او ورځنیو مارکیټ عملیاتو د مدیریت.',
             mallImageAlt: 'د عصري مارکیټ داخلي منظره',
             mallQuote: 'ستاسو د مارکیټ ټولې اړتیاوې، په یوه ځای کې.',
             mallQuoteCaption: 'پرچون عملیات او مدیریت',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@paktiamarket.com',
+            emailPlaceholder: 'you@paktiawalgroup.com',
             password: 'پسورډ / رمز',
             passwordPlaceholder: 'خپل پسورډ ولیکئ',
             remember: 'د ننوتلو معلومات په یاد وساتئ',
@@ -65,7 +65,7 @@ const ps = {
             description:
                 'د پسورډ د بیا تنظیم لینک د ترلاسه کولو لپاره خپل ایمیل آدرس ولیکئ',
             email: 'ایمیل آدرس',
-            emailPlaceholder: 'you@paktiamarket.com',
+            emailPlaceholder: 'you@paktiawalgroup.com',
             submit: 'د پسورډ د تغیرولو لینک ولیږئ',
             returnTo: 'یا، بیرته لاړ شئ',
             login: 'سیستم ته ننوتل',
@@ -290,7 +290,7 @@ const ps = {
         },
         placeholders: {
             fullName: 'بشپړ نوم',
-            email: 'user@paktiamarket.com',
+            email: 'user@paktiawalgroup.com',
             selectRole: 'رول وټاکئ',
             selectCountry: 'هیواد وټاکئ',
             selectProvince: 'ولایت وټاکئ',
