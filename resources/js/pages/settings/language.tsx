@@ -127,7 +127,7 @@ export default function LanguageSettings() {
                         <p className="text-sm text-muted-foreground">
                             {t(
                                 'settings.languageHelp',
-                                'English is the default language. Dari and Pashto use a right-to-left layout.',
+                                'Dari is the default language. Pashto also uses a right-to-left layout.',
                             )}
                         </p>
                     </div>

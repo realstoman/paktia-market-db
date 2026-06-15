@@ -1,6 +1,6 @@
 const fa = {
     brand: {
-        marketName: 'پکتیا مارکیت',
+        marketName: 'پکتیاوال گروپ',
     },
     common: {
         save: 'ذخیره',
@@ -45,7 +45,7 @@ const fa = {
         login: {
             title: 'ورود به سیستم',
             heading: 'خوش آمدید!',
-            welcomeBack: 'خوش آمدید!',
+            welcomeBack: 'خوش آمدید به',
             description:
                 'مدیریت مارکیت ها، جایداد ها، شعبات، گدام، امور مالی و عملیات روزانه.',
             mallImageAlt: 'نمای داخلی مارکیت مدرن',
@@ -541,7 +541,7 @@ const fa = {
         currentLanguage: 'زبان فعلی',
         chooseLanguage: 'یک زبان انتخاب کنید',
         languageHelp:
-            'انگلیسی زبان پیش‌فرض است. دری و پشتو با چیدمان راست به چپ نمایش داده می‌شوند.',
+            'دری زبان پیش‌فرض است. پشتو نیز با چیدمان راست به چپ نمایش داده می‌شود.',
         openLanguageSettings: 'باز کردن تنظیمات زبان',
         saveLanguage: 'ذخیره زبان',
         systemBrandingTitle: 'هویت سیستم',

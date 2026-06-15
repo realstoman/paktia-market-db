@@ -1,6 +1,6 @@
 const en = {
     brand: {
-        marketName: 'Paktia Market',
+        marketName: 'Paktiawal Group',
     },
     common: {
         save: 'Save',
@@ -44,7 +44,7 @@ const en = {
         login: {
             title: 'Log in',
             heading: 'Welcome back!',
-            welcomeBack: 'Welcome back!',
+            welcomeBack: 'Welcome back to',
             description:
                 'Sign in to manage markets, properties, finance, and daily market operations.',
             mallImageAlt: 'Modern shopping mall interior',
@@ -536,7 +536,7 @@ const en = {
         currentLanguage: 'Current language',
         chooseLanguage: 'Choose a language',
         languageHelp:
-            'English is the default language. Dari and Pashto use a right-to-left layout.',
+            'Dari is the default language. Pashto also uses a right-to-left layout.',
         openLanguageSettings: 'Open language settings',
         saveLanguage: 'Save language',
         systemBrandingTitle: 'System branding',

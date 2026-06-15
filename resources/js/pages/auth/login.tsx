@@ -19,10 +19,12 @@ interface LoginProps {
 
 const LOGIN_BRAND_NAME = 'Paktiawal Group';
 const LOGIN_BRAND_LOGO = '/brand/logo.png';
+const LOGIN_BRAND_URL = 'https://paktiawalgroup.com';
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     const { t, locale, isRtl } = useLocalization();
     const [showPassword, setShowPassword] = useState(false);
+    const loginBrandName = t('brand.marketName', LOGIN_BRAND_NAME);
     const copyrightYear = new Intl.DateTimeFormat(
         locale === 'en' ? 'en-US' : `${locale}-AF-u-ca-persian`,
         { year: 'numeric' },
@@ -45,16 +47,18 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,16,0.18)_0%,rgba(4,15,16,0.04)_42%,rgba(4,15,16,0.78)_100%)]" />
 
                     <div className="absolute inset-x-0 top-0 flex items-center gap-3 p-9 text-white xl:p-4">
-                        <span className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 shadow-sm">
+                        <a
+                            href={LOGIN_BRAND_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 shadow-sm transition-transform hover:scale-[1.03]"
+                        >
                             <img
                                 src={LOGIN_BRAND_LOGO}
-                                alt=""
+                                alt={loginBrandName}
                                 className="h-full w-full object-contain"
                             />
-                        </span>
-                        {/* <span className="text-xl font-bold tracking-tight">
-                            {LOGIN_BRAND_NAME}
-                        </span> */}
+                        </a>
                     </div>
 
                     <div className="absolute inset-x-0 bottom-0 p-9 text-white xl:p-11">
@@ -65,9 +69,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             )}
                         </p>
                         <div className="mt-7 h-px w-14 bg-white/70" />
-                        <p className="mt-4 text-sm font-semibold">
-                            {LOGIN_BRAND_NAME}
-                        </p>
+                        <a
+                            href={LOGIN_BRAND_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-4 inline-block text-sm font-semibold transition-colors hover:text-brand-secondary"
+                        >
+                            {loginBrandName}
+                        </a>
                         <p className="mt-1 text-xs text-white/75">
                             {t(
                                 'auth.login.mallQuoteCaption',
@@ -92,15 +101,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-50 p-3 shadow-sm ring-1 ring-neutral-200 lg:hidden">
                                     <img
                                         src={LOGIN_BRAND_LOGO}
-                                        alt={LOGIN_BRAND_NAME}
+                                        alt={loginBrandName}
                                         className="h-full w-full object-contain"
                                     />
                                 </div>
                                 <h1 className="text-3xl font-bold tracking-[-0.035em] text-neutral-950 sm:text-[2.05rem]">
                                     {t(
                                         'auth.login.welcomeBack',
-                                        'Welcome back to :name',
-                                    ).replace(':name', LOGIN_BRAND_NAME)}
+                                        'Welcome back to',
+                                    )}{' '}
+                                    <a
+                                        href={LOGIN_BRAND_URL}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-brand-primary transition-colors hover:text-brand-secondary"
+                                    >
+                                        {loginBrandName}
+                                    </a>
                                 </h1>
                                 <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-neutral-500">
                                     {t(
@@ -140,7 +157,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     'auth.login.email',
                                                     'Email address',
                                                 )}
-                                                className={`h-[54px] rounded-xl border-neutral-200 bg-white px-4 text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-[#6d51f5] focus-visible:ring-[#6d51f5]/20 ${
+                                                className={`h-[54px] rounded-xl border-neutral-200 bg-white px-4 text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
                                                     isRtl ? 'text-right' : ''
                                                 }`}
                                             />
@@ -171,7 +188,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                         'auth.login.password',
                                                         'Password',
                                                     )}
-                                                    className={`h-[54px] rounded-xl border-neutral-200 bg-white text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-[#6d51f5] focus-visible:ring-[#6d51f5]/20 ${
+                                                    className={`h-[54px] rounded-xl border-neutral-200 bg-white text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
                                                         isRtl
                                                             ? 'pr-4 pl-12 text-right'
                                                             : 'pr-12 pl-4'
@@ -217,7 +234,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 <TextLink
                                                     href={request()}
                                                     tabIndex={4}
-                                                    className="font-medium text-[#6045e8] no-underline transition-colors hover:text-[#4933be] hover:underline"
+                                                    className="font-medium text-brand-primary no-underline transition-colors hover:text-brand-secondary hover:underline"
                                                 >
                                                     {t(
                                                         'auth.login.forgotPassword',
@@ -245,7 +262,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     tabIndex={3}
                                                     className="peer sr-only"
                                                 />
-                                                <span className="relative h-7 w-12 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-[#6d51f5] peer-focus-visible:ring-4 peer-focus-visible:ring-[#6d51f5]/20 after:absolute after:top-1 after:left-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5 rtl:after:right-1 rtl:after:left-auto rtl:peer-checked:after:-translate-x-5" />
+                                                <span className="relative h-7 w-12 shrink-0 rounded-full bg-neutral-200 transition-colors peer-checked:bg-brand-primary peer-focus-visible:ring-4 peer-focus-visible:ring-brand-primary/20 after:absolute after:top-1 after:left-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5 rtl:after:right-1 rtl:after:left-auto rtl:peer-checked:after:-translate-x-5" />
                                             </label>
                                         </div>
 
@@ -254,7 +271,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={5}
                                             disabled={processing}
                                             data-test="login-button"
-                                            className="mt-3 h-[54px] w-full rounded-full bg-[#6d51f5] text-[15px] font-semibold text-white shadow-none transition-all hover:bg-[#5d42e5] hover:shadow-[0_10px_30px_rgba(109,81,245,0.28)] focus-visible:ring-[#6d51f5]/30"
+                                            className="mt-3 h-[54px] w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(11,90,165,0.28)] focus-visible:ring-brand-primary/30"
                                         >
                                             {processing ? <Spinner /> : null}
                                             {t('auth.login.submit', 'Log in')}
@@ -270,7 +287,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             <p className="flex items-center justify-center gap-2 text-[13px] text-neutral-600">
                                 <Copyright className="h-3.5 w-3.5" />
                                 <span>
-                                    {copyrightYear} {LOGIN_BRAND_NAME}.{' '}
+                                    {copyrightYear}{' '}
+                                    <a
+                                        href={LOGIN_BRAND_URL}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="font-medium text-brand-primary transition-colors hover:text-brand-secondary"
+                                    >
+                                        {loginBrandName}
+                                    </a>
+                                    .{' '}
                                     {t(
                                         'footer.allRightsReserved',
                                         'All rights reserved.',

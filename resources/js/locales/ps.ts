@@ -44,7 +44,7 @@ const ps = {
         login: {
             title: 'سیستم ته ننوتل',
             heading: 'ښه راغلاست!',
-            welcomeBack: 'ښه راغلاست!',
+            welcomeBack: 'ښه راغلاست',
             description:
                 'د مارکیټونو، جایدادونو، ګدام، مالي چارو او ورځنیو مارکیټ عملیاتو د مدیریت.',
             mallImageAlt: 'د عصري مارکیټ داخلي منظره',
@@ -535,7 +535,7 @@ const ps = {
         currentLanguage: 'اوسنۍ ژبه',
         chooseLanguage: 'یوه ژبه وټاکئ',
         languageHelp:
-            'انګلیسي اصلي ژبه ده. دري او پښتو په ښي-نه-کيڼ ترتیب ښودل کېږي.',
+            'دري اصلي ژبه ده. پښتو هم له ښي نه کيڼ لوري ته ښودل کېږي.',
         openLanguageSettings: 'د ژبې ترتیبات پرانیزئ',
         saveLanguage: 'ژبه خوندي کړئ',
         systemBrandingTitle: 'د سيستم هويت',
