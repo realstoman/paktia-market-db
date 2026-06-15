@@ -28,7 +28,7 @@ const runtimeBranding =
 export const brand = {
     name: runtimeBranding?.name ?? 'Paktia Market ERP',
     shortName: runtimeBranding?.shortName ?? 'Paktia Market',
-    logo: runtimeBranding?.logoUrl ?? '/brand/logo.svg',
+    logo: runtimeBranding?.logoUrl ?? '/brand/logo.png',
     logoFull: runtimeBranding?.logoFullUrl ?? '/brand/logo-full.svg',
     primaryColor: runtimeBranding?.primaryColor ?? '#0B5AA5',
     secondaryColor: runtimeBranding?.secondaryColor ?? '#F2A20C',

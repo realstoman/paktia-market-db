@@ -34,7 +34,7 @@ class SystemBrandingService
             return [
                 'name' => $this->defaults()['market_name'],
                 'shortName' => $this->defaults()['market_short_name'],
-                'logoUrl' => '/brand/logo.svg',
+                'logoUrl' => '/brand/logo.png',
                 'logoFullUrl' => '/brand/logo-full.svg',
                 'logoPath' => '',
                 'logoFullPath' => '',
@@ -53,7 +53,7 @@ class SystemBrandingService
         return [
             'name' => $branding['market_name'],
             'shortName' => $branding['market_short_name'],
-            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/logo.svg'),
+            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/logo.png'),
             'logoFullUrl' => $this->resolveLogoUrl($branding['logo_full_path'], '/brand/logo-full.svg'),
             'logoPath' => $branding['logo_path'],
             'logoFullPath' => $branding['logo_full_path'],

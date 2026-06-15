@@ -38,7 +38,7 @@ interface RuntimeHealthPageProps {
         status: HealthStatus;
         message: string;
         components: {
-            projection: {
+            projection?: {
                 status: HealthStatus;
                 message: string;
                 latestProjectionAt?: string | null;
@@ -151,13 +151,14 @@ export default function RuntimeHealthPage({
     runtimeHealth,
 }: RuntimeHealthPageProps) {
     const { components } = runtimeHealth;
+    const projection = components.projection;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Runtime Health" />
 
             <div className="flex flex-col gap-6 p-4 md:p-6">
-                <section className="rounded-3xl border border-border/60 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-6 shadow-sm dark:from-brand-bg-dark dark:via-brand-bg-dark dark:to-emerald-950/20">
+                <section className="dark:from-brand-bg-dark dark:via-brand-bg-dark rounded-3xl border border-border/60 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-6 shadow-sm dark:to-emerald-950/20">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div className="max-w-3xl space-y-2">
                             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
@@ -180,50 +181,47 @@ export default function RuntimeHealthPage({
                 </section>
 
                 <section className="grid gap-4 xl:grid-cols-2">
-                    <Card className="border-border/60">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <DatabaseZap className="h-5 w-5" />
-                                Projection Health
-                            </CardTitle>
-                            <CardDescription>
-                                Branch-day summary freshness and lag against
-                                recent activity.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div
-                                className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.projection.status)}`}
-                            >
-                                {components.projection.message}
-                            </div>
-                            <div className="grid gap-3 md:grid-cols-3">
-                                <Metric
-                                    label="Critical Branches"
-                                    value={formatNumber(
-                                        components.projection
-                                            .criticalBranchCount,
-                                    )}
-                                />
-                                <Metric
-                                    label="Warning Branches"
-                                    value={formatNumber(
-                                        components.projection
-                                            .warningBranchCount,
-                                    )}
-                                />
-                                <Metric
-                                    label="Latest Projection"
-                                    value={formatTimestamp(
-                                        components.projection
-                                            .latestProjectionAt,
-                                    )}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                {components.projection.branches.length > 0 ? (
-                                    components.projection.branches.map(
-                                        (branch) => (
+                    {projection ? (
+                        <Card className="border-border/60">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <DatabaseZap className="h-5 w-5" />
+                                    Projection Health
+                                </CardTitle>
+                                <CardDescription>
+                                    Branch-day summary freshness and lag against
+                                    recent activity.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div
+                                    className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(projection.status)}`}
+                                >
+                                    {projection.message}
+                                </div>
+                                <div className="grid gap-3 md:grid-cols-3">
+                                    <Metric
+                                        label="Critical Branches"
+                                        value={formatNumber(
+                                            projection.criticalBranchCount,
+                                        )}
+                                    />
+                                    <Metric
+                                        label="Warning Branches"
+                                        value={formatNumber(
+                                            projection.warningBranchCount,
+                                        )}
+                                    />
+                                    <Metric
+                                        label="Latest Projection"
+                                        value={formatTimestamp(
+                                            projection.latestProjectionAt,
+                                        )}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    {projection.branches.length > 0 ? (
+                                        projection.branches.map((branch) => (
                                             <div
                                                 key={branch.branchId}
                                                 className="rounded-2xl border border-border/60 p-3"
@@ -246,17 +244,17 @@ export default function RuntimeHealthPage({
                                                     </span>
                                                 </div>
                                             </div>
-                                        ),
-                                    )
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                        No branch-level projection issues are
-                                        currently surfaced.
-                                    </p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            No branch-level projection issues
+                                            are currently surfaced.
+                                        </p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : null}
 
                     <Card className="border-border/60">
                         <CardHeader>

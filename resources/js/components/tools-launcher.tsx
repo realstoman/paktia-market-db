@@ -20,23 +20,46 @@ import {
 } from 'lucide-react';
 
 const tools = [
-    { href: '/countries', label: 'Countries', icon: Globe2 },
-    { href: '/provinces', label: 'Provinces', icon: MapPinned },
-    { href: '/branches', label: 'Branches', icon: Building2 },
-    { href: '/users', label: 'Users', icon: Users },
+    {
+        href: '/countries',
+        labelKey: 'navigation.toolCountries',
+        fallbackLabel: 'Countries',
+        icon: Globe2,
+    },
+    {
+        href: '/provinces',
+        labelKey: 'navigation.toolProvinces',
+        fallbackLabel: 'Provinces',
+        icon: MapPinned,
+    },
+    {
+        href: '/branches',
+        labelKey: 'navigation.toolBranches',
+        fallbackLabel: 'Branches',
+        icon: Building2,
+    },
+    {
+        href: '/users',
+        labelKey: 'navigation.toolUsers',
+        fallbackLabel: 'Users',
+        icon: Users,
+    },
     {
         href: '/finance/chart-of-accounts',
-        label: 'Chart of Accounts',
+        labelKey: 'navigation.toolChartOfAccounts',
+        fallbackLabel: 'Chart of Accounts',
         icon: Banknote,
     },
     {
         href: '/finance/expense-categories',
-        label: 'Expense Categories',
+        labelKey: 'navigation.toolExpenseCategories',
+        fallbackLabel: 'Expense Categories',
         icon: CircleDollarSign,
     },
     {
         href: '/finance/cash-movement-types',
-        label: 'Cash Movement Types',
+        labelKey: 'navigation.toolCashMovementTypes',
+        fallbackLabel: 'Cash Movement Types',
         icon: CircleDollarSign,
     },
 ];
@@ -62,17 +85,19 @@ export function ToolsLauncher() {
                         {t('navigation.managementTools', 'Management tools')}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {tools.map(({ href, label, icon: Icon }) => (
-                        <DropdownMenuItem key={href} asChild>
-                            <Link
-                                href={href}
-                                className="flex items-center gap-2"
-                            >
-                                <Icon className="h-4 w-4" />
-                                <span>{label}</span>
-                            </Link>
-                        </DropdownMenuItem>
-                    ))}
+                    {tools.map(
+                        ({ href, labelKey, fallbackLabel, icon: Icon }) => (
+                            <DropdownMenuItem key={href} asChild>
+                                <Link
+                                    href={href}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    <span>{t(labelKey, fallbackLabel)}</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        ),
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </SidebarMenuItem>
