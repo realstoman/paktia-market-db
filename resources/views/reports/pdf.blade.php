@@ -7,7 +7,7 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
-            color: #102f33;
+            color: #0b5aa5;
             margin: 24px;
         }
         h1 {

@@ -71,8 +71,7 @@ function toHslChannels(hex: string): string {
     let saturation = 0;
 
     if (delta !== 0) {
-        saturation =
-            delta / (1 - Math.abs(2 * lightness - 1));
+        saturation = delta / (1 - Math.abs(2 * lightness - 1));
 
         switch (max) {
             case red:

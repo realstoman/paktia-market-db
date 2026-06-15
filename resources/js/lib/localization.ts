@@ -10,8 +10,9 @@ function getNestedValue(
     source: TranslationTree,
     path: string,
 ): string | TranslationTree | undefined {
-    return path.split('.').reduce<string | TranslationTree | undefined>(
-        (current, segment) => {
+    return path
+        .split('.')
+        .reduce<string | TranslationTree | undefined>((current, segment) => {
             if (
                 current === undefined ||
                 current === null ||
@@ -21,9 +22,7 @@ function getNestedValue(
             }
 
             return current[segment];
-        },
-        source,
-    );
+        }, source);
 }
 
 export function useLocalization() {
@@ -36,9 +35,7 @@ export function useLocalization() {
             getNestedValue(activeTranslations as TranslationTree, key) ??
             getNestedValue(translations.en as TranslationTree, key);
 
-        return typeof translated === 'string'
-            ? translated
-            : fallback ?? key;
+        return typeof translated === 'string' ? translated : (fallback ?? key);
     };
 
     return {

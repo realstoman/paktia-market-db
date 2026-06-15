@@ -1,7 +1,6 @@
 'use client';
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +32,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import AppLayout from '@/layouts/app-layout';
 import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
@@ -673,7 +673,7 @@ export default function ReportsPage({
                                 Reporting workspace
                             </div>
                             <div className="space-y-2">
-                                <h1 className="text-3xl font-semibold tracking-tight text-[#102f33] dark:text-white">
+                                <h1 className="text-3xl font-semibold tracking-tight text-brand-primary dark:text-white">
                                     Executive reports, without the admin clutter
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-[#47676b] dark:text-neutral-300">
@@ -910,7 +910,7 @@ export default function ReportsPage({
                                 )}
                             >
                                 <div className="flex items-center justify-between gap-3">
-                                    <h2 className="font-semibold text-[#102f33]">
+                                    <h2 className="font-semibold text-brand-primary">
                                         {item.title}
                                     </h2>
                                     <Badge
@@ -923,7 +923,7 @@ export default function ReportsPage({
                                         ).toUpperCase()}
                                     </Badge>
                                 </div>
-                                <p className="mt-4 text-2xl font-semibold text-[#102f33]">
+                                <p className="mt-4 text-2xl font-semibold text-brand-primary">
                                     {formatMetric(
                                         item.primary,
                                         item.primaryFormat ?? 'number',
@@ -953,7 +953,7 @@ export default function ReportsPage({
                             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                                 <div className="min-w-0 space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <CardTitle className="text-xl text-[#102f33] dark:text-white">
+                                        <CardTitle className="text-xl text-brand-primary dark:text-white">
                                             {activeReport.title}
                                         </CardTitle>
                                         <Badge
@@ -1039,7 +1039,7 @@ export default function ReportsPage({
                                                     <p className="text-xs tracking-[0.18em] text-[#708689] uppercase">
                                                         {item.label}
                                                     </p>
-                                                    <p className="mt-2 text-2xl font-semibold text-[#102f33]">
+                                                    <p className="mt-2 text-2xl font-semibold text-brand-primary">
                                                         {formatMetric(
                                                             item.value,
                                                             item.format,

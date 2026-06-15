@@ -72,7 +72,9 @@ export function BarChartDefault({
         fromLastMonth: labels?.fromLastMonth ?? 'from last month',
     };
     const chartData = data.map((item) => {
-        const dateSource = item.monthKey ? `${item.monthKey}-01` : `${item.label}`;
+        const dateSource = item.monthKey
+            ? `${item.monthKey}-01`
+            : `${item.label}`;
         const monthLabel = new Intl.DateTimeFormat(locale, {
             month: 'short',
         }).format(new Date(dateSource));
@@ -124,7 +126,13 @@ export function BarChartDefault({
                     </BarChart>
                 </ChartContainer>
             </div>
-            <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
+            <div
+                className={
+                    compact
+                        ? 'mt-2 flex flex-col items-start gap-1.5 text-sm'
+                        : 'mt-3 flex flex-col items-start gap-2 text-sm'
+                }
+            >
                 <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
                         ? resolvedLabels.noComparison

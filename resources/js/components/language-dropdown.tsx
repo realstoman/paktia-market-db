@@ -60,7 +60,8 @@ export default function LanguageDropdown({
                             <Languages className="h-3.5 w-3.5" />
                         </span>
                         <span className="text-sm font-medium">
-                            {activeLanguage?.nativeLabel ?? locale.toUpperCase()}
+                            {activeLanguage?.nativeLabel ??
+                                locale.toUpperCase()}
                         </span>
                         <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />
                         <span className="sr-only">

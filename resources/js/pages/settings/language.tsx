@@ -1,7 +1,7 @@
 import HeadingSmall from '@/components/shared/heading-small';
-import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { useLocalization } from '@/lib/localization';
 import { show } from '@/routes/language';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -33,10 +33,7 @@ export default function LanguageSettings() {
                     const isNextRtl = language === 'fa' || language === 'ps';
                     document.documentElement.dir = isNextRtl ? 'rtl' : 'ltr';
                     document.body.dir = isNextRtl ? 'rtl' : 'ltr';
-                    document.documentElement.classList.toggle(
-                        'rtl',
-                        isNextRtl,
-                    );
+                    document.documentElement.classList.toggle('rtl', isNextRtl);
                     document.body.classList.toggle('rtl', isNextRtl);
                     router.reload({
                         preserveScroll: true,
@@ -89,8 +86,7 @@ export default function LanguageSettings() {
                             </p>
                             <div className="grid gap-3">
                                 {languages.map((language) => {
-                                    const isActive =
-                                        language.code === locale;
+                                    const isActive = language.code === locale;
 
                                     return (
                                         <button
