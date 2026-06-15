@@ -96,7 +96,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
 
                     <div className="flex flex-1 items-center justify-center py-20 sm:py-24">
-                        <div className="w-full max-w-[430px]">
+                        <div className="w-full max-w-107.5">
                             <div className="mb-10 text-center">
                                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-50 p-3 shadow-sm ring-1 ring-neutral-200 lg:hidden">
                                     <img
@@ -109,17 +109,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     {t(
                                         'auth.login.welcomeBack',
                                         'Welcome back to',
-                                    )}{' '}
-                                    <a
-                                        href={LOGIN_BRAND_URL}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-brand-primary transition-colors hover:text-brand-secondary"
-                                    >
-                                        {loginBrandName}
-                                    </a>
+                                    )}
                                 </h1>
-                                <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-neutral-500">
+                                <p className="mx-auto mt-3 max-w-sm text-base leading-6 text-neutral-500">
                                     {t(
                                         'auth.login.description',
                                         'Sign in to manage branches, inventory, finance, and daily market operations.',
@@ -157,7 +149,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     'auth.login.email',
                                                     'Email address',
                                                 )}
-                                                className={`h-[54px] rounded-xl border-neutral-200 bg-white px-4 text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
+                                                className={`h-13.5 rounded-xl border-neutral-200 bg-white px-4 text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
                                                     isRtl ? 'text-right' : ''
                                                 }`}
                                             />
@@ -188,7 +180,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                         'auth.login.password',
                                                         'Password',
                                                     )}
-                                                    className={`h-[54px] rounded-xl border-neutral-200 bg-white text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
+                                                    className={`h-13.5 rounded-xl border-neutral-200 bg-white text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
                                                         isRtl
                                                             ? 'pr-4 pl-12 text-right'
                                                             : 'pr-12 pl-4'
@@ -271,7 +263,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={5}
                                             disabled={processing}
                                             data-test="login-button"
-                                            className="mt-3 h-[54px] w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(11,90,165,0.28)] focus-visible:ring-brand-primary/30"
+                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(11,90,165,0.28)] focus-visible:ring-brand-primary/30"
                                         >
                                             {processing ? <Spinner /> : null}
                                             {t('auth.login.submit', 'Log in')}
@@ -283,8 +275,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
 
                     <footer className="w-full pb-6 text-center sm:pb-8">
-                        <div className="mx-auto max-w-[430px] border-t border-neutral-100 pt-5">
-                            <p className="flex items-center justify-center gap-2 text-[13px] text-neutral-600">
+                        <div className="mx-auto max-w-107.5 border-t border-neutral-100 pt-5">
+                            <p className="flex items-center justify-center gap-2 text-[15px] text-neutral-600">
                                 <Copyright className="h-3.5 w-3.5" />
                                 <span>
                                     {copyrightYear}{' '}
@@ -303,7 +295,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     )}
                                 </span>
                             </p>
-                            <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] text-neutral-400">
+                            <p className="mt-2 flex items-center justify-center gap-1.5 text-[15px] text-neutral-400">
                                 <ShieldCheck className="h-3.5 w-3.5" />
                                 {t(
                                     'auth.securedBy',

@@ -45,7 +45,7 @@ const fa = {
         login: {
             title: 'ورود به سیستم',
             heading: 'خوش آمدید!',
-            welcomeBack: 'خوش آمدید به',
+            welcomeBack: 'خوش آمدید!',
             description:
                 'مدیریت مارکیت ها، جایداد ها، شعبات، گدام، امور مالی و عملیات روزانه.',
             mallImageAlt: 'نمای داخلی مارکیت مدرن',
@@ -55,7 +55,7 @@ const fa = {
             emailPlaceholder: 'you@paktiawalgroup.com',
             password: 'رمز عبور',
             passwordPlaceholder: 'رمز عبور خود را وارد کنید',
-            remember: 'مشخصات ورود را به یاد داشته باش',
+            remember: 'من را به یاد داشته باش',
             forgotPassword: 'رمز عبور را فراموش کرده‌اید؟',
             submit: 'ورود به سیستم',
             showPassword: 'نمایش رمز عبور',
