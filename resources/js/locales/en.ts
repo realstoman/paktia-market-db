@@ -48,7 +48,8 @@ const en = {
             description:
                 'Sign in to manage markets, properties, finance, and daily market operations.',
             mallImageAlt: 'Modern shopping mall interior',
-            mallQuote: 'Manage Paktiawal Group markets and properties, in one place.',
+            mallQuote:
+                'Manage Paktiawal Group markets and properties, in one place.',
             mallQuoteCaption: 'Markets operations and management',
             email: 'Email address',
             emailPlaceholder: 'you@paktiawalgroup.com',
@@ -59,6 +60,7 @@ const en = {
             submit: 'Login',
             showPassword: 'Show password',
             hidePassword: 'Hide password',
+            welcomeToast: 'Welcome back to Paktiawal Group',
         },
         forgotPassword: {
             title: 'Forgot password',

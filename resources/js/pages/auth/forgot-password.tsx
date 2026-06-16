@@ -35,7 +35,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <main className="grid min-h-svh w-full overflow-hidden bg-white lg:grid-cols-[0.94fr_1.86fr]">
                 <section className="relative hidden min-h-svh overflow-hidden lg:block">
                     <img
-                        src="/images/login-mall.png"
+                        src="/images/mall.jpg"
                         alt={t(
                             'auth.login.mallImageAlt',
                             'Modern shopping mall interior',

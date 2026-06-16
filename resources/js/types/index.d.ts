@@ -55,6 +55,11 @@ export interface SharedData {
         }[];
     };
     notifications?: AppNotification[];
+    flash?: {
+        loginWelcome?: {
+            id: string;
+        } | null;
+    };
     unauthorizedAccess?: {
         show: boolean;
         path?: string | null;

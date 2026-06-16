@@ -48,7 +48,8 @@ const ps = {
             description:
                 'د مارکیټونو، جایدادونو، ګدام، مالي چارو او ورځنیو مارکیټ عملیاتو د مدیریت.',
             mallImageAlt: 'د عصري مارکیټ داخلي منظره',
-            mallQuote: 'د پکتیاوال ګروپ ټولو مارکیټونو او جایدادونو مدیریت، په یوه ځای کې.',
+            mallQuote:
+                'د پکتیاوال ګروپ ټولو مارکیټونو او جایدادونو مدیریت، په یوه ځای کې.',
             mallQuoteCaption: 'پرچون عملیات او مدیریت',
             email: 'ایمیل آدرس',
             emailPlaceholder: 'you@paktiawalgroup.com',
@@ -59,6 +60,7 @@ const ps = {
             submit: 'سیستم ته ننوتل',
             showPassword: 'پسورډ ښکاره کړئ',
             hidePassword: 'پسورډ پټ کړئ',
+            welcomeToast: 'پکتیاوال ګروپ ته ښه راغلاست',
         },
         forgotPassword: {
             title: 'پسورډ مو هیر شوی',

@@ -4,6 +4,7 @@ namespace App\Http\Responses;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,11 @@ class LoginResponse implements LoginResponseContract
             return response()->noContent();
         }
 
-        return redirect()->intended($this->resolveTargetPath($request));
+        return redirect()
+            ->intended($this->resolveTargetPath($request))
+            ->with('login_welcome_toast', [
+                'id' => (string) Str::uuid(),
+            ]);
     }
 
     private function resolveTargetPath(Request $request): string

@@ -49,7 +49,8 @@ const fa = {
             description:
                 'مدیریت مارکیت ها، جایداد ها، شعبات، گدام، امور مالی و عملیات روزانه.',
             mallImageAlt: 'نمای داخلی مارکیت مدرن',
-            mallQuote: 'مدیریت تمام مارکیت ها و جایداد های پکتیاوال گروپ، در یک‌جا.',
+            mallQuote:
+                'مدیریت تمام مارکیت ها و جایداد های پکتیاوال گروپ، در یک‌جا.',
             mallQuoteCaption: 'عملیات و مدیریت مارکیت',
             email: 'ایمیل آدرس',
             emailPlaceholder: 'you@paktiawalgroup.com',
@@ -60,6 +61,7 @@ const fa = {
             submit: 'ورود به سیستم',
             showPassword: 'نمایش رمز عبور',
             hidePassword: 'پنهان کردن رمز عبور',
+            welcomeToast: 'به پکتیاوال گروپ خوش آمدید',
         },
         forgotPassword: {
             title: 'فراموشی رمز عبور',
