@@ -527,18 +527,6 @@ function ledgerStatusTone(status: string) {
     return 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-200';
 }
 
-function coverageChartColor(tone: string) {
-    if (tone === 'employee') {
-        return '#2563eb';
-    }
-
-    if (tone === 'house') {
-        return '#d97706';
-    }
-
-    return '#14532d';
-}
-
 function SummaryCard({
     title,
     value,
