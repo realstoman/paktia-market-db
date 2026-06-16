@@ -273,6 +273,24 @@ html[lang='ps'] {
         font-variant-numeric: tabular-nums lining-nums;
     }
 
+    input,
+    textarea,
+    select,
+    [contenteditable='true'],
+    [data-slot='input'],
+    [data-slot='textarea'] {
+        font-family:
+            'Manrope',
+            ui-sans-serif,
+            system-ui,
+            sans-serif,
+            'Apple Color Emoji',
+            'Segoe UI Emoji',
+            'Segoe UI Symbol',
+            'Noto Color Emoji';
+        font-variant-numeric: tabular-nums lining-nums;
+    }
+
     html[lang='fa'] body,
     html[lang='ps'] body {
         text-align: right;

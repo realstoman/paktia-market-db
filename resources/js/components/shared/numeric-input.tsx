@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { normalizeLocalizedDigits } from '@/utils/input-normalization';
 import { Minus, Plus } from 'lucide-react';
 import * as React from 'react';
 
@@ -13,10 +14,11 @@ interface NumericInputProps
     showControls?: boolean;
 }
 
-const sanitizeNumeric = (value: string): string => value.replace(/[^\d]/g, '');
+const sanitizeNumeric = (value: string): string =>
+    normalizeLocalizedDigits(value).replace(/[^\d]/g, '');
 
 const normalizeValue = (value: string | number): string => {
-    const raw = String(value ?? '')
+    const raw = normalizeLocalizedDigits(String(value ?? ''))
         .replaceAll(',', '')
         .trim();
     if (!raw) {

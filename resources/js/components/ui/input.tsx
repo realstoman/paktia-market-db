@@ -1,14 +1,36 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { normalizeNumericInputValue } from "@/utils/input-normalization"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  onChange,
+  inputMode,
+  ...props
+}: React.ComponentProps<"input">) {
+  const shouldNormalizeNumericInput =
+    type === "number" || inputMode === "numeric" || inputMode === "decimal"
+
   return (
     <input
       type={type}
+      inputMode={inputMode}
+      onChange={(event) => {
+        if (shouldNormalizeNumericInput) {
+          const normalized = normalizeNumericInputValue(event.currentTarget.value)
+
+          if (normalized !== event.currentTarget.value) {
+            event.currentTarget.value = normalized
+          }
+        }
+
+        onChange?.(event)
+      }}
       data-slot="input"
       className={cn(
-        "border-input file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-colors transition-shadow outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "border-input file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 font-sans text-base shadow-xs transition-colors transition-shadow outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className
