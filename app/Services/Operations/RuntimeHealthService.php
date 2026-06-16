@@ -3,7 +3,6 @@
 namespace App\Services\Operations;
 
 use App\Models\BranchSyncCredential;
-use App\Services\Projection\ProjectionHealthService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -16,20 +15,14 @@ class RuntimeHealthService
 {
     public const RECENT_REFRESH_CACHE_KEY = 'operations:runtime-health:recent-refresh:last-successful-at';
 
-    public function __construct(
-        private readonly ProjectionHealthService $projectionHealthService,
-    ) {}
-
     public function snapshot(): array
     {
-        $projection = $this->projectionHealthService->snapshot(true);
         $queue = $this->queueSnapshot();
         $redis = $this->redisSnapshot();
         $sync = $this->branchSyncSnapshot();
         $recentRefresh = $this->recentRefreshSnapshot();
 
         $components = [
-            'projection' => $projection,
             'queue' => $queue,
             'redis' => $redis,
             'sync' => $sync,

@@ -27,9 +27,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
-import { useLocalization } from '@/lib/localization';
-import { useAuthorization } from '@/lib/permissions';
 import {
     Select,
     SelectContent,
@@ -37,7 +34,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
+import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
+import { Branch, Country, Province, Role, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
@@ -61,7 +61,6 @@ interface CellActionProps {
     countries: Country[];
     provinces: Province[];
     branches: Branch[];
-    kitchens: Kitchen[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
@@ -70,10 +69,11 @@ export const CellAction: React.FC<CellActionProps> = ({
     countries,
     provinces,
     branches,
-    kitchens,
 }) => {
     const { t } = useLocalization();
-    const { auth } = usePage().props as { auth: { user: User; is_super_admin?: boolean } };
+    const { auth } = usePage().props as {
+        auth: { user: User; is_super_admin?: boolean };
+    };
     const { can, isSuperAdmin } = useAuthorization();
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isBlockOpen, setIsBlockOpen] = useState(false);
@@ -93,9 +93,6 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editBranchId, setEditBranchId] = useState(
         data.branch_id ? String(data.branch_id) : '',
     );
-    const [editKitchenId, setEditKitchenId] = useState(
-        data.kitchen_id ? String(data.kitchen_id) : 'none',
-    );
     const [editPassword, setEditPassword] = useState('');
     const [editPasswordConfirmation, setEditPasswordConfirmation] =
         useState('');
@@ -108,9 +105,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         Record<string, string>
     >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const selectedEditRole =
-        roles.find((role) => String(role.id) === editRoleId) ?? null;
-    const isEditKitchenRole = selectedEditRole?.name === 'kitchen';
     const canViewUser = can('user.view');
     const canEditUser = can('user.update');
     const canToggleBlock = can('user.block') && auth.user.id !== data.id;
@@ -182,7 +176,6 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditCountryId(data.country_id ? String(data.country_id) : '');
         setEditProvinceId(data.province_id ? String(data.province_id) : '');
         setEditBranchId(data.branch_id ? String(data.branch_id) : '');
-        setEditKitchenId(data.kitchen_id ? String(data.kitchen_id) : 'none');
         setEditPassword('');
         setEditPasswordConfirmation('');
         setEditErrors({});
@@ -206,10 +199,6 @@ export const CellAction: React.FC<CellActionProps> = ({
                 country_id: editCountryId ? Number(editCountryId) : null,
                 province_id: editProvinceId ? Number(editProvinceId) : null,
                 branch_id: editBranchId ? Number(editBranchId) : null,
-                kitchen_id:
-                    isEditKitchenRole && editKitchenId !== 'none'
-                        ? Number(editKitchenId)
-                        : null,
             },
             {
                 preserveScroll: true,
@@ -351,7 +340,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </DropdownMenuLabel>
                         {canViewUser ? (
                             <DropdownMenuItem
-                                onClick={() => router.visit(`/users/${data.id}`)}
+                                onClick={() =>
+                                    router.visit(`/users/${data.id}`)
+                                }
                             >
                                 <Eye className="mr-2 h-4 w-4" />
                                 {t('users.actions.view', 'View')}
@@ -369,7 +360,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </DropdownMenuItem>
                         ) : null}
                         {canToggleBlock ? (
-                            <DropdownMenuItem onClick={() => setIsBlockOpen(true)}>
+                            <DropdownMenuItem
+                                onClick={() => setIsBlockOpen(true)}
+                            >
                                 <Ban className="mr-2 h-4 w-4" />
                                 {data.is_active
                                     ? t('users.actions.block', 'Block')
@@ -384,11 +377,16 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <KeyRound className="mr-2 h-4 w-4" />
-                                {t('users.actions.resetPassword', 'Reset password')}
+                                {t(
+                                    'users.actions.resetPassword',
+                                    'Reset password',
+                                )}
                             </DropdownMenuItem>
                         ) : null}
                         {canDeleteUser ? (
-                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                            >
                                 <Trash className="mr-2 h-4 w-4 text-red-600" />
                                 {t('users.actions.delete', 'Delete')}
                             </DropdownMenuItem>
@@ -459,7 +457,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-password-confirm-${data.id}`}>
-                                {t('users.fields.confirmPassword', 'Confirm password')}
+                                {t(
+                                    'users.fields.confirmPassword',
+                                    'Confirm password',
+                                )}
                             </Label>
                             <Input
                                 id={`edit-password-confirm-${data.id}`}
@@ -479,17 +480,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <Label>{t('users.fields.role', 'Role')}</Label>
                             <Select
                                 value={editRoleId}
-                                onValueChange={(value) => {
-                                    setEditRoleId(value);
-
-                                    const selectedRole = roles.find(
-                                        (role) => String(role.id) === value,
-                                    );
-
-                                    if (selectedRole?.name !== 'kitchen') {
-                                        setEditKitchenId('none');
-                                    }
-                                }}
+                                onValueChange={setEditRoleId}
                             >
                                 <SelectTrigger>
                                     <SelectValue
@@ -512,38 +503,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </Select>
                             <InputError message={editRoleError} />
                         </div>
-                        {isEditKitchenRole ? (
-                            <div className="grid gap-2">
-                                <Label>{t('users.fields.kitchen', 'Kitchen')}</Label>
-                                <Select
-                                    value={editKitchenId}
-                                    onValueChange={setEditKitchenId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'users.placeholders.selectKitchen',
-                                                'Select kitchen',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {kitchens.map((kitchen) => (
-                                            <SelectItem
-                                                key={kitchen.id}
-                                                value={String(kitchen.id)}
-                                            >
-                                                {kitchen.name ??
-                                                    `Kitchen #${kitchen.id}`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={editErrors.kitchen_id} />
-                            </div>
-                        ) : null}
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.country', 'Country')}</Label>
+                            <Label>
+                                {t('users.fields.country', 'Country')}
+                            </Label>
                             <Select
                                 value={editCountryId}
                                 onValueChange={(value) => {
@@ -576,7 +539,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.province', 'Province')}</Label>
+                            <Label>
+                                {t('users.fields.province', 'Province')}
+                            </Label>
                             <Select
                                 value={editProvinceId}
                                 onValueChange={(value) => {
@@ -699,7 +664,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="relative">
                                 <Input
                                     id={`reset-password-${data.id}`}
-                                    type={showResetPassword ? 'text' : 'password'}
+                                    type={
+                                        showResetPassword ? 'text' : 'password'
+                                    }
                                     value={resetPassword}
                                     onChange={(event) =>
                                         setResetPassword(event.target.value)
@@ -715,7 +682,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     size="icon"
                                     className="absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2"
                                     onClick={() =>
-                                        setShowResetPassword((current) => !current)
+                                        setShowResetPassword(
+                                            (current) => !current,
+                                        )
                                     }
                                 >
                                     {showResetPassword ? (
@@ -725,12 +694,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     )}
                                 </Button>
                             </div>
-                            <InputError message={resetPasswordErrors.password} />
+                            <InputError
+                                message={resetPasswordErrors.password}
+                            />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor={`reset-password-confirmation-${data.id}`}>
-                                {t('users.fields.confirmPassword', 'Confirm password')}
+                            <Label
+                                htmlFor={`reset-password-confirmation-${data.id}`}
+                            >
+                                {t(
+                                    'users.fields.confirmPassword',
+                                    'Confirm password',
+                                )}
                             </Label>
                             <Input
                                 id={`reset-password-confirmation-${data.id}`}

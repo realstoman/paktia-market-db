@@ -26,16 +26,16 @@ const runtimeBranding =
     typeof window !== 'undefined' ? window.__APP_BRANDING__ : undefined;
 
 export const brand = {
-    name: runtimeBranding?.name ?? 'Baba Restaurant ERP',
-    shortName: runtimeBranding?.shortName ?? 'Baba',
-    logo: runtimeBranding?.logoUrl ?? '/brand/logo.svg',
+    name: runtimeBranding?.name ?? 'Paktia Market ERP',
+    shortName: runtimeBranding?.shortName ?? 'Paktia Market',
+    logo: runtimeBranding?.logoUrl ?? '/brand/logo.png',
     logoFull: runtimeBranding?.logoFullUrl ?? '/brand/logo-full.svg',
-    primaryColor: runtimeBranding?.primaryColor ?? '#102F33',
-    secondaryColor: runtimeBranding?.secondaryColor ?? '#CC924B',
+    primaryColor: runtimeBranding?.primaryColor ?? '#0B5AA5',
+    secondaryColor: runtimeBranding?.secondaryColor ?? '#F2A20C',
     tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8FAFD',
 };
 
-function normalizeHexColor(value?: string, fallback = '#102F33'): string {
+function normalizeHexColor(value?: string, fallback = '#0B5AA5'): string {
     if (!value) {
         return fallback;
     }
@@ -71,8 +71,7 @@ function toHslChannels(hex: string): string {
     let saturation = 0;
 
     if (delta !== 0) {
-        saturation =
-            delta / (1 - Math.abs(2 * lightness - 1));
+        saturation = delta / (1 - Math.abs(2 * lightness - 1));
 
         switch (max) {
             case red:

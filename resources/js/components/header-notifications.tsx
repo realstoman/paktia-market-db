@@ -16,8 +16,6 @@ import {
     BriefcaseBusiness,
     CheckCheck,
     CreditCard,
-    Package,
-    ReceiptText,
     ShieldCheck,
     Sparkles,
     Trash2,
@@ -26,24 +24,16 @@ import {
 import { useMemo, useState } from 'react';
 
 type NotificationCategory =
-    | 'orders'
     | 'payments'
     | 'salary'
     | 'employees'
     | 'inventory'
-    | 'products'
     | 'users'
     | 'system';
 
 type NotificationPriority = 'high' | 'medium' | 'low';
 
 const categoryConfig = {
-    orders: {
-        label: 'Orders',
-        icon: ReceiptText,
-        accent: 'bg-amber-500/12 text-amber-700 ring-amber-500/20',
-        dot: 'bg-amber-500',
-    },
     payments: {
         label: 'Payments',
         icon: CreditCard,
@@ -67,12 +57,6 @@ const categoryConfig = {
         icon: Boxes,
         accent: 'bg-orange-500/12 text-orange-700 ring-orange-500/20',
         dot: 'bg-orange-500',
-    },
-    products: {
-        label: 'Products',
-        icon: Package,
-        accent: 'bg-teal-500/12 text-teal-700 ring-teal-500/20',
-        dot: 'bg-teal-500',
     },
     users: {
         label: 'Users',
@@ -146,8 +130,6 @@ function getPriorityLabel(
 
 function getDefaultHref(category: NotificationCategory): string {
     switch (category) {
-        case 'orders':
-            return '/orders';
         case 'payments':
             return '/finance/cash-bank';
         case 'salary':
@@ -156,8 +138,6 @@ function getDefaultHref(category: NotificationCategory): string {
             return '/employees';
         case 'inventory':
             return '/inventory';
-        case 'products':
-            return '/products';
         case 'users':
             return '/users';
         case 'system':
@@ -439,7 +419,7 @@ export function HeaderNotifications() {
                                 <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
                                     {t(
                                         'notifications.empty.description',
-                                        'New orders, products, inventory, payroll, employees, and users will appear here.',
+                                        'New inventory, payroll, employee, finance, and user updates will appear here.',
                                     )}
                                 </p>
                             </div>

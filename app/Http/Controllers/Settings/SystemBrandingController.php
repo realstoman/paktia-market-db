@@ -28,8 +28,8 @@ class SystemBrandingController extends Controller
         abort_unless($request->user()?->hasRole('super-admin'), 403);
 
         $validated = $request->validate([
-            'restaurant_name' => ['required', 'string', 'max:255'],
-            'restaurant_short_name' => ['required', 'string', 'max:80'],
+            'market_name' => ['required', 'string', 'max:255'],
+            'market_short_name' => ['required', 'string', 'max:80'],
             'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'secondary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'tertiary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],

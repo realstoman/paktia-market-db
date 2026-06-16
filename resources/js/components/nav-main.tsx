@@ -29,8 +29,8 @@ export function NavMain({
     });
 
     return (
-        <SidebarGroup className="px-2 pt-3 pb-2">
-            <SidebarMenu>
+        <SidebarGroup className="px-3 pt-5 pb-3">
+            <SidebarMenu className="gap-2">
                 {filteredItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
@@ -38,10 +38,11 @@ export function NavMain({
                             isActive={page.url.startsWith(
                                 resolveUrl(item.href),
                             )}
+                            className="h-11 rounded-xl px-3 text-neutral-500 hover:bg-blue-50 hover:text-[#1858f2] data-[active=true]:bg-[#eef2ff] data-[active=true]:font-semibold data-[active=true]:text-[#1858f2] dark:text-neutral-400 dark:hover:bg-blue-500/10 dark:data-[active=true]:bg-blue-500/10 dark:data-[active=true]:text-blue-300"
                             tooltip={{ children: item.title }}
                         >
                             <Link href={item.href}>
-                                {item.icon && <item.icon />}
+                                {item.icon && <item.icon className="size-5" />}
                                 <span className="text-sm">{item.title}</span>
                             </Link>
                         </SidebarMenuButton>

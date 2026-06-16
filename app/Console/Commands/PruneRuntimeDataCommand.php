@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\BranchDailyMetric;
 use App\Models\BranchSyncCredential;
 use App\Models\IdempotencyRequest;
 use App\Services\Caching\PosCacheService;
@@ -35,15 +34,10 @@ class PruneRuntimeDataCommand extends Command
             })
             ->delete();
 
-        $projectionsDeleted = BranchDailyMetric::query()
-            ->where('metric_date', '<', now()->subDays((int) config('pos.retention.projection_days', 400))->toDateString())
-            ->delete();
-
         $cache->forget('tool-reference-data.v1');
 
         $this->info("Deleted {$idempotencyDeleted} expired idempotency records.");
         $this->info("Deleted {$credentialsDeleted} expired or revoked branch sync credentials.");
-        $this->info("Deleted {$projectionsDeleted} old branch daily metric rows.");
 
         return self::SUCCESS;
     }

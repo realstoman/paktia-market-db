@@ -29,7 +29,6 @@ class User extends Authenticatable
         'country_id',
         'province_id',
         'branch_id',
-        'kitchen_id',
 
         // Status
         'is_active',
@@ -82,11 +81,6 @@ class User extends Authenticatable
         return $this->belongsTo(Branch::class);
     }
 
-    public function kitchen()
-    {
-        return $this->belongsTo(Kitchen::class);
-    }
-
     /* ============================
     | User State Helpers
     |============================ */
@@ -122,8 +116,7 @@ class User extends Authenticatable
             return $hasRoles
                 || $this->country_id !== null
                 || $this->province_id !== null
-                || $this->branch_id !== null
-                || $this->kitchen_id !== null;
+                || $this->branch_id !== null;
         });
     }
 }

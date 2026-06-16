@@ -24,7 +24,7 @@ class BranchController extends Controller
     public function show(Branch $branch)
     {
         return Inertia::render('location/branches/show', [
-            'branch' => $branch->load(['country', 'province', 'kitchens']),
+            'branch' => $branch->load(['country', 'province']),
         ]);
     }
 
@@ -70,19 +70,6 @@ class BranchController extends Controller
 
         return redirect()->route('branches.index')
             ->with('success', $message);
-    }
-
-    public function syncKitchens(Request $request, BranchService $service, Branch $branch)
-    {
-        $validated = $request->validate([
-            'kitchens' => ['array'],
-            'kitchens.*' => ['integer', 'exists:kitchens,id'],
-        ]);
-
-        $service->syncKitchens($branch, $validated['kitchens'] ?? []);
-
-        return redirect()->route('branches.index')
-            ->with('success', 'Branch kitchens updated successfully.');
     }
 
     public function destroy(BranchService $service, Branch $branch)

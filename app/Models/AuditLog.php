@@ -22,7 +22,6 @@ class AuditLog extends Model
         'method',
         'batch_uuid',
         'branch_id',
-        'kitchen_id',
         'meta',
     ];
 
@@ -43,11 +42,6 @@ class AuditLog extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
-    }
-
-    public function kitchen(): BelongsTo
-    {
-        return $this->belongsTo(Kitchen::class);
     }
 
     public function auditable(): MorphTo

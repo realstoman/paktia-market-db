@@ -3,9 +3,9 @@ import fa from './fa';
 import ps from './ps';
 
 export const translations = {
-    en,
     fa,
     ps,
+    en,
 } as const;
 
 export type LocaleCode = keyof typeof translations;

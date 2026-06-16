@@ -1,1702 +1,911 @@
-import { BarChartDefault } from '@/components/charts/bar-chart-default';
-import { OrderAnalyticsChart } from '@/components/charts/order-analytics-chart';
-import { PieChartDonutText } from '@/components/charts/pie-chart-donut';
-import { Calendar } from '@/components/ui/calendar';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Field } from '@/components/ui/field';
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupButton,
-    InputGroupInput,
-} from '@/components/ui/input-group';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem, type Order, type SharedData } from '@/types';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import {
-    ArrowRight,
-    CalendarIcon,
-    CircleAlert,
-    Dot,
-    Flame,
-    ShieldAlert,
+    Banknote,
+    Building2,
+    CircleDollarSign,
+    DoorOpen,
+    Layers3,
+    ReceiptText,
+    Store,
+    UsersRound,
 } from 'lucide-react';
-import React from 'react';
+import { useMemo, useState } from 'react';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
-function formatDate(date: Date | undefined, locale: string) {
-    if (!date) {
-        return '';
-    }
-    return date.toLocaleDateString(locale, {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
-}
-function isValidDate(date: Date | undefined) {
-    if (!date) {
-        return false;
-    }
-    return !isNaN(date.getTime());
-}
-
-function toDateParam(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+interface ExpenseRow {
+    id: number;
+    title: string;
+    amount: number;
+    date: string;
+    status: string;
 }
 
-function formatOrderStatus(
-    status: string | undefined,
-    t: (key: string, fallback?: string) => string,
-) {
-    if (!status) {
-        return t('dashboard.pending', 'Pending');
-    }
-
-    const map: Record<string, string> = {
-        pending: t('dashboard.pending', 'Pending'),
-        in_progress: t('dashboard.preparing', 'Preparing'),
-        ready: t('dashboard.ready', 'Ready'),
-        completed: t('dashboard.completed', 'Completed'),
-        cancelled: t('dashboard.cancelled', 'Cancelled'),
+interface PortfolioProject {
+    id: number;
+    name: string;
+    address?: string | null;
+    isActive: boolean;
+    floors: number;
+    shops: number;
+    occupiedShops: number;
+    availableShops: number;
+    registeredTenants: number;
+    inventoryItems: number;
+    employees: number;
+    rent: {
+        collectedAfn: number;
+        remainingAfn: number;
+        collectedUsd: number;
+        remainingUsd: number;
     };
-
-    return map[status] ?? status;
+    expensesAfn: number;
+    cashPositionAfn: number;
+    recentExpenses: ExpenseRow[];
 }
 
-function formatOrderType(
-    type: string | undefined,
-    t: (key: string, fallback?: string) => string,
-) {
-    const map: Record<string, string> = {
-        dine_in: t('dashboard.dineIn', 'Dine in'),
-        takeaway: t('dashboard.takeaway', 'Takeaway'),
-        delivery: t('dashboard.delivery', 'Delivery'),
+interface DashboardData {
+    portfolio: {
+        totalProjects: number;
+        activeProjects: number;
+        totalFloors: number;
+        totalShops: number;
+        registeredTenants: number;
+        projects: PortfolioProject[];
     };
-
-    if (!type) {
-        return '-';
-    }
-
-    return map[type] ?? type.replace('_', ' ');
-}
-
-function getOrderStatusBadgeClass(status?: string) {
-    switch (status) {
-        case 'completed':
-            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200';
-        case 'in_progress':
-            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
-        case 'ready':
-            return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200';
-        case 'cancelled':
-            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
-        case 'pending':
-        default:
-            return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200';
-    }
-}
-
-function projectionBadgeClass(status?: string) {
-    switch (status) {
-        case 'healthy':
-            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200';
-        case 'warning':
-            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
-        case 'critical':
-            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
-        default:
-            return 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-200';
-    }
-}
-
-function attentionBadgeClass(level: 'critical' | 'warning' | 'info') {
-    switch (level) {
-        case 'critical':
-            return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200';
-        case 'warning':
-            return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
-        default:
-            return 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-200';
-    }
-}
-
-interface DashboardProps {
-    data?: {
-        orders: {
-            pending: number;
-            in_progress: number;
-            ready: number;
-            completed: number;
-            cancelled: number;
-        } | null;
-        orderAnalytics: Array<{
-            date: string;
-            day: string;
-            pending: number;
-            preparing: number;
-            ready: number;
-            completed: number;
-            cancelled: number;
-        }>;
-        recentOrders: Order[];
-        topOrderedDishes: Array<{
-            product_name?: string | null;
-            product_name_fa?: string | null;
-            product_name_ps?: string | null;
-            name?: string | null;
-            dari_name?: string | null;
-            pashto_name?: string | null;
-            category_name?: string | null;
-            total_quantity: number;
-        }>;
-        selectedDate: string;
-        inventory: {
-            totalItems: number;
-            totalFixedItems: number;
-            totalUsableItems: number;
-            lowStockItems: number;
-            outOfStockItems: number;
-            inventoryValue: number;
-            amountOwedToVendors: number;
-            pie: Array<{
-                key: 'usable' | 'fixed' | 'other';
-                label: string;
-                value: number;
-            }>;
-            lowStockQuickList: Array<{
-                id: number;
-                name: string;
-                quantity: number;
-                unit: string | null;
-                branch: string;
-                status: 'low' | 'out';
-            }>;
-        } | null;
-        finance: {
-            netProfit: number;
-            expenses: number;
-            cashPosition: number;
-            projectionHealth?: {
-                usesProjectionData: boolean;
-                status: 'healthy' | 'warning' | 'critical' | 'unavailable';
-                message: string;
-                latestProjectionAt?: string | null;
-                staleBranchCount: number;
-                criticalBranchCount: number;
-                warningBranchCount: number;
-                branches: Array<{
-                    branchId: number;
-                    branchName: string;
-                    status: string;
-                    message: string;
-                    latestProjectionAt?: string | null;
-                }>;
-            };
-            monthlyNetProfit: Array<{
-                month: string;
-                label: string;
-                netProfit: number;
-            }>;
-            branchPerformance: Array<{
-                branchId: number;
-                branchName: string;
-                revenue: number;
-                completedOrders: number;
-                netProfit: number;
-            }>;
-            notes: {
-                netProfit: string;
-                expenses: string;
-                cashPosition: string;
-            };
-        } | null;
-        attentionItems: Array<{
-            title: string;
-            detail: string;
-            level: 'critical' | 'warning' | 'info';
-        }>;
+    inventory: null | {
+        totalItems: number;
+        inventoryValue: number;
+    };
+    finance: null | {
+        expenses: number;
+        cashPosition: number;
+        pendingExpenses: number;
+        recentExpenses: Array<ExpenseRow & { branch: string }>;
     };
 }
 
-function DashboardSurface({
+const COLORS = {
+    teal: '#123f4a',
+    green: '#2da56d',
+    coral: '#ef786f',
+    blue: '#5d91c9',
+    mist: '#e8eff0',
+};
+
+function StatCard({
+    label,
+    value,
+    icon: Icon,
+    accent = 'teal',
+}: {
+    label: string;
+    value: string;
+    icon: typeof Building2;
+    accent?: 'teal' | 'green' | 'coral' | 'blue';
+}) {
+    const tones = {
+        teal: 'bg-[#e8f0f1] text-[#123f4a]',
+        green: 'bg-emerald-50 text-emerald-600',
+        coral: 'bg-rose-50 text-[#ef786f]',
+        blue: 'bg-blue-50 text-[#5d91c9]',
+    };
+
+    return (
+        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 shadow-[0_8px_24px_rgba(18,63,74,0.04)] dark:border-neutral-800 dark:bg-neutral-900">
+            <div
+                className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
+            >
+                <Icon className="size-5" />
+            </div>
+            <div className="min-w-0">
+                <p className="truncate text-xs text-slate-500">{label}</p>
+                <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                    {value}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+function MoneyCard({
     title,
-    description,
-    children,
-    className,
-    headerAction,
+    collected,
+    remaining,
+    currency,
+    t,
 }: {
     title: string;
-    description?: string;
-    children: React.ReactNode;
-    className?: string;
-    headerAction?: React.ReactNode;
+    collected: number;
+    remaining: number;
+    currency: string;
+    t: (key: string, fallback?: string) => string;
 }) {
     return (
-        <Card
-            className={cn(
-                'rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900',
-                className,
-            )}
-        >
-            <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-neutral-200/60 pb-4 dark:border-neutral-800/80">
-                <div className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">
-                        {title}
-                    </CardTitle>
-                    {description ? (
-                        <CardDescription className="text-sm">
-                            {description}
-                        </CardDescription>
-                    ) : null}
-                </div>
-                {headerAction}
-            </CardHeader>
-            <CardContent className="pt-5">{children}</CardContent>
-        </Card>
-    );
-}
-
-function MetricInline({
-    label,
-    value,
-    hint,
-    isRtl = false,
-    tooltipLabel,
-    valueClassName,
-}: {
-    label: string;
-    value: string;
-    hint?: string;
-    isRtl?: boolean;
-    tooltipLabel?: string;
-    valueClassName?: string;
-}) {
-    return (
-        <div
-            className={cn(
-                'flex items-start justify-between gap-4 py-3.5',
-                isRtl && 'flex-row-reverse text-right',
-            )}
-        >
-            <div className="space-y-1.5">
-                <div
-                    className={cn(
-                        'flex items-center gap-1.5',
-                        isRtl && 'justify-end',
-                    )}
-                >
-                    <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                        {label}
+        <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-xs text-slate-500">{title}</p>
+                    <p className="mt-1 text-2xl font-bold text-[#123f4a] dark:text-white">
+                        {formatPrice(collected)} {currency}
                     </p>
-                    {hint ? (
-                        <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        type="button"
-                                        className="inline-flex h-4 w-4 items-center justify-center text-muted-foreground/80 transition-colors hover:text-foreground"
-                                        aria-label={
-                                            tooltipLabel ?? 'Show formula'
-                                        }
-                                    >
-                                        <CircleAlert className="h-3.5 w-3.5" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                    className={cn(
-                                        'max-w-[28ch] text-xs leading-5',
-                                        isRtl && 'text-right',
-                                    )}
-                                >
-                                    {hint}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    ) : null}
                 </div>
-                {hint ? <div className="h-0.5" /> : null}
+                <div className="flex size-11 items-center justify-center rounded-xl bg-[#e8f0f1] text-[#123f4a]">
+                    <Banknote className="size-5" />
+                </div>
             </div>
-            <div
-                className={cn(
-                    'shrink-0 text-right text-[1.85rem] leading-none font-semibold tracking-[-0.03em] text-foreground tabular-nums',
-                    isRtl && 'text-left',
-                    valueClassName,
-                )}
-            >
-                {value}
+            <div className="mt-5 flex items-center justify-between border-t border-[#edf1f2] pt-4 text-sm dark:border-neutral-800">
+                <span className="text-slate-500">
+                    {t('propertyDashboard.remaining', 'Remaining')}
+                </span>
+                <strong className="text-[#ef786f]">
+                    {formatPrice(remaining)} {currency}
+                </strong>
             </div>
         </div>
     );
 }
 
-function StatusPill({
-    label,
-    value,
-    className,
-    valueClassName,
-    isRtl = false,
-}: {
-    label: string;
-    value: string;
-    className?: string;
-    valueClassName?: string;
-    isRtl?: boolean;
-}) {
+function EmptyChart({ label }: { label: string }) {
     return (
-        <div
-            className={cn(
-                'rounded-xl border border-neutral-200/70 bg-neutral-50/80 px-3.5 py-3 dark:border-neutral-800 dark:bg-neutral-950/40',
-                isRtl && 'text-right',
-                className,
-            )}
-        >
-            <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                {label}
-            </p>
-            <p
-                className={cn(
-                    'mt-2 text-2xl leading-tight font-semibold tracking-[-0.03em] text-foreground tabular-nums',
-                    valueClassName,
-                )}
-            >
-                {value}
-            </p>
+        <div className="flex h-full items-center justify-center rounded-xl bg-[#f8fbfb] text-sm text-slate-400 dark:bg-neutral-950">
+            {label}
         </div>
     );
 }
 
-export default function Dashboard({ data }: DashboardProps) {
-    const { t, locale, isRtl } = useLocalization();
-    const { auth } = usePage<SharedData>().props;
-    const intlLocale =
-        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
-    const selectedDateValue = data?.selectedDate ?? null;
-    const breadcrumbs: BreadcrumbItem[] = [
+export default function Dashboard({ data }: { data: DashboardData }) {
+    const { t } = useLocalization();
+    const [activeTab, setActiveTab] = useState<string>('overall');
+    const selectedProject = data.portfolio.projects.find(
+        (project) => String(project.id) === activeTab,
+    );
+
+    const overallProjectChart = useMemo(
+        () =>
+            data.portfolio.projects.map((project) => ({
+                name: project.name,
+                expenses: project.expensesAfn,
+                cash: project.cashPositionAfn,
+            })),
+        [data.portfolio.projects],
+    );
+    const overallPie = [
         {
-            title: t('dashboard.title', 'Dashboard'),
-            href: dashboard().url,
+            name: t('propertyDashboard.activeProjects', 'Active projects'),
+            value: data.portfolio.activeProjects,
+            color: COLORS.green,
+        },
+        {
+            name: t('propertyDashboard.inactiveProjects', 'Inactive projects'),
+            value: Math.max(
+                0,
+                data.portfolio.totalProjects - data.portfolio.activeProjects,
+            ),
+            color: COLORS.coral,
         },
     ];
-    const selectedDateFromProps = React.useMemo(() => {
-        if (!selectedDateValue) {
-            return new Date();
-        }
-
-        const parsed = new Date(`${selectedDateValue}T00:00:00`);
-
-        return isValidDate(parsed) ? parsed : new Date();
-    }, [selectedDateValue]);
-    const [open, setOpen] = React.useState(false);
-    const [date, setDate] = React.useState<Date | undefined>(
-        selectedDateFromProps,
+    const projectRentChart = selectedProject
+        ? [
+              {
+                  name: t('propertyDashboard.afn', 'AFN'),
+                  collected: selectedProject.rent.collectedAfn,
+                  remaining: selectedProject.rent.remainingAfn,
+              },
+              {
+                  name: t('propertyDashboard.usd', 'USD'),
+                  collected: selectedProject.rent.collectedUsd,
+                  remaining: selectedProject.rent.remainingUsd,
+              },
+          ]
+        : [];
+    const occupancyPie = selectedProject
+        ? [
+              {
+                  name: t('propertyDashboard.occupied', 'Occupied'),
+                  value: selectedProject.occupiedShops,
+                  color: COLORS.green,
+              },
+              {
+                  name: t('propertyDashboard.available', 'Available'),
+                  value: selectedProject.availableShops,
+                  color: COLORS.mist,
+              },
+          ]
+        : [];
+    const hasOverallChart = overallProjectChart.some(
+        (item) => item.expenses !== 0 || item.cash !== 0,
     );
-    const [month, setMonth] = React.useState<Date | undefined>(
-        selectedDateFromProps,
+    const hasOverallPie = overallPie.some((item) => item.value > 0);
+    const hasProjectRent = projectRentChart.some(
+        (item) => item.collected !== 0 || item.remaining !== 0,
     );
-    const [value, setValue] = React.useState(
-        formatDate(selectedDateFromProps, intlLocale),
-    );
-    const ordersStats = data?.orders;
-    const formattedSelectedDate = React.useMemo(() => {
-        if (!selectedDateValue) {
-            return t('dashboard.today', 'today');
-        }
-
-        return new Date(`${selectedDateValue}T00:00:00`).toLocaleDateString(
-            intlLocale,
-            {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-            },
-        );
-    }, [selectedDateValue, intlLocale, t]);
-
-    const orderAnalyticsData = data?.orderAnalytics ?? [];
-    const recentOrders = data?.recentOrders ?? [];
-    const topOrderedDishes = data?.topOrderedDishes ?? [];
-    const getLocalizedDashboardProductName = (item: {
-        product_name?: string | null;
-        product_name_fa?: string | null;
-        product_name_ps?: string | null;
-        name?: string | null;
-        dari_name?: string | null;
-        pashto_name?: string | null;
-    }) => {
-        const englishName = item.product_name || item.name;
-        const dariName = item.product_name_fa || item.dari_name;
-        const pashtoName = item.product_name_ps || item.pashto_name;
-
-        if (locale === 'ps') {
-            return pashtoName || dariName || englishName || t('dashboard.unknownItem', 'Unknown Item');
-        }
-
-        if (locale === 'fa') {
-            return dariName || pashtoName || englishName || t('dashboard.unknownItem', 'Unknown Item');
-        }
-
-        return englishName || dariName || pashtoName || t('dashboard.unknownItem', 'Unknown Item');
-    };
-    const inventoryStats = data?.inventory;
-    const financeStats = data?.finance;
-    const attentionItems = data?.attentionItems ?? [];
-    const financeMiniTrend = React.useMemo(
-        () => (financeStats?.monthlyNetProfit ?? []).slice(-4),
-        [financeStats?.monthlyNetProfit],
-    );
-    const canViewOrders = ordersStats !== null && ordersStats !== undefined;
-    const canViewInventory =
-        inventoryStats !== null && inventoryStats !== undefined;
-    const canViewFinance = financeStats !== null && financeStats !== undefined;
-    const hasAnySection = canViewOrders || canViewInventory || canViewFinance;
-    const orderMetricTiles = [
-        {
-            label: t('dashboard.pending', 'Pending'),
-            value: ordersStats?.pending ?? 0,
-        },
-        {
-            label: t('dashboard.preparing', 'Preparing'),
-            value: ordersStats?.in_progress ?? 0,
-        },
-        {
-            label: t('dashboard.ready', 'Ready'),
-            value: ordersStats?.ready ?? 0,
-        },
-        {
-            label: t('dashboard.completed', 'Completed'),
-            value: ordersStats?.completed ?? 0,
-        },
-        {
-            label: t('dashboard.cancelled', 'Cancelled'),
-            value: ordersStats?.cancelled ?? 0,
-        },
-    ];
-
-    React.useEffect(() => {
-        setDate(selectedDateFromProps);
-        setMonth(selectedDateFromProps);
-        setValue(formatDate(selectedDateFromProps, intlLocale));
-    }, [selectedDateFromProps, intlLocale]);
-
-    const applyDateFilter = React.useCallback((selected: Date | undefined) => {
-        if (!selected || !isValidDate(selected)) {
-            return;
-        }
-
-        router.get(
-            dashboard().url,
-            { date: toDateParam(selected) },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                replace: true,
-            },
-        );
-    }, []);
+    const hasOccupancy = occupancyPie.some((item) => item.value > 0);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('dashboard.title', 'Dashboard')} />
-            <div className="flex h-full w-full flex-1 flex-col gap-3 py-2">
-                {hasAnySection ? (
-                    <>
-                        {auth.is_super_admin &&
-                        financeStats?.projectionHealth ? (
-                            <Card className="rounded-2xl border border-neutral-200/70 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbfb_72%,rgba(16,47,51,0.08)_100%)] shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                                <CardContent
-                                    className={cn(
-                                        'flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between',
-                                        isRtl && 'md:flex-row-reverse',
-                                    )}
-                                >
-                                    <div
-                                        className={cn(
-                                            'space-y-1',
-                                            isRtl && 'text-right',
+        <AppLayout>
+            <Head title={t('propertyDashboard.title', 'Property dashboard')} />
+
+            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 shadow-[0_18px_50px_rgba(18,63,74,0.06)] sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <p className="text-xs font-semibold tracking-[0.2em] text-[#2da56d] uppercase">
+                            {t(
+                                'propertyDashboard.eyebrow',
+                                'Portfolio reporting',
+                            )}
+                        </p>
+                        <h1 className="mt-2 text-2xl font-bold text-[#123f4a] dark:text-white">
+                            {t(
+                                'propertyDashboard.title',
+                                'Markets and properties',
+                            )}
+                        </h1>
+                        <p className="mt-1 text-sm text-slate-500">
+                            {t(
+                                'propertyDashboard.subtitle',
+                                'Overall and project-level rent, occupancy and expense reporting.',
+                            )}
+                        </p>
+                    </div>
+                    <button className="h-11 rounded-xl bg-[#123f4a] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#0d343d]">
+                        + {t('propertyDashboard.newRecord', 'New record')}
+                    </button>
+                </div>
+
+                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#e8eff0] p-1.5">
+                    <button
+                        onClick={() => setActiveTab('overall')}
+                        className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                            activeTab === 'overall'
+                                ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                : 'text-slate-500 hover:text-[#123f4a]'
+                        }`}
+                    >
+                        {t('propertyDashboard.overall', 'Overall statistics')}
+                    </button>
+                    {data.portfolio.projects.map((project) => (
+                        <button
+                            key={project.id}
+                            onClick={() => setActiveTab(String(project.id))}
+                            className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                                activeTab === String(project.id)
+                                    ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                    : 'text-slate-500 hover:text-[#123f4a]'
+                            }`}
+                        >
+                            {project.name}
+                        </button>
+                    ))}
+                </div>
+
+                {activeTab === 'overall' ? (
+                    <div className="mt-5 space-y-5">
+                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalProjects',
+                                    'Total projects',
+                                )}
+                                value={formatNumber(
+                                    data.portfolio.totalProjects,
+                                )}
+                                icon={Building2}
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.activeProjects',
+                                    'Active projects',
+                                )}
+                                value={formatNumber(
+                                    data.portfolio.activeProjects,
+                                )}
+                                icon={Store}
+                                accent="green"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalFloors',
+                                    'Total floors',
+                                )}
+                                value={formatNumber(data.portfolio.totalFloors)}
+                                icon={Layers3}
+                                accent="blue"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalShops',
+                                    'Total shops',
+                                )}
+                                value={formatNumber(data.portfolio.totalShops)}
+                                icon={DoorOpen}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.registeredTenants',
+                                    'Registered tenants',
+                                )}
+                                value={formatNumber(
+                                    data.portfolio.registeredTenants,
+                                )}
+                                icon={UsersRound}
+                                accent="green"
+                            />
+                        </section>
+
+                        <section className="grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="mb-5">
+                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.projectPerformance',
+                                            'Project performance',
                                         )}
-                                    >
-                                        <div
-                                            className={cn(
-                                                'flex items-center gap-2',
-                                                isRtl && 'justify-end',
-                                            )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {t(
+                                            'propertyDashboard.projectPerformanceHelp',
+                                            'Cash position and approved expenses by project',
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="h-80" dir="ltr">
+                                    {hasOverallChart ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
                                         >
-                                            <span
-                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${projectionBadgeClass(
-                                                    financeStats
-                                                        .projectionHealth
-                                                        .status,
-                                                )}`}
+                                            <BarChart
+                                                data={overallProjectChart}
+                                                barGap={6}
                                             >
-                                                {t(
-                                                    'dashboard.projection',
-                                                    'Projection',
-                                                )}{' '}
-                                                {t(
-                                                    `dashboard.${financeStats.projectionHealth.status}`,
-                                                    financeStats
-                                                        .projectionHealth
-                                                        .status,
-                                                )}
-                                            </span>
-                                            <span className="text-xs tracking-[0.14em] text-muted-foreground uppercase dark:text-neutral-400">
-                                                {t(
-                                                    'dashboard.systemHealthCheck',
-                                                    'System health check',
-                                                )}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm leading-6 text-foreground dark:text-neutral-200">
-                                            {
-                                                financeStats.projectionHealth
-                                                    .message
-                                            }
-                                        </p>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
-                                        <StatusPill
-                                            label={t(
-                                                'dashboard.healthy',
-                                                'Healthy',
-                                            )}
-                                            value={formatNumber(
-                                                Math.max(
-                                                    0,
-                                                    financeStats
-                                                        .projectionHealth
-                                                        .branches.length -
-                                                        financeStats
-                                                            .projectionHealth
-                                                            .warningBranchCount -
-                                                        financeStats
-                                                            .projectionHealth
-                                                            .criticalBranchCount,
-                                                ),
-                                            )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                            isRtl={isRtl}
-                                        />
-                                        <StatusPill
-                                            label={t(
-                                                'dashboard.warning',
-                                                'Warning',
-                                            )}
-                                            value={formatNumber(
-                                                financeStats.projectionHealth
-                                                    .warningBranchCount,
-                                            )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                            isRtl={isRtl}
-                                        />
-                                        <StatusPill
-                                            label={t(
-                                                'dashboard.critical',
-                                                'Critical',
-                                            )}
-                                            value={formatNumber(
-                                                financeStats.projectionHealth
-                                                    .criticalBranchCount,
-                                            )}
-                                            className="dark:border-neutral-800 dark:bg-neutral-950/40"
-                                            isRtl={isRtl}
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ) : null}
-
-                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
-                            {canViewFinance ? (
-                                <DashboardSurface
-                                    title={t(
-                                        'dashboard.financeSnapshot',
-                                        'Finance Snapshot',
-                                    )}
-                                    description={t(
-                                        'dashboard.financeSnapshotDescription',
-                                        'A clean read of profitability and cash health.',
-                                    )}
-                                    className="xl:col-span-3"
-                                >
-                                    <div className="divide-y divide-neutral-200/70 dark:divide-neutral-800/80">
-                                        <MetricInline
-                                            label={t(
-                                                'dashboard.netProfit',
-                                                'Net Profit',
-                                            )}
-                                            value={`${formatPrice(
-                                                financeStats?.netProfit ?? 0,
-                                            )} ؋`}
-                                            hint={financeStats?.notes.netProfit}
-                                            isRtl={isRtl}
-                                            tooltipLabel={t(
-                                                'dashboard.showFormula',
-                                                'Show formula',
-                                            )}
-                                        />
-                                        <MetricInline
-                                            label={t(
-                                                'dashboard.expenses',
-                                                'Expenses',
-                                            )}
-                                            value={`${formatPrice(
-                                                financeStats?.expenses ?? 0,
-                                            )} ؋`}
-                                            hint={financeStats?.notes.expenses}
-                                            isRtl={isRtl}
-                                            tooltipLabel={t(
-                                                'dashboard.showFormula',
-                                                'Show formula',
-                                            )}
-                                        />
-                                        <MetricInline
-                                            label={t(
-                                                'dashboard.cashPosition',
-                                                'Cash Position',
-                                            )}
-                                            value={`${formatPrice(
-                                                financeStats?.cashPosition ?? 0,
-                                            )} ؋`}
-                                            hint={
-                                                financeStats?.notes.cashPosition
-                                            }
-                                            isRtl={isRtl}
-                                            tooltipLabel={t(
-                                                'dashboard.showFormula',
-                                                'Show formula',
-                                            )}
-                                        />
-                                    </div>
-                                    <div className="mt-4 rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
-                                        <BarChartDefault
-                                            data={financeMiniTrend}
-                                            title={t(
-                                                'dashboard.netProfitTrend',
-                                                'Net Profit Trend',
-                                            )}
-                                            description={t(
-                                                'dashboard.past4Months',
-                                                'Past 4 months',
-                                            )}
-                                            footerNote={t(
-                                                'dashboard.compactMonthlyNetProfitView',
-                                                'Compact monthly net profit view',
-                                            )}
-                                            locale={intlLocale}
-                                            isRtl={isRtl}
-                                            labels={{
-                                                netProfit: t(
-                                                    'dashboard.netProfit',
-                                                    'Net Profit',
-                                                ),
-                                                noComparison: t(
-                                                    'dashboard.noPercentageComparison',
-                                                    'No percentage comparison available',
-                                                ),
-                                                trendUp: t(
-                                                    'dashboard.trendUpBy',
-                                                    'Up by',
-                                                ),
-                                                trendDown: t(
-                                                    'dashboard.trendDownBy',
-                                                    'Down by',
-                                                ),
-                                                fromLastMonth: t(
-                                                    'dashboard.fromLastMonth',
-                                                    'from last month',
-                                                ),
-                                            }}
-                                            compact
-                                        />
-                                    </div>
-                                </DashboardSurface>
-                            ) : null}
-
-                            {canViewOrders ? (
-                                <DashboardSurface
-                                    title={t(
-                                        'dashboard.orderFlow',
-                                        'Order Flow',
-                                    )}
-                                    description={t(
-                                        'dashboard.operationalViewFor',
-                                        'Operational view for :date.',
-                                    ).replace(':date', formattedSelectedDate)}
-                                    className="xl:col-span-6"
-                                    headerAction={
-                                        <Field className="w-44">
-                                            <InputGroup>
-                                                <InputGroupInput
-                                                    id="date-required"
-                                                    value={value}
-                                                    readOnly
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            e.key ===
-                                                            'ArrowDown'
-                                                        ) {
-                                                            e.preventDefault();
-                                                            setOpen(true);
-                                                        }
+                                                <CartesianGrid
+                                                    vertical={false}
+                                                    stroke="#e8eff0"
+                                                />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
                                                     }}
                                                 />
-                                                <InputGroupAddon align="inline-end">
-                                                    <Popover
-                                                        open={open}
-                                                        onOpenChange={setOpen}
-                                                    >
-                                                        <PopoverTrigger asChild>
-                                                            <InputGroupButton
-                                                                id="date-picker"
-                                                                variant="ghost"
-                                                                size="icon-xs"
-                                                                aria-label={t(
-                                                                    'dashboard.selectDate',
-                                                                    'Select date',
-                                                                )}
-                                                            >
-                                                                <CalendarIcon />
-                                                                <span className="sr-only">
-                                                                    {t(
-                                                                        'dashboard.selectDate',
-                                                                        'Select date',
-                                                                    )}
-                                                                </span>
-                                                            </InputGroupButton>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent
-                                                            className="w-auto overflow-hidden p-0"
-                                                            align="end"
-                                                            alignOffset={-8}
-                                                            sideOffset={10}
-                                                        >
-                                                            <Calendar
-                                                                mode="single"
-                                                                selected={date}
-                                                                month={month}
-                                                                onMonthChange={
-                                                                    setMonth
-                                                                }
-                                                                onSelect={(
-                                                                    date,
-                                                                ) => {
-                                                                    if (!date) {
-                                                                        return;
-                                                                    }
-
-                                                                    setDate(
-                                                                        date,
-                                                                    );
-                                                                    setValue(
-                                                                        formatDate(
-                                                                            date,
-                                                                            intlLocale,
-                                                                        ),
-                                                                    );
-                                                                    setOpen(
-                                                                        false,
-                                                                    );
-                                                                    applyDateFilter(
-                                                                        date,
-                                                                    );
-                                                                }}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </InputGroupAddon>
-                                            </InputGroup>
-                                        </Field>
-                                    }
-                                >
-                                    <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-5">
-                                            {orderMetricTiles.map((item) => (
-                                                <StatusPill
-                                                    key={item.label}
-                                                    label={item.label}
-                                                    value={formatNumber(
-                                                        item.value,
-                                                    )}
+                                                <YAxis
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
+                                                    tickFormatter={(value) =>
+                                                        formatNumber(value)
+                                                    }
                                                 />
-                                            ))}
-                                        </div>
-                                        <div className="rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
-                                            <OrderAnalyticsChart
-                                                data={orderAnalyticsData}
-                                                title={t(
-                                                    'dashboard.orderMovement',
-                                                    'Order movement',
-                                                )}
-                                                description={t(
-                                                    'dashboard.orderMovementDescription',
-                                                    'Past 7 days across pending, kitchen, and completion stages',
-                                                )}
-                                                locale={intlLocale}
-                                                isRtl={isRtl}
-                                                labels={{
-                                                    pending: t(
-                                                        'dashboard.pending',
-                                                        'Pending',
-                                                    ),
-                                                    preparing: t(
-                                                        'dashboard.preparing',
-                                                        'Preparing',
-                                                    ),
-                                                    ready: t(
-                                                        'dashboard.ready',
-                                                        'Ready',
-                                                    ),
-                                                    completed: t(
-                                                        'dashboard.completed',
-                                                        'Completed',
-                                                    ),
-                                                    cancelled: t(
-                                                        'dashboard.cancelled',
-                                                        'Cancelled',
-                                                    ),
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </DashboardSurface>
-                            ) : null}
-
-                            {canViewInventory ? (
-                                <DashboardSurface
-                                    title={t(
-                                        'dashboard.inventoryHealth',
-                                        'Inventory Health',
-                                    )}
-                                    description={t(
-                                        'dashboard.inventoryHealthDescription',
-                                        'Inventory strength, exposure, and stock pressure.',
-                                    )}
-                                    className="xl:col-span-3"
-                                >
-                                    <div className="space-y-4">
-                                        <div className="rounded-2xl bg-neutral-50/70 px-4 py-4 dark:bg-neutral-950/40">
-                                            <PieChartDonutText
-                                                total={
-                                                    inventoryStats?.totalItems ??
-                                                    0
-                                                }
-                                                totalFixedItems={
-                                                    inventoryStats?.totalFixedItems ??
-                                                    0
-                                                }
-                                                totalUsableItems={
-                                                    inventoryStats?.totalUsableItems ??
-                                                    0
-                                                }
-                                                lowStockItems={
-                                                    inventoryStats?.lowStockItems ??
-                                                    0
-                                                }
-                                                outOfStockItems={
-                                                    inventoryStats?.outOfStockItems ??
-                                                    0
-                                                }
-                                                isRtl={isRtl}
-                                                labels={{
-                                                    title: t(
-                                                        'dashboard.inventoryStatusOverview',
-                                                        'Inventory Status Overview',
-                                                    ),
-                                                    description: t(
-                                                        'dashboard.restaurantItems',
-                                                        'Restaurant items',
-                                                    ),
-                                                    items: t(
-                                                        'dashboard.items',
-                                                        'Items',
-                                                    ),
-                                                    summaryTitle: t(
-                                                        'dashboard.inventoryDistributionOverview',
-                                                        'Inventory distribution overview',
-                                                    ),
-                                                    summaryDescription: t(
-                                                        'dashboard.inventoryDistributionSummary',
-                                                        'A quick breakdown of total items, fixed assets, usable stock, low stock, and out-of-stock items.',
-                                                    ),
-                                                    totalItems: t(
-                                                        'dashboard.totalItems',
-                                                        'Total Items',
-                                                    ),
-                                                    totalFixedItems: t(
-                                                        'dashboard.fixed',
-                                                        'Fixed',
-                                                    ),
-                                                    totalUsableItems: t(
-                                                        'dashboard.usable',
-                                                        'Usable',
-                                                    ),
-                                                    lowStockItems: t(
-                                                        'dashboard.lowStock',
-                                                        'Low stock',
-                                                    ),
-                                                    outOfStockItems: t(
-                                                        'dashboard.outOfStock',
-                                                        'Out of stock',
-                                                    ),
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2.5">
-                                            <StatusPill
-                                                label={t(
-                                                    'dashboard.totalItems',
-                                                    'Total Items',
-                                                )}
-                                                value={formatNumber(
-                                                    inventoryStats?.totalItems ??
-                                                        0,
-                                                )}
-                                                isRtl={isRtl}
-                                            />
-                                            <StatusPill
-                                                label={t(
-                                                    'dashboard.inventoryValue',
-                                                    'Inventory Value',
-                                                )}
-                                                value={`${formatPrice(
-                                                    inventoryStats?.inventoryValue ??
-                                                        0,
-                                                )} ؋`}
-                                                isRtl={isRtl}
-                                                valueClassName="text-lg sm:text-xl break-words"
-                                            />
-                                            <StatusPill
-                                                label={t(
-                                                    'dashboard.usable',
-                                                    'Usable',
-                                                )}
-                                                value={formatNumber(
-                                                    inventoryStats?.totalUsableItems ??
-                                                        0,
-                                                )}
-                                                isRtl={isRtl}
-                                            />
-                                            <StatusPill
-                                                label={t(
-                                                    'dashboard.fixed',
-                                                    'Fixed',
-                                                )}
-                                                value={formatNumber(
-                                                    inventoryStats?.totalFixedItems ??
-                                                        0,
-                                                )}
-                                                isRtl={isRtl}
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="rounded-xl border border-amber-200/70 bg-amber-50/90 p-3 dark:border-amber-900/70 dark:bg-amber-950/30">
-                                                <div
-                                                    className={cn(
-                                                        'flex items-center gap-2 text-amber-700 dark:text-amber-300',
-                                                        isRtl &&
-                                                            'flex-row-reverse justify-end',
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) =>
+                                                        `${formatPrice(value)} ؋`
+                                                    }
+                                                />
+                                                <Legend />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.cashPosition',
+                                                        'Cash position',
                                                     )}
-                                                >
-                                                    <Flame className="h-4 w-4" />
-                                                    <span className="text-sm font-medium">
-                                                        {t(
-                                                            'dashboard.lowStock',
-                                                            'Low stock',
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <p
-                                                    className={cn(
-                                                        'mt-2 text-2xl font-semibold text-foreground',
-                                                        isRtl && 'text-right',
+                                                    dataKey="cash"
+                                                    fill={COLORS.teal}
+                                                    radius={[6, 6, 0, 0]}
+                                                />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.expenses',
+                                                        'Expenses',
                                                     )}
-                                                >
-                                                    {formatNumber(
-                                                        inventoryStats?.lowStockItems ??
-                                                            0,
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <div className="rounded-xl border border-red-200/70 bg-red-50/90 p-3 dark:border-red-900/70 dark:bg-red-950/30">
-                                                <div
-                                                    className={cn(
-                                                        'flex items-center gap-2 text-red-700 dark:text-red-300',
-                                                        isRtl &&
-                                                            'flex-row-reverse justify-end',
-                                                    )}
-                                                >
-                                                    <ShieldAlert className="h-4 w-4" />
-                                                    <span className="text-sm font-medium">
-                                                        {t(
-                                                            'dashboard.outOfStock',
-                                                            'Out of stock',
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <p
-                                                    className={cn(
-                                                        'mt-2 text-2xl font-semibold text-foreground',
-                                                        isRtl && 'text-right',
-                                                    )}
-                                                >
-                                                    {formatNumber(
-                                                        inventoryStats?.outOfStockItems ??
-                                                            0,
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </DashboardSurface>
-                            ) : null}
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
-                            <DashboardSurface
-                                title={t(
-                                    'dashboard.needsAttention',
-                                    'Needs Attention',
-                                )}
-                                description={t(
-                                    'dashboard.needsAttentionDescription',
-                                    'Operational signals that need a closer look.',
-                                )}
-                                className="xl:col-span-4"
-                            >
-                                <div className="space-y-3">
-                                    {attentionItems.length > 0 ? (
-                                        attentionItems.map((item, index) => (
-                                            <div
-                                                key={`${item.title}-${index}`}
-                                                className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
-                                            >
-                                                <div
-                                                    className={cn(
-                                                        'flex items-start justify-between gap-3',
-                                                        isRtl &&
-                                                            'flex-row-reverse text-right',
-                                                    )}
-                                                >
-                                                    <div
-                                                        className={cn(
-                                                            'space-y-1',
-                                                            isRtl &&
-                                                                'text-right',
-                                                        )}
-                                                    >
-                                                        <p className="text-sm font-medium text-foreground">
-                                                            {item.title}
-                                                        </p>
-                                                        <p className="text-xs leading-5 text-muted-foreground">
-                                                            {item.detail}
-                                                        </p>
-                                                    </div>
-                                                    <span
-                                                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${attentionBadgeClass(
-                                                            item.level,
-                                                        )}`}
-                                                    >
-                                                        {t(
-                                                            `dashboard.${item.level}`,
-                                                            item.level,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))
+                                                    dataKey="expenses"
+                                                    fill={COLORS.coral}
+                                                    radius={[6, 6, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     ) : (
-                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            {t(
-                                                'dashboard.everythingLooksSteady',
-                                                'Everything looks steady right now.',
-                                            )}{' '}
-                                            {t(
-                                                'dashboard.noUrgentOperationalAlerts',
-                                                'No urgent operational alerts.',
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noFinanceData',
+                                                'No financial records are available yet.',
                                             )}
-                                        </div>
+                                        />
                                     )}
-                                </div>
-                            </DashboardSurface>
-
-                            <DashboardSurface
-                                title={t(
-                                    'dashboard.branchPerformance',
-                                    'Branch Performance',
-                                )}
-                                description={t(
-                                    'dashboard.branchPerformanceDescription',
-                                    'Top branch momentum over the last 30 days.',
-                                )}
-                                className="xl:col-span-4"
-                            >
-                                <div className="space-y-3">
-                                    {financeStats?.branchPerformance?.length ? (
-                                        financeStats.branchPerformance.map(
-                                            (branch, index) => (
-                                                <div
-                                                    key={branch.branchId}
-                                                    className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
-                                                >
-                                                    <div
-                                                        className={cn(
-                                                            'flex items-center justify-between gap-3',
-                                                            isRtl &&
-                                                                'flex-row-reverse text-right',
-                                                        )}
-                                                    >
-                                                        <div>
-                                                            <p className="text-sm font-medium text-foreground">
-                                                                {
-                                                                    branch.branchName
-                                                                }
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {t(
-                                                                    'dashboard.rank',
-                                                                    'Rank',
-                                                                )}{' '}
-                                                                #{index + 1}
-                                                            </p>
-                                                        </div>
-                                                        <div
-                                                            className={cn(
-                                                                isRtl
-                                                                    ? 'text-left'
-                                                                    : 'text-right',
-                                                            )}
-                                                        >
-                                                            <p className="text-lg font-semibold text-foreground">
-                                                                {formatPrice(
-                                                                    branch.revenue,
-                                                                )}{' '}
-                                                                ؋
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {t(
-                                                                    'dashboard.revenue',
-                                                                    'Revenue',
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="mt-3 grid grid-cols-2 gap-2">
-                                                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
-                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                                                {t(
-                                                                    'dashboard.orders',
-                                                                    'Orders',
-                                                                )}
-                                                            </p>
-                                                            <p className="mt-1 text-base font-semibold text-foreground">
-                                                                {formatNumber(
-                                                                    branch.completedOrders,
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-neutral-900">
-                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                                                {t(
-                                                                    'dashboard.netProfit',
-                                                                    'Net Profit',
-                                                                )}
-                                                            </p>
-                                                            <p className="mt-1 text-base font-semibold text-foreground">
-                                                                {formatPrice(
-                                                                    branch.netProfit,
-                                                                )}{' '}
-                                                                ؋
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ),
-                                        )
-                                    ) : (
-                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            {t(
-                                                'dashboard.branchPerformanceEmpty',
-                                                'Branch performance data will show here as daily metrics accumulate.',
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </DashboardSurface>
-
-                            <DashboardSurface
-                                title={t(
-                                    'dashboard.lowStockQuickList',
-                                    'Low Stock Quick List',
-                                )}
-                                description={t(
-                                    'dashboard.lowStockQuickListDescription',
-                                    'Fast visibility into items closest to running out.',
-                                )}
-                                className="xl:col-span-4"
-                            >
-                                <div className="space-y-3">
-                                    {inventoryStats?.lowStockQuickList
-                                        ?.length ? (
-                                        inventoryStats.lowStockQuickList.map(
-                                            (item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/40"
-                                                >
-                                                    <div
-                                                        className={cn(
-                                                            'flex items-start justify-between gap-3',
-                                                            isRtl &&
-                                                                'flex-row-reverse text-right',
-                                                        )}
-                                                    >
-                                                        <div className="space-y-1">
-                                                            <p className="text-sm font-medium text-foreground">
-                                                                {item.name}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {item.branch}
-                                                            </p>
-                                                        </div>
-                                                        <span
-                                                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                                item.status ===
-                                                                'out'
-                                                                    ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
-                                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
-                                                            }`}
-                                                        >
-                                                            {item.status ===
-                                                            'out'
-                                                                ? t(
-                                                                      'dashboard.out',
-                                                                      'Out',
-                                                                  )
-                                                                : t(
-                                                                      'dashboard.low',
-                                                                      'Low',
-                                                                  )}
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        className={cn(
-                                                            'mt-3 flex items-end justify-between gap-3',
-                                                            isRtl &&
-                                                                'flex-row-reverse',
-                                                        )}
-                                                    >
-                                                        <div>
-                                                            <p className="text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                                                {t(
-                                                                    'dashboard.quantity',
-                                                                    'Quantity',
-                                                                )}
-                                                            </p>
-                                                            <p className="mt-1 text-lg font-semibold text-foreground">
-                                                                {formatNumber(
-                                                                    item.quantity,
-                                                                )}{' '}
-                                                                {item.unit ??
-                                                                    ''}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ),
-                                        )
-                                    ) : (
-                                        <div className="rounded-xl border border-neutral-200/70 bg-neutral-50/70 p-4 text-sm text-muted-foreground dark:border-neutral-800 dark:bg-neutral-950/40">
-                                            {t(
-                                                'dashboard.noLowStockItems',
-                                                'No low-stock items right now.',
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </DashboardSurface>
-                        </div>
-
-                        {canViewOrders ? (
-                            <div className="relative flex-1 overflow-hidden pb-1">
-                                <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
-                                    <div className="w-full min-w-0 lg:col-span-3">
-                                        <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                                            <CardHeader>
-                                                <div className="space-y-1">
-                                                    <CardTitle className="text-lg font-semibold">
-                                                        {t(
-                                                            'dashboard.topOrderedDishes',
-                                                            'Top Ordered Dishes',
-                                                        )}
-                                                    </CardTitle>
-                                                    <CardDescription className="text-sm">
-                                                        {t(
-                                                            'dashboard.topOrderedDishesDescription',
-                                                            'Most ordered dishes of all time',
-                                                        )}
-                                                    </CardDescription>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3.5">
-                                                {topOrderedDishes.map(
-                                                    (item, index) => (
-                                                        <div
-                                                            key={`${item.product_name}-${index}`}
-                                                            className="flex items-center justify-between rounded-2xl border border-neutral-200/60 bg-[linear-gradient(180deg,rgba(248,250,252,0.92)_0%,rgba(255,255,255,1)_100%)] px-3.5 py-3.5 dark:border-neutral-800 dark:bg-neutral-950/60"
-                                                        >
-                                                            {isRtl ? (
-                                                                <>
-                                                                    <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-                                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                                            <Dot className="h-5 w-5" />
-                                                                        </div>
-                                                                        <div className="min-w-0 text-right">
-                                                                            <p className="text-sm font-medium tracking-tight">
-                                                                                {getLocalizedDashboardProductName(
-                                                                                    item,
-                                                                                )}
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {
-                                                                                    item.category_name
-                                                                                }{' '}
-                                                                                •{' '}
-                                                                                {formatNumber(
-                                                                                    item.total_quantity,
-                                                                                )}{' '}
-                                                                                {t(
-                                                                                    'dashboard.allTimeOrdersSuffix',
-                                                                                    'orders',
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 px-3 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                                        #{index + 1}
-                                                                    </div>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200/70 bg-white text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-                                                                            <Dot className="h-5 w-5" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-sm font-medium tracking-tight">
-                                                                                {getLocalizedDashboardProductName(
-                                                                                    item,
-                                                                                )}
-                                                                            </p>
-                                                                            <p className="text-xs text-muted-foreground">
-                                                                                {
-                                                                                    item.category_name
-                                                                                }{' '}
-                                                                                •{' '}
-                                                                                {formatNumber(
-                                                                                    item.total_quantity,
-                                                                                )}{' '}
-                                                                                {t(
-                                                                                    'dashboard.allTimeOrdersSuffix',
-                                                                                    'orders',
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 px-3 text-xs font-medium text-muted-foreground dark:bg-neutral-800">
-                                                                        #{index + 1}
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    ),
-                                                )}
-                                                {topOrderedDishes.length ===
-                                                0 ? (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {t(
-                                                            'dashboard.noOrderDataYet',
-                                                            'No order data available yet.',
-                                                        )}
-                                                    </p>
-                                                ) : null}
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                    <div className="w-full min-w-0 lg:col-span-9">
-                                        <Card className="h-full w-full min-w-0 rounded-2xl border border-neutral-200/70 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                                            <CardHeader className="flex flex-row items-start justify-between">
-                                                <div className="space-y-1">
-                                                    <CardTitle className="text-lg font-semibold">
-                                                        {t(
-                                                            'dashboard.recentOrders',
-                                                            'Recent Orders',
-                                                        )}
-                                                    </CardTitle>
-                                                    <CardDescription className="text-sm">
-                                                        {t(
-                                                            'dashboard.recentOrdersDescription',
-                                                            'Latest orders across branches',
-                                                        )}
-                                                    </CardDescription>
-                                                </div>
-                                                <a
-                                                    href="/orders"
-                                                    className={cn(
-                                                        'text-sm font-medium text-primary hover:underline',
-                                                        isRtl && 'text-right',
-                                                    )}
-                                                >
-                                                    {t(
-                                                        'dashboard.viewAll',
-                                                        'View all',
-                                                    )}
-                                                </a>
-                                            </CardHeader>
-                                            <CardContent className="max-h-[31rem] overflow-y-auto">
-                                                <div className="min-w-0 overflow-x-auto">
-                                                    <Table
-                                                        dir={
-                                                            isRtl
-                                                                ? 'rtl'
-                                                                : 'ltr'
-                                                        }
-                                                    >
-                                                        <TableHeader>
-                                                            <TableRow>
-                                                                <TableHead>
-                                                                    {t(
-                                                                        'dashboard.orderNumber',
-                                                                        'Order #',
-                                                                    )}
-                                                                </TableHead>
-                                                                <TableHead>
-                                                                    {t(
-                                                                        'dashboard.type',
-                                                                        'Type',
-                                                                    )}
-                                                                </TableHead>
-                                                                <TableHead>
-                                                                    {t(
-                                                                        'dashboard.orderItems',
-                                                                        'Items',
-                                                                    )}
-                                                                </TableHead>
-                                                                <TableHead>
-                                                                    {t(
-                                                                        'dashboard.qty',
-                                                                        'QTY',
-                                                                    )}
-                                                                </TableHead>
-                                                                <TableHead>
-                                                                    {t(
-                                                                        'dashboard.status',
-                                                                        'Status',
-                                                                    )}
-                                                                </TableHead>
-                                                                <TableHead
-                                                                    className={cn(
-                                                                        isRtl
-                                                                            ? 'text-left'
-                                                                            : 'text-right',
-                                                                    )}
-                                                                >
-                                                                    {t(
-                                                                        'dashboard.total',
-                                                                        'Total',
-                                                                    )}
-                                                                </TableHead>
-                                                            </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {recentOrders.map(
-                                                                (order) => (
-                                                                    <TableRow
-                                                                        key={
-                                                                            order.id
-                                                                        }
-                                                                        className="border-neutral-200/70 dark:border-neutral-800"
-                                                                    >
-                                                                        <TableCell className="font-medium">
-                                                                            #
-                                                                            {
-                                                                                order.id
-                                                                            }
-                                                                        </TableCell>
-                                                                        <TableCell className="capitalize">
-                                                                            {formatOrderType(
-                                                                                order.order_type,
-                                                                                t,
-                                                                            )}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            {order.items
-                                                                                ?.slice(
-                                                                                    0,
-                                                                                    2,
-                                                                                )
-                                                                                .map(
-                                                                                    (
-                                                                                        item,
-                                                                                    ) =>
-                                                                                        (locale ===
-                                                                                        'ps'
-                                                                                            ? item
-                                                                                                  .product
-                                                                                                  ?.pashto_name
-                                                                                            : locale ===
-                                                                                                'fa'
-                                                                                              ? item
-                                                                                                    .product
-                                                                                                    ?.dari_name
-                                                                                              : null) ||
-                                                                                        item
-                                                                                            .product
-                                                                                            ?.name ||
-                                                                                        t(
-                                                                                            'dashboard.unknownItem',
-                                                                                            'Unknown Item',
-                                                                                        ),
-                                                                                )
-                                                                                .join(
-                                                                                    ', ',
-                                                                                ) ||
-                                                                                '-'}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            {order.items?.reduce(
-                                                                                (
-                                                                                    total,
-                                                                                    item,
-                                                                                ) =>
-                                                                                    total +
-                                                                                    Number(
-                                                                                        item.quantity,
-                                                                                    ),
-                                                                                0,
-                                                                            ) ??
-                                                                                0}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            <span
-                                                                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getOrderStatusBadgeClass(
-                                                                                    order.status,
-                                                                                )}`}
-                                                                            >
-                                                                                {formatOrderStatus(
-                                                                                    order.status,
-                                                                                    t,
-                                                                                )}
-                                                                            </span>
-                                                                        </TableCell>
-                                                                        <TableCell
-                                                                            className={cn(
-                                                                                'font-medium',
-                                                                                isRtl
-                                                                                    ? 'text-left'
-                                                                                    : 'text-right',
-                                                                            )}
-                                                                        >
-                                                                            {formatPrice(
-                                                                                order.total_amount,
-                                                                            )}{' '}
-                                                                            ؋
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ),
-                                                            )}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
-                                                <div
-                                                    className={cn(
-                                                        'mt-4',
-                                                        isRtl
-                                                            ? 'text-left'
-                                                            : 'text-right',
-                                                    )}
-                                                >
-                                                    <a
-                                                        href="/orders"
-                                                        className={cn(
-                                                            'flex gap-2 text-sm font-medium text-primary hover:underline',
-                                                            isRtl
-                                                                ? 'flex-row-reverse justify-start'
-                                                                : 'justify-end',
-                                                        )}
-                                                    >
-                                                        {t(
-                                                            'dashboard.goToOrders',
-                                                            'Go to orders',
-                                                        )}
-                                                        <ArrowRight
-                                                            className={cn(
-                                                                'h-5 w-5',
-                                                                isRtl &&
-                                                                    'rotate-180',
-                                                            )}
-                                                        />
-                                                    </a>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
                                 </div>
                             </div>
-                        ) : null}
-                    </>
-                ) : (
-                    <Card className="border border-neutral-200/50 bg-white shadow-none dark:border-neutral-800/90 dark:bg-neutral-900">
-                        <CardHeader>
-                            <CardTitle className="text-lg font-semibold">
-                                {t(
-                                    'dashboard.dashboardAccessReady',
-                                    'Dashboard access is ready',
+
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    {t(
+                                        'propertyDashboard.portfolioStatus',
+                                        'Portfolio status',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.portfolioStatusHelp',
+                                        'Active and inactive projects',
+                                    )}
+                                </p>
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasOverallPie ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <PieChart>
+                                                <Pie
+                                                    data={overallPie}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    innerRadius={62}
+                                                    outerRadius={98}
+                                                    paddingAngle={4}
+                                                >
+                                                    {overallPie.map((item) => (
+                                                        <Cell
+                                                            key={item.name}
+                                                            fill={item.color}
+                                                        />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatNumber(value)}
+                                                />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noProjectData',
+                                                'No project records are available yet.',
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                            <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                {t('propertyDashboard.projects', 'Projects')}
+                            </h2>
+                            <div className="mt-4 overflow-x-auto">
+                                <table className="w-full min-w-[760px] text-sm">
+                                    <thead className="text-slate-400">
+                                        <tr className="border-b border-[#edf1f2] text-start dark:border-neutral-800">
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.project',
+                                                    'Project',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.shops',
+                                                    'Shops',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.tenants',
+                                                    'Tenants',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.expenses',
+                                                    'Expenses',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.status',
+                                                    'Status',
+                                                )}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.portfolio.projects.map(
+                                            (project) => (
+                                                <tr
+                                                    key={project.id}
+                                                    className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                >
+                                                    <td className="px-3 py-4">
+                                                        <strong>
+                                                            {project.name}
+                                                        </strong>
+                                                        <p className="mt-1 text-xs text-slate-400">
+                                                            {project.address ||
+                                                                '—'}
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatNumber(
+                                                            project.shops,
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatNumber(
+                                                            project.registeredTenants,
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {formatPrice(
+                                                            project.expensesAfn,
+                                                        )}{' '}
+                                                        ؋
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        <span
+                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
+                                                        >
+                                                            {project.isActive
+                                                                ? t(
+                                                                      'propertyDashboard.active',
+                                                                      'Active',
+                                                                  )
+                                                                : t(
+                                                                      'propertyDashboard.inactive',
+                                                                      'Inactive',
+                                                                  )}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ),
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                ) : selectedProject ? (
+                    <div className="mt-5 space-y-5">
+                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                            <StatCard
+                                label={t('propertyDashboard.floors', 'Floors')}
+                                value={formatNumber(selectedProject.floors)}
+                                icon={Layers3}
+                            />
+                            <StatCard
+                                label={t('propertyDashboard.shops', 'Shops')}
+                                value={formatNumber(selectedProject.shops)}
+                                icon={DoorOpen}
+                                accent="blue"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.occupied',
+                                    'Occupied shops',
                                 )}
-                            </CardTitle>
-                            <CardDescription className="text-sm">
-                                {t(
-                                    'dashboard.dashboardAccessDescription',
-                                    'This user does not have any dashboard widgets assigned yet. Add section permissions to the role to show operations, inventory, finance, or reporting views here.',
+                                value={formatNumber(
+                                    selectedProject.occupiedShops,
                                 )}
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                )}
+                                icon={Store}
+                                accent="green"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.available',
+                                    'Available shops',
+                                )}
+                                value={formatNumber(
+                                    selectedProject.availableShops,
+                                )}
+                                icon={Building2}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.tenants',
+                                    'Tenants',
+                                )}
+                                value={formatNumber(
+                                    selectedProject.registeredTenants,
+                                )}
+                                icon={UsersRound}
+                                accent="green"
+                            />
+                        </section>
+
+                        <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                            <MoneyCard
+                                title={t(
+                                    'propertyDashboard.collectedRentAfn',
+                                    'Collected rent in AFN',
+                                )}
+                                collected={selectedProject.rent.collectedAfn}
+                                remaining={selectedProject.rent.remainingAfn}
+                                currency="؋"
+                                t={t}
+                            />
+                            <MoneyCard
+                                title={t(
+                                    'propertyDashboard.collectedRentUsd',
+                                    'Collected rent in USD',
+                                )}
+                                collected={selectedProject.rent.collectedUsd}
+                                remaining={selectedProject.rent.remainingUsd}
+                                currency="$"
+                                t={t}
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.expenses',
+                                    'Approved expenses',
+                                )}
+                                value={`${formatPrice(selectedProject.expensesAfn)} ؋`}
+                                icon={ReceiptText}
+                                accent="coral"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.cashPosition',
+                                    'Cash position',
+                                )}
+                                value={`${formatPrice(selectedProject.cashPositionAfn)} ؋`}
+                                icon={CircleDollarSign}
+                                accent="teal"
+                            />
+                        </section>
+
+                        <section className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    {t(
+                                        'propertyDashboard.rentCollection',
+                                        'Rent collection',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.rentCollectionHelp',
+                                        'Collected and remaining rent for last month',
+                                    )}
+                                </p>
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasProjectRent ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <BarChart data={projectRentChart}>
+                                                <CartesianGrid
+                                                    vertical={false}
+                                                    stroke="#e8eff0"
+                                                />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickFormatter={(value) =>
+                                                        formatNumber(value)
+                                                    }
+                                                />
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatPrice(value)}
+                                                />
+                                                <Legend />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.collected',
+                                                        'Collected',
+                                                    )}
+                                                    dataKey="collected"
+                                                    fill={COLORS.green}
+                                                    radius={[7, 7, 0, 0]}
+                                                />
+                                                <Bar
+                                                    name={t(
+                                                        'propertyDashboard.remaining',
+                                                        'Remaining',
+                                                    )}
+                                                    dataKey="remaining"
+                                                    fill={COLORS.coral}
+                                                    radius={[7, 7, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noRentData',
+                                                'Rent records will appear after the lease module is added.',
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    {t(
+                                        'propertyDashboard.shopOccupancy',
+                                        'Shop occupancy',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.shopOccupancyHelp',
+                                        'Occupied and available shops',
+                                    )}
+                                </p>
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasOccupancy ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <PieChart>
+                                                <Pie
+                                                    data={occupancyPie}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    innerRadius={60}
+                                                    outerRadius={100}
+                                                    paddingAngle={4}
+                                                >
+                                                    {occupancyPie.map(
+                                                        (item) => (
+                                                            <Cell
+                                                                key={item.name}
+                                                                fill={
+                                                                    item.color
+                                                                }
+                                                            />
+                                                        ),
+                                                    )}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(
+                                                        value: number,
+                                                    ) => formatNumber(value)}
+                                                />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noShopData',
+                                                'Shop records will appear after floors and shops are registered.',
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.marketExpenses',
+                                            'Market expenses',
+                                        )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {t(
+                                            'propertyDashboard.marketExpensesHelp',
+                                            'Electricity, maintenance and other approved costs',
+                                        )}
+                                    </p>
+                                </div>
+                                <ReceiptText className="size-5 text-[#123f4a]" />
+                            </div>
+                            <div className="mt-4 overflow-x-auto">
+                                <table className="w-full min-w-[680px] text-sm">
+                                    <thead>
+                                        <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.expense',
+                                                    'Expense',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.date',
+                                                    'Date',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.amount',
+                                                    'Amount',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.status',
+                                                    'Status',
+                                                )}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedProject.recentExpenses
+                                            .length ? (
+                                            selectedProject.recentExpenses.map(
+                                                (expense) => (
+                                                    <tr
+                                                        key={expense.id}
+                                                        className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                    >
+                                                        <td className="px-3 py-4 font-semibold">
+                                                            {expense.title}
+                                                        </td>
+                                                        <td className="px-3 py-4 text-slate-500">
+                                                            {expense.date}
+                                                        </td>
+                                                        <td className="px-3 py-4 font-semibold">
+                                                            {formatPrice(
+                                                                expense.amount,
+                                                            )}{' '}
+                                                            ؋
+                                                        </td>
+                                                        <td className="px-3 py-4">
+                                                            <span className="rounded-full bg-[#e8f0f1] px-3 py-1 text-xs font-semibold text-[#123f4a]">
+                                                                {expense.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan={4}
+                                                    className="py-12 text-center text-sm text-slate-400"
+                                                >
+                                                    {t(
+                                                        'propertyDashboard.noExpenses',
+                                                        'No expenses have been recorded for this project.',
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                ) : null}
             </div>
         </AppLayout>
     );

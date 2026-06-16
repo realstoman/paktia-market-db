@@ -59,11 +59,11 @@ export default function AppSidebarLayout({
     return (
         <AppShell variant="sidebar" defaultSidebarOpen={defaultSidebarOpen}>
             <AppSidebar />
-            <AppContent className="m-2 flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto rounded-xl">
-                <div className="sticky top-0 z-20 px-3 pt-2 md:px-4">
+            <AppContent className="m-2 flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto rounded-[24px] bg-[#f5f6f8] dark:bg-neutral-950">
+                <div className="sticky top-0 z-20 px-3 pt-3 md:px-5">
                     <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 </div>
-                <div className="relative mt-3 flex min-h-0 flex-1 flex-col px-3 pb-3 md:px-4">
+                <div className="relative mt-3 flex min-h-0 flex-1 flex-col px-3 pb-3 md:px-5">
                     {children}
                     {isNavigating ? (
                         <div className="absolute inset-0 z-20 bg-background/75 backdrop-blur-[1px]">

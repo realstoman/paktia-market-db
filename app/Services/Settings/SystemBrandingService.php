@@ -32,9 +32,9 @@ class SystemBrandingService
     {
         if (! SchemaCache::hasTable('system_settings')) {
             return [
-                'name' => $this->defaults()['restaurant_name'],
-                'shortName' => $this->defaults()['restaurant_short_name'],
-                'logoUrl' => '/brand/logo.svg',
+                'name' => $this->defaults()['market_name'],
+                'shortName' => $this->defaults()['market_short_name'],
+                'logoUrl' => '/brand/logo.png',
                 'logoFullUrl' => '/brand/logo-full.svg',
                 'logoPath' => '',
                 'logoFullPath' => '',
@@ -51,9 +51,9 @@ class SystemBrandingService
         $branding = array_merge($this->defaults(), $settings->all());
 
         return [
-            'name' => $branding['restaurant_name'],
-            'shortName' => $branding['restaurant_short_name'],
-            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/logo.svg'),
+            'name' => $branding['market_name'],
+            'shortName' => $branding['market_short_name'],
+            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/logo.png'),
             'logoFullUrl' => $this->resolveLogoUrl($branding['logo_full_path'], '/brand/logo-full.svg'),
             'logoPath' => $branding['logo_path'],
             'logoFullPath' => $branding['logo_full_path'],
@@ -71,8 +71,8 @@ class SystemBrandingService
         $current = $this->getBranding();
 
         $payload = [
-            'restaurant_name' => trim((string) ($data['restaurant_name'] ?? $current['name'])),
-            'restaurant_short_name' => trim((string) ($data['restaurant_short_name'] ?? $current['shortName'])),
+            'market_name' => trim((string) ($data['market_name'] ?? $current['name'])),
+            'market_short_name' => trim((string) ($data['market_short_name'] ?? $current['shortName'])),
             'primary_color' => $this->normalizeHexColor((string) ($data['primary_color'] ?? $current['primaryColor'])),
             'secondary_color' => $this->normalizeHexColor((string) ($data['secondary_color'] ?? $current['secondaryColor'])),
             'tertiary_color' => $this->normalizeHexColor((string) ($data['tertiary_color'] ?? $current['tertiaryColor'])),
@@ -104,12 +104,12 @@ class SystemBrandingService
     private function defaults(): array
     {
         return [
-            'restaurant_name' => 'Baba Restaurant ERP',
-            'restaurant_short_name' => 'Baba',
+            'market_name' => 'Paktia Market ERP',
+            'market_short_name' => 'Paktia Market',
             'logo_path' => '',
             'logo_full_path' => '',
-            'primary_color' => '#102F33',
-            'secondary_color' => '#CC924B',
+            'primary_color' => '#0B5AA5',
+            'secondary_color' => '#F2A20C',
             'tertiary_color' => '#F8FAFD',
         ];
     }
@@ -131,7 +131,7 @@ class SystemBrandingService
             return $normalized;
         }
 
-        return '#102F33';
+        return '#0B5AA5';
     }
 
     private function storeLogo(

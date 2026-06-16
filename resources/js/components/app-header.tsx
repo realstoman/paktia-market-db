@@ -1,8 +1,6 @@
+import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { HeaderNotifications } from '@/components/header-notifications';
-import { useLocalization } from '@/lib/localization';
-import { Icon } from '@/components/icon';
-import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import LanguageDropdown from '@/components/language-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -10,294 +8,244 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { useInitials } from '@/hooks/use-initials';
-import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
+import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
+import { resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
+    Activity,
+    Banknote,
+    Boxes,
+    BriefcaseBusiness,
+    Building2,
+    ChartLine,
     ClipboardList,
-    Folder,
     LayoutGrid,
     Menu,
-    Search,
+    ShieldCheck,
+    Users,
 } from 'lucide-react';
-import AppLogo from './app-logo';
-import AppLogoIcon from './app-logo-icon';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const rightNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
-const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
-
-interface AppHeaderProps {
-    breadcrumbs?: BreadcrumbItem[];
+interface HeaderNavConfig {
+    titleKey: string;
+    fallbackTitle: string;
+    href: NavItem['href'];
+    icon: NonNullable<NavItem['icon']>;
+    can?: string;
+    canAny?: string[];
 }
 
-export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
-    const { isRtl, t } = useLocalization();
+const navConfig: HeaderNavConfig[] = [
+    {
+        titleKey: 'navigation.dashboard',
+        fallbackTitle: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        can: 'dashboard.view',
+    },
+    {
+        titleKey: 'navigation.branches',
+        fallbackTitle: 'Properties',
+        href: '/branches',
+        icon: Building2,
+        can: 'branch.view',
+    },
+    {
+        titleKey: 'navigation.inventory',
+        fallbackTitle: 'Inventory',
+        href: '/inventory',
+        icon: Boxes,
+        can: 'inventory.view',
+    },
+    {
+        titleKey: 'navigation.employees',
+        fallbackTitle: 'Employees',
+        href: '/employees',
+        icon: BriefcaseBusiness,
+        can: 'employees.view',
+    },
+    {
+        titleKey: 'navigation.finance',
+        fallbackTitle: 'Finance',
+        href: '/finance',
+        icon: Banknote,
+        canAny: ['finance.view', 'payroll.view'],
+    },
+    {
+        titleKey: 'navigation.users',
+        fallbackTitle: 'Users',
+        href: '/users',
+        icon: Users,
+        can: 'user.view',
+    },
+    {
+        titleKey: 'navigation.roles',
+        fallbackTitle: 'Roles',
+        href: '/roles',
+        icon: ShieldCheck,
+        can: 'role.view',
+    },
+    {
+        titleKey: 'navigation.reports',
+        fallbackTitle: 'Reports',
+        href: '/reports',
+        icon: ChartLine,
+        can: 'reports.view',
+    },
+];
+
+export function AppHeader({
+    breadcrumbs = [],
+}: {
+    breadcrumbs?: BreadcrumbItem[];
+}) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
-    const getInitials = useInitials();
+    const { can, canAny, isSuperAdmin } = useAuthorization();
+    const { isRtl, t } = useLocalization();
+    const navigation = [
+        ...navConfig.filter((item) =>
+            item.canAny?.length ? canAny(item.canAny) : can(item.can),
+        ),
+        ...(isSuperAdmin
+            ? [
+                  {
+                      titleKey: 'navigation.runtimeHealth',
+                      fallbackTitle: 'Runtime Health',
+                      href: '/operations/runtime-health',
+                      icon: Activity,
+                  },
+              ]
+            : []),
+    ];
+
+    const navLinks = (mobile = false) =>
+        navigation.map((item) => {
+            const href = resolveUrl(item.href);
+            const active = page.url.startsWith(href);
+            const Icon = item.icon;
+
+            return (
+                <Link
+                    key={href}
+                    href={item.href}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                        active
+                            ? 'bg-[#e8f1f2] text-[#123f4a]'
+                            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
+                    } ${mobile ? 'w-full justify-start' : 'whitespace-nowrap'}`}
+                >
+                    <Icon className="size-4" />
+                    <span>{t(item.titleKey, item.fallbackTitle)}</span>
+                </Link>
+            );
+        });
+
     return (
-        <>
-            <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
-                    {/* Mobile Menu */}
-                    <div className="lg:hidden">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="mr-2 h-[34px] w-[34px]"
-                                >
-                                    <Menu className="h-5 w-5" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                                side="left"
-                                className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
+        <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
+            <div className="mx-auto flex h-20 w-full items-center gap-4 px-4 lg:px-7">
+                <Link
+                    href={dashboard()}
+                    className="flex w-32 shrink-0 items-center justify-center"
+                >
+                    <img
+                        src="/brand/logo.png"
+                        alt="Paktiawal Group logo"
+                        className="h-16 w-auto object-contain"
+                    />
+                </Link>
+
+                <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
+                    {navLinks()}
+                </nav>
+
+                <div className="ms-auto flex shrink-0 items-center gap-2">
+                    <AppearanceToggleDropdown />
+                    <LanguageDropdown className="hidden sm:block" />
+                    {auth.is_super_admin ? (
+                        <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="size-10 rounded-full border border-[#dfe7e9] bg-white dark:border-neutral-800 dark:bg-neutral-900"
+                        >
+                            <Link
+                                href="/admin/activity-logs"
+                                aria-label={t(
+                                    'navigation.activityLogs',
+                                    'Activity Logs',
+                                )}
                             >
-                                <SheetTitle className="sr-only">
-                                    Navigation Menu
-                                </SheetTitle>
-                                <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
-                                </SheetHeader>
-                                <div className="flex h-full flex-1 flex-col space-y-4 p-4">
-                                    <div className="flex h-full flex-col justify-between text-sm">
-                                        <div className="flex flex-col space-y-4">
-                                            {mainNavItems.map((item) => (
-                                                <Link
-                                                    key={item.title}
-                                                    href={item.href}
-                                                    className="flex items-center space-x-2 font-medium"
-                                                >
-                                                    {item.icon && (
-                                                        <Icon
-                                                            iconNode={item.icon}
-                                                            className="h-5 w-5"
-                                                        />
-                                                    )}
-                                                    <span>{item.title}</span>
-                                                </Link>
-                                            ))}
-                                        </div>
+                                <ClipboardList className="size-4" />
+                            </Link>
+                        </Button>
+                    ) : null}
+                    <HeaderNotifications />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className="h-11 rounded-full border border-[#dfe7e9] bg-white px-2 dark:border-neutral-800 dark:bg-neutral-900"
+                            >
+                                <UserInfo user={auth.user} showName={false} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            className={`w-56 ${isRtl ? 'text-right' : ''}`}
+                            align="end"
+                        >
+                            <UserMenuContent user={auth.user} />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
-                                        <div className="flex flex-col space-y-4">
-                                            {rightNavItems.map((item) => (
-                                                <a
-                                                    key={item.title}
-                                                    href={resolveUrl(item.href)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center space-x-2 font-medium"
-                                                >
-                                                    {item.icon && (
-                                                        <Icon
-                                                            iconNode={item.icon}
-                                                            className="h-5 w-5"
-                                                        />
-                                                    )}
-                                                    <span>{item.title}</span>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-                    </div>
-
-                    <Link
-                        href={dashboard()}
-                        className="flex items-center space-x-2"
-                    >
-                        <AppLogo />
-                    </Link>
-
-                    {/* Desktop Navigation */}
-                    <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
-                        <NavigationMenu className="flex h-full items-stretch">
-                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {mainNavItems.map((item, index) => (
-                                    <NavigationMenuItem
-                                        key={index}
-                                        className="relative flex h-full items-center"
-                                    >
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                isSameUrl(
-                                                    page.url,
-                                                    item.href,
-                                                ) && activeItemStyles,
-                                                'h-9 cursor-pointer px-3',
-                                            )}
-                                        >
-                                            {item.icon && (
-                                                <Icon
-                                                    iconNode={item.icon}
-                                                    className="mr-2 h-4 w-4"
-                                                />
-                                            )}
-                                            {item.title}
-                                        </Link>
-                                        {isSameUrl(page.url, item.href) && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
-                                        )}
-                                    </NavigationMenuItem>
-                                ))}
-                            </NavigationMenuList>
-                        </NavigationMenu>
-                    </div>
-
-                    <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
+                    <Sheet>
+                        <SheetTrigger asChild>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                                className="size-10 rounded-full border border-[#dfe7e9] bg-white lg:hidden dark:border-neutral-800 dark:bg-neutral-900"
                             >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                <Menu className="size-5" />
                             </Button>
-                            <div className="hidden lg:flex">
-                                {rightNavItems.map((item) => (
-                                    <TooltipProvider
-                                        key={item.title}
-                                        delayDuration={0}
-                                    >
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <a
-                                                    href={resolveUrl(item.href)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                                >
-                                                    <span className="sr-only">
-                                                        {item.title}
-                                                    </span>
-                                                    {item.icon && (
-                                                        <Icon
-                                                            iconNode={item.icon}
-                                                            className="size-5 opacity-80 group-hover:opacity-100"
-                                                        />
-                                                    )}
-                                                </a>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{item.title}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                ))}
+                        </SheetTrigger>
+                        <SheetContent
+                            side={isRtl ? 'right' : 'left'}
+                            className="w-72 bg-[#f8fbfb] p-5 dark:bg-neutral-950"
+                        >
+                            <SheetHeader>
+                                <SheetTitle className="sr-only">
+                                    Navigation
+                                </SheetTitle>
+                            </SheetHeader>
+                            <img
+                                src="/brand/logo.png"
+                                alt="Paktiawal Group logo"
+                                className="mx-auto h-20 w-auto"
+                            />
+                            <div className="mt-6 space-y-2">
+                                {navLinks(true)}
                             </div>
-                        </div>
-                        {auth.is_super_admin ? (
-                            <TooltipProvider delayDuration={0}>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link
-                                            href="/admin/activity-logs"
-                                            className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                        >
-                                            <span className="sr-only">
-                                                {t(
-                                                    'navigation.activityLogs',
-                                                    'Activity Logs',
-                                                )}
-                                            </span>
-                                            <ClipboardList className="size-5 opacity-80 group-hover:opacity-100" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>
-                                            {t(
-                                                'navigation.activityLogs',
-                                                'Activity Logs',
-                                            )}
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        ) : null}
-                        <HeaderNotifications />
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="size-10 rounded-full p-1"
-                                >
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
-                                        />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className={`w-52 ${isRtl ? 'text-right' : ''}`}
-                                align="end"
-                            >
-                                <UserMenuContent user={auth.user} />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                            <LanguageDropdown className="mt-6 sm:hidden" />
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
-            {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70 dark:border-neutral-900/50">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
-                        <Breadcrumbs breadcrumbs={breadcrumbs} />
-                    </div>
+
+            {breadcrumbs.length > 1 ? (
+                <div className="border-t border-[#e7edef] px-7 py-2 text-xs text-slate-500 dark:border-neutral-800">
+                    {breadcrumbs.map((item) => item.title).join(' / ')}
                 </div>
-            )}
-        </>
+            ) : null}
+        </header>
     );
 }

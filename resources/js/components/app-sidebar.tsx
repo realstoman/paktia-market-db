@@ -1,4 +1,3 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { ToolsLauncher } from '@/components/tools-launcher';
@@ -24,14 +23,8 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
-    Globe,
     LayoutGrid,
-    Package,
-    ReceiptText,
-    Printer,
     ShieldCheck,
-    Smartphone,
-    UserRoundSearch,
     Users,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -52,27 +45,6 @@ const mainNavItems: SidebarNavConfig[] = [
         href: dashboard(),
         icon: LayoutGrid,
         can: 'dashboard.view',
-    },
-    {
-        titleKey: 'navigation.orders',
-        fallbackTitle: 'Orders',
-        href: '/orders',
-        icon: ReceiptText,
-        can: 'orders.view',
-    },
-    {
-        titleKey: 'navigation.clients',
-        fallbackTitle: 'Clients',
-        href: '/clients',
-        icon: UserRoundSearch,
-        can: 'orders.view',
-    },
-    {
-        titleKey: 'navigation.products',
-        fallbackTitle: 'Products',
-        href: '/products',
-        icon: Package,
-        can: 'products.view',
     },
     {
         titleKey: 'navigation.inventory',
@@ -125,25 +97,9 @@ const mainNavItems: SidebarNavConfig[] = [
     },
 ];
 
-const footerNavItems: Omit<SidebarNavConfig, 'can' | 'canAny'>[] = [
-    {
-        titleKey: 'navigation.mobileApp',
-        fallbackTitle: 'Mobile App',
-        href: 'https://play.google.com/store/apps/details?id=com.babataste',
-        icon: Smartphone,
-    },
-    {
-        titleKey: 'navigation.website',
-        fallbackTitle: 'Website',
-        href: 'https://babataste.com',
-        icon: Globe,
-    },
-];
-
 export function AppSidebar() {
     const { hasRole, can, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
-    const isOnlineOrdersOperator = hasRole('online-orders-operator');
     const dashboardHref = resolveUrl(dashboard());
     const financeHome =
         !isSuperAdmin && hasRole('finance') && can('finance.view');
@@ -153,21 +109,10 @@ export function AppSidebar() {
         ? '/finance'
         : inventoryHome
           ? '/inventory'
-          : isOnlineOrdersOperator
-            ? '/orders'
           : dashboard();
     const navigationItems: NavItem[] = [
         ...mainNavItems
-            .filter((item) =>
-                isOnlineOrdersOperator
-                    ? resolveUrl(item.href) === '/orders'
-                    : true,
-            )
             .filter((item) => {
-                if (resolveUrl(item.href) === '/orders' && hasRole('kitchen')) {
-                    return false;
-                }
-
                 if (
                     resolveUrl(item.href) === dashboardHref &&
                     (financeHome || inventoryHome)
@@ -187,15 +132,6 @@ export function AppSidebar() {
         ...(isSuperAdmin
             ? [
                   {
-                      title: t('navigation.printers', 'Printers'),
-                      href: '/printers',
-                      icon: Printer,
-                  } satisfies NavItem,
-              ]
-            : []),
-        ...(isSuperAdmin
-            ? [
-                  {
                       title: t('navigation.runtimeHealth', 'Runtime Health'),
                       href: '/operations/runtime-health',
                       icon: Activity,
@@ -203,23 +139,22 @@ export function AppSidebar() {
               ]
             : []),
     ];
-    const translatedFooterNavItems: NavItem[] = footerNavItems.map((item) => ({
-        title: t(item.titleKey, item.fallbackTitle),
-        href: item.href,
-        icon: item.icon,
-    }));
-
     return (
         <Sidebar
             collapsible="icon"
             variant="floating"
             side={isRtl ? 'right' : 'left'}
+            className="[--sidebar-width:17rem]"
         >
-            <SidebarHeader className="rounded-t-lg bg-white dark:bg-brand-bg-dark">
+            <SidebarHeader className="dark:bg-brand-bg-dark gap-0 rounded-t-lg bg-white p-0">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={homeHref}>
+                        <SidebarMenuButton
+                            size="lg"
+                            className="h-20 justify-center rounded-none p-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0! hover:bg-transparent"
+                            asChild
+                        >
+                            <Link href={homeHref} aria-label="Dashboard">
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -227,20 +162,14 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="bg-white dark:bg-brand-bg-dark">
+            <SidebarContent className="dark:bg-brand-bg-dark bg-white">
                 <NavMain
                     items={navigationItems}
                     trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}
                 />
             </SidebarContent>
 
-            <SidebarFooter className="rounded-b-lg bg-white dark:bg-brand-bg-dark">
-                {!isOnlineOrdersOperator ? (
-                    <NavFooter
-                        items={translatedFooterNavItems}
-                        className="mt-auto"
-                    />
-                ) : null}
+            <SidebarFooter className="dark:bg-brand-bg-dark rounded-b-lg bg-white">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

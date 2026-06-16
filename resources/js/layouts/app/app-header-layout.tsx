@@ -54,7 +54,7 @@ export default function AppHeaderLayout({
     return (
         <AppShell>
             <AppHeader breadcrumbs={breadcrumbs} />
-            <AppContent className="relative">
+            <AppContent className="relative min-h-[calc(100vh-5rem)] bg-[#eef3f4] p-3 sm:p-5 dark:bg-neutral-950">
                 {children}
                 {isNavigating ? (
                     <div className="absolute inset-0 z-20 bg-background/75 backdrop-blur-[1px]">

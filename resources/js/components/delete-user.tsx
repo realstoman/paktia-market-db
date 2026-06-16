@@ -37,7 +37,7 @@ export default function DeleteUser({ canDelete }: DeleteUserProps) {
                           )
                         : t(
                               'settings.deleteAccountUnavailableDescription',
-                              'Internal restaurant staff accounts cannot be deleted from profile settings',
+                              'Internal staff accounts cannot be deleted from profile settings',
                           )
                 }
             />
@@ -56,7 +56,7 @@ export default function DeleteUser({ canDelete }: DeleteUserProps) {
                               )
                             : t(
                                   'settings.deleteAccountAdminManaged',
-                                  'If this account belongs to a restaurant team member, an administrator should manage it from the users section instead.',
+                                  'If this account belongs to a staff member, an administrator should manage it from the users section instead.',
                               )}
                     </p>
                 </div>

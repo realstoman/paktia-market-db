@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     {
         $country = Country::where('code', 'AF')->first();
         $province = Province::where('name', 'Kabul')->first();
-        $branch = Branch::where('name', 'Baba Restaurant – Kabul')->first();
+        $branch = Branch::where('name', 'Paktia Market – Kabul')->first();
 
         $user = User::firstOrCreate(
             ['email' => 'stoman@email.com'],

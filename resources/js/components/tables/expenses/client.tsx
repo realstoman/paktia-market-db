@@ -696,7 +696,7 @@ export function ExpenseClient({
                                             value={option.value}
                                         >
                                             {t(
-                                                `orders.paymentMethod.${option.value}`,
+                                                `paymentMethods.${option.value}`,
                                                 option.label,
                                             )}
                                         </SelectItem>

@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Country, Kitchen, Province, Role, User } from '@/types';
+import { Branch, Country, Province, Role, User } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -11,7 +11,6 @@ export const buildColumns = (
     countries: Country[],
     provinces: Province[],
     branches: Branch[],
-    kitchens: Kitchen[],
     t: TranslateFn,
     locale: string,
 ): ColumnDef<User>[] => [
@@ -53,16 +52,6 @@ export const buildColumns = (
         header: t('users.table.role', 'Role'),
         cell: ({ row }) => {
             const roles = row.original.roles ?? [];
-            const userKitchen =
-                typeof row.original.kitchen === 'string'
-                    ? row.original.kitchen
-                    : row.original.kitchen?.name ?? null;
-            const hasKitchenRole = roles.some((role) =>
-                typeof role === 'string'
-                    ? role === 'kitchen'
-                    : role.name === 'kitchen',
-            );
-
             if (roles.length === 0) {
                 return (
                     <span className="text-xs text-muted-foreground">
@@ -75,7 +64,10 @@ export const buildColumns = (
                     <div className="flex flex-wrap gap-1">
                         {roles.map((role, index) =>
                             typeof role === 'string' ? (
-                                <Badge key={`${role}-${index}`} variant="secondary">
+                                <Badge
+                                    key={`${role}-${index}`}
+                                    variant="secondary"
+                                >
                                     {role}
                                 </Badge>
                             ) : (
@@ -85,11 +77,6 @@ export const buildColumns = (
                             ),
                         )}
                     </div>
-                    {hasKitchenRole && userKitchen ? (
-                        <p className="text-xs text-muted-foreground">
-                            {userKitchen}
-                        </p>
-                    ) : null}
                 </div>
             );
         },
@@ -144,7 +131,6 @@ export const buildColumns = (
                 countries={countries}
                 provinces={provinces}
                 branches={branches}
-                kitchens={kitchens}
             />
         ),
     },

@@ -40,14 +40,7 @@
     font-weight: 200 800;
     font-display: swap;
     unicode-range:
-        U+0030-0039,
-        U+002B,
-        U+002C,
-        U+002D,
-        U+002E,
-        U+002F,
-        U+003A,
-        U+066B,
+        U+0030-0039, U+002B, U+002C, U+002D, U+002E, U+002F, U+003A, U+066B,
         U+066C;
 }
 
@@ -116,9 +109,12 @@ body {
 }
 
 :root {
-    --brand-primary: #102f33;
-    --brand-secondary: #cc924b;
+    --brand-primary: #0b5aa5;
+    --brand-secondary: #f2a20c;
     --brand-tertiary: #f8fafd;
+    --app-form-font:
+        'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --app-body-font:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
@@ -270,6 +266,16 @@ html[lang='ps'] {
         @apply bg-background text-base text-foreground;
         font-family: var(--app-body-font);
         line-height: 1.6;
+        font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    input,
+    textarea,
+    select,
+    [contenteditable='true'],
+    [data-slot='input'],
+    [data-slot='textarea'] {
+        font-family: var(--app-form-font) !important;
         font-variant-numeric: tabular-nums lining-nums;
     }
 

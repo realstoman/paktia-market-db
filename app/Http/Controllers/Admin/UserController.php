@@ -7,7 +7,6 @@ use App\Enums\PermissionEnum;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\Branch;
-use App\Models\Kitchen;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +15,6 @@ use App\Services\Auth\UserService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -52,7 +50,6 @@ class UserController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
             'branches' => Branch::orderBy('name')->get(),
-            'kitchens' => Kitchen::orderBy('name')->get(),
         ]);
     }
 
@@ -77,24 +74,7 @@ class UserController extends Controller
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
             'branch_id' => 'nullable|exists:branches,id',
-            'kitchen_id' => 'nullable|exists:kitchens,id',
         ]);
-
-        $selectedRoles = Role::query()
-            ->whereIn('id', $validated['roles'] ?? [])
-            ->pluck('name');
-
-        $isKitchenRole = $selectedRoles->contains('kitchen');
-
-        if ($isKitchenRole && empty($validated['kitchen_id'])) {
-            throw ValidationException::withMessages([
-                'kitchen_id' => 'Kitchen users must be assigned to a kitchen.',
-            ]);
-        }
-
-        if (! $isKitchenRole) {
-            $validated['kitchen_id'] = null;
-        }
 
         $user = $this->userService->create($validated);
 
@@ -110,7 +90,6 @@ class UserController extends Controller
             'user' => $user->load(['roles', 'country', 'province', 'branch']),
             'roles' => Role::all(),
             'countries' => Country::all(),
-            'kitchens' => Kitchen::all(),
         ]);
     }
 
@@ -136,25 +115,8 @@ class UserController extends Controller
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
             'branch_id' => 'nullable|exists:branches,id',
-            'kitchen_id' => 'nullable|exists:kitchens,id',
             'is_active' => 'boolean',
         ]);
-
-        $selectedRoles = Role::query()
-            ->whereIn('id', $validated['roles'] ?? [])
-            ->pluck('name');
-
-        $isKitchenRole = $selectedRoles->contains('kitchen');
-
-        if ($isKitchenRole && empty($validated['kitchen_id'])) {
-            throw ValidationException::withMessages([
-                'kitchen_id' => 'Kitchen users must be assigned to a kitchen.',
-            ]);
-        }
-
-        if (! $isKitchenRole) {
-            $validated['kitchen_id'] = null;
-        }
 
         // Remove password if empty
         if (empty($validated['password'])) {

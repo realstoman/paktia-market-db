@@ -48,8 +48,8 @@ export default function SystemBranding({
     ];
 
     const form = useForm({
-        restaurant_name: branding.name,
-        restaurant_short_name: branding.shortName,
+        market_name: branding.name,
+        market_short_name: branding.shortName,
         primary_color: branding.primaryColor,
         secondary_color: branding.secondaryColor,
         tertiary_color: branding.tertiaryColor,
@@ -71,8 +71,8 @@ export default function SystemBranding({
         ],
     );
     const hasChanges =
-        form.data.restaurant_name !== branding.name ||
-        form.data.restaurant_short_name !== branding.shortName ||
+        form.data.market_name !== branding.name ||
+        form.data.market_short_name !== branding.shortName ||
         form.data.primary_color !== branding.primaryColor ||
         form.data.secondary_color !== branding.secondaryColor ||
         form.data.tertiary_color !== branding.tertiaryColor ||
@@ -143,7 +143,7 @@ export default function SystemBranding({
                                     <div className="flex items-center gap-4">
                                         <img
                                             src={currentLogo}
-                                            alt={form.data.restaurant_name}
+                                            alt={form.data.market_name}
                                             className="h-16 w-16 rounded-xl object-contain"
                                         />
                                         <div className="min-w-0">
@@ -154,10 +154,10 @@ export default function SystemBranding({
                                                 )}
                                             </p>
                                             <p className="truncate text-xl font-semibold text-foreground">
-                                                {form.data.restaurant_name}
+                                                {form.data.market_name}
                                             </p>
                                             <p className="text-sm text-muted-foreground">
-                                                {form.data.restaurant_short_name}
+                                                {form.data.market_short_name}
                                             </p>
                                         </div>
                                     </div>
@@ -166,44 +166,44 @@ export default function SystemBranding({
 
                             <div className="grid gap-6">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="restaurant_name">
+                                    <Label htmlFor="market_name">
                                         {t(
-                                            'settings.restaurantNameLabel',
-                                            'Restaurant name',
+                                            'settings.marketNameLabel',
+                                            'Market name',
                                         )}
                                     </Label>
                                     <Input
-                                        id="restaurant_name"
-                                        value={form.data.restaurant_name}
+                                        id="market_name"
+                                        value={form.data.market_name}
                                         onChange={(event) =>
                                             form.setData(
-                                                'restaurant_name',
+                                                'market_name',
                                                 event.target.value,
                                             )
                                         }
                                     />
-                                    <InputError message={form.errors.restaurant_name} />
+                                    <InputError message={form.errors.market_name} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="restaurant_short_name">
+                                    <Label htmlFor="market_short_name">
                                         {t(
-                                            'settings.restaurantShortNameLabel',
+                                            'settings.marketShortNameLabel',
                                             'Short name',
                                         )}
                                     </Label>
                                     <Input
-                                        id="restaurant_short_name"
-                                        value={form.data.restaurant_short_name}
+                                        id="market_short_name"
+                                        value={form.data.market_short_name}
                                         onChange={(event) =>
                                             form.setData(
-                                                'restaurant_short_name',
+                                                'market_short_name',
                                                 event.target.value,
                                             )
                                         }
                                     />
                                     <InputError
-                                        message={form.errors.restaurant_short_name}
+                                        message={form.errors.market_short_name}
                                     />
                                 </div>
 
@@ -375,7 +375,7 @@ export default function SystemBranding({
                         <AlertDialogDescription>
                             {t(
                                 'settings.confirmBrandingUpdateDescription',
-                                'This will update the shared restaurant name, logo, and colors across the system after reload.',
+                                'This will update the shared market name, logo, and colors across the system after reload.',
                             )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>

@@ -16,9 +16,7 @@ return new class extends Migration
             $table->uuid('batch_uuid')->nullable()->after('method');
             $table->foreignId('branch_id')->nullable()->after('batch_uuid')
                 ->constrained('branches')->nullOnDelete();
-            $table->foreignId('kitchen_id')->nullable()->after('branch_id')
-                ->constrained('kitchens')->nullOnDelete();
-            $table->json('meta')->nullable()->after('kitchen_id');
+            $table->json('meta')->nullable()->after('branch_id');
 
             $table->index('batch_uuid', 'audit_logs_batch_uuid_idx');
             $table->index(['user_id', 'created_at'], 'audit_logs_user_created_idx');
@@ -38,8 +36,6 @@ return new class extends Migration
             $table->dropIndex('audit_logs_action_created_idx');
 
             $table->dropConstrainedForeignId('branch_id');
-            $table->dropConstrainedForeignId('kitchen_id');
-
             $table->dropColumn([
                 'ip_address',
                 'user_agent',

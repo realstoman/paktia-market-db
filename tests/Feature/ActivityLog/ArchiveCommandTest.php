@@ -36,7 +36,7 @@ test('pos:archive-audit-logs archives old rows and prunes them', function () {
     // Recent row that should NOT be archived.
     AuditLog::query()->create([
         'action' => 'created',
-        'auditable_type' => 'App\\Models\\Order',
+        'auditable_type' => 'App\\Models\\Expense',
         'auditable_id' => 5,
         'new_values' => ['id' => 5],
     ]);
@@ -55,7 +55,7 @@ test('pos:archive-audit-logs archives old rows and prunes them', function () {
 
     // The two old rows should be gone; the recent one remains.
     expect(AuditLog::query()->count())->toBe(1)
-        ->and(AuditLog::query()->first()->auditable_type)->toBe('App\\Models\\Order');
+        ->and(AuditLog::query()->first()->auditable_type)->toBe('App\\Models\\Expense');
 });
 
 test('pos:archive-audit-logs is a no-op when no rows qualify', function () {
@@ -63,7 +63,7 @@ test('pos:archive-audit-logs is a no-op when no rows qualify', function () {
 
     AuditLog::query()->create([
         'action' => 'created',
-        'auditable_type' => 'App\\Models\\Order',
+        'auditable_type' => 'App\\Models\\Expense',
         'auditable_id' => 1,
         'new_values' => ['id' => 1],
     ]);

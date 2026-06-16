@@ -223,7 +223,7 @@ export default function GeneralLedgerPage({
     }));
     const paymentMethods = PAYMENT_METHOD_VALUES.map((value) => ({
         value,
-        label: t(`orders.paymentMethod.${value}`, value.replace('_', ' ')),
+        label: t(`paymentMethods.${value}`, value.replace('_', ' ')),
     }));
 
     React.useEffect(() => {

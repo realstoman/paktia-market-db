@@ -1,7 +1,7 @@
 import { brand } from '@/config/brand';
 import LanguageDropdown from '@/components/language-dropdown';
 import { useLocalization } from '@/lib/localization';
-import { ChefHat, Copyright, ShieldCheck, Utensils } from 'lucide-react';
+import { Boxes, Building2, Copyright, ShieldCheck } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -78,18 +78,13 @@ export default function AuthLayout({
                                     {locale === 'en'
                                         ? `Copyright ${copyrightYear}`
                                         : copyrightYear}
-                                    <a
-                                        href="https://babataste.com"
-                                        className="pr-1 pl-1 text-brand-secondary/80 transition-all duration-300 hover:text-brand-secondary"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
+                                    <span className="pr-1 pl-1 text-brand-secondary/80">
                                         {t(
-                                            'brand.restaurantName',
+                                        'brand.marketName',
                                             brand.name,
                                         )}
                                         .
-                                    </a>
+                                    </span>
                                     {t(
                                         'footer.allRightsReserved',
                                         'All rights reserved.',
@@ -127,28 +122,25 @@ export default function AuthLayout({
                 <div className="relative z-10 max-w-lg">
                     {/* Feature Cards */}
                     <div className="mb-12 space-y-6">
-                        {/* Main Hero Image Card */}
-                        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                        {/* Main Hero Card */}
+                        <div className="relative flex h-80 items-center justify-center overflow-hidden rounded-2xl bg-brand-primary shadow-2xl">
                             <img
-                                src="/brand/baba-outdoor.jpeg"
-                                alt={t(
-                                    'auth.promo.imageAlt',
-                                    'Restaurant dish',
-                                )}
-                                className="h-80 w-full object-cover"
+                                src={brand.logoFull}
+                                alt={brand.name}
+                                className="max-h-40 w-3/4 object-contain"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                             <div className="absolute right-6 bottom-6 left-6">
                                 <h3 className="mb-2 text-2xl font-bold text-white">
                                     {t(
                                         'auth.promo.heroTitle',
-                                        'Manage Your Restaurant',
+                                        'Manage Paktia Market',
                                     )}
                                 </h3>
                                 <p className="text-sm text-white/90">
                                     {t(
                                         'auth.promo.heroDescription',
-                                        'Complete ERP solution for modern restaurant operations',
+                                        'Complete ERP solution for modern market operations',
                                     )}
                                 </p>
                             </div>
@@ -158,36 +150,36 @@ export default function AuthLayout({
                         <div className="grid grid-cols-2 gap-4">
                             <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
-                                    <ChefHat className="h-6 w-6 text-white" />
+                                    <Building2 className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
                                     {t(
-                                        'auth.promo.kitchenTitle',
-                                        'Kitchen Management',
+                                        'auth.promo.branchTitle',
+                                        'Branch Management',
                                     )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
                                     {t(
-                                        'auth.promo.kitchenDescription',
-                                        'Real-time order tracking',
+                                        'auth.promo.branchDescription',
+                                        'Organize locations and staff',
                                     )}
                                 </p>
                             </div>
 
                             <div className="rounded-xl border border-orange-50 bg-white/80 p-6">
                                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-secondary">
-                                    <Utensils className="h-6 w-6 text-white" />
+                                    <Boxes className="h-6 w-6 text-white" />
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
                                     {t(
-                                        'auth.promo.menuTitle',
-                                        'Menu Control',
+                                        'auth.promo.inventoryTitle',
+                                        'Inventory Control',
                                     )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
                                     {t(
-                                        'auth.promo.menuDescription',
-                                        'Dynamic pricing & inventory',
+                                        'auth.promo.inventoryDescription',
+                                        'Track stock and valuation',
                                     )}
                                 </p>
                             </div>

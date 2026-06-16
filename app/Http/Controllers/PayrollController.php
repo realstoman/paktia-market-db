@@ -12,7 +12,6 @@ use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
 use App\Services\Finance\PayrollExpenseSyncService;
-use App\Services\Projection\ProjectionDispatchService;
 use App\Support\AfghanCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,7 +25,6 @@ use Carbon\Carbon;
 class PayrollController extends Controller
 {
     public function __construct(
-        private readonly ProjectionDispatchService $projectionDispatchService,
         private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
@@ -872,11 +870,7 @@ class PayrollController extends Controller
 
     private function resolveAdvanceBreakdownType(?string $reason): string
     {
-        $normalized = strtolower(trim((string) $reason));
-
-        return str_starts_with($normalized, 'employee covered order #')
-            ? 'employee_order'
-            : 'advance';
+        return 'advance';
     }
 
     /**

@@ -26,7 +26,6 @@ interface ActivityLogEntry {
     created_at: string | null;
     user?: { id: number; name: string; email: string } | null;
     branch?: { id: number; name: string } | null;
-    kitchen?: { id: number; name: string } | null;
 }
 
 interface ShowPageProps {
@@ -76,9 +75,6 @@ export default function ActivityLogShowPage({ log }: ShowPageProps) {
                         </Badge>
                         <Badge variant="secondary">
                             Branch: {log.branch?.name ?? '—'}
-                        </Badge>
-                        <Badge variant="secondary">
-                            Kitchen: {log.kitchen?.name ?? '—'}
                         </Badge>
                     </div>
 

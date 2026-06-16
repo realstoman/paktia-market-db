@@ -35,15 +35,6 @@ class LoginResponse implements LoginResponseContract
             return route('dashboard');
         }
 
-        if ($user->hasRole('online-orders-operator')) {
-            return route('orders.index');
-        }
-
-        // Operational roles share the same in-store surface.
-        if ($user->hasAnyRole(['cashier', 'server', 'order-taker', 'kitchen'])) {
-            return route('dashboard');
-        }
-
         $isSuperAdmin = $user->hasRole('super-admin');
 
         if ($user->hasRole('finance') && ! $isSuperAdmin) {

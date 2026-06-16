@@ -73,17 +73,11 @@ function deductionBreakdown(item: PayrollRunItem) {
 function deductionBreakdownTotals(item: PayrollRunItem) {
     return deductionBreakdown(item).reduce(
         (totals, entry) => {
-            const amount = Number(entry.amount ?? 0);
-
-            if ((entry.type ?? 'advance') === 'employee_order') {
-                totals.employeeOrder += amount;
-            } else {
-                totals.advance += amount;
-            }
+            totals.advance += Number(entry.amount ?? 0);
 
             return totals;
         },
-        { employeeOrder: 0, advance: 0 },
+        { advance: 0 },
     );
 }
 
@@ -103,7 +97,7 @@ export function PayrollVoucherPrintDialog({
     const breakdown = item ? deductionBreakdown(item) : [];
     const breakdownTotals = item
         ? deductionBreakdownTotals(item)
-        : { employeeOrder: 0, advance: 0 };
+        : { advance: 0 };
 
     const printVoucher = () => {
         if (!run || !item) {
@@ -121,9 +115,6 @@ export function PayrollVoucherPrintDialog({
         const paymentMethod = paymentMethodLabel(item.payment_method);
         const gross = formatAfn(Number(item.gross_salary ?? 0));
         const advances = formatAfn(Number(item.advances_deducted ?? 0));
-        const employeeOrderDeductions = formatAfn(
-            deductionBreakdownTotals(item).employeeOrder,
-        );
         const otherAdvances = formatAfn(
             deductionBreakdownTotals(item).advance,
         );
@@ -145,9 +136,7 @@ export function PayrollVoucherPrintDialog({
                     <div class="deduction-row">
                         <div>
                             <div class="deduction-title">${escapeHtml(
-                                entry.type === 'employee_order'
-                                    ? 'Employee-covered order'
-                                    : 'Salary advance',
+                                'Salary advance',
                             )}</div>
                             <div class="deduction-reason">${escapeHtml(
                                 entry.reason ?? '-',
@@ -220,7 +209,7 @@ export function PayrollVoucherPrintDialog({
                             </div>
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
-                                <h1>Baba Restaurant</h1>
+                                <h1>Paktia Market</h1>
                                 <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
@@ -270,7 +259,6 @@ export function PayrollVoucherPrintDialog({
                             <div class="summary">
                                 <div class="summary-row"><span>Gross Pay</span><span>${escapeHtml(gross)}</span></div>
                                 <div class="summary-row"><span>Advance Deduction</span><span>${escapeHtml(advances)}</span></div>
-                                <div class="summary-row"><span>Employee Orders</span><span>${escapeHtml(employeeOrderDeductions)}</span></div>
                                 <div class="summary-row"><span>Other Advances</span><span>${escapeHtml(otherAdvances)}</span></div>
                                 <div class="summary-row total"><span>Net Payable</span><span>${escapeHtml(net)}</span></div>
                             </div>
@@ -284,7 +272,7 @@ export function PayrollVoucherPrintDialog({
                             <div class="footer-note">
                                 Generated from the payroll module for internal review, signature workflow, and staff payment records.
                             </div>
-                            <div class="footer-stamp">Baba Payroll Copy</div>
+                            <div class="footer-stamp">Paktia Market Payroll Copy</div>
                         </div>
                     </div>
                     <script>
@@ -353,11 +341,11 @@ export function PayrollVoucherPrintDialog({
                                     <div className="mx-auto max-w-sm text-center">
                                         <img
                                             src={brand.logoFull}
-                                            alt="Baba Restaurant Logo"
+                                            alt="Paktia Market Logo"
                                             className="mx-auto mb-3 h-16 w-16 object-contain"
                                         />
                                         <p className="text-2xl font-semibold tracking-wide">
-                                            Baba Restaurant
+                                            Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {branch?.name ?? 'Main Branch'} •{' '}
@@ -512,16 +500,10 @@ export function PayrollVoucherPrintDialog({
                                                 >
                                                     <div className="min-w-0">
                                                         <p className="truncate text-sm font-medium text-slate-900">
-                                                            {entry.type ===
-                                                            'employee_order'
-                                                                ? t(
-                                                                      'financePayroll.details.employeeCoveredOrder',
-                                                                      'Employee-covered order',
-                                                                  )
-                                                                : t(
-                                                                      'financePayroll.details.salaryAdvance',
-                                                                      'Salary advance',
-                                                                  )}
+                                                            {t(
+                                                                'financePayroll.details.salaryAdvance',
+                                                                'Salary advance',
+                                                            )}
                                                         </p>
                                                         <p className="truncate text-xs text-slate-500">
                                                             {entry.reason ??
@@ -563,19 +545,6 @@ export function PayrollVoucherPrintDialog({
                                         </span>
                                         <span>
                                             {formatAfn(item.advances_deducted)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-b pb-2 text-sm">
-                                        <span>
-                                            {t(
-                                                'financePayroll.details.employeeOrderDeduction',
-                                                'Employee order deduction',
-                                            )}
-                                        </span>
-                                        <span>
-                                            {formatAfn(
-                                                breakdownTotals.employeeOrder,
-                                            )}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-b pb-2 text-sm">

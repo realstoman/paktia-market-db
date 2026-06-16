@@ -121,7 +121,7 @@ export function buildColumns({
             cell: ({ row }) =>
                 row.original.payment_method
                     ? t(
-                          `orders.paymentMethod.${row.original.payment_method}`,
+                          `paymentMethods.${row.original.payment_method}`,
                           row.original.payment_method.replaceAll('_', ' '),
                       )
                     : '-',

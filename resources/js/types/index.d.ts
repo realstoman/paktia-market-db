@@ -64,80 +64,19 @@ export interface SharedData {
         provinces: Province[];
         currencies: Currency[];
         vendors: Vendor[];
-        discountCards: DiscountCard[];
         banners: Banner[];
-        kitchens: Kitchen[];
-        products: Product[];
-        kitchenTypes: KitchenType[];
-        cuisines: Cuisine[];
-        kitchenCategories: KitchenCategory[];
     };
     sidebarOpen: boolean;
-    [key: string]: unknown;
-}
-
-export interface PrinterAssignment {
-    id?: number;
-    printer_id?: number;
-    assignment_type: 'kitchen' | 'order_taker' | 'cashier' | 'order_type' | 'generic';
-    kitchen_id?: number | null;
-    kitchen?: Kitchen | null;
-    order_type?: 'dine_in' | 'takeaway' | 'delivery' | null;
-    station_label?: string | null;
-    is_active?: boolean;
-    priority?: number;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface PrintJob {
-    id: number;
-    printer_id?: number | null;
-    printer_assignment_id?: number | null;
-    branch_id?: number | null;
-    requested_by?: number | null;
-    job_type: string;
-    status: string;
-    title: string;
-    payload?: Record<string, unknown> | null;
-    attempts?: number;
-    last_error?: string | null;
-    processed_at?: string | null;
-    printed_at?: string | null;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Printer {
-    id: number;
-    branch_id?: number | null;
-    branch?: Branch | null;
-    name: string;
-    ip_address: string;
-    port: number;
-    connection_type: 'network';
-    paper_width: '58mm' | '80mm';
-    copies: number;
-    is_active?: boolean;
-    notes?: string | null;
-    assignments?: PrinterAssignment[];
-    print_jobs?: PrintJob[];
-    created_at?: string;
-    updated_at?: string;
     [key: string]: unknown;
 }
 
 export interface AppNotification {
     id: string;
     category:
-        | 'orders'
         | 'payments'
         | 'salary'
         | 'employees'
         | 'inventory'
-        | 'products'
         | 'users'
         | 'system';
     title: string;
@@ -162,8 +101,6 @@ export interface User {
     province_id?: number | null;
     branch?: string | null;
     branch_id?: number | null;
-    kitchen?: string | Kitchen | null;
-    kitchen_id?: number | null;
     is_active?: boolean;
     is_internal_user?: boolean;
     avatar?: string;
@@ -171,26 +108,6 @@ export interface User {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown;
-}
-
-export interface Client {
-    id: number;
-    firebase_uid: string;
-    email?: string | null;
-    phone?: string | null;
-    name?: string | null;
-    avatar_url?: string | null;
-    provider?: string | null;
-    email_verified_at?: string | null;
-    last_login_at?: string | null;
-    is_active?: boolean;
-    orders_count?: number;
-    mobile_orders_count?: number;
-    website_orders_count?: number;
-    last_order_at?: string | null;
-    created_at?: string;
-    updated_at?: string;
     [key: string]: unknown;
 }
 
@@ -519,78 +436,11 @@ export interface Branch {
     province?: Province | string | null;
     province_id?: number | null;
     province_object?: Province | null;
-    kitchens?: Kitchen[];
-    tables?: BranchTable[];
     is_active?: boolean;
     address: string;
     description: string;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown;
-}
-
-export interface BranchTable {
-    id: number;
-    branch_id: number;
-    branch?: Branch | null;
-    table_number: string;
-    title: string;
-    description?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Kitchen {
-    id: number;
-    name?: string;
-    type?: string | null;
-    kitchen_type?: string | null;
-    kitchen_type_id?: number | null;
-    cuisines?: Cuisine[];
-    cuisines_label?: string | null;
-    kitchen_categories?: KitchenCategory[];
-    kitchen_categories_label?: string | null;
-    branch?: string | null;
-    branch_id?: number | null;
-    country?: string | null;
-    province?: string | null;
-    is_active?: boolean;
-    branches?: Branch[];
-    products?: Product[];
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface KitchenType {
-    id: number;
-    name: string;
-    description?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Cuisine {
-    id: number;
-    name: string;
-    description?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface KitchenCategory {
-    id: number;
-    name: string;
-    description?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
     [key: string]: unknown;
 }
 
@@ -615,87 +465,6 @@ export interface Province {
     updated_at: string;
     country_id?: number;
     country?: Country | null;
-    [key: string]: unknown;
-}
-
-export interface ProductCategory {
-    id: number;
-    name: string;
-    sort_order?: number;
-    pashto_name?: string | null;
-    dari_name?: string | null;
-    description?: string | null;
-    pashto_description?: string | null;
-    dari_description?: string | null;
-    image_path?: string | null;
-    image_url?: string | null;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface ProductType {
-    id: number;
-    name: string;
-    pashto_name?: string | null;
-    dari_name?: string | null;
-    description?: string | null;
-    pashto_description?: string | null;
-    dari_description?: string | null;
-    image_path?: string | null;
-    image_url?: string | null;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface ProductSize {
-    id: number;
-    name: string;
-    code?: string | null;
-    pivot?: {
-        price?: number | string;
-        [key: string]: unknown;
-    };
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface ProductImage {
-    id: number;
-    product_id?: number;
-    path: string;
-    url?: string;
-    sort_order?: number;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Product {
-    id: number;
-    name: string;
-    pashto_name?: string | null;
-    dari_name?: string | null;
-    description?: string | null;
-    pashto_description?: string | null;
-    dari_description?: string | null;
-    product_category_id?: number;
-    product_category_ids?: number[];
-    cuisine_id?: number | null;
-    kitchen_id?: number | null;
-    category?: ProductCategory | null;
-    categories?: ProductCategory[];
-    cuisine?: Cuisine | null;
-    kitchen?: Kitchen | null;
-    type?: string;
-    base_price?: number | string;
-    is_active?: boolean;
-    sizes?: ProductSize[];
-    images?: ProductImage[];
-    created_at?: string;
-    updated_at?: string;
     [key: string]: unknown;
 }
 
@@ -821,129 +590,6 @@ export interface InventoryType {
     name: string;
     description?: string | null;
     is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface OrderItem {
-    id: number;
-    order_id?: number;
-    product_id: number;
-    product_name?: string | null;
-    product_name_snapshot?: string | null;
-    product_size_id?: number | null;
-    product_size_name?: string | null;
-    product_size_name_snapshot?: string | null;
-    kitchen_id?: number | null;
-    prep_status?: 'pending' | 'in_progress' | 'ready' | 'delivered';
-    quantity: number;
-    price: number | string;
-    line_total?: number | string;
-    note?: string | null;
-    started_at?: string | null;
-    ready_at?: string | null;
-    delivered_at?: string | null;
-    prepared_by?: number | string | null;
-    kitchen_receipt_printed_at?: string | null;
-    product?: Product | null;
-    product_size?: ProductSize | null;
-    kitchen?: Kitchen | null;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Payment {
-    id?: number;
-    order_id?: number;
-    currency?: string;
-    amount?: number | string;
-    exchange_rate?: number | string | null;
-    method?: string;
-    payment_date?: string | null;
-    status?: string;
-    reference_number?: string | null;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Customer {
-    id: number;
-    name?: string | null;
-    phone?: string | null;
-    email?: string | null;
-    notes?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface DiscountCard {
-    id: number;
-    name: string;
-    code: string;
-    discount_type: 'percentage' | 'fixed' | string;
-    discount_value: number | string;
-    max_discount_amount?: number | string | null;
-    description?: string | null;
-    is_active?: boolean;
-    created_at?: string;
-    updated_at?: string;
-    [key: string]: unknown;
-}
-
-export interface Order {
-    id: number;
-    branch_id: number;
-    branch_table_id?: number | null;
-    user_id?: number | null;
-    client_id?: number | null;
-    customer_id?: number | null;
-    covered_by_type?: 'customer' | 'employee' | 'house' | string | null;
-    covered_by_employee_id?: number | null;
-    covered_by_note?: string | null;
-    discount_card_id?: number | null;
-    user?: User | null;
-    client?: {
-        id: number;
-        name?: string | null;
-        email?: string | null;
-        phone?: string | null;
-        provider?: string | null;
-        [key: string]: unknown;
-    } | null;
-    customer?: Customer | null;
-    coveredByEmployee?: Employee | null;
-    covered_by_employee?: Employee | null;
-    discountCard?: DiscountCard | null;
-    branch?: Branch | null;
-    branch_table?: BranchTable | null;
-    items?: OrderItem[];
-    payments?: Payment[];
-    items_count?: number;
-    order_type: string;
-    source?: string | null;
-    customer_name?: string | null;
-    customer_phone?: string | null;
-    delivery_address?: string | null;
-    customer_note?: string | null;
-    base_currency?: string;
-    exchange_rate?: number | null;
-    sub_total_amount?: number | string;
-    discount_amount?: number | string;
-    discount_type?: string | null;
-    discount_value?: number | string | null;
-    discount_label?: string | null;
-    total_amount: number | string;
-    paid_amount: number | string;
-    change_amount: number | string;
-    status?: string;
-    completed_at?: string | null;
-    cancelled_at?: string | null;
-    kitchen_names?: string[];
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

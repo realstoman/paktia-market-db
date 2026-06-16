@@ -25,24 +25,6 @@ enum PermissionEnum: string
     case BRANCH_UPDATE = 'branch.update';
     case BRANCH_DELETE = 'branch.delete';
 
-    // Branches
-    case KITCHEN_VIEW = 'kitchen.view';
-    case KITCHEN_CREATE = 'kitchen.create';
-    case KITCHEN_UPDATE = 'kitchen.update';
-    case KITCHEN_DELETE = 'kitchen.delete';
-
-    // Orders
-    case ORDERS_VIEW = 'orders.view';
-    case ORDERS_CREATE = 'orders.create';
-    case ORDERS_UPDATE = 'orders.update';
-    case ORDERS_CANCEL = 'orders.cancel';
-
-    // Products
-    case PRODUCTS_VIEW = 'products.view';
-    case PRODUCTS_CREATE = 'products.create';
-    case PRODUCTS_UPDATE = 'products.update';
-    case PRODUCTS_DELETE = 'products.delete';
-
     // Banners
     case BANNERS_VIEW = 'banners.view';
     case BANNERS_CREATE = 'banners.create';
@@ -62,8 +44,6 @@ enum PermissionEnum: string
     // Finance
     case FINANCE_VIEW = 'finance.view';
     case FINANCE_MANAGE = 'finance.manage';
-    case PAYMENTS_VIEW = 'payments.view';
-    case PAYMENTS_CREATE = 'payments.create';
     case EXPENSES_VIEW = 'expenses.view';
     case EXPENSES_CREATE = 'expenses.create';
     case PAYROLL_VIEW = 'payroll.view';

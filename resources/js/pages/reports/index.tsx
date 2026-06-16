@@ -1,7 +1,6 @@
 'use client';
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +32,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import AppLayout from '@/layouts/app-layout';
 import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
@@ -97,7 +97,7 @@ const RANGE_OPTIONS = [
 const QUICK_PRESETS = RANGE_OPTIONS.filter(
     (option) => option.value !== 'custom',
 );
-const SAVED_PRESETS_KEY = 'baba-reports-saved-presets';
+const SAVED_PRESETS_KEY = 'paktia-market-reports-saved-presets';
 const CHART_COLORS = [
     '#14532d',
     '#15803d',
@@ -266,27 +266,6 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
         return null;
     }
 
-    if (activeReport.key === 'orders') {
-        const grouped = new Map<string, number>();
-
-        for (const row of rows) {
-            const key = String(row.status ?? 'Unknown');
-            grouped.set(key, (grouped.get(key) ?? 0) + 1);
-        }
-
-        return {
-            title: 'Order mix',
-            description: 'Distribution of orders by fulfillment state.',
-            type: 'pie',
-            data: Array.from(grouped.entries()).map(([name, value]) => ({
-                name,
-                value,
-            })),
-            dataKey: 'value',
-            labelKey: 'name',
-        };
-    }
-
     if (activeReport.key === 'inventory') {
         return {
             title: 'Stock movement',
@@ -326,30 +305,6 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
             })),
             dataKey: 'value',
             labelKey: 'label',
-        };
-    }
-
-    if (activeReport.key === 'products') {
-        const grouped = new Map<string, number>();
-
-        for (const row of rows) {
-            const key = String(row.category ?? 'Uncategorized');
-            grouped.set(
-                key,
-                (grouped.get(key) ?? 0) + parseNumericValue(row.salesTotal),
-            );
-        }
-
-        return {
-            title: 'Sales mix',
-            description: 'Category contribution to product sales.',
-            type: 'pie',
-            data: Array.from(grouped.entries())
-                .map(([name, value]) => ({ name, value }))
-                .sort((a, b) => b.value - a.value)
-                .slice(0, 6),
-            dataKey: 'value',
-            labelKey: 'name',
         };
     }
 
@@ -718,7 +673,7 @@ export default function ReportsPage({
                                 Reporting workspace
                             </div>
                             <div className="space-y-2">
-                                <h1 className="text-3xl font-semibold tracking-tight text-[#102f33] dark:text-white">
+                                <h1 className="text-3xl font-semibold tracking-tight text-brand-primary dark:text-white">
                                     Executive reports, without the admin clutter
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-[#47676b] dark:text-neutral-300">
@@ -955,7 +910,7 @@ export default function ReportsPage({
                                 )}
                             >
                                 <div className="flex items-center justify-between gap-3">
-                                    <h2 className="font-semibold text-[#102f33]">
+                                    <h2 className="font-semibold text-brand-primary">
                                         {item.title}
                                     </h2>
                                     <Badge
@@ -968,7 +923,7 @@ export default function ReportsPage({
                                         ).toUpperCase()}
                                     </Badge>
                                 </div>
-                                <p className="mt-4 text-2xl font-semibold text-[#102f33]">
+                                <p className="mt-4 text-2xl font-semibold text-brand-primary">
                                     {formatMetric(
                                         item.primary,
                                         item.primaryFormat ?? 'number',
@@ -998,7 +953,7 @@ export default function ReportsPage({
                             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                                 <div className="min-w-0 space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <CardTitle className="text-xl text-[#102f33] dark:text-white">
+                                        <CardTitle className="text-xl text-brand-primary dark:text-white">
                                             {activeReport.title}
                                         </CardTitle>
                                         <Badge
@@ -1084,7 +1039,7 @@ export default function ReportsPage({
                                                     <p className="text-xs tracking-[0.18em] text-[#708689] uppercase">
                                                         {item.label}
                                                     </p>
-                                                    <p className="mt-2 text-2xl font-semibold text-[#102f33]">
+                                                    <p className="mt-2 text-2xl font-semibold text-brand-primary">
                                                         {formatMetric(
                                                             item.value,
                                                             item.format,

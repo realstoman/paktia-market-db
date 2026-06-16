@@ -117,7 +117,7 @@ export function ContractSummaryPrintDialog({
                             </div>
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
-                                <h1>Baba Restaurant</h1>
+                                <h1>Paktia Market</h1>
                                 <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
@@ -202,11 +202,11 @@ export function ContractSummaryPrintDialog({
                                     <div className="mx-auto max-w-sm text-center">
                                         <img
                                             src={brand.logoFull}
-                                            alt="Baba Restaurant Logo"
+                                            alt="Paktia Market Logo"
                                             className="mx-auto mb-3 h-16 w-16 object-contain"
                                         />
                                         <p className="text-2xl font-semibold tracking-wide">
-                                            Baba Restaurant
+                                            Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {branch?.name ?? 'Main Branch'} •{' '}

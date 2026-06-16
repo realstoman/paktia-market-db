@@ -10,12 +10,12 @@ import { formatPrice } from '@/utils/format';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
-export const description = 'Baba Bar Chart';
+export const description = 'Paktia Market Bar Chart';
 
 const chartConfig = {
     netProfit: {
         label: 'Net Profit',
-        color: '#102F33',
+        color: '#0B5AA5',
     },
 } satisfies ChartConfig;
 
@@ -43,7 +43,7 @@ interface BarChartDefaultProps {
 
 export function BarChartDefault({
     data = [],
-    title = 'Restaurant Net Profit',
+    title = 'Market Net Profit',
     description = 'Past 5 months',
     footerNote = 'Showing net profit by month for the last 5 months',
     compact = false,
@@ -72,7 +72,9 @@ export function BarChartDefault({
         fromLastMonth: labels?.fromLastMonth ?? 'from last month',
     };
     const chartData = data.map((item) => {
-        const dateSource = item.monthKey ? `${item.monthKey}-01` : `${item.label}`;
+        const dateSource = item.monthKey
+            ? `${item.monthKey}-01`
+            : `${item.label}`;
         const monthLabel = new Intl.DateTimeFormat(locale, {
             month: 'short',
         }).format(new Date(dateSource));
@@ -124,7 +126,13 @@ export function BarChartDefault({
                     </BarChart>
                 </ChartContainer>
             </div>
-            <div className={compact ? 'mt-2 flex flex-col items-start gap-1.5 text-sm' : 'mt-3 flex flex-col items-start gap-2 text-sm'}>
+            <div
+                className={
+                    compact
+                        ? 'mt-2 flex flex-col items-start gap-1.5 text-sm'
+                        : 'mt-3 flex flex-col items-start gap-2 text-sm'
+                }
+            >
                 <div className="flex gap-2 leading-none font-medium text-foreground">
                     {trendPercentage === null
                         ? resolvedLabels.noComparison

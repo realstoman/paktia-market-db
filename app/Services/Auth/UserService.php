@@ -54,7 +54,6 @@ class UserService
                 'country:id,name',
                 'province:id,name',
                 'branch:id,name',
-                'kitchen:id,name',
             ]);
 
         // Apply search
@@ -102,15 +101,12 @@ class UserService
             'province_id' => $user->province_id,
             'branch' => $user->branch ? $user->branch->name : null,
             'branch_id' => $user->branch_id,
-            'kitchen' => $user->kitchen ? $user->kitchen->name : null,
-            'kitchen_id' => $user->kitchen_id,
             'is_internal_user' => $user->is_internal_user,
 
             // Include full relationship objects if needed
             'country_object' => $user->country,
             'province_object' => $user->province,
             'branch_object' => $user->branch,
-            'kitchen_object' => $user->kitchen,
         ];
     }
 }

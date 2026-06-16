@@ -18,7 +18,7 @@ class HandleLocale
     public function handle(Request $request, Closure $next): Response
     {
         $supportedLocales = config('localization.supported', []);
-        $defaultLocale = config('app.locale', 'en');
+        $defaultLocale = config('app.locale', 'fa');
         $cookieName = (string) config('localization.cookie_name', 'locale');
         $requestedLocale = (string) $request->cookie($cookieName, $defaultLocale);
         $locale = array_key_exists($requestedLocale, $supportedLocales)

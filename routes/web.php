@@ -9,27 +9,19 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
-use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DiscountCardController;
 use App\Http\Controllers\EmployeeAdvanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\KitchenController;
-use App\Http\Controllers\KitchenOrderItemController;
 use App\Http\Controllers\Location\BranchController;
-use App\Http\Controllers\Location\BranchTableController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PayrollController;
-use App\Http\Controllers\PrinterController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ToolReferenceController;
@@ -62,19 +54,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tools.reference-data');
     Route::get('operations/runtime-health', OperationsRuntimeHealthController::class)
         ->name('operations.runtime-health');
-    Route::post('kitchen/order-items/bulk/start', [KitchenOrderItemController::class, 'startBulk'])
-        ->name('kitchen.order-items.bulk.start');
-    Route::post('kitchen/order-items/bulk/ready', [KitchenOrderItemController::class, 'readyBulk'])
-        ->name('kitchen.order-items.bulk.ready');
-    Route::post('kitchen/order-items/bulk/delivered', [KitchenOrderItemController::class, 'deliveredBulk'])
-        ->name('kitchen.order-items.bulk.delivered');
-    Route::post('kitchen/order-items/{orderItem}/start', [KitchenOrderItemController::class, 'start'])
-        ->name('kitchen.order-items.start');
-    Route::post('kitchen/order-items/{orderItem}/ready', [KitchenOrderItemController::class, 'ready'])
-        ->name('kitchen.order-items.ready');
-    Route::post('kitchen/order-items/{orderItem}/delivered', [KitchenOrderItemController::class, 'delivered'])
-        ->name('kitchen.order-items.delivered');
-
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -114,27 +93,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
         Route::resource('provinces', ProvinceController::class);
         Route::resource('branches', BranchController::class);
-        Route::post('branch-tables', [BranchTableController::class, 'store'])->name('branch-tables.store');
-        Route::put('branch-tables/{branchTable}', [BranchTableController::class, 'update'])->name('branch-tables.update');
-        Route::delete('branch-tables/{branchTable}', [BranchTableController::class, 'destroy'])->name('branch-tables.destroy');
-        Route::post('branches/{branch}/kitchens', [BranchController::class, 'syncKitchens'])->name('branches.kitchens');
-        Route::resource('kitchens', KitchenController::class);
-        Route::get('printers', [PrinterController::class, 'index'])->name('printers.index');
-        Route::post('printers', [PrinterController::class, 'store'])->name('printers.store');
-        Route::put('printers/{printer}', [PrinterController::class, 'update'])->name('printers.update');
-        Route::delete('printers/{printer}', [PrinterController::class, 'destroy'])->name('printers.destroy');
-        Route::post('printers/{printer}/test-print', [PrinterController::class, 'testPrint'])->name('printers.test-print');
-        Route::post('kitchens/{kitchen}/toggle', [KitchenController::class, 'toggle'])->name('kitchens.toggle');
-        Route::post('kitchens/{kitchen}/products', [KitchenController::class, 'syncProducts'])->name('kitchens.products');
-        Route::post('kitchen-types', [KitchenController::class, 'storeKitchenType'])->name('kitchen-types.store');
-        Route::put('kitchen-types/{kitchenType}', [KitchenController::class, 'updateKitchenType'])->name('kitchen-types.update');
-        Route::delete('kitchen-types/{kitchenType}', [KitchenController::class, 'destroyKitchenType'])->name('kitchen-types.destroy');
-        Route::post('cuisines', [KitchenController::class, 'storeCuisine'])->name('cuisines.store');
-        Route::put('cuisines/{cuisine}', [KitchenController::class, 'updateCuisine'])->name('cuisines.update');
-        Route::delete('cuisines/{cuisine}', [KitchenController::class, 'destroyCuisine'])->name('cuisines.destroy');
-        Route::post('kitchen-categories', [KitchenController::class, 'storeKitchenCategory'])->name('kitchen-categories.store');
-        Route::put('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'updateKitchenCategory'])->name('kitchen-categories.update');
-        Route::delete('kitchen-categories/{kitchenCategory}', [KitchenController::class, 'destroyKitchenCategory'])->name('kitchen-categories.destroy');
         Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
 
         // Activity / Audit Logs
@@ -146,50 +104,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('admin.activity-logs.show');
     });
 
-    // Products & Orders
-    Route::middleware('can:'.PermissionEnum::PRODUCTS_VIEW->value)->group(function () {
-        Route::get('products', [ProductController::class, 'index'])->name('products.index');
-    });
-    Route::middleware('can:'.PermissionEnum::PRODUCTS_CREATE->value)->group(function () {
-        Route::post('products', [ProductController::class, 'store'])->name('products.store');
-        Route::post('products/categories', [ProductController::class, 'storeCategory'])->name('products.categories.store');
-        Route::post('products/types', [ProductController::class, 'storeType'])->name('products.types.store');
-    });
-    Route::middleware('can:'.PermissionEnum::PRODUCTS_UPDATE->value)->group(function () {
-        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
-        Route::put('products/categories/{category}', [ProductController::class, 'updateCategory'])->name('products.categories.update');
-        Route::put('products/types/{type}', [ProductController::class, 'updateType'])->name('products.types.update');
-    });
-    Route::middleware([
-        'can:'.PermissionEnum::PRODUCTS_DELETE->value,
-        'role:super-admin',
-    ])->group(function () {
-        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-        Route::delete('products/categories/{category}', [ProductController::class, 'destroyCategory'])->name('products.categories.destroy');
-        Route::delete('products/types/{type}', [ProductController::class, 'destroyType'])->name('products.types.destroy');
-        Route::delete('products/{product}/images/{productImage}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
-    });
-    Route::middleware('can:'.PermissionEnum::ORDERS_VIEW->value)->group(function () {
-        Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
-        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/customers/search', [OrderController::class, 'searchCustomers'])
-            ->name('orders.customers.search');
-    });
-    Route::middleware('can:'.PermissionEnum::ORDERS_CREATE->value)->group(function () {
-        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
-    });
-    Route::middleware('can:'.PermissionEnum::ORDERS_UPDATE->value)->group(function () {
-        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
-        Route::patch('orders/{order}', [OrderController::class, 'update']);
-        Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
-        Route::patch('orders/{order}/table', [OrderController::class, 'updateTable'])->name('orders.table.update');
-        Route::post('orders/{order}/items', [OrderController::class, 'addItems'])->name('orders.items.store');
-    });
-    Route::middleware('role:super-admin')->group(function () {
-        Route::post('discount-cards', [DiscountCardController::class, 'store'])->name('discount-cards.store');
-        Route::put('discount-cards/{discountCard}', [DiscountCardController::class, 'update'])->name('discount-cards.update');
-        Route::delete('discount-cards/{discountCard}', [DiscountCardController::class, 'destroy'])->name('discount-cards.destroy');
-    });
     Route::middleware('can:'.PermissionEnum::REPORTS_VIEW->value)->group(function () {
         Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
     });

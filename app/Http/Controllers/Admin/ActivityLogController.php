@@ -15,13 +15,8 @@ use App\Models\EmployeeContract;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\InventoryTransaction;
-use App\Models\Kitchen;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Payment;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
-use App\Models\Product;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -42,11 +37,10 @@ class ActivityLogController extends Controller
         $this->authorize('viewAny', AuditLog::class);
 
         $paginator = QueryBuilder::for(AuditLog::class)
-            ->with(['user:id,name,email', 'branch:id,name', 'kitchen:id,name'])
+            ->with(['user:id,name,email', 'branch:id,name'])
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('branch_id'),
-                AllowedFilter::exact('kitchen_id'),
                 AllowedFilter::exact('action'),
                 AllowedFilter::exact('auditable_type'),
                 AllowedFilter::exact('batch_uuid'),
@@ -142,9 +136,6 @@ class ActivityLogController extends Controller
     private function auditableTypeOptions(): array
     {
         $canonical = [
-            Order::class,
-            OrderItem::class,
-            Payment::class,
             InventoryItem::class,
             InventoryTransaction::class,
             Expense::class,
@@ -154,9 +145,7 @@ class ActivityLogController extends Controller
             EmployeeAdvance::class,
             PayrollRun::class,
             PayrollRunItem::class,
-            Product::class,
             Branch::class,
-            Kitchen::class,
             User::class,
             SystemSetting::class,
         ];
@@ -182,7 +171,7 @@ class ActivityLogController extends Controller
     {
         $this->authorize('view', $auditLog);
 
-        $auditLog->load(['user:id,name,email', 'branch:id,name', 'kitchen:id,name']);
+        $auditLog->load(['user:id,name,email', 'branch:id,name']);
 
         return Inertia::render('admin/activity-logs/show', [
             'log' => (new ActivityLogResource($auditLog))->resolve(),

@@ -28,8 +28,6 @@ export default function BranchShow({ branch }: BranchShowProps) {
         },
     ];
 
-    const kitchens = branch.kitchens ?? [];
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Branch: ${branch.name}`} />
@@ -40,7 +38,7 @@ export default function BranchShow({ branch }: BranchShowProps) {
                             Branch Profile
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                            Branch information and kitchen overview.
+                            Branch information and location overview.
                         </p>
                     </div>
 
@@ -89,30 +87,6 @@ export default function BranchShow({ branch }: BranchShowProps) {
                                 </TableCell>
                                 <TableCell>
                                     {branch.description ?? '—'}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">
-                                    Kitchens
-                                </TableCell>
-                                <TableCell>
-                                    {kitchens.length === 0 ? (
-                                        <span className="text-sm text-muted-foreground">
-                                            No kitchens assigned
-                                        </span>
-                                    ) : (
-                                        <div className="flex flex-wrap gap-1">
-                                            {kitchens.map((kitchen) => (
-                                                <Badge
-                                                    key={`${kitchen.id}-${kitchen.name ?? 'kitchen'}`}
-                                                    variant="secondary"
-                                                >
-                                                    {kitchen.name ??
-                                                        `Kitchen #${kitchen.id}`}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    )}
                                 </TableCell>
                             </TableRow>
                             <TableRow>

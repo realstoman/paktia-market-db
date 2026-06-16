@@ -47,7 +47,7 @@ class ProfileController extends Controller
     {
         if ($request->user()?->is_internal_user) {
             return back()->withErrors([
-                'account' => 'Restaurant staff accounts cannot delete themselves.',
+                'account' => 'Internal staff accounts cannot delete themselves.',
             ]);
         }
 

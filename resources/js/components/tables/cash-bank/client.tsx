@@ -596,7 +596,7 @@ export function CashBankClient({
                                 options={PAYMENT_METHODS.map((option) => ({
                                     value: option.value,
                                     label: t(
-                                        `orders.paymentMethod.${option.value}`,
+                                        `paymentMethods.${option.value}`,
                                         option.label,
                                     ),
                                 }))}

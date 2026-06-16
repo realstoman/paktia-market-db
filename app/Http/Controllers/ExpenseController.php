@@ -9,7 +9,6 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\Vendor;
 use App\Services\Finance\PayrollExpenseSyncService;
-use App\Services\Projection\ProjectionDispatchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -18,7 +17,6 @@ use Inertia\Inertia;
 class ExpenseController extends Controller
 {
     public function __construct(
-        private readonly ProjectionDispatchService $projectionDispatchService,
         private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
     ) {}
 
@@ -102,11 +100,6 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
-
         $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense created successfully.')
             ->with('notification', [
@@ -161,15 +154,6 @@ class ExpenseController extends Controller
             'approved_at' => $approvalStatus === 'approved' ? now() : null,
         ]);
 
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $previousBranchId,
-            $previousExpenseDate,
-        );
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
-
         $redirect = redirect()->route('finance.expenses.index')
             ->with('success', 'Expense updated successfully.');
 
@@ -199,11 +183,6 @@ class ExpenseController extends Controller
             'approved_at' => now(),
         ]);
 
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
-
         return redirect()->route('finance.expenses.index')
             ->with('success', 'Expense approved successfully.')
             ->with('notification', [
@@ -226,11 +205,6 @@ class ExpenseController extends Controller
             'approved_by' => null,
             'approved_at' => null,
         ]);
-
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
 
         return redirect()->route('finance.expenses.index')
             ->with('success', $isApproved ? 'Expense was cancelled successfully.' : 'Expense was sent back to draft.')

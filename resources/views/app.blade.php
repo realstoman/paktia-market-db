@@ -14,7 +14,7 @@
                 const appearance = '{{ $appearance ?? "system" }}';
                 window.__APP_BRANDING__ = @json($branding);
 
-                const normalizeHex = (value, fallback = '#102F33') => {
+                const normalizeHex = (value, fallback = '#0B5AA5') => {
                     if (typeof value !== 'string') {
                         return fallback;
                     }
@@ -68,13 +68,13 @@
                     return brightness >= 160 ? '222 47% 11%' : '0 0% 100%';
                 };
 
-                const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#102F33');
+                const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#0B5AA5');
                 const primaryChannels = hexToHslChannels(primaryColor);
                 const primaryForegroundChannels = getForegroundChannels(primaryColor);
                 document.documentElement.style.setProperty('--brand-primary', primaryColor);
                 document.documentElement.style.setProperty(
                     '--brand-secondary',
-                    normalizeHex(window.__APP_BRANDING__?.secondaryColor, '#CC924B'),
+                    normalizeHex(window.__APP_BRANDING__?.secondaryColor, '#F2A20C'),
                 );
                 document.documentElement.style.setProperty(
                     '--brand-tertiary',
@@ -119,16 +119,10 @@
         <title inertia>{{ $branding['name'] }}</title>
 
         @php
-            $faviconIcoVersion = filemtime(public_path('favicon.ico'));
-            $favicon16Version = filemtime(public_path('favicon-16x16.png'));
-            $favicon32Version = filemtime(public_path('favicon-32x32.png'));
-            $appleTouchVersion = filemtime(public_path('apple-touch-icon.png'));
+            $faviconVersion = filemtime(public_path('favicon.svg'));
         @endphp
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v={{ $appleTouchVersion }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v={{ $favicon32Version }}">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v={{ $favicon16Version }}">
-        <link rel="icon" type="image/x-icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
-        <link rel="shortcut icon" href="/favicon.ico?v={{ $faviconIcoVersion }}">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v={{ $faviconVersion }}">
+        <link rel="shortcut icon" href="/favicon.svg?v={{ $faviconVersion }}">
         <link rel="manifest" href="/site.webmanifest">
         <meta name="theme-color" content="{{ $branding['primaryColor'] }}">
 

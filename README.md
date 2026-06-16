@@ -1,6 +1,6 @@
-# Baba Core
+# Paktia Market
 
-Baba Core is a restaurant operations platform built with Laravel, Inertia, React, and TypeScript.
+Paktia Market is an ERP platform built with Laravel, Inertia, React, and TypeScript.
 
 It currently includes:
 
@@ -104,7 +104,7 @@ Before running the project, make sure you have:
 
 ```bash
 git clone <your-repository-url>
-cd baba-core
+cd paktia-market-db
 ```
 
 ### 2. Install dependencies
@@ -147,7 +147,7 @@ If you want MySQL instead, update:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=baba_core
+DB_DATABASE=paktia_market_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -234,7 +234,7 @@ Use `.env.example` as the starting point.
 ### Minimal required variables
 
 ```env
-APP_NAME="Baba Core"
+APP_NAME="Paktia Market"
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true
@@ -255,7 +255,7 @@ MySQL example:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=baba_core
+DB_DATABASE=paktia_market_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```

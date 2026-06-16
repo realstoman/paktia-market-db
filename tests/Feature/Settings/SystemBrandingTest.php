@@ -19,7 +19,7 @@ test('super admin can view system branding settings', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/system-branding')
-            ->where('branding.name', 'Baba Restaurant ERP')
+            ->where('branding.name', 'Paktia Market ERP')
         );
 });
 
@@ -35,8 +35,8 @@ test('super admin can update system branding settings', function () {
     $this->actingAs($user)
         ->from(route('system-branding.edit'))
         ->put(route('system-branding.update'), [
-            'restaurant_name' => 'Baba Taste',
-            'restaurant_short_name' => 'Taste',
+            'market_name' => 'Paktia Market Plus',
+            'market_short_name' => 'Paktia',
             'primary_color' => '#123456',
             'secondary_color' => '#654321',
             'tertiary_color' => '#FAFAFA',
@@ -46,8 +46,8 @@ test('super admin can update system branding settings', function () {
 
     $branding = app(SystemBrandingService::class)->getBranding();
 
-    expect($branding['name'])->toBe('Baba Taste')
-        ->and($branding['shortName'])->toBe('Taste')
+    expect($branding['name'])->toBe('Paktia Market Plus')
+        ->and($branding['shortName'])->toBe('Paktia')
         ->and($branding['primaryColor'])->toBe('#123456')
         ->and($branding['secondaryColor'])->toBe('#654321')
         ->and($branding['tertiaryColor'])->toBe('#FAFAFA');

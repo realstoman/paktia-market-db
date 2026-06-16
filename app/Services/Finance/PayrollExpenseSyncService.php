@@ -9,15 +9,10 @@ use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
-use App\Services\Projection\ProjectionDispatchService;
 use App\Support\AfghanCalendar;
 
 class PayrollExpenseSyncService
 {
-    public function __construct(
-        private readonly ProjectionDispatchService $projectionDispatchService,
-    ) {}
-
     public function syncPaidRun(PayrollRun $run): void
     {
         $run->loadMissing('items.employee');
@@ -111,9 +106,5 @@ class PayrollExpenseSyncService
             ],
         );
 
-        $this->projectionDispatchService->queueBranchDailyMetric(
-            $expense->branch_id,
-            $expense->expense_date,
-        );
     }
 }

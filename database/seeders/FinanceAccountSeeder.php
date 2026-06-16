@@ -275,7 +275,7 @@ class FinanceAccountSeeder extends Seeder
 
         $this->upsertAccount([
             'code' => '5300',
-            'name' => 'Direct Kitchen Supplies',
+            'name' => 'Direct Store Supplies',
             'type' => 'cogs',
             'parent_id' => $parentId,
             'is_postable' => true,

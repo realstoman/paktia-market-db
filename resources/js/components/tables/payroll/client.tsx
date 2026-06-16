@@ -231,17 +231,11 @@ function payrollCoveredMonths(item: {
 function payrollAdvanceBreakdownTotals(item: PayrollRunItem) {
     return (item.advance_breakdown ?? []).reduce(
         (totals, entry) => {
-            const amount = Number(entry.amount ?? 0);
-
-            if ((entry.type ?? 'advance') === 'employee_order') {
-                totals.employeeOrder += amount;
-            } else {
-                totals.advance += amount;
-            }
+            totals.advance += Number(entry.amount ?? 0);
 
             return totals;
         },
-        { employeeOrder: 0, advance: 0 },
+        { advance: 0 },
     );
 }
 
@@ -522,7 +516,7 @@ export function PayrollClient({
             PAYMENT_METHOD_OPTIONS.map((option) => ({
                 value: option.value,
                 label: t(
-                    `orders.paymentMethod.${option.value}`,
+                    `paymentMethods.${option.value}`,
                     option.label,
                 ),
             })),
@@ -1713,19 +1707,6 @@ export function PayrollClient({
                                                         <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
                                                             <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
                                                                 {t(
-                                                                    'financePayroll.details.employeeOrderDeduction',
-                                                                    'Employee order deduction',
-                                                                )}
-                                                            </p>
-                                                            <p className="mt-1 font-semibold">
-                                                                {formatAfn(
-                                                                    deductionBreakdown.employeeOrder,
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                        <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800/70">
-                                                            <p className="text-xs tracking-[0.18em] text-neutral-500 uppercase">
-                                                                {t(
                                                                     'financePayroll.details.otherAdvanceDeduction',
                                                                     'Other advances',
                                                                 )}
@@ -1787,16 +1768,10 @@ export function PayrollClient({
                                                                         >
                                                                             <div className="min-w-0">
                                                                                 <p className="truncate font-medium text-neutral-900 dark:text-neutral-100">
-                                                                                    {entry.type ===
-                                                                                    'employee_order'
-                                                                                        ? t(
-                                                                                              'financePayroll.details.employeeCoveredOrder',
-                                                                                              'Employee-covered order',
-                                                                                          )
-                                                                                        : t(
-                                                                                              'financePayroll.details.salaryAdvance',
-                                                                                              'Salary advance',
-                                                                                          )}
+                                                                                    {t(
+                                                                                        'financePayroll.details.salaryAdvance',
+                                                                                        'Salary advance',
+                                                                                    )}
                                                                                 </p>
                                                                                 <p className="truncate text-xs text-neutral-500">
                                                                                     {entry.reason ??
