@@ -112,6 +112,9 @@ body {
     --brand-primary: #0b5aa5;
     --brand-secondary: #f2a20c;
     --brand-tertiary: #f8fafd;
+    --app-form-font:
+        'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --app-body-font:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
@@ -272,10 +275,7 @@ html[lang='ps'] {
     [contenteditable='true'],
     [data-slot='input'],
     [data-slot='textarea'] {
-        font-family:
-            'Manrope', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+        font-family: var(--app-form-font) !important;
         font-variant-numeric: tabular-nums lining-nums;
     }
 
