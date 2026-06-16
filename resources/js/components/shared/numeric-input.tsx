@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { normalizeLocalizedDigits } from '@/utils/input-normalization';
 import { Minus, Plus } from 'lucide-react';
 import * as React from 'react';
@@ -49,8 +49,9 @@ const formatWithCommas = (value: string): string => {
 };
 
 const parseBoundary = (
-    value: React.ComponentProps<typeof Input>['min'] |
-        React.ComponentProps<typeof Input>['max'],
+    value:
+        | React.ComponentProps<typeof Input>['min']
+        | React.ComponentProps<typeof Input>['max'],
 ): number | null => {
     if (value === undefined || value === null || value === '') {
         return null;
@@ -142,7 +143,7 @@ export function NumericInput({
     }
 
     return (
-        <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-colors transition-shadow focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]">
+        <div className="flex items-center overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-colors transition-shadow focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
             <Button
                 type="button"
                 variant="ghost"
@@ -155,9 +156,7 @@ export function NumericInput({
                         currentNumericValue <= min)
                 }
                 onClick={() =>
-                    updateClampedValue(
-                        (currentNumericValue ?? min ?? 0) - step,
-                    )
+                    updateClampedValue((currentNumericValue ?? min ?? 0) - step)
                 }
             >
                 <Minus className="h-4 w-4" />
@@ -202,9 +201,7 @@ export function NumericInput({
                         currentNumericValue >= max)
                 }
                 onClick={() =>
-                    updateClampedValue(
-                        (currentNumericValue ?? min ?? 0) + step,
-                    )
+                    updateClampedValue((currentNumericValue ?? min ?? 0) + step)
                 }
             >
                 <Plus className="h-4 w-4" />

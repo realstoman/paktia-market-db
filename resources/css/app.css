@@ -40,14 +40,7 @@
     font-weight: 200 800;
     font-display: swap;
     unicode-range:
-        U+0030-0039,
-        U+002B,
-        U+002C,
-        U+002D,
-        U+002E,
-        U+002F,
-        U+003A,
-        U+066B,
+        U+0030-0039, U+002B, U+002C, U+002D, U+002E, U+002F, U+003A, U+066B,
         U+066C;
 }
 
@@ -280,13 +273,8 @@ html[lang='ps'] {
     [data-slot='input'],
     [data-slot='textarea'] {
         font-family:
-            'Manrope',
-            ui-sans-serif,
-            system-ui,
-            sans-serif,
-            'Apple Color Emoji',
-            'Segoe UI Emoji',
-            'Segoe UI Symbol',
+            'Manrope', ui-sans-serif, system-ui, sans-serif,
+            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
             'Noto Color Emoji';
         font-variant-numeric: tabular-nums lining-nums;
     }

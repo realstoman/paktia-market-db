@@ -16,5 +16,6 @@ export function normalizeLocalizedDigits(value: string): string {
 export function normalizeNumericInputValue(value: string): string {
     return normalizeLocalizedDigits(value)
         .replaceAll('٫', '.')
-        .replaceAll('٬', ',');
+        .replaceAll('٬', '')
+        .replaceAll(',', '');
 }
