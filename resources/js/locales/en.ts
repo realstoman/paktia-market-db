@@ -48,7 +48,7 @@ const en = {
             description:
                 'Sign in to manage markets, properties, finance, and daily market operations.',
             mallImageAlt: 'Modern shopping mall interior',
-            mallQuote: 'Everything your market needs, in one place.',
+            mallQuote: 'Manage Paktiawal Group markets and properties, in one place.',
             mallQuoteCaption: 'Markets operations and management',
             email: 'Email address',
             emailPlaceholder: 'you@paktiawalgroup.com',
@@ -73,7 +73,7 @@ const en = {
         securedBy: 'Secured by industry-standard encryption',
         promo: {
             imageAlt: 'Paktiawal Group',
-            heroTitle: 'Manage Paktia Market',
+            heroTitle: 'Manage Paktiawal Group',
             heroDescription:
                 'Complete ERP solution for modern market operations',
             branchTitle: 'Branch Management',

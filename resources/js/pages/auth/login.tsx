@@ -37,7 +37,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <main className="grid min-h-svh w-full overflow-hidden bg-white lg:grid-cols-[0.94fr_1.86fr]">
                 <section className="relative hidden min-h-svh overflow-hidden lg:block">
                     <img
-                        src="/images/login-mall.png"
+                        src="/images/mall.jpg"
                         alt={t(
                             'auth.login.mallImageAlt',
                             'Modern shopping mall interior',
@@ -62,25 +62,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </div>
 
                     <div className="absolute inset-x-0 bottom-0 p-9 text-white xl:p-11">
-                        <p className="max-w-sm text-[2rem] leading-[1.12] font-bold tracking-[-0.035em] xl:text-[2.35rem]">
+                        <p className="max-w-sm text-[2rem] leading-[1.12] font-bold tracking-[-0.035em] xl:text-[2.20rem]">
                             {t(
                                 'auth.login.mallQuote',
-                                'Everything your market needs, in one place.',
-                            )}
-                        </p>
-                        <div className="mt-7 h-px w-14 bg-white/70" />
-                        <a
-                            href={LOGIN_BRAND_URL}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-4 inline-block text-sm font-semibold transition-colors hover:text-brand-secondary"
-                        >
-                            {loginBrandName}
-                        </a>
-                        <p className="mt-1 text-xs text-white/75">
-                            {t(
-                                'auth.login.mallQuoteCaption',
-                                'Retail operations and management',
+                                'Manage Paktiawal Group markets and properties, in one place.',
                             )}
                         </p>
                     </div>
