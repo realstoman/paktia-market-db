@@ -24,6 +24,12 @@ function welcomeToastMessage(pageProps: Partial<SharedData>): string {
     );
 }
 
+function welcomeToastTitleClass(pageProps: Partial<SharedData>): string {
+    const locale = pageProps.localization?.locale;
+
+    return locale === 'fa' || locale === 'ps' ? 'text-lg leading-7' : 'text-sm';
+}
+
 function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
     const toastId = pageProps.flash?.loginWelcome?.id;
 
@@ -34,7 +40,11 @@ function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
     displayedLoginWelcomeToasts.add(toastId);
 
     toast.success(welcomeToastMessage(pageProps), {
+        position: 'top-center',
         duration: 5000,
+        classNames: {
+            title: welcomeToastTitleClass(pageProps),
+        },
     });
 }
 
