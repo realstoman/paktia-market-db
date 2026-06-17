@@ -54,7 +54,7 @@ export default function LanguageDropdown({
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
-                        className="h-10 gap-2 rounded-xl border-neutral-200 bg-white/90 px-3 text-neutral-700 shadow-sm backdrop-blur transition-all hover:border-brand-primary/30 hover:bg-white hover:text-brand-primary dark:border-neutral-700 dark:bg-neutral-900/90 dark:text-neutral-200"
+                        className="h-10 gap-2 rounded-xl border-neutral-200 bg-white/90 px-3 text-neutral-700 shadow-xs backdrop-blur transition-all hover:border-brand-primary/30 hover:bg-white hover:text-brand-primary dark:border-neutral-700 dark:bg-neutral-900/90 dark:text-neutral-200"
                     >
                         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary">
                             <Languages className="h-3.5 w-3.5" />
