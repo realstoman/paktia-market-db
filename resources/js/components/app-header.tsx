@@ -325,7 +325,8 @@ export function AppHeader({
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="ghost"
-                                className="h-11 rounded-full border border-[#dfe7e9] bg-white px-2 dark:border-neutral-800 dark:bg-neutral-900"
+                                size="icon"
+                                className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                             >
                                 <UserInfo user={auth.user} showName={false} />
                             </Button>

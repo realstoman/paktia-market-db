@@ -450,14 +450,7 @@ export function HeaderNotifications() {
                 <div className="max-h-105 overflow-y-auto overscroll-contain p-3">
                     {displayedNotifications.length === 0 ? (
                         notifications.length === 0 ? (
-                            <div
-                                className={cn(
-                                    'flex flex-col justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 dark:border-neutral-800 dark:bg-neutral-900/50',
-                                    isRtl
-                                        ? 'items-end text-right'
-                                        : 'items-center text-center',
-                                )}
-                            >
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
@@ -475,14 +468,7 @@ export function HeaderNotifications() {
                                 </p>
                             </div>
                         ) : (
-                            <div
-                                className={cn(
-                                    'flex flex-col justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 dark:border-neutral-800 dark:bg-neutral-900/50',
-                                    isRtl
-                                        ? 'items-end text-right'
-                                        : 'items-center text-center',
-                                )}
-                            >
+                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
