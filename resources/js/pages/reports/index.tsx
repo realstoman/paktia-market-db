@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/table';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { Branch, BreadcrumbItem } from '@/types';
@@ -79,19 +80,34 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Reports', href: '/reports' },
-];
-
 const RANGE_OPTIONS = [
-    { value: 'today', label: 'Today' },
-    { value: 'yesterday', label: 'Yesterday' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'this_month', label: 'This Month' },
-    { value: 'last_30_days', label: 'Last 30 Days' },
-    { value: 'year_to_date', label: 'Year to Date' },
-    { value: 'custom', label: 'Custom' },
+    { value: 'today', labelKey: 'reportPage.ranges.today', label: 'Today' },
+    {
+        value: 'yesterday',
+        labelKey: 'reportPage.ranges.yesterday',
+        label: 'Yesterday',
+    },
+    {
+        value: 'this_week',
+        labelKey: 'reportPage.ranges.this_week',
+        label: 'This Week',
+    },
+    {
+        value: 'this_month',
+        labelKey: 'reportPage.ranges.this_month',
+        label: 'This Month',
+    },
+    {
+        value: 'last_30_days',
+        labelKey: 'reportPage.ranges.last_30_days',
+        label: 'Last 30 Days',
+    },
+    {
+        value: 'year_to_date',
+        labelKey: 'reportPage.ranges.year_to_date',
+        label: 'Year to Date',
+    },
+    { value: 'custom', labelKey: 'reportPage.ranges.custom', label: 'Custom' },
 ] as const;
 
 const QUICK_PRESETS = RANGE_OPTIONS.filter(
