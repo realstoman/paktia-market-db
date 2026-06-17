@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -29,9 +32,14 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
+    ChevronDown,
+    CircleDollarSign,
     ClipboardList,
+    Globe2,
     LayoutGrid,
+    MapPinned,
     Menu,
+    Settings2,
     ShieldCheck,
     Users,
 } from 'lucide-react';
@@ -43,9 +51,10 @@ interface HeaderNavConfig {
     icon: NonNullable<NavItem['icon']>;
     can?: string;
     canAny?: string[];
+    superAdminOnly?: boolean;
 }
 
-const navConfig: HeaderNavConfig[] = [
+const primaryNavConfig: HeaderNavConfig[] = [
     {
         titleKey: 'navigation.dashboard',
         fallbackTitle: 'Dashboard',
@@ -54,11 +63,18 @@ const navConfig: HeaderNavConfig[] = [
         can: 'dashboard.view',
     },
     {
-        titleKey: 'navigation.branches',
-        fallbackTitle: 'Properties',
+        titleKey: 'navigation.marketsProperties',
+        fallbackTitle: 'Markets & Properties',
         href: '/branches',
         icon: Building2,
         can: 'branch.view',
+    },
+    {
+        titleKey: 'navigation.finance',
+        fallbackTitle: 'Finance',
+        href: '/finance',
+        icon: Banknote,
+        canAny: ['finance.view', 'payroll.view'],
     },
     {
         titleKey: 'navigation.inventory',
@@ -68,6 +84,16 @@ const navConfig: HeaderNavConfig[] = [
         can: 'inventory.view',
     },
     {
+        titleKey: 'navigation.reports',
+        fallbackTitle: 'Reports',
+        href: '/reports',
+        icon: ChartLine,
+        can: 'reports.view',
+    },
+];
+
+const toolNavConfig: HeaderNavConfig[] = [
+    {
         titleKey: 'navigation.employees',
         fallbackTitle: 'Employees',
         href: '/employees',
@@ -75,11 +101,11 @@ const navConfig: HeaderNavConfig[] = [
         can: 'employees.view',
     },
     {
-        titleKey: 'navigation.finance',
-        fallbackTitle: 'Finance',
-        href: '/finance',
-        icon: Banknote,
-        canAny: ['finance.view', 'payroll.view'],
+        titleKey: 'navigation.employees',
+        fallbackTitle: 'Employees',
+        href: '/employees',
+        icon: BriefcaseBusiness,
+        can: 'employees.view',
     },
     {
         titleKey: 'navigation.users',
@@ -102,6 +128,62 @@ const navConfig: HeaderNavConfig[] = [
         icon: ChartLine,
         can: 'reports.view',
     },
+    {
+        titleKey: 'navigation.toolCountries',
+        fallbackTitle: 'Countries',
+        href: '/countries',
+        icon: Globe2,
+        superAdminOnly: true,
+    },
+    {
+        titleKey: 'navigation.toolProvinces',
+        fallbackTitle: 'Provinces',
+        href: '/provinces',
+        icon: MapPinned,
+        superAdminOnly: true,
+    },
+    {
+        titleKey: 'navigation.toolBranches',
+        fallbackTitle: 'Branches',
+        href: '/branches',
+        icon: Building2,
+        can: 'branch.view',
+    },
+    {
+        titleKey: 'navigation.toolChartOfAccounts',
+        fallbackTitle: 'Chart of Accounts',
+        href: '/finance/chart-of-accounts',
+        icon: Banknote,
+        canAny: ['finance.view', 'finance.manage'],
+    },
+    {
+        titleKey: 'navigation.toolExpenseCategories',
+        fallbackTitle: 'Expense Categories',
+        href: '/finance/expense-categories',
+        icon: CircleDollarSign,
+        canAny: ['finance.view', 'finance.manage', 'expenses.view'],
+    },
+    {
+        titleKey: 'navigation.toolCashMovementTypes',
+        fallbackTitle: 'Cash Movement Types',
+        href: '/finance/cash-movement-types',
+        icon: CircleDollarSign,
+        canAny: ['finance.view', 'finance.manage'],
+    },
+    {
+        titleKey: 'navigation.runtimeHealth',
+        fallbackTitle: 'System Health',
+        href: '/operations/runtime-health',
+        icon: Activity,
+        superAdminOnly: true,
+    },
+    {
+        titleKey: 'navigation.activityLogs',
+        fallbackTitle: 'Activity Logs',
+        href: '/admin/activity-logs',
+        icon: ClipboardList,
+        superAdminOnly: true,
+    },
 ];
 
 export function AppHeader({
@@ -113,41 +195,71 @@ export function AppHeader({
     const { auth } = page.props;
     const { can, canAny, isSuperAdmin } = useAuthorization();
     const { isRtl, t } = useLocalization();
-    const navigation = [
-        ...navConfig.filter((item) =>
-            item.canAny?.length ? canAny(item.canAny) : can(item.can),
-        ),
-        ...(isSuperAdmin
-            ? [
-                  {
-                      titleKey: 'navigation.runtimeHealth',
-                      fallbackTitle: 'Runtime Health',
-                      href: '/operations/runtime-health',
-                      icon: Activity,
-                  },
-              ]
-            : []),
-    ];
+
+    const canShowItem = (item: HeaderNavConfig) => {
+        if (item.superAdminOnly && !isSuperAdmin) {
+            return false;
+        }
+
+        if (item.canAny?.length) {
+            return canAny(item.canAny);
+        }
+
+        if (item.can) {
+            return can(item.can);
+        }
+
+        return true;
+    };
+
+    const primaryNavigation = primaryNavConfig.filter(canShowItem);
+    const toolsNavigation = toolNavConfig.filter(canShowItem);
+    const isActiveItem = (item: HeaderNavConfig) => {
+        const href = resolveUrl(item.href);
+
+        return page.url === href || page.url.startsWith(`${href}/`);
+    };
+    const isToolsActive = toolsNavigation.some(isActiveItem);
+
+    const navLink = (item: HeaderNavConfig, mobile = false) => {
+        const href = resolveUrl(item.href);
+        const active = isActiveItem(item);
+        const Icon = item.icon;
+
+        return (
+            <Link
+                key={href}
+                href={item.href}
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
+                    active
+                        ? 'bg-[#e8f1f2] text-[#123f4a]'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
+                } ${mobile ? 'w-full justify-start' : 'whitespace-nowrap'}`}
+            >
+                <Icon className="size-4" />
+                <span>{t(item.titleKey, item.fallbackTitle)}</span>
+            </Link>
+        );
+    };
 
     const navLinks = (mobile = false) =>
-        navigation.map((item) => {
+        primaryNavigation.map((item) => navLink(item, mobile));
+
+    const toolItems = toolsNavigation.map((item) => {
             const href = resolveUrl(item.href);
-            const active = page.url.startsWith(href);
             const Icon = item.icon;
 
             return (
-                <Link
+                <DropdownMenuItem
                     key={href}
-                    href={item.href}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                        active
-                            ? 'bg-[#e8f1f2] text-[#123f4a]'
-                            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
-                    } ${mobile ? 'w-full justify-start' : 'whitespace-nowrap'}`}
+                    asChild
+                    className={isRtl ? 'flex-row-reverse text-right' : ''}
                 >
-                    <Icon className="size-4" />
-                    <span>{t(item.titleKey, item.fallbackTitle)}</span>
-                </Link>
+                    <Link href={item.href} className="flex items-center gap-2">
+                        <Icon className="size-4" />
+                        <span>{t(item.titleKey, item.fallbackTitle)}</span>
+                    </Link>
+                </DropdownMenuItem>
             );
         });
 
@@ -165,31 +277,44 @@ export function AppHeader({
                     />
                 </Link>
 
-                <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
+                <nav className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex">
                     {navLinks()}
+                    {toolsNavigation.length > 0 ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
+                                        isToolsActive
+                                            ? 'bg-[#e8f1f2] text-[#123f4a]'
+                                            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
+                                    }`}
+                                >
+                                    <Settings2 className="size-4" />
+                                    <span>{t('navigation.tools', 'Tools')}</span>
+                                    <ChevronDown className="size-3.5 opacity-70" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align={isRtl ? 'start' : 'end'}
+                                className={`w-72 ${isRtl ? 'text-right' : ''}`}
+                            >
+                                <DropdownMenuLabel>
+                                    {t(
+                                        'navigation.managementTools',
+                                        'Management tools',
+                                    )}
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {toolItems}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : null}
                 </nav>
 
                 <div className="ms-auto flex shrink-0 items-center gap-2">
                     <AppearanceToggleDropdown />
                     <LanguageDropdown className="hidden sm:block" />
-                    {auth.is_super_admin ? (
-                        <Button
-                            asChild
-                            variant="ghost"
-                            size="icon"
-                            className="size-10 rounded-full border border-[#dfe7e9] bg-white dark:border-neutral-800 dark:bg-neutral-900"
-                        >
-                            <Link
-                                href="/admin/activity-logs"
-                                aria-label={t(
-                                    'navigation.activityLogs',
-                                    'Activity Logs',
-                                )}
-                            >
-                                <ClipboardList className="size-4" />
-                            </Link>
-                        </Button>
-                    ) : null}
                     <HeaderNotifications />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -234,6 +359,16 @@ export function AppHeader({
                             />
                             <div className="mt-6 space-y-2">
                                 {navLinks(true)}
+                                {toolsNavigation.length > 0 ? (
+                                    <>
+                                        <div className="px-2 pt-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                                            {t('navigation.tools', 'Tools')}
+                                        </div>
+                                        {toolsNavigation.map((item) =>
+                                            navLink(item, true),
+                                        )}
+                                    </>
+                                ) : null}
                             </div>
                             <LanguageDropdown className="mt-6 sm:hidden" />
                         </SheetContent>
