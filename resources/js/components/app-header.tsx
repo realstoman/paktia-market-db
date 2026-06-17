@@ -101,13 +101,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         can: 'employees.view',
     },
     {
-        titleKey: 'navigation.employees',
-        fallbackTitle: 'Employees',
-        href: '/employees',
-        icon: BriefcaseBusiness,
-        can: 'employees.view',
-    },
-    {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',
         href: '/users',
@@ -221,14 +214,18 @@ export function AppHeader({
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
 
-    const navLink = (item: HeaderNavConfig, mobile = false) => {
+    const navLink = (
+        item: HeaderNavConfig,
+        mobile = false,
+        keyPrefix = 'primary',
+    ) => {
         const href = resolveUrl(item.href);
         const active = isActiveItem(item);
         const Icon = item.icon;
 
         return (
             <Link
-                key={href}
+                key={`${keyPrefix}:${href}`}
                 href={item.href}
                 className={`flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
                     active
@@ -246,22 +243,22 @@ export function AppHeader({
         primaryNavigation.map((item) => navLink(item, mobile));
 
     const toolItems = toolsNavigation.map((item) => {
-            const href = resolveUrl(item.href);
-            const Icon = item.icon;
+        const href = resolveUrl(item.href);
+        const Icon = item.icon;
 
-            return (
-                <DropdownMenuItem
-                    key={href}
-                    asChild
-                    className={isRtl ? 'flex-row-reverse text-right' : ''}
-                >
-                    <Link href={item.href} className="flex items-center gap-2">
-                        <Icon className="size-4" />
-                        <span>{t(item.titleKey, item.fallbackTitle)}</span>
-                    </Link>
-                </DropdownMenuItem>
-            );
-        });
+        return (
+            <DropdownMenuItem
+                key={href}
+                asChild
+                className={isRtl ? 'flex-row-reverse text-right' : ''}
+            >
+                <Link href={item.href} className="flex items-center gap-2">
+                    <Icon className="size-4" />
+                    <span>{t(item.titleKey, item.fallbackTitle)}</span>
+                </Link>
+            </DropdownMenuItem>
+        );
+    });
 
     return (
         <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
@@ -291,7 +288,9 @@ export function AppHeader({
                                     }`}
                                 >
                                     <Settings2 className="size-4" />
-                                    <span>{t('navigation.tools', 'Tools')}</span>
+                                    <span>
+                                        {t('navigation.tools', 'Tools')}
+                                    </span>
                                     <ChevronDown className="size-3.5 opacity-70" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -365,7 +364,7 @@ export function AppHeader({
                                             {t('navigation.tools', 'Tools')}
                                         </div>
                                         {toolsNavigation.map((item) =>
-                                            navLink(item, true),
+                                            navLink(item, true, 'tool'),
                                         )}
                                     </>
                                 ) : null}

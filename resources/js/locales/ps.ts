@@ -90,6 +90,7 @@ const ps = {
         inventory: 'ګدام',
         employees: 'کارکوونکي',
         finance: 'مالي',
+        marketsProperties: 'مارکېټونه او جایدادونه',
         branches: 'د مارکټونه او جایدادونه',
         users: 'د سیستم کارونکي',
         roles: 'صلایحتونه',

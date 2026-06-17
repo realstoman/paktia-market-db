@@ -90,6 +90,7 @@ const en = {
         inventory: 'Inventory',
         employees: 'Employees',
         finance: 'Finance',
+        marketsProperties: 'Markets & Properties',
         branches: 'Branches',
         users: 'Users',
         roles: 'Roles',

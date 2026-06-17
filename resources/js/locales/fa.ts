@@ -91,6 +91,7 @@ const fa = {
         inventory: 'گدام',
         employees: 'کارمندان',
         finance: 'مالی',
+        marketsProperties: 'مارکیت ها و جایدادها',
         branches: 'مارکیت ها و جایدادها',
         users: 'کاربران سیستم',
         roles: 'صلاحیت ها',
