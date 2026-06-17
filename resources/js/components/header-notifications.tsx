@@ -5,11 +5,11 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { useLocalization } from '@/lib/localization';
+import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
-import { router, usePage } from '@inertiajs/react';
 import { formatNumber } from '@/utils/format';
+import { router, usePage } from '@inertiajs/react';
 import {
     Bell,
     Boxes,
@@ -21,7 +21,7 @@ import {
     Trash2,
     Users,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { type KeyboardEvent, useMemo, useState } from 'react';
 
 type NotificationCategory =
     | 'payments'
@@ -37,37 +37,37 @@ const categoryConfig = {
     payments: {
         label: 'Payments',
         icon: CreditCard,
-        accent: 'bg-emerald-500/12 text-emerald-700 ring-emerald-500/20',
-        dot: 'bg-emerald-500',
+        accent: 'bg-brand-primary/10 text-brand-primary ring-brand-primary/20',
+        dot: 'bg-brand-primary',
     },
     salary: {
         label: 'Salary',
         icon: AfnIcon,
-        accent: 'bg-sky-500/12 text-sky-700 ring-sky-500/20',
-        dot: 'bg-sky-500',
+        accent: 'bg-brand-secondary/15 text-amber-700 ring-brand-secondary/30 dark:text-amber-300',
+        dot: 'bg-brand-secondary',
     },
     employees: {
         label: 'Employees',
         icon: BriefcaseBusiness,
-        accent: 'bg-violet-500/12 text-violet-700 ring-violet-500/20',
-        dot: 'bg-violet-500',
+        accent: 'bg-[#e8f0f1] text-[#123f4a] ring-[#123f4a]/15 dark:bg-[#123f4a]/20 dark:text-sky-100',
+        dot: 'bg-[#123f4a]',
     },
     inventory: {
         label: 'Inventory',
         icon: Boxes,
-        accent: 'bg-orange-500/12 text-orange-700 ring-orange-500/20',
-        dot: 'bg-orange-500',
+        accent: 'bg-amber-500/12 text-amber-700 ring-amber-500/25 dark:text-amber-300',
+        dot: 'bg-amber-500',
     },
     users: {
         label: 'Users',
         icon: Users,
-        accent: 'bg-fuchsia-500/12 text-fuchsia-700 ring-fuchsia-500/20',
-        dot: 'bg-fuchsia-500',
+        accent: 'bg-sky-500/12 text-sky-700 ring-sky-500/20 dark:text-sky-300',
+        dot: 'bg-sky-500',
     },
     system: {
         label: 'System',
         icon: ShieldCheck,
-        accent: 'bg-slate-500/12 text-slate-700 ring-slate-500/20',
+        accent: 'bg-slate-500/12 text-slate-700 ring-slate-500/20 dark:text-slate-200',
         dot: 'bg-slate-500',
     },
 } satisfies Record<
@@ -82,7 +82,12 @@ const categoryConfig = {
 
 function AfnIcon({ className }: { className?: string }) {
     return (
-        <span className={cn('text-[1.15em] leading-none font-semibold', className)}>
+        <span
+            className={cn(
+                'text-[1.15em] leading-none font-semibold',
+                className,
+            )}
+        >
             ؋
         </span>
     );
@@ -100,7 +105,11 @@ function readStoredIds(key: string): string[] {
         const raw = window.localStorage.getItem(key);
         if (!raw) return [];
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === 'string') : [];
+        return Array.isArray(parsed)
+            ? parsed.filter(
+                  (value): value is string => typeof value === 'string',
+              )
+            : [];
     } catch {
         return [];
     }
@@ -210,20 +219,50 @@ export function HeaderNotifications() {
         ).format(new Date(createdAt));
     };
 
+    const openNotification = (id: string, href: string) => {
+        markAsRead([id]);
+        router.visit(href);
+    };
+
+    const handleNotificationKeyDown = (
+        event: KeyboardEvent<HTMLDivElement>,
+        id: string,
+        href: string,
+    ) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        event.preventDefault();
+        openNotification(id, href);
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative h-9 w-9 rounded-full border border-neutral-200/70 bg-neutral-100 text-neutral-700 transition-all duration-300 hover:bg-neutral-200/70 hover:text-neutral-950 dark:border-neutral-700/90 dark:bg-neutral-950 dark:text-neutral-200"
+                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                 >
                     <Bell className="h-[18px] w-[18px]" />
                     {unreadCount > 0 && (
                         <>
-                            <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-neutral-950" />
-                            <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 py-0.5 text-[10px] leading-none font-semibold text-white dark:bg-white dark:text-neutral-950">
-                                {unreadCount > 9 ? '9+' : formatNumber(unreadCount)}
+                            <span
+                                className={cn(
+                                    'absolute top-2 h-2.5 w-2.5 rounded-full bg-brand-secondary ring-2 ring-white dark:ring-neutral-900',
+                                    isRtl ? 'left-2' : 'right-2',
+                                )}
+                            />
+                            <span
+                                className={cn(
+                                    'absolute -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-brand-primary px-1.5 py-0.5 text-[10px] leading-none font-semibold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950',
+                                    isRtl ? '-left-1' : '-right-1',
+                                )}
+                            >
+                                {unreadCount > 9
+                                    ? '9+'
+                                    : formatNumber(unreadCount)}
                             </span>
                         </>
                     )}
@@ -237,42 +276,39 @@ export function HeaderNotifications() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
+                dir={isRtl ? 'rtl' : 'ltr'}
                 align={isRtl ? 'start' : 'end'}
                 sideOffset={10}
                 className={cn(
-                    'w-[380px] overflow-hidden rounded-3xl border border-neutral-200/80 bg-white p-0 shadow-2xl shadow-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-950',
-                    isRtl && 'text-right',
+                    'w-[400px] overflow-hidden rounded-[2rem] border border-[#dfe7e9] bg-[#f8fbfb] p-0 shadow-2xl shadow-slate-950/12 dark:border-neutral-800 dark:bg-neutral-950',
+                    isRtl ? 'text-right' : 'text-left',
                 )}
             >
-                <div className="border-b border-neutral-200/80 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(16,185,129,0.08),rgba(15,23,42,0.02))] px-5 py-4 dark:border-neutral-800 dark:bg-[linear-gradient(135deg,rgba(245,158,11,0.14),rgba(16,185,129,0.10),rgba(15,23,42,0.4))]">
-                    <div
-                        className={cn(
-                            'flex items-start justify-between gap-3',
-                            isRtl && 'flex-row-reverse',
-                        )}
-                    >
-                        <div className="space-y-1">
-                            <p className="text-xs font-semibold tracking-[0.22em] text-neutral-500 uppercase dark:text-neutral-400">
+                <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.18),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.16),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.20),rgba(10,15,25,0.92))]">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1 space-y-2">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-primary shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/10 dark:text-sky-100">
+                                <Bell className="h-3.5 w-3.5" />
                                 {t(
                                     'notifications.center',
                                     'Notifications Center',
                                 )}
-                            </p>
+                            </div>
                             <div
                                 className={cn(
                                     'flex items-center gap-2',
                                     isRtl && 'justify-end',
                                 )}
                             >
-                                <h3 className="text-base font-semibold text-neutral-950 dark:text-white">
+                                <h3 className="text-lg font-bold text-[#123f4a] dark:text-white">
                                     {t(
                                         'notifications.recentActivity',
                                         'Recent activity',
                                     )}
                                 </h3>
-                                <Sparkles className="h-4 w-4 text-amber-500" />
+                                <Sparkles className="h-4 w-4 text-brand-secondary" />
                             </div>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                            <p className="text-sm leading-6 text-slate-600 dark:text-neutral-300">
                                 {unreadCount > 0
                                     ? t(
                                           'notifications.unreadSummary',
@@ -290,7 +326,7 @@ export function HeaderNotifications() {
 
                         <Badge
                             variant="outline"
-                            className="rounded-full border-neutral-300 bg-white/85 px-2.5 py-1 text-[11px] font-semibold text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                            className="rounded-full border-brand-primary/15 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-brand-primary dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200"
                         >
                             {t('notifications.items', ':count items').replace(
                                 ':count',
@@ -299,12 +335,7 @@ export function HeaderNotifications() {
                         </Badge>
                     </div>
 
-                    <div
-                        className={cn(
-                            'mt-3 flex items-center justify-between gap-3',
-                            isRtl && 'flex-row-reverse',
-                        )}
-                    >
+                    <div className="mt-4 flex items-center justify-between gap-3">
                         <div
                             className={cn(
                                 'flex flex-wrap gap-2',
@@ -315,16 +346,27 @@ export function HeaderNotifications() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 rounded-full px-3 text-xs"
+                                className="h-8 rounded-full border border-brand-primary/10 bg-white/80 px-3 text-xs text-brand-primary hover:bg-brand-primary hover:text-white"
                                 onClick={() =>
                                     markAsRead(
                                         notifications
-                                            .filter((notification) => notification.unread)
-                                            .map((notification) => notification.id),
+                                            .filter(
+                                                (notification) =>
+                                                    notification.unread,
+                                            )
+                                            .map(
+                                                (notification) =>
+                                                    notification.id,
+                                            ),
                                     )
                                 }
                             >
-                                <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
+                                <CheckCheck
+                                    className={cn(
+                                        'h-3.5 w-3.5',
+                                        isRtl ? 'ml-1.5' : 'mr-1.5',
+                                    )}
+                                />
                                 {t(
                                     'notifications.markAllRead',
                                     'Mark all read',
@@ -334,7 +376,7 @@ export function HeaderNotifications() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 rounded-full px-3 text-xs"
+                                className="h-8 rounded-full border border-brand-secondary/20 bg-white/80 px-3 text-xs text-amber-700 hover:bg-brand-secondary hover:text-white dark:text-amber-200"
                                 onClick={() =>
                                     hideNotifications(
                                         notifications.map(
@@ -343,7 +385,12 @@ export function HeaderNotifications() {
                                     )
                                 }
                             >
-                                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                <Trash2
+                                    className={cn(
+                                        'h-3.5 w-3.5',
+                                        isRtl ? 'ml-1.5' : 'mr-1.5',
+                                    )}
+                                />
                                 {t('notifications.clearAll', 'Clear all')}
                             </Button>
                         </div>
@@ -359,10 +406,10 @@ export function HeaderNotifications() {
                             type="button"
                             onClick={() => setSelectedCategory('all')}
                             className={cn(
-                                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
+                                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
                                 selectedCategory === 'all'
-                                    ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
-                                    : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
+                                    ? 'border-brand-primary bg-brand-primary text-white dark:border-white dark:bg-white dark:text-neutral-950'
+                                    : 'border-white/80 bg-white/85 text-slate-600 hover:border-brand-primary/20 hover:bg-white hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
                             )}
                         >
                             {t('notifications.all', 'All')}
@@ -379,10 +426,10 @@ export function HeaderNotifications() {
                                         setSelectedCategory(category)
                                     }
                                     className={cn(
-                                        'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
+                                        'inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold shadow-sm shadow-black/5 transition-[color,background-color,border-color,box-shadow]',
                                         selectedCategory === category
-                                            ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-950'
-                                            : 'border-white/70 bg-white/80 text-neutral-700 hover:border-neutral-200 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
+                                            ? 'border-brand-primary bg-brand-primary text-white dark:border-white dark:bg-white dark:text-neutral-950'
+                                            : 'border-white/80 bg-white/85 text-slate-600 hover:border-brand-primary/20 hover:bg-white hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:border-neutral-700',
                                     )}
                                 >
                                     <span
@@ -406,17 +453,24 @@ export function HeaderNotifications() {
                 <div className="max-h-[420px] overflow-y-auto overscroll-contain p-3">
                     {displayedNotifications.length === 0 ? (
                         notifications.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
-                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                            <div
+                                className={cn(
+                                    'flex flex-col justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 dark:border-neutral-800 dark:bg-neutral-900/50',
+                                    isRtl
+                                        ? 'items-end text-right'
+                                        : 'items-center text-center',
+                                )}
+                            >
+                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
                                     {t(
                                         'notifications.empty.title',
                                         'No notifications yet',
                                     )}
                                 </p>
-                                <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
+                                <p className="mt-1 max-w-[280px] text-sm leading-6 text-slate-500 dark:text-neutral-400">
                                     {t(
                                         'notifications.empty.description',
                                         'New inventory, payroll, employee, finance, and user updates will appear here.',
@@ -424,17 +478,24 @@ export function HeaderNotifications() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-6 py-10 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
-                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-950">
+                            <div
+                                className={cn(
+                                    'flex flex-col justify-center rounded-2xl border border-dashed border-brand-primary/15 bg-white/80 px-6 py-10 dark:border-neutral-800 dark:bg-neutral-900/50',
+                                    isRtl
+                                        ? 'items-end text-right'
+                                        : 'items-center text-center',
+                                )}
+                            >
+                                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
                                     {t(
                                         'notifications.emptyCategory.title',
                                         'No items in this category',
                                     )}
                                 </p>
-                                <p className="mt-1 max-w-[240px] text-sm text-neutral-500 dark:text-neutral-400">
+                                <p className="mt-1 max-w-[280px] text-sm leading-6 text-slate-500 dark:text-neutral-400">
                                     {t(
                                         'notifications.emptyCategory.description',
                                         'Choose another badge above to see more recent updates.',
@@ -453,16 +514,34 @@ export function HeaderNotifications() {
                                     getDefaultHref(notification.category);
 
                                 return (
-                                    <button
+                                    <div
                                         key={notification.id}
-                                        type="button"
+                                        role="button"
+                                        tabIndex={0}
+                                        dir={isRtl ? 'rtl' : 'ltr'}
                                         onClick={() => {
-                                            markAsRead([notification.id]);
-                                            router.visit(href);
+                                            openNotification(
+                                                notification.id,
+                                                href,
+                                            );
                                         }}
+                                        onKeyDown={(event) =>
+                                            handleNotificationKeyDown(
+                                                event,
+                                                notification.id,
+                                                href,
+                                            )
+                                        }
                                         className={cn(
-                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-transparent bg-neutral-50/80 px-3 py-3 text-left transition-[color,background-color,border-color,box-shadow] hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
-                                            isRtl && 'flex-row-reverse text-right',
+                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm shadow-slate-950/[0.03] transition-[color,background-color,border-color,box-shadow] outline-none hover:border-brand-primary/20 hover:bg-brand-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-primary/25 dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
+                                            isRtl ? 'text-right' : 'text-left',
+                                            notification.unread
+                                                ? 'border-brand-secondary/35'
+                                                : 'border-[#e8eef0] dark:border-neutral-800',
+                                            notification.unread &&
+                                                (isRtl
+                                                    ? 'border-r-4'
+                                                    : 'border-l-4'),
                                         )}
                                     >
                                         <div className="relative mt-0.5">
@@ -477,7 +556,10 @@ export function HeaderNotifications() {
                                             {notification.unread && (
                                                 <span
                                                     className={cn(
-                                                        `absolute -top-0.5 ${isRtl ? '-left-0.5' : '-right-0.5'} h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950`,
+                                                        'absolute -top-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-neutral-950',
+                                                        isRtl
+                                                            ? '-left-0.5'
+                                                            : '-right-0.5',
                                                         config.dot,
                                                     )}
                                                 />
@@ -486,14 +568,20 @@ export function HeaderNotifications() {
 
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-start justify-between gap-3">
-                                                <div className="space-y-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="text-sm font-semibold text-neutral-950 dark:text-white">
+                                                <div className="min-w-0 flex-1 space-y-1">
+                                                    <div
+                                                        className={cn(
+                                                            'flex flex-wrap items-center gap-2',
+                                                            isRtl &&
+                                                                'justify-end',
+                                                        )}
+                                                    >
+                                                        <p className="text-sm font-bold text-[#123f4a] dark:text-white">
                                                             {notification.title}
                                                         </p>
                                                         <Badge
                                                             variant="outline"
-                                                            className="pointer-events-none rounded-full border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
+                                                            className="pointer-events-none rounded-full border-brand-primary/10 bg-[#e8f0f1] px-2 py-0.5 text-[10px] font-semibold text-brand-primary dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"
                                                         >
                                                             {t(
                                                                 `notifications.categories.${notification.category}`,
@@ -508,7 +596,7 @@ export function HeaderNotifications() {
                                                     </p>
                                                 </div>
 
-                                                <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
+                                                <span className="shrink-0 text-xs text-slate-400 dark:text-neutral-500">
                                                     {notification.createdAt
                                                         ? getNotificationTimestamp(
                                                               notification.createdAt,
@@ -532,17 +620,17 @@ export function HeaderNotifications() {
                                                         isRtl && 'justify-end',
                                                     )}
                                                 >
-                                                {notification.meta ? (
-                                                    <span className="pointer-events-none rounded-full bg-neutral-900 px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
-                                                        {notification.meta}
+                                                    {notification.meta ? (
+                                                        <span className="pointer-events-none rounded-full bg-brand-primary px-2.5 py-1 font-medium text-white dark:bg-white dark:text-neutral-950">
+                                                            {notification.meta}
+                                                        </span>
+                                                    ) : null}
+                                                    <span className="text-neutral-500 dark:text-neutral-400">
+                                                        {getPriorityLabel(
+                                                            notification.priority,
+                                                            t,
+                                                        )}
                                                     </span>
-                                                ) : null}
-                                                <span className="text-neutral-500 dark:text-neutral-400">
-                                                    {getPriorityLabel(
-                                                        notification.priority,
-                                                        t,
-                                                    )}
-                                                </span>
                                                 </div>
                                                 <button
                                                     type="button"
@@ -562,7 +650,7 @@ export function HeaderNotifications() {
                                                 </button>
                                             </div>
                                         </div>
-                                    </button>
+                                    </div>
                                 );
                             })}
                         </div>

@@ -37,6 +37,16 @@ return [
         'updated_description' => 'جزئیات موجودی :name به‌روزرسانی شد.',
         'qty_meta' => 'مقدار :quantity',
     ],
+    'generated' => [
+        'inventory_unavailable_title' => 'جنس در گدام موجود نیست',
+        'low_inventory_title' => 'موجودی گدام کم است',
+        'inventory_remaining_description' => 'برای :name مقدار :quantity باقی مانده است.',
+        'expense_review_title' => 'مصرف نیاز به بررسی دارد',
+        'expense_review_description' => 'مصرف :title در انتظار منظوری است.',
+        'payroll_recorded_title' => 'پرداخت معاش ثبت شد',
+        'payroll_recorded_description' => 'پرداخت معاش برای :name ثبت شد.',
+        'payroll_recorded_fallback' => 'پرداخت معاش کارمند ثبت شد.',
+    ],
     'products' => [
         'added_title' => 'محصول اضافه شد',
         'updated_title' => 'محصول به‌روزرسانی شد',

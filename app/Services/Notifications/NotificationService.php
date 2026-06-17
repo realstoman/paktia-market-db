@@ -27,8 +27,13 @@ class NotificationService
                     ->map(fn (InventoryItem $item) => [
                         'id' => 'inventory-'.$item->id.'-'.$item->updated_at?->timestamp,
                         'category' => 'inventory',
-                        'title' => (float) $item->quantity <= 0 ? 'Inventory item unavailable' : 'Low inventory level',
-                        'description' => $item->name.' has '.number_format((float) $item->quantity, 2).' remaining.',
+                        'title' => (float) $item->quantity <= 0
+                            ? __('notifications.generated.inventory_unavailable_title')
+                            : __('notifications.generated.low_inventory_title'),
+                        'description' => __('notifications.generated.inventory_remaining_description', [
+                            'name' => $item->name,
+                            'quantity' => number_format((float) $item->quantity, 2),
+                        ]),
                         'createdAt' => $item->updated_at?->toIso8601String(),
                         'priority' => (float) $item->quantity <= 0 ? 'high' : 'medium',
                         'href' => '/inventory',
@@ -46,8 +51,10 @@ class NotificationService
                     ->map(fn (Expense $expense) => [
                         'id' => 'expense-'.$expense->id.'-'.$expense->updated_at?->timestamp,
                         'category' => 'payments',
-                        'title' => 'Expense needs review',
-                        'description' => $expense->title.' is awaiting approval.',
+                        'title' => __('notifications.generated.expense_review_title'),
+                        'description' => __('notifications.generated.expense_review_description', [
+                            'title' => $expense->title,
+                        ]),
                         'createdAt' => $expense->updated_at?->toIso8601String(),
                         'priority' => 'medium',
                         'href' => '/finance/expenses',
@@ -63,15 +70,21 @@ class NotificationService
                     ->latest('updated_at')
                     ->limit(3)
                     ->get()
-                    ->map(fn (PayrollRunItem $item) => [
-                        'id' => 'payroll-'.$item->id.'-'.$item->updated_at?->timestamp,
-                        'category' => 'salary',
-                        'title' => 'Payroll payment recorded',
-                        'description' => trim(($item->employee?->first_name ?? '').' '.($item->employee?->last_name ?? '')) ?: 'Employee payroll was paid.',
-                        'createdAt' => $item->updated_at?->toIso8601String(),
-                        'priority' => 'low',
-                        'href' => '/finance/payroll',
-                    ]),
+                    ->map(function (PayrollRunItem $item) {
+                        $employeeName = trim(($item->employee?->first_name ?? '').' '.($item->employee?->last_name ?? ''));
+
+                        return [
+                            'id' => 'payroll-'.$item->id.'-'.$item->updated_at?->timestamp,
+                            'category' => 'salary',
+                            'title' => __('notifications.generated.payroll_recorded_title'),
+                            'description' => $employeeName !== ''
+                                ? __('notifications.generated.payroll_recorded_description', ['name' => $employeeName])
+                                : __('notifications.generated.payroll_recorded_fallback'),
+                            'createdAt' => $item->updated_at?->toIso8601String(),
+                            'priority' => 'low',
+                            'href' => '/finance/payroll',
+                        ];
+                    }),
             );
         }
 
