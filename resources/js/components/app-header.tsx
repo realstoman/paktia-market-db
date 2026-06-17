@@ -84,6 +84,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
         can: 'inventory.view',
     },
     {
+        titleKey: 'navigation.employees',
+        fallbackTitle: 'Employees',
+        href: '/employees',
+        icon: BriefcaseBusiness,
+        can: 'employees.view',
+    },
+    {
         titleKey: 'navigation.reports',
         fallbackTitle: 'Reports',
         href: '/reports',
@@ -93,13 +100,6 @@ const primaryNavConfig: HeaderNavConfig[] = [
 ];
 
 const toolNavConfig: HeaderNavConfig[] = [
-    {
-        titleKey: 'navigation.employees',
-        fallbackTitle: 'Employees',
-        href: '/employees',
-        icon: BriefcaseBusiness,
-        can: 'employees.view',
-    },
     {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',
@@ -213,6 +213,12 @@ export function AppHeader({
         return page.url === href || page.url.startsWith(`${href}/`);
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
+    const navItemBaseClass =
+        'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors';
+    const navItemStateClass = (active: boolean) =>
+        active
+            ? 'bg-[#e8f1f2] text-[#0d2f38]'
+            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]';
 
     const navLink = (
         item: HeaderNavConfig,
@@ -227,11 +233,9 @@ export function AppHeader({
             <Link
                 key={`${keyPrefix}:${href}`}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
-                    active
-                        ? 'bg-[#e8f1f2] text-[#123f4a]'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
-                } ${mobile ? 'w-full justify-start' : 'whitespace-nowrap'}`}
+                className={`${navItemBaseClass} ${navItemStateClass(active)} ${
+                    mobile ? 'w-full justify-start' : 'whitespace-nowrap'
+                }`}
             >
                 <Icon className="size-4" />
                 <span>{t(item.titleKey, item.fallbackTitle)}</span>
@@ -250,11 +254,19 @@ export function AppHeader({
             <DropdownMenuItem
                 key={href}
                 asChild
-                className={isRtl ? 'flex-row-reverse text-right' : ''}
+                className={isRtl ? 'text-right' : ''}
             >
-                <Link href={item.href} className="flex items-center gap-2">
+                <Link
+                    href={item.href}
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className={`flex w-full items-center gap-2 ${
+                        isRtl ? 'justify-start text-right' : ''
+                    }`}
+                >
                     <Icon className="size-4" />
-                    <span>{t(item.titleKey, item.fallbackTitle)}</span>
+                    <span className="flex-1">
+                        {t(item.titleKey, item.fallbackTitle)}
+                    </span>
                 </Link>
             </DropdownMenuItem>
         );
@@ -281,11 +293,7 @@ export function AppHeader({
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors ${
-                                        isToolsActive
-                                            ? 'bg-[#e8f1f2] text-[#123f4a]'
-                                            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]'
-                                    }`}
+                                    className={`${navItemBaseClass} ${navItemStateClass(isToolsActive)} shadow-none`}
                                 >
                                     <Settings2 className="size-4" />
                                     <span>
@@ -295,10 +303,13 @@ export function AppHeader({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
+                                dir={isRtl ? 'rtl' : 'ltr'}
                                 align={isRtl ? 'start' : 'end'}
-                                className={`w-72 ${isRtl ? 'text-right' : ''}`}
+                                className={`w-60 ${isRtl ? 'text-right' : ''}`}
                             >
-                                <DropdownMenuLabel>
+                                <DropdownMenuLabel
+                                    className={isRtl ? 'text-right' : ''}
+                                >
                                     {t(
                                         'navigation.managementTools',
                                         'Management tools',
@@ -314,6 +325,24 @@ export function AppHeader({
                 <div className="ms-auto flex shrink-0 items-center gap-2">
                     <AppearanceToggleDropdown />
                     <LanguageDropdown className="hidden sm:block" />
+                    {isSuperAdmin ? (
+                        <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="size-10 rounded-full border border-[#dfe7e9] bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#123f4a] dark:border-neutral-800 dark:bg-neutral-900"
+                        >
+                            <Link
+                                href="/admin/activity-logs"
+                                aria-label={t(
+                                    'navigation.activityLogs',
+                                    'Activity Logs',
+                                )}
+                            >
+                                <Activity className="size-4" />
+                            </Link>
+                        </Button>
+                    ) : null}
                     <HeaderNotifications />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
