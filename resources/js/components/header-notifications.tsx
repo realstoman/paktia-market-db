@@ -243,9 +243,9 @@ export function HeaderNotifications() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                 >
-                    <Bell className="h-[18px] w-[18px]" />
+                    <Bell className="h-4.5 w-4.5" />
                     {unreadCount > 0 && (
                         <>
                             <span
@@ -276,18 +276,17 @@ export function HeaderNotifications() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
-                dir={isRtl ? 'rtl' : 'ltr'}
                 align={isRtl ? 'start' : 'end'}
                 sideOffset={10}
                 className={cn(
-                    'w-[400px] overflow-hidden rounded-[2rem] border border-[#dfe7e9] bg-[#f8fbfb] p-0 shadow-2xl shadow-slate-950/12 dark:border-neutral-800 dark:bg-neutral-950',
+                    'w-100 overflow-hidden rounded-4xl border border-[#dfe7e9] bg-[#f8fbfb] p-0 shadow-2xl shadow-slate-950/12 dark:border-neutral-800 dark:bg-neutral-950',
                     isRtl ? 'text-right' : 'text-left',
                 )}
             >
                 <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.18),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.16),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.20),rgba(10,15,25,0.92))]">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-primary shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-white/10 dark:text-sky-100">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-primary shadow-sm shadow-slate-950/3 dark:border-white/10 dark:bg-white/10 dark:text-sky-100">
                                 <Bell className="h-3.5 w-3.5" />
                                 {t(
                                     'notifications.center',
@@ -397,10 +396,8 @@ export function HeaderNotifications() {
                     </div>
 
                     <div
-                        className={cn(
-                            'mt-4 flex flex-wrap gap-2',
-                            isRtl && 'justify-end',
-                        )}
+                        dir={isRtl ? 'rtl' : 'ltr'}
+                        className="mt-4 flex flex-wrap gap-2"
                     >
                         <button
                             type="button"
@@ -450,7 +447,7 @@ export function HeaderNotifications() {
                     </div>
                 </div>
 
-                <div className="max-h-[420px] overflow-y-auto overscroll-contain p-3">
+                <div className="max-h-105 overflow-y-auto overscroll-contain p-3">
                     {displayedNotifications.length === 0 ? (
                         notifications.length === 0 ? (
                             <div
@@ -470,7 +467,7 @@ export function HeaderNotifications() {
                                         'No notifications yet',
                                     )}
                                 </p>
-                                <p className="mt-1 max-w-[280px] text-sm leading-6 text-slate-500 dark:text-neutral-400">
+                                <p className="mt-1 max-w-70 text-sm leading-6 text-slate-500 dark:text-neutral-400">
                                     {t(
                                         'notifications.empty.description',
                                         'New inventory, payroll, employee, finance, and user updates will appear here.',
@@ -495,7 +492,7 @@ export function HeaderNotifications() {
                                         'No items in this category',
                                     )}
                                 </p>
-                                <p className="mt-1 max-w-[280px] text-sm leading-6 text-slate-500 dark:text-neutral-400">
+                                <p className="mt-1 max-w-70 text-sm leading-6 text-slate-500 dark:text-neutral-400">
                                     {t(
                                         'notifications.emptyCategory.description',
                                         'Choose another badge above to see more recent updates.',
@@ -533,7 +530,7 @@ export function HeaderNotifications() {
                                             )
                                         }
                                         className={cn(
-                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm shadow-slate-950/[0.03] transition-[color,background-color,border-color,box-shadow] outline-none hover:border-brand-primary/20 hover:bg-brand-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-primary/25 dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
+                                            'group flex w-full cursor-pointer items-start gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm shadow-slate-950/3 transition-[color,background-color,border-color,box-shadow] outline-none hover:border-brand-primary/20 hover:bg-brand-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-primary/25 dark:bg-neutral-900/70 dark:hover:border-neutral-800 dark:hover:bg-neutral-900',
                                             isRtl ? 'text-right' : 'text-left',
                                             notification.unread
                                                 ? 'border-brand-secondary/35'

@@ -724,6 +724,7 @@ const en = {
     footer: {
         allRightsReserved: 'All rights reserved.',
         productOf: 'Product of',
+        developedBy: 'Developed by',
     },
     employees: {
         page: {

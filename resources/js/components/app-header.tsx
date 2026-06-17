@@ -28,7 +28,6 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Activity,
     Banknote,
-    Boxes,
     BriefcaseBusiness,
     Building2,
     ChartLine,
@@ -42,6 +41,7 @@ import {
     Settings2,
     ShieldCheck,
     Users,
+    Warehouse,
 } from 'lucide-react';
 
 interface HeaderNavConfig {
@@ -80,7 +80,7 @@ const primaryNavConfig: HeaderNavConfig[] = [
         titleKey: 'navigation.inventory',
         fallbackTitle: 'Inventory',
         href: '/inventory',
-        icon: Boxes,
+        icon: Warehouse,
         can: 'inventory.view',
     },
     {
