@@ -721,6 +721,7 @@ const ps = {
     footer: {
         allRightsReserved: 'ټول حقونه خوندي دي.',
         productOf: 'د',
+        developedBy: 'جوړونکی',
     },
     employees: {
         page: {

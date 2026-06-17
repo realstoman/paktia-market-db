@@ -728,6 +728,7 @@ const fa = {
     footer: {
         allRightsReserved: 'تمام حقوق محفوظ است.',
         productOf: 'محصول',
+        developedBy: 'انکشاف توسط',
     },
     employees: {
         page: {

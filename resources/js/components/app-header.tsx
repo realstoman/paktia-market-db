@@ -214,7 +214,7 @@ export function AppHeader({
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
     const navItemBaseClass =
-        'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors';
+        'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
     const navItemStateClass = (active: boolean) =>
         active
             ? 'bg-[#e8f1f2] text-[#0d2f38]'

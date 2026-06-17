@@ -59,37 +59,45 @@ export default function AppHeaderLayout({
             <AppHeader breadcrumbs={breadcrumbs} />
             <AppContent className="relative flex min-h-[calc(100vh-5rem)] flex-col bg-[#eef3f4] p-3 sm:p-5 dark:bg-neutral-950">
                 {children}
-                <footer
-                    dir="ltr"
-                    className="mt-auto flex flex-col gap-3 border-t border-[#dfe7e9] pt-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:text-neutral-400"
-                >
-                    <div className="text-center sm:text-left">
-                        <span>{t('footer.developedBy', 'Developed by')}</span>{' '}
-                        <a
-                            href="https://stoman.me"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-semibold text-brand-primary transition-colors hover:text-brand-secondary hover:underline"
-                        >
-                            Stoman
-                        </a>
-                    </div>
-                    <div
-                        dir={isRtl ? 'rtl' : 'ltr'}
-                        className="text-center sm:text-right"
+                <div className="-mx-3 mt-auto -mb-3 pt-8 sm:-mx-5 sm:-mb-5">
+                    <footer
+                        dir="ltr"
+                        className="flex flex-col gap-3 bg-[#f8fbfb]/95 px-4 py-4 text-xs text-slate-500 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-neutral-950/95 dark:text-neutral-400"
                     >
-                        © {year}{' '}
-                        <a
-                            href="https://paktiawalgroup.com"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-semibold text-[#123f4a] transition-colors hover:text-brand-primary hover:underline dark:text-white"
+                        <div className="text-center sm:text-left">
+                            <span>
+                                {t('footer.developedBy', 'Developed by')}
+                            </span>{' '}
+                            <a
+                                href="https://stoman.me"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-semibold text-brand-primary transition-colors hover:text-brand-secondary hover:underline"
+                            >
+                                Stoman
+                            </a>
+                        </div>
+                        <div
+                            dir={isRtl ? 'rtl' : 'ltr'}
+                            className="text-center sm:text-right"
                         >
-                            {t('brand.marketName', 'Paktiawal Group')}
-                        </a>
-                        . {t('footer.allRightsReserved', 'All rights reserved.')}
-                    </div>
-                </footer>
+                            © {year}{' '}
+                            <a
+                                href="https://paktiawalgroup.com"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-semibold text-[#123f4a] transition-colors hover:text-brand-primary hover:underline dark:text-white"
+                            >
+                                {t('brand.marketName', 'Paktiawal Group')}
+                            </a>
+                            .{' '}
+                            {t(
+                                'footer.allRightsReserved',
+                                'All rights reserved.',
+                            )}
+                        </div>
+                    </footer>
+                </div>
                 {isNavigating ? (
                     <div className="absolute inset-0 z-20 bg-background/75 backdrop-blur-[1px]">
                         <PageLoadingSkeleton />
