@@ -88,10 +88,10 @@ const fa = {
     navigation: {
         platform: 'سیستم',
         dashboard: 'دشبورد',
-        inventory: 'بخش گدام',
+        inventory: 'گدام',
         employees: 'کارمندان',
-        finance: 'بخش مالی',
-        branches: 'شعبات مارکیت',
+        finance: 'مالی',
+        branches: 'مارکیت ها و جایدادها',
         users: 'کاربران سیستم',
         roles: 'صلاحیت ها',
         reports: 'گزارش‌ ها',
@@ -105,7 +105,7 @@ const fa = {
         toolExpenseCategories: 'کتگوری‌های مصرف',
         toolCashMovementTypes: 'انواع حرکات نقدی',
         runtimeHealth: 'وضعیت سیستم',
-        activityLogs: 'لاگ فعالیت‌ها',
+        activityLogs: 'فعالیت‌ ها در سیستم',
     },
     dashboardPage: {
         title: 'دشبورد',

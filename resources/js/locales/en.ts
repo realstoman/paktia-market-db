@@ -95,7 +95,7 @@ const en = {
         roles: 'Roles',
         reports: 'Reports',
         tools: 'Tools',
-        managementTools: 'Management tools',
+        managementTools: 'Tools',
         toolCountries: 'Countries',
         toolProvinces: 'Provinces',
         toolBranches: 'Branches',
