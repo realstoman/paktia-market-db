@@ -303,7 +303,6 @@ export function AppHeader({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
-                                dir={isRtl ? 'rtl' : 'ltr'}
                                 align={isRtl ? 'start' : 'end'}
                                 className={`w-60 ${isRtl ? 'text-right' : ''}`}
                             >
