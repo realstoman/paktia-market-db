@@ -722,7 +722,7 @@ const en = {
         },
     },
     footer: {
-        allRightsReserved: 'All rights reserved.',
+        allRightsReserved: 'All Rights Reserved.',
         productOf: 'Product of',
         developedBy: 'Developed by',
     },

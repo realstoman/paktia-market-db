@@ -726,9 +726,9 @@ const fa = {
         },
     },
     footer: {
-        allRightsReserved: 'تمام حقوق محفوظ است.',
+        allRightsReserved: 'تمام حقوق کاپی محفوظ است.',
         productOf: 'محصول',
-        developedBy: 'انکشاف توسط',
+        developedBy: 'ساخته شده توسط',
     },
     reportPage: {
         title: 'گزارش‌ها',

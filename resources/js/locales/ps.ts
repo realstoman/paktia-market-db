@@ -719,7 +719,7 @@ const ps = {
         },
     },
     footer: {
-        allRightsReserved: 'ټول حقونه خوندي دي.',
+        allRightsReserved: 'د کاپی ټول حقوق خوندي دي.',
         productOf: 'د',
         developedBy: 'جوړونکی',
     },

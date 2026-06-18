@@ -64,22 +64,23 @@ export default function AppHeaderLayout({
                         dir="ltr"
                         className="flex flex-col gap-3 bg-[#f8fbfb]/95 px-4 py-4 text-xs text-slate-500 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-neutral-950/95 dark:text-neutral-400"
                     >
-                        <div className="text-center sm:text-left">
-                            <span>
-                                {t('footer.developedBy', 'Developed by')}
-                            </span>{' '}
+                        <div className="text-center sm:text-left text-base">
+
                             <a
                                 href="https://stoman.me"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="font-semibold text-brand-primary transition-colors hover:text-brand-secondary hover:underline"
+                                className="font-semibold text-brand-primary transition-colors hover:text-brand-secondary hover:underline pr-1"
                             >
                                 Stoman
                             </a>
+                             <span>
+                                {t('footer.developedBy', 'Developed by')}
+                            </span>{' '}
                         </div>
                         <div
                             dir={isRtl ? 'rtl' : 'ltr'}
-                            className="text-center sm:text-right"
+                            className="text-center sm:text-right text-base"
                         >
                             © {year}{' '}
                             <a
