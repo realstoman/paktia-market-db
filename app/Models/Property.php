@@ -10,6 +10,7 @@ class Property extends Model
     use Auditable;
 
     protected $fillable = [
+        'parent_property_id',
         'name',
         'property_type',
         'usage_type',
@@ -55,6 +56,16 @@ class Property extends Model
     public function country()
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function parentProperty()
+    {
+        return $this->belongsTo(self::class, 'parent_property_id');
+    }
+
+    public function relatedLocations()
+    {
+        return $this->hasMany(self::class, 'parent_property_id')->orderBy('name');
     }
 
     public function province()

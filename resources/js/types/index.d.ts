@@ -434,6 +434,9 @@ export interface CashMovementType {
 
 export interface Property {
     id: number;
+    parent_property_id?: number | null;
+    parent_property?: Property | null;
+    related_locations?: Property[];
     name: string;
     country?: Country | string | null;
     country_id?: number | null;

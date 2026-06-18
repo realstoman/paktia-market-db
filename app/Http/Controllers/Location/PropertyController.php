@@ -22,6 +22,9 @@ class PropertyController extends Controller
             ...$service->getIndexData(),
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
+            'propertyOptions' => Property::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'property_type', 'country_id', 'province_id']),
         ]);
     }
 
@@ -29,7 +32,8 @@ class PropertyController extends Controller
     {
         return Inertia::render('location/properties/show', [
             'property' => $property->load([
-                'country', 'province',
+                'country', 'province', 'parentProperty.country', 'parentProperty.province',
+                'relatedLocations.country', 'relatedLocations.province',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
             ]),
         ]);
@@ -144,6 +148,12 @@ class PropertyController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'parent_property_id' => [
+                'nullable',
+                'integer',
+                'exists:properties,id',
+                Rule::notIn(array_filter([$request->route('property')?->id])),
+            ],
             'property_type' => ['required', Rule::in(['market', 'mall', 'block', 'house'])],
             'usage_type' => ['required', Rule::in(['commercial', 'residential', 'mixed'])],
             'country_id' => ['required', 'exists:countries,id'],

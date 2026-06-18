@@ -43,7 +43,7 @@ class PropertyService
 
     public function getIndexData(): array
     {
-        $properties = Property::with(['country', 'province'])
+        $properties = Property::with(['country', 'province', 'parentProperty:id,name'])
             ->withCount(['floors', 'units'])
             ->latest()
             ->get();
@@ -52,6 +52,8 @@ class PropertyService
             return [
                 'id' => $property->id,
                 'name' => $property->name,
+                'parent_property_id' => $property->parent_property_id,
+                'parent_property' => $property->parentProperty,
                 'property_type' => $property->property_type,
                 'usage_type' => $property->usage_type,
                 'image_url' => $property->image_url,
