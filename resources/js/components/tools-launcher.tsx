@@ -20,6 +20,7 @@ import {
     MapPinned,
     PackageSearch,
     Settings2,
+    UserRoundCog,
     Users,
 } from 'lucide-react';
 
@@ -39,6 +40,13 @@ const tools: ToolConfig[] = [
         fallbackLabel: 'Inventory',
         icon: PackageSearch,
         can: 'inventory.view',
+    },
+    {
+        href: '/employees',
+        labelKey: 'navigation.toolEmployees',
+        fallbackLabel: 'Employees',
+        icon: UserRoundCog,
+        can: 'employees.view',
     },
     {
         href: '/shareholders',

@@ -100,6 +100,7 @@ const fa = {
         tools: 'ابزارها',
         managementTools: 'ابزارهای مدیریتی',
         toolInventory: 'گدام',
+        toolEmployees: 'کارمندان',
         toolShareholders: 'سهمداران',
         toolCountries: 'کشورها',
         toolProvinces: 'ولایات',

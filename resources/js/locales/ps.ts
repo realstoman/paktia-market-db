@@ -99,6 +99,7 @@ const ps = {
         tools: 'د سیستم توکي',
         managementTools: 'د مدیریت توکي',
         toolInventory: 'ګدام',
+        toolEmployees: 'کارکوونکي',
         toolShareholders: 'شریکان',
         toolCountries: 'هیوادونه',
         toolProvinces: 'ولایتونه',

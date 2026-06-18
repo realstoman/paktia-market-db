@@ -19,7 +19,6 @@ import { Link } from '@inertiajs/react';
 import {
     Activity,
     Banknote,
-    BriefcaseBusiness,
     Building2,
     ChartLine,
     Handshake,
@@ -45,13 +44,6 @@ const mainNavItems: SidebarNavConfig[] = [
         href: dashboard(),
         icon: LayoutGrid,
         can: 'dashboard.view',
-    },
-    {
-        titleKey: 'navigation.employees',
-        fallbackTitle: 'Employees',
-        href: '/employees',
-        icon: BriefcaseBusiness,
-        can: 'employees.view',
     },
     {
         titleKey: 'navigation.finance',

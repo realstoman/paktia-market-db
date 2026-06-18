@@ -99,6 +99,7 @@ const en = {
         tools: 'Tools',
         managementTools: 'Tools',
         toolInventory: 'Inventory',
+        toolEmployees: 'Employees',
         toolShareholders: 'Shareholders',
         toolCountries: 'Countries',
         toolProvinces: 'Provinces',
