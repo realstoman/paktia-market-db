@@ -21,7 +21,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
-    Branch,
+    Property,
     BreadcrumbItem,
     Currency,
     InventoryCategory,
@@ -44,7 +44,7 @@ import { useMemo, useState } from 'react';
 
 interface InventoryPageProps {
     inventoryItems: InventoryItem[];
-    branches: Branch[];
+    properties: Property[];
     vendors: Vendor[];
     currencies: Currency[];
     units: Unit[];
@@ -54,7 +54,7 @@ interface InventoryPageProps {
 
 export default function InventoryPage({
     inventoryItems,
-    branches,
+    properties,
     vendors,
     currencies,
     units,
@@ -83,33 +83,33 @@ export default function InventoryPage({
               ];
     const BRANCH_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
-    const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
+    const [selectedPropertyId, setSelectedPropertyId] = useState(BRANCH_FILTER_ALL);
     const [isVendorOwedModalOpen, setIsVendorOwedModalOpen] = useState(false);
-    const branchOptions = useMemo(
+    const propertyOptions = useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        selectedBranchId,
-        setSelectedBranchId,
+        propertyOptions,
+        selectedPropertyId,
+        setSelectedPropertyId,
         [BRANCH_FILTER_ALL],
     );
 
     const statsItems = useMemo(() => {
-        if (selectedBranchId === BRANCH_FILTER_ALL) {
+        if (selectedPropertyId === BRANCH_FILTER_ALL) {
             return inventoryItems;
         }
 
         return inventoryItems.filter(
-            (item) => String(item.branch_id) === selectedBranchId,
+            (item) => String(item.property_id) === selectedPropertyId,
         );
-    }, [inventoryItems, selectedBranchId]);
+    }, [inventoryItems, selectedPropertyId]);
 
     const stats = useMemo(() => {
         const totalItems = statsItems.length;
@@ -232,30 +232,30 @@ export default function InventoryPage({
                 <div className="flex justify-end">
                     <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
                         <Select
-                            value={selectedBranchId}
-                            onValueChange={setSelectedBranchId}
+                            value={selectedPropertyId}
+                            onValueChange={setSelectedPropertyId}
                         >
                             <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={t(
-                                        'inventory.page.branchStatsPlaceholder',
-                                        'Select branch for stats',
+                                        'inventory.page.propertyStatsPlaceholder',
+                                        'Select property for stats',
                                     )}
                                 />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={BRANCH_FILTER_ALL}>
                                     {t(
-                                        'inventory.page.allBranches',
-                                        'All Branches',
+                                        'inventory.page.allProperties',
+                                        'All Properties',
                                     )}
                                 </SelectItem>
-                                {branches.map((branch) => (
+                                {properties.map((property) => (
                                     <SelectItem
-                                        key={branch.id}
-                                        value={String(branch.id)}
+                                        key={property.id}
+                                        value={String(property.id)}
                                     >
-                                        {branch.name}
+                                        {property.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -462,7 +462,7 @@ export default function InventoryPage({
                     <div className="p-6 text-gray-900">
                         <InventoryClient
                             data={inventoryItems}
-                            branches={branches}
+                            properties={properties}
                             vendors={vendors}
                             currencies={currencies}
                             units={units}

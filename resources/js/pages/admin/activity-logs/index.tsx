@@ -33,11 +33,11 @@ interface ActivityLogEntry {
     url: string | null;
     method: string | null;
     batch_uuid: string | null;
-    branch_id: number | null;
+    property_id: number | null;
     meta: Record<string, unknown> | null;
     created_at: string | null;
     user?: { id: number; name: string; email: string } | null;
-    branch?: { id: number; name: string } | null;
+    property?: { id: number; name: string } | null;
 }
 
 interface Archive {
@@ -52,7 +52,7 @@ interface ReferenceData {
     actions: string[];
     auditableTypes: { value: string; label: string }[];
     users: { id: number; name: string; email: string }[];
-    branches: { id: number; name: string }[];
+    properties: { id: number; name: string }[];
 }
 
 interface Filters {
@@ -60,7 +60,7 @@ interface Filters {
         user_id?: string;
         action?: string;
         auditable_type?: string;
-        branch_id?: string;
+        property_id?: string;
         from?: string;
         to?: string;
         q?: string;
@@ -142,7 +142,7 @@ export default function ActivityLogsIndexPage({
         action: initial.action ?? '',
         auditable_type: initial.auditable_type ?? '',
         user_id: initial.user_id ?? '',
-        branch_id: initial.branch_id ?? '',
+        property_id: initial.property_id ?? '',
         from: initial.from ?? '',
         to: initial.to ?? '',
     });
@@ -193,7 +193,7 @@ export default function ActivityLogsIndexPage({
             action: '',
             auditable_type: '',
             user_id: '',
-            branch_id: '',
+            property_id: '',
             from: '',
             to: '',
         });
@@ -357,24 +357,24 @@ export default function ActivityLogsIndexPage({
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>Branch</Label>
+                            <Label>Property</Label>
                             <SearchableDropdown
-                                value={state.branch_id}
+                                value={state.property_id}
                                 options={[
-                                    { value: '', label: 'All branches' },
-                                    ...referenceData.branches.map((branch) => ({
-                                        value: branch.id.toString(),
-                                        label: branch.name,
+                                    { value: '', label: 'All properties' },
+                                    ...referenceData.properties.map((property) => ({
+                                        value: property.id.toString(),
+                                        label: property.name,
                                     })),
                                 ]}
                                 onValueChange={(value) =>
                                     setState((s) => ({
                                         ...s,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
-                                placeholder="All branches"
-                                searchPlaceholder="Search branches…"
+                                placeholder="All properties"
+                                searchPlaceholder="Search properties…"
                             />
                         </div>
                         <div className="space-y-1">
@@ -440,7 +440,7 @@ export default function ActivityLogsIndexPage({
                                         Entity
                                     </th>
                                     <th className="px-3 py-2 text-left">
-                                        Branch
+                                        Property
                                     </th>
                                     <th className="px-3 py-2 text-left">IP</th>
                                     <th className="px-3 py-2 text-right">
@@ -511,7 +511,7 @@ export default function ActivityLogsIndexPage({
                                                 )}
                                             </td>
                                             <td className="px-3 py-2">
-                                                {log.branch?.name ?? '—'}
+                                                {log.property?.name ?? '—'}
                                             </td>
                                             <td className="px-3 py-2 font-mono text-xs">
                                                 {log.ip_address ?? '—'}
@@ -686,7 +686,7 @@ export default function ActivityLogsIndexPage({
                                             '—'}
                                     </Badge>
                                     <Badge variant="secondary">
-                                        Branch: {selected.branch?.name ?? '—'}
+                                        Property: {selected.property?.name ?? '—'}
                                     </Badge>
                                 </div>
 

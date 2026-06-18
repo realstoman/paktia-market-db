@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatNumber } from '@/utils/format';
 import {
-    Branch,
+    Property,
     Employee,
     EmployeePosition,
     EmploymentType,
@@ -31,7 +31,7 @@ const publicStorageUrl = (path?: string | null) => {
 };
 
 export const buildColumns = (
-    branches: Branch[],
+    properties: Property[],
     employmentTypes: EmploymentType[],
     employeePositions: EmployeePosition[],
     shifts: Shift[],
@@ -136,9 +136,9 @@ export const buildColumns = (
             row.original.employee_position || t('employees.common.empty', '—'),
     },
     {
-        accessorKey: 'branch',
-        header: t('employees.filters.branch', 'Branch'),
-        cell: ({ row }) => row.original.branch || t('employees.common.empty', '—'),
+        accessorKey: 'property',
+        header: t('employees.filters.property', 'Property'),
+        cell: ({ row }) => row.original.property || t('employees.common.empty', '—'),
     },
     {
         accessorKey: 'salary',
@@ -215,7 +215,7 @@ export const buildColumns = (
         cell: ({ row }) => (
             <CellAction
                 data={row.original}
-                branches={branches}
+                properties={properties}
                 employmentTypes={employmentTypes}
                 employeePositions={employeePositions}
                 shifts={shifts}

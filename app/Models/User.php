@@ -28,7 +28,7 @@ class User extends Authenticatable
         // Organization scope
         'country_id',
         'province_id',
-        'branch_id',
+        'property_id',
 
         // Status
         'is_active',
@@ -76,9 +76,9 @@ class User extends Authenticatable
         return $this->belongsTo(Province::class);
     }
 
-    public function branch()
+    public function property()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     /* ============================
@@ -116,7 +116,7 @@ class User extends Authenticatable
             return $hasRoles
                 || $this->country_id !== null
                 || $this->province_id !== null
-                || $this->branch_id !== null;
+                || $this->property_id !== null;
         });
     }
 }

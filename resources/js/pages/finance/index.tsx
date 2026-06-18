@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem, SharedData } from '@/types';
+import { Property, BreadcrumbItem, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -82,7 +82,7 @@ interface FinanceFilters {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: number | null;
+    propertyId: number | null;
     paymentMethod: string | null;
     category: string | null;
 }
@@ -105,8 +105,8 @@ interface FinanceDashboardData {
         expenses: number;
         net: number;
     }>;
-    branchRevenue: Array<{
-        branch: string;
+    propertyRevenue: Array<{
+        property: string;
         revenue: number;
     }>;
     topExpenseCategories: Array<{
@@ -128,7 +128,7 @@ interface FinanceDashboardData {
         date: string;
         reference: string;
         type: string;
-        branch: string;
+        property: string;
         account: string;
         description: string;
         debit: number;
@@ -139,7 +139,7 @@ interface FinanceDashboardData {
         date: string;
         reference: string;
         type: string;
-        branch: string;
+        property: string;
         account: string;
         description: string;
         debit: number;
@@ -167,12 +167,12 @@ interface ProjectionHealth {
     status: 'healthy' | 'warning' | 'critical' | 'unavailable';
     message: string;
     latestProjectionAt?: string | null;
-    staleBranchCount: number;
-    criticalBranchCount: number;
-    warningBranchCount: number;
-    branches: Array<{
-        branchId: number;
-        branchName: string;
+    stalePropertyCount: number;
+    criticalPropertyCount: number;
+    warningPropertyCount: number;
+    properties: Array<{
+        propertyId: number;
+        propertyName: string;
         status: string;
         message: string;
         latestSourceAt?: string | null;
@@ -183,7 +183,7 @@ interface ProjectionHealth {
 }
 
 interface FinancePageProps {
-    branches: Branch[];
+    properties: Property[];
     filters: FinanceFilters;
     expenseCategories: Array<{
         value: string;
@@ -218,9 +218,9 @@ function localizeProjectionMessage(
             'financeDashboard.projection.message.current',
             'Projection data is current for the selected finance view.',
         ),
-        'Some branch projections are lagging behind the selected finance window.': t(
+        'Some property projections are lagging behind the selected finance window.': t(
             'financeDashboard.projection.message.lagging',
-            'Some branch projections are lagging behind the selected finance window.',
+            'Some property projections are lagging behind the selected finance window.',
         ),
         'Projection data is stale. Finance metrics may be outdated until projections refresh.': t(
             'financeDashboard.projection.message.stale',
@@ -338,9 +338,9 @@ function localizeModuleDescription(
             'financeDashboard.modules.descriptions.employeeAdvances',
             'Record employee advances and keep payroll deductions aligned with settlement.',
         ),
-        'Manual cash movements, deposits, withdrawals, and branch petty cash.': t(
+        'Manual cash movements, deposits, withdrawals, and property petty cash.': t(
             'financeDashboard.modules.descriptions.cashBank',
-            'Manual cash movements, deposits, withdrawals, and branch petty cash.',
+            'Manual cash movements, deposits, withdrawals, and property petty cash.',
         ),
         'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.': t(
             'financeDashboard.modules.descriptions.cashBank',
@@ -430,7 +430,7 @@ function submitFilters(filters: {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: string;
+    propertyId: string;
     paymentMethod: string;
     category: string;
 }) {
@@ -443,8 +443,8 @@ function submitFilters(filters: {
         params.end_date = filters.endDate;
     }
 
-    if (filters.branchId) {
-        params.branch_id = filters.branchId;
+    if (filters.propertyId) {
+        params.property_id = filters.propertyId;
     }
 
     if (filters.paymentMethod) {
@@ -561,7 +561,7 @@ function SummaryCard({
 }
 
 export default function FinancePage({
-    branches,
+    properties,
     filters,
     expenseCategories,
     projectionHealth,
@@ -590,16 +590,16 @@ export default function FinancePage({
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
-    const [branchId, setBranchId] = React.useState(
-        filters.branchId ? String(filters.branchId) : '',
+    const [propertyId, setPropertyId] = React.useState(
+        filters.propertyId ? String(filters.propertyId) : '',
     );
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
     const [paymentMethod, setPaymentMethod] = React.useState(
         filters.paymentMethod ?? '',
@@ -621,12 +621,12 @@ export default function FinancePage({
         setRange(filters.range);
         setStartDate(filters.startDate);
         setEndDate(filters.endDate);
-        setBranchId(filters.branchId ? String(filters.branchId) : '');
+        setPropertyId(filters.propertyId ? String(filters.propertyId) : '');
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
 
-    useAutoSelectSingleOption(branchOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(propertyOptions, propertyId, setPropertyId);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -730,16 +730,16 @@ export default function FinancePage({
                                           )}
                                 </div>
                             </div>
-                            {projectionHealth.branches.length > 0 ? (
+                            {projectionHealth.properties.length > 0 ? (
                                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                                    {projectionHealth.branches.map((branch) => (
+                                    {projectionHealth.properties.map((property) => (
                                         <div
-                                            key={branch.branchId}
+                                            key={property.propertyId}
                                             className="rounded-full border border-current/20 px-3 py-1"
                                         >
-                                            {branch.branchName}:{' '}
+                                            {property.propertyName}:{' '}
                                             {localizeProjectionMessage(
-                                                branch.message,
+                                                property.message,
                                                 t,
                                             )}
                                         </div>
@@ -758,7 +758,7 @@ export default function FinancePage({
                         <CardDescription>
                             {t(
                                 'financeDashboard.filters.description',
-                                'Slice the finance dashboard by period, branch, payment method, and expense category.',
+                                'Slice the finance dashboard by period, property, payment method, and expense category.',
                             )}
                         </CardDescription>
                     </CardHeader>
@@ -780,7 +780,7 @@ export default function FinancePage({
                                                 range: option.value,
                                                 startDate,
                                                 endDate,
-                                                branchId,
+                                                propertyId,
                                                 paymentMethod,
                                                 category,
                                             });
@@ -796,14 +796,14 @@ export default function FinancePage({
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-neutral-500 uppercase">
                                     {t(
-                                        'financeDashboard.filters.branch',
-                                        'Branch',
+                                        'financeDashboard.filters.property',
+                                        'Property',
                                     )}
                                 </p>
                                 <Select
-                                    value={branchId || '__all__'}
+                                    value={propertyId || '__all__'}
                                     onValueChange={(value) =>
-                                        setBranchId(
+                                        setPropertyId(
                                             value === '__all__' ? '' : value,
                                         )
                                     }
@@ -811,24 +811,24 @@ export default function FinancePage({
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'financeDashboard.filters.allBranches',
-                                                'All branches',
+                                                'financeDashboard.filters.allProperties',
+                                                'All properties',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="__all__">
                                             {t(
-                                                'financeDashboard.filters.allBranches',
-                                                'All branches',
+                                                'financeDashboard.filters.allProperties',
+                                                'All properties',
                                             )}
                                         </SelectItem>
-                                        {branches.map((branch) => (
+                                        {properties.map((property) => (
                                             <SelectItem
-                                                key={branch.id}
-                                                value={String(branch.id)}
+                                                key={property.id}
+                                                value={String(property.id)}
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -956,7 +956,7 @@ export default function FinancePage({
                                         range,
                                         startDate,
                                         endDate,
-                                        branchId,
+                                        propertyId,
                                         paymentMethod,
                                         category,
                                     })
@@ -974,7 +974,7 @@ export default function FinancePage({
                                         range: 'today',
                                         startDate: filters.startDate,
                                         endDate: filters.endDate,
-                                        branchId: '',
+                                        propertyId: '',
                                         paymentMethod: '',
                                         category: '',
                                     })
@@ -1195,27 +1195,27 @@ export default function FinancePage({
                         <CardHeader>
                             <CardTitle>
                                 {t(
-                                    'financeDashboard.charts.branchRevenueTitle',
-                                    'Branch-wise Revenue',
+                                    'financeDashboard.charts.propertyRevenueTitle',
+                                    'Property-wise Revenue',
                                 )}
                             </CardTitle>
                             <CardDescription>
                                 {t(
-                                    'financeDashboard.charts.branchRevenueDescription',
-                                    'Compare completed order revenue by branch.',
+                                    'financeDashboard.charts.propertyRevenueDescription',
+                                    'Compare completed order revenue by property.',
                                 )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={dashboard.branchRevenue}>
+                                    <BarChart data={dashboard.propertyRevenue}>
                                         <CartesianGrid
                                             strokeDasharray="3 3"
                                             vertical={false}
                                         />
                                         <XAxis
-                                            dataKey="branch"
+                                            dataKey="property"
                                             tickLine={false}
                                             axisLine={false}
                                         />
@@ -1594,8 +1594,8 @@ export default function FinancePage({
                                             </th>
                                             <th className="px-3 py-3">
                                                 {t(
-                                                    'financeDashboard.generalLedger.columns.branch',
-                                                    'Branch',
+                                                    'financeDashboard.generalLedger.columns.property',
+                                                    'Property',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3">
@@ -1647,7 +1647,7 @@ export default function FinancePage({
                                                         {entry.type}
                                                     </td>
                                                     <td className="px-3 py-3 whitespace-nowrap">
-                                                        {entry.branch}
+                                                        {entry.property}
                                                     </td>
                                                     <td className="px-3 py-3 whitespace-nowrap">
                                                         {entry.account}
@@ -1728,14 +1728,14 @@ export default function FinancePage({
                             <div>
                                 <p className="text-sm font-medium">
                                     {t(
-                                        'financeDashboard.quickCards.branchControl.title',
-                                        'Branch-wise Control',
+                                        'financeDashboard.quickCards.propertyControl.title',
+                                        'Property-wise Control',
                                     )}
                                 </p>
                                 <p className="text-xs text-neutral-500">
                                     {t(
-                                        'financeDashboard.quickCards.branchControl.description',
-                                        'Consolidated reporting with branch-level filters and balances',
+                                        'financeDashboard.quickCards.propertyControl.description',
+                                        'Consolidated reporting with property-level filters and balances',
                                     )}
                                 </p>
                             </div>

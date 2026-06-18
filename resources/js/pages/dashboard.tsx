@@ -75,7 +75,7 @@ interface DashboardData {
         expenses: number;
         cashPosition: number;
         pendingExpenses: number;
-        recentExpenses: Array<ExpenseRow & { branch: string }>;
+        recentExpenses: Array<ExpenseRow & { property: string }>;
     };
 }
 

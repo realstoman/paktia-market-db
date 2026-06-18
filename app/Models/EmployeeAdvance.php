@@ -12,7 +12,7 @@ class EmployeeAdvance extends Model
 
     protected $fillable = [
         'employee_id',
-        'branch_id',
+        'property_id',
         'advance_date',
         'amount',
         'deducted_amount',
@@ -36,9 +36,9 @@ class EmployeeAdvance extends Model
         return $this->belongsTo(Employee::class);
     }
 
-    public function branch(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function creator(): BelongsTo

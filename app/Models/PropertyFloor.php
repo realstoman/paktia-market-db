@@ -10,7 +10,7 @@ class PropertyFloor extends Model
     use Auditable;
 
     protected $fillable = [
-        'branch_id', 'name', 'level_number', 'area_sqm', 'planned_units',
+        'property_id', 'name', 'level_number', 'area_sqm', 'planned_units',
         'usage_type', 'description', 'is_active',
     ];
 
@@ -21,7 +21,7 @@ class PropertyFloor extends Model
 
     public function property()
     {
-        return $this->belongsTo(Branch::class, 'branch_id');
+        return $this->belongsTo(Property::class, 'property_id');
     }
 
     public function units()

@@ -25,7 +25,7 @@ interface ActivityLogEntry {
     meta: Record<string, unknown> | null;
     created_at: string | null;
     user?: { id: number; name: string; email: string } | null;
-    branch?: { id: number; name: string } | null;
+    property?: { id: number; name: string } | null;
 }
 
 interface ShowPageProps {
@@ -74,7 +74,7 @@ export default function ActivityLogShowPage({ log }: ShowPageProps) {
                             Method: {log.method ?? '—'}
                         </Badge>
                         <Badge variant="secondary">
-                            Branch: {log.branch?.name ?? '—'}
+                            Property: {log.property?.name ?? '—'}
                         </Badge>
                     </div>
 

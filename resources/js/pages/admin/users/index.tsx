@@ -6,7 +6,7 @@ import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import userRoutes from '@/routes/users';
-import { Branch, BreadcrumbItem, Country, Province, Role, User } from '@/types';
+import { Property, BreadcrumbItem, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 import { Building2, Globe2, ShieldCheck, Users } from 'lucide-react';
@@ -16,7 +16,7 @@ interface UsersPageProps {
     roles: Role[];
     countries: Country[];
     provinces: Province[];
-    branches: Branch[];
+    properties: Property[];
 }
 
 export default function UsersPage({
@@ -24,7 +24,7 @@ export default function UsersPage({
     roles,
     countries,
     provinces,
-    branches,
+    properties,
 }: UsersPageProps) {
     const { t } = useLocalization();
     const breadcrumbs: BreadcrumbItem[] = [
@@ -93,7 +93,7 @@ export default function UsersPage({
                             roles={roles}
                             countries={countries}
                             provinces={provinces}
-                            branches={branches}
+                            properties={properties}
                         />
                     </div>
                 </div>

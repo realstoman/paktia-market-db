@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import users from '@/routes/users';
-import { Branch, BreadcrumbItem, Country, Province, Role, User } from '@/types';
+import { Property, BreadcrumbItem, Country, Province, Role, User } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface UserShowProps {
@@ -13,7 +13,7 @@ interface UserShowProps {
         roles?: (Role | string)[];
         country?: Country | null;
         province?: Province | null;
-        branch?: Branch | null;
+        property?: Property | null;
     };
 }
 
@@ -131,10 +131,10 @@ export default function UserShow({ user }: UserShowProps) {
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium text-secondary-foreground">
-                                    Branch
+                                    Property
                                 </TableCell>
                                 <TableCell className="text-secondary-foreground/90">
-                                    {user.branch?.name ?? '—'}
+                                    {user.property?.name ?? '—'}
                                 </TableCell>
                             </TableRow>
                             <TableRow>

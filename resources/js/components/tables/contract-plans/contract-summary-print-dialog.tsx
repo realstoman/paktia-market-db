@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, EmployeeContract } from '@/types';
+import { Property, EmployeeContract } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -16,7 +16,7 @@ interface ContractSummaryPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     contract: EmployeeContract | null;
-    branch: Branch | null;
+    property: Property | null;
 }
 
 const escapeHtml = (value: string) =>
@@ -39,7 +39,7 @@ export function ContractSummaryPrintDialog({
     open,
     onOpenChange,
     contract,
-    branch,
+    property,
 }: ContractSummaryPrintDialogProps) {
     const printVoucher = () => {
         if (!contract) {
@@ -118,7 +118,7 @@ export function ContractSummaryPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
+                                <p>${escapeHtml(property?.name ?? 'Main Property')} • ${escapeHtml(property?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
@@ -209,8 +209,8 @@ export function ContractSummaryPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} •{' '}
-                                            {branch?.address ??
+                                            {property?.name ?? 'Main Property'} •{' '}
+                                            {property?.address ??
                                                 'Address not set'}
                                         </p>
                                     </div>

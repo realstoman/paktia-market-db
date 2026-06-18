@@ -16,8 +16,8 @@ class Province extends Model
         return $this->belongsTo(Country::class);
     }
 
-    public function branches()
+    public function properties()
     {
-        return $this->hasMany(Branch::class);
+        return $this->hasMany(Property::class);
     }
 }

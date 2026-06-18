@@ -68,11 +68,11 @@ const mainNavItems: SidebarNavConfig[] = [
         canAny: ['finance.view', 'payroll.view'],
     },
     {
-        titleKey: 'navigation.branches',
+        titleKey: 'navigation.properties',
         fallbackTitle: 'Markets & Properties',
-        href: '/branches',
+        href: '/properties',
         icon: Building2,
-        can: 'branch.view',
+        can: 'property.view',
     },
     {
         titleKey: 'navigation.users',

@@ -99,7 +99,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 <p className="mx-auto mt-3 max-w-sm text-base leading-6 text-neutral-500">
                                     {t(
                                         'auth.login.description',
-                                        'Sign in to manage branches, inventory, finance, and daily market operations.',
+                                        'Sign in to manage properties, inventory, finance, and daily market operations.',
                                     )}
                                 </p>
                             </div>
