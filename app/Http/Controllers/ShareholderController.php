@@ -46,14 +46,14 @@ class ShareholderController extends Controller
     public function store(Request $request, PropertyOwnershipService $ownership)
     {
         $validated = $this->validateShareholder($request);
-        $assignment = $this->validateOptionalAssignment($request);
+        $assignments = $this->validateOptionalAssignments($request);
 
-        $shareholder = DB::transaction(function () use ($request, $validated, $assignment, $ownership): Shareholder {
+        $shareholder = DB::transaction(function () use ($request, $validated, $assignments, $ownership): Shareholder {
             $validated = $this->storePhoto($request, $validated);
             $shareholder = Shareholder::query()->create($validated);
             $this->storeDocuments($request, $shareholder);
 
-            if ($assignment !== null) {
+            foreach ($assignments as $assignment) {
                 $ownership->assign([...$assignment, 'shareholder_id' => $shareholder->id]);
             }
 
@@ -147,18 +147,38 @@ class ShareholderController extends Controller
         ]);
     }
 
-    private function validateOptionalAssignment(Request $request): ?array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function validateOptionalAssignments(Request $request): array
     {
-        if (! $request->filled('property_id')) {
-            return null;
+        if ($request->has('shareholdings')) {
+            $validated = $request->validate([
+                'shareholdings' => ['nullable', 'array', 'max:50'],
+                'shareholdings.*.property_id' => ['required', 'exists:properties,id'],
+                'shareholdings.*.percentage' => ['required', 'numeric', 'gt:0', 'max:100'],
+                'shareholdings.*.capital_contribution' => ['nullable', 'numeric', 'min:0'],
+                'shareholdings.*.currency_id' => ['nullable', 'exists:currencies,id'],
+                'shareholdings.*.effective_from' => ['required', 'date'],
+                'shareholdings.*.effective_to' => ['nullable', 'date'],
+                'shareholdings.*.assignment_notes' => ['nullable', 'string', 'max:2000'],
+            ]);
+
+            return collect($validated['shareholdings'] ?? [])
+                ->map(fn (array $assignment) => $this->normalizeAssignment($assignment))
+                ->all();
         }
 
-        return $this->validateAssignment($request);
+        if (! $request->filled('property_id')) {
+            return [];
+        }
+
+        return [$this->validateAssignment($request)];
     }
 
     private function validateAssignment(Request $request): array
     {
-        return collect($request->validate([
+        return $this->normalizeAssignment($request->validate([
             'property_id' => ['required', 'exists:properties,id'],
             'percentage' => ['required', 'numeric', 'gt:0', 'max:100'],
             'capital_contribution' => ['nullable', 'numeric', 'min:0'],
@@ -166,7 +186,12 @@ class ShareholderController extends Controller
             'effective_from' => ['required', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'assignment_notes' => ['nullable', 'string', 'max:2000'],
-        ]))
+        ]));
+    }
+
+    private function normalizeAssignment(array $assignment): array
+    {
+        return collect($assignment)
             ->mapWithKeys(fn ($value, $key) => [$key === 'assignment_notes' ? 'notes' : $key => $value])
             ->all();
     }

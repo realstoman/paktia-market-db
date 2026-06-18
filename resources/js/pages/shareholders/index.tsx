@@ -74,13 +74,7 @@ interface ShareholderFormData {
     notes: string;
     photo: File | null;
     documents: File[];
-    property_id: string;
-    percentage: string;
-    capital_contribution: string;
-    currency_id: string;
-    effective_from: string;
-    effective_to: string;
-    assignment_notes: string;
+    shareholdings: OwnershipFormData[];
 }
 
 interface OwnershipFormData {
@@ -116,13 +110,7 @@ const emptyShareholder = (): ShareholderFormData => ({
     notes: '',
     photo: null,
     documents: [],
-    property_id: '',
-    percentage: '',
-    capital_contribution: '',
-    currency_id: '',
-    effective_from: localToday(),
-    effective_to: '',
-    assignment_notes: '',
+    shareholdings: [],
 });
 
 const emptyOwnership = (): OwnershipFormData => ({
