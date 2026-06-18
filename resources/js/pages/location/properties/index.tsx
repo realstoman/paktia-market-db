@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { Property, BreadcrumbItem, Country, Province } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, type InertiaFormProps } from '@inertiajs/react';
 import { Building2, CheckCircle2, DoorOpen, Home, Layers3, MapPin, Plus, Search, Store } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
@@ -21,12 +21,23 @@ const typeMeta = {
     block: { label: 'Residential block', icon: Layers3 }, house: { label: 'House', icon: Home },
 } as const;
 
+interface PropertyForm {
+    name: string; parent_property_id: string; property_type: string; usage_type: string;
+    country_id: string; province_id: string; address: string; description: string;
+    distance_from_city_km: string; land_area_sqm: string; building_area_sqm: string;
+    declared_floors: string; declared_units: string; rooms_count: string;
+    kitchens_count: string; halls_count: string; bathrooms_count: string;
+    parking_spaces: string; year_built: string; notes: string; image: File | null;
+}
+
+type NumericPropertyField = 'distance_from_city_km' | 'land_area_sqm' | 'building_area_sqm' | 'declared_floors' | 'declared_units' | 'rooms_count' | 'kitchens_count' | 'halls_count' | 'bathrooms_count' | 'parking_spaces';
+
 export default function PropertiesPage({ properties, propertyOptions, countries, provinces }: Props) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [type, setType] = useState('all');
-    const form = useForm({
+    const form = useForm<PropertyForm>({
         name: '', parent_property_id: '', property_type: 'market', usage_type: 'commercial', country_id: '', province_id: '',
         address: '', description: '', distance_from_city_km: '', land_area_sqm: '', building_area_sqm: '',
         declared_floors: '', declared_units: '', rooms_count: '', kitchens_count: '', halls_count: '',
@@ -92,9 +103,10 @@ export default function PropertiesPage({ properties, propertyOptions, countries,
 function PropertyCard({ property }: { property: Property }) {
     const meta = typeMeta[(property.property_type as keyof typeof typeMeta) ?? 'market'] ?? typeMeta.market;
     const Icon = meta.icon;
-    return <Link href={`/properties/${property.id}`} className="group"><Card className="h-full overflow-hidden p-0 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"><div className="relative h-48 overflow-hidden bg-muted">{property.image_url ? <img src={property.image_url} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-emerald-950 to-teal-700"><Icon className="h-16 w-16 text-white/70" /></div>}<div className="absolute inset-x-0 top-0 flex justify-between p-3"><Badge className="bg-background/90 text-foreground backdrop-blur">{meta.label}</Badge><Badge variant="outline" className="border-white/40 bg-black/20 text-white backdrop-blur"><CheckCircle2 className="me-1 h-3 w-3" />{property.is_active ? 'Active' : 'Inactive'}</Badge></div></div><CardContent className="space-y-4 p-5"><div><div className="flex items-start justify-between gap-3"><h2 className="text-lg font-semibold">{property.name}</h2><Badge variant="secondary">{property.usage_type}</Badge></div>{property.parent_property && <p className="mt-1 text-xs font-medium text-primary">Related to {property.parent_property.name}</p>}<p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{property.address || property.province || 'Location not specified'}</p></div><div className="grid grid-cols-3 divide-x rounded-xl bg-muted/60 py-3 text-center text-xs"><Stat value={property.floors_count ?? property.declared_floors ?? 0} label="Floors" /><Stat value={property.units_count ?? property.declared_units ?? 0} label={['market','mall'].includes(property.property_type ?? '') ? 'Shops' : property.property_type === 'block' ? 'Apartments' : 'Rooms'} /><Stat value={property.building_area_sqm ? `${property.building_area_sqm} m²` : '—'} label="Building" /></div><div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground"><span>Employees, expenses & reports ready</span><span className="font-medium text-primary">Open workspace →</span></div></CardContent></Card></Link>;
+    return <Link href={`/properties/${property.id}`} className="group"><Card className="h-full overflow-hidden p-0 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl"><div className="relative h-48 overflow-hidden bg-muted">{property.image_url ? <img src={property.image_url} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-emerald-950 to-teal-700"><Icon className="h-16 w-16 text-white/70" /></div>}<div className="absolute inset-x-0 top-0 flex justify-between p-3"><Badge className="bg-background/90 text-foreground backdrop-blur">{meta.label}</Badge><Badge variant="outline" className="border-white/40 bg-black/20 text-white backdrop-blur"><CheckCircle2 className="me-1 h-3 w-3" />{property.is_active ? 'Active' : 'Inactive'}</Badge></div></div><CardContent className="space-y-4 p-5"><div><div className="flex items-start justify-between gap-3"><h2 className="text-lg font-semibold">{property.name}</h2><Badge variant="secondary">{property.usage_type}</Badge></div>{property.parent_property && <p className="mt-1 text-xs font-medium text-primary">Related to {property.parent_property.name}</p>}<p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{property.address || resolveLocationName(property.province) || 'Location not specified'}</p></div><div className="grid grid-cols-3 divide-x rounded-xl bg-muted/60 py-3 text-center text-xs"><Stat value={property.floors_count ?? property.declared_floors ?? 0} label="Floors" /><Stat value={property.units_count ?? property.declared_units ?? 0} label={['market','mall'].includes(property.property_type ?? '') ? 'Shops' : property.property_type === 'block' ? 'Apartments' : 'Rooms'} /><Stat value={property.building_area_sqm ? `${property.building_area_sqm} m²` : '—'} label="Building" /></div><div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground"><span>Employees, expenses & reports ready</span><span className="font-medium text-primary">Open workspace →</span></div></CardContent></Card></Link>;
 }
 function PortfolioMetric({ icon: Icon, label, value }: { icon: typeof Building2; label: string; value: number }) { return <Card><CardContent className="flex items-center gap-4 py-5"><div className="rounded-xl bg-primary/10 p-3 text-primary"><Icon className="h-5 w-5" /></div><div><p className="text-2xl font-bold">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div></CardContent></Card>; }
 function Stat({ value, label }: { value: string | number; label: string }) { return <div><div className="font-semibold">{value}</div><div className="text-muted-foreground">{label}</div></div>; }
 function Field({ label, error, className = '', children }: { label: string; error?: string; className?: string; children: React.ReactNode }) { return <div className={`grid gap-2 ${className}`}><Label>{label}</Label>{children}<InputError message={error} /></div>; }
-function NumberField({ label, name, form }: { label: string; name: keyof typeof form.data; form: ReturnType<typeof useForm> }) { return <Field label={label} error={form.errors[name]}><Input type="number" min="0" step="any" value={(form.data[name] as string) ?? ''} onChange={(e) => form.setData(name, e.target.value)} /></Field>; }
+function NumberField({ label, name, form }: { label: string; name: NumericPropertyField; form: InertiaFormProps<PropertyForm> }) { return <Field label={label} error={form.errors[name]}><Input type="number" min="0" step="any" value={form.data[name]} onChange={(e) => form.setData(name, e.target.value)} /></Field>; }
+function resolveLocationName(value: Property['province']) { return typeof value === 'string' ? value : value?.name; }

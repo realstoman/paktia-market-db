@@ -774,7 +774,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             <span className="font-medium">
                                                 {t('employees.filters.property', 'Property')}:
                                             </span>{' '}
-                                            {data.property ||
+                                            {(typeof data.property === 'string'
+                                                ? data.property
+                                                : data.property?.name) ||
                                                 t('employees.common.empty', '—')}
                                         </p>
                                         <p>
