@@ -776,6 +776,7 @@ const fa = {
             presetSaved: 'نمای گزارش ذخیره شد.',
             presetLoaded: '":name" باز شد.',
             presetRemoved: 'نمای ذخیره‌شده حذف شد.',
+            removePreset: 'حذف :name',
         },
         ranges: {
             today: 'امروز',
@@ -795,7 +796,8 @@ const fa = {
             toggleColumns: 'تغییر ستون‌ها',
             resetView: 'تنظیم مجدد',
             noRows: 'هیچ ردیفی با جستجو یا فیلترهای شما مطابقت ندارد.',
-            planned: 'این نوع گزارش برای مرحله بعدی گزارش‌دهی نگه‌داشته شده است.',
+            planned:
+                'این نوع گزارش برای مرحله بعدی گزارش‌دهی نگه‌داشته شده است.',
         },
         export: {
             downloadPdf: 'دانلود PDF',
@@ -811,8 +813,7 @@ const fa = {
         chart: {
             value: 'ارزش',
             stockMovement: 'حرکت گدام',
-            stockMovementDescription:
-                'بزرگترین حرکات گدام در دوره انتخاب‌شده.',
+            stockMovementDescription: 'بزرگترین حرکات گدام در دوره انتخاب‌شده.',
             financialMix: 'ترکیب مالی',
             financialMixDescription: 'تمرکز ارزش در منابع ثبت مالی.',
             staffingMix: 'ترکیب کارمندان',

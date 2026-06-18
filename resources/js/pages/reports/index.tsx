@@ -115,12 +115,12 @@ const QUICK_PRESETS = RANGE_OPTIONS.filter(
 );
 const SAVED_PRESETS_KEY = 'paktia-market-reports-saved-presets';
 const CHART_COLORS = [
-    '#14532d',
-    '#15803d',
-    '#3f6212',
-    '#b45309',
-    '#c2410c',
-    '#1d4ed8',
+    '#123f46',
+    '#1d6f7a',
+    '#f2a20c',
+    '#d98900',
+    '#6b8790',
+    '#91b7bf',
 ];
 
 interface ReportFilters {
@@ -222,6 +222,8 @@ interface ChartPanel {
     labelKey: string;
 }
 
+type Translator = (key: string, fallback?: string) => string;
+
 function formatMetric(value: number, format: 'currency' | 'number' = 'number') {
     return format === 'currency' ? formatAfn(value) : formatNumber(value);
 }
@@ -269,14 +271,18 @@ function parseNumericValue(value: string | number | undefined) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function rangeLabel(range: string) {
-    return (
-        RANGE_OPTIONS.find((option) => option.value === range)?.label ?? range
-    );
+function rangeLabel(range: string, t: Translator) {
+    const option = RANGE_OPTIONS.find((item) => item.value === range);
+
+    return option ? t(option.labelKey, option.label) : range;
 }
 
-function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
+function buildChartPanel(
+    activeReport: ActiveReport,
+    t: Translator,
+): ChartPanel | null {
     const rows = activeReport.rows ?? [];
+    const unknown = t('reportPage.chart.unknown', 'Unknown');
 
     if (!activeReport.isReady || rows.length === 0) {
         return null;
@@ -284,13 +290,15 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
 
     if (activeReport.key === 'inventory') {
         return {
-            title: 'Stock movement',
-            description:
+            title: t('reportPage.chart.stockMovement', 'Stock movement'),
+            description: t(
+                'reportPage.chart.stockMovementDescription',
                 'Highest absolute inventory movements in the selected window.',
+            ),
             type: 'bar',
             data: rows
                 .map((row) => ({
-                    label: String(row.item ?? 'Unknown'),
+                    label: String(row.item ?? unknown),
                     value: Math.abs(parseNumericValue(row.quantity)),
                 }))
                 .sort((a, b) => b.value - a.value)
@@ -304,7 +312,7 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
         const grouped = new Map<string, number>();
 
         for (const row of rows) {
-            const key = String(row.source ?? 'Unknown');
+            const key = String(row.source ?? unknown);
             grouped.set(
                 key,
                 (grouped.get(key) ?? 0) + parseNumericValue(row.amount),
@@ -312,8 +320,11 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
         }
 
         return {
-            title: 'Financial mix',
-            description: 'Value concentration across financial entry sources.',
+            title: t('reportPage.chart.financialMix', 'Financial mix'),
+            description: t(
+                'reportPage.chart.financialMixDescription',
+                'Value concentration across financial entry sources.',
+            ),
             type: 'bar',
             data: Array.from(grouped.entries()).map(([label, value]) => ({
                 label,
@@ -326,15 +337,19 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
 
     if (activeReport.key === 'employees') {
         const grouped = new Map<string, number>();
+        const unassigned = t('reportPage.chart.unassigned', 'Unassigned');
 
         for (const row of rows) {
-            const key = String(row.employmentType ?? 'Unassigned');
+            const key = String(row.employmentType ?? unassigned);
             grouped.set(key, (grouped.get(key) ?? 0) + 1);
         }
 
         return {
-            title: 'Staffing mix',
-            description: 'Workforce distribution by employment type.',
+            title: t('reportPage.chart.staffingMix', 'Staffing mix'),
+            description: t(
+                'reportPage.chart.staffingMixDescription',
+                'Workforce distribution by employment type.',
+            ),
             type: 'pie',
             data: Array.from(grouped.entries()).map(([name, value]) => ({
                 name,
@@ -347,13 +362,18 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
 
     if (activeReport.key === 'branches') {
         return {
-            title: 'Branch revenue',
-            description: 'Top branches by completed revenue.',
+            title: t('reportPage.chart.branchRevenue', 'Market coverage'),
+            description: t(
+                'reportPage.chart.branchRevenueDescription',
+                'Top markets by report value.',
+            ),
             type: 'bar',
             data: rows
                 .map((row) => ({
-                    label: String(row.branch ?? 'Unknown'),
-                    value: parseNumericValue(row.revenue),
+                    label: String(row.branch ?? unknown),
+                    value:
+                        parseNumericValue(row.employees) +
+                        parseNumericValue(row.inventory),
                 }))
                 .sort((a, b) => b.value - a.value)
                 .slice(0, 6),
@@ -377,8 +397,11 @@ function buildChartPanel(activeReport: ActiveReport): ChartPanel | null {
         }
 
         return {
-            title: 'Role mix',
-            description: 'User distribution across assigned roles.',
+            title: t('reportPage.chart.roleMix', 'Role mix'),
+            description: t(
+                'reportPage.chart.roleMixDescription',
+                'User distribution across assigned roles.',
+            ),
             type: 'pie',
             data: Array.from(grouped.entries())
                 .map(([name, value]) => ({ name, value }))
@@ -401,6 +424,7 @@ export default function ReportsPage({
     period,
 }: ReportsPageProps) {
     const { can } = useAuthorization();
+    const { isRtl, t } = useLocalization();
     const [range, setRange] = useState(filters.range);
     const [startDate, setStartDate] = useState(filters.startDate);
     const [endDate, setEndDate] = useState(filters.endDate);
@@ -419,6 +443,24 @@ export default function ReportsPage({
     >(null);
     const deferredSearch = useDeferredValue(search);
     const canExportReports = can('reports.export');
+    const breadcrumbs = useMemo<BreadcrumbItem[]>(
+        () => [
+            {
+                title: t('reportPage.dashboard', 'Dashboard'),
+                href: '/dashboard',
+            },
+            { title: t('reportPage.title', 'Reports'), href: '/reports' },
+        ],
+        [t],
+    );
+    const localizedRangeOptions = useMemo(
+        () =>
+            RANGE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey, option.label),
+            })),
+        [t],
+    );
 
     useEffect(() => {
         try {
@@ -448,7 +490,10 @@ export default function ReportsPage({
     }, [activeReport.key]);
 
     const branchOptions = [
-        { value: '', label: 'All Branches' },
+        {
+            value: '',
+            label: t('reportPage.toolbar.allBranches', 'All markets'),
+        },
         ...branches.map((branch) => ({
             value: String(branch.id),
             label: branch.name,
@@ -472,7 +517,7 @@ export default function ReportsPage({
     const activeBranchLabel =
         branchOptions.find(
             (option) => option.value === (filters.branchId?.toString() ?? ''),
-        )?.label ?? 'All Branches';
+        )?.label ?? t('reportPage.toolbar.allBranches', 'All markets');
     const hasPendingChanges =
         range !== filters.range ||
         startDate !== filters.startDate ||
@@ -481,8 +526,8 @@ export default function ReportsPage({
         module !== filters.module;
 
     const chartPanel = useMemo(
-        () => buildChartPanel(activeReport),
-        [activeReport],
+        () => buildChartPanel(activeReport, t),
+        [activeReport, t],
     );
 
     const analysisColumns = useMemo<
@@ -575,8 +620,13 @@ export default function ReportsPage({
     };
 
     const saveCurrentPreset = () => {
-        const defaultName = `${moduleOptions.find((option) => option.value === module)?.label ?? 'Report'} - ${rangeLabel(range)}`;
-        const name = window.prompt('Preset name', defaultName)?.trim();
+        const defaultName = `${moduleOptions.find((option) => option.value === module)?.label ?? t('reportPage.title', 'Reports')} - ${rangeLabel(range, t)}`;
+        const name = window
+            .prompt(
+                t('reportPage.toolbar.presetName', 'Preset name'),
+                defaultName,
+            )
+            ?.trim();
 
         if (!name) {
             return;
@@ -596,7 +646,9 @@ export default function ReportsPage({
         };
 
         setSavedPresets((current) => [preset, ...current].slice(0, 8));
-        toast.success('Saved report preset.');
+        toast.success(
+            t('reportPage.toolbar.presetSaved', 'Saved report preset.'),
+        );
     };
 
     const applySavedPreset = (preset: SavedPreset) => {
@@ -606,14 +658,21 @@ export default function ReportsPage({
         setBranchId(preset.filters.branchId);
         setModule(preset.filters.module);
         applyFilters(preset.filters);
-        toast.success(`Loaded "${preset.name}".`);
+        toast.success(
+            t('reportPage.toolbar.presetLoaded', 'Loaded ":name".').replace(
+                ':name',
+                preset.name,
+            ),
+        );
     };
 
     const removeSavedPreset = (presetId: string) => {
         setSavedPresets((current) =>
             current.filter((item) => item.id !== presetId),
         );
-        toast.success('Removed saved preset.');
+        toast.success(
+            t('reportPage.toolbar.presetRemoved', 'Removed saved preset.'),
+        );
     };
 
     const downloadExport = async (format: 'pdf' | 'xlsx') => {
@@ -633,8 +692,11 @@ export default function ReportsPage({
 
         const toastId = toast.loading(
             format === 'pdf'
-                ? 'Generating PDF...'
-                : 'Generating Excel export...',
+                ? t('reportPage.export.generatingPdf', 'Generating PDF...')
+                : t(
+                      'reportPage.export.generatingExcel',
+                      'Generating Excel export...',
+                  ),
         );
 
         setExportingFormat(format);
@@ -666,12 +728,21 @@ export default function ReportsPage({
 
             toast.success(
                 format === 'pdf'
-                    ? 'PDF export is ready.'
-                    : 'Excel export is ready.',
+                    ? t('reportPage.export.pdfReady', 'PDF export is ready.')
+                    : t(
+                          'reportPage.export.excelReady',
+                          'Excel export is ready.',
+                      ),
                 { id: toastId },
             );
         } catch {
-            toast.error('Export failed. Please try again.', { id: toastId });
+            toast.error(
+                t(
+                    'reportPage.export.failed',
+                    'Export failed. Please try again.',
+                ),
+                { id: toastId },
+            );
         } finally {
             setExportingFormat(null);
         }
@@ -679,62 +750,108 @@ export default function ReportsPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Reports" />
-            <div className="space-y-4 py-2">
-                <section className="overflow-hidden rounded-[2rem] border border-neutral-200/80 bg-[linear-gradient(135deg,#eff8f4_0%,#fff7e8_45%,#ffffff_100%)] p-5 dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
+            <Head title={t('reportPage.title', 'Reports')} />
+            <div className={cn('space-y-5 py-2', isRtl && 'text-right')}>
+                <section className="overflow-hidden rounded-[2rem] border border-[#d8e5e8] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.20),transparent_32%),linear-gradient(135deg,#e8f0f1_0%,#f8fbfb_52%,#fff7e8_100%)] p-5 shadow-sm shadow-slate-950/[0.03] dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
                     <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2 rounded-full border border-[#cfe2dc] bg-white/80 px-3 py-1 text-sm text-[#20464b]">
                                 <Sparkles className="h-4 w-4" />
-                                Reporting workspace
+                                {t(
+                                    'reportPage.heroEyebrow',
+                                    'Market analytics',
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <h1 className="text-3xl font-semibold tracking-tight text-brand-primary dark:text-white">
-                                    Executive reports, without the admin clutter
+                                    {t(
+                                        'reportPage.heroTitle',
+                                        'Paktiawal reporting center',
+                                    )}
                                 </h1>
                                 <p className="max-w-2xl text-sm leading-6 text-[#47676b] dark:text-neutral-300">
-                                    Build branch-aware reports quickly, compare
-                                    operations visually, and export polished PDF
-                                    or Excel outputs from the same workspace.
+                                    {t(
+                                        'reportPage.heroDescription',
+                                        'Review market, property, inventory, finance, employee and access reports in one organized workspace.',
+                                    )}
                                 </p>
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Badge variant="success">
-                                    7 live report families
+                                    {t(
+                                        'reportPage.badges.liveFamilies',
+                                        '5 live report families',
+                                    )}
                                 </Badge>
-                                <Badge variant="outline">True PDF export</Badge>
                                 <Badge variant="outline">
-                                    Native Excel .xlsx
+                                    {t(
+                                        'reportPage.badges.pdf',
+                                        'True PDF export',
+                                    )}
                                 </Badge>
-                                <Badge variant="outline">Saved presets</Badge>
+                                <Badge variant="outline">
+                                    {t(
+                                        'reportPage.badges.excel',
+                                        'Native Excel .xlsx',
+                                    )}
+                                </Badge>
+                                <Badge variant="outline">
+                                    {t(
+                                        'reportPage.badges.presets',
+                                        'Saved presets',
+                                    )}
+                                </Badge>
                             </div>
                         </div>
 
-                        <Card className="border-white/80 bg-white/90 shadow-none dark:border-white/10 dark:bg-neutral-900">
+                        <Card className="border-white/80 bg-white/90 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-neutral-900">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base">
-                                    Workspace status
+                                    {t(
+                                        'reportPage.status.title',
+                                        'Workspace status',
+                                    )}
                                 </CardTitle>
                                 <CardDescription>
-                                    Modernized for faster analysis and repeat
-                                    reporting.
+                                    {t(
+                                        'reportPage.status.description',
+                                        'Built for repeat market reporting and fast management review.',
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                                    <span>Analysis mode</span>
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                    <span>
+                                        {t(
+                                            'reportPage.status.analysisMode',
+                                            'Analysis mode',
+                                        )}
+                                    </span>
                                     <span className="font-medium text-foreground">
-                                        Search, sort, toggle columns
+                                        {t(
+                                            'reportPage.status.analysisValue',
+                                            'Search, sort, toggle columns',
+                                        )}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                                    <span>Active report</span>
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                    <span>
+                                        {t(
+                                            'reportPage.status.activeReport',
+                                            'Active report',
+                                        )}
+                                    </span>
                                     <span className="font-medium text-foreground">
                                         {activeReport.title}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                                    <span>Period</span>
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                    <span>
+                                        {t(
+                                            'reportPage.status.period',
+                                            'Period',
+                                        )}
+                                    </span>
                                     <span className="font-medium text-foreground">
                                         {period.label}
                                     </span>
@@ -744,16 +861,21 @@ export default function ReportsPage({
                     </div>
                 </section>
 
-                <Card className="border-neutral-200/70 shadow-none">
+                <Card className="rounded-[1.75rem] border-[#dfe7e9] bg-white shadow-sm shadow-slate-950/[0.03]">
                     <CardHeader className="pb-4">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div>
                                 <CardTitle className="text-lg">
-                                    Reporting toolbar
+                                    {t(
+                                        'reportPage.toolbar.title',
+                                        'Report filters',
+                                    )}
                                 </CardTitle>
                                 <CardDescription>
-                                    Choose a scope, use quick presets, then
-                                    generate or save the view.
+                                    {t(
+                                        'reportPage.toolbar.description',
+                                        'Choose a report, period and market scope, then generate or save the view.',
+                                    )}
                                 </CardDescription>
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -763,14 +885,20 @@ export default function ReportsPage({
                                     onClick={saveCurrentPreset}
                                 >
                                     <Save className="h-4 w-4" />
-                                    Save view
+                                    {t(
+                                        'reportPage.toolbar.saveView',
+                                        'Save view',
+                                    )}
                                 </Button>
                                 <Button
                                     className="gap-2"
                                     onClick={() => applyFilters()}
                                 >
                                     <Sparkles className="h-4 w-4" />
-                                    Generate report
+                                    {t(
+                                        'reportPage.toolbar.generateReport',
+                                        'Generate report',
+                                    )}
                                 </Button>
                             </div>
                         </div>
@@ -791,7 +919,7 @@ export default function ReportsPage({
                                         handlePresetSelect(preset.value)
                                     }
                                 >
-                                    {preset.label}
+                                    {t(preset.labelKey, preset.label)}
                                 </Button>
                             ))}
                         </div>
@@ -801,22 +929,28 @@ export default function ReportsPage({
                                 value={module}
                                 options={moduleOptions}
                                 onValueChange={setModule}
-                                placeholder="Select report"
+                                placeholder={t(
+                                    'reportPage.toolbar.selectReport',
+                                    'Select report',
+                                )}
                             />
                             <SearchableDropdown
                                 value={range}
-                                options={RANGE_OPTIONS.map((option) => ({
-                                    value: option.value,
-                                    label: option.label,
-                                }))}
+                                options={localizedRangeOptions}
                                 onValueChange={setRange}
-                                placeholder="Select range"
+                                placeholder={t(
+                                    'reportPage.toolbar.selectRange',
+                                    'Select range',
+                                )}
                             />
                             <SearchableDropdown
                                 value={branchId}
                                 options={branchOptions}
                                 onValueChange={setBranchId}
-                                placeholder="Select branch"
+                                placeholder={t(
+                                    'reportPage.toolbar.selectBranch',
+                                    'Select market',
+                                )}
                             />
                             <div className="grid grid-cols-2 gap-2">
                                 <Input
@@ -841,22 +975,26 @@ export default function ReportsPage({
                                 onClick={() => applyFilters()}
                             >
                                 <Filter className="h-4 w-4" />
-                                Generate
+                                {t('reportPage.toolbar.generate', 'Generate')}
                             </Button>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="outline">
-                                Active: {activeReport.title}
+                                {t('reportPage.toolbar.active', 'Active')}:{' '}
+                                {activeReport.title}
                             </Badge>
                             <Badge variant="outline">
-                                Range: {rangeLabel(filters.range)}
+                                {t('reportPage.toolbar.range', 'Range')}:{' '}
+                                {rangeLabel(filters.range, t)}
                             </Badge>
                             <Badge variant="outline">
-                                Period: {period.label}
+                                {t('reportPage.toolbar.period', 'Period')}:{' '}
+                                {period.label}
                             </Badge>
                             <Badge variant="outline">
-                                Branch: {activeBranchLabel}
+                                {t('reportPage.toolbar.branch', 'Market')}:{' '}
+                                {activeBranchLabel}
                             </Badge>
                             <Badge
                                 variant={
@@ -864,15 +1002,24 @@ export default function ReportsPage({
                                 }
                             >
                                 {hasPendingChanges
-                                    ? 'Draft changes not applied'
-                                    : 'Current view synced'}
+                                    ? t(
+                                          'reportPage.toolbar.draft',
+                                          'Draft changes not applied',
+                                      )
+                                    : t(
+                                          'reportPage.toolbar.synced',
+                                          'Current view synced',
+                                      )}
                             </Badge>
                         </div>
 
                         {savedPresets.length > 0 ? (
                             <div className="space-y-2">
                                 <p className="text-xs font-medium tracking-[0.18em] text-[#708689] uppercase">
-                                    Saved views
+                                    {t(
+                                        'reportPage.toolbar.savedViews',
+                                        'Saved views',
+                                    )}
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     {savedPresets.map((preset) => (
@@ -895,7 +1042,10 @@ export default function ReportsPage({
                                                 onClick={() =>
                                                     removeSavedPreset(preset.id)
                                                 }
-                                                aria-label={`Remove ${preset.name}`}
+                                                aria-label={t(
+                                                    'reportPage.toolbar.removePreset',
+                                                    'Remove :name',
+                                                ).replace(':name', preset.name)}
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
@@ -919,10 +1069,11 @@ export default function ReportsPage({
                                 type="button"
                                 onClick={() => handleOverviewOpen(item.key)}
                                 className={cn(
-                                    'rounded-[1.6rem] border p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#bdd3cb] hover:bg-[#fbfdfc]',
+                                    'rounded-[1.6rem] border p-4 text-left shadow-sm shadow-slate-950/[0.02] transition-all hover:-translate-y-0.5 hover:border-brand-secondary/40 hover:bg-[#fbfdfc]',
+                                    isRtl && 'text-right',
                                     filters.module === item.key
-                                        ? 'border-[#8cb4a6] bg-[#f4fbf8]'
-                                        : 'border-neutral-200 bg-white',
+                                        ? 'border-brand-primary/25 bg-brand-primary/5'
+                                        : 'border-[#dfe7e9] bg-white',
                                 )}
                             >
                                 <div className="flex items-center justify-between gap-3">
@@ -934,9 +1085,16 @@ export default function ReportsPage({
                                             catalogItem?.status ?? 'planned',
                                         )}
                                     >
-                                        {(
-                                            catalogItem?.status ?? 'planned'
-                                        ).toUpperCase()}
+                                        {(catalogItem?.status ?? 'planned') ===
+                                        'live'
+                                            ? t(
+                                                  'reportPage.status.live',
+                                                  'Live',
+                                              )
+                                            : t(
+                                                  'reportPage.status.planned',
+                                                  'Planned',
+                                              )}
                                     </Badge>
                                 </div>
                                 <p className="mt-4 text-2xl font-semibold text-brand-primary">
@@ -964,7 +1122,7 @@ export default function ReportsPage({
                 </section>
 
                 <section className="grid gap-4 xl:grid-cols-12">
-                    <Card className="min-w-0 shadow-none xl:col-span-8">
+                    <Card className="min-w-0 rounded-[1.75rem] border-[#dfe7e9] shadow-sm shadow-slate-950/[0.03] xl:col-span-8">
                         <CardHeader className="pb-3">
                             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                                 <div className="min-w-0 space-y-2">
@@ -978,8 +1136,14 @@ export default function ReportsPage({
                                             )}
                                         >
                                             {activeReport.status === 'live'
-                                                ? 'Live'
-                                                : 'Planned'}
+                                                ? t(
+                                                      'reportPage.status.live',
+                                                      'Live',
+                                                  )
+                                                : t(
+                                                      'reportPage.status.planned',
+                                                      'Planned',
+                                                  )}
                                         </Badge>
                                     </div>
                                     <CardDescription className="max-w-2xl">
@@ -1002,7 +1166,10 @@ export default function ReportsPage({
                                             ) : (
                                                 <FileText className="h-4 w-4" />
                                             )}
-                                            Download PDF
+                                            {t(
+                                                'reportPage.export.downloadPdf',
+                                                'Download PDF',
+                                            )}
                                         </Button>
                                         <Button
                                             className="gap-2 whitespace-nowrap"
@@ -1016,7 +1183,10 @@ export default function ReportsPage({
                                             ) : (
                                                 <FileSpreadsheet className="h-4 w-4" />
                                             )}
-                                            Download Excel
+                                            {t(
+                                                'reportPage.export.downloadExcel',
+                                                'Download Excel',
+                                            )}
                                         </Button>
                                     </div>
                                 ) : null}
@@ -1027,19 +1197,34 @@ export default function ReportsPage({
                             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                 <span className="inline-flex items-center gap-2">
                                     <CalendarRange className="h-4 w-4" />
-                                    Reporting period: {period.label}
+                                    {t(
+                                        'reportPage.table.reportingPeriod',
+                                        'Reporting period',
+                                    )}
+                                    : {period.label}
                                 </span>
                                 <span className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium dark:bg-neutral-800">
-                                    {formatNumber(
-                                        table.getFilteredRowModel().rows.length,
-                                    )}{' '}
-                                    visible rows
+                                    {t(
+                                        'reportPage.table.visibleRows',
+                                        ':count visible rows',
+                                    ).replace(
+                                        ':count',
+                                        formatNumber(
+                                            table.getFilteredRowModel().rows
+                                                .length,
+                                        ),
+                                    )}
                                 </span>
                                 <span className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium dark:bg-neutral-800">
-                                    {formatNumber(
-                                        activeReport.rows?.length ?? 0,
-                                    )}{' '}
-                                    total rows
+                                    {t(
+                                        'reportPage.table.totalRows',
+                                        ':count total rows',
+                                    ).replace(
+                                        ':count',
+                                        formatNumber(
+                                            activeReport.rows?.length ?? 0,
+                                        ),
+                                    )}
                                 </span>
                             </div>
 
@@ -1077,7 +1262,10 @@ export default function ReportsPage({
                                                             event.target.value,
                                                         )
                                                     }
-                                                    placeholder="Search within this report..."
+                                                    placeholder={t(
+                                                        'reportPage.table.searchPlaceholder',
+                                                        'Search within this report...',
+                                                    )}
                                                     className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
                                                 />
                                             </div>
@@ -1092,7 +1280,10 @@ export default function ReportsPage({
                                                             className="gap-2"
                                                         >
                                                             <Columns3 className="h-4 w-4" />
-                                                            Columns
+                                                            {t(
+                                                                'reportPage.table.columns',
+                                                                'Columns',
+                                                            )}
                                                             <ChevronDown className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
@@ -1101,7 +1292,10 @@ export default function ReportsPage({
                                                         className="w-56"
                                                     >
                                                         <DropdownMenuLabel>
-                                                            Toggle columns
+                                                            {t(
+                                                                'reportPage.table.toggleColumns',
+                                                                'Toggle columns',
+                                                            )}
                                                         </DropdownMenuLabel>
                                                         <DropdownMenuSeparator />
                                                         {(
@@ -1156,7 +1350,10 @@ export default function ReportsPage({
                                                     }}
                                                 >
                                                     <SlidersHorizontal className="h-4 w-4" />
-                                                    Reset view
+                                                    {t(
+                                                        'reportPage.table.resetView',
+                                                        'Reset view',
+                                                    )}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1239,9 +1436,10 @@ export default function ReportsPage({
                                                                 }
                                                                 className="py-10 text-center text-muted-foreground"
                                                             >
-                                                                No rows matched
-                                                                your search or
-                                                                filters.
+                                                                {t(
+                                                                    'reportPage.table.noRows',
+                                                                    'No rows matched your search or filters.',
+                                                                )}
                                                             </TableCell>
                                                         </TableRow>
                                                     )}
@@ -1253,8 +1451,10 @@ export default function ReportsPage({
                             ) : (
                                 <div className="rounded-3xl border border-dashed p-6">
                                     <p className="text-sm text-muted-foreground">
-                                        This report type has been designed and
-                                        reserved in the reporting architecture.
+                                        {t(
+                                            'reportPage.table.planned',
+                                            'This report type has been designed and reserved in the reporting architecture.',
+                                        )}
                                     </p>
                                     <div className="mt-4 space-y-2">
                                         {(activeReport.highlights ?? []).map(
@@ -1275,7 +1475,7 @@ export default function ReportsPage({
 
                     <div className="min-w-0 space-y-4 xl:col-span-4">
                         {chartPanel ? (
-                            <Card className="shadow-none">
+                            <Card className="rounded-[1.75rem] border-[#dfe7e9] shadow-sm shadow-slate-950/[0.03]">
                                 <CardHeader className="pb-3">
                                     <div className="flex items-center gap-2">
                                         <BarChart3 className="h-4 w-4 text-[#20525a]" />
@@ -1292,8 +1492,11 @@ export default function ReportsPage({
                                         className="h-[260px] w-full"
                                         config={{
                                             value: {
-                                                label: 'Value',
-                                                color: '#14532d',
+                                                label: t(
+                                                    'reportPage.chart.value',
+                                                    'Value',
+                                                ),
+                                                color: '#123f46',
                                             },
                                         }}
                                     >
@@ -1372,7 +1575,7 @@ export default function ReportsPage({
                             ? (activeReport.insights ?? []).map(
                                   (section, sectionIndex) => (
                                       <Card
-                                          className="shadow-none"
+                                          className="rounded-[1.75rem] border-[#dfe7e9] shadow-sm shadow-slate-950/[0.03]"
                                           key={`${activeReport.key}-insight-${sectionIndex}-${section.title}`}
                                       >
                                           <CardHeader className="pb-3">
@@ -1415,8 +1618,10 @@ export default function ReportsPage({
                                                   )
                                               ) : (
                                                   <div className="rounded-2xl border px-3 py-3 text-sm text-muted-foreground">
-                                                      No insight rows matched
-                                                      this report window.
+                                                      {t(
+                                                          'reportPage.insights.empty',
+                                                          'No insight rows matched this report window.',
+                                                      )}
                                                   </div>
                                               )}
                                           </CardContent>
@@ -1425,14 +1630,19 @@ export default function ReportsPage({
                               )
                             : null}
 
-                        <Card className="shadow-none">
+                        <Card className="rounded-[1.75rem] border-[#dfe7e9] shadow-sm shadow-slate-950/[0.03]">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base">
-                                    Export notes
+                                    {t(
+                                        'reportPage.export.notesTitle',
+                                        'Export notes',
+                                    )}
                                 </CardTitle>
                                 <CardDescription>
-                                    Delivery details for the current report
-                                    output.
+                                    {t(
+                                        'reportPage.export.notesDescription',
+                                        'Delivery details for the current report output.',
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">

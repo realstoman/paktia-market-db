@@ -769,6 +769,7 @@ const ps = {
             presetSaved: 'د راپور بڼه خوندي شوه.',
             presetLoaded: '":name" پرانیستل شو.',
             presetRemoved: 'خوندي شوې بڼه لرې شوه.',
+            removePreset: ':name لرې کړئ',
         },
         ranges: {
             today: 'نن',
@@ -788,7 +789,8 @@ const ps = {
             toggleColumns: 'ستونونه بدل کړئ',
             resetView: 'بیا تنظیمول',
             noRows: 'ستاسو له لټون یا فلټرونو سره کوم قطار برابر نه دی.',
-            planned: 'دا ډول راپور د راپور ورکولو راتلونکې مرحلې لپاره ساتل شوی.',
+            planned:
+                'دا ډول راپور د راپور ورکولو راتلونکې مرحلې لپاره ساتل شوی.',
         },
         export: {
             downloadPdf: 'PDF ډاونلوډ',

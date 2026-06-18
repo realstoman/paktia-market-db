@@ -772,6 +772,7 @@ const en = {
             presetSaved: 'Saved report preset.',
             presetLoaded: 'Loaded ":name".',
             presetRemoved: 'Removed saved preset.',
+            removePreset: 'Remove :name',
         },
         ranges: {
             today: 'Today',
@@ -803,8 +804,7 @@ const en = {
             excelReady: 'Excel export is ready.',
             failed: 'Export failed. Please try again.',
             notesTitle: 'Export notes',
-            notesDescription:
-                'Delivery details for the current report output.',
+            notesDescription: 'Delivery details for the current report output.',
         },
         chart: {
             value: 'Value',
@@ -815,7 +815,8 @@ const en = {
             financialMixDescription:
                 'Value concentration across financial entry sources.',
             staffingMix: 'Staffing mix',
-            staffingMixDescription: 'Workforce distribution by employment type.',
+            staffingMixDescription:
+                'Workforce distribution by employment type.',
             branchRevenue: 'Market coverage',
             branchRevenueDescription: 'Top markets by available report value.',
             roleMix: 'Role mix',
