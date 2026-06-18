@@ -8,11 +8,11 @@ import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import {
-    Property,
     BreadcrumbItem,
     Employee,
     EmployeePosition,
     EmploymentType,
+    Property,
     Shift,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -45,7 +45,8 @@ export default function EmployeesPage({
     shifts,
 }: EmployeesPageProps) {
     const { t, isRtl } = useLocalization();
-    const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
+    const [selectedPropertyId, setSelectedPropertyId] =
+        useState(PROPERTY_FILTER_ALL);
     const propertyOptions = useMemo(
         () =>
             properties.map((property) => ({
@@ -78,7 +79,8 @@ export default function EmployeesPage({
         }
 
         return employees.filter(
-            (employee) => String(employee.property_id ?? '') === selectedPropertyId,
+            (employee) =>
+                String(employee.property_id ?? '') === selectedPropertyId,
         );
     }, [employees, selectedPropertyId]);
 
@@ -113,7 +115,10 @@ export default function EmployeesPage({
             new Set(
                 statsEmployees
                     .map((employee) => employee.property_id)
-                    .filter((propertyId) => propertyId !== null && propertyId !== undefined),
+                    .filter(
+                        (propertyId) =>
+                            propertyId !== null && propertyId !== undefined,
+                    ),
             ).size,
         [statsEmployees],
     );
@@ -127,8 +132,8 @@ export default function EmployeesPage({
             >
                 <section className="relative overflow-hidden rounded-[2rem] bg-[#18233f] p-6 text-white shadow-xl shadow-indigo-950/10 sm:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.38),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.18),transparent_34%)]" />
-                    <div className="pointer-events-none absolute -top-24 -end-20 h-72 w-72 rounded-full border border-white/10" />
-                    <div className="pointer-events-none absolute -top-12 -end-8 h-48 w-48 rounded-full border border-white/10" />
+                    <div className="pointer-events-none absolute -end-20 -top-24 h-72 w-72 rounded-full border border-white/10" />
+                    <div className="pointer-events-none absolute -end-8 -top-12 h-48 w-48 rounded-full border border-white/10" />
                     <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
                         <div className="max-w-3xl">
                             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-indigo-100 uppercase backdrop-blur">

@@ -1,8 +1,6 @@
 import InputError from '@/components/input-error';
-import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,17 +23,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Property,
     Employee,
     EmployeePosition,
     EmploymentType,
+    Property,
     SharedData,
     Shift,
 } from '@/types';
@@ -51,6 +55,7 @@ import {
     Shapes,
     Trash2,
     UserRound,
+    UsersRound,
     X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -544,9 +549,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         'Employment type deleted.',
                     ),
                 );
-                if (
-                    editingEmploymentTypeId === deleteEmploymentTypeTarget.id
-                ) {
+                if (editingEmploymentTypeId === deleteEmploymentTypeTarget.id) {
                     resetEmploymentTypeForm();
                 }
                 setDeleteEmploymentTypeTarget(null);
@@ -717,27 +720,37 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         selectedShiftFilter,
     ]);
 
-    const filterControlClassName = 'w-full sm:w-[170px] sm:min-w-[170px]';
+    const filterControlClassName =
+        'w-full rounded-xl bg-white dark:bg-neutral-900';
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-start justify-between">
-                <Heading
-                    title={t('employees.page.heading', 'Employees: :count').replace(
-                        ':count',
-                        formatNumber(data.length),
-                    )}
-                    description={t(
-                        'employees.page.headingDescription',
-                        'Manage employee records',
-                    )}
-                />
-                <div className="flex items-center gap-2">
+        <div dir={isRtl ? 'rtl' : 'ltr'} className="space-y-5">
+            <div className="flex flex-col gap-5">
+                <div className="flex items-start gap-3">
+                    <span className="rounded-2xl bg-[#18233f] p-3 text-white shadow-sm dark:bg-indigo-300 dark:text-indigo-950">
+                        <UsersRound className="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h2 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                            {t(
+                                'employees.page.heading',
+                                'Employees: :count',
+                            ).replace(':count', formatNumber(data.length))}
+                        </h2>
+                        <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-neutral-400">
+                            {t(
+                                'employees.page.headingDescription',
+                                'Manage employee records',
+                            )}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-wrap justify-start gap-2">
                     {canManageEmployeeMeta ? (
                         <Button
                             variant="outline"
                             onClick={() => setIsEmploymentTypesOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <Shapes className="h-4 w-4" />
                             {t(
@@ -750,7 +763,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         <Button
                             variant="outline"
                             onClick={() => setIsShiftsOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <Clock3 className="h-4 w-4" />
                             {t('employees.shifts.managerButton', 'Shifts')}
@@ -760,16 +773,19 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                         <Button
                             variant="outline"
                             onClick={() => setIsPositionsOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <BriefcaseBusiness className="h-4 w-4" />
-                            {t('employees.positions.managerButton', 'Positions')}
+                            {t(
+                                'employees.positions.managerButton',
+                                'Positions',
+                            )}
                         </Button>
                     ) : null}
                     {canCreateEmployee ? (
                         <Button
                             onClick={() => setIsCreateOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl bg-[#18233f] px-4 text-white shadow-sm hover:bg-[#26355b] dark:bg-indigo-300 dark:text-indigo-950 dark:hover:bg-indigo-200"
                         >
                             <Plus className="h-4 w-4" />
                             {t('employees.create.button', 'Add Employee')}
@@ -777,7 +793,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     ) : null}
                 </div>
             </div>
-            <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-neutral-700" />
             <DataTable
                 searchKey={[
                     'full_name',
@@ -795,7 +811,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                     'Search employees by name, phone, or property...',
                 )}
                 toolbar={
-                    <div className="flex w-full flex-wrap justify-end gap-2">
+                    <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-4">
                         <SearchableDropdown
                             value={selectedPropertyFilter}
                             onValueChange={setSelectedPropertyFilter}
@@ -812,7 +828,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     label: property.name,
                                 })),
                             ]}
-                            placeholder={t('employees.filters.property', 'Property')}
+                            placeholder={t(
+                                'employees.filters.property',
+                                'Property',
+                            )}
                             searchPlaceholder={t(
                                 'employees.filters.searchProperties',
                                 'Search properties...',
@@ -929,25 +948,25 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <DialogContent
                     className={
                         isRtl
-                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
                             : 'sm:max-w-3xl'
                     }
                 >
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-1">
-                                <Shapes className="h-5 w-5" />
-                                {t(
-                                    'employees.employmentTypes.managerTitle',
-                                    'Employment Type Manager',
-                                )}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {t(
-                                    'employees.employmentTypes.managerDescription',
-                                    'Add, edit, and remove employment types.',
-                                )}
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Shapes className="h-5 w-5" />
+                            {t(
+                                'employees.employmentTypes.managerTitle',
+                                'Employment Type Manager',
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'employees.employmentTypes.managerDescription',
+                                'Add, edit, and remove employment types.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
@@ -977,7 +996,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="employment-type-description">
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="employment-type-description"
@@ -1049,7 +1071,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                         )}
                                                 </p>
                                             </div>
-                                            <div className="ml-3 flex items-center gap-1">
+                                            <div className="ms-3 flex items-center gap-1">
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -1111,31 +1133,34 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <DialogContent
                     className={
                         isRtl
-                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
                             : 'sm:max-w-3xl'
                     }
                 >
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-1">
-                                <Clock3 className="h-5 w-5" />
-                                {t(
-                                    'employees.shifts.managerTitle',
-                                    'Shift Manager',
-                                )}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {t(
-                                    'employees.shifts.managerDescription',
-                                    'Add, edit, and remove employee shifts.',
-                                )}
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <Clock3 className="h-5 w-5" />
+                            {t(
+                                'employees.shifts.managerTitle',
+                                'Shift Manager',
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'employees.shifts.managerDescription',
+                                'Add, edit, and remove employee shifts.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="shift-name">
-                                    {t('employees.shifts.shiftName', 'Shift name')}
+                                    {t(
+                                        'employees.shifts.shiftName',
+                                        'Shift name',
+                                    )}
                                 </Label>
                                 <Input
                                     id="shift-name"
@@ -1152,7 +1177,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="shift-start-time">
-                                    {t('employees.shifts.startTime', 'Start time')}
+                                    {t(
+                                        'employees.shifts.startTime',
+                                        'Start time',
+                                    )}
                                 </Label>
                                 <Input
                                     id="shift-start-time"
@@ -1180,7 +1208,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="shift-description">
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="shift-description"
@@ -1250,7 +1281,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                         )}
                                                 </p>
                                             </div>
-                                            <div className="ml-3 flex items-center gap-1">
+                                            <div className="ms-3 flex items-center gap-1">
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -1308,25 +1339,25 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <DialogContent
                     className={
                         isRtl
-                            ? "sm:max-w-3xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
                             : 'sm:max-w-3xl'
                     }
                 >
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-1">
-                                <BriefcaseBusiness className="h-5 w-5" />
-                                {t(
-                                    'employees.positions.managerTitle',
-                                    'Employee Position Manager',
-                                )}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {t(
-                                    'employees.positions.managerDescription',
-                                    'Add, edit, and remove employee positions.',
-                                )}
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <BriefcaseBusiness className="h-5 w-5" />
+                            {t(
+                                'employees.positions.managerTitle',
+                                'Employee Position Manager',
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'employees.positions.managerDescription',
+                                'Add, edit, and remove employee positions.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
 
                     <div className="grid gap-4">
                         <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
@@ -1352,7 +1383,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-1">
                                 <Label htmlFor="position-description">
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Input
                                     id="position-description"
@@ -1424,7 +1458,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                         )}
                                                 </p>
                                             </div>
-                                            <div className="ml-3 flex items-center gap-1">
+                                            <div className="ms-3 flex items-center gap-1">
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -1486,28 +1520,31 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <DialogContent
                     className={
                         isRtl
-                            ? "sm:max-w-4xl text-right [&_input]:text-right [&_textarea]:text-right [&_[data-slot='select-trigger']]:text-right [&_label]:text-right"
+                            ? "text-right sm:max-w-4xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
                             : 'sm:max-w-4xl'
                     }
                 >
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-1">
-                                <UserRound className="h-5 w-5" />
-                                {t('employees.create.title', 'Add Employee')}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {t(
-                                    'employees.create.description',
-                                    'Add employee profile, employment type, position, and compensation details.',
-                                )}
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-1">
+                            <UserRound className="h-5 w-5" />
+                            {t('employees.create.title', 'Add Employee')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'employees.create.description',
+                                'Add employee profile, employment type, position, and compensation details.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
 
                     <ScrollArea className="max-h-[70vh]">
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="employee-first-name">
-                                    {t('employees.form.firstName', 'First name')}
+                                    {t(
+                                        'employees.form.firstName',
+                                        'First name',
+                                    )}
                                 </Label>
                                 <Input
                                     id="employee-first-name"
@@ -1554,7 +1591,12 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.property', 'Property')}</Label>
+                                <Label>
+                                    {t(
+                                        'employees.filters.property',
+                                        'Property',
+                                    )}
+                                </Label>
                                 <Select
                                     value={propertyId}
                                     onValueChange={setPropertyId}
@@ -1578,7 +1620,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={createErrors.property_id} />
+                                <InputError
+                                    message={createErrors.property_id}
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
@@ -1616,15 +1660,20 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('employees.form.employeePosition', 'Employee position')}
+                                    {t(
+                                        'employees.form.employeePosition',
+                                        'Employee position',
+                                    )}
                                 </Label>
                                 <SearchableDropdown
                                     value={employeePositionId}
                                     onValueChange={setEmployeePositionId}
-                                    options={employeePositions.map((position) => ({
-                                        value: String(position.id),
-                                        label: position.name,
-                                    }))}
+                                    options={employeePositions.map(
+                                        (position) => ({
+                                            value: String(position.id),
+                                            label: position.name,
+                                        }),
+                                    )}
                                     placeholder={t(
                                         'employees.form.selectPosition',
                                         'Select position',
@@ -1643,7 +1692,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.shift', 'Shift')}</Label>
+                                <Label>
+                                    {t('employees.filters.shift', 'Shift')}
+                                </Label>
                                 <Select
                                     value={shiftId}
                                     onValueChange={setShiftId}
@@ -1785,7 +1836,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.table.status', 'Status')}</Label>
+                                <Label>
+                                    {t('employees.table.status', 'Status')}
+                                </Label>
                                 <Select
                                     value={status}
                                     onValueChange={setStatus}
@@ -1805,7 +1858,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                                     key={employeeStatus}
                                                     value={employeeStatus}
                                                 >
-                                                    {getStatusLabel(employeeStatus)}
+                                                    {getStatusLabel(
+                                                        employeeStatus,
+                                                    )}
                                                 </SelectItem>
                                             ),
                                         )}
@@ -1832,7 +1887,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor="employee-description">
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id="employee-description"
@@ -1851,7 +1909,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
-                                    {t('employees.form.profilePicture', 'Profile picture')}
+                                    {t(
+                                        'employees.form.profilePicture',
+                                        'Profile picture',
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
@@ -1895,7 +1956,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                             />
                                             <button
                                                 type="button"
-                                                className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                className="absolute end-1 top-1 rounded bg-black/65 p-1 text-white"
                                                 onClick={() =>
                                                     setProfilePicture(null)
                                                 }
@@ -1914,7 +1975,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     {t(
                                         'employees.form.attachmentsLabel',
                                         'Attachments (up to :count)',
-                                    ).replace(':count', String(MAX_ATTACHMENTS))}
+                                    ).replace(
+                                        ':count',
+                                        String(MAX_ATTACHMENTS),
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
@@ -1987,7 +2051,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-4 w-4" />
+                            <X className="me-2 h-4 w-4" />
                             {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
@@ -2006,7 +2070,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 isSubmitting
                             }
                         >
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus className="me-2 h-4 w-4" />
                             {t('employees.create.button', 'Add Employee')}
                         </Button>
                     </DialogFooter>
@@ -2103,7 +2167,10 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {t('employees.positions.deleteTitle', 'Delete position')}
+                            {t(
+                                'employees.positions.deleteTitle',
+                                'Delete position',
+                            )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {deletePositionTarget
