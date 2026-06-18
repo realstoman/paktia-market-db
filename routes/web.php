@@ -94,6 +94,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('provinces', ProvinceController::class);
         Route::resource('branches', BranchController::class);
         Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
+        Route::post('branches/{branch}/floors', [BranchController::class, 'storeFloor'])->name('branches.floors.store');
+        Route::delete('branches/{branch}/floors/{floor}', [BranchController::class, 'destroyFloor'])->name('branches.floors.destroy');
+        Route::post('branches/{branch}/floors/{floor}/units', [BranchController::class, 'storeUnit'])->name('branches.floors.units.store');
+        Route::delete('branches/{branch}/floors/{floor}/units/{unit}', [BranchController::class, 'destroyUnit'])->name('branches.floors.units.destroy');
 
         // Activity / Audit Logs
         Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])
