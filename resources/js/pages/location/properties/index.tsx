@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,13 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
@@ -209,58 +203,30 @@ export default function PropertiesPage({
                                     label={t('propertyWorkspace.fields.type')}
                                     error={form.errors.property_type}
                                 >
-                                    <Select
+                                    <SearchableDropdown
                                         value={form.data.property_type}
                                         onValueChange={(value) =>
                                             form.setData('property_type', value)
                                         }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.keys(typeIcons).map(
-                                                (value) => (
-                                                    <SelectItem
-                                                        key={value}
-                                                        value={value}
-                                                    >
-                                                        {typeLabel(value)}
-                                                    </SelectItem>
-                                                ),
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                        options={Object.keys(typeIcons).map((value) => ({ value, label: typeLabel(value) }))}
+                                        placeholder={t('propertyWorkspace.fields.type')}
+                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                                        emptyText={t('propertyWorkspace.noOptions')}
+                                    />
                                 </Field>
                                 <Field
                                     label={t('propertyWorkspace.fields.usage')}
                                 >
-                                    <Select
+                                    <SearchableDropdown
                                         value={form.data.usage_type}
                                         onValueChange={(value) =>
                                             form.setData('usage_type', value)
                                         }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {[
-                                                'commercial',
-                                                'residential',
-                                                'mixed',
-                                            ].map((value) => (
-                                                <SelectItem
-                                                    key={value}
-                                                    value={value}
-                                                >
-                                                    {t(
-                                                        `propertyWorkspace.usage.${value}`,
-                                                    )}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={['commercial', 'residential', 'mixed'].map((value) => ({ value, label: t(`propertyWorkspace.usage.${value}`) }))}
+                                        placeholder={t('propertyWorkspace.fields.usage')}
+                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                                        emptyText={t('propertyWorkspace.noOptions')}
+                                    />
                                 </Field>
                                 <Field
                                     label={t('propertyWorkspace.fields.photo')}
@@ -283,31 +249,17 @@ export default function PropertiesPage({
                                     )}
                                     error={form.errors.country_id}
                                 >
-                                    <Select
+                                    <SearchableDropdown
                                         value={form.data.country_id}
                                         onValueChange={(value) => {
                                             form.setData('country_id', value);
                                             form.setData('province_id', '');
                                         }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'propertyWorkspace.selectCountry',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {countries.map((country) => (
-                                                <SelectItem
-                                                    key={country.id}
-                                                    value={String(country.id)}
-                                                >
-                                                    {country.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={countries.map((country) => ({ value: String(country.id), label: country.name }))}
+                                        placeholder={t('propertyWorkspace.selectCountry')}
+                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                                        emptyText={t('propertyWorkspace.noOptions')}
+                                    />
                                 </Field>
                                 <Field
                                     label={t(
@@ -315,30 +267,16 @@ export default function PropertiesPage({
                                     )}
                                     error={form.errors.province_id}
                                 >
-                                    <Select
+                                    <SearchableDropdown
                                         value={form.data.province_id}
                                         onValueChange={(value) =>
                                             form.setData('province_id', value)
                                         }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'propertyWorkspace.selectProvince',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {provinceOptions.map((province) => (
-                                                <SelectItem
-                                                    key={province.id}
-                                                    value={String(province.id)}
-                                                >
-                                                    {province.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={provinceOptions.map((province) => ({ value: String(province.id), label: province.name }))}
+                                        placeholder={t('propertyWorkspace.selectProvince')}
+                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                                        emptyText={t('propertyWorkspace.noOptions')}
+                                    />
                                 </Field>
                                 <Field
                                     label={t(
@@ -347,7 +285,7 @@ export default function PropertiesPage({
                                     className="sm:col-span-2 lg:col-span-3"
                                     error={form.errors.parent_property_id}
                                 >
-                                    <Select
+                                    <SearchableDropdown
                                         value={
                                             form.data.parent_property_id ||
                                             'none'
@@ -358,29 +296,14 @@ export default function PropertiesPage({
                                                 value === 'none' ? '' : value,
                                             )
                                         }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">
-                                                {t(
-                                                    'propertyWorkspace.independent',
-                                                )}
-                                            </SelectItem>
-                                            {propertyOptions.map((property) => (
-                                                <SelectItem
-                                                    key={property.id}
-                                                    value={String(property.id)}
-                                                >
-                                                    {property.name} ·{' '}
-                                                    {typeLabel(
-                                                        property.property_type,
-                                                    )}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={[
+                                            { value: 'none', label: t('propertyWorkspace.independent') },
+                                            ...propertyOptions.map((property) => ({ value: String(property.id), label: `${property.name} · ${typeLabel(property.property_type)}` })),
+                                        ]}
+                                        placeholder={t('propertyWorkspace.independent')}
+                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                                        emptyText={t('propertyWorkspace.noOptions')}
+                                    />
                                     <p className="text-xs text-muted-foreground">
                                         {t('propertyWorkspace.relatedHelp')}
                                     </p>
@@ -527,21 +450,18 @@ export default function PropertiesPage({
                             onChange={(event) => setSearch(event.target.value)}
                         />
                     </div>
-                    <Select value={type} onValueChange={setType}>
-                        <SelectTrigger className="sm:w-56">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">
-                                {t('propertyWorkspace.allTypes')}
-                            </SelectItem>
-                            {Object.keys(typeIcons).map((value) => (
-                                <SelectItem key={value} value={value}>
-                                    {typeLabel(value)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <SearchableDropdown
+                        value={type}
+                        onValueChange={setType}
+                        options={[
+                            { value: 'all', label: t('propertyWorkspace.allTypes') },
+                            ...Object.keys(typeIcons).map((value) => ({ value, label: typeLabel(value) })),
+                        ]}
+                        placeholder={t('propertyWorkspace.allTypes')}
+                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                        emptyText={t('propertyWorkspace.noOptions')}
+                        className="sm:w-56"
+                    />
                 </div>
 
                 {visible.length ? (

@@ -2529,6 +2529,8 @@ const en = {
         homes: 'Houses & blocks',
         spaces: 'Configured spaces',
         search: 'Search by name, address or province…',
+        searchOptions: 'Search options…',
+        noOptions: 'No matching option found.',
         allTypes: 'All property types',
         noResults: 'No properties match this view.',
         independent: 'Independent property',
