@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, EmployeeAdvance } from '@/types';
+import { Property, EmployeeAdvance } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -17,7 +17,7 @@ interface AdvanceVoucherPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     advance: EmployeeAdvance | null;
-    branch: Branch | null;
+    property: Property | null;
 }
 
 const formatDateTime = (value?: string | null) => {
@@ -74,7 +74,7 @@ export function AdvanceVoucherPrintDialog({
     open,
     onOpenChange,
     advance,
-    branch,
+    property,
 }: AdvanceVoucherPrintDialogProps) {
     const { t } = useLocalization();
 
@@ -151,7 +151,7 @@ export function AdvanceVoucherPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
+                                <p>${escapeHtml(property?.name ?? 'Main Property')} • ${escapeHtml(property?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
@@ -170,14 +170,14 @@ export function AdvanceVoucherPrintDialog({
                                     <thead>
                                         <tr>
                                             <th>Description</th>
-                                            <th>Branch</th>
+                                            <th>Property</th>
                                             <th class="right">Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td>${escapeHtml(advance.reason ?? 'Employee advance / takeout')}</td>
-                                            <td>${escapeHtml(branch?.name ?? 'All Branches')}</td>
+                                            <td>${escapeHtml(property?.name ?? 'All Properties')}</td>
                                             <td class="right">${escapeHtml(amount)}</td>
                                         </tr>
                                     </tbody>
@@ -274,8 +274,8 @@ export function AdvanceVoucherPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} •{' '}
-                                            {branch?.address ??
+                                            {property?.name ?? 'Main Property'} •{' '}
+                                            {property?.address ??
                                                 'Address not set'}
                                         </p>
                                     </div>
@@ -332,7 +332,7 @@ export function AdvanceVoucherPrintDialog({
                                                     Description
                                                 </th>
                                                 <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
-                                                    Branch
+                                                    Property
                                                 </th>
                                                 <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     Amount
@@ -346,8 +346,8 @@ export function AdvanceVoucherPrintDialog({
                                                         'Employee advance / takeout'}
                                                 </td>
                                                 <td className="px-2 py-4">
-                                                    {branch?.name ??
-                                                        'All Branches'}
+                                                    {property?.name ??
+                                                        'All Properties'}
                                                 </td>
                                                 <td className="px-2 py-4 text-right">
                                                     {formatAfn(advance.amount)}

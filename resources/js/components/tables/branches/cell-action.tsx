@@ -37,7 +37,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Branch, Country, Province } from '@/types';
+import { Property, Country, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Edit,
@@ -54,7 +54,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CellActionProps {
-    data: Branch;
+    data: Property;
     countries: Country[];
     provinces: Province[];
 }
@@ -66,9 +66,9 @@ export const CellAction: React.FC<CellActionProps> = ({
 }) => {
     const { t } = useLocalization();
     const { can } = useAuthorization();
-    const canViewBranch = can('branch.view');
-    const canManageBranch = can('branch.update');
-    const canDeleteBranch = can('branch.delete');
+    const canViewProperty = can('property.view');
+    const canManageProperty = can('property.update');
+    const canDeleteProperty = can('property.delete');
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDisableOpen, setIsDisableOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -112,7 +112,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setIsSubmitting(true);
 
         router.put(
-            `/branches/${data.id}`,
+            `/properties/${data.id}`,
             {
                 name: name.trim(),
                 country_id: Number(countryId),
@@ -125,8 +125,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                 onSuccess: () => {
                     toast.success(
                         t(
-                            'branches.feedback.branchUpdated',
-                            'Branch updated successfully.',
+                            'properties.feedback.propertyUpdated',
+                            'Property updated successfully.',
                         ),
                     );
                     setIsEditOpen(false);
@@ -148,18 +148,18 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setIsSubmitting(true);
 
-        router.post(`/branches/${data.id}/disable`, undefined, {
+        router.post(`/properties/${data.id}/disable`, undefined, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(
                     data.is_active
                         ? t(
-                              'branches.feedback.branchDisabled',
-                              'Branch disabled successfully.',
+                              'properties.feedback.propertyDisabled',
+                              'Property disabled successfully.',
                           )
                         : t(
-                              'branches.feedback.branchActivated',
-                              'Branch activated successfully.',
+                              'properties.feedback.propertyActivated',
+                              'Property activated successfully.',
                           ),
                 );
                 setIsDisableOpen(false);
@@ -177,13 +177,13 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         setIsSubmitting(true);
 
-        router.delete(`/branches/${data.id}`, {
+        router.delete(`/properties/${data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(
                     t(
-                        'branches.feedback.branchDeleted',
-                        'Branch deleted successfully.',
+                        'properties.feedback.propertyDeleted',
+                        'Property deleted successfully.',
                     ),
                 );
                 setIsDeleteOpen(false);
@@ -196,29 +196,29 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            {canViewBranch || canManageBranch || canDeleteBranch ? (
+            {canViewProperty || canManageProperty || canDeleteProperty ? (
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">
-                                {t('branches.actions.openMenu', 'Open menu')}
+                                {t('properties.actions.openMenu', 'Open menu')}
                             </span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>
-                            {t('branches.table.actions', 'Actions')}
+                            {t('properties.table.actions', 'Actions')}
                         </DropdownMenuLabel>
-                        {canViewBranch ? (
+                        {canViewProperty ? (
                             <DropdownMenuItem
-                                onClick={() => router.visit(`/branches/${data.id}`)}
+                                onClick={() => router.visit(`/properties/${data.id}`)}
                             >
                                 <Eye className="mr-2 h-4 w-4" />
-                                {t('branches.actions.view', 'View')}
+                                {t('properties.actions.view', 'View')}
                             </DropdownMenuItem>
                         ) : null}
-                        {canManageBranch ? (
+                        {canManageProperty ? (
                             <DropdownMenuItem
                                 onClick={() => {
                                     resetEdit();
@@ -226,10 +226,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 }}
                             >
                                 <Edit className="mr-2 h-4 w-4" />
-                                {t('branches.actions.edit', 'Edit')}
+                                {t('properties.actions.edit', 'Edit')}
                             </DropdownMenuItem>
                         ) : null}
-                        {canManageBranch ? (
+                        {canManageProperty ? (
                             <DropdownMenuItem onClick={() => setIsDisableOpen(true)}>
                                 {data.is_active ? (
                                     <MapPinOff className="mr-2 h-4 w-4" />
@@ -237,14 +237,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <MapPin className="mr-2 h-4 w-4" />
                                 )}
                                 {data.is_active
-                                    ? t('branches.actions.deactivate', 'Deactivate')
-                                    : t('branches.actions.activate', 'Activate')}
+                                    ? t('properties.actions.deactivate', 'Deactivate')
+                                    : t('properties.actions.activate', 'Activate')}
                             </DropdownMenuItem>
                         ) : null}
-                        {canDeleteBranch ? (
+                        {canDeleteProperty ? (
                             <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
                                 <Trash className="mr-2 h-4 w-4 text-red-600" />
-                                {t('branches.actions.delete', 'Delete')}
+                                {t('properties.actions.delete', 'Delete')}
                             </DropdownMenuItem>
                         ) : null}
                     </DropdownMenuContent>
@@ -255,23 +255,23 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {t('branches.modals.edit.title', 'Edit Branch')}
+                            {t('properties.modals.edit.title', 'Edit Property')}
                         </DialogTitle>
                         <DialogDescription>
                             {t(
-                                'branches.modals.edit.description',
-                                'Update the branch information and location.',
+                                'properties.modals.edit.description',
+                                'Update the property information and location.',
                             )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label htmlFor={`branch-name-${data.id}`}>
-                                {t('branches.fields.name', 'Name')}
+                            <Label htmlFor={`property-name-${data.id}`}>
+                                {t('properties.fields.name', 'Name')}
                             </Label>
                             <Input
-                                id={`branch-name-${data.id}`}
+                                id={`property-name-${data.id}`}
                                 value={name}
                                 onChange={(event) =>
                                     setName(event.target.value)
@@ -280,7 +280,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.name} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('branches.fields.country', 'Country')}</Label>
+                            <Label>{t('properties.fields.country', 'Country')}</Label>
                             <Select
                                 value={countryId}
                                 onValueChange={(value) => {
@@ -293,7 +293,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <SelectTrigger>
                                     <SelectValue
                                         placeholder={t(
-                                            'branches.placeholders.selectCountry',
+                                            'properties.placeholders.selectCountry',
                                             'Select country',
                                         )}
                                     />
@@ -312,7 +312,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('branches.fields.province', 'Province')}</Label>
+                            <Label>{t('properties.fields.province', 'Province')}</Label>
                             <Select
                                 value={provinceId}
                                 onValueChange={setProvinceId}
@@ -324,7 +324,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <SelectTrigger>
                                     <SelectValue
                                         placeholder={t(
-                                            'branches.placeholders.selectProvince',
+                                            'properties.placeholders.selectProvince',
                                             'Select province',
                                         )}
                                     />
@@ -343,11 +343,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor={`branch-address-${data.id}`}>
-                                {t('branches.fields.address', 'Address')}
+                            <Label htmlFor={`property-address-${data.id}`}>
+                                {t('properties.fields.address', 'Address')}
                             </Label>
                             <Input
-                                id={`branch-address-${data.id}`}
+                                id={`property-address-${data.id}`}
                                 value={address}
                                 onChange={(event) =>
                                     setAddress(event.target.value)
@@ -356,11 +356,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.address} />
                         </div>
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor={`branch-description-${data.id}`}>
-                                {t('branches.fields.description', 'Description')}
+                            <Label htmlFor={`property-description-${data.id}`}>
+                                {t('properties.fields.description', 'Description')}
                             </Label>
                             <Textarea
-                                id={`branch-description-${data.id}`}
+                                id={`property-description-${data.id}`}
                                 value={description}
                                 onChange={(event) =>
                                     setDescription(event.target.value)
@@ -389,7 +389,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             }
                         >
                             <Save className="mr-2 h-5 w-5" />
-                            {t('branches.actions.saveChanges', 'Save Changes')}
+                            {t('properties.actions.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -401,23 +401,23 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <AlertDialogTitle>
                             {data.is_active
                                 ? t(
-                                      'branches.modals.toggle.deactivateTitle',
-                                      'Deactivate branch',
+                                      'properties.modals.toggle.deactivateTitle',
+                                      'Deactivate property',
                                   )
                                 : t(
-                                      'branches.modals.toggle.activateTitle',
-                                      'Activate branch',
+                                      'properties.modals.toggle.activateTitle',
+                                      'Activate property',
                                   )}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
                                 ? t(
-                                      'branches.modals.toggle.deactivateDescription',
-                                      'This will mark the branch as inactive.',
+                                      'properties.modals.toggle.deactivateDescription',
+                                      'This will mark the property as inactive.',
                                   )
                                 : t(
-                                      'branches.modals.toggle.activateDescription',
-                                      'This will mark the branch as active.',
+                                      'properties.modals.toggle.activateDescription',
+                                      'This will mark the property as active.',
                                   )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -433,8 +433,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                         >
                             <MapPinOff className="mr-2 h-5 w-5" />
                             {data.is_active
-                                ? t('branches.actions.deactivate', 'Deactivate')
-                                : t('branches.actions.activate', 'Activate')}
+                                ? t('properties.actions.deactivate', 'Deactivate')
+                                : t('properties.actions.activate', 'Activate')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -444,12 +444,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {t('branches.modals.delete.title', 'Delete branch')}
+                            {t('properties.modals.delete.title', 'Delete property')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {t(
-                                'branches.modals.delete.description',
-                                'This will permanently remove the branch and related data.',
+                                'properties.modals.delete.description',
+                                'This will permanently remove the property and related data.',
                             )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -464,7 +464,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={isSubmitting}
                         >
                             <Trash2 className="mr-2 h-5 w-5" />
-                            {t('branches.actions.delete', 'Delete')}
+                            {t('properties.actions.delete', 'Delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

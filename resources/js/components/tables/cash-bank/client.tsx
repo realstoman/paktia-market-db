@@ -37,7 +37,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Branch,
+    Property,
     CashMovement,
     CashMovementType,
     FinanceAccount,
@@ -63,8 +63,8 @@ const APPROVAL_OPTIONS = [
 ];
 
 interface CashMovementFormState {
-    branch_id: string;
-    destination_branch_id: string;
+    property_id: string;
+    destination_property_id: string;
     movement_type: string;
     direction: string;
     movement_date: string;
@@ -77,8 +77,8 @@ interface CashMovementFormState {
 }
 
 const emptyForm: CashMovementFormState = {
-    branch_id: '',
-    destination_branch_id: '',
+    property_id: '',
+    destination_property_id: '',
     movement_type: 'owner_deposit',
     direction: 'in',
     movement_date: new Date().toISOString().slice(0, 10),
@@ -92,7 +92,7 @@ const emptyForm: CashMovementFormState = {
 
 interface CashBankClientProps {
     movements: CashMovement[];
-    branches: Branch[];
+    properties: Property[];
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
     movementTypes: CashMovementType[];
@@ -101,7 +101,7 @@ interface CashBankClientProps {
 
 export function CashBankClient({
     movements,
-    branches,
+    properties,
     sourceAccounts,
     targetAccounts,
     movementTypes,
@@ -122,24 +122,24 @@ export function CashBankClient({
         React.useState<CashMovement | null>(null);
     const [form, setForm] = React.useState<CashMovementFormState>(emptyForm);
     const [statusFilter, setStatusFilter] = React.useState('all');
-    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState('all');
 
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        form.branch_id,
+        propertyOptions,
+        form.property_id,
         (value) =>
             setForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
     const movementTypeOptions = React.useMemo(
@@ -179,15 +179,15 @@ export function CashBankClient({
             }
 
             if (
-                branchFilter !== 'all' &&
-                String(movement.branch_id ?? '') !== branchFilter
+                propertyFilter !== 'all' &&
+                String(movement.property_id ?? '') !== propertyFilter
             ) {
                 return false;
             }
 
             return true;
         });
-    }, [branchFilter, movements, statusFilter]);
+    }, [propertyFilter, movements, statusFilter]);
 
     const openCreate = React.useCallback(() => {
         setEditingMovement(null);
@@ -228,11 +228,11 @@ export function CashBankClient({
             setEditingMovement(movement);
             setReceiptFile(null);
             setForm({
-                branch_id: sourceMovement.branch_id
-                    ? String(sourceMovement.branch_id)
+                property_id: sourceMovement.property_id
+                    ? String(sourceMovement.property_id)
                     : '',
-                destination_branch_id: destinationMovement?.branch_id
-                    ? String(destinationMovement.branch_id)
+                destination_property_id: destinationMovement?.property_id
+                    ? String(destinationMovement.property_id)
                     : '',
                 movement_type: sourceMovement.movement_type,
                 direction: sourceMovement.direction ?? 'in',
@@ -271,9 +271,9 @@ export function CashBankClient({
 
     const submit = React.useCallback(() => {
         const payload: Record<string, string | number | null | File> = {
-            branch_id: form.branch_id ? Number(form.branch_id) : null,
-            destination_branch_id: form.destination_branch_id
-                ? Number(form.destination_branch_id)
+            property_id: form.property_id ? Number(form.property_id) : null,
+            destination_property_id: form.destination_property_id
+                ? Number(form.destination_property_id)
                 : null,
             movement_type: form.movement_type,
             direction: form.direction,
@@ -399,26 +399,26 @@ export function CashBankClient({
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
-                value={branchFilter}
+                value={propertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financeCashBank.filters.allBranches',
-                            'All Branches',
+                            'financeCashBank.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setBranchFilter}
-                placeholder={t('financeCashBank.filters.branch', 'Branch')}
+                onValueChange={setPropertyFilter}
+                placeholder={t('financeCashBank.filters.property', 'Property')}
                 searchPlaceholder={t(
-                    'financeCashBank.filters.searchBranches',
-                    'Search branches...',
+                    'financeCashBank.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financeCashBank.filters.noBranchFound',
-                    'No branch found.',
+                    'financeCashBank.filters.noPropertyFound',
+                    'No property found.',
                 )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
@@ -432,7 +432,7 @@ export function CashBankClient({
                     title={`${t('financeCashBank.heading.title', 'Cash & Bank Movements')}: ${formatNumber(filteredMovements.length)}`}
                     description={t(
                         'financeCashBank.heading.description',
-                        'Record owner funding, cash to bank movements, and petty cash top-ups with branch-level control.',
+                        'Record owner funding, cash to bank movements, and petty cash top-ups with property-level control.',
                     )}
                 />
                 <div className="flex gap-3">
@@ -482,7 +482,7 @@ export function CashBankClient({
                     <CardDescription>
                         {t(
                             'financeCashBank.register.description',
-                            'Add cash in hand funding, bank funding, and transfers to petty cash or other branches.',
+                            'Add cash in hand funding, bank funding, and transfers to petty cash or other properties.',
                         )}
                     </CardDescription>
                 </CardHeader>
@@ -494,7 +494,7 @@ export function CashBankClient({
                     data={filteredMovements}
                     searchKey={[
                         'movement_type',
-                        'branch.name',
+                        'property.name',
                         'account.name',
                         'counterparty_account.name',
                         'payment_method',
@@ -502,7 +502,7 @@ export function CashBankClient({
                     ]}
                     searchPlaceholder={t(
                         'financeCashBank.register.searchPlaceholder',
-                        'Search movement type, branch, account, method, or status...',
+                        'Search movement type, property, account, method, or status...',
                     )}
                     toolbar={toolbar}
                 />
@@ -624,30 +624,30 @@ export function CashBankClient({
                         <div className="grid gap-2">
                             <Label>
                                 {t(
-                                    'financeCashBank.form.sourceBranch',
-                                    'Source Branch',
+                                    'financeCashBank.form.sourceProperty',
+                                    'Source Property',
                                 )}
                             </Label>
                             <SearchableDropdown
-                                value={form.branch_id}
-                                options={branchOptions}
+                                value={form.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
                                 placeholder={t(
-                                    'financeCashBank.form.selectSourceBranch',
-                                    'Select source branch',
+                                    'financeCashBank.form.selectSourceProperty',
+                                    'Select source property',
                                 )}
                                 searchPlaceholder={t(
-                                    'financeCashBank.filters.searchBranches',
-                                    'Search branches...',
+                                    'financeCashBank.filters.searchProperties',
+                                    'Search properties...',
                                 )}
                                 emptyText={t(
-                                    'financeCashBank.filters.noBranchFound',
-                                    'No branch found.',
+                                    'financeCashBank.filters.noPropertyFound',
+                                    'No property found.',
                                 )}
                             />
                         </div>
@@ -656,30 +656,30 @@ export function CashBankClient({
                             <div className="grid gap-2">
                                 <Label>
                                     {t(
-                                        'financeCashBank.form.destinationBranch',
-                                        'Destination Branch',
+                                        'financeCashBank.form.destinationProperty',
+                                        'Destination Property',
                                     )}
                                 </Label>
                                 <SearchableDropdown
-                                    value={form.destination_branch_id}
-                                    options={branchOptions}
+                                    value={form.destination_property_id}
+                                    options={propertyOptions}
                                     onValueChange={(value) =>
                                         setForm((current) => ({
                                             ...current,
-                                            destination_branch_id: value,
+                                            destination_property_id: value,
                                         }))
                                     }
                                     placeholder={t(
-                                        'financeCashBank.form.selectDestinationBranch',
-                                        'Select destination branch',
+                                        'financeCashBank.form.selectDestinationProperty',
+                                        'Select destination property',
                                     )}
                                     searchPlaceholder={t(
-                                        'financeCashBank.filters.searchBranches',
-                                        'Search branches...',
+                                        'financeCashBank.filters.searchProperties',
+                                        'Search properties...',
                                     )}
                                     emptyText={t(
-                                        'financeCashBank.filters.noBranchFound',
-                                        'No branch found.',
+                                        'financeCashBank.filters.noPropertyFound',
+                                        'No property found.',
                                     )}
                                 />
                             </div>
@@ -1041,10 +1041,10 @@ export function CashBankClient({
                     }
                 }}
                 movement={printMovement}
-                branch={
+                property={
                     printMovement
-                        ? (branches.find(
-                              (branch) => branch.id === printMovement.branch_id,
+                        ? (properties.find(
+                              (property) => property.id === printMovement.property_id,
                           ) ?? null)
                         : null
                 }

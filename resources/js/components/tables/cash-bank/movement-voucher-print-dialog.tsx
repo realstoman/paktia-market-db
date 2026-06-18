@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, CashMovement, CashMovementType } from '@/types';
+import { Property, CashMovement, CashMovementType } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -17,7 +17,7 @@ interface MovementVoucherPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     movement: CashMovement | null;
-    branch: Branch | null;
+    property: Property | null;
     movementType: CashMovementType | null;
 }
 
@@ -59,7 +59,7 @@ export function MovementVoucherPrintDialog({
     open,
     onOpenChange,
     movement,
-    branch,
+    property,
     movementType,
 }: MovementVoucherPrintDialogProps) {
     const { t } = useLocalization();
@@ -138,7 +138,7 @@ export function MovementVoucherPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
+                                <p>${escapeHtml(property?.name ?? 'Main Property')} • ${escapeHtml(property?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
@@ -262,8 +262,8 @@ export function MovementVoucherPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} •{' '}
-                                            {branch?.address ??
+                                            {property?.name ?? 'Main Property'} •{' '}
+                                            {property?.address ??
                                                 'Address not set'}
                                         </p>
                                     </div>

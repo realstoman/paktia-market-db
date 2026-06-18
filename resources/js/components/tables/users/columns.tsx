@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Property, Country, Province, Role, User } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, Ban } from 'lucide-react';
 import { CellAction } from './cell-action';
@@ -10,7 +10,7 @@ export const buildColumns = (
     roles: Role[],
     countries: Country[],
     provinces: Province[],
-    branches: Branch[],
+    properties: Property[],
     t: TranslateFn,
     locale: string,
 ): ColumnDef<User>[] => [
@@ -82,8 +82,8 @@ export const buildColumns = (
         },
     },
     {
-        accessorKey: 'branch',
-        header: t('users.table.branch', 'Branch'),
+        accessorKey: 'property',
+        header: t('users.table.property', 'Property'),
     },
     {
         accessorKey: 'province',
@@ -130,7 +130,7 @@ export const buildColumns = (
                 roles={roles}
                 countries={countries}
                 provinces={provinces}
-                branches={branches}
+                properties={properties}
             />
         ),
     },

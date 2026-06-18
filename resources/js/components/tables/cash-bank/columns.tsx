@@ -95,11 +95,11 @@ export function buildColumns({
             cell: ({ row }) => movementTypeLabel(row.original.movement_type),
         },
         {
-            id: 'branch.name',
+            id: 'property.name',
             accessorFn: (row) =>
-                row.branch?.name ??
-                t('financeCashBank.filters.allBranches', 'All Branches'),
-            header: t('financeCashBank.table.branch', 'Branch'),
+                row.property?.name ??
+                t('financeCashBank.filters.allProperties', 'All Properties'),
+            header: t('financeCashBank.table.property', 'Property'),
         },
         {
             id: 'account.name',

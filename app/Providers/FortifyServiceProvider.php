@@ -122,13 +122,13 @@ class FortifyServiceProvider extends ServiceProvider
                 : Limit::perMinute(60)->by('ip:'.$request->ip());
         });
 
-        // Branch-sync traffic is keyed by credential (when present) so a
-        // healthy poll loop on one branch cannot starve another.
-        RateLimiter::for('branch-sync', function (Request $request) {
-            $token = (string) $request->header('X-Branch-Token', '');
+        // Property-sync traffic is keyed by credential (when present) so a
+        // healthy poll loop on one property cannot starve another.
+        RateLimiter::for('property-sync', function (Request $request) {
+            $token = (string) $request->header('X-Property-Token', '');
             $key = $token !== '' ? 'token:'.sha1($token) : 'ip:'.$request->ip();
 
-            return Limit::perMinute(60)->by('branch-sync:'.$key);
+            return Limit::perMinute(60)->by('property-sync:'.$key);
         });
     }
 }

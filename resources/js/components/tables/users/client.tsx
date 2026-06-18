@@ -24,7 +24,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Property, Country, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -44,7 +44,7 @@ interface UsersClientProps {
     roles: Role[];
     countries: Country[];
     provinces: Province[];
-    branches: Branch[];
+    properties: Property[];
     isLoading?: boolean;
 }
 
@@ -53,7 +53,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     roles,
     countries,
     provinces,
-    branches,
+    properties,
     isLoading = false,
 }) => {
     const { t, locale } = useLocalization();
@@ -64,13 +64,13 @@ export const UsersClient: React.FC<UsersClientProps> = ({
     const [selectedRoleFilter, setSelectedRoleFilter] = useState('');
     const [selectedCountryFilter, setSelectedCountryFilter] = useState('');
     const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('');
-    const [selectedBranchFilter, setSelectedBranchFilter] = useState('');
+    const [selectedPropertyFilter, setSelectedPropertyFilter] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [roleId, setRoleId] = useState<string>('');
     const [countryId, setCountryId] = useState<string>('');
     const [provinceId, setProvinceId] = useState<string>('');
-    const [branchId, setBranchId] = useState<string>('');
+    const [propertyId, setPropertyId] = useState<string>('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [showPasswords, setShowPasswords] = useState(false);
@@ -85,7 +85,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         setRoleId('');
         setCountryId('');
         setProvinceId('');
-        setBranchId('');
+        setPropertyId('');
         setPassword('');
         setPasswordConfirmation('');
         setShowPasswords(false);
@@ -109,7 +109,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 roles: roleId ? [Number(roleId)] : [],
                 country_id: countryId ? Number(countryId) : null,
                 province_id: provinceId ? Number(provinceId) : null,
-                branch_id: branchId ? Number(branchId) : null,
+                property_id: propertyId ? Number(propertyId) : null,
             },
             {
                 preserveScroll: true,
@@ -140,8 +140,8 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         )?.[1];
 
     const tableColumns = useMemo(
-        () => buildColumns(roles, countries, provinces, branches, t, locale),
-        [roles, countries, provinces, branches, t, locale],
+        () => buildColumns(roles, countries, provinces, properties, t, locale),
+        [roles, countries, provinces, properties, t, locale],
     );
     const roleFilterOptions = useMemo(
         () => [
@@ -187,31 +187,31 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         ],
         [provinces, selectedCountryFilter, t],
     );
-    const branchFilterOptions = useMemo(
+    const propertyFilterOptions = useMemo(
         () => [
             {
                 value: '',
-                label: t('users.filters.allBranches', 'All branches'),
+                label: t('users.filters.allProperties', 'All properties'),
             },
-            ...branches
-                .filter((branch) => {
+            ...properties
+                .filter((property) => {
                     const matchesCountry = selectedCountryFilter
-                        ? String(branch.country_id ?? '') ===
+                        ? String(property.country_id ?? '') ===
                           selectedCountryFilter
                         : true;
                     const matchesProvince = selectedProvinceFilter
-                        ? String(branch.province_id ?? '') ===
+                        ? String(property.province_id ?? '') ===
                           selectedProvinceFilter
                         : true;
 
                     return matchesCountry && matchesProvince;
                 })
-                .map((branch) => ({
-                    value: String(branch.id),
-                    label: branch.name,
+                .map((property) => ({
+                    value: String(property.id),
+                    label: property.name,
                 })),
         ],
-        [branches, selectedCountryFilter, selectedProvinceFilter, t],
+        [properties, selectedCountryFilter, selectedProvinceFilter, t],
     );
     const createProvinceOptions = useMemo(
         () =>
@@ -224,30 +224,30 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             }),
         [provinces, countryId],
     );
-    const createBranchOptions = useMemo(
+    const createPropertyOptions = useMemo(
         () =>
-            branches.filter((branch) => {
+            properties.filter((property) => {
                 const matchesCountry = countryId
-                    ? String(branch.country_id ?? '') === countryId
+                    ? String(property.country_id ?? '') === countryId
                     : true;
                 const matchesProvince = provinceId
-                    ? String(branch.province_id ?? '') === provinceId
+                    ? String(property.province_id ?? '') === provinceId
                     : true;
 
                 return matchesCountry && matchesProvince;
             }),
-        [branches, countryId, provinceId],
+        [properties, countryId, provinceId],
     );
-    const createBranchSelectOptions = useMemo(
+    const createPropertySelectOptions = useMemo(
         () =>
-            createBranchOptions.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            createPropertyOptions.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [createBranchOptions],
+        [createPropertyOptions],
     );
 
-    useAutoSelectSingleOption(createBranchSelectOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(createPropertySelectOptions, propertyId, setPropertyId);
     const filteredUsers = useMemo(
         () =>
             data.filter((user) => {
@@ -273,15 +273,15 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 const matchesProvince = selectedProvinceFilter
                     ? String(user.province_id ?? '') === selectedProvinceFilter
                     : true;
-                const matchesBranch = selectedBranchFilter
-                    ? String(user.branch_id ?? '') === selectedBranchFilter
+                const matchesProperty = selectedPropertyFilter
+                    ? String(user.property_id ?? '') === selectedPropertyFilter
                     : true;
 
                 return (
                     matchesRole &&
                     matchesCountry &&
                     matchesProvince &&
-                    matchesBranch
+                    matchesProperty
                 );
             }),
         [
@@ -290,7 +290,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
             selectedRoleFilter,
             selectedCountryFilter,
             selectedProvinceFilter,
-            selectedBranchFilter,
+            selectedPropertyFilter,
         ],
     );
 
@@ -329,7 +329,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                 searchKey={[
                     'name',
                     'email',
-                    'branch',
+                    'property',
                     'province',
                     'country',
                     'is_active',
@@ -367,7 +367,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             onValueChange={(value) => {
                                 setSelectedCountryFilter(value);
                                 setSelectedProvinceFilter('');
-                                setSelectedBranchFilter('');
+                                setSelectedPropertyFilter('');
                             }}
                             placeholder={t(
                                 'users.filters.allCountries',
@@ -388,7 +388,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             options={provinceFilterOptions}
                             onValueChange={(value) => {
                                 setSelectedProvinceFilter(value);
-                                setSelectedBranchFilter('');
+                                setSelectedPropertyFilter('');
                             }}
                             placeholder={t(
                                 'users.filters.allCities',
@@ -405,20 +405,20 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             className="xl:w-[180px]"
                         />
                         <SearchableDropdown
-                            value={selectedBranchFilter}
-                            options={branchFilterOptions}
-                            onValueChange={setSelectedBranchFilter}
+                            value={selectedPropertyFilter}
+                            options={propertyFilterOptions}
+                            onValueChange={setSelectedPropertyFilter}
                             placeholder={t(
-                                'users.filters.allBranches',
-                                'All branches',
+                                'users.filters.allProperties',
+                                'All properties',
                             )}
                             searchPlaceholder={t(
-                                'users.filters.searchBranches',
-                                'Search branches...',
+                                'users.filters.searchProperties',
+                                'Search properties...',
                             )}
                             emptyText={t(
-                                'users.filters.noBranchesFound',
-                                'No branches found.',
+                                'users.filters.noPropertiesFound',
+                                'No properties found.',
                             )}
                             className="xl:w-[180px]"
                         />
@@ -590,7 +590,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                     setCountryId(value);
                                     if (value !== countryId) {
                                         setProvinceId('');
-                                        setBranchId('');
+                                        setPropertyId('');
                                     }
                                 }}
                             >
@@ -624,7 +624,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                 onValueChange={(value) => {
                                     setProvinceId(value);
                                     if (value !== provinceId) {
-                                        setBranchId('');
+                                        setPropertyId('');
                                     }
                                 }}
                             >
@@ -650,31 +650,31 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <InputError message={createErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.branch', 'Branch')}</Label>
+                            <Label>{t('users.fields.property', 'Property')}</Label>
                             <Select
-                                value={branchId}
-                                onValueChange={setBranchId}
+                                value={propertyId}
+                                onValueChange={setPropertyId}
                             >
                                 <SelectTrigger>
                                     <SelectValue
                                         placeholder={t(
-                                            'users.placeholders.selectBranch',
-                                            'Select branch',
+                                            'users.placeholders.selectProperty',
+                                            'Select property',
                                         )}
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {createBranchOptions.map((branch) => (
+                                    {createPropertyOptions.map((property) => (
                                         <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
+                                            key={property.id}
+                                            value={String(property.id)}
                                         >
-                                            {branch.name}
+                                            {property.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={createErrors.branch_id} />
+                            <InputError message={createErrors.property_id} />
                         </div>
                     </div>
 
