@@ -34,7 +34,7 @@ interface EmployeesPageProps {
     shifts: Shift[];
 }
 
-const BRANCH_FILTER_ALL = 'all';
+const PROPERTY_FILTER_ALL = 'all';
 
 export default function EmployeesPage({
     employees,
@@ -44,7 +44,7 @@ export default function EmployeesPage({
     shifts,
 }: EmployeesPageProps) {
     const { t } = useLocalization();
-    const [selectedPropertyId, setSelectedPropertyId] = useState(BRANCH_FILTER_ALL);
+    const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
     const propertyOptions = useMemo(
         () =>
             properties.map((property) => ({
@@ -58,7 +58,7 @@ export default function EmployeesPage({
         propertyOptions,
         selectedPropertyId,
         setSelectedPropertyId,
-        [BRANCH_FILTER_ALL],
+        [PROPERTY_FILTER_ALL],
     );
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -72,7 +72,7 @@ export default function EmployeesPage({
     ];
 
     const statsEmployees = useMemo(() => {
-        if (selectedPropertyId === BRANCH_FILTER_ALL) {
+        if (selectedPropertyId === PROPERTY_FILTER_ALL) {
             return employees;
         }
 
@@ -117,7 +117,7 @@ export default function EmployeesPage({
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={BRANCH_FILTER_ALL}>
+                                <SelectItem value={PROPERTY_FILTER_ALL}>
                                     {t(
                                         'employees.filters.allProperties',
                                         'All Properties',

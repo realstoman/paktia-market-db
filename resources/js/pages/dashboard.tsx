@@ -38,6 +38,7 @@ interface ExpenseRow {
 interface PortfolioProject {
     id: number;
     name: string;
+    type: 'market' | 'mall' | 'block' | 'house';
     address?: string | null;
     isActive: boolean;
     floors: number;
@@ -186,12 +187,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     );
     const overallPie = [
         {
-            name: t('propertyDashboard.activeProjects', 'Active projects'),
+            name: t('propertyDashboard.activeProjects', 'Active properties'),
             value: data.portfolio.activeProjects,
             color: COLORS.green,
         },
         {
-            name: t('propertyDashboard.inactiveProjects', 'Inactive projects'),
+            name: t('propertyDashboard.inactiveProjects', 'Inactive properties'),
             value: Math.max(
                 0,
                 data.portfolio.totalProjects - data.portfolio.activeProjects,
@@ -258,7 +259,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         <p className="mt-1 text-sm text-slate-500">
                             {t(
                                 'propertyDashboard.subtitle',
-                                'Overall and project-level rent, occupancy and expense reporting.',
+                                'Overall and property-level rent, occupancy, staff and expense reporting.',
                             )}
                         </p>
                     </div>
@@ -299,7 +300,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             <StatCard
                                 label={t(
                                     'propertyDashboard.totalProjects',
-                                    'Total projects',
+                                    'Total properties',
                                 )}
                                 value={formatNumber(
                                     data.portfolio.totalProjects,
@@ -309,7 +310,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             <StatCard
                                 label={t(
                                     'propertyDashboard.activeProjects',
-                                    'Active projects',
+                                    'Active properties',
                                 )}
                                 value={formatNumber(
                                     data.portfolio.activeProjects,
@@ -354,13 +355,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     <h2 className="font-bold text-[#123f4a] dark:text-white">
                                         {t(
                                             'propertyDashboard.projectPerformance',
-                                            'Project performance',
+                                            'Property performance',
                                         )}
                                     </h2>
                                     <p className="mt-1 text-xs text-slate-500">
                                         {t(
                                             'propertyDashboard.projectPerformanceHelp',
-                                            'Cash position and approved expenses by project',
+                                            'Cash position and approved expenses by property',
                                         )}
                                     </p>
                                 </div>
@@ -447,7 +448,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 <p className="mt-1 text-xs text-slate-500">
                                     {t(
                                         'propertyDashboard.portfolioStatusHelp',
-                                        'Active and inactive projects',
+                                        'Active and inactive properties',
                                     )}
                                 </p>
                                 <div className="mt-5 h-80" dir="ltr">
@@ -484,7 +485,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         <EmptyChart
                                             label={t(
                                                 'propertyDashboard.noProjectData',
-                                                'No project records are available yet.',
+                                                'No property records are available yet.',
                                             )}
                                         />
                                     )}
@@ -494,7 +495,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
                             <h2 className="font-bold text-[#123f4a] dark:text-white">
-                                {t('propertyDashboard.projects', 'Projects')}
+                                {t('propertyDashboard.projects', 'Properties')}
                             </h2>
                             <div className="mt-4 overflow-x-auto">
                                 <table className="w-full min-w-[760px] text-sm">
@@ -503,7 +504,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.project',
-                                                    'Project',
+                                                    'Property',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
@@ -895,7 +896,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                 >
                                                     {t(
                                                         'propertyDashboard.noExpenses',
-                                                        'No expenses have been recorded for this project.',
+                                                        'No expenses have been recorded for this property.',
                                                     )}
                                                 </td>
                                             </tr>

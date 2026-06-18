@@ -20,10 +20,10 @@ enum PermissionEnum: string
     case ROLE_ASSIGN = 'role.assign';
 
     // Properties
-    case BRANCH_VIEW = 'property.view';
-    case BRANCH_CREATE = 'property.create';
-    case BRANCH_UPDATE = 'property.update';
-    case BRANCH_DELETE = 'property.delete';
+    case PROPERTY_VIEW = 'property.view';
+    case PROPERTY_CREATE = 'property.create';
+    case PROPERTY_UPDATE = 'property.update';
+    case PROPERTY_DELETE = 'property.delete';
 
     // Banners
     case BANNERS_VIEW = 'banners.view';

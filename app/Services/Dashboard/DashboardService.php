@@ -3,11 +3,11 @@
 namespace App\Services\Dashboard;
 
 use App\Enums\PermissionEnum;
-use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
@@ -18,7 +18,7 @@ class DashboardService
         $inventory = null;
         $finance = null;
         $properties = Property::query()
-            ->withCount(['inventoryItems', 'employees'])
+            ->withCount(['inventoryItems', 'employees', 'floors', 'units'])
             ->orderBy('name')
             ->get();
 
@@ -110,8 +110,8 @@ class DashboardService
             'portfolio' => [
                 'totalProjects' => $properties->count(),
                 'activeProjects' => $properties->where('is_active', true)->count(),
-                'totalFloors' => 0,
-                'totalShops' => 0,
+                'totalFloors' => $properties->sum('floors_count'),
+                'totalShops' => $properties->sum('units_count'),
                 'registeredTenants' => 0,
                 'projects' => $properties->map(function (Property $property) {
                     $approvedExpenses = (float) Expense::query()
@@ -127,12 +127,19 @@ class DashboardService
                     return [
                         'id' => $property->id,
                         'name' => $property->name,
+                        'type' => $property->property_type,
                         'address' => $property->address,
                         'isActive' => (bool) $property->is_active,
-                        'floors' => 0,
-                        'shops' => 0,
-                        'occupiedShops' => 0,
-                        'availableShops' => 0,
+                        'floors' => (int) $property->floors_count,
+                        'shops' => $property->property_type === 'house'
+                            ? (int) ($property->rooms_count ?? 0)
+                            : (int) $property->units_count,
+                        'occupiedShops' => (int) $property->units()
+                            ->where('occupancy_status', 'occupied')
+                            ->count(),
+                        'availableShops' => (int) $property->units()
+                            ->where('occupancy_status', 'vacant')
+                            ->count(),
                         'registeredTenants' => 0,
                         'inventoryItems' => (int) $property->inventory_items_count,
                         'employees' => (int) $property->employees_count,

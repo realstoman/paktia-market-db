@@ -81,9 +81,9 @@ export default function InventoryPage({
                       href: '/inventory',
                   },
               ];
-    const BRANCH_FILTER_ALL = '__all__';
+    const PROPERTY_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
-    const [selectedPropertyId, setSelectedPropertyId] = useState(BRANCH_FILTER_ALL);
+    const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
     const [isVendorOwedModalOpen, setIsVendorOwedModalOpen] = useState(false);
     const propertyOptions = useMemo(
         () =>
@@ -98,11 +98,11 @@ export default function InventoryPage({
         propertyOptions,
         selectedPropertyId,
         setSelectedPropertyId,
-        [BRANCH_FILTER_ALL],
+        [PROPERTY_FILTER_ALL],
     );
 
     const statsItems = useMemo(() => {
-        if (selectedPropertyId === BRANCH_FILTER_ALL) {
+        if (selectedPropertyId === PROPERTY_FILTER_ALL) {
             return inventoryItems;
         }
 
@@ -244,7 +244,7 @@ export default function InventoryPage({
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={BRANCH_FILTER_ALL}>
+                                <SelectItem value={PROPERTY_FILTER_ALL}>
                                     {t(
                                         'inventory.page.allProperties',
                                         'All Properties',
