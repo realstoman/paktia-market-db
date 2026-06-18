@@ -258,7 +258,7 @@ export default function ShareholdersPage({
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder={t('shareholders.searchPlaceholder')}
-                        className="ps-10"
+                        className="bg-white ps-10 dark:bg-neutral-900"
                     />
                 </div>
 

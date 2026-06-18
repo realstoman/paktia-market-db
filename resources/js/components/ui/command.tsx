@@ -71,7 +71,7 @@ function CommandInput({
     <div
       data-slot="command-input-wrapper"
       className={cn(
-        "flex h-9 items-center gap-2 border-b px-3",
+        "flex h-9 items-center gap-2 border-b bg-white px-3 dark:bg-neutral-900",
         isRtl && "flex-row-reverse justify-start"
       )}
     >

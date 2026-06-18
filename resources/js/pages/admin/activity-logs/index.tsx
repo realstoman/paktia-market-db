@@ -295,6 +295,7 @@ export default function ActivityLogsIndexPage({
                                     }))
                                 }
                                 placeholder="Search action, URL, values…"
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
                         <div className="space-y-1">

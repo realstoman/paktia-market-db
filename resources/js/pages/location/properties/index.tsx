@@ -508,7 +508,7 @@ export default function PropertiesPage({
                     <div className="relative flex-1">
                         <Search className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            className="ps-9"
+                            className="bg-white ps-9 dark:bg-neutral-900"
                             placeholder={t('propertyWorkspace.search')}
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
