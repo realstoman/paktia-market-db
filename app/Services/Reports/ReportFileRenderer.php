@@ -29,20 +29,20 @@ class ReportFileRenderer
     public function renderPdf(array $data): string
     {
         $report = $data['activeReport'] ?? [];
-        $branchName = $this->resolveBranchName($data);
+        $propertyName = $this->resolvePropertyName($data);
 
         return Pdf::loadView('reports/pdf', [
             'report' => $report,
             'period' => $data['period'] ?? [],
             'filters' => $data['filters'] ?? [],
-            'branchName' => $branchName,
+            'propertyName' => $propertyName,
         ])->setPaper('a4', 'landscape')->output();
     }
 
     public function renderXlsx(array $data): string
     {
         $report = $data['activeReport'] ?? [];
-        $branchName = $this->resolveBranchName($data);
+        $propertyName = $this->resolvePropertyName($data);
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -54,8 +54,8 @@ class ReportFileRenderer
         $sheet->setCellValue("A{$row}", 'Reporting period');
         $sheet->setCellValue("B{$row}", (string) ($data['period']['label'] ?? ''));
         $row++;
-        $sheet->setCellValue("A{$row}", 'Branch scope');
-        $sheet->setCellValue("B{$row}", $branchName);
+        $sheet->setCellValue("A{$row}", 'Property scope');
+        $sheet->setCellValue("B{$row}", $propertyName);
         $row += 2;
 
         $summary = $report['summary'] ?? [];
@@ -121,13 +121,13 @@ class ReportFileRenderer
         }
     }
 
-    private function resolveBranchName(array $data): string
+    private function resolvePropertyName(array $data): string
     {
-        $branchId = $data['filters']['branchId'] ?? null;
-        $branches = $data['branches'] ?? [];
-        $branch = collect($branches)->firstWhere('id', $branchId);
+        $propertyId = $data['filters']['propertyId'] ?? null;
+        $properties = $data['properties'] ?? [];
+        $property = collect($properties)->firstWhere('id', $propertyId);
 
-        return is_array($branch) ? (string) ($branch['name'] ?? 'All Branches') : 'All Branches';
+        return is_array($property) ? (string) ($property['name'] ?? 'All Properties') : 'All Properties';
     }
 
     private function cellAddress(int $columnIndex, int $row): string

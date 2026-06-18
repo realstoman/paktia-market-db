@@ -79,7 +79,7 @@
 
     <div class="meta">
         <strong>Reporting period:</strong> {{ $period['label'] ?? '' }}<br>
-        <strong>Branch scope:</strong> {{ $branchName ?? 'All Branches' }}
+        <strong>Property scope:</strong> {{ $propertyName ?? 'All Properties' }}
     </div>
 
     @if (!empty($report['summary']))

@@ -3,7 +3,7 @@
 namespace App\Services\Dashboard;
 
 use App\Enums\PermissionEnum;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\Expense;
 use App\Models\InventoryItem;
@@ -17,13 +17,13 @@ class DashboardService
     {
         $inventory = null;
         $finance = null;
-        $branches = Branch::query()
+        $properties = Property::query()
             ->withCount(['inventoryItems', 'employees'])
             ->orderBy('name')
             ->get();
 
         if ($user->can(PermissionEnum::INVENTORY_VIEW->value)) {
-            $items = InventoryItem::query()->with('branch:id,name')->get();
+            $items = InventoryItem::query()->with('property:id,name')->get();
 
             $inventory = [
                 'totalItems' => $items->count(),
@@ -46,7 +46,7 @@ class DashboardService
                         'name' => $item->name,
                         'quantity' => (float) $item->quantity,
                         'unit' => $item->unit,
-                        'branch' => $item->branch?->name ?? 'Unassigned',
+                        'property' => $item->property?->name ?? 'Unassigned',
                     ]),
             ];
         }
@@ -91,7 +91,7 @@ class DashboardService
                     })
                     ->all(),
                 'recentExpenses' => Expense::query()
-                    ->with('branch:id,name')
+                    ->with('property:id,name')
                     ->latest('expense_date')
                     ->limit(6)
                     ->get()
@@ -101,41 +101,41 @@ class DashboardService
                         'amount' => (float) $expense->amount,
                         'date' => $expense->expense_date,
                         'status' => $expense->approval_status,
-                        'branch' => $expense->branch?->name ?? 'Unassigned',
+                        'property' => $expense->property?->name ?? 'Unassigned',
                     ]),
             ];
         }
 
         return [
             'portfolio' => [
-                'totalProjects' => $branches->count(),
-                'activeProjects' => $branches->where('is_active', true)->count(),
+                'totalProjects' => $properties->count(),
+                'activeProjects' => $properties->where('is_active', true)->count(),
                 'totalFloors' => 0,
                 'totalShops' => 0,
                 'registeredTenants' => 0,
-                'projects' => $branches->map(function (Branch $branch) {
+                'projects' => $properties->map(function (Property $property) {
                     $approvedExpenses = (float) Expense::query()
-                        ->where('branch_id', $branch->id)
+                        ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
                         ->sum('amount');
                     $cashPosition = (float) CashMovement::query()
-                        ->where('branch_id', $branch->id)
+                        ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
                         ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
                         ->value('total');
 
                     return [
-                        'id' => $branch->id,
-                        'name' => $branch->name,
-                        'address' => $branch->address,
-                        'isActive' => (bool) $branch->is_active,
+                        'id' => $property->id,
+                        'name' => $property->name,
+                        'address' => $property->address,
+                        'isActive' => (bool) $property->is_active,
                         'floors' => 0,
                         'shops' => 0,
                         'occupiedShops' => 0,
                         'availableShops' => 0,
                         'registeredTenants' => 0,
-                        'inventoryItems' => (int) $branch->inventory_items_count,
-                        'employees' => (int) $branch->employees_count,
+                        'inventoryItems' => (int) $property->inventory_items_count,
+                        'employees' => (int) $property->employees_count,
                         'rent' => [
                             'collectedAfn' => 0,
                             'remainingAfn' => 0,
@@ -145,7 +145,7 @@ class DashboardService
                         'expensesAfn' => $approvedExpenses,
                         'cashPositionAfn' => $cashPosition,
                         'recentExpenses' => Expense::query()
-                            ->where('branch_id', $branch->id)
+                            ->where('property_id', $property->id)
                             ->latest('expense_date')
                             ->limit(5)
                             ->get()

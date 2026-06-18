@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('inventory_items', function (Blueprint $table) {
             $table->foreignId('vendor_id')
                 ->nullable()
-                ->after('branch_id')
+                ->after('property_id')
                 ->constrained('vendors')
                 ->nullOnDelete();
             $table->decimal('paid_amount', 12, 2)->default(0)->after('unit_price');

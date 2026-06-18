@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Services\BranchSync;
+namespace App\Services\PropertySync;
 
-use App\Models\Branch;
-use App\Models\BranchSyncCredential;
+use App\Models\Property;
+use App\Models\PropertySyncCredential;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-class BranchSyncCredentialService
+class PropertySyncCredentialService
 {
     /**
      * Token hash format prefix. Stored hashes are written as
@@ -24,7 +24,7 @@ class BranchSyncCredentialService
     private const DEFAULT_ABILITIES = ['health.read'];
 
     public function issue(
-        Branch $branch,
+        Property $property,
         string $name,
         ?array $abilities = null,
         ?\DateTimeInterface $expiresAt = null,
@@ -33,8 +33,8 @@ class BranchSyncCredentialService
         $abilities = $this->normalizeAbilities($abilities, $allowWildcard);
         $plainTextToken = Str::random(64);
 
-        $credential = BranchSyncCredential::query()->create([
-            'branch_id' => $branch->id,
+        $credential = PropertySyncCredential::query()->create([
+            'property_id' => $property->id,
             'name' => $name,
             'token_hash' => $this->hashToken($plainTextToken),
             'abilities' => $abilities,
@@ -67,7 +67,7 @@ class BranchSyncCredentialService
 
             if (! $allowWildcard && ! $configAllowsWildcard) {
                 throw new InvalidArgumentException(
-                    'Wildcard ("*") branch-sync abilities are disabled. '
+                    'Wildcard ("*") property-sync abilities are disabled. '
                     .'Pass allowWildcard: true or set POS_SYNC_ALLOW_WILDCARD_ABILITY=true to override.',
                 );
             }
@@ -76,7 +76,7 @@ class BranchSyncCredentialService
         return $abilities;
     }
 
-    public function validate(?string $plainTextToken, ?string $ability = null): ?BranchSyncCredential
+    public function validate(?string $plainTextToken, ?string $ability = null): ?PropertySyncCredential
     {
         $token = $plainTextToken !== null ? trim($plainTextToken) : '';
 
@@ -87,8 +87,8 @@ class BranchSyncCredentialService
         $hmacHash = $this->hashToken($token);
         $legacyHash = hash('sha256', $token);
 
-        $credential = BranchSyncCredential::query()
-            ->with('branch')
+        $credential = PropertySyncCredential::query()
+            ->with('property')
             ->whereIn('token_hash', [$hmacHash, $legacyHash])
             ->whereNull('revoked_at')
             ->where(function ($query) {
@@ -110,7 +110,7 @@ class BranchSyncCredentialService
             return null;
         }
 
-        if (! $credential->branch?->is_active) {
+        if (! $credential->property?->is_active) {
             return null;
         }
 
@@ -123,7 +123,7 @@ class BranchSyncCredentialService
         return $credential;
     }
 
-    public function revoke(BranchSyncCredential $credential): void
+    public function revoke(PropertySyncCredential $credential): void
     {
         $credential->forceFill([
             'revoked_at' => now(),
@@ -134,7 +134,7 @@ class BranchSyncCredentialService
      * Refresh last_used_at no more than once per configured window.
      * Optionally rotates a legacy SHA-256 hash to the HMAC scheme.
      */
-    private function touchLastUsed(BranchSyncCredential $credential, ?string $upgradeLegacyHash = null): void
+    private function touchLastUsed(PropertySyncCredential $credential, ?string $upgradeLegacyHash = null): void
     {
         $throttleSeconds = max(0, (int) config('pos.sync.last_used_throttle_seconds', 60));
         $now = now();
@@ -177,7 +177,7 @@ class BranchSyncCredentialService
         return strlen($token) >= $minLength && preg_match('/^[A-Za-z0-9]+$/', $token) === 1;
     }
 
-    private function hasAbility(BranchSyncCredential $credential, string $ability): bool
+    private function hasAbility(PropertySyncCredential $credential, string $ability): bool
     {
         $abilities = $credential->abilities ?? [];
 

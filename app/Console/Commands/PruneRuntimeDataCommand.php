@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\BranchSyncCredential;
+use App\Models\PropertySyncCredential;
 use App\Models\IdempotencyRequest;
 use App\Services\Caching\PosCacheService;
 use Illuminate\Console\Command;
@@ -23,7 +23,7 @@ class PruneRuntimeDataCommand extends Command
             ->orWhere('created_at', '<', now()->subDays((int) config('pos.retention.idempotency_days', 2)))
             ->delete();
 
-        $credentialsDeleted = BranchSyncCredential::query()
+        $credentialsDeleted = PropertySyncCredential::query()
             ->where(function ($query) {
                 $query->whereNotNull('revoked_at')
                     ->where('revoked_at', '<', now()->subDays((int) config('pos.retention.sync_credentials_days', 90)));
@@ -37,7 +37,7 @@ class PruneRuntimeDataCommand extends Command
         $cache->forget('tool-reference-data.v1');
 
         $this->info("Deleted {$idempotencyDeleted} expired idempotency records.");
-        $this->info("Deleted {$credentialsDeleted} expired or revoked branch sync credentials.");
+        $this->info("Deleted {$credentialsDeleted} expired or revoked property sync credentials.");
 
         return self::SUCCESS;
     }

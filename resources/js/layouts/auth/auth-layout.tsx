@@ -154,13 +154,13 @@ export default function AuthLayout({
                                 </div>
                                 <h4 className="mb-1 font-semibold text-slate-800">
                                     {t(
-                                        'auth.promo.branchTitle',
-                                        'Branch Management',
+                                        'auth.promo.propertyTitle',
+                                        'Property Management',
                                     )}
                                 </h4>
                                 <p className="text-xs text-slate-600">
                                     {t(
-                                        'auth.promo.branchDescription',
+                                        'auth.promo.propertyDescription',
                                         'Organize locations and staff',
                                     )}
                                 </p>

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem } from '@/types';
+import { Property, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -29,13 +29,13 @@ interface InventoryValuationFilters {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: number | null;
+    propertyId: number | null;
 }
 
 interface InventoryValuationItem {
     id: number;
     name: string;
-    branch: string;
+    property: string;
     vendor: string;
     quantity: number;
     unit: string;
@@ -49,7 +49,7 @@ interface MovementEntry {
     date: string;
     action: string;
     itemName: string;
-    branch: string;
+    property: string;
     quantity: number;
     unit: string;
     unitCost: number;
@@ -59,7 +59,7 @@ interface MovementEntry {
 }
 
 interface InventoryValuationPageProps {
-    branches: Branch[];
+    properties: Property[];
     filters: InventoryValuationFilters;
     summary: {
         inventoryValue: number;
@@ -117,7 +117,7 @@ function submitFilters(filters: {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: string;
+    propertyId: string;
 }) {
     const params: Record<string, string> = {
         range: filters.range,
@@ -128,8 +128,8 @@ function submitFilters(filters: {
         params.end_date = filters.endDate;
     }
 
-    if (filters.branchId) {
-        params.branch_id = filters.branchId;
+    if (filters.propertyId) {
+        params.property_id = filters.propertyId;
     }
 
     React.startTransition(() => {
@@ -142,7 +142,7 @@ function submitFilters(filters: {
 }
 
 export default function InventoryValuationPage({
-    branches,
+    properties,
     filters,
     summary,
     valuationItems,
@@ -153,26 +153,26 @@ export default function InventoryValuationPage({
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
-    const [branchId, setBranchId] = React.useState(
-        filters.branchId ? String(filters.branchId) : '',
+    const [propertyId, setPropertyId] = React.useState(
+        filters.propertyId ? String(filters.propertyId) : '',
     );
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     React.useEffect(() => {
         setRange(filters.range);
         setStartDate(filters.startDate);
         setEndDate(filters.endDate);
-        setBranchId(filters.branchId ? String(filters.branchId) : '');
+        setPropertyId(filters.propertyId ? String(filters.propertyId) : '');
     }, [filters]);
 
-    useAutoSelectSingleOption(branchOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(propertyOptions, propertyId, setPropertyId);
 
     const visiblePages = React.useMemo(
         () => buildPageNumbers(pagination.currentPage, pagination.lastPage),
@@ -234,8 +234,8 @@ export default function InventoryValuationPage({
             params.end_date = endDate;
         }
 
-        if (branchId) {
-            params.branch_id = branchId;
+        if (propertyId) {
+            params.property_id = propertyId;
         }
 
         React.startTransition(() => {
@@ -302,7 +302,7 @@ export default function InventoryValuationPage({
                         <CardDescription>
                             {t(
                                 'financeInventoryValuation.filters.description',
-                                'Review valuation by period and branch.',
+                                'Review valuation by period and property.',
                             )}
                         </CardDescription>
                     </CardHeader>
@@ -324,7 +324,7 @@ export default function InventoryValuationPage({
                                                 range: option.value,
                                                 startDate,
                                                 endDate,
-                                                branchId,
+                                                propertyId,
                                             });
                                         }
                                     }}
@@ -375,41 +375,41 @@ export default function InventoryValuationPage({
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
                                     {t(
-                                        'financeInventoryValuation.filters.branch',
-                                        'Branch',
+                                        'financeInventoryValuation.filters.property',
+                                        'Property',
                                     )}
                                 </label>
                                 <SearchableDropdown
-                                    value={branchId || 'all'}
+                                    value={propertyId || 'all'}
                                     options={[
                                         {
                                             value: 'all',
                                             label: t(
-                                                'financeInventoryValuation.filters.allBranches',
-                                                'All Branches',
+                                                'financeInventoryValuation.filters.allProperties',
+                                                'All Properties',
                                             ),
                                         },
-                                        ...branches.map((branch) => ({
-                                            value: String(branch.id),
-                                            label: branch.name,
+                                        ...properties.map((property) => ({
+                                            value: String(property.id),
+                                            label: property.name,
                                         })),
                                     ]}
                                     onValueChange={(value) =>
-                                        setBranchId(
+                                        setPropertyId(
                                             value === 'all' ? '' : value,
                                         )
                                     }
                                     placeholder={t(
-                                        'financeInventoryValuation.filters.selectBranch',
-                                        'Select branch',
+                                        'financeInventoryValuation.filters.selectProperty',
+                                        'Select property',
                                     )}
                                     searchPlaceholder={t(
-                                        'financeInventoryValuation.filters.searchBranches',
-                                        'Search branches...',
+                                        'financeInventoryValuation.filters.searchProperties',
+                                        'Search properties...',
                                     )}
                                     emptyText={t(
-                                        'financeInventoryValuation.filters.noBranchFound',
-                                        'No branch found.',
+                                        'financeInventoryValuation.filters.noPropertyFound',
+                                        'No property found.',
                                     )}
                                 />
                             </div>
@@ -422,7 +422,7 @@ export default function InventoryValuationPage({
                                         range,
                                         startDate,
                                         endDate,
-                                        branchId,
+                                        propertyId,
                                     })
                                 }
                             >
@@ -451,7 +451,7 @@ export default function InventoryValuationPage({
                                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
                                     {t(
                                         'financeInventoryValuation.summary.inventoryValueDescription',
-                                        'Current stock value across selected branches',
+                                        'Current stock value across selected properties',
                                     )}
                                 </p>
                             </div>
@@ -580,12 +580,12 @@ export default function InventoryValuationPage({
                                             </p>
                                             <p className="text-sm text-neutral-500 dark:text-neutral-400">
                                                 {t(
-                                                    'financeInventoryValuation.valuation.branchVendor',
-                                                    ':branch | Vendor: :vendor',
+                                                    'financeInventoryValuation.valuation.propertyVendor',
+                                                    ':property | Vendor: :vendor',
                                                 )
                                                     .replace(
-                                                        ':branch',
-                                                        item.branch,
+                                                        ':property',
+                                                        item.property,
                                                     )
                                                     .replace(
                                                         ':vendor',
@@ -634,7 +634,7 @@ export default function InventoryValuationPage({
                                 <div className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
                                     {t(
                                         'financeInventoryValuation.valuation.empty',
-                                        'No inventory valuation items were found for the selected branch.',
+                                        'No inventory valuation items were found for the selected property.',
                                     )}
                                 </div>
                             )}
@@ -792,7 +792,7 @@ export default function InventoryValuationPage({
                                             {entry.itemName}
                                         </p>
                                         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                            {entry.branch}
+                                            {entry.property}
                                         </p>
                                         {entry.note ? (
                                             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">

@@ -2,12 +2,12 @@
 
 use App\Jobs\WriteAuditLogJob;
 use App\Models\AuditLog;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
 
-function createTestBranch(string $name = 'Central'): Branch
+function createTestProperty(string $name = 'Central'): Property
 {
     $country = Country::query()->create([
         'name' => 'Testland',
@@ -22,12 +22,12 @@ function createTestBranch(string $name = 'Central'): Branch
         'country_id' => $country->id,
     ]);
 
-    return Branch::query()->create([
+    return Property::query()->create([
         'name' => $name,
         'country_id' => $country->id,
         'province_id' => $province->id,
         'address' => '1 Main St',
-        'description' => 'Main branch',
+        'description' => 'Main property',
         'is_active' => true,
     ]);
 }
@@ -36,11 +36,11 @@ test('creating an audited model writes a created audit log', function () {
     $user = User::factory()->withoutTwoFactor()->create();
     $this->actingAs($user);
 
-    $branch = createTestBranch();
+    $property = createTestProperty();
 
     $log = AuditLog::query()
-        ->where('auditable_type', Branch::class)
-        ->where('auditable_id', $branch->id)
+        ->where('auditable_type', Property::class)
+        ->where('auditable_id', $property->id)
         ->where('action', 'created')
         ->first();
 
@@ -53,13 +53,13 @@ test('updating an audited model records old/new values excluding hidden fields',
     $user = User::factory()->withoutTwoFactor()->create();
     $this->actingAs($user);
 
-    $branch = createTestBranch('Original');
+    $property = createTestProperty('Original');
 
-    $branch->update(['name' => 'Renamed']);
+    $property->update(['name' => 'Renamed']);
 
     $log = AuditLog::query()
-        ->where('auditable_type', Branch::class)
-        ->where('auditable_id', $branch->id)
+        ->where('auditable_type', Property::class)
+        ->where('auditable_id', $property->id)
         ->where('action', 'updated')
         ->latest('id')
         ->first();

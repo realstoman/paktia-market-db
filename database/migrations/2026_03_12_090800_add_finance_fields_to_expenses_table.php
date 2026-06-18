@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('expenses', function (Blueprint $table) {
-            $table->foreignId('vendor_id')->nullable()->after('branch_id')->constrained('vendors')->nullOnDelete();
+            $table->foreignId('vendor_id')->nullable()->after('property_id')->constrained('vendors')->nullOnDelete();
             $table->foreignId('account_id')->nullable()->after('expense_type')->constrained('finance_accounts')->nullOnDelete();
             $table->foreignId('paid_from_account_id')->nullable()->after('account_id')->constrained('finance_accounts')->nullOnDelete();
             $table->string('payment_method', 50)->nullable()->after('amount');

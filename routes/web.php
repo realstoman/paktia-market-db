@@ -16,7 +16,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\Location\BranchController;
+use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
@@ -92,12 +92,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('countries', CountryController::class);
         Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
         Route::resource('provinces', ProvinceController::class);
-        Route::resource('branches', BranchController::class);
-        Route::post('branches/{branch}/disable', [BranchController::class, 'disable'])->name('branches.disable');
-        Route::post('branches/{branch}/floors', [BranchController::class, 'storeFloor'])->name('branches.floors.store');
-        Route::delete('branches/{branch}/floors/{floor}', [BranchController::class, 'destroyFloor'])->name('branches.floors.destroy');
-        Route::post('branches/{branch}/floors/{floor}/units', [BranchController::class, 'storeUnit'])->name('branches.floors.units.store');
-        Route::delete('branches/{branch}/floors/{floor}/units/{unit}', [BranchController::class, 'destroyUnit'])->name('branches.floors.units.destroy');
+        Route::resource('properties', PropertyController::class);
+        Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
+        Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');
+        Route::delete('properties/{property}/floors/{floor}', [PropertyController::class, 'destroyFloor'])->name('properties.floors.destroy');
+        Route::post('properties/{property}/floors/{floor}/units', [PropertyController::class, 'storeUnit'])->name('properties.floors.units.store');
+        Route::delete('properties/{property}/floors/{floor}/units/{unit}', [PropertyController::class, 'destroyUnit'])->name('properties.floors.units.destroy');
 
         // Activity / Audit Logs
         Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])

@@ -13,12 +13,12 @@ return [
     'sync' => [
         'credential_ttl_hours' => (int) env('POS_SYNC_CREDENTIAL_TTL_HOURS', 720),
         'remote_base_url' => env('POS_SYNC_REMOTE_BASE_URL'),
-        'remote_branch_id' => env('POS_SYNC_REMOTE_BRANCH_ID'),
-        'remote_branch_token' => env('POS_SYNC_REMOTE_BRANCH_TOKEN'),
+        'remote_property_id' => env('POS_SYNC_REMOTE_BRANCH_ID'),
+        'remote_property_token' => env('POS_SYNC_REMOTE_BRANCH_TOKEN'),
         'chunk_size' => (int) env('POS_SYNC_CHUNK_SIZE', 100),
         'http_timeout_seconds' => (int) env('POS_SYNC_HTTP_TIMEOUT_SECONDS', 10),
         // Minimum seconds between two consecutive last_used_at refreshes for
-        // a branch-sync credential. Reduces DB writes on hot health-check
+        // a property-sync credential. Reduces DB writes on hot health-check
         // endpoints while still surfacing recent activity.
         'last_used_throttle_seconds' => (int) env('POS_SYNC_LAST_USED_THROTTLE_SECONDS', 60),
         // Minimum allowed length of the plain text token. Tokens shorter

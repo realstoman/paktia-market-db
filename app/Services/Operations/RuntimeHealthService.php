@@ -2,7 +2,7 @@
 
 namespace App\Services\Operations;
 
-use App\Models\BranchSyncCredential;
+use App\Models\PropertySyncCredential;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class RuntimeHealthService
     {
         $queue = $this->queueSnapshot();
         $redis = $this->redisSnapshot();
-        $sync = $this->branchSyncSnapshot();
+        $sync = $this->propertySyncSnapshot();
         $recentRefresh = $this->recentRefreshSnapshot();
 
         $components = [
@@ -181,13 +181,13 @@ class RuntimeHealthService
         }
     }
 
-    private function branchSyncSnapshot(): array
+    private function propertySyncSnapshot(): array
     {
         $staleAfterHours = (int) config('pos.runtime_health.sync.stale_after_hours', 72);
         $recentCutoff = now()->subHours($staleAfterHours);
 
-        $activeCredentialsQuery = BranchSyncCredential::query()
-            ->with('branch:id,name')
+        $activeCredentialsQuery = PropertySyncCredential::query()
+            ->with('property:id,name')
             ->whereNull('revoked_at')
             ->where(function ($query) {
                 $query->whereNull('expires_at')
@@ -200,52 +200,52 @@ class RuntimeHealthService
             ->where('last_used_at', '>=', $recentCutoff)
             ->count();
         $staleCredentials = max(0, $activeCredentials - $recentlyUsedCredentials);
-        $revokedCredentials = (int) BranchSyncCredential::query()
+        $revokedCredentials = (int) PropertySyncCredential::query()
             ->whereNotNull('revoked_at')
             ->count();
-        $expiredCredentials = (int) BranchSyncCredential::query()
+        $expiredCredentials = (int) PropertySyncCredential::query()
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now())
             ->count();
-        $latestUsedAt = BranchSyncCredential::query()->max('last_used_at');
+        $latestUsedAt = PropertySyncCredential::query()->max('last_used_at');
 
-        $branches = (clone $activeCredentialsQuery)
+        $properties = (clone $activeCredentialsQuery)
             ->get()
-            ->groupBy('branch_id')
-            ->map(function ($credentials, $branchId) use ($recentCutoff) {
-                $latestBranchUsage = $credentials
+            ->groupBy('property_id')
+            ->map(function ($credentials, $propertyId) use ($recentCutoff) {
+                $latestPropertyUsage = $credentials
                     ->pluck('last_used_at')
                     ->filter()
                     ->sortDesc()
                     ->first();
 
                 return [
-                    'branchId' => (int) $branchId,
-                    'branchName' => $credentials->first()?->branch?->name ?? "Branch {$branchId}",
+                    'propertyId' => (int) $propertyId,
+                    'propertyName' => $credentials->first()?->property?->name ?? "Property {$propertyId}",
                     'activeCredentialCount' => $credentials->count(),
                     'recentlyUsedCredentialCount' => $credentials
-                        ->filter(fn (BranchSyncCredential $credential) => $credential->last_used_at && $credential->last_used_at->gte($recentCutoff))
+                        ->filter(fn (PropertySyncCredential $credential) => $credential->last_used_at && $credential->last_used_at->gte($recentCutoff))
                         ->count(),
-                    'latestUsedAt' => $latestBranchUsage?->toIso8601String(),
+                    'latestUsedAt' => $latestPropertyUsage?->toIso8601String(),
                 ];
             })
-            ->sortBy('branchName')
+            ->sortBy('propertyName')
             ->values()
             ->take(5)
             ->all();
 
         $status = 'healthy';
-        $message = 'Branch sync credentials are active and have recent usage.';
+        $message = 'Property sync credentials are active and have recent usage.';
 
         if ($activeCredentials === 0) {
             $status = 'warning';
-            $message = 'No active branch sync credentials have been issued yet.';
+            $message = 'No active property sync credentials have been issued yet.';
         } elseif ($recentlyUsedCredentials === 0) {
             $status = 'warning';
-            $message = 'Active branch sync credentials exist but none were used recently.';
+            $message = 'Active property sync credentials exist but none were used recently.';
         } elseif ($staleCredentials > 0) {
             $status = 'warning';
-            $message = 'Some active branch sync credentials have not been used recently.';
+            $message = 'Some active property sync credentials have not been used recently.';
         }
 
         return [
@@ -257,7 +257,7 @@ class RuntimeHealthService
             'revokedCredentials' => $revokedCredentials,
             'expiredCredentials' => $expiredCredentials,
             'latestUsedAt' => $latestUsedAt ? Carbon::parse((string) $latestUsedAt)->toIso8601String() : null,
-            'branches' => $branches,
+            'properties' => $properties,
         ];
     }
 

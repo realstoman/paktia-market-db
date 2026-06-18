@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->unsignedBigInteger('country_id')->nullable();
             $table->unsignedBigInteger('province_id')->nullable();
-            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->unsignedBigInteger('property_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamp('blocked_at')->nullable();
             $table->rememberToken();

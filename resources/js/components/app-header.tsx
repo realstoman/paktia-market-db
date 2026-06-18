@@ -64,9 +64,9 @@ const primaryNavConfig: HeaderNavConfig[] = [
     {
         titleKey: 'navigation.marketsProperties',
         fallbackTitle: 'Markets & Properties',
-        href: '/branches',
+        href: '/properties',
         icon: Building2,
-        can: 'branch.view',
+        can: 'property.view',
     },
     {
         titleKey: 'navigation.finance',
@@ -135,11 +135,11 @@ const toolNavConfig: HeaderNavConfig[] = [
         superAdminOnly: true,
     },
     {
-        titleKey: 'navigation.toolBranches',
-        fallbackTitle: 'Branches',
-        href: '/branches',
+        titleKey: 'navigation.toolProperties',
+        fallbackTitle: 'Properties',
+        href: '/properties',
         icon: Building2,
-        can: 'branch.view',
+        can: 'property.view',
     },
     {
         titleKey: 'navigation.runtimeHealth',

@@ -34,7 +34,7 @@ test('super-admin can view a specific audit log entry', function () {
     $log = AuditLog::query()->create([
         'user_id' => $user->id,
         'action' => 'created',
-        'auditable_type' => 'App\\Models\\Branch',
+        'auditable_type' => 'App\\Models\\Property',
         'auditable_id' => 1,
         'new_values' => ['name' => 'A'],
     ]);

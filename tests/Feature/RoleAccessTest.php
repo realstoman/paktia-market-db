@@ -3,7 +3,7 @@
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 
-test('super admin can access user and branch management pages', function () {
+test('super admin can access user and property management pages', function () {
     $this->seed(RolePermissionSeeder::class);
 
     $user = User::factory()->create();
@@ -14,11 +14,11 @@ test('super admin can access user and branch management pages', function () {
         ->assertOk();
 
     $this->actingAs($user)
-        ->get(route('branches.index'))
+        ->get(route('properties.index'))
         ->assertOk();
 });
 
-test('non super admin cannot access user and branch management pages', function () {
+test('non super admin cannot access user and property management pages', function () {
     $this->seed(RolePermissionSeeder::class);
 
     $user = User::factory()->create();
@@ -29,6 +29,6 @@ test('non super admin cannot access user and branch management pages', function 
         ->assertForbidden();
 
     $this->actingAs($user)
-        ->get(route('branches.index'))
+        ->get(route('properties.index'))
         ->assertForbidden();
 });

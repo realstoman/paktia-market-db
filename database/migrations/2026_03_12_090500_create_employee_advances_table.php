@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('employee_advances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('property_id')->nullable()->constrained()->nullOnDelete();
             $table->date('advance_date');
             $table->decimal('amount', 14, 2);
             $table->decimal('deducted_amount', 14, 2)->default(0);

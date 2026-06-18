@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('branch_sync_credentials', function (Blueprint $table) {
+        Schema::create('property_sync_credentials', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('property_id')->constrained()->cascadeOnDelete();
             $table->string('name', 120);
             $table->string('token_hash', 64)->unique();
             $table->json('abilities')->nullable();
@@ -19,13 +19,13 @@ return new class extends Migration
             $table->timestamp('revoked_at')->nullable();
             $table->timestamps();
 
-            $table->index(['branch_id', 'expires_at']);
+            $table->index(['property_id', 'expires_at']);
             $table->index('revoked_at');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('branch_sync_credentials');
+        Schema::dropIfExists('property_sync_credentials');
     }
 };

@@ -33,8 +33,8 @@ const tools = [
         icon: MapPinned,
     },
     {
-        href: '/branches',
-        labelKey: 'navigation.toolBranches',
+        href: '/properties',
+        labelKey: 'navigation.toolProperties',
         fallbackLabel: 'Markets & Properties',
         icon: Building2,
     },

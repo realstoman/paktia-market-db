@@ -53,7 +53,7 @@ class UserService
                 'roles:name,id',
                 'country:id,name',
                 'province:id,name',
-                'branch:id,name',
+                'property:id,name',
             ]);
 
         // Apply search
@@ -99,14 +99,14 @@ class UserService
             'country_id' => $user->country_id,
             'province' => $user->province ? $user->province->name : null,
             'province_id' => $user->province_id,
-            'branch' => $user->branch ? $user->branch->name : null,
-            'branch_id' => $user->branch_id,
+            'property' => $user->property ? $user->property->name : null,
+            'property_id' => $user->property_id,
             'is_internal_user' => $user->is_internal_user,
 
             // Include full relationship objects if needed
             'country_object' => $user->country,
             'province_object' => $user->province,
-            'branch_object' => $user->branch,
+            'property_object' => $user->property,
         ];
     }
 }

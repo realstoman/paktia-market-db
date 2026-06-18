@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('mapping_key')->unique();
             $table->foreignId('account_id')->constrained('finance_accounts')->restrictOnDelete();
-            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('property_id')->nullable()->constrained()->nullOnDelete();
             $table->text('description')->nullable();
             $table->timestamps();
         });

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('payroll_runs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('property_id')->nullable()->constrained()->nullOnDelete();
             $table->date('period_start');
             $table->date('period_end');
             $table->string('status', 30)->default('draft');

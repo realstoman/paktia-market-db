@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('branches', function (Blueprint $table) {
+        Schema::table('properties', function (Blueprint $table) {
             $table->string('property_type', 20)->default('market')->after('name');
             $table->string('usage_type', 20)->default('commercial')->after('property_type');
             $table->string('image_path')->nullable()->after('usage_type');
@@ -30,7 +30,7 @@ return new class extends Migration
 
         Schema::create('property_floors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('property_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->smallInteger('level_number');
             $table->decimal('area_sqm', 12, 2)->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->unique(['branch_id', 'level_number']);
+            $table->unique(['property_id', 'level_number']);
         });
 
         Schema::create('property_units', function (Blueprint $table) {
@@ -70,7 +70,7 @@ return new class extends Migration
         Schema::dropIfExists('property_units');
         Schema::dropIfExists('property_floors');
 
-        Schema::table('branches', function (Blueprint $table) {
+        Schema::table('properties', function (Blueprint $table) {
             $table->dropIndex(['property_type', 'is_active']);
             $table->dropColumn([
                 'property_type', 'usage_type', 'image_path', 'distance_from_city_km',

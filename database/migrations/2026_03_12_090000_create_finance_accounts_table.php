@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('type', 30);
             $table->foreignId('parent_id')->nullable()->constrained('finance_accounts')->nullOnDelete();
-            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('property_id')->nullable()->constrained()->nullOnDelete();
             $table->string('currency_code', 3)->nullable();
             $table->boolean('is_postable')->default(true);
             $table->boolean('is_system')->default(false);

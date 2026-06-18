@@ -35,7 +35,7 @@ test('super admin can reset another users password from user management', functi
 
 test('internal users cannot delete their own account from profile settings', function () {
     $user = User::factory()->create([
-        'branch_id' => 1,
+        'property_id' => 1,
     ]);
 
     $response = $this

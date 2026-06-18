@@ -37,7 +37,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
-import { Branch, BreadcrumbItem } from '@/types';
+import { Property, BreadcrumbItem } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -127,7 +127,7 @@ interface ReportFilters {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: number | null;
+    propertyId: number | null;
     module: string;
 }
 
@@ -188,7 +188,7 @@ interface ActiveReport {
 }
 
 interface ReportsPageProps {
-    branches: Branch[];
+    properties: Property[];
     filters: ReportFilters;
     reportCatalog: ReportCatalogItem[];
     overview: ReportOverviewItem[];
@@ -208,7 +208,7 @@ interface SavedPreset {
         range: string;
         startDate: string;
         endDate: string;
-        branchId: string;
+        propertyId: string;
         module: string;
     };
 }
@@ -232,7 +232,7 @@ function buildParams(filters: {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: string;
+    propertyId: string;
     module: string;
 }) {
     const params: Record<string, string> = {
@@ -245,8 +245,8 @@ function buildParams(filters: {
         params.end_date = filters.endDate;
     }
 
-    if (filters.branchId) {
-        params.branch_id = filters.branchId;
+    if (filters.propertyId) {
+        params.property_id = filters.propertyId;
     }
 
     return params;
@@ -360,17 +360,17 @@ function buildChartPanel(
         };
     }
 
-    if (activeReport.key === 'branches') {
+    if (activeReport.key === 'properties') {
         return {
-            title: t('reportPage.chart.branchRevenue', 'Market coverage'),
+            title: t('reportPage.chart.propertyRevenue', 'Market coverage'),
             description: t(
-                'reportPage.chart.branchRevenueDescription',
+                'reportPage.chart.propertyRevenueDescription',
                 'Top markets by report value.',
             ),
             type: 'bar',
             data: rows
                 .map((row) => ({
-                    label: String(row.branch ?? unknown),
+                    label: String(row.property ?? unknown),
                     value:
                         parseNumericValue(row.employees) +
                         parseNumericValue(row.inventory),
@@ -416,7 +416,7 @@ function buildChartPanel(
 }
 
 export default function ReportsPage({
-    branches,
+    properties,
     filters,
     reportCatalog,
     overview,
@@ -428,8 +428,8 @@ export default function ReportsPage({
     const [range, setRange] = useState(filters.range);
     const [startDate, setStartDate] = useState(filters.startDate);
     const [endDate, setEndDate] = useState(filters.endDate);
-    const [branchId, setBranchId] = useState(
-        filters.branchId?.toString() ?? '',
+    const [propertyId, setPropertyId] = useState(
+        filters.propertyId?.toString() ?? '',
     );
     const [module, setModule] = useState(filters.module);
     const [search, setSearch] = useState('');
@@ -489,24 +489,24 @@ export default function ReportsPage({
         setColumnVisibility({});
     }, [activeReport.key]);
 
-    const branchOptions = [
+    const propertyOptions = [
         {
             value: '',
-            label: t('reportPage.toolbar.allBranches', 'All markets'),
+            label: t('reportPage.toolbar.allProperties', 'All markets'),
         },
-        ...branches.map((branch) => ({
-            value: String(branch.id),
-            label: branch.name,
+        ...properties.map((property) => ({
+            value: String(property.id),
+            label: property.name,
         })),
     ];
 
     useAutoSelectSingleOption(
-        branches.map((branch) => ({
-            value: String(branch.id),
-            label: branch.name,
+        properties.map((property) => ({
+            value: String(property.id),
+            label: property.name,
         })),
-        branchId,
-        setBranchId,
+        propertyId,
+        setPropertyId,
     );
 
     const moduleOptions = reportCatalog.map((item) => ({
@@ -514,15 +514,15 @@ export default function ReportsPage({
         label: item.title,
     }));
 
-    const activeBranchLabel =
-        branchOptions.find(
-            (option) => option.value === (filters.branchId?.toString() ?? ''),
-        )?.label ?? t('reportPage.toolbar.allBranches', 'All markets');
+    const activePropertyLabel =
+        propertyOptions.find(
+            (option) => option.value === (filters.propertyId?.toString() ?? ''),
+        )?.label ?? t('reportPage.toolbar.allProperties', 'All markets');
     const hasPendingChanges =
         range !== filters.range ||
         startDate !== filters.startDate ||
         endDate !== filters.endDate ||
-        branchId !== (filters.branchId?.toString() ?? '') ||
+        propertyId !== (filters.propertyId?.toString() ?? '') ||
         module !== filters.module;
 
     const chartPanel = useMemo(
@@ -592,14 +592,14 @@ export default function ReportsPage({
         range?: string;
         startDate?: string;
         endDate?: string;
-        branchId?: string;
+        propertyId?: string;
         module?: string;
     }) => {
         const nextFilters = {
             range: next?.range ?? range,
             startDate: next?.startDate ?? startDate,
             endDate: next?.endDate ?? endDate,
-            branchId: next?.branchId ?? branchId,
+            propertyId: next?.propertyId ?? propertyId,
             module: next?.module ?? module,
         };
 
@@ -640,7 +640,7 @@ export default function ReportsPage({
                 range,
                 startDate,
                 endDate,
-                branchId,
+                propertyId,
                 module,
             },
         };
@@ -655,7 +655,7 @@ export default function ReportsPage({
         setRange(preset.filters.range);
         setStartDate(preset.filters.startDate);
         setEndDate(preset.filters.endDate);
-        setBranchId(preset.filters.branchId);
+        setPropertyId(preset.filters.propertyId);
         setModule(preset.filters.module);
         applyFilters(preset.filters);
         toast.success(
@@ -685,7 +685,7 @@ export default function ReportsPage({
                 range,
                 startDate,
                 endDate,
-                branchId,
+                propertyId,
                 module,
             }),
         );
@@ -944,11 +944,11 @@ export default function ReportsPage({
                                 )}
                             />
                             <SearchableDropdown
-                                value={branchId}
-                                options={branchOptions}
-                                onValueChange={setBranchId}
+                                value={propertyId}
+                                options={propertyOptions}
+                                onValueChange={setPropertyId}
                                 placeholder={t(
-                                    'reportPage.toolbar.selectBranch',
+                                    'reportPage.toolbar.selectProperty',
                                     'Select market',
                                 )}
                             />
@@ -993,8 +993,8 @@ export default function ReportsPage({
                                 {period.label}
                             </Badge>
                             <Badge variant="outline">
-                                {t('reportPage.toolbar.branch', 'Market')}:{' '}
-                                {activeBranchLabel}
+                                {t('reportPage.toolbar.property', 'Market')}:{' '}
+                                {activePropertyLabel}
                             </Badge>
                             <Badge
                                 variant={

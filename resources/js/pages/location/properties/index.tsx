@@ -9,19 +9,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem, Country, Province } from '@/types';
+import { Property, BreadcrumbItem, Country, Province } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Building2, Home, Layers3, MapPin, Plus, Search, Store } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
-interface Props { branches: Branch[]; countries: Country[]; provinces: Province[] }
+interface Props { properties: Property[]; countries: Country[]; provinces: Province[] }
 
 const typeMeta = {
     market: { label: 'Market', icon: Store }, mall: { label: 'Mall', icon: Building2 },
     block: { label: 'Residential block', icon: Layers3 }, house: { label: 'House', icon: Home },
 } as const;
 
-export default function PropertiesPage({ branches, countries, provinces }: Props) {
+export default function PropertiesPage({ properties, countries, provinces }: Props) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -33,15 +33,15 @@ export default function PropertiesPage({ branches, countries, provinces }: Props
         bathrooms_count: '', parking_spaces: '', year_built: '', notes: '', image: null as File | null,
     });
     const provinceOptions = provinces.filter((p) => !form.data.country_id || String(p.country_id) === form.data.country_id);
-    const visible = useMemo(() => branches.filter((property) => {
+    const visible = useMemo(() => properties.filter((property) => {
         const haystack = `${property.name} ${property.address ?? ''} ${property.province ?? ''}`.toLowerCase();
         return (type === 'all' || property.property_type === type) && haystack.includes(search.toLowerCase());
-    }), [branches, search, type]);
+    }), [properties, search, type]);
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.post('/branches', { forceFormData: true, onSuccess: () => { form.reset(); setOpen(false); } });
+        form.post('/properties', { forceFormData: true, onSuccess: () => { form.reset(); setOpen(false); } });
     };
-    const breadcrumbs: BreadcrumbItem[] = [{ title: t('navigation.dashboard', 'Dashboard'), href: '/dashboard' }, { title: 'Markets & Properties', href: '/branches' }];
+    const breadcrumbs: BreadcrumbItem[] = [{ title: t('navigation.dashboard', 'Dashboard'), href: '/dashboard' }, { title: 'Markets & Properties', href: '/properties' }];
 
     return <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Markets & Properties" />
@@ -82,10 +82,10 @@ export default function PropertiesPage({ branches, countries, provinces }: Props
     </AppLayout>;
 }
 
-function PropertyCard({ property }: { property: Branch }) {
+function PropertyCard({ property }: { property: Property }) {
     const meta = typeMeta[(property.property_type as keyof typeof typeMeta) ?? 'market'] ?? typeMeta.market;
     const Icon = meta.icon;
-    return <Link href={`/branches/${property.id}`} className="group"><Card className="h-full overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-lg"><div className="relative h-44 overflow-hidden bg-muted">{property.image_url ? <img src={property.image_url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-950 to-teal-700"><Icon className="h-16 w-16 text-white/70" /></div>}<Badge className="absolute start-3 top-3 bg-background/90 text-foreground backdrop-blur">{meta.label}</Badge></div><CardContent className="space-y-3 p-5"><div><h2 className="text-lg font-semibold">{property.name}</h2><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{property.address || property.province || 'Location not specified'}</p></div><div className="grid grid-cols-3 divide-x rounded-lg bg-muted/60 py-3 text-center text-xs"><Stat value={property.floors_count ?? property.declared_floors ?? 0} label="Floors" /><Stat value={property.units_count ?? property.declared_units ?? 0} label={['market','mall'].includes(property.property_type ?? '') ? 'Shops' : property.property_type === 'block' ? 'Apartments' : 'Rooms'} /><Stat value={property.building_area_sqm ? `${property.building_area_sqm} m²` : '—'} label="Building" /></div></CardContent></Card></Link>;
+    return <Link href={`/properties/${property.id}`} className="group"><Card className="h-full overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-lg"><div className="relative h-44 overflow-hidden bg-muted">{property.image_url ? <img src={property.image_url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-950 to-teal-700"><Icon className="h-16 w-16 text-white/70" /></div>}<Badge className="absolute start-3 top-3 bg-background/90 text-foreground backdrop-blur">{meta.label}</Badge></div><CardContent className="space-y-3 p-5"><div><h2 className="text-lg font-semibold">{property.name}</h2><p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{property.address || property.province || 'Location not specified'}</p></div><div className="grid grid-cols-3 divide-x rounded-lg bg-muted/60 py-3 text-center text-xs"><Stat value={property.floors_count ?? property.declared_floors ?? 0} label="Floors" /><Stat value={property.units_count ?? property.declared_units ?? 0} label={['market','mall'].includes(property.property_type ?? '') ? 'Shops' : property.property_type === 'block' ? 'Apartments' : 'Rooms'} /><Stat value={property.building_area_sqm ? `${property.building_area_sqm} m²` : '—'} label="Building" /></div></CardContent></Card></Link>;
 }
 function Stat({ value, label }: { value: string | number; label: string }) { return <div><div className="font-semibold">{value}</div><div className="text-muted-foreground">{label}</div></div>; }
 function Field({ label, error, className = '', children }: { label: string; error?: string; className?: string; children: React.ReactNode }) { return <div className={`grid gap-2 ${className}`}><Label>{label}</Label>{children}<InputError message={error} /></div>; }

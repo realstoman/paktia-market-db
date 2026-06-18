@@ -42,7 +42,7 @@ class AuditLogger
             'url' => $context['url'],
             'method' => $context['method'],
             'batch_uuid' => $batchUuid ?? (string) Str::uuid(),
-            'branch_id' => $this->resolveBranchId($subject, $causer),
+            'property_id' => $this->resolvePropertyId($subject, $causer),
             'meta' => $meta,
         ];
 
@@ -88,17 +88,17 @@ class AuditLogger
         ];
     }
 
-    private function resolveBranchId(?Model $subject, ?User $causer): ?int
+    private function resolvePropertyId(?Model $subject, ?User $causer): ?int
     {
         if ($subject !== null) {
-            $branchId = $subject->getAttribute('branch_id');
+            $propertyId = $subject->getAttribute('property_id');
 
-            if ($branchId !== null) {
-                return (int) $branchId;
+            if ($propertyId !== null) {
+                return (int) $propertyId;
             }
         }
 
-        return $causer?->branch_id;
+        return $causer?->property_id;
     }
 
 }

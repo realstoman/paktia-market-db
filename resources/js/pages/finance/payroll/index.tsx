@@ -2,7 +2,7 @@ import { PayrollClient } from '@/components/tables/payroll/client';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
-    Branch,
+    Property,
     BreadcrumbItem,
     Employee,
     EmployeeContract,
@@ -13,7 +13,7 @@ import { Head } from '@inertiajs/react';
 interface PayrollPageProps {
     runs: PayrollRun[];
     contracts: EmployeeContract[];
-    branches: Branch[];
+    properties: Property[];
     employees: Employee[];
     afghanPayrollMonths: AfghanPayrollMonth[];
     currentAfghanPayrollMonth: AfghanPayrollMonth | null;
@@ -43,7 +43,7 @@ interface AfghanPayrollMonth {
 export default function PayrollPage({
     runs,
     contracts,
-    branches,
+    properties,
     employees,
     afghanPayrollMonths,
     currentAfghanPayrollMonth,
@@ -69,7 +69,7 @@ export default function PayrollPage({
             <PayrollClient
                 runs={runs}
                 contracts={contracts}
-                branches={branches}
+                properties={properties}
                 employees={employees}
                 afghanPayrollMonths={afghanPayrollMonths}
                 currentAfghanPayrollMonth={currentAfghanPayrollMonth}
