@@ -91,7 +91,7 @@ const en = {
         employees: 'Employees',
         finance: 'Finance',
         marketsProperties: 'Markets & Properties',
-        branches: 'Branches',
+        branches: 'Markets & Properties',
         users: 'Users',
         roles: 'Roles',
         reports: 'Reports',

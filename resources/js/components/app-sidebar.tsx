@@ -69,7 +69,7 @@ const mainNavItems: SidebarNavConfig[] = [
     },
     {
         titleKey: 'navigation.branches',
-        fallbackTitle: 'Branches',
+        fallbackTitle: 'Markets & Properties',
         href: '/branches',
         icon: Building2,
         can: 'branch.view',

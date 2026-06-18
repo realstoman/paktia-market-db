@@ -35,7 +35,7 @@ const tools = [
     {
         href: '/branches',
         labelKey: 'navigation.toolBranches',
-        fallbackLabel: 'Branches',
+        fallbackLabel: 'Markets & Properties',
         icon: Building2,
     },
     {
