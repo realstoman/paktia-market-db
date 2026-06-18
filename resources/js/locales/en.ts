@@ -730,7 +730,7 @@ const en = {
         title: 'Reports',
         dashboard: 'Dashboard',
         heroEyebrow: 'Market intelligence',
-        heroTitle: 'Paktiawal reporting center',
+        heroTitle: 'Paktiawal Group reporting center',
         heroDescription:
             'Review market, property, warehouse, finance, employee, and access reports from one clean workspace.',
         badges: {
