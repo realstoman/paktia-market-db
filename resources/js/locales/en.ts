@@ -98,6 +98,7 @@ const en = {
         reports: 'Reports',
         tools: 'Tools',
         managementTools: 'Tools',
+        toolInventory: 'Inventory',
         toolShareholders: 'Shareholders',
         toolCountries: 'Countries',
         toolProvinces: 'Provinces',

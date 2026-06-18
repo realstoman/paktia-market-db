@@ -84,13 +84,6 @@ const primaryNavConfig: HeaderNavConfig[] = [
         canAny: ['finance.view', 'payroll.view'],
     },
     {
-        titleKey: 'navigation.inventory',
-        fallbackTitle: 'Inventory',
-        href: '/inventory',
-        icon: Warehouse,
-        can: 'inventory.view',
-    },
-    {
         titleKey: 'navigation.employees',
         fallbackTitle: 'Employees',
         href: '/employees',
@@ -107,6 +100,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
 ];
 
 const toolNavConfig: HeaderNavConfig[] = [
+    {
+        titleKey: 'navigation.toolInventory',
+        fallbackTitle: 'Inventory',
+        href: '/inventory',
+        icon: Warehouse,
+        can: 'inventory.view',
+    },
     {
         titleKey: 'navigation.toolShareholders',
         fallbackTitle: 'Shareholders',

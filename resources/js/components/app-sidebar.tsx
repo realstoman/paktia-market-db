@@ -19,7 +19,6 @@ import { Link } from '@inertiajs/react';
 import {
     Activity,
     Banknote,
-    Boxes,
     BriefcaseBusiness,
     Building2,
     ChartLine,
@@ -46,13 +45,6 @@ const mainNavItems: SidebarNavConfig[] = [
         href: dashboard(),
         icon: LayoutGrid,
         can: 'dashboard.view',
-    },
-    {
-        titleKey: 'navigation.inventory',
-        fallbackTitle: 'Inventory',
-        href: '/inventory',
-        icon: Boxes,
-        can: 'inventory.view',
     },
     {
         titleKey: 'navigation.employees',
@@ -173,7 +165,7 @@ export function AppSidebar() {
             <SidebarContent className="dark:bg-brand-bg-dark bg-white">
                 <NavMain
                     items={navigationItems}
-                    trailingItems={isSuperAdmin ? <ToolsLauncher /> : null}
+                    trailingItems={<ToolsLauncher />}
                 />
             </SidebarContent>
 

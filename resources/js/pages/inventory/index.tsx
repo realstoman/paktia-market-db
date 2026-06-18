@@ -1,9 +1,8 @@
 'use client';
 
-import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { InventoryClient } from '@/components/tables/inventory/client';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -11,15 +10,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
+import { cn } from '@/lib/utils';
 import {
     Property,
     BreadcrumbItem,
@@ -36,9 +29,12 @@ import { Head, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Boxes,
+    PackageCheck,
     PackageMinus,
     PackageX,
+    ScanLine,
     Warehouse,
+    type LucideIcon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -228,43 +224,72 @@ export default function InventoryPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('inventory.page.title', 'Inventory')} />
-            <div className="space-y-4 pt-3 pb-8">
-                <div className="flex justify-end">
-                    <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
-                        <Select
-                            value={selectedPropertyId}
-                            onValueChange={setSelectedPropertyId}
-                        >
-                            <SelectTrigger className="h-10">
-                                <SelectValue
-                                    placeholder={t(
-                                        'inventory.page.propertyStatsPlaceholder',
-                                        'Select property for stats',
-                                    )}
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={PROPERTY_FILTER_ALL}>
-                                    {t(
-                                        'inventory.page.allProperties',
-                                        'All Properties',
-                                    )}
-                                </SelectItem>
-                                {properties.map((property) => (
-                                    <SelectItem
-                                        key={property.id}
-                                        value={String(property.id)}
-                                    >
-                                        {property.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+            <div className="mx-auto w-full max-w-[1680px] space-y-6 pb-8">
+                <section className="relative overflow-hidden rounded-[2rem] bg-[#102f33] p-6 text-white shadow-xl shadow-[#102f33]/10 sm:p-8">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(58,181,157,0.28),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(242,162,12,0.16),transparent_34%)]" />
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:32px_32px]" />
+                    <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+                        <div className="max-w-3xl">
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-emerald-100 uppercase backdrop-blur">
+                                <ScanLine className="h-4 w-4" />
+                                {t(
+                                    'inventory.page.controlCenter',
+                                    'Inventory control center',
+                                )}
+                            </div>
+                            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                                {t(
+                                    'inventory.page.heroTitle',
+                                    'Stock clarity across every property',
+                                )}
+                            </h1>
+                            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
+                                {t(
+                                    'inventory.page.heroDescription',
+                                    'Monitor value, availability, usage, and vendor exposure from one operational workspace.',
+                                )}
+                            </p>
+                        </div>
+                        <div className="w-full rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur lg:max-w-sm">
+                            <p className="mb-2 px-1 text-xs font-medium text-white/60">
+                                {t(
+                                    'inventory.page.portfolioScope',
+                                    'Portfolio scope',
+                                )}
+                            </p>
+                            <SearchableDropdown
+                                value={selectedPropertyId}
+                                onValueChange={setSelectedPropertyId}
+                                placeholder={t(
+                                    'inventory.page.propertyStatsPlaceholder',
+                                    'Select property for stats',
+                                )}
+                                searchPlaceholder={t(
+                                    'inventory.filters.searchProperties',
+                                    'Search properties...',
+                                )}
+                                emptyText={t(
+                                    'inventory.filters.noProperties',
+                                    'No properties found.',
+                                )}
+                                className="h-11 border-white/20 bg-white text-slate-900 hover:bg-white"
+                                options={[
+                                    {
+                                        value: PROPERTY_FILTER_ALL,
+                                        label: t(
+                                            'inventory.page.allProperties',
+                                            'All Properties',
+                                        ),
+                                    },
+                                    ...propertyOptions,
+                                ]}
+                            />
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                    <SummaryMetricCard
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <InventoryMetric
                         title={t(
                             'inventory.page.stats.totalValue',
                             'Total Inventory Value',
@@ -275,105 +300,89 @@ export default function InventoryPage({
                             'Current value from quantity x single price.',
                         )}
                         icon={Banknote}
-                        variant="teal"
-                        className="md:col-span-4 md:row-span-2"
+                        tone="emerald"
+                        featured
                     />
-
-                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
-                        <SummaryMetricCard
-                            title={t(
-                                'inventory.page.stats.totalItems',
-                                'Total Items',
-                            )}
-                            value={formatNumber(stats.totalItems)}
-                            description={t(
-                                'inventory.page.stats.totalItemsDescription',
-                                'Inventory records currently tracked.',
-                            )}
-                            icon={Boxes}
-                            variant="teal"
-                            className="md:col-span-6"
-                        />
-
-                        <Card className="gap-3 border-red-200 bg-red-50 py-4 shadow-none md:col-span-6 dark:border-red-900/50 dark:bg-red-950/20">
-                            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-0">
-                                <CardTitle className="text-sm">
-                                    {t(
-                                        'inventory.page.stats.totalOwed',
-                                        'Amount Owed to Vendors',
-                                    )}
-                                </CardTitle>
-                                <Banknote className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-end justify-between gap-3">
-                                    <p className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-300">
-                                        {formatAfn(stats.totalOwed)}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setIsVendorOwedModalOpen(true)
-                                        }
-                                        className="text-xs font-medium text-red-700 underline underline-offset-4 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
-                                    >
-                                        {t(
-                                            'inventory.page.vendorOwed.viewDetails',
-                                            'View details',
-                                        )}
-                                    </button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 md:col-span-8 md:grid-cols-12">
-                        <SummaryMetricCard
-                            title={t(
-                                'inventory.page.stats.totalFixed',
-                                'Total Fixed Items',
-                            )}
-                            value={formatNumber(stats.totalFixedItems)}
-                            description={t(
-                                'inventory.page.stats.totalFixedDescription',
-                                'Equipment and long-term stock items.',
-                            )}
-                            icon={Warehouse}
-                            variant="teal"
-                            className="md:col-span-4"
-                        />
-
-                        <SummaryMetricCard
-                            title={t(
-                                'inventory.page.stats.lowStock',
-                                'Low Stock Items',
-                            )}
-                            value={formatNumber(stats.lowStockItems)}
-                            description={t(
-                                'inventory.page.stats.lowStockDescription',
-                                'Quantity ≤ :count.',
-                            ).replace(':count', String(LOW_STOCK_THRESHOLD))}
-                            icon={PackageMinus}
-                            variant="teal"
-                            className="md:col-span-4"
-                        />
-
-                        <SummaryMetricCard
-                            title={t(
-                                'inventory.page.stats.outOfStock',
-                                'Out of Stock Items',
-                            )}
-                            value={formatNumber(stats.outOfStockItems)}
-                            description={t(
-                                'inventory.page.stats.outOfStockDescription',
-                                'Items that currently have zero quantity.',
-                            )}
-                            icon={PackageX}
-                            variant="teal"
-                            className="md:col-span-4"
-                        />
-                    </div>
-                </div>
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.totalItems',
+                            'Total Items',
+                        )}
+                        value={formatNumber(stats.totalItems)}
+                        description={t(
+                            'inventory.page.stats.totalItemsDescription',
+                            'Inventory records currently tracked.',
+                        )}
+                        icon={Boxes}
+                        tone="blue"
+                    />
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.totalUsable',
+                            'Usable Items',
+                        )}
+                        value={formatNumber(stats.totalUsableItems)}
+                        description={t(
+                            'inventory.page.stats.totalUsableDescription',
+                            'Items available for active operations.',
+                        )}
+                        icon={PackageCheck}
+                        tone="violet"
+                    />
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.totalOwed',
+                            'Amount Owed to Vendors',
+                        )}
+                        value={formatAfn(stats.totalOwed)}
+                        description={t(
+                            'inventory.page.vendorOwed.viewDetails',
+                            'View details',
+                        )}
+                        icon={Banknote}
+                        tone="rose"
+                        onClick={() => setIsVendorOwedModalOpen(true)}
+                    />
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.totalFixed',
+                            'Total Fixed Items',
+                        )}
+                        value={formatNumber(stats.totalFixedItems)}
+                        description={t(
+                            'inventory.page.stats.totalFixedDescription',
+                            'Equipment and long-term stock items.',
+                        )}
+                        icon={Warehouse}
+                        tone="slate"
+                    />
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.lowStock',
+                            'Low Stock Items',
+                        )}
+                        value={formatNumber(stats.lowStockItems)}
+                        description={t(
+                            'inventory.page.stats.lowStockDescription',
+                            'Quantity ≤ :count.',
+                        ).replace(':count', String(LOW_STOCK_THRESHOLD))}
+                        icon={PackageMinus}
+                        tone="amber"
+                    />
+                    <InventoryMetric
+                        title={t(
+                            'inventory.page.stats.outOfStock',
+                            'Out of Stock Items',
+                        )}
+                        value={formatNumber(stats.outOfStockItems)}
+                        description={t(
+                            'inventory.page.stats.outOfStockDescription',
+                            'Items that currently have zero quantity.',
+                        )}
+                        icon={PackageX}
+                        tone="rose"
+                    />
+                </section>
 
                 <Dialog
                     open={isVendorOwedModalOpen}
