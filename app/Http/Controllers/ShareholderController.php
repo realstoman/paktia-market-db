@@ -125,7 +125,7 @@ class ShareholderController extends Controller
 
     private function validateShareholder(Request $request, ?Shareholder $shareholder = null): array
     {
-        return collect($request->validate([
+        return $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'father_name' => ['nullable', 'string', 'max:255'],
             'grandfather_name' => ['nullable', 'string', 'max:255'],
@@ -158,7 +158,7 @@ class ShareholderController extends Controller
 
     private function validateAssignment(Request $request): array
     {
-        return $request->validate([
+        return collect($request->validate([
             'property_id' => ['required', 'exists:properties,id'],
             'percentage' => ['required', 'numeric', 'gt:0', 'max:100'],
             'capital_contribution' => ['nullable', 'numeric', 'min:0'],

@@ -52,8 +52,7 @@ class PropertyOwnershipService
 
             foreach ($boundaries as $date) {
                 $existingPercentage = $overlapping
-                    ->filter(fn (PropertyShareholding $holding) =>
-                        CarbonImmutable::parse($holding->effective_from)->lte($date)
+                    ->filter(fn (PropertyShareholding $holding) => CarbonImmutable::parse($holding->effective_from)->lte($date)
                         && (! $holding->effective_to || CarbonImmutable::parse($holding->effective_to)->gte($date)))
                     ->sum(fn (PropertyShareholding $holding) => (float) $holding->percentage);
 

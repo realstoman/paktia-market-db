@@ -16,15 +16,15 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\CountryController;
+use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\ShareholderController;
 use App\Http\Controllers\Settings\LanguageController;
+use App\Http\Controllers\ShareholderController;
 use App\Http\Controllers\ToolReferenceController;
 use Illuminate\Support\Facades\Route;
 
