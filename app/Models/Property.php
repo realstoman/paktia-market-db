@@ -12,13 +12,16 @@ class Property extends Model
     protected $fillable = [
         'parent_property_id',
         'name',
+        'name_translations',
         'property_type',
         'usage_type',
         'image_path',
         'country_id',
         'province_id',
         'address',
+        'address_translations',
         'description',
+        'description_translations',
         'distance_from_city_km',
         'land_area_sqm',
         'building_area_sqm',
@@ -41,6 +44,9 @@ class Property extends Model
     {
         return [
             'amenities' => 'array',
+            'name_translations' => 'array',
+            'address_translations' => 'array',
+            'description_translations' => 'array',
             'is_active' => 'boolean',
             'distance_from_city_km' => 'decimal:2',
             'land_area_sqm' => 'decimal:2',
@@ -51,6 +57,31 @@ class Property extends Model
     public function getImageUrlAttribute(): ?string
     {
         return $this->image_path ? asset('storage/'.$this->image_path) : null;
+    }
+
+    public function getNameAttribute(?string $value): string
+    {
+        return $this->translatedValue('name_translations', $value) ?? '';
+    }
+
+    public function getAddressAttribute(?string $value): ?string
+    {
+        return $this->translatedValue('address_translations', $value);
+    }
+
+    public function getDescriptionAttribute(?string $value): ?string
+    {
+        return $this->translatedValue('description_translations', $value);
+    }
+
+    private function translatedValue(string $attribute, ?string $fallback): ?string
+    {
+        $translations = $this->getAttribute($attribute) ?? [];
+        $locale = app()->getLocale();
+
+        return filled($translations[$locale] ?? null)
+            ? $translations[$locale]
+            : (filled($translations['fa'] ?? null) ? $translations['fa'] : $fallback);
     }
 
     public function country()

@@ -29,6 +29,7 @@ export interface NavItem {
 
 export interface SharedData {
     name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     quote: { message: string; author: string };
     auth: Auth;
     branding: {
@@ -446,7 +447,9 @@ export interface Property {
     province_object?: Province | null;
     is_active?: boolean;
     address: string;
+    address_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     description: string;
+    description_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     property_type?: 'market' | 'mall' | 'block' | 'house';
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;

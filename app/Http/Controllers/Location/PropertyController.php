@@ -36,12 +36,19 @@ class PropertyController extends Controller
                 'relatedLocations.country', 'relatedLocations.province',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
             ]),
+            'countries' => Country::orderBy('name')->get(),
+            'provinces' => Province::orderBy('name')->get(),
+            'propertyOptions' => Property::query()
+                ->whereKeyNot($property->id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'property_type', 'country_id', 'province_id']),
         ]);
     }
 
     public function update(Request $request, PropertyService $service, Property $property)
     {
         $validated = $this->validateProperty($request);
+        $validated = $this->prepareTranslations($validated);
         $validated = $this->storeImage($request, $validated, $property);
 
         $service->update($property, $validated);
@@ -53,6 +60,7 @@ class PropertyController extends Controller
     public function store(Request $request, PropertyService $service)
     {
         $validated = $this->validateProperty($request);
+        $validated = $this->prepareTranslations($validated);
         $validated = $this->storeImage($request, $validated);
 
         $service->create($validated);
@@ -148,6 +156,8 @@ class PropertyController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_ps' => ['nullable', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'parent_property_id' => [
                 'nullable',
                 'integer',
@@ -162,7 +172,11 @@ class PropertyController extends Controller
                 Rule::exists('provinces', 'id')->where('country_id', $request->integer('country_id')),
             ],
             'address' => ['nullable', 'string', 'max:500'],
+            'address_ps' => ['nullable', 'string', 'max:500'],
+            'address_en' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'description_ps' => ['nullable', 'string', 'max:2000'],
+            'description_en' => ['nullable', 'string', 'max:2000'],
             'distance_from_city_km' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'land_area_sqm' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'building_area_sqm' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
@@ -190,6 +204,21 @@ class PropertyController extends Controller
                 Storage::disk('public')->delete($property->image_path);
             }
             $validated['image_path'] = $request->file('image')->store('properties', 'public');
+        }
+
+        return $validated;
+    }
+
+    private function prepareTranslations(array $validated): array
+    {
+        foreach (['name', 'address', 'description'] as $field) {
+            $validated["{$field}_translations"] = array_filter([
+                'fa' => $validated[$field] ?? null,
+                'ps' => $validated["{$field}_ps"] ?? null,
+                'en' => $validated["{$field}_en"] ?? null,
+            ], fn ($value) => filled($value));
+
+            unset($validated["{$field}_ps"], $validated["{$field}_en"]);
         }
 
         return $validated;
