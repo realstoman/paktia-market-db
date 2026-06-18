@@ -444,9 +444,42 @@ export interface Branch {
     is_active?: boolean;
     address: string;
     description: string;
+    property_type?: 'market' | 'mall' | 'block' | 'house';
+    usage_type?: 'commercial' | 'residential' | 'mixed';
+    image_url?: string | null;
+    distance_from_city_km?: string | null;
+    land_area_sqm?: string | null;
+    building_area_sqm?: string | null;
+    declared_floors?: number | null;
+    declared_units?: number | null;
+    rooms_count?: number | null;
+    kitchens_count?: number | null;
+    halls_count?: number | null;
+    bathrooms_count?: number | null;
+    parking_spaces?: number | null;
+    year_built?: number | null;
+    amenities?: string[] | null;
+    notes?: string | null;
+    floors_count?: number;
+    units_count?: number;
+    floors?: PropertyFloor[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+}
+
+export interface PropertyFloor {
+    id: number; branch_id: number; name: string; level_number: number;
+    area_sqm?: string | null; planned_units?: number | null; usage_type?: string | null;
+    description?: string | null; is_active: boolean; units?: PropertyUnit[];
+}
+
+export interface PropertyUnit {
+    id: number; property_floor_id: number; unit_type: 'shop' | 'apartment'; unit_number: string;
+    area_sqm?: string | null; width_m?: string | null; length_m?: string | null;
+    rooms_count?: number | null; kitchens_count?: number | null; halls_count?: number | null;
+    bathrooms_count?: number | null; occupancy_status: 'vacant' | 'occupied' | 'reserved' | 'maintenance';
+    electricity_meter?: string | null; water_meter?: string | null; description?: string | null; is_active: boolean;
 }
 
 export interface Country {
