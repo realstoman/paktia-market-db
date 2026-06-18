@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,7 +25,7 @@ class EmployeeAdvanceController extends Controller
         $baseQuery = EmployeeAdvance::query()
             ->with([
                 'employee:id,first_name,last_name,property_id',
-                'property:id,name',
+                'property:id,name,name_translations',
                 'creator:id,name',
                 'approver:id,name',
             ])
@@ -57,9 +57,9 @@ class EmployeeAdvanceController extends Controller
                 'paidCount' => (int) (clone $summaryQuery)->where('status', 'paid')->count(),
             ],
             'advances' => $advances,
-            'properties' => Property::query()->orderBy('name')->get(['id', 'name', 'address']),
+            'properties' => Property::query()->orderBy('name')->get(['id', 'name', 'name_translations', 'address', 'address_translations']),
             'employees' => Employee::query()
-                ->with('property:id,name')
+                ->with('property:id,name,name_translations')
                 ->where('is_active', true)
                 ->orderBy('first_name')
                 ->orderBy('last_name')

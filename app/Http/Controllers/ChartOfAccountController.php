@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
 use App\Models\Currency;
 use App\Models\FinanceAccount;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -23,7 +23,7 @@ class ChartOfAccountController extends Controller
         $accounts = FinanceAccount::query()
             ->with([
                 'parent:id,code,name',
-                'property:id,name',
+                'property:id,name,name_translations',
             ])
             ->orderBy('code')
             ->orderBy('name')
@@ -102,7 +102,7 @@ class ChartOfAccountController extends Controller
             'accounts' => $accounts,
             'properties' => Property::query()
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'name_translations']),
             'parentAccounts' => FinanceAccount::query()
                 ->orderBy('code')
                 ->orderBy('name')
@@ -117,7 +117,7 @@ class ChartOfAccountController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateAccount($request);
-        $resolvedCode = !empty($validated['code'])
+        $resolvedCode = ! empty($validated['code'])
             ? strtoupper($validated['code'])
             : $this->generateNextCode($validated['type']);
 

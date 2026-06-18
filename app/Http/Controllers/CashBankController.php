@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\CashMovementType;
 use App\Models\FinanceAccount;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +22,7 @@ class CashBankController extends Controller
         return Inertia::render('finance/cash-bank/index', [
             'movements' => CashMovement::query()
                 ->with([
-                    'property:id,name',
+                    'property:id,name,name_translations',
                     'account:id,code,name',
                     'counterpartyAccount:id,code,name',
                     'creator:id,name',
@@ -33,7 +33,7 @@ class CashBankController extends Controller
                 ->get(),
             'properties' => Property::query()
                 ->orderBy('name')
-                ->get(['id', 'name', 'address']),
+                ->get(['id', 'name', 'name_translations', 'address', 'address_translations']),
             'sourceAccounts' => $sourceAccounts,
             'targetAccounts' => $sourceAccounts,
             'movementTypes' => CashMovementType::query()
@@ -93,6 +93,7 @@ class CashBankController extends Controller
                     $approvalStatus,
                     $attachmentPath
                 );
+
                 return;
             }
 
@@ -267,6 +268,7 @@ class CashBankController extends Controller
                 ]);
 
                 $printMovementId = $outgoing->id;
+
                 return;
             }
 
@@ -311,8 +313,7 @@ class CashBankController extends Controller
         array $validated,
         string $approvalStatus,
         ?string $attachmentPath = null
-    ): CashMovement
-    {
+    ): CashMovement {
         if (empty($validated['counterparty_account_id'])) {
             abort(422, 'Target account is required for transfer.');
         }
@@ -366,8 +367,7 @@ class CashBankController extends Controller
         string $movementType,
         ?string $requestedDirection,
         ?string $defaultDirection = null
-    ): string
-    {
+    ): string {
         return match ($movementType) {
             'owner_deposit', 'bank_withdrawal' => 'in',
             'owner_withdrawal', 'bank_deposit' => 'out',

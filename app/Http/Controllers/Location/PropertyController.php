@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Location;
 
 use App\Http\Controllers\Controller;
-use App\Models\Property;
 use App\Models\Country;
-use App\Models\Province;
+use App\Models\Property;
 use App\Models\PropertyFloor;
 use App\Models\PropertyUnit;
+use App\Models\Province;
 use App\Services\Location\PropertyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +24,7 @@ class PropertyController extends Controller
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()
                 ->orderBy('name')
-                ->get(['id', 'name', 'property_type', 'country_id', 'province_id']),
+                ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
 
@@ -41,7 +41,7 @@ class PropertyController extends Controller
             'propertyOptions' => Property::query()
                 ->whereKeyNot($property->id)
                 ->orderBy('name')
-                ->get(['id', 'name', 'property_type', 'country_id', 'province_id']),
+                ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
 
@@ -53,7 +53,7 @@ class PropertyController extends Controller
 
         $service->update($property, $validated);
 
-        return redirect()->route('properties.index')
+        return redirect()->route('properties.show', $property)
             ->with('success', 'Property updated successfully.');
     }
 

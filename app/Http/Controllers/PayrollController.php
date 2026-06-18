@@ -4,23 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PermissionEnum;
-use App\Models\Property;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContract;
 use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Services\Finance\PayrollExpenseSyncService;
 use App\Support\AfghanCalendar;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
@@ -34,7 +35,7 @@ class PayrollController extends Controller
 
         $runs = PayrollRun::query()
             ->with([
-                'property:id,name',
+                'property:id,name,name_translations',
                 'creator:id,name',
                 'approver:id,name',
                 'items.employee:id,first_name,last_name,property_id',
@@ -121,7 +122,7 @@ class PayrollController extends Controller
             ->values();
 
         $activeEmployees = Employee::query()
-            ->with('property:id,name')
+            ->with('property:id,name,name_translations')
             ->where('is_active', true)
             ->orderBy('first_name')
             ->orderBy('last_name')
@@ -167,14 +168,14 @@ class PayrollController extends Controller
         ];
 
         $payrollGeneration = $this->buildPayrollGenerationStateMap(
-            Property::query()->orderBy('name')->get(['id', 'name', 'address'])
+            Property::query()->orderBy('name')->get(['id', 'name', 'name_translations', 'address', 'address_translations'])
         );
 
         $contracts = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
             ? EmployeeContract::query()
                 ->with([
                     'employee:id,first_name,last_name,property_id',
-                    'property:id,name',
+                    'property:id,name,name_translations',
                     'schedules',
                 ])
                 ->orderByDesc('id')
@@ -633,8 +634,8 @@ class PayrollController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Property>  $properties
-     * @return array{properties:\Illuminate\Support\Collection<int, Property>, months:array<int, array<string, mixed>>, defaultMonth:?array<string, mixed>, stateByProperty:array<string, mixed>}
+     * @param  Collection<int, Property>  $properties
+     * @return array{properties:Collection<int, Property>, months:array<int, array<string, mixed>>, defaultMonth:?array<string, mixed>, stateByProperty:array<string, mixed>}
      */
     private function buildPayrollGenerationStateMap($properties): array
     {

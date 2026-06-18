@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\PermissionEnum;
 use App\Jobs\RenderReportExportJob;
-use App\Models\Property;
-use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\InventoryItem;
+use App\Models\Property;
 use App\Models\User;
 use App\Services\Reports\ReportFileRenderer;
 use Carbon\Carbon;
@@ -191,7 +190,7 @@ class ReportsController extends Controller
         };
 
         return [
-            'properties' => Property::query()->orderBy('name')->get(['id', 'name'])->toArray(),
+            'properties' => Property::query()->orderBy('name')->get(['id', 'name', 'name_translations'])->toArray(),
             'filters' => ['range' => $range, 'startDate' => $startDate->toDateString(), 'endDate' => $endDate->toDateString(), 'propertyId' => $propertyId, 'module' => $module],
             'reportCatalog' => $catalog,
             'overview' => $overview,
@@ -202,7 +201,7 @@ class ReportsController extends Controller
 
     private function marketInventoryReport(Builder $query): array
     {
-        $items = $query->with('property:id,name')->orderBy('name')->get();
+        $items = $query->with('property:id,name,name_translations')->orderBy('name')->get();
 
         return $this->marketReport('inventory', __('reports.reports.inventory.title'), __('reports.reports.inventory.description'), [
             ['key' => 'item', 'label' => __('reports.columns.item')],
@@ -228,7 +227,8 @@ class ReportsController extends Controller
 
     private function marketEmployeesReport(Builder $query): array
     {
-        $employees = $query->with('property:id,name')->orderBy('first_name')->get();
+        $employees = $query->with('property:id,name,name_translations')->orderBy('first_name')->get();
+
         return $this->marketReport('employees', __('reports.reports.employees.title'), __('reports.reports.employees.description'), [
             ['key' => 'employee', 'label' => __('reports.columns.employee')],
             ['key' => 'property', 'label' => __('reports.columns.property')],
@@ -247,7 +247,8 @@ class ReportsController extends Controller
 
     private function marketFinanceReport(Builder $query): array
     {
-        $expenses = $query->with('property:id,name')->latest('expense_date')->get();
+        $expenses = $query->with('property:id,name,name_translations')->latest('expense_date')->get();
+
         return $this->marketReport('finance', __('reports.reports.finance.title'), __('reports.reports.finance.description'), [
             ['key' => 'date', 'label' => __('reports.columns.date')],
             ['key' => 'reference', 'label' => __('reports.columns.reference')],
@@ -271,6 +272,7 @@ class ReportsController extends Controller
     private function marketPropertiesReport(): array
     {
         $properties = Property::query()->withCount(['employees', 'inventoryItems'])->orderBy('name')->get();
+
         return $this->marketReport('properties', __('reports.reports.properties.title'), __('reports.reports.properties.description'), [
             ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
@@ -289,7 +291,8 @@ class ReportsController extends Controller
 
     private function marketUsersReport(?int $propertyId): array
     {
-        $users = User::query()->with(['roles:id,name', 'property:id,name'])->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))->orderBy('name')->get();
+        $users = User::query()->with(['roles:id,name', 'property:id,name,name_translations'])->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))->orderBy('name')->get();
+
         return $this->marketReport('users', __('reports.reports.users.title'), __('reports.reports.users.description'), [
             ['key' => 'user', 'label' => __('reports.columns.user')],
             ['key' => 'email', 'label' => __('reports.columns.email')],
@@ -381,5 +384,4 @@ class ReportsController extends Controller
 
         return [$start, $end];
     }
-
 }

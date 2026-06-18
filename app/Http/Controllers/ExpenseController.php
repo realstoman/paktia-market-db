@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Property;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
+use App\Models\Property;
 use App\Models\Vendor;
 use App\Services\Finance\PayrollExpenseSyncService;
 use Illuminate\Http\Request;
@@ -41,7 +41,7 @@ class ExpenseController extends Controller
         return Inertia::render('finance/expenses/index', [
             'expenses' => Expense::query()
                 ->with([
-                    'property:id,name',
+                    'property:id,name,name_translations',
                     'vendor:id,name',
                     'expenseCategory:id,name,expense_account_id',
                     'account:id,code,name',
@@ -52,7 +52,7 @@ class ExpenseController extends Controller
                 ->orderByDesc('expense_date')
                 ->orderByDesc('id')
                 ->get(),
-            'properties' => Property::orderBy('name')->get(['id', 'name', 'address']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations', 'address', 'address_translations']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')

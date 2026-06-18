@@ -3,18 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Property;
 use App\Models\CashMovement;
-use App\Models\EmployeeAdvance;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
+use App\Models\Property;
 use App\Services\Finance\PayrollExpenseSyncService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -79,7 +78,7 @@ class FinanceController extends Controller
                 'paymentMethod' => $paymentMethod,
                 'category' => $category,
             ],
-            'properties' => Property::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -117,7 +116,7 @@ class FinanceController extends Controller
         $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
 
         $valuationItems = InventoryItem::query()
-            ->with(['property:id,name', 'vendor:id,name'])
+            ->with(['property:id,name,name_translations', 'vendor:id,name'])
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->orderByDesc(DB::raw('quantity * unit_price'))
             ->orderBy('name')
@@ -241,7 +240,7 @@ class FinanceController extends Controller
                 'endDate' => $endDate->toDateString(),
                 'propertyId' => $propertyId,
             ],
-            'properties' => Property::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'summary' => $summary,
             'valuationItems' => $valuationItems->take(40)->values(),
             'movementEntries' => $paginatedMovements->items(),
@@ -351,7 +350,7 @@ class FinanceController extends Controller
                 'paymentMethod' => $paymentMethod,
                 'category' => $category,
             ],
-            'properties' => Property::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'expenseCategories' => ExpenseCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name'])->map(fn ($item) => ['value' => (string) $item->id, 'label' => $item->name]),
             'projectionHealth' => [
                 'usesProjectionData' => false,
@@ -410,7 +409,7 @@ class FinanceController extends Controller
         ?int $limit,
     ) {
         $expenses = Expense::query()
-            ->with('property:id,name')
+            ->with('property:id,name,name_translations')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->when($category, fn ($query) => $query->where('expense_category_id', $category))
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -428,7 +427,7 @@ class FinanceController extends Controller
             ]);
 
         $movements = CashMovement::query()
-            ->with('property:id,name')
+            ->with('property:id,name,name_translations')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->whereBetween('movement_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
@@ -448,5 +447,4 @@ class FinanceController extends Controller
 
         return $limit === null ? $entries : $entries->take($limit)->values();
     }
-
 }

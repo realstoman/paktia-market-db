@@ -6,6 +6,7 @@ use App\Models\PropertyFloor;
 use App\Models\Province;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\App;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -126,4 +127,67 @@ test('another location can be linked to the original property in a different pro
         'parent_property_id' => $original->id,
         'province_id' => $secondProvince->id,
     ]);
+});
+
+test('property content follows the active locale and falls back to Dari', function () {
+    [$country, $province] = propertyLocation();
+
+    $this->post(route('properties.store'), [
+        'name' => 'مارکیت مرکزی',
+        'name_ps' => 'مرکزي مارکېټ',
+        'name_en' => 'Central Market',
+        'address' => 'کابل، شهر نو',
+        'address_en' => 'Shahr-e Naw, Kabul',
+        'description' => 'مارکیت تجارتی',
+        'description_en' => 'Commercial market',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ])->assertRedirect(route('properties.index'));
+
+    $property = Property::query()->latest('id')->firstOrFail();
+
+    App::setLocale('ps');
+    expect($property->fresh()->name)->toBe('مرکزي مارکېټ')
+        ->and($property->fresh()->address)->toBe('کابل، شهر نو');
+
+    App::setLocale('en');
+    expect($property->fresh()->name)->toBe('Central Market')
+        ->and($property->fresh()->address)->toBe('Shahr-e Naw, Kabul')
+        ->and($property->fresh()->description)->toBe('Commercial market');
+});
+
+test('property details and translations can be edited', function () {
+    [$country, $province] = propertyLocation();
+    $property = Property::query()->create([
+        'name' => 'مارکیت قدیمی',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ]);
+
+    $this->post(route('properties.update', $property), [
+        '_method' => 'put',
+        'name' => 'مارکیت جدید',
+        'name_ps' => 'نوی مارکېټ',
+        'name_en' => 'New Market',
+        'property_type' => 'mall',
+        'usage_type' => 'mixed',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'building_area_sqm' => 900,
+    ])->assertRedirect(route('properties.show', $property));
+
+    $this->assertDatabaseHas('properties', [
+        'id' => $property->id,
+        'name' => 'مارکیت جدید',
+        'property_type' => 'mall',
+        'usage_type' => 'mixed',
+        'building_area_sqm' => 900,
+    ]);
+
+    App::setLocale('en');
+    expect($property->fresh()->name)->toBe('New Market');
 });

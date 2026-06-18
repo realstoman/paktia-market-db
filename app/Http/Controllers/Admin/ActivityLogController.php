@@ -7,7 +7,6 @@ use App\Http\Resources\ActivityLogArchiveResource;
 use App\Http\Resources\ActivityLogResource;
 use App\Models\AuditLog;
 use App\Models\AuditLogArchive;
-use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
@@ -17,6 +16,7 @@ use App\Models\InventoryItem;
 use App\Models\InventoryTransaction;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -37,7 +37,7 @@ class ActivityLogController extends Controller
         $this->authorize('viewAny', AuditLog::class);
 
         $paginator = QueryBuilder::for(AuditLog::class)
-            ->with(['user:id,name,email', 'property:id,name'])
+            ->with(['user:id,name,email', 'property:id,name,name_translations'])
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
                 AllowedFilter::exact('property_id'),
@@ -82,7 +82,7 @@ class ActivityLogController extends Controller
                     ->orderBy('name')
                     ->get(),
                 'properties' => Property::query()
-                    ->select('id', 'name')
+                    ->select('id', 'name', 'name_translations')
                     ->orderBy('name')
                     ->get(),
             ],
@@ -171,7 +171,7 @@ class ActivityLogController extends Controller
     {
         $this->authorize('view', $auditLog);
 
-        $auditLog->load(['user:id,name,email', 'property:id,name']);
+        $auditLog->load(['user:id,name,email', 'property:id,name,name_translations']);
 
         return Inertia::render('admin/activity-logs/show', [
             'log' => (new ActivityLogResource($auditLog))->resolve(),

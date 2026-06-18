@@ -23,7 +23,7 @@ class DashboardService
             ->get();
 
         if ($user->can(PermissionEnum::INVENTORY_VIEW->value)) {
-            $items = InventoryItem::query()->with('property:id,name')->get();
+            $items = InventoryItem::query()->with('property:id,name,name_translations')->get();
 
             $inventory = [
                 'totalItems' => $items->count(),
@@ -91,7 +91,7 @@ class DashboardService
                     })
                     ->all(),
                 'recentExpenses' => Expense::query()
-                    ->with('property:id,name')
+                    ->with('property:id,name,name_translations')
                     ->latest('expense_date')
                     ->limit(6)
                     ->get()

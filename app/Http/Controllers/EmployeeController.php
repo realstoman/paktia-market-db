@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Enums\EmployeeStatus;
 use App\Enums\PermissionEnum;
-use App\Models\Property;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Models\Shift;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -26,14 +27,14 @@ class EmployeeController extends Controller
         Gate::authorize(PermissionEnum::EMPLOYEES_VIEW->value);
 
         $employees = Employee::query()
-            ->with(['property:id,name', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
+            ->with(['property:id,name,name_translations', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
             ->orderByDesc('id')
             ->get();
 
         $employeeIds = $employees->pluck('id');
 
         $advancesByEmployee = EmployeeAdvance::query()
-            ->with(['property:id,name'])
+            ->with(['property:id,name,name_translations'])
             ->whereIn('employee_id', $employeeIds)
             ->orderByDesc('advance_date')
             ->orderByDesc('id')
@@ -41,14 +42,14 @@ class EmployeeController extends Controller
             ->groupBy('employee_id');
 
         $payrollItemsByEmployee = PayrollRunItem::query()
-            ->with(['payrollRun:id,property_id,period_start,period_end,status,paid_at', 'payrollRun.property:id,name'])
+            ->with(['payrollRun:id,property_id,period_start,period_end,status,paid_at', 'payrollRun.property:id,name,name_translations'])
             ->whereIn('employee_id', $employeeIds)
             ->orderByDesc('id')
             ->get()
             ->groupBy('employee_id');
 
         $contractSchedulesByEmployee = EmployeeContractPaymentSchedule::query()
-            ->with(['contract:id,employee_id,property_id,contract_amount,start_date,end_date,status', 'contract.property:id,name'])
+            ->with(['contract:id,employee_id,property_id,contract_amount,start_date,end_date,status', 'contract.property:id,name,name_translations'])
             ->whereHas('contract', fn ($query) => $query->whereIn('employee_id', $employeeIds))
             ->orderBy('due_date')
             ->orderBy('id')
@@ -172,7 +173,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('employees/index', [
             'employees' => $employees,
-            'properties' => Property::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name', 'description']),
             'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name', 'description']),
             'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
@@ -182,8 +183,8 @@ class EmployeeController extends Controller
 
     private function resolveUpcomingPayment(
         Employee $employee,
-        \Illuminate\Support\Collection $contractSchedules,
-        \Illuminate\Support\Collection $payrollItems,
+        Collection $contractSchedules,
+        Collection $payrollItems,
     ): array {
         $nextSchedule = $contractSchedules
             ->first(fn (EmployeeContractPaymentSchedule $schedule) => $schedule->status !== 'paid');

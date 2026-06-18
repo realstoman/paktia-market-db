@@ -187,7 +187,7 @@ class RuntimeHealthService
         $recentCutoff = now()->subHours($staleAfterHours);
 
         $activeCredentialsQuery = PropertySyncCredential::query()
-            ->with('property:id,name')
+            ->with('property:id,name,name_translations')
             ->whereNull('revoked_at')
             ->where(function ($query) {
                 $query->whereNull('expires_at')

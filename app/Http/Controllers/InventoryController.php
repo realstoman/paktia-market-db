@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Caching\CatalogCacheService;
-use App\Models\Property;
 use App\Models\Currency;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\InventoryType;
+use App\Models\Property;
 use App\Models\Unit;
 use App\Models\Vendor;
+use App\Services\Caching\CatalogCacheService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,7 +95,7 @@ class InventoryController extends Controller
 
         return Inertia::render('inventory/index', [
             'inventoryItems' => $inventoryItems,
-            'properties' => Property::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'vendors' => Vendor::orderBy('name')->get(),
             'currencies' => Currency::orderBy('name')->get(),
             'units' => Unit::orderBy('name')->get(),
@@ -138,7 +138,7 @@ class InventoryController extends Controller
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
             $unit = null;
-            if (!empty($validated['unit_id'])) {
+            if (! empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
             $inventoryType = InventoryType::findOrFail(
@@ -201,7 +201,7 @@ class InventoryController extends Controller
         ]);
 
         DB::transaction(function () use ($inventory, $validated, $request) {
-            if (!empty($validated['apply_new_price'])) {
+            if (! empty($validated['apply_new_price'])) {
                 $currency = Currency::where(
                     'code',
                     strtoupper($validated['currency_code']),
@@ -239,7 +239,7 @@ class InventoryController extends Controller
                 'action' => 'restock',
                 'quantity' => $validated['quantity'],
                 'note' => $validated['note']
-                    ?? (!empty($validated['apply_new_price'])
+                    ?? (! empty($validated['apply_new_price'])
                         ? 'Restocked with updated price.'
                         : null),
             ]);
@@ -357,7 +357,7 @@ class InventoryController extends Controller
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
             $unit = null;
-            if (!empty($validated['unit_id'])) {
+            if (! empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
             $inventoryType = InventoryType::findOrFail(
