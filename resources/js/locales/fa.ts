@@ -98,6 +98,7 @@ const fa = {
         reports: 'گزارش‌ ها',
         tools: 'ابزارها',
         managementTools: 'ابزارهای مدیریتی',
+        toolShareholders: 'سهمداران',
         toolCountries: 'کشورها',
         toolProvinces: 'ولایات',
         toolProperties: 'جایدادها',

@@ -125,7 +125,7 @@ class ShareholderController extends Controller
 
     private function validateShareholder(Request $request, ?Shareholder $shareholder = null): array
     {
-        return $request->validate([
+        return collect($request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'father_name' => ['nullable', 'string', 'max:255'],
             'grandfather_name' => ['nullable', 'string', 'max:255'],
@@ -166,7 +166,7 @@ class ShareholderController extends Controller
             'effective_from' => ['required', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'assignment_notes' => ['nullable', 'string', 'max:2000'],
-        ])->collect()
+        ]))
             ->mapWithKeys(fn ($value, $key) => [$key === 'assignment_notes' ? 'notes' : $key => $value])
             ->all();
     }

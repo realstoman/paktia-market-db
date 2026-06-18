@@ -14,12 +14,19 @@ import {
     Building2,
     CircleDollarSign,
     Globe2,
+    Handshake,
     MapPinned,
     Settings2,
     Users,
 } from 'lucide-react';
 
 const tools = [
+    {
+        href: '/shareholders',
+        labelKey: 'navigation.toolShareholders',
+        fallbackLabel: 'Shareholders',
+        icon: Handshake,
+    },
     {
         href: '/countries',
         labelKey: 'navigation.toolCountries',

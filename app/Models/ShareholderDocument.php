@@ -11,6 +11,8 @@ class ShareholderDocument extends Model
         'expires_at', 'path', 'original_name', 'mime_type', 'size_bytes',
     ];
 
+    protected $hidden = ['path'];
+
     protected function casts(): array
     {
         return ['expires_at' => 'date:Y-m-d'];

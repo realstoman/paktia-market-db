@@ -97,6 +97,7 @@ const ps = {
         reports: 'راپورونه',
         tools: 'د سیستم توکي',
         managementTools: 'د مدیریت توکي',
+        toolShareholders: 'شریکان',
         toolCountries: 'هیوادونه',
         toolProvinces: 'ولایتونه',
         toolProperties: 'جایدادونه',

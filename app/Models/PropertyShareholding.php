@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Audit\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class PropertyShareholding extends Model
@@ -37,5 +38,19 @@ class PropertyShareholding extends Model
     public function currency()
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function scopeEffectiveDuring(Builder $query, string $from, string $to): Builder
+    {
+        return $query
+            ->whereDate('effective_from', '<=', $to)
+            ->where(fn (Builder $period) => $period
+                ->whereNull('effective_to')
+                ->orWhereDate('effective_to', '>=', $from));
+    }
+
+    public function allocatedAmount(float $netProfitOrLoss): float
+    {
+        return round($netProfitOrLoss * ((float) $this->percentage / 100), 2);
     }
 }
