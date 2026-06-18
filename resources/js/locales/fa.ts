@@ -837,15 +837,26 @@ const fa = {
     employees: {
         page: {
             title: 'کارمندان',
+            peopleOperations: 'مدیریت منابع بشری',
+            heroTitle: 'نمای روشن از تمام تیم‌ها',
+            heroDescription:
+                'اسناد، قراردادها، سمت‌ها، شیفت‌ها و تعیین جایداد کارمندان را از یک محیط منظم مدیریت کنید.',
+            workforceScope: 'محدوده کارمندان',
             heading: 'کارمندان: :count',
             headingDescription: 'مدیریت اسناد و اطلاعات کارمندان',
             selectPropertyForStats: 'جایداد را برای آمار انتخاب کنید',
             totalEmployees: 'مجموع کارمندان',
             totalEmployeesDescription:
                 'کارمندانی که در محدوده جایداد انتخاب‌شده قابل نمایش هستند.',
+            activeEmployees: 'کارمندان فعال',
+            activeEmployeesDescription:
+                'کارمندانی که فعلاً در فعالیت‌ها مصروف هستند.',
             contractEmployees: 'کارمندان قراردادی',
             contractEmployeesDescription:
                 'کارمندانی که شرایط استخدامی قراردادی دارند.',
+            propertiesRepresented: 'جایدادهای دارای کارمند',
+            propertiesRepresentedDescription:
+                'جایدادهایی که در این محدوده کارمند تعیین‌شده دارند.',
         },
         common: {
             empty: '—',

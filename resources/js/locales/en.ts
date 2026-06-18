@@ -837,15 +837,26 @@ const en = {
     employees: {
         page: {
             title: 'Employees',
+            peopleOperations: 'People operations',
+            heroTitle: 'A clearer view of every team',
+            heroDescription:
+                'Manage employee records, contracts, roles, shifts, and property assignments from one organized workspace.',
+            workforceScope: 'Workforce scope',
             heading: 'Employees: :count',
             headingDescription: 'Manage employee records',
             selectPropertyForStats: 'Select property for stats',
             totalEmployees: 'Total Employees',
             totalEmployeesDescription:
                 'Employees visible for the selected property scope.',
+            activeEmployees: 'Active Employees',
+            activeEmployeesDescription:
+                'Employees currently active in operations.',
             contractEmployees: 'Contract Employees',
             contractEmployeesDescription:
                 'Employees with contract-based employment terms.',
+            propertiesRepresented: 'Properties Represented',
+            propertiesRepresentedDescription:
+                'Properties with assigned employees in this scope.',
         },
         common: {
             empty: '—',

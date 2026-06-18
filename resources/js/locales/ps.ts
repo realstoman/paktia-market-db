@@ -831,15 +831,26 @@ const ps = {
     employees: {
         page: {
             title: 'کارکوونکي',
+            peopleOperations: 'د بشري سرچینو مدیریت',
+            heroTitle: 'د هرې ډلې روښانه لید',
+            heroDescription:
+                'د کارکوونکو اسناد، قراردادونه، دندې، شیفټونه او جایداد ټاکنې له یوه منظم ځایه مدیریت کړئ.',
+            workforceScope: 'د کارکوونکو ساحه',
             heading: 'کارکوونکي: :count',
             headingDescription: 'د کارکوونکو معلومات او اسناد اداره کړئ',
             selectPropertyForStats: 'د احصایې لپاره جایداد وټاکئ',
             totalEmployees: 'ټول کارکوونکي',
             totalEmployeesDescription:
                 'هغه کارکوونکي چې د ټاکل شوې جایدادونه په ساحه کې ښکاري.',
+            activeEmployees: 'فعال کارکوونکي',
+            activeEmployeesDescription:
+                'هغه کارکوونکي چې اوس په عملیاتو کې فعال دي.',
             contractEmployees: 'قراردادي کارکوونکي',
             contractEmployeesDescription:
                 'هغه کارکوونکي چې قراردادي دندې شرایط لري.',
+            propertiesRepresented: 'کارکوونکي لرونکي جایدادونه',
+            propertiesRepresentedDescription:
+                'هغه جایدادونه چې په دې ساحه کې ټاکل شوي کارکوونکي لري.',
         },
         common: {
             empty: '—',
