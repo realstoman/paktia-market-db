@@ -392,7 +392,10 @@ function ShareholderCard({
                                     )}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
-                                    {shareholder.nid_type}
+                                    {t(
+                                        `shareholders.nidTypes.${shareholder.nid_type}`,
+                                        shareholder.nid_type,
+                                    )}
                                 </span>
                             </div>
                         </div>

@@ -92,6 +92,7 @@ const ps = {
         finance: 'مالي',
         marketsProperties: 'مارکېټونه او جایدادونه',
         properties: 'د مارکټونه او جایدادونه',
+        shareholders: 'شریکان',
         users: 'د سیستم کارونکي',
         roles: 'صلایحتونه',
         reports: 'راپورونه',

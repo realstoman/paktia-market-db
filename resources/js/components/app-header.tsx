@@ -34,6 +34,7 @@ import {
     ChevronDown,
     ClipboardList,
     Globe2,
+    Handshake,
     LayoutGrid,
     MapPinned,
     Menu,
@@ -69,6 +70,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
         can: 'property.view',
     },
     {
+        titleKey: 'navigation.shareholders',
+        fallbackTitle: 'Shareholders',
+        href: '/shareholders',
+        icon: Handshake,
+        can: 'shareholders.view',
+    },
+    {
         titleKey: 'navigation.finance',
         fallbackTitle: 'Finance',
         href: '/finance',
@@ -99,6 +107,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
 ];
 
 const toolNavConfig: HeaderNavConfig[] = [
+    {
+        titleKey: 'navigation.toolShareholders',
+        fallbackTitle: 'Shareholders',
+        href: '/shareholders',
+        icon: Handshake,
+        can: 'shareholders.view',
+    },
     {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',

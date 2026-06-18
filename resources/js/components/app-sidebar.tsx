@@ -23,6 +23,7 @@ import {
     BriefcaseBusiness,
     Building2,
     ChartLine,
+    Handshake,
     LayoutGrid,
     ShieldCheck,
     Users,
@@ -73,6 +74,13 @@ const mainNavItems: SidebarNavConfig[] = [
         href: '/properties',
         icon: Building2,
         can: 'property.view',
+    },
+    {
+        titleKey: 'navigation.shareholders',
+        fallbackTitle: 'Shareholders',
+        href: '/shareholders',
+        icon: Handshake,
+        can: 'shareholders.view',
     },
     {
         titleKey: 'navigation.users',
