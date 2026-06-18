@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem, Country, Property, Province } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { Head, Link, useForm, type InertiaFormProps } from '@inertiajs/react';
 import {
     Building2,
@@ -666,7 +667,7 @@ function PropertyCard({ property }: { property: Property }) {
                         <Stat
                             value={
                                 property.building_area_sqm
-                                    ? `${property.building_area_sqm} m²`
+                                    ? `${formatNumber(property.building_area_sqm)} m²`
                                     : '—'
                             }
                             label={t('propertyWorkspace.building')}

@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,13 +11,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { Country, Property, Province } from '@/types';
@@ -58,9 +52,9 @@ export function EditPropertyDialog({
         usage_type: property.usage_type ?? 'commercial',
         country_id: property.country_id ? String(property.country_id) : '',
         province_id: property.province_id ? String(property.province_id) : '',
-        distance_from_city_km: property.distance_from_city_km ?? '',
-        land_area_sqm: property.land_area_sqm ?? '',
-        building_area_sqm: property.building_area_sqm ?? '',
+        distance_from_city_km: editableNumber(property.distance_from_city_km),
+        land_area_sqm: editableNumber(property.land_area_sqm),
+        building_area_sqm: editableNumber(property.building_area_sqm),
         declared_floors: property.declared_floors
             ? String(property.declared_floors)
             : '',
@@ -180,7 +174,7 @@ export function EditPropertyDialog({
                     </div>
 
                     <Field label={t('propertyWorkspace.fields.type')}>
-                        <Select
+                        <SearchableDropdown
                             value={form.data.property_type}
                             onValueChange={(value) =>
                                 form.setData(
@@ -192,25 +186,14 @@ export function EditPropertyDialog({
                                         | 'house',
                                 )
                             }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {['market', 'mall', 'block', 'house'].map(
-                                    (value) => (
-                                        <SelectItem value={value} key={value}>
-                                            {t(
-                                                `propertyWorkspace.types.${value}`,
-                                            )}
-                                        </SelectItem>
-                                    ),
-                                )}
-                            </SelectContent>
-                        </Select>
+                            options={['market', 'mall', 'block', 'house'].map((value) => ({ value, label: t(`propertyWorkspace.types.${value}`) }))}
+                            placeholder={t('propertyWorkspace.fields.type')}
+                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.usage')}>
-                        <Select
+                        <SearchableDropdown
                             value={form.data.usage_type}
                             onValueChange={(value) =>
                                 form.setData(
@@ -221,22 +204,11 @@ export function EditPropertyDialog({
                                         | 'mixed',
                                 )
                             }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {['commercial', 'residential', 'mixed'].map(
-                                    (value) => (
-                                        <SelectItem value={value} key={value}>
-                                            {t(
-                                                `propertyWorkspace.usage.${value}`,
-                                            )}
-                                        </SelectItem>
-                                    ),
-                                )}
-                            </SelectContent>
-                        </Select>
+                            options={['commercial', 'residential', 'mixed'].map((value) => ({ value, label: t(`propertyWorkspace.usage.${value}`) }))}
+                            placeholder={t('propertyWorkspace.fields.usage')}
+                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
                     </Field>
                     <Field
                         label={t('propertyWorkspace.fields.photo')}
@@ -254,52 +226,32 @@ export function EditPropertyDialog({
                         />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.country')}>
-                        <Select
+                        <SearchableDropdown
                             value={form.data.country_id}
                             onValueChange={(value) => {
                                 form.setData('country_id', value);
                                 form.setData('province_id', '');
                             }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {countries.map((country) => (
-                                    <SelectItem
-                                        key={country.id}
-                                        value={String(country.id)}
-                                    >
-                                        {country.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            options={countries.map((country) => ({ value: String(country.id), label: country.name }))}
+                            placeholder={t('propertyWorkspace.selectCountry')}
+                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.province')}>
-                        <Select
+                        <SearchableDropdown
                             value={form.data.province_id}
                             onValueChange={(value) =>
                                 form.setData('province_id', value)
                             }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {provinceOptions.map((province) => (
-                                    <SelectItem
-                                        key={province.id}
-                                        value={String(province.id)}
-                                    >
-                                        {province.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            options={provinceOptions.map((province) => ({ value: String(province.id), label: province.name }))}
+                            placeholder={t('propertyWorkspace.selectProvince')}
+                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
                     </Field>
                     <Field label={t('propertyWorkspace.relatedLocation')}>
-                        <Select
+                        <SearchableDropdown
                             value={form.data.parent_property_id || 'none'}
                             onValueChange={(value) =>
                                 form.setData(
@@ -307,24 +259,14 @@ export function EditPropertyDialog({
                                     value === 'none' ? '' : value,
                                 )
                             }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">
-                                    {t('propertyWorkspace.independent')}
-                                </SelectItem>
-                                {propertyOptions.map((option) => (
-                                    <SelectItem
-                                        key={option.id}
-                                        value={String(option.id)}
-                                    >
-                                        {option.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            options={[
+                                { value: 'none', label: t('propertyWorkspace.independent') },
+                                ...propertyOptions.map((option) => ({ value: String(option.id), label: option.name })),
+                            ]}
+                            placeholder={t('propertyWorkspace.independent')}
+                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
                     </Field>
                     <NumericField
                         label={t('propertyWorkspace.fields.distance')}
@@ -495,4 +437,10 @@ function NumericField({
             />
         </Field>
     );
+}
+
+function editableNumber(value: string | number | null | undefined): string {
+    return value === null || value === undefined || value === ''
+        ? ''
+        : String(Number(value));
 }

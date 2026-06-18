@@ -23,6 +23,7 @@ import {
     PropertyFloor,
     Province,
 } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
     Bath,
@@ -157,7 +158,7 @@ export default function PropertyShow({
                         label={t('propertyWorkspace.fields.buildingArea')}
                         value={
                             property.building_area_sqm
-                                ? `${property.building_area_sqm} m²`
+                                ? `${formatNumber(property.building_area_sqm)} m²`
                                 : '—'
                         }
                     />
@@ -231,7 +232,7 @@ export default function PropertyShow({
                                     label={t('propertyWorkspace.landArea')}
                                     value={
                                         property.land_area_sqm
-                                            ? `${property.land_area_sqm} m²`
+                                            ? `${formatNumber(property.land_area_sqm)} m²`
                                             : '—'
                                     }
                                 />
@@ -239,7 +240,7 @@ export default function PropertyShow({
                                     label={t('propertyWorkspace.distance')}
                                     value={
                                         property.distance_from_city_km
-                                            ? `${property.distance_from_city_km} km`
+                                            ? `${formatNumber(property.distance_from_city_km)} km`
                                             : '—'
                                     }
                                 />
@@ -390,7 +391,7 @@ function FloorCard({
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {floor.level_number} ·{' '}
-                        {floor.area_sqm ? `${floor.area_sqm} m²` : '—'} ·{' '}
+                        {floor.area_sqm ? `${formatNumber(floor.area_sqm)} m²` : '—'} ·{' '}
                         {(floor.units ?? []).length} {spaceLabel}
                     </p>
                 </div>
@@ -445,7 +446,7 @@ function FloorCard({
                                     </div>
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         {unit.area_sqm
-                                            ? `${unit.area_sqm} m²`
+                                            ? `${formatNumber(unit.area_sqm)} m²`
                                             : '—'}
                                         {!isMarket &&
                                             ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
