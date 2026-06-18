@@ -123,4 +123,16 @@ class Property extends Model
     {
         return $this->hasManyThrough(PropertyUnit::class, PropertyFloor::class);
     }
+
+    public function shareholdings()
+    {
+        return $this->hasMany(PropertyShareholding::class)->latest('effective_from');
+    }
+
+    public function shareholders()
+    {
+        return $this->belongsToMany(Shareholder::class, 'property_shareholdings')
+            ->withPivot(['percentage', 'capital_contribution', 'currency_id', 'effective_from', 'effective_to', 'notes'])
+            ->withTimestamps();
+    }
 }
