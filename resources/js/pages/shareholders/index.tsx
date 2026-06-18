@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -1082,13 +1083,13 @@ function OwnershipFields({
                 label={t('shareholders.fields.percentage')}
                 error={errors.percentage}
             >
-                <Input
-                    type="number"
+                <NumericInput
                     min="0.0001"
                     max="100"
                     step="0.0001"
                     value={data.percentage}
-                    onChange={(e) => setData('percentage', e.target.value)}
+                    onValueChange={(value) => setData('percentage', value)}
+                    showControls={false}
                     dir="ltr"
                 />
             </Field>
@@ -1096,14 +1097,14 @@ function OwnershipFields({
                 label={t('shareholders.fields.capital')}
                 error={errors.capital_contribution}
             >
-                <Input
-                    type="number"
+                <NumericInput
                     min="0"
                     step="1"
                     value={data.capital_contribution}
-                    onChange={(e) =>
-                        setData('capital_contribution', e.target.value)
+                    onValueChange={(value) =>
+                        setData('capital_contribution', value)
                     }
+                    showControls={false}
                     dir="ltr"
                 />
             </Field>
